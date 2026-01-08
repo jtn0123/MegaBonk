@@ -68,9 +68,20 @@ const DEFAULT_BUILD_STATS = {
     projectiles: 1
 };
 
+// Bug fix #14: Define magic numbers as constants
+const MAX_COMPARE_ITEMS = 3;
+const BUILD_ITEMS_LIMIT = 40;
+const VALID_TIERS = ['SS', 'S', 'A', 'B', 'C'];
+const VALID_RARITIES = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+
 // Expose to global scope for use in other scripts
-window.TIER_ORDER = TIER_ORDER;
-window.RARITY_ORDER = RARITY_ORDER;
-window.ITEM_IDS = ITEM_IDS;
-window.ITEM_EFFECTS = ITEM_EFFECTS;
-window.DEFAULT_BUILD_STATS = DEFAULT_BUILD_STATS;
+// Bug fix #15: Freeze objects to prevent external mutation
+window.TIER_ORDER = Object.freeze(TIER_ORDER);
+window.RARITY_ORDER = Object.freeze(RARITY_ORDER);
+window.ITEM_IDS = Object.freeze(ITEM_IDS);
+window.ITEM_EFFECTS = Object.freeze(ITEM_EFFECTS);
+window.DEFAULT_BUILD_STATS = Object.freeze(DEFAULT_BUILD_STATS);
+window.MAX_COMPARE_ITEMS = MAX_COMPARE_ITEMS;
+window.BUILD_ITEMS_LIMIT = BUILD_ITEMS_LIMIT;
+window.VALID_TIERS = Object.freeze(VALID_TIERS);
+window.VALID_RARITIES = Object.freeze(VALID_RARITIES);

@@ -56,7 +56,9 @@ function renderBuildPlanner() {
     if (itemsSelection) {
         itemsSelection.innerHTML = '';
         if (allData.items) {
-            allData.items.items.slice(0, 40).forEach(item => {
+            // Use constant instead of magic number
+            const limit = typeof BUILD_ITEMS_LIMIT !== 'undefined' ? BUILD_ITEMS_LIMIT : 40;
+            allData.items.items.slice(0, limit).forEach(item => {
                 const label = document.createElement('label');
                 label.innerHTML = `<input type="checkbox" value="${item.id}" class="item-checkbox"> ${item.name} (${item.tier})`;
                 itemsSelection.appendChild(label);
@@ -252,7 +254,9 @@ function clearBuild() {
 // Expose to global scope
 // ========================================
 
-window.currentBuild = currentBuild;
+// Bug fix #15: Provide getter instead of direct mutable reference
+window.getCurrentBuild = () => ({ ...currentBuild }); // Return a shallow copy
+window.currentBuild = currentBuild; // Keep for backward compatibility
 window.renderBuildPlanner = renderBuildPlanner;
 window.setupBuildPlannerEvents = setupBuildPlannerEvents;
 window.calculateBuildStats = calculateBuildStats;

@@ -14,8 +14,10 @@ function toggleCompareItem(itemId) {
     if (index > -1) {
         compareItems.splice(index, 1);
     } else {
-        if (compareItems.length >= 3) {
-            ToastManager.warning('You can only compare up to 3 items at once. Remove an item first.');
+        // Use constant instead of magic number
+        const maxItems = typeof MAX_COMPARE_ITEMS !== 'undefined' ? MAX_COMPARE_ITEMS : 3;
+        if (compareItems.length >= maxItems) {
+            ToastManager.warning(`You can only compare up to ${maxItems} items at once. Remove an item first.`);
             return;
         }
         compareItems.push(itemId);
@@ -201,7 +203,10 @@ function clearCompare() {
 // Expose to global scope
 // ========================================
 
-window.compareItems = compareItems;
+// Bug fix #15: Provide getter instead of direct mutable reference
+// This prevents external code from accidentally corrupting the array
+window.getCompareItems = () => [...compareItems]; // Return a copy
+window.compareItems = compareItems; // Keep for backward compatibility but prefer getter
 window.toggleCompareItem = toggleCompareItem;
 window.updateCompareButton = updateCompareButton;
 window.openCompareModal = openCompareModal;

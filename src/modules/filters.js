@@ -102,7 +102,8 @@ function updateFilters(tabName) {
  */
 function filterData(data, tabName) {
     let filtered = [...data];
-    const searchTerm = safeGetElementById('searchInput')?.value.toLowerCase() || '';
+    // Bug fix #12: Complete optional chaining to handle null element AND null value
+    const searchTerm = safeGetElementById('searchInput')?.value?.toLowerCase() || '';
 
     // Search filter
     filtered = filtered.filter(item => {
