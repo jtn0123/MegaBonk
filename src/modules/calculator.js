@@ -27,20 +27,34 @@ function calculateBreakpoint() {
     const target = parseFloat(safeGetElementById('calc-target')?.value);
     const resultDiv = safeGetElementById('calc-result');
 
-    if (!itemId || !target) {
-        ToastManager.warning('Please select an item and enter a target value!');
+    // Bug fix #2: Check for NaN explicitly since parseFloat(undefined) returns NaN
+    if (!itemId || isNaN(target) || target <= 0) {
+        ToastManager.warning('Please select an item and enter a valid target value!');
         return;
     }
 
     const item = allData.items?.items.find(i => i.id === itemId);
-    if (!item) return;
+    if (!item) {
+        ToastManager.error('Item not found');
+        return;
+    }
+
+    // Bug fix #3: Check that scaling_per_stack exists and has elements
+    if (!item.scaling_per_stack?.length) {
+        ToastManager.warning('This item has no scaling data');
+        return;
+    }
 
     // Calculate stacks needed
     let stacksNeeded = 0;
     const perStack = item.scaling_per_stack[0]; // Value per stack from first entry
 
+    // Bug fix #1: Check for division by zero
     if (perStack > 0) {
         stacksNeeded = Math.ceil(target / perStack);
+    } else {
+        ToastManager.warning('Invalid scaling value for this item');
+        return;
     }
 
     // Cap checks

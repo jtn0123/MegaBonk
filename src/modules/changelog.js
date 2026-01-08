@@ -86,6 +86,10 @@ function formatCategoryName(category) {
 function formatChangelogDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
+    // Bug fix #6: Validate date is valid before formatting
+    if (isNaN(date.getTime())) {
+        return 'Invalid Date';
+    }
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',

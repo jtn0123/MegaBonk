@@ -150,8 +150,11 @@ function renderItems(items) {
         container.appendChild(card);
     });
 
-    // Initialize charts after DOM is ready
-    setTimeout(() => initializeItemCharts(), 50);
+    // Bug fix #9: Use requestAnimationFrame for more reliable chart initialization
+    // This ensures DOM is painted before chart initialization
+    requestAnimationFrame(() => {
+        requestAnimationFrame(() => initializeItemCharts());
+    });
 }
 
 /**

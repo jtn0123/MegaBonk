@@ -27,7 +27,11 @@ function openDetailModal(type, id) {
             break;
     }
 
-    if (!data) return;
+    // Bug fix #11: Show error toast instead of failing silently
+    if (!data) {
+        ToastManager.error(`Could not find ${type} with ID: ${id}`);
+        return;
+    }
 
     const modal = safeGetElementById('itemModal');
     const modalBody = safeGetElementById('modalBody');
@@ -135,8 +139,16 @@ function renderItemModal(data) {
         ${data.anti_synergies?.length ? `<div class="anti-synergies-section"><h3>Anti-Synergies</h3><div class="antisynergy-list">${data.anti_synergies.map(s => `<span class="antisynergy-tag">${s}</span>`).join('')}</div></div>` : ''}
     `;
 
-    // Initialize chart after modal is displayed
-    setTimeout(() => {
+    // Bug fix #10: Use requestAnimationFrame for more reliable chart initialization
+    // Initialize chart after modal is displayed and DOM is ready
+    const initChart = () => {
+        const canvas = document.getElementById(`modal-chart-${data.id}`);
+        if (!canvas) {
+            // Canvas not ready yet, try again
+            requestAnimationFrame(initChart);
+            return;
+        }
+
         if (hasScalingTracks) {
             // Initialize with first track
             const firstTrackKey = Object.keys(data.scaling_tracks)[0];
@@ -160,35 +172,48 @@ function renderItemModal(data) {
             };
             createScalingChart(`modal-chart-${data.id}`, data.scaling_per_stack, data.name, data.scaling_type || '', true, data.secondary_scaling || null, effectiveCap, chartOptions);
         }
-    }, 100);
+    };
+    requestAnimationFrame(initChart);
 
     return content;
 }
 
 /**
- * Setup tab click handlers for scaling tracks
+ * Setup tab click handlers for scaling tracks using event delegation
+ * Bug fix #7: Use event delegation instead of adding listeners to each tab
  * @param {Object} data - Item data with scaling_tracks
  */
 function setupScalingTabHandlers(data) {
-    const tabs = document.querySelectorAll(`.scaling-tab[data-item-id="${data.id}"]`);
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Update active state
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
+    // Use event delegation on the container to avoid memory leaks
+    const container = document.querySelector(`.scaling-tabs`);
+    if (!container) return;
 
-            // Get track data and redraw chart
-            const trackKey = tab.dataset.track;
-            const track = data.scaling_tracks[trackKey];
-            const effectiveCap = getEffectiveStackCap(data);
-            const chartOptions = {
-                scalingFormulaType: data.scaling_formula_type || 'linear',
-                hyperbolicConstant: data.hyperbolic_constant || 1.0,
-                maxStacks: data.max_stacks || null
-            };
-            createScalingChart(`modal-chart-${data.id}`, track.values, track.stat, data.scaling_type || '', true, null, effectiveCap, chartOptions);
-        });
-    });
+    // Store handler reference for potential cleanup
+    const handleTabClick = (e) => {
+        const tab = e.target.closest(`.scaling-tab[data-item-id="${data.id}"]`);
+        if (!tab) return;
+
+        // Update active state
+        const tabs = container.querySelectorAll(`.scaling-tab[data-item-id="${data.id}"]`);
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+
+        // Get track data and redraw chart
+        const trackKey = tab.dataset.track;
+        const track = data.scaling_tracks[trackKey];
+        const effectiveCap = getEffectiveStackCap(data);
+        const chartOptions = {
+            scalingFormulaType: data.scaling_formula_type || 'linear',
+            hyperbolicConstant: data.hyperbolic_constant || 1.0,
+            maxStacks: data.max_stacks || null
+        };
+        createScalingChart(`modal-chart-${data.id}`, track.values, track.stat, data.scaling_type || '', true, null, effectiveCap, chartOptions);
+    };
+
+    // Remove any existing handler before adding new one
+    container.removeEventListener('click', container._tabHandler);
+    container._tabHandler = handleTabClick;
+    container.addEventListener('click', handleTabClick);
 }
 
 /**

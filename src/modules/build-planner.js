@@ -112,19 +112,34 @@ function calculateBuildStats() {
             evasion_internal: 0, projectiles: 1
         };
 
+    // Bug fix #4: Use more specific matching instead of fragile includes()
+    // Check for specific passive keywords that grant bonuses
     if (currentBuild.character) {
-        if (currentBuild.character.passive_ability.includes('Crit Chance')) stats.crit_chance += 50;
-        if (currentBuild.character.passive_ability.includes('HP')) stats.hp += 50;
-        if (currentBuild.character.passive_ability.includes('Damage')) stats.damage += 20;
+        const passive = currentBuild.character.passive_ability || '';
+        // Match specific patterns to avoid false positives
+        if (/\+\d+%?\s*Crit(ical)?\s*Chance/i.test(passive) ||
+            currentBuild.character.id === 'fox') { // Fox has crit passive
+            stats.crit_chance += 50;
+        }
+        if (/\+\d+%?\s*(Max\s*)?HP/i.test(passive) ||
+            currentBuild.character.id === 'ogre') { // Ogre has HP passive
+            stats.hp += 50;
+        }
+        if (/\+\d+%?\s*Damage/i.test(passive) ||
+            currentBuild.character.id === 'megachad') { // Megachad has damage passive
+            stats.damage += 20;
+        }
     }
 
+    // Bug fix #5: Use parseFloat instead of parseInt for decimal damage values
     if (currentBuild.weapon) {
-        stats.damage += parseInt(currentBuild.weapon.base_damage) || 0;
+        stats.damage += parseFloat(currentBuild.weapon.base_damage) || 0;
     }
 
     currentBuild.tomes.forEach(tome => {
         const tomeLevel = 5;
-        const value = parseFloat(tome.value_per_level.match(/[\d.]+/)?.[0] || 0);
+        // Bug fix #13: Use proper regex that won't match invalid numbers like "1.2.3"
+        const value = parseFloat(tome.value_per_level.match(/\d+(?:\.\d+)?/)?.[0] || 0);
         if (tome.stat_affected === 'Damage') stats.damage += value * tomeLevel * 100;
         else if (tome.stat_affected === 'Crit Chance' || tome.id === 'precision') stats.crit_chance += value * tomeLevel * 100;
         else if (tome.stat_affected === 'Crit Damage') stats.crit_damage += value * tomeLevel * 100;
