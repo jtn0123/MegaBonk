@@ -284,6 +284,124 @@ describe('getDataForTab()', () => {
   });
 });
 
+describe('edge cases and error scenarios', () => {
+  let allData;
+
+  beforeEach(() => {
+    createMinimalDOM();
+    allData = {
+      items: null,
+      weapons: null,
+      tomes: null,
+      characters: null,
+      shrines: null,
+      stats: null
+    };
+  });
+
+  it('should handle network timeout gracefully', async () => {
+    global.fetch = vi.fn().mockImplementation(() =>
+      new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Request timeout')), 100)
+      )
+    );
+
+    const result = await loadAllData(allData);
+
+    expect(result.success).toBe(false);
+    expect(global.alert).toHaveBeenCalled();
+  });
+
+  it('should handle malformed JSON response', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.reject(new SyntaxError('Unexpected token'))
+    });
+
+    const result = await loadAllData(allData);
+
+    expect(result.success).toBe(false);
+    expect(console.error).toHaveBeenCalled();
+  });
+
+  it('should handle 404 response', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 404,
+      json: () => Promise.reject(new Error('Not Found'))
+    });
+
+    const result = await loadAllData(allData);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('should handle 500 server error', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: () => Promise.reject(new Error('Internal Server Error'))
+    });
+
+    const result = await loadAllData(allData);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('should handle empty JSON response', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({})
+    });
+
+    const result = await loadAllData(allData);
+
+    // Should succeed but with empty data
+    expect(result.success).toBe(true);
+    expect(allData.items).toEqual({});
+  });
+
+  it('should handle partial data loading failure', async () => {
+    let callCount = 0;
+    global.fetch = vi.fn().mockImplementation(() => {
+      callCount++;
+      if (callCount === 3) {
+        return Promise.reject(new Error('Third file failed'));
+      }
+      return Promise.resolve({
+        ok: true,
+        json: () => Promise.resolve({ items: [], version: '1.0.0', last_updated: '2024-01-01' })
+      });
+    });
+
+    const result = await loadAllData(allData);
+
+    expect(result.success).toBe(false);
+  });
+
+  it('should handle missing version element gracefully', async () => {
+    document.getElementById('version')?.remove();
+
+    const mockData = createMockAllData();
+    setupFetchMocks(mockData);
+
+    // Should not throw
+    const result = await loadAllData(allData);
+    expect(result.success).toBe(true);
+  });
+
+  it('should handle missing last-updated element gracefully', async () => {
+    document.getElementById('last-updated')?.remove();
+
+    const mockData = createMockAllData();
+    setupFetchMocks(mockData);
+
+    // Should not throw
+    const result = await loadAllData(allData);
+    expect(result.success).toBe(true);
+  });
+});
+
 describe('data validation', () => {
   it('should validate items have required fields', async () => {
     const mockData = createMockAllData();

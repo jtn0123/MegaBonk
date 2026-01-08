@@ -255,6 +255,25 @@ function isValidExternalUrl(url) {
 }
 
 // ========================================
+// Performance Utilities
+// ========================================
+
+/**
+ * Create a debounced version of a function
+ * Delays execution until after wait milliseconds have elapsed since the last call
+ * @param {Function} fn - Function to debounce
+ * @param {number} delay - Delay in milliseconds
+ * @returns {Function} Debounced function
+ */
+function debounce(fn, delay) {
+    let timeoutId;
+    return function (...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
+
+// ========================================
 // Expose to global scope
 // ========================================
 
@@ -275,3 +294,4 @@ window.generateBadge = generateBadge;
 window.generateMetaTags = generateMetaTags;
 window.findEntityById = findEntityById;
 window.isValidExternalUrl = isValidExternalUrl;
+window.debounce = debounce;

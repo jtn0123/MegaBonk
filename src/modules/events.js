@@ -144,10 +144,10 @@ function setupEventListeners() {
         });
     });
 
-    // Search input
+    // Search input - Bug fix: Add debounce to prevent excessive re-renders
     const searchInput = safeGetElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', handleSearch);
+        searchInput.addEventListener('input', debounce(handleSearch, 300));
     }
 
     // Modal close buttons

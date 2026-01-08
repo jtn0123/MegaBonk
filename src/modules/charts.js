@@ -221,7 +221,9 @@ function createCompareChart(canvasId, items) {
     }
 
     const colors = ['#e94560', '#4ecdc4', '#f9ca24'];
-    const maxLength = Math.max(...items.map(item => item.scaling_per_stack?.length || 0));
+    // Bug fix: Handle empty array - Math.max() with no args returns -Infinity
+    const lengths = items.map(item => item.scaling_per_stack?.length || 0);
+    const maxLength = lengths.length > 0 ? Math.max(...lengths) : 10;
     const labels = Array.from({ length: Math.min(maxLength, 10) }, (_, i) => `${i + 1}`);
 
     const datasets = items.map((item, index) => {
@@ -278,7 +280,9 @@ function createCompareChart(canvasId, items) {
  * @returns {number[]|null} Array of progression values or null
  */
 function calculateTomeProgression(tome, maxLevels = 10) {
-    const valueStr = tome.value_per_level;
+    // Bug fix: Check for null/undefined before calling .match()
+    const valueStr = tome?.value_per_level;
+    if (!valueStr || typeof valueStr !== 'string') return null;
     // Parse numeric value from strings like "+7% crit chance" or "+0.08x (8% damage)"
     const match = valueStr.match(/[+-]?([\d.]+)/);
     if (!match) return null;
