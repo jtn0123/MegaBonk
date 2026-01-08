@@ -37,7 +37,8 @@
       "anti_synergies": [],
       "notes": "ONE-AND-DONE: Do not pick up multiple copies. The effect does not stack.",
       "graph_type": "flat",
-      "one_and_done": true
+      "one_and_done": true,
+      "image": "images/items/anvil.png"
     },
     {
       "id": "beefy_ring",
@@ -116,7 +117,8 @@
       "anti_synergies": [],
       "notes": "SCALES ABSURDLY: Each copy adds 2% more chance. Becomes guaranteed at 50 copies.",
       "graph_type": "chance_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/big_bonk.png"
     },
     {
       "id": "spicy_meatball",
@@ -154,7 +156,8 @@
       "anti_synergies": [],
       "notes": "SCALES ABSURDLY: Reaches 100% proc rate at 4 copies. After that, consider other items.",
       "graph_type": "capped_chance",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/spicy_meatball.png"
     },
     {
       "id": "gym_sauce",
@@ -306,7 +309,8 @@
       "anti_synergies": [],
       "notes": "ONE-AND-DONE: Do not pick up multiple copies. One is perfect.",
       "graph_type": "flat",
-      "one_and_done": true
+      "one_and_done": true,
+      "image": "images/items/sucky_magnet.png"
     },
     {
       "id": "za_warudo",
@@ -342,7 +346,8 @@
       "anti_synergies": [],
       "notes": "STACKS MODERATELY: Each copy = one more life. Useful but has diminishing returns.",
       "graph_type": "linear_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/za_warudo.png"
     },
     {
       "id": "holy_book",
@@ -380,7 +385,8 @@
       "anti_synergies": [],
       "notes": "STACKS VERY WELL: Incredible scaling for tank/sustain builds.",
       "graph_type": "linear_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/holy_book.png"
     },
     {
       "id": "chonkplate",
@@ -417,7 +423,8 @@
       "anti_synergies": [],
       "notes": "STACKS VERY WELL: Each copy effectively doubles your HP pool.",
       "graph_type": "percentage_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/chonkplate.png"
     },
     {
       "id": "demonic_soul",
@@ -493,7 +500,8 @@
       "anti_synergies": [],
       "notes": "STACKS EXTREMELY WELL: Each copy adds another proc roll. Game-breaking with proc items.",
       "graph_type": "linear_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/overpowered_lamp.png"
     },
     {
       "id": "cursed_doll",
@@ -567,7 +575,8 @@
       "anti_synergies": [],
       "notes": "STACKS WELL: Reaches 100% at 4 copies. Consider stopping there.",
       "graph_type": "capped_chance",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/lightning_orb.png"
     },
     {
       "id": "turbo_skates",
@@ -681,7 +690,8 @@
       "anti_synergies": [],
       "notes": "STACKS WELL: Reaches 100% at 5 copies for perma-freeze.",
       "graph_type": "capped_chance",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/ice_cube.png"
     },
     {
       "id": "dragonfire",
@@ -718,7 +728,8 @@
       "anti_synergies": [],
       "notes": "STACKS WELL: Reaches 100% at 7 copies. Good for burn builds.",
       "graph_type": "capped_chance",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/dragonfire.png"
     },
     {
       "id": "beer",
@@ -1136,7 +1147,8 @@
       "anti_synergies": [],
       "notes": "STACKS MODERATELY: More copies = more execute chance and higher damage cap. Slow ramp.",
       "graph_type": "ramping_capped",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/joes_dagger.png"
     },
     {
       "id": "bloody_cleaver",
@@ -1173,7 +1185,8 @@
       "anti_synergies": [],
       "notes": "STACKS WELL: Reaches 100% at 2 copies. Perfect for bloodmark builds.",
       "graph_type": "capped_chance",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/bloody_cleaver.png"
     },
     {
       "id": "soul_harvester",
@@ -1209,7 +1222,8 @@
       "anti_synergies": [],
       "notes": "STACKS VERY WELL: Each copy doubles soul generation. Creates satisfying soul storms.",
       "graph_type": "linear_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/soul_harvester.png"
     },
     {
       "id": "energy_core",
@@ -1245,7 +1259,8 @@
       "anti_synergies": [],
       "notes": "STACKS WELL: More copies = more orbs = more damage.",
       "graph_type": "linear_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/energy_core.png"
     },
     {
       "id": "speed_boi",
@@ -1284,7 +1299,8 @@
       ],
       "notes": "STACKS WELL: Massive damage when low HP. Requires careful play.",
       "graph_type": "conditional_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/speed_boi.png"
     },
     {
       "id": "giant_fork",
@@ -1322,7 +1338,8 @@
       "anti_synergies": [],
       "notes": "STACKS WELL: More copies = more megacrit potential. Best with 100%+ crit.",
       "graph_type": "exponential_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/giant_fork.png"
     },
     {
       "id": "power_gloves",
@@ -1358,7 +1375,8 @@
       "anti_synergies": [],
       "notes": "STACKS MODERATELY: Needs many copies to reach high proc rate.",
       "graph_type": "linear_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/power_gloves.png"
     },
     {
       "id": "backpack",
@@ -1434,7 +1452,8 @@
       ],
       "notes": "SITUATIONAL STACKING: Only affects opening damage. Limited use.",
       "graph_type": "conditional_scaling",
-      "one_and_done": false
+      "one_and_done": false,
+      "image": "images/items/tactical_glasses.png"
     },
     {
       "id": "wrench",

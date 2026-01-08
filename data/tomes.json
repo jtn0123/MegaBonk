@@ -138,7 +138,8 @@
         "Monke",
         "Athena"
       ],
-      "notes": "More HP = survivability + Beefy Ring damage scaling."
+      "notes": "More HP = survivability + Beefy Ring damage scaling.",
+      "image": "images/tomes/hp.png"
     },
     {
       "id": "agility",
@@ -357,7 +358,8 @@
       "synergies_characters": [
         "All characters"
       ],
-      "notes": "Quality of life. Faster projectiles = better hit rate on fast enemies."
+      "notes": "Quality of life. Faster projectiles = better hit rate on fast enemies.",
+      "image": "images/tomes/projectile_speed.png"
     },
     {
       "id": "quantity",
@@ -548,7 +550,8 @@
         "Spaceman",
         "All characters"
       ],
-      "notes": "HARD CAP at 1000% (10x). Priority early game for snowball."
+      "notes": "HARD CAP at 1000% (10x). Priority early game for snowball.",
+      "image": "images/tomes/xp.png"
     },
     {
       "id": "luck",
