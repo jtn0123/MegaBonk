@@ -150,8 +150,7 @@
       "cons": [
         "Moderate damage",
         "Requires upgrades to shine"
-      ],
-      "image": "images/weapons/bow.png"
+      ]
     },
     {
       "id": "lightning_staff",
@@ -379,8 +378,7 @@
       "cons": [
         "Requires duration investment",
         "Slower initial clear"
-      ],
-      "image": "images/weapons/axe.png"
+      ]
     },
     {
       "id": "tornado",
@@ -473,8 +471,7 @@
       "cons": [
         "Requires setup",
         "Lower single-target damage"
-      ],
-      "image": "images/weapons/black_hole.png"
+      ]
     },
     {
       "id": "dexecutioner",
@@ -657,8 +654,7 @@
       "cons": [
         "Requires CL4NK unlock",
         "Projectile speed matters"
-      ],
-      "image": "images/weapons/slutty_rocket.png"
+      ]
     },
     {
       "id": "poison_flask",
@@ -747,8 +743,7 @@
       "cons": [
         "Limited upgrade options",
         "Requires ice items"
-      ],
-      "image": "images/weapons/frostwalker.png"
+      ]
     },
     {
       "id": "aegis",
@@ -837,8 +832,7 @@
       "cons": [
         "Lower tier",
         "Situational"
-      ],
-      "image": "images/weapons/firestaff.png"
+      ]
     },
     {
       "id": "dice",
@@ -932,8 +926,7 @@
       "cons": [
         "Secret unlock",
         "Requires finding banana"
-      ],
-      "image": "images/weapons/bananarang.png"
+      ]
     },
     {
       "id": "shotgun",
@@ -1072,8 +1065,7 @@
       "cons": [
         "Close range only",
         "Enemies pushed away"
-      ],
-      "image": "images/weapons/chunkers.png"
+      ]
     },
     {
       "id": "space_noodle",
@@ -1209,8 +1201,7 @@
         "Very slow",
         "Hard unlock",
         "Expensive"
-      ],
-      "image": "images/weapons/hero_sword.png"
+      ]
     },
     {
       "id": "wireless_dagger",
@@ -1347,8 +1338,7 @@
         "Lower damage",
         "Requires movement",
         "Enemies must walk into trail"
-      ],
-      "image": "images/weapons/flamewalker.png"
+      ]
     }
   ]
 }
