@@ -40,8 +40,9 @@ let chartInstances = {};
  * @param {string} label - Chart label (item/tome name)
  * @param {string} scalingType - Type of scaling for formatting
  * @param {boolean} isModal - If true, creates a larger chart for modals
+ * @param {Object} secondaryData - Optional secondary scaling data {stat: string, values: number[]}
  */
-function createScalingChart(canvasId, data, label, scalingType = '', isModal = false) {
+function createScalingChart(canvasId, data, label, scalingType = '', isModal = false, secondaryData = null) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return null;
 
@@ -62,29 +63,51 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
                          scalingType.includes('damage') ||
                          scalingType.includes('crit');
 
+    // Build datasets array
+    const datasets = [{
+        label: label,
+        data: data,
+        borderColor: '#e94560',
+        backgroundColor: 'rgba(233, 69, 96, 0.2)',
+        fill: true,
+        tension: 0.3,
+        pointRadius: isModal ? 5 : 3,
+        pointHoverRadius: isModal ? 8 : 5,
+        pointBackgroundColor: '#e94560',
+        borderWidth: isModal ? 3 : 2,
+        yAxisID: 'y'
+    }];
+
+    // Add secondary dataset if provided
+    const hasSecondary = secondaryData && secondaryData.values && secondaryData.values.length > 0;
+    if (hasSecondary) {
+        datasets.push({
+            label: secondaryData.stat,
+            data: secondaryData.values,
+            borderColor: '#4ecdc4',
+            backgroundColor: 'rgba(78, 205, 196, 0.2)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: isModal ? 5 : 3,
+            pointHoverRadius: isModal ? 8 : 5,
+            pointBackgroundColor: '#4ecdc4',
+            borderWidth: isModal ? 3 : 2,
+            yAxisID: 'y2'
+        });
+    }
+
     const ctx = canvas.getContext('2d');
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{
-                label: label,
-                data: data,
-                borderColor: '#e94560',
-                backgroundColor: 'rgba(233, 69, 96, 0.2)',
-                fill: true,
-                tension: 0.3,
-                pointRadius: isModal ? 5 : 3,
-                pointHoverRadius: isModal ? 8 : 5,
-                pointBackgroundColor: '#e94560',
-                borderWidth: isModal ? 3 : 2
-            }]
+            datasets: datasets
         },
         options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: { display: false },
+                legend: { display: hasSecondary, labels: { color: '#a0a0a0', font: { size: isModal ? 12 : 9 } } },
                 tooltip: {
                     backgroundColor: '#1a1a2e',
                     titleColor: '#ffffff',
@@ -94,7 +117,9 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
                     callbacks: {
                         label: (context) => {
                             const val = context.parsed.y;
-                            return `${val}${isPercentage ? '%' : ''}`;
+                            const datasetLabel = context.dataset.label || '';
+                            const suffix = datasetLabel.includes('%') || isPercentage ? '%' : '';
+                            return `${datasetLabel}: ${val}${suffix}`;
                         }
                     }
                 }
@@ -114,19 +139,35 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
                     }
                 },
                 y: {
+                    position: 'left',
                     title: {
                         display: isModal,
                         text: isPercentage ? '%' : 'Value',
-                        color: '#a0a0a0',
+                        color: '#e94560',
                         font: { size: isModal ? 14 : 10 }
                     },
                     grid: { color: 'rgba(255, 255, 255, 0.1)' },
                     ticks: {
-                        color: '#a0a0a0',
+                        color: '#e94560',
                         font: { size: isModal ? 12 : 9 },
                         callback: (value) => `${value}${isPercentage ? '%' : ''}`
                     },
                     beginAtZero: true
+                },
+                y2: {
+                    position: 'right',
+                    display: hasSecondary,
+                    title: {
+                        display: isModal && hasSecondary,
+                        text: secondaryData?.stat || 'Secondary',
+                        color: '#4ecdc4',
+                        font: { size: isModal ? 14 : 10 }
+                    },
+                    grid: { drawOnChartArea: false },
+                    ticks: {
+                        color: '#4ecdc4',
+                        font: { size: isModal ? 12 : 9 }
+                    }
                 }
             }
         }
@@ -151,11 +192,32 @@ function calculateTomeProgression(tome, maxLevels = 10) {
     const perLevel = parseFloat(match[1]);
     // Scale appropriately - percentages stay as-is, multipliers get scaled
     const isMultiplier = valueStr.includes('x');
-    const scaledPerLevel = isMultiplier ? perLevel * 100 : perLevel;
+    const isHyperbolic = valueStr.toLowerCase().includes('hyperbolic');
 
-    return Array.from({length: maxLevels}, (_, i) =>
-        Math.round(scaledPerLevel * (i + 1) * 100) / 100
-    );
+    // Detect which hyperbolic formula to use based on stat type
+    const statLower = (tome.stat_affected || '').toLowerCase();
+    const isEvasion = statLower.includes('evasion');
+    const isArmor = statLower.includes('armor');
+
+    return Array.from({length: maxLevels}, (_, i) => {
+        const internalValue = (isMultiplier ? perLevel * 100 : perLevel) * (i + 1);
+
+        if (isHyperbolic && isEvasion) {
+            // Evasion formula: actual = internal / (1 + internal)
+            // Convert to percentage: internal is in %, so divide by 100 for formula
+            const internalDecimal = internalValue / 100;
+            const actualEvasion = internalDecimal / (1 + internalDecimal) * 100;
+            return Math.round(actualEvasion * 100) / 100;
+        } else if (isHyperbolic && isArmor) {
+            // Armor formula: actual = internal / (0.75 + internal)
+            // Convert to percentage: internal is in %, so divide by 100 for formula
+            const internalDecimal = internalValue / 100;
+            const actualArmor = internalDecimal / (0.75 + internalDecimal) * 100;
+            return Math.round(actualArmor * 100) / 100;
+        }
+
+        return Math.round(internalValue * 100) / 100;
+    });
 }
 
 /**
@@ -167,7 +229,7 @@ function initializeItemCharts() {
         // Only create charts for items that stack
         if (item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat') {
             const canvasId = `chart-${item.id}`;
-            createScalingChart(canvasId, item.scaling_per_stack, item.name, item.scaling_type || '');
+            createScalingChart(canvasId, item.scaling_per_stack, item.name, item.scaling_type || '', false, item.secondary_scaling || null);
         }
     });
 }
@@ -944,7 +1006,7 @@ function openDetailModal(type, id) {
         // Initialize chart after modal is displayed
         if (showGraph) {
             setTimeout(() => {
-                createScalingChart(`modal-chart-${data.id}`, data.scaling_per_stack, data.name, data.scaling_type || '', true);
+                createScalingChart(`modal-chart-${data.id}`, data.scaling_per_stack, data.name, data.scaling_type || '', true, data.secondary_scaling || null);
             }, 100);
         }
     } else if (type === 'weapon') {
