@@ -1593,14 +1593,14 @@ footer a:hover {
 
 @media (max-width: 768px) {
     .item-graph-container {
-        height: 100px;
+        height: 160px;
     }
 
     .tome-graph-container {
-        height: 80px;
+        height: 140px;
     }
 
     .modal-graph-container {
-        height: 200px;
+        height: 280px;
     }
 }
