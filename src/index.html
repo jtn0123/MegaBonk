@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MegaBonk Complete Guide - Items, Weapons, Tomes, Characters & Builds</title>
+    <meta name="description" content="Complete MegaBonk guide with 77 items, 29 weapons, 23 tomes, build planner, and breakpoint calculator">
+    <meta name="theme-color" content="#00ff88">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <script src="libs/chart.min.js"></script>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>🎮 MegaBonk Complete Guide</h1>
+            <p class="subtitle">Items • Weapons • Tomes • Characters • Shrines • Build Planner</p>
+            <div class="version-info">
+                <span id="version">Version: Loading...</span>
+                <span id="last-updated">Last Updated: Loading...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Tab Navigation -->
+    <nav class="tabs">
+        <div class="container">
+            <div class="tab-buttons">
+                <button class="tab-btn active" data-tab="items">📦 Items</button>
+                <button class="tab-btn" data-tab="weapons">⚔️ Weapons</button>
+                <button class="tab-btn" data-tab="tomes">📚 Tomes</button>
+                <button class="tab-btn" data-tab="characters">👤 Characters</button>
+                <button class="tab-btn" data-tab="shrines">⛩️ Shrines</button>
+                <button class="tab-btn" data-tab="build-planner">🛠️ Build Planner</button>
+                <button class="tab-btn" data-tab="calculator">🧮 Calculator</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Filters (context-sensitive based on active tab) -->
+    <nav class="controls">
+        <div class="container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="🔍 Search..." />
+            </div>
+
+            <div class="filters" id="filters">
+                <!-- Filters dynamically updated based on active tab -->
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Stats Summary (context-sensitive) -->
+        <div id="stats-summary" class="stats-panel">
+            <!-- Dynamically populated based on active tab -->
+        </div>
+
+        <!-- Tab Content Containers -->
+        <div id="tab-content">
+            <!-- Items Tab -->
+            <div id="items-tab" class="tab-content active">
+                <div id="itemsContainer" class="items-grid">
+                    <!-- Items loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Weapons Tab -->
+            <div id="weapons-tab" class="tab-content">
+                <div id="weaponsContainer" class="items-grid">
+                    <!-- Weapons loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Tomes Tab -->
+            <div id="tomes-tab" class="tab-content">
+                <div id="tomesContainer" class="items-grid">
+                    <!-- Tomes loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Characters Tab -->
+            <div id="characters-tab" class="tab-content">
+                <div id="charactersContainer" class="items-grid">
+                    <!-- Characters loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Shrines Tab -->
+            <div id="shrines-tab" class="tab-content">
+                <div id="shrinesContainer" class="shrines-grid">
+                    <!-- Shrines loaded dynamically -->
+                </div>
+            </div>
+
+            <!-- Build Planner Tab -->
+            <div id="build-planner-tab" class="tab-content">
+                <div id="buildPlannerContainer" class="build-planner">
+                    <div class="build-section">
+                        <h2>🛠️ Build Your Perfect Loadout</h2>
+                        <p>Select character, weapon, tomes, and items to see synergies and stats.</p>
+                    </div>
+
+                    <div class="build-grid">
+                        <!-- Character Selection -->
+                        <div class="build-slot">
+                            <h3>👤 Character</h3>
+                            <select id="build-character">
+                                <option value="">Select Character...</option>
+                            </select>
+                            <div id="character-preview" class="slot-preview"></div>
+                        </div>
+
+                        <!-- Weapon Selection -->
+                        <div class="build-slot">
+                            <h3>⚔️ Weapon</h3>
+                            <select id="build-weapon">
+                                <option value="">Select Weapon...</option>
+                            </select>
+                            <div id="weapon-preview" class="slot-preview"></div>
+                        </div>
+
+                        <!-- Tomes Selection -->
+                        <div class="build-slot full-width">
+                            <h3>📚 Priority Tomes (Select up to 5)</h3>
+                            <div id="tomes-selection" class="multi-select">
+                                <!-- Checkboxes generated dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Items Selection -->
+                        <div class="build-slot full-width">
+                            <h3>📦 Core Items (Select up to 6)</h3>
+                            <div id="items-selection" class="multi-select">
+                                <!-- Checkboxes generated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Build Analysis -->
+                    <div class="build-analysis">
+                        <h3>📊 Build Analysis</h3>
+                        <div id="build-stats" class="build-stats-grid">
+                            <!-- Stats calculated dynamically -->
+                        </div>
+                        <div id="build-synergies" class="build-synergies-display">
+                            <!-- Synergies shown dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Export/Share -->
+                    <div class="build-actions">
+                        <button id="export-build" class="btn-primary">📋 Copy Build Code</button>
+                        <button id="clear-build" class="btn-secondary">🗑️ Clear Build</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Calculator Tab -->
+            <div id="calculator-tab" class="tab-content">
+                <div class="calculator-container">
+                    <h2>🧮 Breakpoint Calculator</h2>
+                    <p class="calculator-subtitle">Calculate how many stacks you need to reach desired thresholds</p>
+
+                    <div class="calculator-grid">
+                        <div class="calculator-card">
+                            <h3>Select Item</h3>
+                            <select id="calc-item-select" class="calc-select">
+                                <option value="">Choose an item...</option>
+                            </select>
+                        </div>
+
+                        <div class="calculator-card">
+                            <h3>Desired Value</h3>
+                            <input type="number" id="calc-target" class="calc-input" placeholder="e.g., 100 for 100%" min="1">
+                            <p class="input-hint">Enter target percentage or value</p>
+                        </div>
+
+                        <div class="calculator-card full-width">
+                            <button id="calc-button" class="btn-primary calc-btn">Calculate Stacks Needed</button>
+                        </div>
+
+                        <div id="calc-result" class="calculator-result" style="display: none;">
+                            <!-- Result displayed here -->
+                        </div>
+                    </div>
+
+                    <div class="common-breakpoints">
+                        <h3>Common Breakpoints</h3>
+                        <div class="breakpoint-grid">
+                            <div class="breakpoint-card" onclick="quickCalc('big_bonk', 100)">
+                                <div class="bp-icon">💥</div>
+                                <div class="bp-text">
+                                    <strong>Big Bonk</strong>
+                                    <span>100% proc rate</span>
+                                </div>
+                                <div class="bp-answer">50 stacks</div>
+                            </div>
+                            <div class="breakpoint-card" onclick="quickCalc('spicy_meatball', 100)">
+                                <div class="bp-icon">🔥</div>
+                                <div class="bp-text">
+                                    <strong>Spicy Meatball</strong>
+                                    <span>100% explosions</span>
+                                </div>
+                                <div class="bp-answer">4 stacks</div>
+                            </div>
+                            <div class="breakpoint-card" onclick="quickCalc('forbidden_juice', 100)">
+                                <div class="bp-icon">⚡</div>
+                                <div class="bp-text">
+                                    <strong>Forbidden Juice</strong>
+                                    <span>100% crit (Overcrit!)</span>
+                                </div>
+                                <div class="bp-answer">10 stacks</div>
+                            </div>
+                            <div class="breakpoint-card" onclick="quickCalc('ice_cube', 100)">
+                                <div class="bp-icon">❄️</div>
+                                <div class="bp-text">
+                                    <strong>Ice Cube</strong>
+                                    <span>100% freeze</span>
+                                </div>
+                                <div class="bp-answer">5 stacks</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for detailed item view -->
+    <div id="itemModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <div id="modalBody">
+                <!-- Modal content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for item comparison -->
+    <div id="compareModal" class="modal">
+        <div class="modal-content modal-wide">
+            <span class="close" id="closeCompare">&times;</span>
+            <h2>📊 Item Comparison</h2>
+            <div id="compareBody" class="compare-container">
+                <!-- Comparison content loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Compare Button -->
+    <button id="compare-btn" class="floating-compare-btn" style="display: none;">
+        <span class="compare-count">0</span> Compare Items
+    </button>
+
+    <footer>
+        <div class="container">
+            <p>Made with ❤️ for MegaBonk players | <a href="https://store.steampowered.com/app/3405340/Megabonk/" target="_blank">Play on Steam</a></p>
+            <p class="disclaimer">Data sourced from official wikis and community guides. Always verify in-game!</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

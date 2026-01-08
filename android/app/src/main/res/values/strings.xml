@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MegaBonk Guide</string>
+    <string name="title_activity_main">MegaBonk Guide</string>
+    <string name="package_name">com.megabonk.guide</string>
+    <string name="custom_url_scheme">com.megabonk.guide</string>
+</resources>

@@ -1,0 +1,49 @@
+{
+  "name": "MegaBonk Complete Guide",
+  "short_name": "MegaBonk Guide",
+  "description": "Complete guide for MegaBonk with 77 items, 29 weapons, 23 tomes, build planner, and calculator",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#1a1a2e",
+  "theme_color": "#00ff88",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["games", "utilities", "reference"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Items",
+      "short_name": "Items",
+      "description": "View all 77 items",
+      "url": "./index.html?tab=items",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Build Planner",
+      "short_name": "Builds",
+      "description": "Plan your build",
+      "url": "./index.html?tab=build-planner",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Calculator",
+      "short_name": "Calculator",
+      "description": "Breakpoint calculator",
+      "url": "./index.html?tab=calculator",
+      "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
