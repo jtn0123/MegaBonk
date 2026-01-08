@@ -79,6 +79,23 @@ function setupEventDelegation() {
             clearFilters();
             return;
         }
+
+        // Changelog expand button
+        if (target.classList.contains('changelog-expand-btn')) {
+            toggleChangelogExpand(target);
+            return;
+        }
+
+        // Entity link in changelog (deep linking)
+        if (target.classList.contains('entity-link')) {
+            e.preventDefault();
+            const type = target.dataset.entityType;
+            const id = target.dataset.entityId;
+            if (type && id) {
+                openDetailModal(type, id);
+            }
+            return;
+        }
     });
 
     // Change event delegation for checkboxes in build planner
