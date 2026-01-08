@@ -381,10 +381,9 @@ function switchTab(tabName) {
 
     // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.getAttribute('data-tab') === tabName) {
-            btn.classList.add('active');
-        }
+        const isActive = btn.getAttribute('data-tab') === tabName;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
 
     // Update tab content

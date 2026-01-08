@@ -14,7 +14,7 @@
 </head>
 <body>
     <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay">
+    <div id="loading-overlay" class="loading-overlay" role="alert" aria-live="assertive" aria-busy="true">
         <div class="loading-spinner"></div>
         <p>Loading game data...</p>
     </div>
@@ -23,7 +23,7 @@
         <div class="container">
             <h1>🎮 MegaBonk Complete Guide</h1>
             <p class="subtitle">Items • Weapons • Tomes • Characters • Shrines • Build Planner</p>
-            <div class="version-info">
+            <div class="version-info" role="status" aria-live="polite">
                 <span id="version">Version: Loading...</span>
                 <span id="last-updated">Last Updated: Loading...</span>
             </div>
@@ -61,7 +61,7 @@
 
     <main class="container">
         <!-- Stats Summary (context-sensitive) -->
-        <div id="stats-summary" class="stats-panel">
+        <div id="stats-summary" class="stats-panel" role="region" aria-label="Statistics summary" aria-live="polite">
             <!-- Dynamically populated based on active tab -->
         </div>
 
@@ -113,46 +113,46 @@
                     <div class="build-grid">
                         <!-- Character Selection -->
                         <div class="build-slot">
-                            <h3>👤 Character</h3>
-                            <select id="build-character">
+                            <h3 id="character-label">👤 Character</h3>
+                            <select id="build-character" aria-labelledby="character-label">
                                 <option value="">Select Character...</option>
                             </select>
-                            <div id="character-preview" class="slot-preview"></div>
+                            <div id="character-preview" class="slot-preview" role="status" aria-live="polite"></div>
                         </div>
 
                         <!-- Weapon Selection -->
                         <div class="build-slot">
-                            <h3>⚔️ Weapon</h3>
-                            <select id="build-weapon">
+                            <h3 id="weapon-label">⚔️ Weapon</h3>
+                            <select id="build-weapon" aria-labelledby="weapon-label">
                                 <option value="">Select Weapon...</option>
                             </select>
-                            <div id="weapon-preview" class="slot-preview"></div>
+                            <div id="weapon-preview" class="slot-preview" role="status" aria-live="polite"></div>
                         </div>
 
                         <!-- Tomes Selection -->
                         <div class="build-slot full-width">
-                            <h3>📚 Priority Tomes (Select up to 5)</h3>
-                            <div id="tomes-selection" class="multi-select">
+                            <h3 id="tomes-label">📚 Priority Tomes (Select up to 5)</h3>
+                            <div id="tomes-selection" class="multi-select" role="group" aria-labelledby="tomes-label">
                                 <!-- Checkboxes generated dynamically -->
                             </div>
                         </div>
 
                         <!-- Items Selection -->
                         <div class="build-slot full-width">
-                            <h3>📦 Core Items (Select up to 6)</h3>
-                            <div id="items-selection" class="multi-select">
+                            <h3 id="items-label">📦 Core Items (Select up to 6)</h3>
+                            <div id="items-selection" class="multi-select" role="group" aria-labelledby="items-label">
                                 <!-- Checkboxes generated dynamically -->
                             </div>
                         </div>
                     </div>
 
                     <!-- Build Analysis -->
-                    <div class="build-analysis">
+                    <div class="build-analysis" role="region" aria-label="Build analysis">
                         <h3>📊 Build Analysis</h3>
-                        <div id="build-stats" class="build-stats-grid">
+                        <div id="build-stats" class="build-stats-grid" role="status" aria-live="polite" aria-atomic="false">
                             <!-- Stats calculated dynamically -->
                         </div>
-                        <div id="build-synergies" class="build-synergies-display">
+                        <div id="build-synergies" class="build-synergies-display" role="status" aria-live="polite" aria-atomic="false">
                             <!-- Synergies shown dynamically -->
                         </div>
                     </div>
@@ -174,23 +174,24 @@
 
                     <div class="calculator-grid">
                         <div class="calculator-card">
-                            <h3>Select Item</h3>
-                            <select id="calc-item-select" class="calc-select">
+                            <h3 id="calc-item-label">Select Item</h3>
+                            <select id="calc-item-select" class="calc-select" aria-labelledby="calc-item-label" aria-describedby="calc-item-hint">
                                 <option value="">Choose an item...</option>
                             </select>
+                            <p id="calc-item-hint" class="visually-hidden">Select an item to calculate required stacks</p>
                         </div>
 
                         <div class="calculator-card">
-                            <h3>Desired Value</h3>
-                            <input type="number" id="calc-target" class="calc-input" placeholder="e.g., 100 for 100%" min="1">
-                            <p class="input-hint">Enter target percentage or value</p>
+                            <h3 id="calc-target-label">Desired Value</h3>
+                            <input type="number" id="calc-target" class="calc-input" placeholder="e.g., 100 for 100%" min="1" aria-labelledby="calc-target-label" aria-describedby="calc-target-hint">
+                            <p id="calc-target-hint" class="input-hint">Enter target percentage or value</p>
                         </div>
 
                         <div class="calculator-card full-width">
-                            <button id="calc-button" class="btn-primary calc-btn">Calculate Stacks Needed</button>
+                            <button id="calc-button" class="btn-primary calc-btn" aria-label="Calculate stacks needed to reach target value">Calculate Stacks Needed</button>
                         </div>
 
-                        <div id="calc-result" class="calculator-result" style="display: none;">
+                        <div id="calc-result" class="calculator-result" style="display: none;" role="status" aria-live="polite" aria-atomic="true">
                             <!-- Result displayed here -->
                         </div>
                     </div>
@@ -242,7 +243,7 @@
 
             <!-- Changelog Tab -->
             <div id="changelog-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-changelog">
-                <div id="changelogContainer" class="changelog-container">
+                <div id="changelogContainer" class="changelog-container" role="feed" aria-label="Game changelog entries">
                     <!-- Changelog entries loaded dynamically -->
                 </div>
             </div>

@@ -40,7 +40,7 @@ function openDetailModal(type, id) {
     const modalBody = safeGetElementById('modalBody');
     if (!modal || !modalBody) return;
 
-    let content = `<h2>${data.name}</h2>`;
+    let content = `<h2 id="modal-title">${data.name}</h2>`;
 
     if (type === 'item') {
         content += renderItemModal(data);
