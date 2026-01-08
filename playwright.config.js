@@ -22,7 +22,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'npx serve src -l 3333',
+    command: 'bunx serve src -l 3333',
     url: 'http://localhost:3333',
     reuseExistingServer: !process.env.CI,
   },

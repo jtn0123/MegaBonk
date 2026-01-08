@@ -15,18 +15,18 @@ python3 serve.py          # Starts local server at http://localhost:8000 with QR
 
 ### Testing
 ```bash
-npm test                  # Run unit tests with vitest (watch mode)
-npm run test:unit         # Run unit tests once with coverage
-npm run test:e2e          # Run Playwright e2e tests
-npm run test:all          # Run both unit and e2e tests
-npx vitest run tests/unit/filtering.test.js  # Run single test file
+bun test                  # Run unit tests with vitest (watch mode)
+bun run test:unit         # Run unit tests once with coverage
+bun run test:e2e          # Run Playwright e2e tests
+bun run test:all          # Run both unit and e2e tests
+bunx vitest run tests/unit/filtering.test.js  # Run single test file
 ```
 
 ### Mobile App Build
 ```bash
-npm run sync              # Sync Capacitor plugins
-npm run android           # Sync and open Android Studio
-npm run ios               # Sync and open Xcode
+bun run sync              # Sync Capacitor plugins
+bun run android           # Sync and open Android Studio
+bun run ios               # Sync and open Xcode
 ```
 
 ## Architecture

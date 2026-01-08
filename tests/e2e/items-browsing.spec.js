@@ -8,14 +8,14 @@ test.describe('Items Browsing', () => {
 
   test('should display all items initially', async ({ page }) => {
     const itemCards = page.locator('#itemsContainer .item-card');
-    // Should have 77 items according to the data
-    await expect(itemCards).toHaveCount(77);
+    // Should have 78 items according to the data
+    await expect(itemCards).toHaveCount(78);
   });
 
   test('should display stats summary', async ({ page }) => {
     const statsPanel = page.locator('#stats-summary');
     await expect(statsPanel).toContainText('Total Items');
-    await expect(statsPanel).toContainText('77');
+    await expect(statsPanel).toContainText('78');
   });
 
   test('should filter items by search', async ({ page }) => {
@@ -27,7 +27,7 @@ test.describe('Items Browsing', () => {
     const itemCards = page.locator('#itemsContainer .item-card');
     // Should only show items containing "bonk"
     const count = await itemCards.count();
-    expect(count).toBeLessThan(77);
+    expect(count).toBeLessThan(78);
 
     // First visible item should contain "bonk"
     const firstItem = itemCards.first();
@@ -44,7 +44,7 @@ test.describe('Items Browsing', () => {
 
     // Should have some SS tier items but fewer than total
     expect(count).toBeGreaterThan(0);
-    expect(count).toBeLessThan(77);
+    expect(count).toBeLessThan(78);
   });
 
   test('should filter by rarity', async ({ page }) => {
@@ -57,7 +57,7 @@ test.describe('Items Browsing', () => {
 
     // Should have some legendary items
     expect(count).toBeGreaterThan(0);
-    expect(count).toBeLessThan(77);
+    expect(count).toBeLessThan(78);
   });
 
   test('should filter by stacking behavior', async ({ page }) => {
@@ -70,7 +70,7 @@ test.describe('Items Browsing', () => {
 
     // Should have some one-and-done items
     expect(count).toBeGreaterThan(0);
-    expect(count).toBeLessThan(77);
+    expect(count).toBeLessThan(78);
   });
 
   test('should clear search filter', async ({ page }) => {
@@ -79,14 +79,14 @@ test.describe('Items Browsing', () => {
     await page.waitForTimeout(100);
 
     const filteredCount = await page.locator('#itemsContainer .item-card').count();
-    expect(filteredCount).toBeLessThan(77);
+    expect(filteredCount).toBeLessThan(78);
 
     // Clear filter
     await page.fill('#searchInput', '');
     await page.waitForTimeout(100);
 
     const allCount = await page.locator('#itemsContainer .item-card').count();
-    expect(allCount).toBe(77);
+    expect(allCount).toBe(78);
   });
 
   test('should open item detail modal', async ({ page }) => {
@@ -206,6 +206,6 @@ test.describe('Items Sorting', () => {
     const count = await itemCards.count();
 
     // Verify sort was applied (count unchanged, just reordered)
-    expect(count).toBe(77);
+    expect(count).toBe(78);
   });
 });
