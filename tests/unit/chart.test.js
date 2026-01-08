@@ -390,3 +390,149 @@ describe('Chart cleanup', () => {
     expect(chartInstances['chart3'].destroy).toHaveBeenCalled();
   });
 });
+
+/**
+ * Hyperbolic scaling function for items
+ * Formula: actual = internal / (constant + internal)
+ */
+function applyHyperbolicScaling(values, constant = 1.0) {
+  return values.map(v => {
+    const internal = v / 100;
+    const actual = internal / (constant + internal);
+    return Math.round(actual * 10000) / 100;
+  });
+}
+
+/**
+ * Generate hyperbolic values for a given per-stack increment
+ */
+function generateHyperbolicValues(perStack, maxStacks = 10, constant = 1.0) {
+  const internalValues = Array.from({ length: maxStacks }, (_, i) => perStack * (i + 1));
+  return applyHyperbolicScaling(internalValues, constant);
+}
+
+describe('Hyperbolic Scaling for Items', () => {
+  describe('applyHyperbolicScaling', () => {
+    it('should apply standard hyperbolic formula (constant=1)', () => {
+      // Formula: actual = internal / (1 + internal)
+      // For 10% internal: 0.1 / 1.1 = 0.0909 = 9.09%
+      const values = [10, 20, 30, 40, 50];
+      const result = applyHyperbolicScaling(values, 1.0);
+
+      expect(result[0]).toBeCloseTo(9.09, 1);  // 10% -> 9.09%
+      expect(result[1]).toBeCloseTo(16.67, 1); // 20% -> 16.67%
+      expect(result[2]).toBeCloseTo(23.08, 1); // 30% -> 23.08%
+      expect(result[3]).toBeCloseTo(28.57, 1); // 40% -> 28.57%
+      expect(result[4]).toBeCloseTo(33.33, 1); // 50% -> 33.33%
+    });
+
+    it('should never exceed theoretical max (50% for constant=1)', () => {
+      // Even at 1000% internal, actual should be < 100%
+      const values = [100, 200, 500, 1000];
+      const result = applyHyperbolicScaling(values, 1.0);
+
+      expect(result[0]).toBeCloseTo(50, 0);    // 100% -> 50%
+      expect(result[1]).toBeCloseTo(66.67, 1); // 200% -> 66.67%
+      expect(result[2]).toBeCloseTo(83.33, 1); // 500% -> 83.33%
+      expect(result[3]).toBeCloseTo(90.91, 1); // 1000% -> 90.91%
+
+      // All values should be less than 100%
+      result.forEach(val => expect(val).toBeLessThan(100));
+    });
+
+    it('should handle different constants', () => {
+      // With constant=0.75 (Armor formula style)
+      // 50% internal: 0.5 / 1.25 = 0.4 = 40%
+      const values = [50];
+      const result = applyHyperbolicScaling(values, 0.75);
+
+      expect(result[0]).toBeCloseTo(40, 0);
+    });
+
+    it('should return empty array for empty input', () => {
+      const result = applyHyperbolicScaling([]);
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('generateHyperbolicValues', () => {
+    it('should generate correct values for Key item (10% per stack)', () => {
+      // Key: 10% per stack, hyperbolic
+      // 1 stack: 10% internal -> ~9.09% actual
+      const result = generateHyperbolicValues(10, 10, 1.0);
+
+      expect(result[0]).toBeCloseTo(9.09, 1);  // 1 stack
+      expect(result[4]).toBeCloseTo(33.33, 1); // 5 stacks (50% internal)
+      expect(result[9]).toBeCloseTo(50, 0);    // 10 stacks (100% internal)
+    });
+
+    it('should generate correct values for Cursed Grabbies (5% per stack)', () => {
+      // Cursed Grabbies: 5% per stack, hyperbolic
+      const result = generateHyperbolicValues(5, 10, 1.0);
+
+      expect(result[0]).toBeCloseTo(4.76, 1);  // 1 stack (5% internal)
+      expect(result[4]).toBeCloseTo(20, 0);    // 5 stacks (25% internal)
+      expect(result[9]).toBeCloseTo(33.33, 1); // 10 stacks (50% internal)
+    });
+
+    it('should respect maxStacks parameter', () => {
+      const result = generateHyperbolicValues(10, 5, 1.0);
+      expect(result).toHaveLength(5);
+    });
+  });
+
+  describe('max_stacks cap behavior', () => {
+    it('should respect max_stacks for items like Grandmas Tonic', () => {
+      const item = {
+        max_stacks: 5,
+        scaling_per_stack: [4, 5, 6, 7, 8, 8, 8, 8, 8, 8]
+      };
+
+      const cap = getEffectiveStackCap(item);
+      expect(cap).toBe(5);
+    });
+
+    it('should detect plateau for capped chance items', () => {
+      // Spicy Meatball: caps at 100% at 4 stacks
+      const item = {
+        scaling_per_stack: [25, 50, 75, 100, 100, 100, 100, 100, 100, 100]
+      };
+
+      const cap = getEffectiveStackCap(item);
+      expect(cap).toBe(4);
+    });
+  });
+
+  describe('Item with scaling_tracks', () => {
+    it('should have multiple scaling tracks for complex items', () => {
+      const holyBook = {
+        id: 'holy_book',
+        scaling_tracks: {
+          max_hp: { stat: 'Max HP', values: [100, 200, 300, 400, 500] },
+          hp_regen: { stat: 'HP Regen', values: [50, 100, 150, 200, 250] },
+          overheal: { stat: 'Overheal %', values: [25, 50, 75, 100, 125] },
+          radius: { stat: 'Explosion Radius (m)', values: [5, 6, 7, 8, 9] }
+        }
+      };
+
+      expect(Object.keys(holyBook.scaling_tracks)).toHaveLength(4);
+      expect(holyBook.scaling_tracks.max_hp.values[0]).toBe(100);
+      expect(holyBook.scaling_tracks.radius.values[0]).toBe(5);
+    });
+  });
+
+  describe('Item with hidden_mechanics', () => {
+    it('should contain hidden mechanics array', () => {
+      const grandmasTonic = {
+        id: 'grandmas_secret_tonic',
+        hidden_mechanics: [
+          'First copy ONLY gives +2% crit chance bonus - additional copies do NOT add more crit',
+          'Radius caps at 8m (5 copies) - 6th+ copies do NOTHING'
+        ]
+      };
+
+      expect(grandmasTonic.hidden_mechanics).toHaveLength(2);
+      expect(grandmasTonic.hidden_mechanics[0]).toContain('+2% crit chance');
+    });
+  });
+});
