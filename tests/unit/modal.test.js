@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
-import { createMockItem, createMockWeapon, createMockCharacter, createMockAllData } from '../helpers/mock-data.js';
+import { createMockItem, createMockWeapon, createMockCharacter, createMockShrine, createMockAllData } from '../helpers/mock-data.js';
 
 /**
  * Modal management functions for unit testing
@@ -34,6 +34,9 @@ function openDetailModal(type, id) {
     case 'tome':
       data = allData.tomes?.tomes?.find(t => t.id === id);
       break;
+    case 'shrine':
+      data = allData.shrines?.shrines?.find(s => s.id === id);
+      break;
   }
 
   if (!data) return false;
@@ -51,20 +54,132 @@ function generateModalContent(type, data) {
     content += `<span class="badge rarity">${data.rarity}</span>`;
   }
 
-  if (data.description) {
-    content += `<p class="description">${data.description}</p>`;
+  // Item-specific fields
+  if (type === 'item') {
+    if (data.image) {
+      content += `<img src="${data.image}" alt="${data.name}" class="modal-item-image">`;
+    }
+    if (data.one_and_done) {
+      content += '<div class="one-and-done-warning">One-and-Done: Additional copies provide no benefit</div>';
+    }
+    if (data.max_stacks || (data.stack_cap && data.stack_cap <= 100)) {
+      content += `<div class="stack-info">Stack Limit: ${data.max_stacks || data.stack_cap} stacks</div>`;
+    }
+    if (data.base_effect) {
+      content += `<div class="effect"><strong>Effect:</strong> ${data.base_effect}</div>`;
+    }
+    // Support both description and detailed_description fields
+    const itemDescription = data.detailed_description || data.description;
+    if (itemDescription) {
+      content += `<p class="description">${itemDescription}</p>`;
+    }
+    if (data.unlock_requirement) {
+      content += `<div class="unlock"><strong>Unlock:</strong> ${data.unlock_requirement}</div>`;
+    }
+    if (data.synergies?.length) {
+      content += `<div class="synergies-section"><h3>Synergies</h3>${data.synergies.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>`;
+    }
+    if (data.anti_synergies?.length) {
+      content += `<div class="anti-synergies-section"><h3>Anti-Synergies</h3>${data.anti_synergies.map(s => `<span class="antisynergy-tag">${s}</span>`).join('')}</div>`;
+    }
   }
 
-  if (data.base_effect) {
-    content += `<div class="effect"><strong>Effect:</strong> ${data.base_effect}</div>`;
+  // Character-specific fields
+  if (type === 'character') {
+    if (data.image) {
+      content += `<img src="${data.image}" alt="${data.name}" class="modal-character-image">`;
+    }
+    if (data.passive_ability) {
+      content += `<div class="character-passive"><strong>${data.passive_ability}</strong>`;
+      if (data.passive_description) {
+        content += `<p>${data.passive_description}</p>`;
+      }
+      content += '</div>';
+    }
+    // Character meta including starting weapon and stats
+    const hasCharMeta = data.starting_weapon || data.base_hp || data.hp || data.base_damage || data.damage;
+    if (hasCharMeta) {
+      content += '<div class="character-meta">';
+      if (data.starting_weapon) {
+        content += `<div>Starting Weapon: ${data.starting_weapon}</div>`;
+      }
+      const charHp = data.base_hp || data.hp;
+      const charDamage = data.base_damage || data.damage;
+      if (charHp || charDamage) {
+        content += '<div>';
+        if (charHp) content += `HP: ${charHp}`;
+        if (charHp && charDamage) content += ' | ';
+        if (charDamage) content += `Damage: ${charDamage}`;
+        content += '</div>';
+      }
+      content += '</div>';
+    }
+    if (data.best_for?.length) {
+      content += `<div class="character-section"><h3>Best For</h3>${data.best_for.map(b => `<span class="meta-tag">${b}</span>`).join('')}</div>`;
+    }
+    if (data.strengths?.length || data.weaknesses?.length) {
+      content += '<div class="strengths-weaknesses">';
+      if (data.strengths?.length) {
+        content += `<div class="strengths"><h4>Strengths</h4><ul>${data.strengths.map(s => `<li>${s}</li>`).join('')}</ul></div>`;
+      }
+      if (data.weaknesses?.length) {
+        content += `<div class="weaknesses"><h4>Weaknesses</h4><ul>${data.weaknesses.map(w => `<li>${w}</li>`).join('')}</ul></div>`;
+      }
+      content += '</div>';
+    }
+    if (data.synergies_weapons?.length || data.synergies_items?.length || data.synergies_tomes?.length) {
+      content += '<div class="synergies-section"><h3>Synergies</h3>';
+      if (data.synergies_weapons?.length) {
+        content += `<div class="synergy-group"><h4>Weapons</h4>${data.synergies_weapons.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>`;
+      }
+      if (data.synergies_items?.length) {
+        content += `<div class="synergy-group"><h4>Items</h4>${data.synergies_items.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>`;
+      }
+      if (data.synergies_tomes?.length) {
+        content += `<div class="synergy-group"><h4>Tomes</h4>${data.synergies_tomes.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>`;
+      }
+      content += '</div>';
+    }
+    if (data.build_tips) {
+      content += `<div class="build-tips"><h3>Build Tips</h3><p>${data.build_tips}</p></div>`;
+    }
   }
 
-  if (type === 'weapon' || type === 'character') {
-    content += '<div class="stats">';
-    if (data.damage) content += `<div>Damage: ${data.damage}</div>`;
-    if (data.hp) content += `<div>HP: ${data.hp}</div>`;
-    if (data.crit_chance) content += `<div>Crit Chance: ${data.crit_chance}%</div>`;
-    content += '</div>';
+  // Shrine-specific fields
+  if (type === 'shrine') {
+    if (data.icon) {
+      content += `<span class="shrine-icon-modal">${data.icon}</span>`;
+    }
+    if (data.description) {
+      content += `<div class="shrine-description-full"><p>${data.description}</p></div>`;
+    }
+    if (data.reward) {
+      content += `<div class="shrine-detail-section"><strong>Reward</strong><p>${data.reward}</p></div>`;
+    }
+    if (data.strategy) {
+      content += `<div class="shrine-strategy"><strong>Strategy</strong><p>${data.strategy}</p></div>`;
+    }
+    if (data.notes) {
+      content += `<div class="item-notes">${data.notes}</div>`;
+    }
+  }
+
+  // Generic weapon fields
+  if (type === 'weapon') {
+    if (data.description) {
+      content += `<p class="description">${data.description}</p>`;
+    }
+    if (data.base_effect) {
+      content += `<div class="effect"><strong>Effect:</strong> ${data.base_effect}</div>`;
+    }
+    // Add weapon stats
+    if (data.damage || data.crit_chance) {
+      content += '<div class="weapon-stats">';
+      if (data.damage) content += `Damage: ${data.damage}`;
+      if (data.damage && data.crit_chance) content += ' | ';
+      if (data.crit_chance) content += `Crit Chance: ${data.crit_chance}%`;
+      content += '</div>';
+    }
   }
 
   if (data.unlock_requirement) {
@@ -235,10 +350,10 @@ describe('Modal Management', () => {
     });
 
     it('should include description', () => {
-      const item = createMockItem({ description: 'A powerful artifact' });
+      const item = createMockItem({ detailed_description: 'A powerful artifact that grants amazing abilities.' });
       const content = generateModalContent('item', item);
 
-      expect(content).toContain('A powerful artifact');
+      expect(content).toContain('A powerful artifact that grants amazing abilities.');
     });
 
     it('should include base effect', () => {
@@ -537,5 +652,237 @@ describe('Modal Edge Cases', () => {
     }
 
     expect(isModalOpen('itemModal')).toBe(false);
+  });
+});
+
+describe('Item Modal Content', () => {
+  beforeEach(() => {
+    setupModalDOM();
+    allData = createMockAllData();
+  });
+
+  it('should display anti_synergies when present', () => {
+    allData.items.items.push(createMockItem({
+      id: 'anti-syn-item',
+      name: 'Anti-Synergy Item',
+      anti_synergies: ['Beer', 'Poison Flask']
+    }));
+
+    openDetailModal('item', 'anti-syn-item');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Anti-Synergies');
+    expect(content).toContain('Beer');
+    expect(content).toContain('Poison Flask');
+  });
+
+  it('should display one_and_done warning', () => {
+    allData.items.items.push(createMockItem({
+      id: 'one-done-item',
+      name: 'One-and-Done Item',
+      one_and_done: true
+    }));
+
+    openDetailModal('item', 'one-done-item');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('One-and-Done');
+    expect(content).toContain('no benefit');
+  });
+
+  it('should display max_stacks info', () => {
+    allData.items.items.push(createMockItem({
+      id: 'max-stack-item',
+      name: 'Max Stack Item',
+      max_stacks: 10
+    }));
+
+    openDetailModal('item', 'max-stack-item');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Stack Limit');
+    expect(content).toContain('10');
+  });
+
+  it('should display stack_cap as fallback', () => {
+    allData.items.items.push(createMockItem({
+      id: 'stack-cap-item',
+      name: 'Stack Cap Item',
+      stack_cap: 5
+    }));
+
+    openDetailModal('item', 'stack-cap-item');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Stack Limit');
+    expect(content).toContain('5');
+  });
+
+  it('should display synergies when present', () => {
+    allData.items.items.push(createMockItem({
+      id: 'synergy-item',
+      name: 'Synergy Item',
+      synergies: ['Test Weapon', 'Test Item']
+    }));
+
+    openDetailModal('item', 'synergy-item');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Synergies');
+    expect(content).toContain('Test Weapon');
+  });
+});
+
+describe('Character Modal', () => {
+  beforeEach(() => {
+    setupModalDOM();
+    allData = createMockAllData();
+  });
+
+  it('should render character modal content', () => {
+    const result = openDetailModal('character', 'test-character');
+
+    expect(result).toBe(true);
+    const modalBody = document.getElementById('modalBody');
+    expect(modalBody.innerHTML).toContain('Test Character');
+  });
+
+  it('should display passive ability and description', () => {
+    allData.characters.characters.push(createMockCharacter({
+      id: 'passive-char',
+      name: 'Passive Character',
+      passive_ability: 'Super Passive',
+      passive_description: 'This is a super passive ability'
+    }));
+
+    openDetailModal('character', 'passive-char');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Super Passive');
+    expect(content).toContain('This is a super passive ability');
+  });
+
+  it('should display strengths and weaknesses', () => {
+    allData.characters.characters.push(createMockCharacter({
+      id: 'str-weak-char',
+      name: 'Strengths Weaknesses Character',
+      strengths: ['Strong 1', 'Strong 2'],
+      weaknesses: ['Weak 1']
+    }));
+
+    openDetailModal('character', 'str-weak-char');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Strengths');
+    expect(content).toContain('Strong 1');
+    expect(content).toContain('Weaknesses');
+    expect(content).toContain('Weak 1');
+  });
+
+  it('should display synergies for weapons, items, and tomes', () => {
+    allData.characters.characters.push(createMockCharacter({
+      id: 'synergy-char',
+      name: 'Synergy Character',
+      synergies_weapons: ['Sword'],
+      synergies_items: ['Beefy Ring'],
+      synergies_tomes: ['Damage']
+    }));
+
+    openDetailModal('character', 'synergy-char');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Sword');
+    expect(content).toContain('Beefy Ring');
+    expect(content).toContain('Damage');
+  });
+
+  it('should display build_tips', () => {
+    allData.characters.characters.push(createMockCharacter({
+      id: 'tips-char',
+      name: 'Tips Character',
+      build_tips: 'Stack damage for maximum effect'
+    }));
+
+    openDetailModal('character', 'tips-char');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Build Tips');
+    expect(content).toContain('Stack damage');
+  });
+
+  it('should display best_for', () => {
+    allData.characters.characters.push(createMockCharacter({
+      id: 'best-for-char',
+      name: 'Best For Character',
+      best_for: ['Tank builds', 'Beginners']
+    }));
+
+    openDetailModal('character', 'best-for-char');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Best For');
+    expect(content).toContain('Tank builds');
+  });
+});
+
+describe('Shrine Modal', () => {
+  beforeEach(() => {
+    setupModalDOM();
+    allData = createMockAllData();
+  });
+
+  it('should open shrine modal', () => {
+    const result = openDetailModal('shrine', 'test-shrine');
+
+    expect(result).toBe(true);
+    expect(isModalOpen('itemModal')).toBe(true);
+  });
+
+  it('should display shrine icon', () => {
+    openDetailModal('shrine', 'test-shrine');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('shrine-icon-modal');
+  });
+
+  it('should display shrine reward', () => {
+    allData.shrines.shrines.push(createMockShrine({
+      id: 'reward-shrine',
+      name: 'Reward Shrine',
+      reward: 'Amazing reward effect'
+    }));
+
+    openDetailModal('shrine', 'reward-shrine');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Reward');
+    expect(content).toContain('Amazing reward effect');
+  });
+
+  it('should display shrine strategy', () => {
+    allData.shrines.shrines.push(createMockShrine({
+      id: 'strategy-shrine',
+      name: 'Strategy Shrine',
+      strategy: 'Use when strong'
+    }));
+
+    openDetailModal('shrine', 'strategy-shrine');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Strategy');
+    expect(content).toContain('Use when strong');
+  });
+
+  it('should display shrine notes', () => {
+    allData.shrines.shrines.push(createMockShrine({
+      id: 'notes-shrine',
+      name: 'Notes Shrine',
+      notes: 'Important note here'
+    }));
+
+    openDetailModal('shrine', 'notes-shrine');
+    const content = document.getElementById('modalBody').innerHTML;
+
+    expect(content).toContain('Important note here');
   });
 });
