@@ -224,16 +224,23 @@ function createCompareChart(canvasId, items) {
     const maxLength = Math.max(...items.map(item => item.scaling_per_stack?.length || 0));
     const labels = Array.from({ length: Math.min(maxLength, 10) }, (_, i) => `${i + 1}`);
 
-    const datasets = items.map((item, index) => ({
-        label: item.name,
-        data: item.scaling_per_stack?.slice(0, 10) || [],
-        borderColor: colors[index % colors.length],
-        backgroundColor: `${colors[index % colors.length]}33`,
-        fill: false,
-        tension: 0.3,
-        pointRadius: 4,
-        borderWidth: 2
-    }));
+    const datasets = items.map((item, index) => {
+        let chartData = item.scaling_per_stack?.slice(0, 10) || [];
+        // Apply hyperbolic transformation if item uses hyperbolic scaling
+        if (item.scaling_formula_type === 'hyperbolic') {
+            chartData = applyHyperbolicScaling(chartData, item.hyperbolic_constant || 1.0);
+        }
+        return {
+            label: item.name,
+            data: chartData,
+            borderColor: colors[index % colors.length],
+            backgroundColor: `${colors[index % colors.length]}33`,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 4,
+            borderWidth: 2
+        };
+    });
 
     const ctx = canvas.getContext('2d');
     const chart = new Chart(ctx, {

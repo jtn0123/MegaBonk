@@ -1526,25 +1526,25 @@
       "unlocked_by_default": true,
       "unlock_requirement": null,
       "unlock_cost_silver": 0,
-      "base_effect": "Crits can become megacrits for massive damage multipliers",
-      "scaling_type": "crit_enhancement",
-      "stacking_behavior": "additive_megacrit_chance",
+      "base_effect": "+8% megacrit proc chance (hyperbolic)",
+      "scaling_type": "hyperbolic_chance",
+      "stacking_behavior": "hyperbolic",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Megacrit adds another layer of multiplication on top of crits",
+      "formula": "Megacrit Chance = Internal / (1 + Internal), where Internal = 8% per stack",
       "scaling_per_stack": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
         8,
-        9,
-        10
+        16,
+        24,
+        32,
+        40,
+        48,
+        56,
+        64,
+        72,
+        80
       ],
-      "detailed_description": "Adds another damage multiplication layer to crits. With high crit chance and multiple forks, damage becomes astronomical. Requires crit build.",
+      "detailed_description": "Chance to convert crits into megacrits for massive damage. Uses hyperbolic scaling with diminishing returns - can never reach 100% regardless of stacks.",
       "synergies": [
         "Forbidden Juice",
         "Crit builds",
@@ -1552,10 +1552,19 @@
         "Grandma's Secret Tonic"
       ],
       "anti_synergies": [],
-      "notes": "STACKS WELL: More copies = more megacrit potential. Best with 100%+ crit.",
-      "graph_type": "exponential_scaling",
+      "notes": "HYPERBOLIC SCALING: Displayed 8% per stack has diminishing returns. Can't reach 100%.",
+      "graph_type": "hyperbolic_chance",
       "one_and_done": false,
-      "image": "images/items/giant_fork.png"
+      "image": "images/items/giant_fork.png",
+      "scaling_formula_type": "hyperbolic",
+      "hyperbolic_constant": 1.0,
+      "hidden_mechanics": [
+        "Uses hyperbolic formula: Actual = Internal / (1 + Internal)",
+        "1 stack (8% internal) = ~7.4% actual megacrit chance",
+        "5 stacks (40% internal) = ~28.6% actual megacrit chance",
+        "10 stacks (80% internal) = ~44.4% actual megacrit chance",
+        "Can never reach 100% megacrit chance regardless of stacks"
+      ]
     },
     {
       "id": "power_gloves",

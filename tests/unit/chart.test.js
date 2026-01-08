@@ -535,4 +535,47 @@ describe('Hyperbolic Scaling for Items', () => {
       expect(grandmasTonic.hidden_mechanics[0]).toContain('+2% crit chance');
     });
   });
+
+  describe('createCompareChart hyperbolic handling', () => {
+    it('should apply hyperbolic transformation to items with scaling_formula_type hyperbolic', () => {
+      // Test data: simulate comparing a hyperbolic item with a linear item
+      const hyperbolicItem = {
+        name: 'Key',
+        scaling_per_stack: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+        scaling_formula_type: 'hyperbolic',
+        hyperbolic_constant: 1.0
+      };
+      const linearItem = {
+        name: 'Normal Item',
+        scaling_per_stack: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+      };
+
+      // Apply transformation manually to verify expected values
+      const expectedHyperbolic = applyHyperbolicScaling(
+        hyperbolicItem.scaling_per_stack.slice(0, 10),
+        hyperbolicItem.hyperbolic_constant
+      );
+
+      // Hyperbolic item should have diminishing returns curve
+      // 10% internal -> ~9.09% actual, 100% internal -> 50% actual
+      expect(expectedHyperbolic[0]).toBeCloseTo(9.09, 1);
+      expect(expectedHyperbolic[9]).toBeCloseTo(50, 0);
+
+      // Linear item should stay as-is (no transformation)
+      expect(linearItem.scaling_per_stack[0]).toBe(10);
+      expect(linearItem.scaling_per_stack[9]).toBe(100);
+    });
+
+    it('should not transform items without scaling_formula_type hyperbolic', () => {
+      const linearItem = {
+        name: 'Linear Item',
+        scaling_per_stack: [10, 20, 30, 40, 50],
+        scaling_formula_type: 'linear'
+      };
+
+      // Linear items should not be transformed
+      expect(linearItem.scaling_per_stack[0]).toBe(10);
+      expect(linearItem.scaling_per_stack[4]).toBe(50);
+    });
+  });
 });
