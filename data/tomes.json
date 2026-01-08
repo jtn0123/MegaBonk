@@ -272,7 +272,7 @@
       "name": "Evasion Tome (Dodge)",
       "tier": "A",
       "stat_affected": "Evasion",
-      "value_per_level": "+15% evasion (hyperbolic scaling)",
+      "value_per_level": "+10% evasion (hyperbolic scaling)",
       "unlocked_by_default": true,
       "unlock_requirement": null,
       "unlock_cost_silver": 0,

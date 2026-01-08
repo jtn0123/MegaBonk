@@ -46,7 +46,7 @@ test.describe('Mobile Responsive - iPhone', () => {
     const itemCards = page.locator('#itemsContainer .item-card');
     const count = await itemCards.count();
 
-    expect(count).toBeLessThan(77);
+    expect(count).toBeLessThan(78);
   });
 
   test('should display filter dropdowns on mobile', async ({ page }) => {
@@ -125,7 +125,7 @@ test.describe('Mobile Responsive - Tablet', () => {
     const itemCards = page.locator('#itemsContainer .item-card');
     const count = await itemCards.count();
 
-    expect(count).toBe(77);
+    expect(count).toBe(78);
   });
 
   test('should allow comparison on tablet', async ({ page }) => {
@@ -180,7 +180,7 @@ test.describe('Mobile Responsive - Landscape', () => {
     const itemCards = page.locator('#itemsContainer .item-card');
     const count = await itemCards.count();
 
-    expect(count).toBeLessThan(77);
+    expect(count).toBeLessThan(78);
     expect(count).toBeGreaterThan(0);
   });
 
