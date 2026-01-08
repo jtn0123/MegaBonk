@@ -30,8 +30,104 @@ let compareItems = [];
 let chartInstances = {};
 
 // ========================================
+// Loading & Error UI
+// ========================================
+
+function showLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function showErrorMessage(message, isRetryable = true) {
+    let errorContainer = document.getElementById('error-container');
+    if (!errorContainer) {
+        errorContainer = document.createElement('div');
+        errorContainer.id = 'error-container';
+        errorContainer.className = 'error-container';
+        document.body.prepend(errorContainer);
+    }
+
+    errorContainer.innerHTML = `
+        <div class="error-message">
+            <span class="error-icon">⚠️</span>
+            <div class="error-content">
+                <strong>Error Loading Data</strong>
+                <p>${message}</p>
+            </div>
+            ${isRetryable ? '<button class="btn-primary" onclick="retryLoad()">Retry</button>' : ''}
+            <button class="error-close" onclick="dismissError()">&times;</button>
+        </div>
+    `;
+    errorContainer.style.display = 'block';
+}
+
+function dismissError() {
+    const errorContainer = document.getElementById('error-container');
+    if (errorContainer) errorContainer.style.display = 'none';
+}
+
+function retryLoad() {
+    dismissError();
+    loadAllData();
+}
+
+function clearFilters() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) searchInput.value = '';
+
+    document.querySelectorAll('#filters select').forEach(select => {
+        select.value = 'all';
+    });
+
+    renderTabContent(currentTab);
+}
+
+// Expose to global scope for onclick handlers
+window.retryLoad = retryLoad;
+window.dismissError = dismissError;
+window.clearFilters = clearFilters;
+
+// ========================================
 // Chart.js Integration
 // ========================================
+
+/**
+ * Determine the effective stack cap for an item
+ * Uses max_stacks or stack_cap field if set, otherwise infers from scaling data
+ * @param {Object} item - Item with scaling_per_stack and optional stack_cap/max_stacks
+ * @returns {number} The effective maximum stacks to display
+ */
+function getEffectiveStackCap(item) {
+    // Use explicit max_stacks if set
+    if (item.max_stacks && item.max_stacks > 0) {
+        return item.max_stacks;
+    }
+    // Use stack_cap if reasonable (between 1 and 100)
+    if (item.stack_cap && item.stack_cap > 0 && item.stack_cap <= 100) {
+        return Math.min(item.stack_cap, item.scaling_per_stack?.length || 10);
+    }
+    // Detect plateau - if last several values are the same, cap is where they start repeating
+    const scaling = item.scaling_per_stack || [];
+    if (scaling.length === 0) return 10;
+
+    for (let i = scaling.length - 1; i > 0; i--) {
+        if (scaling[i] !== scaling[i - 1]) {
+            // Found where values differ - cap is at i+1
+            // But only if there's an actual plateau (3+ repeating values)
+            if (scaling.length - i >= 3) {
+                return i + 1;
+            }
+            break;
+        }
+    }
+    // Default to array length
+    return scaling.length;
+}
 
 /**
  * Create a scaling chart for an item or tome
@@ -41,8 +137,9 @@ let chartInstances = {};
  * @param {string} scalingType - Type of scaling for formatting
  * @param {boolean} isModal - If true, creates a larger chart for modals
  * @param {Object} secondaryData - Optional secondary scaling data {stat: string, values: number[]}
+ * @param {number} stackCap - Optional stack cap to limit displayed data
  */
-function createScalingChart(canvasId, data, label, scalingType = '', isModal = false, secondaryData = null) {
+function createScalingChart(canvasId, data, label, scalingType = '', isModal = false, secondaryData = null, stackCap = null) {
     const canvas = document.getElementById(canvasId);
     if (!canvas) return null;
 
@@ -57,7 +154,10 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
         chartInstances[canvasId].destroy();
     }
 
-    const labels = data.map((_, i) => `${i + 1}`);
+    // Apply stack cap if provided
+    const effectiveCap = stackCap || data.length;
+    const displayData = data.slice(0, effectiveCap);
+    const labels = displayData.map((_, i) => `${i + 1}`);
     const isPercentage = scalingType.includes('chance') ||
                          scalingType.includes('percentage') ||
                          scalingType.includes('damage') ||
@@ -66,7 +166,7 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
     // Build datasets array
     const datasets = [{
         label: label,
-        data: data,
+        data: displayData,
         borderColor: '#e94560',
         backgroundColor: 'rgba(233, 69, 96, 0.2)',
         fill: true,
@@ -81,9 +181,10 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
     // Add secondary dataset if provided
     const hasSecondary = secondaryData && secondaryData.values && secondaryData.values.length > 0;
     if (hasSecondary) {
+        const secondaryDisplayData = secondaryData.values.slice(0, effectiveCap);
         datasets.push({
             label: secondaryData.stat,
-            data: secondaryData.values,
+            data: secondaryDisplayData,
             borderColor: '#4ecdc4',
             backgroundColor: 'rgba(78, 205, 196, 0.2)',
             fill: true,
@@ -178,6 +279,113 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
 }
 
 /**
+ * Create a comparison chart overlaying multiple items' scaling curves
+ * @param {string} canvasId - The canvas element ID
+ * @param {Object[]} items - Array of item objects to compare
+ */
+function createCompareChart(canvasId, items) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas || typeof Chart === 'undefined') return null;
+
+    // Destroy existing chart if present
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+    }
+
+    // Color palette for multiple lines
+    const colors = [
+        { border: '#e94560', bg: 'rgba(233, 69, 96, 0.15)' },
+        { border: '#4ecdc4', bg: 'rgba(78, 205, 196, 0.15)' },
+        { border: '#f0a800', bg: 'rgba(240, 168, 0, 0.15)' },
+        { border: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.15)' },
+        { border: '#00ff88', bg: 'rgba(0, 255, 136, 0.15)' }
+    ];
+
+    // Find max stack count across all items
+    const maxStacks = Math.max(...items.map(item => getEffectiveStackCap(item)));
+
+    // Generate labels based on max stacks
+    const labels = Array.from({ length: maxStacks }, (_, i) => `${i + 1}`);
+
+    // Build datasets for each item
+    const datasets = items.map((item, index) => {
+        const color = colors[index % colors.length];
+        const effectiveCap = getEffectiveStackCap(item);
+
+        // Build data array, using null for values beyond the item's cap
+        const data = [];
+        for (let i = 0; i < maxStacks; i++) {
+            if (i < item.scaling_per_stack.length && i < effectiveCap) {
+                data.push(item.scaling_per_stack[i]);
+            } else {
+                data.push(null);
+            }
+        }
+
+        return {
+            label: item.name,
+            data: data,
+            borderColor: color.border,
+            backgroundColor: color.bg,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointBackgroundColor: color.border,
+            borderWidth: 2,
+            spanGaps: false
+        };
+    });
+
+    const ctx = canvas.getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: { labels, datasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: { color: '#a0a0a0', font: { size: 12 } }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    backgroundColor: '#1a1a2e',
+                    titleColor: '#ffffff',
+                    bodyColor: '#a0a0a0',
+                    borderColor: '#e94560',
+                    borderWidth: 1
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Stacks', color: '#a0a0a0' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#a0a0a0' }
+                },
+                y: {
+                    title: { display: true, text: 'Value', color: '#a0a0a0' },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: { color: '#a0a0a0' },
+                    beginAtZero: true
+                }
+            },
+            interaction: {
+                mode: 'nearest',
+                axis: 'x',
+                intersect: false
+            }
+        }
+    });
+
+    chartInstances[canvasId] = chart;
+    return chart;
+}
+
+/**
  * Calculate tome progression values for graphing
  * @param {Object} tome - The tome object
  * @param {number} maxLevels - Number of levels to calculate
@@ -229,7 +437,8 @@ function initializeItemCharts() {
         // Only create charts for items that stack
         if (item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat') {
             const canvasId = `chart-${item.id}`;
-            createScalingChart(canvasId, item.scaling_per_stack, item.name, item.scaling_type || '', false, item.secondary_scaling || null);
+            const effectiveCap = getEffectiveStackCap(item);
+            createScalingChart(canvasId, item.scaling_per_stack, item.name, item.scaling_type || '', false, item.secondary_scaling || null, effectiveCap);
         }
     });
 }
@@ -282,9 +491,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 // ========================================
 
 async function loadAllData() {
+    showLoading();
     try {
         // Load all JSON files
-        const [itemsRes, weaponsRes, tomesRes, charsRes, shrinesRes, statsRes] = await Promise.all([
+        const responses = await Promise.all([
             fetch('../data/items.json'),
             fetch('../data/weapons.json'),
             fetch('../data/tomes.json'),
@@ -292,6 +502,16 @@ async function loadAllData() {
             fetch('../data/shrines.json'),
             fetch('../data/stats.json')
         ]);
+
+        // Check all responses are OK
+        const fileNames = ['items.json', 'weapons.json', 'tomes.json', 'characters.json', 'shrines.json', 'stats.json'];
+        for (let i = 0; i < responses.length; i++) {
+            if (!responses[i].ok) {
+                throw new Error(`Failed to load ${fileNames[i]}: HTTP ${responses[i].status}`);
+            }
+        }
+
+        const [itemsRes, weaponsRes, tomesRes, charsRes, shrinesRes, statsRes] = responses;
 
         allData.items = await itemsRes.json();
         allData.weapons = await weaponsRes.json();
@@ -301,13 +521,17 @@ async function loadAllData() {
         allData.stats = await statsRes.json();
 
         // Update version info
-        document.getElementById('version').textContent = `Version: ${allData.items.version}`;
-        document.getElementById('last-updated').textContent = `Last Updated: ${allData.items.last_updated}`;
+        const versionEl = document.getElementById('version');
+        const lastUpdatedEl = document.getElementById('last-updated');
+        if (versionEl) versionEl.textContent = `Version: ${allData.items.version}`;
+        if (lastUpdatedEl) lastUpdatedEl.textContent = `Last Updated: ${allData.items.last_updated}`;
 
         console.log('All data loaded successfully');
     } catch (error) {
         console.error('Error loading data:', error);
-        alert('Failed to load data files. Please check that all JSON files exist.');
+        showErrorMessage(error.message || 'Failed to load data files. Please check your connection and try again.');
+    } finally {
+        hideLoading();
     }
 }
 
@@ -552,11 +776,9 @@ function filterData(data, tabName) {
     if (sortBy === 'name') {
         filtered.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sortBy === 'tier') {
-        const tierOrder = { 'SS': 0, 'S': 1, 'A': 2, 'B': 3, 'C': 4 };
-        filtered.sort((a, b) => (tierOrder[a.tier] || 99) - (tierOrder[b.tier] || 99));
+        filtered.sort((a, b) => (TIER_ORDER[a.tier] ?? 99) - (TIER_ORDER[b.tier] ?? 99));
     } else if (sortBy === 'rarity') {
-        const rarityOrder = { 'legendary': 0, 'epic': 1, 'rare': 2, 'uncommon': 3, 'common': 4 };
-        filtered.sort((a, b) => (rarityOrder[a.rarity] || 99) - (rarityOrder[b.rarity] || 99));
+        filtered.sort((a, b) => (RARITY_ORDER[a.rarity] ?? 99) - (RARITY_ORDER[b.rarity] ?? 99));
     }
 
     return filtered;
@@ -607,7 +829,14 @@ function renderItems(items) {
     container.innerHTML = '';
 
     if (items.length === 0) {
-        container.innerHTML = '<p class="text-center" style="grid-column: 1/-1;">No items found.</p>';
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3>No Items Found</h3>
+                <p>Try adjusting your search or filter criteria.</p>
+                <button class="btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
+        `;
         return;
     }
 
@@ -659,6 +888,18 @@ function renderWeapons(weapons) {
     const container = document.getElementById('weaponsContainer');
     container.innerHTML = '';
 
+    if (weapons.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">⚔️</div>
+                <h3>No Weapons Found</h3>
+                <p>Try adjusting your search or filter criteria.</p>
+                <button class="btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
+        `;
+        return;
+    }
+
     weapons.forEach(weapon => {
         const card = document.createElement('div');
         card.className = 'item-card weapon-card';
@@ -687,6 +928,18 @@ function renderWeapons(weapons) {
 function renderTomes(tomes) {
     const container = document.getElementById('tomesContainer');
     container.innerHTML = '';
+
+    if (tomes.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">📚</div>
+                <h3>No Tomes Found</h3>
+                <p>Try adjusting your search or filter criteria.</p>
+                <button class="btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
+        `;
+        return;
+    }
 
     tomes.forEach(tome => {
         const card = document.createElement('div');
@@ -726,6 +979,18 @@ function renderCharacters(characters) {
     const container = document.getElementById('charactersContainer');
     container.innerHTML = '';
 
+    if (characters.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">👤</div>
+                <h3>No Characters Found</h3>
+                <p>Try adjusting your search or filter criteria.</p>
+                <button class="btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
+        `;
+        return;
+    }
+
     characters.forEach(char => {
         const card = document.createElement('div');
         card.className = 'item-card character-card';
@@ -755,6 +1020,18 @@ function renderCharacters(characters) {
 function renderShrines(shrines) {
     const container = document.getElementById('shrinesContainer');
     container.innerHTML = '';
+
+    if (shrines.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">⛩️</div>
+                <h3>No Shrines Found</h3>
+                <p>Try adjusting your search or filter criteria.</p>
+                <button class="btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            </div>
+        `;
+        return;
+    }
 
     shrines.forEach(shrine => {
         const card = document.createElement('div');
@@ -840,11 +1117,12 @@ function setupBuildPlannerEvents() {
 }
 
 function calculateBuildStats() {
-    const stats = {
-        damage: 100, hp: 100, crit_chance: 5, crit_damage: 150,
-        attack_speed: 100, movement_speed: 100, armor: 0,
-        evasion_internal: 0, projectiles: 1
-    };
+    // Use DEFAULT_BUILD_STATS from constants if available, otherwise use inline defaults
+    const stats = typeof DEFAULT_BUILD_STATS !== 'undefined'
+        ? { ...DEFAULT_BUILD_STATS }
+        : { damage: 100, hp: 100, crit_chance: 5, crit_damage: 150,
+            attack_speed: 100, movement_speed: 100, armor: 0,
+            evasion_internal: 0, projectiles: 1 };
 
     if (currentBuild.character) {
         if (currentBuild.character.passive_ability.includes('Crit Chance')) stats.crit_chance += 50;
@@ -868,19 +1146,19 @@ function calculateBuildStats() {
         else if (tome.id === 'armor') stats.armor += value * tomeLevel * 100;
     });
 
+    // Apply item effects using ITEM_EFFECTS constant if available
     currentBuild.items.forEach(item => {
-        if (item.id === 'gym_sauce') stats.damage += 10;
-        else if (item.id === 'forbidden_juice') stats.crit_chance += 10;
-        else if (item.id === 'oats') stats.hp += 25;
-        else if (item.id === 'battery') stats.attack_speed += 8;
-        else if (item.id === 'turbo_socks') stats.movement_speed += 15;
-        else if (item.id === 'beer') stats.damage += 20;
-        else if (item.id === 'backpack') stats.projectiles += 1;
-        else if (item.id === 'slippery_ring' || item.id === 'phantom_shroud') stats.evasion_internal += 15;
-        else if (item.id === 'beefy_ring') stats.damage += (stats.hp / 100) * 20;
-        else if (item.id === 'leeching_crystal') stats.hp *= 1.5;
-        else if (item.id === 'brass_knuckles') stats.damage += 20;
-        else if (item.id === 'boss_buster') stats.damage += 15;
+        const effect = typeof ITEM_EFFECTS !== 'undefined' ? ITEM_EFFECTS[item.id] : null;
+        if (effect) {
+            if (effect.type === 'add') {
+                stats[effect.stat] += effect.value;
+            } else if (effect.type === 'multiply') {
+                stats[effect.stat] *= effect.value;
+            } else if (effect.type === 'hp_percent') {
+                // Special: damage based on HP percentage
+                stats[effect.stat] += (stats.hp / 100) * effect.value;
+            }
+        }
     });
 
     stats.evasion = Math.round((stats.evasion_internal / (1 + stats.evasion_internal / 100)) * 100) / 100;
@@ -1006,7 +1284,8 @@ function openDetailModal(type, id) {
         // Initialize chart after modal is displayed
         if (showGraph) {
             setTimeout(() => {
-                createScalingChart(`modal-chart-${data.id}`, data.scaling_per_stack, data.name, data.scaling_type || '', true, data.secondary_scaling || null);
+                const effectiveCap = getEffectiveStackCap(data);
+                createScalingChart(`modal-chart-${data.id}`, data.scaling_per_stack, data.name, data.scaling_type || '', true, data.secondary_scaling || null, effectiveCap);
             }, 100);
         }
     } else if (type === 'weapon') {
@@ -1105,7 +1384,25 @@ function openCompareModal() {
     const compareBody = document.getElementById('compareBody');
     const modal = document.getElementById('compareModal');
 
-    let html = '<div class="compare-grid">';
+    // Filter items that have scaling data for the chart
+    const chartableItems = items.filter(item =>
+        item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat'
+    );
+
+    // Build HTML with optional chart section
+    let html = '';
+    if (chartableItems.length >= 2) {
+        html += `
+            <div class="compare-chart-section">
+                <h3>Scaling Comparison</h3>
+                <div class="compare-chart-container">
+                    <canvas id="compare-scaling-chart" class="scaling-chart"></canvas>
+                </div>
+            </div>
+        `;
+    }
+
+    html += '<div class="compare-grid">';
 
     items.forEach(item => {
         html += `
@@ -1177,6 +1474,13 @@ function openCompareModal() {
     html += '</div>';
     compareBody.innerHTML = html;
     modal.style.display = 'block';
+
+    // Initialize compare chart after DOM is ready
+    if (chartableItems.length >= 2) {
+        setTimeout(() => {
+            createCompareChart('compare-scaling-chart', chartableItems);
+        }, 100);
+    }
 }
 
 function updateCompareDisplay() {
