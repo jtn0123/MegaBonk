@@ -243,7 +243,7 @@ function renderWeaponModal(data) {
     return `
         <p><strong>Attack Pattern:</strong> ${data.attack_pattern}</p>
         <p>${data.description}</p>
-        <p><strong>Upgradeable Stats:</strong> ${data.upgradeable_stats.join(', ')}</p>
+        <p><strong>Upgradeable Stats:</strong> ${Array.isArray(data.upgradeable_stats) ? data.upgradeable_stats.join(', ') : 'None'}</p>
         <p><strong>Build Tips:</strong> ${data.build_tips}</p>
     `;
 }
@@ -273,7 +273,7 @@ function renderTomeModal(data) {
         <p>${data.description}</p>
         ${graphHtml}
         ${data.notes ? `<div class="item-formula">${data.notes}</div>` : ''}
-        <div class="item-notes"><strong>Recommended for:</strong> ${data.recommended_for.join(', ')}</div>
+        <div class="item-notes"><strong>Recommended for:</strong> ${Array.isArray(data.recommended_for) ? data.recommended_for.join(', ') : 'General use'}</div>
     `;
 
     // Initialize chart after modal is displayed

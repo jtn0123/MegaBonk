@@ -81,7 +81,10 @@ function updateStats(filtered, tabName) {
             </div>
         `;
     } else {
-        const categoryName = tabName.charAt(0).toUpperCase() + tabName.slice(1);
+        // Bug fix: Handle empty tabName to prevent errors
+        const categoryName = tabName && tabName.length > 0
+            ? tabName.charAt(0).toUpperCase() + tabName.slice(1)
+            : 'Items';
         statsPanel.innerHTML = `
             <h2>📊 Quick Stats</h2>
             <div class="stats-grid">
