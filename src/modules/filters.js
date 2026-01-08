@@ -15,6 +15,10 @@ function updateFilters(tabName) {
     // Bug fix: Add 'for' attributes to labels for accessibility (WCAG Level A)
     if (tabName === 'items') {
         filtersContainer.innerHTML = `
+            <label for="favoritesOnly">
+                <input type="checkbox" id="favoritesOnly" />
+                ⭐ Favorites Only
+            </label>
             <label for="rarityFilter">Rarity:</label>
             <select id="rarityFilter">
                 <option value="all">All Rarities</option>
@@ -48,6 +52,10 @@ function updateFilters(tabName) {
         `;
     } else if (['weapons', 'tomes', 'characters'].includes(tabName)) {
         filtersContainer.innerHTML = `
+            <label for="favoritesOnly">
+                <input type="checkbox" id="favoritesOnly" />
+                ⭐ Favorites Only
+            </label>
             <label for="tierFilter">Tier:</label>
             <select id="tierFilter">
                 <option value="all">All Tiers</option>
@@ -65,6 +73,10 @@ function updateFilters(tabName) {
         `;
     } else if (tabName === 'shrines') {
         filtersContainer.innerHTML = `
+            <label for="favoritesOnly">
+                <input type="checkbox" id="favoritesOnly" />
+                ⭐ Favorites Only
+            </label>
             <label for="typeFilter">Type:</label>
             <select id="typeFilter">
                 <option value="all">All Types</option>
@@ -115,6 +127,12 @@ function filterData(data, tabName) {
         const searchable = `${name} ${description} ${baseEffect}`.toLowerCase();
         return searchable.includes(searchTerm);
     });
+
+    // Favorites filter
+    const favoritesOnly = safeGetElementById('favoritesOnly')?.checked;
+    if (favoritesOnly && typeof isFavorite === 'function') {
+        filtered = filtered.filter(item => isFavorite(tabName, item.id));
+    }
 
     // Tier filter (for items, weapons, tomes, characters)
     const tierFilter = safeGetElementById('tierFilter')?.value;

@@ -131,6 +131,7 @@ function renderItems(items) {
         // Handle expandable description
         const { html: descHtml, needsExpand, fullText } = truncateText(item.detailed_description, 120);
 
+        const isFav = (typeof isFavorite === 'function') ? isFavorite('items', item.id) : false;
         card.innerHTML = `
             <div class="item-header">
                 ${imageHtml}
@@ -138,6 +139,9 @@ function renderItems(items) {
                     <div class="item-name">${item.name}</div>
                     ${generateTierLabel(item.tier)}
                 </div>
+                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="items" data-id="${item.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                    ${isFav ? '⭐' : '☆'}
+                </button>
                 <label class="compare-checkbox-label" title="Add to comparison">
                     <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${compareItems.includes(item.id) ? 'checked' : ''}>
                     <span>+</span>
@@ -188,6 +192,7 @@ function renderWeapons(weapons) {
         card.dataset.entityId = weapon.id;
 
         const imageHtml = generateEntityImage(weapon, weapon.name);
+        const isFav = (typeof isFavorite === 'function') ? isFavorite('weapons', weapon.id) : false;
 
         card.innerHTML = `
             <div class="item-header">
@@ -196,6 +201,9 @@ function renderWeapons(weapons) {
                     <div class="item-name">${weapon.name}</div>
                     ${generateTierLabel(weapon.tier)}
                 </div>
+                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="weapons" data-id="${weapon.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                    ${isFav ? '⭐' : '☆'}
+                </button>
             </div>
             <div class="item-effect">${weapon.attack_pattern}</div>
             <div class="item-description">${weapon.description}</div>
@@ -231,6 +239,7 @@ function renderTomes(tomes) {
         card.dataset.entityId = tome.id;
 
         const imageHtml = generateEntityImage(tome, tome.name);
+        const isFav = (typeof isFavorite === 'function') ? isFavorite('tomes', tome.id) : false;
 
         // Check if we can calculate progression for this tome
         const progression = calculateTomeProgression(tome);
@@ -247,6 +256,9 @@ function renderTomes(tomes) {
                     <div class="item-name">${tome.name}</div>
                     <span class="tier-label">${tome.tier} Tier · Priority ${tome.priority}</span>
                 </div>
+                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="tomes" data-id="${tome.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                    ${isFav ? '⭐' : '☆'}
+                </button>
             </div>
             <div class="item-effect">${tome.stat_affected}: ${tome.value_per_level}</div>
             <div class="item-description">${tome.description}</div>
@@ -283,6 +295,7 @@ function renderCharacters(characters) {
         card.dataset.entityId = char.id;
 
         const imageHtml = generateEntityImage(char, char.name);
+        const isFav = (typeof isFavorite === 'function') ? isFavorite('characters', char.id) : false;
 
         card.innerHTML = `
             <div class="item-header">
@@ -291,6 +304,9 @@ function renderCharacters(characters) {
                     <div class="item-name">${char.name}</div>
                     ${generateTierLabel(char.tier)}
                 </div>
+                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="characters" data-id="${char.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                    ${isFav ? '⭐' : '☆'}
+                </button>
             </div>
             <div class="item-effect">${char.passive_ability}</div>
             <div class="item-description">${char.passive_description}</div>
@@ -326,6 +342,8 @@ function renderShrines(shrines) {
         card.dataset.entityType = 'shrine';
         card.dataset.entityId = shrine.id;
 
+        const isFav = (typeof isFavorite === 'function') ? isFavorite('shrines', shrine.id) : false;
+
         card.innerHTML = `
             <div class="item-header">
                 <span class="shrine-icon-large">${shrine.icon}</span>
@@ -333,6 +351,9 @@ function renderShrines(shrines) {
                     <div class="item-name">${shrine.name}</div>
                     <span class="tier-label">${shrine.type.replace('_', ' ')}</span>
                 </div>
+                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="shrines" data-id="${shrine.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
+                    ${isFav ? '⭐' : '☆'}
+                </button>
             </div>
             <div class="item-effect">${shrine.description}</div>
             <div class="item-description">${shrine.reward}</div>

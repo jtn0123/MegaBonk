@@ -40,6 +40,44 @@ function setupEventDelegation() {
             return;
         }
 
+        // Ctrl+K or / to focus search (unless in input)
+        if ((e.ctrlKey && e.key === 'k') || e.key === '/') {
+            // Don't trigger if already in an input or textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            e.preventDefault();
+            const searchInput = safeGetElementById('searchInput');
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
+            }
+            return;
+        }
+
+        // Number keys (1-7) to switch tabs
+        if (e.key >= '1' && e.key <= '7' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            // Don't trigger if in an input or textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+                return;
+            }
+            const tabMap = {
+                '1': 'items',
+                '2': 'weapons',
+                '3': 'tomes',
+                '4': 'characters',
+                '5': 'shrines',
+                '6': 'build-planner',
+                '7': 'calculator'
+            };
+            const tabName = tabMap[e.key];
+            if (tabName && typeof switchTab === 'function') {
+                e.preventDefault();
+                switchTab(tabName);
+            }
+            return;
+        }
+
         // Enter or Space on breakpoint cards triggers quickCalc
         if (e.key === 'Enter' || e.key === ' ') {
             const target = e.target;
@@ -136,6 +174,26 @@ function setupEventDelegation() {
             }
             return;
         }
+
+        // Favorite button click
+        if (target.classList.contains('favorite-btn') || target.closest('.favorite-btn')) {
+            const btn = target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn');
+            const tabName = btn.dataset.tab;
+            const itemId = btn.dataset.id;
+            if (tabName && itemId && typeof toggleFavorite === 'function') {
+                const nowFavorited = toggleFavorite(tabName, itemId);
+                // Update button appearance
+                btn.classList.toggle('favorited', nowFavorited);
+                btn.textContent = nowFavorited ? '⭐' : '☆';
+                btn.title = nowFavorited ? 'Remove from favorites' : 'Add to favorites';
+                btn.setAttribute('aria-label', nowFavorited ? 'Remove from favorites' : 'Add to favorites');
+                // Show toast
+                if (typeof ToastManager !== 'undefined') {
+                    ToastManager.success(nowFavorited ? 'Added to favorites' : 'Removed from favorites');
+                }
+            }
+            return;
+        }
     });
 
     // Change event delegation for checkboxes in build planner
@@ -156,6 +214,12 @@ function setupEventDelegation() {
 
         // Filter select changes
         if (target.closest('#filters') && target.tagName === 'SELECT') {
+            renderTabContent(currentTab);
+            return;
+        }
+
+        // Favorites filter checkbox
+        if (target.id === 'favoritesOnly') {
             renderTabContent(currentTab);
             return;
         }

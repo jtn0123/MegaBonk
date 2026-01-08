@@ -94,6 +94,11 @@ function setupBuildPlannerEvents() {
         exportBtn.addEventListener('click', exportBuild);
     }
 
+    const shareBtn = safeGetElementById('share-build-url');
+    if (shareBtn) {
+        shareBtn.addEventListener('click', shareBuildURL);
+    }
+
     const clearBtn = safeGetElementById('clear-build');
     if (clearBtn) {
         clearBtn.addEventListener('click', clearBuild);
@@ -227,6 +232,9 @@ function updateBuildAnalysis() {
     synergiesDisplay.innerHTML = synergies.length > 0
         ? `<h4>🔗 Synergies Found:</h4><ul>${synergies.map(s => `<li>${s}</li>`).join('')}</ul>`
         : '<p>Select character, weapon, and items to see synergies...</p>';
+
+    // Update URL with current build
+    updateBuildURL();
 }
 
 /**
@@ -247,6 +255,126 @@ function exportBuild() {
         console.error('Clipboard error:', err);
     });
 }
+
+/**
+ * Share build via URL - encode build to URL hash
+ */
+function shareBuildURL() {
+    const buildData = {
+        c: currentBuild.character?.id,
+        w: currentBuild.weapon?.id,
+        t: currentBuild.tomes.map(t => t.id),
+        i: currentBuild.items.map(i => i.id)
+    };
+
+    // Remove empty fields
+    if (!buildData.c) delete buildData.c;
+    if (!buildData.w) delete buildData.w;
+    if (!buildData.t || buildData.t.length === 0) delete buildData.t;
+    if (!buildData.i || buildData.i.length === 0) delete buildData.i;
+
+    const encoded = btoa(JSON.stringify(buildData));
+    const url = `${window.location.origin}${window.location.pathname}#build=${encoded}`;
+
+    navigator.clipboard.writeText(url).then(() => {
+        ToastManager.success('Build link copied to clipboard! Share it with friends.');
+    }).catch(err => {
+        ToastManager.error(`Failed to copy link: ${err.message}`);
+        console.error('Clipboard error:', err);
+    });
+}
+
+/**
+ * Load build from URL hash
+ */
+function loadBuildFromURL() {
+    const hash = window.location.hash;
+    if (!hash || !hash.includes('build=')) return false;
+
+    try {
+        const encoded = hash.split('build=')[1];
+        const decoded = JSON.parse(atob(encoded));
+
+        // Load character
+        if (decoded.c && allData.characters) {
+            const char = allData.characters.characters.find(c => c.id === decoded.c);
+            if (char) {
+                currentBuild.character = char;
+                safeSetValue('build-character', char.id);
+            }
+        }
+
+        // Load weapon
+        if (decoded.w && allData.weapons) {
+            const weapon = allData.weapons.weapons.find(w => w.id === decoded.w);
+            if (weapon) {
+                currentBuild.weapon = weapon;
+                safeSetValue('build-weapon', weapon.id);
+            }
+        }
+
+        // Load tomes
+        if (decoded.t && Array.isArray(decoded.t) && allData.tomes) {
+            currentBuild.tomes = decoded.t
+                .map(id => allData.tomes.tomes.find(t => t.id === id))
+                .filter(Boolean);
+            currentBuild.tomes.forEach(tome => {
+                const checkbox = document.querySelector(`.tome-checkbox[value="${tome.id}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+
+        // Load items
+        if (decoded.i && Array.isArray(decoded.i) && allData.items) {
+            currentBuild.items = decoded.i
+                .map(id => allData.items.items.find(item => item.id === id))
+                .filter(Boolean);
+            currentBuild.items.forEach(item => {
+                const checkbox = document.querySelector(`.item-checkbox[value="${item.id}"]`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+
+        updateBuildAnalysis();
+        ToastManager.success('Build loaded from URL!');
+        return true;
+    } catch (error) {
+        console.error('Failed to load build from URL:', error);
+        ToastManager.error('Invalid build link');
+        return false;
+    }
+}
+
+/**
+ * Update URL with current build (without page reload)
+ */
+function updateBuildURL() {
+    if (!currentBuild.character && !currentBuild.weapon &&
+        currentBuild.tomes.length === 0 && currentBuild.items.length === 0) {
+        // Empty build, remove hash
+        if (window.location.hash) {
+            history.replaceState(null, '', window.location.pathname);
+        }
+        return;
+    }
+
+    const buildData = {
+        c: currentBuild.character?.id,
+        w: currentBuild.weapon?.id,
+        t: currentBuild.tomes.map(t => t.id),
+        i: currentBuild.items.map(i => i.id)
+    };
+
+    // Remove empty fields
+    if (!buildData.c) delete buildData.c;
+    if (!buildData.w) delete buildData.w;
+    if (!buildData.t || buildData.t.length === 0) delete buildData.t;
+    if (!buildData.i || buildData.i.length === 0) delete buildData.i;
+
+    const encoded = btoa(JSON.stringify(buildData));
+    history.replaceState(null, '', `#build=${encoded}`);
+}
+
 
 /**
  * Clear the current build
@@ -273,3 +401,5 @@ window.calculateBuildStats = calculateBuildStats;
 window.updateBuildAnalysis = updateBuildAnalysis;
 window.exportBuild = exportBuild;
 window.clearBuild = clearBuild;
+window.shareBuildURL = shareBuildURL;
+window.loadBuildFromURL = loadBuildFromURL;

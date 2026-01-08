@@ -80,6 +80,11 @@ async function loadAllData() {
         // Initialize UI
         switchTab('items');
 
+        // Load build from URL if present
+        if (typeof loadBuildFromURL === 'function') {
+            loadBuildFromURL();
+        }
+
     } catch (error) {
         console.error('Error loading data:', error);
         hideLoading();

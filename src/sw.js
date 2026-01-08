@@ -1,6 +1,6 @@
 // MegaBonk Guide - Service Worker for offline support
 // Bug fix: Added missing changelog.js to cache
-const CACHE_NAME = 'megabonk-guide-v1.2.1';
+const CACHE_NAME = 'megabonk-guide-v1.2.2';
 const urlsToCache = [
   './',
   './index.html',
@@ -9,6 +9,7 @@ const urlsToCache = [
   './modules/constants.js',
   './modules/utils.js',
   './modules/toast.js',
+  './modules/favorites.js',
   './modules/data-service.js',
   './modules/filters.js',
   './modules/charts.js',
@@ -80,4 +81,11 @@ self.addEventListener('fetch', event => {
         // (browser will handle missing resources)
       })
   );
+});
+
+// Message event - handle skip waiting
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
