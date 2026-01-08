@@ -171,7 +171,7 @@ function renderChangelog(patches) {
             <div class="changelog-changes" id="changes-${patch.id}">
                 ${renderChangesSections(patch.categories)}
             </div>
-            <button class="changelog-expand-btn" data-target="changes-${patch.id}">
+            <button class="changelog-expand-btn" data-target="changes-${patch.id}" onclick="toggleChangelogExpand(this)">
                 Show Details
             </button>
         `;

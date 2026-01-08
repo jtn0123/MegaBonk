@@ -1845,6 +1845,105 @@ footer a:hover {
 }
 
 /* ========================================
+   Hidden Mechanics Section (Prominent)
+   ======================================== */
+
+.hidden-mechanics {
+    background: rgba(255, 152, 0, 0.12);
+    border: 1px solid #ff9800;
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+}
+
+.hidden-mechanics h4 {
+    margin: 0 0 0.75rem 0;
+    color: #ff9800;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.hidden-mechanics-icon {
+    font-size: 1.1rem;
+}
+
+.hidden-mechanics ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.hidden-mechanics li {
+    margin-bottom: 0.4rem;
+    color: var(--text);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.hidden-mechanics li:last-child {
+    margin-bottom: 0;
+}
+
+/* ========================================
+   Hyperbolic Scaling Warning
+   ======================================== */
+
+.hyperbolic-warning {
+    background: rgba(156, 39, 176, 0.15);
+    border: 1px solid #9c27b0;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin: 0.75rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.hyperbolic-warning .warning-icon {
+    color: #9c27b0;
+    font-size: 1.1rem;
+}
+
+/* ========================================
+   Scaling Tracks Tabs
+   ======================================== */
+
+.scaling-tracks-container {
+    margin: 1rem 0;
+}
+
+.scaling-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.scaling-tab {
+    background: var(--bg-dark);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 0.4rem 0.75rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.scaling-tab:hover {
+    border-color: var(--accent);
+    color: var(--text);
+}
+
+.scaling-tab.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+}
+
+/* ========================================
    Anti-Synergies Section
    ======================================== */
 
