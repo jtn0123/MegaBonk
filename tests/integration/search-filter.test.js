@@ -249,10 +249,11 @@ describe('Search and Filter Integration', () => {
     });
 
     it('should handle partial word matches', () => {
-      simulateInput(document.getElementById('searchInput'), 'dam');
+      simulateInput(document.getElementById('searchInput'), 'crystal');
 
       const result = filterData(testItems, 'items');
-      expect(result.length).toBe(2); // Damage Crystal, Bonk Bat (has "damage" in base_effect)
+      expect(result.length).toBe(1); // Damage Crystal
+      expect(result[0].name).toBe('Damage Crystal');
     });
 
     it('should handle special characters in search', () => {

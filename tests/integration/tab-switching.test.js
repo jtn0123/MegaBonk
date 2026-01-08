@@ -35,51 +35,8 @@ function getDataForTab(tabName) {
 }
 
 function setupTabDOM() {
+  // createMinimalDOM() already includes tab buttons and content
   createMinimalDOM();
-
-  // Add tab buttons
-  const tabNav = document.createElement('nav');
-  tabNav.className = 'tabs';
-  tabNav.innerHTML = `
-    <div class="tab-buttons">
-      <button class="tab-btn active" data-tab="items">Items</button>
-      <button class="tab-btn" data-tab="weapons">Weapons</button>
-      <button class="tab-btn" data-tab="tomes">Tomes</button>
-      <button class="tab-btn" data-tab="characters">Characters</button>
-      <button class="tab-btn" data-tab="shrines">Shrines</button>
-      <button class="tab-btn" data-tab="build-planner">Build Planner</button>
-      <button class="tab-btn" data-tab="calculator">Calculator</button>
-    </div>
-  `;
-  document.body.appendChild(tabNav);
-
-  // Add tab content containers
-  const tabContent = document.createElement('div');
-  tabContent.id = 'tab-content';
-  tabContent.innerHTML = `
-    <div id="items-tab" class="tab-content active">
-      <div id="itemsContainer" class="items-grid"></div>
-    </div>
-    <div id="weapons-tab" class="tab-content">
-      <div id="weaponsContainer" class="items-grid"></div>
-    </div>
-    <div id="tomes-tab" class="tab-content">
-      <div id="tomesContainer" class="items-grid"></div>
-    </div>
-    <div id="characters-tab" class="tab-content">
-      <div id="charactersContainer" class="items-grid"></div>
-    </div>
-    <div id="shrines-tab" class="tab-content">
-      <div id="shrinesContainer" class="shrines-grid"></div>
-    </div>
-    <div id="build-planner-tab" class="tab-content">
-      <div id="buildPlannerContainer"></div>
-    </div>
-    <div id="calculator-tab" class="tab-content">
-      <div id="calculatorContainer"></div>
-    </div>
-  `;
-  document.body.appendChild(tabContent);
 }
 
 describe('Tab Switching Integration', () => {

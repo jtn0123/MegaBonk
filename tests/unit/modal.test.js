@@ -10,30 +10,8 @@ let compareItems = [];
 const MAX_COMPARE_ITEMS = 3;
 
 function setupModalDOM() {
+  // createMinimalDOM() already includes itemModal and compareModal
   createMinimalDOM();
-
-  // Add modal containers
-  const itemModal = document.createElement('div');
-  itemModal.id = 'itemModal';
-  itemModal.className = 'modal';
-  itemModal.innerHTML = `
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <div id="modalBody"></div>
-    </div>
-  `;
-  document.body.appendChild(itemModal);
-
-  const compareModal = document.createElement('div');
-  compareModal.id = 'compareModal';
-  compareModal.className = 'modal';
-  compareModal.innerHTML = `
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <div id="compareBody"></div>
-    </div>
-  `;
-  document.body.appendChild(compareModal);
 }
 
 function openDetailModal(type, id) {
@@ -179,6 +157,8 @@ describe('Modal Management', () => {
   beforeEach(() => {
     setupModalDOM();
     allData = createMockAllData();
+    // Add test-item-2 for compare modal tests
+    allData.items.items.push(createMockItem({ id: 'test-item-2', name: 'Test Item 2' }));
     compareItems = [];
   });
 

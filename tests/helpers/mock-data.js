@@ -100,7 +100,7 @@ export function createMockShrine(overrides = {}) {
   return {
     id: 'test_shrine',
     name: 'Test Shrine',
-    type: 'stat_upgrade',
+    type: 'offensive',
     icon: '📊',
     description: 'A test shrine for testing.',
     reward: 'Test reward',
@@ -118,8 +118,9 @@ export function createMockAllData() {
     items: {
       version: '1.0.0',
       last_updated: '2024-01-01',
-      total_items: 3,
+      total_items: 4,
       items: [
+        createMockItem({ id: 'test-item', name: 'Test Item', tier: 'A', rarity: 'rare' }),
         createMockItem({ id: 'gym_sauce', name: 'Gym Sauce', tier: 'S', rarity: 'epic' }),
         createMockItem({ id: 'beefy_ring', name: 'Beefy Ring', tier: 'S', stacks_well: true, rarity: 'legendary' }),
         createMockItem({ id: 'anvil', name: 'Anvil', tier: 'SS', one_and_done: true, stacks_well: false, rarity: 'rare' })
@@ -128,6 +129,7 @@ export function createMockAllData() {
     weapons: {
       version: '1.0.0',
       weapons: [
+        createMockWeapon({ id: 'test-weapon', name: 'Test Weapon', base_damage: 10 }),
         createMockWeapon({ id: 'revolver', name: 'Revolver', base_damage: 5 }),
         createMockWeapon({ id: 'bow', name: 'Bow', base_damage: 9 })
       ]
@@ -135,6 +137,7 @@ export function createMockAllData() {
     tomes: {
       version: '1.0.0',
       tomes: [
+        createMockTome({ id: 'test-tome', name: 'Test Tome', stat_affected: 'Damage', value_per_level: '+0.1x' }),
         createMockTome({ id: 'damage', name: 'Damage Tome', stat_affected: 'Damage', value_per_level: '+0.08x' }),
         createMockTome({ id: 'precision', name: 'Precision Tome', stat_affected: 'Crit Chance', value_per_level: '+7%' })
       ]
@@ -142,6 +145,7 @@ export function createMockAllData() {
     characters: {
       version: '1.0.0',
       characters: [
+        createMockCharacter({ id: 'test-character', name: 'Test Character', passive_ability: 'Test passive' }),
         createMockCharacter({ id: 'cl4nk', name: 'CL4NK', passive_ability: 'Gain 1% Crit Chance per level', synergies_weapons: ['Revolver'] }),
         createMockCharacter({ id: 'sir_oofie', name: 'Sir Oofie', passive_ability: 'Gain 1% Armor per level' })
       ]
@@ -149,6 +153,7 @@ export function createMockAllData() {
     shrines: {
       version: '1.0.0',
       shrines: [
+        createMockShrine({ id: 'test-shrine', name: 'Test Shrine' }),
         createMockShrine({ id: 'charge_shrine', name: 'Charge Shrine' })
       ]
     },
@@ -200,8 +205,8 @@ export function createExtendedMockData() {
     createMockItem({ id: 'turbo_socks', name: 'Turbo Socks', tier: 'B', rarity: 'rare', stacks_well: true }),
     createMockItem({ id: 'beer', name: 'Beer', tier: 'A', rarity: 'common', stacks_well: true }),
     createMockItem({ id: 'backpack', name: 'Backpack', tier: 'SS', rarity: 'legendary', one_and_done: true, stacks_well: false }),
-    createMockItem({ id: 'big_bonk', name: 'Big Bonk', tier: 'S', rarity: 'epic', stacks_well: true, scaling_per_stack: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], scaling_type: 'chance_based' }),
-    createMockItem({ id: 'spicy_meatball', name: 'Spicy Meatball', tier: 'A', rarity: 'rare', stacks_well: true, stack_cap: 4, scaling_per_stack: [25, 50, 75, 100, 100, 100, 100, 100, 100, 100], scaling_type: 'chance_based' }),
+    createMockItem({ id: 'big_bonk', name: 'Big Bonk', tier: 'S', rarity: 'epic', stacks_well: true, scaling_per_stack: [2, 4, 6, 8, 10, 12, 14, 16, 18, 20], scaling_type: 'linear' }),
+    createMockItem({ id: 'spicy_meatball', name: 'Spicy Meatball', tier: 'A', rarity: 'rare', stacks_well: true, stack_cap: 4, scaling_per_stack: [25, 50, 75, 100, 100, 100, 100, 100, 100, 100], scaling_type: 'diminishing' }),
   ];
 
   mockData.items.total_items = mockData.items.items.length;

@@ -91,11 +91,11 @@ describe('loadAllData()', () => {
 
       expect(result.success).toBe(true);
       expect(allData.items).toBeDefined();
-      expect(allData.items.items).toHaveLength(3);
-      expect(allData.weapons.weapons).toHaveLength(2);
-      expect(allData.tomes.tomes).toHaveLength(2);
-      expect(allData.characters.characters).toHaveLength(2);
-      expect(allData.shrines.shrines).toHaveLength(1);
+      expect(allData.items.items).toHaveLength(4);
+      expect(allData.weapons.weapons).toHaveLength(3);
+      expect(allData.tomes.tomes).toHaveLength(3);
+      expect(allData.characters.characters).toHaveLength(3);
+      expect(allData.shrines.shrines).toHaveLength(2);
     });
 
     it('should update version display element', async () => {
