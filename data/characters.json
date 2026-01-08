@@ -83,7 +83,8 @@
         "Aura",
         "Aegis"
       ],
-      "build_tips": "Stack HP and armor. Add thorns for passive damage. Unkillable late game."
+      "build_tips": "Stack HP and armor. Add thorns for passive damage. Unkillable late game.",
+      "image": "images/characters/sir_oofie.png"
     },
     {
       "id": "cl4nk",
@@ -296,7 +297,8 @@
         "Blood Magic",
         "Fast weapons"
       ],
-      "build_tips": "Attack speed = more heals. Bloody Cleaver is core. Unkillable."
+      "build_tips": "Attack speed = more heals. Bloody Cleaver is core. Unkillable.",
+      "image": "images/characters/vlad.png"
     },
     {
       "id": "bandit",
@@ -541,7 +543,8 @@
       "synergies_weapons": [
         "Black Hole"
       ],
-      "build_tips": "Level fast. Black Hole with size is amazing. XP snowball."
+      "build_tips": "Level fast. Black Hole with size is amazing. XP snowball.",
+      "image": "images/characters/spaceman.png"
     },
     {
       "id": "noelle",

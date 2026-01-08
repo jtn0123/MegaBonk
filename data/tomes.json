@@ -32,7 +32,8 @@
         "Ogre",
         "All damage dealers"
       ],
-      "notes": "ALWAYS valuable. Core stat for any build."
+      "notes": "ALWAYS valuable. Core stat for any build.",
+      "image": "images/tomes/damage.png"
     },
     {
       "id": "precision",
@@ -67,7 +68,8 @@
         "CL4NK",
         "Bush"
       ],
-      "notes": "Get to 100%+ for Overcrit mechanic. Game-changing with crit damage."
+      "notes": "Get to 100%+ for Overcrit mechanic. Game-changing with crit damage.",
+      "image": "images/tomes/precision.png"
     },
     {
       "id": "cooldown",
@@ -101,7 +103,8 @@
         "Bandit",
         "All characters"
       ],
-      "notes": "More attacks = more damage and more procs. Universal value."
+      "notes": "More attacks = more damage and more procs. Universal value.",
+      "image": "images/tomes/cooldown.png"
     },
     {
       "id": "hp",
@@ -167,7 +170,8 @@
         "Calcium",
         "Tony McZoom"
       ],
-      "notes": "Better positioning = better survival. Turbo Skates converts to attack speed."
+      "notes": "Better positioning = better survival. Turbo Skates converts to attack speed.",
+      "image": "images/tomes/agility.png"
     },
     {
       "id": "size",
@@ -200,7 +204,8 @@
       "synergies_characters": [
         "Noelle"
       ],
-      "notes": "Bigger = more enemies hit. Game-changing for certain weapons."
+      "notes": "Bigger = more enemies hit. Game-changing for certain weapons.",
+      "image": "images/tomes/size.png"
     },
     {
       "id": "shield",
@@ -228,7 +233,8 @@
       "synergies_characters": [
         "All characters"
       ],
-      "notes": "Recharges after not taking damage. Prevents burst deaths."
+      "notes": "Recharges after not taking damage. Prevents burst deaths.",
+      "image": "images/tomes/shield.png"
     },
     {
       "id": "regen",
@@ -257,7 +263,8 @@
       "synergies_characters": [
         "All characters"
       ],
-      "notes": "Passive healing. Better in longer fights."
+      "notes": "Passive healing. Better in longer fights.",
+      "image": "images/tomes/regen.png"
     },
     {
       "id": "evasion",
@@ -286,7 +293,8 @@
       "synergies_characters": [
         "Ninja"
       ],
-      "notes": "Diminishing returns. Can't reach 100%. Ninja gets bonus value."
+      "notes": "Diminishing returns. Can't reach 100%. Ninja gets bonus value.",
+      "image": "images/tomes/evasion.png"
     },
     {
       "id": "knockback",
@@ -317,7 +325,8 @@
       "synergies_characters": [
         "All ranged characters"
       ],
-      "notes": "Creates space. Can push enemies away from objectives."
+      "notes": "Creates space. Can push enemies away from objectives.",
+      "image": "images/tomes/knockback.png"
     },
     {
       "id": "projectile_speed",
@@ -378,7 +387,8 @@
       "synergies_characters": [
         "All characters"
       ],
-      "notes": "Each projectile = full damage. Multiplicative value."
+      "notes": "Each projectile = full damage. Multiplicative value.",
+      "image": "images/tomes/quantity.png"
     },
     {
       "id": "duration",
@@ -409,7 +419,8 @@
       "synergies_characters": [
         "All characters"
       ],
-      "notes": "Essential for Axe. Extends DoT and status effects."
+      "notes": "Essential for Axe. Extends DoT and status effects.",
+      "image": "images/tomes/duration.png"
     },
     {
       "id": "armor",
@@ -440,7 +451,8 @@
         "Sir Oofie",
         "Athena"
       ],
-      "notes": "Diminishing returns. Pairs with HP for tankiness."
+      "notes": "Diminishing returns. Pairs with HP for tankiness.",
+      "image": "images/tomes/armor.png"
     },
     {
       "id": "bloody",
@@ -471,7 +483,8 @@
       "synergies_characters": [
         "Vlad"
       ],
-      "notes": "Great with high attack speed. Over 100% = 2 HP per proc."
+      "notes": "Great with high attack speed. Over 100% = 2 HP per proc.",
+      "image": "images/tomes/bloody.png"
     },
     {
       "id": "thorns",
@@ -503,7 +516,8 @@
       "synergies_characters": [
         "Athena"
       ],
-      "notes": "Requires taking hits. Best with armor and HP."
+      "notes": "Requires taking hits. Best with armor and HP.",
+      "image": "images/tomes/thorns.png"
     },
     {
       "id": "xp",
@@ -563,7 +577,8 @@
         "Fox",
         "All characters"
       ],
-      "notes": "Better items = better runs. Does NOT affect procs/crits."
+      "notes": "Better items = better runs. Does NOT affect procs/crits.",
+      "image": "images/tomes/luck.png"
     },
     {
       "id": "gold",
@@ -591,7 +606,8 @@
       "synergies_characters": [
         "Robinette"
       ],
-      "notes": "More gold = more shop items. Robinette gets bonus."
+      "notes": "More gold = more shop items. Robinette gets bonus.",
+      "image": "images/tomes/gold.png"
     },
     {
       "id": "silver",
@@ -616,7 +632,8 @@
       "synergies_characters": [
         "All characters"
       ],
-      "notes": "No combat value. Only for meta progression."
+      "notes": "No combat value. Only for meta progression.",
+      "image": "images/tomes/silver.png"
     },
     {
       "id": "attraction",
@@ -644,7 +661,8 @@
       "synergies_characters": [
         "All characters"
       ],
-      "notes": "QoL. Sucky Magnet makes this less important."
+      "notes": "QoL. Sucky Magnet makes this less important.",
+      "image": "images/tomes/attraction.png"
     },
     {
       "id": "cursed",
@@ -673,7 +691,8 @@
       "synergies_characters": [
         "Sir Chadwell"
       ],
-      "notes": "Risk/reward. More danger but better rewards."
+      "notes": "Risk/reward. More danger but better rewards.",
+      "image": "images/tomes/cursed.png"
     },
     {
       "id": "chaos",
@@ -702,7 +721,8 @@
       "synergies_characters": [
         "Dicehead"
       ],
-      "notes": "Hardest unlock. Pure RNG. High variance, high reward."
+      "notes": "Hardest unlock. Pure RNG. High variance, high reward.",
+      "image": "images/tomes/chaos.png"
     }
   ]
 }

@@ -100,7 +100,8 @@
       "cons": [
         "Lower base damage",
         "Requires crit investment"
-      ]
+      ],
+      "image": "images/weapons/revolver.jpg"
     },
     {
       "id": "bow",
@@ -194,7 +195,8 @@
       "cons": [
         "Requires enemy density",
         "Lower single-target"
-      ]
+      ],
+      "image": "images/weapons/lightning_staff.jpg"
     },
     {
       "id": "dragons_breath",
@@ -282,7 +284,8 @@
       "cons": [
         "Very limited upgrades",
         "Requires proximity"
-      ]
+      ],
+      "image": "images/weapons/aura.jpg"
     },
     {
       "id": "sword",
@@ -328,7 +331,8 @@
       "cons": [
         "Melee range only",
         "Requires positioning"
-      ]
+      ],
+      "image": "images/weapons/sword.jpg"
     },
     {
       "id": "axe",
@@ -374,7 +378,8 @@
       "cons": [
         "Requires duration investment",
         "Slower initial clear"
-      ]
+      ],
+      "image": "images/weapons/axe.png"
     },
     {
       "id": "tornado",
@@ -695,7 +700,8 @@
       "cons": [
         "Requires duration",
         "Slower kill speed"
-      ]
+      ],
+      "image": "images/weapons/poison_flask.jpg"
     },
     {
       "id": "frostwalker",
@@ -738,7 +744,8 @@
       "cons": [
         "Limited upgrade options",
         "Requires ice items"
-      ]
+      ],
+      "image": "images/weapons/frostwalker.png"
     },
     {
       "id": "aegis",
@@ -783,7 +790,8 @@
       "cons": [
         "Requires armor build",
         "Sir Oofie-specific unlock"
-      ]
+      ],
+      "image": "images/weapons/aegis.jpg"
     },
     {
       "id": "firestaff",
@@ -920,7 +928,8 @@
       "cons": [
         "Secret unlock",
         "Requires finding banana"
-      ]
+      ],
+      "image": "images/weapons/bananarang.png"
     },
     {
       "id": "shotgun",
@@ -1148,7 +1157,8 @@
       "cons": [
         "Calcium starter only",
         "Unpredictable bounces"
-      ]
+      ],
+      "image": "images/weapons/bone.jpg"
     },
     {
       "id": "hero_sword",
