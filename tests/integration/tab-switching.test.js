@@ -177,3 +177,215 @@ describe('Tab State Management', () => {
     expect(document.querySelectorAll('.tab-content.active').length).toBe(1);
   });
 });
+
+describe('Search Query Preservation', () => {
+  let searchQuery = '';
+
+  function setSearchQuery(query) {
+    searchQuery = query;
+    const input = document.getElementById('searchInput');
+    if (input) {
+      input.value = query;
+    }
+  }
+
+  function getSearchQuery() {
+    const input = document.getElementById('searchInput');
+    return input ? input.value : '';
+  }
+
+  beforeEach(() => {
+    setupTabDOM();
+    searchQuery = '';
+    currentTab = 'items';
+  });
+
+  it('should preserve search query when switching tabs', () => {
+    setSearchQuery('fire');
+    switchTab('weapons');
+
+    expect(getSearchQuery()).toBe('fire');
+  });
+
+  it('should preserve search query across multiple tab switches', () => {
+    setSearchQuery('critical');
+    switchTab('weapons');
+    switchTab('tomes');
+    switchTab('characters');
+
+    expect(getSearchQuery()).toBe('critical');
+  });
+
+  it('should allow clearing search query on any tab', () => {
+    setSearchQuery('damage');
+    switchTab('weapons');
+    setSearchQuery('');
+
+    expect(getSearchQuery()).toBe('');
+  });
+
+  it('should maintain search input element across tab switches', () => {
+    switchTab('weapons');
+    expect(document.getElementById('searchInput')).not.toBeNull();
+
+    switchTab('tomes');
+    expect(document.getElementById('searchInput')).not.toBeNull();
+
+    switchTab('calculator');
+    expect(document.getElementById('searchInput')).not.toBeNull();
+  });
+});
+
+describe('Filter Dropdown Updates', () => {
+  const tabFilters = {
+    items: ['tier', 'rarity', 'type'],
+    weapons: ['tier', 'type'],
+    tomes: ['tier', 'priority'],
+    characters: ['difficulty', 'playstyle'],
+    shrines: ['effect_type']
+  };
+
+  function getApplicableFilters(tabName) {
+    return tabFilters[tabName] || [];
+  }
+
+  beforeEach(() => {
+    setupTabDOM();
+    currentTab = 'items';
+  });
+
+  it('should have different filters for items tab', () => {
+    const filters = getApplicableFilters('items');
+    expect(filters).toContain('tier');
+    expect(filters).toContain('rarity');
+    expect(filters).toContain('type');
+  });
+
+  it('should have different filters for weapons tab', () => {
+    const filters = getApplicableFilters('weapons');
+    expect(filters).toContain('tier');
+    expect(filters).toContain('type');
+    expect(filters).not.toContain('rarity');
+  });
+
+  it('should have different filters for tomes tab', () => {
+    const filters = getApplicableFilters('tomes');
+    expect(filters).toContain('tier');
+    expect(filters).toContain('priority');
+  });
+
+  it('should have different filters for characters tab', () => {
+    const filters = getApplicableFilters('characters');
+    expect(filters).toContain('difficulty');
+    expect(filters).toContain('playstyle');
+    expect(filters).not.toContain('tier');
+  });
+
+  it('should have different filters for shrines tab', () => {
+    const filters = getApplicableFilters('shrines');
+    expect(filters).toContain('effect_type');
+  });
+
+  it('should return empty filters for tabs without data', () => {
+    const buildFilters = getApplicableFilters('build-planner');
+    const calcFilters = getApplicableFilters('calculator');
+
+    expect(buildFilters).toEqual([]);
+    expect(calcFilters).toEqual([]);
+  });
+});
+
+describe('Chart Cleanup', () => {
+  let chartInstances = {};
+
+  function createMockChart(canvasId) {
+    const chart = {
+      destroy: vi.fn(),
+      update: vi.fn()
+    };
+    chartInstances[canvasId] = chart;
+    return chart;
+  }
+
+  function destroyChartIfExists(canvasId) {
+    if (chartInstances[canvasId]) {
+      chartInstances[canvasId].destroy();
+      delete chartInstances[canvasId];
+    }
+  }
+
+  function destroyAllCharts() {
+    Object.keys(chartInstances).forEach(canvasId => {
+      if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+      }
+    });
+    chartInstances = {};
+  }
+
+  function cleanupChartsOnTabSwitch(fromTab, toTab) {
+    // Clean up charts when leaving items or tomes tabs
+    if (fromTab === 'items' || fromTab === 'tomes') {
+      destroyAllCharts();
+    }
+  }
+
+  beforeEach(() => {
+    setupTabDOM();
+    chartInstances = {};
+    currentTab = 'items';
+  });
+
+  it('should destroy charts when leaving items tab', () => {
+    const chart1 = createMockChart('item-chart-1');
+    const chart2 = createMockChart('item-chart-2');
+
+    cleanupChartsOnTabSwitch('items', 'weapons');
+
+    expect(chart1.destroy).toHaveBeenCalled();
+    expect(chart2.destroy).toHaveBeenCalled();
+  });
+
+  it('should destroy charts when leaving tomes tab', () => {
+    const chart = createMockChart('tome-progression-chart');
+
+    cleanupChartsOnTabSwitch('tomes', 'characters');
+
+    expect(chart.destroy).toHaveBeenCalled();
+  });
+
+  it('should not destroy charts when leaving non-chart tabs', () => {
+    const chart = createMockChart('some-chart');
+
+    cleanupChartsOnTabSwitch('characters', 'weapons');
+
+    // Charts should remain since we're not leaving items/tomes
+    expect(chart.destroy).not.toHaveBeenCalled();
+  });
+
+  it('should clear chart instances after cleanup', () => {
+    createMockChart('chart-1');
+    createMockChart('chart-2');
+
+    destroyAllCharts();
+
+    expect(Object.keys(chartInstances)).toHaveLength(0);
+  });
+
+  it('should handle cleanup with no existing charts', () => {
+    // Should not throw when no charts exist
+    expect(() => cleanupChartsOnTabSwitch('items', 'weapons')).not.toThrow();
+  });
+
+  it('should destroy specific chart by canvas ID', () => {
+    const chart1 = createMockChart('chart-a');
+    const chart2 = createMockChart('chart-b');
+
+    destroyChartIfExists('chart-a');
+
+    expect(chart1.destroy).toHaveBeenCalled();
+    expect(chart2.destroy).not.toHaveBeenCalled();
+    expect(chartInstances['chart-a']).toBeUndefined();
+    expect(chartInstances['chart-b']).toBeDefined();
+  });
+});
