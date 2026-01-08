@@ -138,7 +138,8 @@
         "Monke",
         "Athena"
       ],
-      "notes": "More HP = survivability + Beefy Ring damage scaling."
+      "notes": "More HP = survivability + Beefy Ring damage scaling.",
+      "image": "images/tomes/hp.png"
     },
     {
       "id": "agility",

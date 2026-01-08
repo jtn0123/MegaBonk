@@ -150,7 +150,8 @@
       "cons": [
         "Moderate damage",
         "Requires upgrades to shine"
-      ]
+      ],
+      "image": "images/weapons/bow.png"
     },
     {
       "id": "lightning_staff",
@@ -239,7 +240,8 @@
       "cons": [
         "Direction-dependent",
         "Limited upgrade paths"
-      ]
+      ],
+      "image": "images/weapons/dragons_breath.png"
     },
     {
       "id": "aura",
@@ -655,7 +657,8 @@
       "cons": [
         "Requires CL4NK unlock",
         "Projectile speed matters"
-      ]
+      ],
+      "image": "images/weapons/slutty_rocket.png"
     },
     {
       "id": "poison_flask",
@@ -1297,7 +1300,8 @@
         "Risky playstyle",
         "Hard unlock",
         "Requires low HP"
-      ]
+      ],
+      "image": "images/weapons/corrupted_sword.png"
     },
     {
       "id": "flamewalker",

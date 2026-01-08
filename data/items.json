@@ -2907,7 +2907,8 @@
       "anti_synergies": [],
       "notes": "ONE-AND-DONE: One key unlocks everything. Multiple copies only useful if keys are consumed.",
       "graph_type": "flat",
-      "one_and_done": true
+      "one_and_done": true,
+      "image": "images/items/key.png"
     },
     {
       "id": "scarf",
