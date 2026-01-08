@@ -1,303 +1,539 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MegaBonk Complete Guide - Items, Weapons, Tomes, Characters & Builds</title>
-    <meta name="description" content="Complete MegaBonk guide with 77 items, 29 weapons, 23 tomes, build planner, and breakpoint calculator">
-    <meta name="theme-color" content="#00ff88">
-    <link rel="stylesheet" href="styles.css">
-    <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
-    <script src="libs/chart.min.js"></script>
-</head>
-<body>
-    <!-- Loading Overlay -->
-    <div id="loading-overlay" class="loading-overlay" role="alert" aria-live="assertive" aria-busy="true">
-        <div class="loading-spinner"></div>
-        <p>Loading game data...</p>
-    </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>MegaBonk Complete Guide - Items, Weapons, Tomes, Characters & Builds</title>
+        <meta
+            name="description"
+            content="Complete MegaBonk guide with 77 items, 29 weapons, 23 tomes, build planner, and breakpoint calculator"
+        />
+        <meta name="theme-color" content="#00ff88" />
+        <meta
+            name="keywords"
+            content="MegaBonk, roguelike, game guide, items, weapons, tomes, build planner, calculator"
+        />
+        <meta name="author" content="MegaBonk Community" />
 
-    <header>
-        <div class="container">
-            <h1>🎮 MegaBonk Complete Guide</h1>
-            <p class="subtitle">Items • Weapons • Tomes • Characters • Shrines • Build Planner</p>
-            <div class="version-info" role="status" aria-live="polite">
-                <span id="version">Version: Loading...</span>
-                <span id="last-updated">Last Updated: Loading...</span>
-            </div>
+        <!-- Open Graph / Facebook -->
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content="https://megabonk.guide/" />
+        <meta property="og:title" content="MegaBonk Complete Guide - Items, Weapons, Tomes & Builds" />
+        <meta
+            property="og:description"
+            content="The ultimate reference for MegaBonk with 77 items, 29 weapons, 23 tomes, interactive build planner and breakpoint calculator"
+        />
+        <meta property="og:image" content="https://megabonk.guide/icons/icon-512.png" />
+
+        <!-- Twitter -->
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="twitter:url" content="https://megabonk.guide/" />
+        <meta property="twitter:title" content="MegaBonk Complete Guide" />
+        <meta
+            property="twitter:description"
+            content="Complete reference with 77 items, 29 weapons, 23 tomes, build planner and calculator"
+        />
+        <meta property="twitter:image" content="https://megabonk.guide/icons/icon-512.png" />
+
+        <link rel="stylesheet" href="styles.css" />
+        <link rel="manifest" href="manifest.json" />
+        <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+        <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+        <!-- Schema.org Structured Data -->
+        <script type="application/ld+json">
+            {
+                "@context": "https://schema.org",
+                "@type": "WebApplication",
+                "name": "MegaBonk Complete Guide",
+                "description": "Interactive reference guide for the roguelike game MegaBonk featuring items, weapons, tomes, characters, shrines, build planner, and breakpoint calculator",
+                "url": "https://megabonk.guide",
+                "applicationCategory": "GameApplication",
+                "operatingSystem": "Any",
+                "offers": {
+                    "@type": "Offer",
+                    "price": "0",
+                    "priceCurrency": "USD"
+                },
+                "featureList": [
+                    "77 items with detailed stats and scaling",
+                    "29 weapons with upgrade paths",
+                    "23 tomes with priority rankings",
+                    "20 playable characters",
+                    "8 shrine types",
+                    "Interactive build planner",
+                    "Breakpoint calculator",
+                    "Offline PWA support"
+                ],
+                "screenshot": "https://megabonk.guide/icons/icon-512.png",
+                "browserRequirements": "Requires JavaScript",
+                "about": {
+                    "@type": "VideoGame",
+                    "name": "MegaBonk",
+                    "gamePlatform": "PC",
+                    "genre": "Roguelike"
+                }
+            }
+        </script>
+
+        <script src="libs/chart.min.js"></script>
+    </head>
+    <body>
+        <!-- Skip to Content Link (Accessibility) -->
+        <a href="#main-content" class="skip-to-content">Skip to main content</a>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay" role="alert" aria-live="assertive" aria-busy="true">
+            <div class="loading-spinner"></div>
+            <p>Loading game data...</p>
         </div>
-    </header>
 
-    <!-- Tab Navigation -->
-    <nav class="tabs" aria-label="Main navigation">
-        <div class="container">
-            <div class="tab-buttons" role="tablist" aria-label="Content categories">
-                <button class="tab-btn active" data-tab="items" role="tab" aria-selected="true" aria-controls="items-tab" id="tab-items">📦 Items</button>
-                <button class="tab-btn" data-tab="weapons" role="tab" aria-selected="false" aria-controls="weapons-tab" id="tab-weapons">⚔️ Weapons</button>
-                <button class="tab-btn" data-tab="tomes" role="tab" aria-selected="false" aria-controls="tomes-tab" id="tab-tomes">📚 Tomes</button>
-                <button class="tab-btn" data-tab="characters" role="tab" aria-selected="false" aria-controls="characters-tab" id="tab-characters">👤 Characters</button>
-                <button class="tab-btn" data-tab="shrines" role="tab" aria-selected="false" aria-controls="shrines-tab" id="tab-shrines">⛩️ Shrines</button>
-                <button class="tab-btn" data-tab="build-planner" role="tab" aria-selected="false" aria-controls="build-planner-tab" id="tab-build-planner">🛠️ Build Planner</button>
-                <button class="tab-btn" data-tab="calculator" role="tab" aria-selected="false" aria-controls="calculator-tab" id="tab-calculator">🧮 Calculator</button>
-                <button class="tab-btn" data-tab="changelog" role="tab" aria-selected="false" aria-controls="changelog-tab" id="tab-changelog">📋 Changelog</button>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Filters (context-sensitive based on active tab) -->
-    <nav class="controls" aria-label="Search and filters">
-        <div class="container">
-            <div class="search-box">
-                <input type="search" id="searchInput" placeholder="🔍 Search..." aria-label="Search items, weapons, tomes, and characters" />
-            </div>
-
-            <div class="filters" id="filters" aria-label="Filter options">
-                <!-- Filters dynamically updated based on active tab -->
-            </div>
-        </div>
-    </nav>
-
-    <main class="container">
-        <!-- Stats Summary (context-sensitive) -->
-        <div id="stats-summary" class="stats-panel" role="region" aria-label="Statistics summary" aria-live="polite">
-            <!-- Dynamically populated based on active tab -->
-        </div>
-
-        <!-- Tab Content Containers -->
-        <div id="tab-content">
-            <!-- Items Tab -->
-            <div id="items-tab" class="tab-content active" role="tabpanel" aria-labelledby="tab-items">
-                <div id="itemsContainer" class="items-grid" aria-label="Items grid">
-                    <!-- Items loaded dynamically -->
+        <header>
+            <div class="container">
+                <h1>🎮 MegaBonk Complete Guide</h1>
+                <p class="subtitle">Items • Weapons • Tomes • Characters • Shrines • Build Planner</p>
+                <div class="version-info" role="status" aria-live="polite">
+                    <span id="version">Version: Loading...</span>
+                    <span id="last-updated">Last Updated: Loading...</span>
                 </div>
             </div>
+        </header>
 
-            <!-- Weapons Tab -->
-            <div id="weapons-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-weapons">
-                <div id="weaponsContainer" class="items-grid" aria-label="Weapons grid">
-                    <!-- Weapons loaded dynamically -->
+        <!-- Tab Navigation -->
+        <nav class="tabs" aria-label="Main navigation">
+            <div class="container">
+                <div class="tab-buttons" role="tablist" aria-label="Content categories">
+                    <button
+                        class="tab-btn active"
+                        data-tab="items"
+                        role="tab"
+                        aria-selected="true"
+                        aria-controls="items-tab"
+                        id="tab-items"
+                    >
+                        📦 Items
+                    </button>
+                    <button
+                        class="tab-btn"
+                        data-tab="weapons"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="weapons-tab"
+                        id="tab-weapons"
+                    >
+                        ⚔️ Weapons
+                    </button>
+                    <button
+                        class="tab-btn"
+                        data-tab="tomes"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="tomes-tab"
+                        id="tab-tomes"
+                    >
+                        📚 Tomes
+                    </button>
+                    <button
+                        class="tab-btn"
+                        data-tab="characters"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="characters-tab"
+                        id="tab-characters"
+                    >
+                        👤 Characters
+                    </button>
+                    <button
+                        class="tab-btn"
+                        data-tab="shrines"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="shrines-tab"
+                        id="tab-shrines"
+                    >
+                        ⛩️ Shrines
+                    </button>
+                    <button
+                        class="tab-btn"
+                        data-tab="build-planner"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="build-planner-tab"
+                        id="tab-build-planner"
+                    >
+                        🛠️ Build Planner
+                    </button>
+                    <button
+                        class="tab-btn"
+                        data-tab="calculator"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="calculator-tab"
+                        id="tab-calculator"
+                    >
+                        🧮 Calculator
+                    </button>
+                    <button
+                        class="tab-btn"
+                        data-tab="changelog"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="changelog-tab"
+                        id="tab-changelog"
+                    >
+                        📋 Changelog
+                    </button>
                 </div>
             </div>
+        </nav>
 
-            <!-- Tomes Tab -->
-            <div id="tomes-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-tomes">
-                <div id="tomesContainer" class="items-grid" aria-label="Tomes grid">
-                    <!-- Tomes loaded dynamically -->
+        <!-- Filters (context-sensitive based on active tab) -->
+        <nav class="controls" aria-label="Search and filters">
+            <div class="container">
+                <div class="search-box">
+                    <input
+                        type="search"
+                        id="searchInput"
+                        placeholder="🔍 Search..."
+                        aria-label="Search items, weapons, tomes, and characters"
+                    />
+                </div>
+
+                <div class="filters" id="filters" aria-label="Filter options">
+                    <!-- Filters dynamically updated based on active tab -->
                 </div>
             </div>
+        </nav>
 
-            <!-- Characters Tab -->
-            <div id="characters-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-characters">
-                <div id="charactersContainer" class="items-grid" aria-label="Characters grid">
-                    <!-- Characters loaded dynamically -->
-                </div>
+        <main id="main-content" class="container">
+            <!-- Stats Summary (context-sensitive) -->
+            <div
+                id="stats-summary"
+                class="stats-panel"
+                role="region"
+                aria-label="Statistics summary"
+                aria-live="polite"
+            >
+                <!-- Dynamically populated based on active tab -->
             </div>
 
-            <!-- Shrines Tab -->
-            <div id="shrines-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-shrines">
-                <div id="shrinesContainer" class="items-grid" aria-label="Shrines grid">
-                    <!-- Shrines loaded dynamically -->
-                </div>
-            </div>
-
-            <!-- Build Planner Tab -->
-            <div id="build-planner-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-build-planner">
-                <div id="buildPlannerContainer" class="build-planner">
-                    <div class="build-section">
-                        <h2>🛠️ Build Your Perfect Loadout</h2>
-                        <p>Select character, weapon, tomes, and items to see synergies and stats.</p>
+            <!-- Tab Content Containers -->
+            <div id="tab-content">
+                <!-- Items Tab -->
+                <div id="items-tab" class="tab-content active" role="tabpanel" aria-labelledby="tab-items">
+                    <div id="itemsContainer" class="items-grid" aria-label="Items grid">
+                        <!-- Items loaded dynamically -->
                     </div>
+                </div>
 
-                    <div class="build-grid">
-                        <!-- Character Selection -->
-                        <div class="build-slot">
-                            <h3 id="character-label">👤 Character</h3>
-                            <select id="build-character" aria-labelledby="character-label">
-                                <option value="">Select Character...</option>
-                            </select>
-                            <div id="character-preview" class="slot-preview" role="status" aria-live="polite"></div>
+                <!-- Weapons Tab -->
+                <div id="weapons-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-weapons">
+                    <div id="weaponsContainer" class="items-grid" aria-label="Weapons grid">
+                        <!-- Weapons loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Tomes Tab -->
+                <div id="tomes-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-tomes">
+                    <div id="tomesContainer" class="items-grid" aria-label="Tomes grid">
+                        <!-- Tomes loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Characters Tab -->
+                <div id="characters-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-characters">
+                    <div id="charactersContainer" class="items-grid" aria-label="Characters grid">
+                        <!-- Characters loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Shrines Tab -->
+                <div id="shrines-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-shrines">
+                    <div id="shrinesContainer" class="items-grid" aria-label="Shrines grid">
+                        <!-- Shrines loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- Build Planner Tab -->
+                <div id="build-planner-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-build-planner">
+                    <div id="buildPlannerContainer" class="build-planner">
+                        <div class="build-section">
+                            <h2>🛠️ Build Your Perfect Loadout</h2>
+                            <p>Select character, weapon, tomes, and items to see synergies and stats.</p>
                         </div>
 
-                        <!-- Weapon Selection -->
-                        <div class="build-slot">
-                            <h3 id="weapon-label">⚔️ Weapon</h3>
-                            <select id="build-weapon" aria-labelledby="weapon-label">
-                                <option value="">Select Weapon...</option>
-                            </select>
-                            <div id="weapon-preview" class="slot-preview" role="status" aria-live="polite"></div>
-                        </div>
-
-                        <!-- Tomes Selection -->
-                        <div class="build-slot full-width">
-                            <h3 id="tomes-label">📚 Priority Tomes (Select up to 5)</h3>
-                            <div id="tomes-selection" class="multi-select" role="group" aria-labelledby="tomes-label">
-                                <!-- Checkboxes generated dynamically -->
+                        <div class="build-grid">
+                            <!-- Character Selection -->
+                            <div class="build-slot">
+                                <h3 id="character-label">👤 Character</h3>
+                                <select id="build-character" aria-labelledby="character-label">
+                                    <option value="">Select Character...</option>
+                                </select>
+                                <div id="character-preview" class="slot-preview" role="status" aria-live="polite"></div>
                             </div>
-                        </div>
 
-                        <!-- Items Selection -->
-                        <div class="build-slot full-width">
-                            <h3 id="items-label">📦 Core Items (Select up to 6)</h3>
-                            <div id="items-selection" class="multi-select" role="group" aria-labelledby="items-label">
-                                <!-- Checkboxes generated dynamically -->
+                            <!-- Weapon Selection -->
+                            <div class="build-slot">
+                                <h3 id="weapon-label">⚔️ Weapon</h3>
+                                <select id="build-weapon" aria-labelledby="weapon-label">
+                                    <option value="">Select Weapon...</option>
+                                </select>
+                                <div id="weapon-preview" class="slot-preview" role="status" aria-live="polite"></div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Build Analysis -->
-                    <div class="build-analysis" role="region" aria-label="Build analysis">
-                        <h3>📊 Build Analysis</h3>
-                        <div id="build-stats" class="build-stats-grid" role="status" aria-live="polite" aria-atomic="false">
-                            <!-- Stats calculated dynamically -->
-                        </div>
-                        <div id="build-synergies" class="build-synergies-display" role="status" aria-live="polite" aria-atomic="false">
-                            <!-- Synergies shown dynamically -->
-                        </div>
-                    </div>
-
-                    <!-- Export/Share -->
-                    <div class="build-actions">
-                        <button id="export-build" class="btn-primary">📋 Copy Build Code</button>
-                        <button id="share-build-url" class="btn-primary">🔗 Share Build Link</button>
-                        <button id="clear-build" class="btn-secondary">🗑️ Clear Build</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Calculator Tab -->
-            <div id="calculator-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-calculator">
-                <div class="calculator-container">
-                    <h2>🧮 Breakpoint Calculator</h2>
-                    <p class="calculator-subtitle">Calculate how many stacks you need to reach desired thresholds</p>
-
-                    <div class="calculator-grid">
-                        <div class="calculator-card">
-                            <h3 id="calc-item-label">Select Item</h3>
-                            <select id="calc-item-select" class="calc-select" aria-labelledby="calc-item-label" aria-describedby="calc-item-hint">
-                                <option value="">Choose an item...</option>
-                            </select>
-                            <p id="calc-item-hint" class="visually-hidden">Select an item to calculate required stacks</p>
-                        </div>
-
-                        <div class="calculator-card">
-                            <h3 id="calc-target-label">Desired Value</h3>
-                            <input type="number" id="calc-target" class="calc-input" placeholder="e.g., 100 for 100%" min="1" aria-labelledby="calc-target-label" aria-describedby="calc-target-hint">
-                            <p id="calc-target-hint" class="input-hint">Enter target percentage or value</p>
-                        </div>
-
-                        <div class="calculator-card full-width">
-                            <button id="calc-button" class="btn-primary calc-btn" aria-label="Calculate stacks needed to reach target value">Calculate Stacks Needed</button>
-                        </div>
-
-                        <div id="calc-result" class="calculator-result" style="display: none;" role="status" aria-live="polite" aria-atomic="true">
-                            <!-- Result displayed here -->
-                        </div>
-                    </div>
-
-                    <div class="common-breakpoints">
-                        <h3>Common Breakpoints</h3>
-                        <div class="breakpoint-grid">
-                            <!-- Bug fix: Added role, tabindex, and aria-label for keyboard accessibility -->
-                            <div class="breakpoint-card" data-item="big_bonk" data-target="100"
-                                 role="button" tabindex="0" aria-label="Calculate 100% proc rate for Big Bonk">
-                                <div class="bp-icon">💥</div>
-                                <div class="bp-text">
-                                    <strong>Big Bonk</strong>
-                                    <span>100% proc rate</span>
+                            <!-- Tomes Selection -->
+                            <div class="build-slot full-width">
+                                <h3 id="tomes-label">📚 Priority Tomes (Select up to 5)</h3>
+                                <div
+                                    id="tomes-selection"
+                                    class="multi-select"
+                                    role="group"
+                                    aria-labelledby="tomes-label"
+                                >
+                                    <!-- Checkboxes generated dynamically -->
                                 </div>
-                                <div class="bp-answer">50 stacks</div>
                             </div>
-                            <div class="breakpoint-card" data-item="spicy_meatball" data-target="100"
-                                 role="button" tabindex="0" aria-label="Calculate 100% explosions for Spicy Meatball">
-                                <div class="bp-icon">🔥</div>
-                                <div class="bp-text">
-                                    <strong>Spicy Meatball</strong>
-                                    <span>100% explosions</span>
+
+                            <!-- Items Selection -->
+                            <div class="build-slot full-width">
+                                <h3 id="items-label">📦 Core Items (Select up to 6)</h3>
+                                <div
+                                    id="items-selection"
+                                    class="multi-select"
+                                    role="group"
+                                    aria-labelledby="items-label"
+                                >
+                                    <!-- Checkboxes generated dynamically -->
                                 </div>
-                                <div class="bp-answer">4 stacks</div>
                             </div>
-                            <div class="breakpoint-card" data-item="forbidden_juice" data-target="100"
-                                 role="button" tabindex="0" aria-label="Calculate 100% crit for Forbidden Juice">
-                                <div class="bp-icon">⚡</div>
-                                <div class="bp-text">
-                                    <strong>Forbidden Juice</strong>
-                                    <span>100% crit (Overcrit!)</span>
-                                </div>
-                                <div class="bp-answer">10 stacks</div>
+                        </div>
+
+                        <!-- Build Analysis -->
+                        <div class="build-analysis" role="region" aria-label="Build analysis">
+                            <h3>📊 Build Analysis</h3>
+                            <div
+                                id="build-stats"
+                                class="build-stats-grid"
+                                role="status"
+                                aria-live="polite"
+                                aria-atomic="false"
+                            >
+                                <!-- Stats calculated dynamically -->
                             </div>
-                            <div class="breakpoint-card" data-item="ice_cube" data-target="100"
-                                 role="button" tabindex="0" aria-label="Calculate 100% freeze for Ice Cube">
-                                <div class="bp-icon">❄️</div>
-                                <div class="bp-text">
-                                    <strong>Ice Cube</strong>
-                                    <span>100% freeze</span>
+                            <div
+                                id="build-synergies"
+                                class="build-synergies-display"
+                                role="status"
+                                aria-live="polite"
+                                aria-atomic="false"
+                            >
+                                <!-- Synergies shown dynamically -->
+                            </div>
+                        </div>
+
+                        <!-- Export/Share -->
+                        <div class="build-actions">
+                            <button id="export-build" class="btn-primary">📋 Copy Build Code</button>
+                            <button id="share-build-url" class="btn-primary">🔗 Share Build Link</button>
+                            <button id="clear-build" class="btn-secondary">🗑️ Clear Build</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Calculator Tab -->
+                <div id="calculator-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-calculator">
+                    <div class="calculator-container">
+                        <h2>🧮 Breakpoint Calculator</h2>
+                        <p class="calculator-subtitle">
+                            Calculate how many stacks you need to reach desired thresholds
+                        </p>
+
+                        <div class="calculator-grid">
+                            <div class="calculator-card">
+                                <h3 id="calc-item-label">Select Item</h3>
+                                <select
+                                    id="calc-item-select"
+                                    class="calc-select"
+                                    aria-labelledby="calc-item-label"
+                                    aria-describedby="calc-item-hint"
+                                >
+                                    <option value="">Choose an item...</option>
+                                </select>
+                                <p id="calc-item-hint" class="visually-hidden">
+                                    Select an item to calculate required stacks
+                                </p>
+                            </div>
+
+                            <div class="calculator-card">
+                                <h3 id="calc-target-label">Desired Value</h3>
+                                <input
+                                    type="number"
+                                    id="calc-target"
+                                    class="calc-input"
+                                    placeholder="e.g., 100 for 100%"
+                                    min="1"
+                                    aria-labelledby="calc-target-label"
+                                    aria-describedby="calc-target-hint"
+                                />
+                                <p id="calc-target-hint" class="input-hint">Enter target percentage or value</p>
+                            </div>
+
+                            <div class="calculator-card full-width">
+                                <button
+                                    id="calc-button"
+                                    class="btn-primary calc-btn"
+                                    aria-label="Calculate stacks needed to reach target value"
+                                >
+                                    Calculate Stacks Needed
+                                </button>
+                            </div>
+
+                            <div
+                                id="calc-result"
+                                class="calculator-result"
+                                style="display: none"
+                                role="status"
+                                aria-live="polite"
+                                aria-atomic="true"
+                            >
+                                <!-- Result displayed here -->
+                            </div>
+                        </div>
+
+                        <div class="common-breakpoints">
+                            <h3>Common Breakpoints</h3>
+                            <div class="breakpoint-grid">
+                                <!-- Bug fix: Added role, tabindex, and aria-label for keyboard accessibility -->
+                                <div
+                                    class="breakpoint-card"
+                                    data-item="big_bonk"
+                                    data-target="100"
+                                    role="button"
+                                    tabindex="0"
+                                    aria-label="Calculate 100% proc rate for Big Bonk"
+                                >
+                                    <div class="bp-icon">💥</div>
+                                    <div class="bp-text">
+                                        <strong>Big Bonk</strong>
+                                        <span>100% proc rate</span>
+                                    </div>
+                                    <div class="bp-answer">50 stacks</div>
                                 </div>
-                                <div class="bp-answer">5 stacks</div>
+                                <div
+                                    class="breakpoint-card"
+                                    data-item="spicy_meatball"
+                                    data-target="100"
+                                    role="button"
+                                    tabindex="0"
+                                    aria-label="Calculate 100% explosions for Spicy Meatball"
+                                >
+                                    <div class="bp-icon">🔥</div>
+                                    <div class="bp-text">
+                                        <strong>Spicy Meatball</strong>
+                                        <span>100% explosions</span>
+                                    </div>
+                                    <div class="bp-answer">4 stacks</div>
+                                </div>
+                                <div
+                                    class="breakpoint-card"
+                                    data-item="forbidden_juice"
+                                    data-target="100"
+                                    role="button"
+                                    tabindex="0"
+                                    aria-label="Calculate 100% crit for Forbidden Juice"
+                                >
+                                    <div class="bp-icon">⚡</div>
+                                    <div class="bp-text">
+                                        <strong>Forbidden Juice</strong>
+                                        <span>100% crit (Overcrit!)</span>
+                                    </div>
+                                    <div class="bp-answer">10 stacks</div>
+                                </div>
+                                <div
+                                    class="breakpoint-card"
+                                    data-item="ice_cube"
+                                    data-target="100"
+                                    role="button"
+                                    tabindex="0"
+                                    aria-label="Calculate 100% freeze for Ice Cube"
+                                >
+                                    <div class="bp-icon">❄️</div>
+                                    <div class="bp-text">
+                                        <strong>Ice Cube</strong>
+                                        <span>100% freeze</span>
+                                    </div>
+                                    <div class="bp-answer">5 stacks</div>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Changelog Tab -->
-            <div id="changelog-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-changelog">
-                <div id="changelogContainer" class="changelog-container" role="feed" aria-label="Game changelog entries">
-                    <!-- Changelog entries loaded dynamically -->
+                <!-- Changelog Tab -->
+                <div id="changelog-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-changelog">
+                    <div
+                        id="changelogContainer"
+                        class="changelog-container"
+                        role="feed"
+                        aria-label="Game changelog entries"
+                    >
+                        <!-- Changelog entries loaded dynamically -->
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Modal for detailed item view -->
+        <div id="itemModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <div class="modal-content">
+                <button class="close" aria-label="Close modal">&times;</button>
+                <div id="modalBody">
+                    <!-- Modal content loaded dynamically -->
                 </div>
             </div>
         </div>
-    </main>
 
-    <!-- Modal for detailed item view -->
-    <div id="itemModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-        <div class="modal-content">
-            <button class="close" aria-label="Close modal">&times;</button>
-            <div id="modalBody">
-                <!-- Modal content loaded dynamically -->
+        <!-- Modal for item comparison -->
+        <div id="compareModal" class="modal" role="dialog" aria-modal="true" aria-label="Item comparison">
+            <div class="modal-content modal-wide">
+                <button class="close" id="closeCompare" aria-label="Close comparison">&times;</button>
+                <h2>📊 Item Comparison</h2>
+                <div id="compareBody" class="compare-container">
+                    <!-- Comparison content loaded dynamically -->
+                </div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal for item comparison -->
-    <div id="compareModal" class="modal" role="dialog" aria-modal="true" aria-label="Item comparison">
-        <div class="modal-content modal-wide">
-            <button class="close" id="closeCompare" aria-label="Close comparison">&times;</button>
-            <h2>📊 Item Comparison</h2>
-            <div id="compareBody" class="compare-container">
-                <!-- Comparison content loaded dynamically -->
+        <!-- Floating Compare Button -->
+        <button id="compare-btn" class="floating-compare-btn" style="display: none" aria-label="Compare selected items">
+            <span class="compare-count">0</span> Compare Items
+        </button>
+
+        <footer>
+            <div class="container">
+                <p>
+                    Made with ❤️ for MegaBonk players |
+                    <a href="https://store.steampowered.com/app/3405340/Megabonk/" target="_blank">Play on Steam</a>
+                </p>
+                <p class="disclaimer">Data sourced from official wikis and community guides. Always verify in-game!</p>
             </div>
-        </div>
-    </div>
+        </footer>
 
-    <!-- Floating Compare Button -->
-    <button id="compare-btn" class="floating-compare-btn" style="display: none;" aria-label="Compare selected items">
-        <span class="compare-count">0</span> Compare Items
-    </button>
-
-    <footer>
-        <div class="container">
-            <p>Made with ❤️ for MegaBonk players | <a href="https://store.steampowered.com/app/3405340/Megabonk/" target="_blank">Play on Steam</a></p>
-            <p class="disclaimer">Data sourced from official wikis and community guides. Always verify in-game!</p>
-        </div>
-    </footer>
-
-    <!-- Module scripts (load order matters - dependencies first) -->
-    <script src="modules/constants.js"></script>
-    <script src="modules/utils.js"></script>
-    <script src="modules/toast.js"></script>
-    <script src="modules/favorites.js"></script>
-    <script src="modules/data-service.js"></script>
-    <script src="modules/filters.js"></script>
-    <script src="modules/charts.js"></script>
-    <script src="modules/renderers.js"></script>
-    <script src="modules/modal.js"></script>
-    <script src="modules/build-planner.js"></script>
-    <script src="modules/compare.js"></script>
-    <script src="modules/calculator.js"></script>
-    <script src="modules/changelog.js"></script>
-    <script src="modules/events.js"></script>
-    <script src="script.js"></script>
-</body>
+        <!-- Module scripts (load order matters - dependencies first) -->
+        <script src="modules/constants.js"></script>
+        <script src="modules/utils.js"></script>
+        <script src="modules/toast.js"></script>
+        <script src="modules/favorites.js"></script>
+        <script src="modules/data-service.js"></script>
+        <script src="modules/filters.js"></script>
+        <script src="modules/charts.js"></script>
+        <script src="modules/renderers.js"></script>
+        <script src="modules/modal.js"></script>
+        <script src="modules/build-planner.js"></script>
+        <script src="modules/compare.js"></script>
+        <script src="modules/calculator.js"></script>
+        <script src="modules/changelog.js"></script>
+        <script src="modules/events.js"></script>
+        <script src="script.js"></script>
+    </body>
 </html>
