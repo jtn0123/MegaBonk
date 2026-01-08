@@ -1,6 +1,6 @@
 {
-  "version": "1.0.18",
-  "last_updated": "2026-01-07",
+  "version": "1.0.19",
+  "last_updated": "2026-01-08",
   "total_items": 78,
   "items": [
     {
@@ -1744,7 +1744,15 @@
       "notes": "STACKS WITH DIMINISHING RETURNS: Good up to ~50-60% evasion, then diminishes heavily.",
       "graph_type": "hyperbolic_scaling",
       "one_and_done": false,
-      "image": "images/items/slippery_ring.png"
+      "image": "images/items/slippery_ring.png",
+      "scaling_formula_type": "hyperbolic",
+      "hyperbolic_constant": 1.0,
+      "hidden_mechanics": [
+        "Uses hyperbolic formula: Actual = Internal / (1 + Internal)",
+        "1 stack (15% internal) = ~13% actual evasion",
+        "7 stacks (105% internal) = ~51% actual evasion",
+        "Can never reach 100% evasion regardless of stacks"
+      ]
     },
     {
       "id": "golden_glove",
@@ -2591,7 +2599,20 @@
       "notes": "STACKS WELL: Evasion diminishes but speed scales linearly. Great defensive item.",
       "graph_type": "hybrid_scaling",
       "one_and_done": false,
-      "image": "images/items/phantom_shroud.png"
+      "image": "images/items/phantom_shroud.png",
+      "scaling_formula_type": "hyperbolic",
+      "hyperbolic_constant": 1.0,
+      "secondary_scaling": {
+        "stat": "Move Speed %",
+        "values": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+      },
+      "hidden_mechanics": [
+        "Evasion uses hyperbolic formula: Actual = Internal / (1 + Internal)",
+        "1 stack (20% internal) = ~16.7% actual evasion",
+        "5 stacks (100% internal) = 50% actual evasion",
+        "Movement speed scales linearly (+10% per stack)",
+        "Graph shows hyperbolic evasion curve, speed is separate"
+      ]
     },
     {
       "id": "slurp_gloves",
