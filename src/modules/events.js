@@ -48,7 +48,10 @@ function setupEventDelegation() {
                 const itemId = target.dataset.item;
                 const targetVal = target.dataset.target;
                 if (itemId && targetVal) {
-                    quickCalc(itemId, parseInt(targetVal, 10));
+                    const parsedTarget = parseInt(targetVal, 10);
+                    if (!isNaN(parsedTarget)) {
+                        quickCalc(itemId, parsedTarget);
+                    }
                 }
             }
         }
@@ -126,7 +129,10 @@ function setupEventDelegation() {
             const itemId = card?.dataset.item;
             const targetVal = card?.dataset.target;
             if (itemId && targetVal) {
-                quickCalc(itemId, parseInt(targetVal, 10));
+                const parsedTarget = parseInt(targetVal, 10);
+                if (!isNaN(parsedTarget)) {
+                    quickCalc(itemId, parsedTarget);
+                }
             }
             return;
         }

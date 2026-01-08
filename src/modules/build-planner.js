@@ -168,7 +168,11 @@ function calculateBuildStats() {
         }
     });
 
-    stats.evasion = Math.round((stats.evasion_internal / (1 + stats.evasion_internal / 100)) * 100) / 100;
+    // Bug fix: Prevent division by zero in evasion formula if evasion_internal is <= -100
+    // Formula: evasion = internal / (1 + internal/100)
+    // Clamp evasion_internal to prevent negative or zero denominator
+    const clampedEvasionInternal = Math.max(stats.evasion_internal, -99);
+    stats.evasion = Math.round((clampedEvasionInternal / (1 + clampedEvasionInternal / 100)) * 100) / 100;
     stats.overcrit = stats.crit_chance > 100;
     return stats;
 }
