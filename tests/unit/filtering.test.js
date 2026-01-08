@@ -52,10 +52,12 @@ function filterData(data, tabName) {
     filtered.sort((a, b) => a.name.localeCompare(b.name));
   } else if (sortBy === 'tier') {
     const tierOrder = { 'SS': 0, 'S': 1, 'A': 2, 'B': 3, 'C': 4 };
-    filtered.sort((a, b) => (tierOrder[a.tier] || 99) - (tierOrder[b.tier] || 99));
+    // Use ?? instead of || because 0 is a valid value (SS tier)
+    filtered.sort((a, b) => (tierOrder[a.tier] ?? 99) - (tierOrder[b.tier] ?? 99));
   } else if (sortBy === 'rarity') {
     const rarityOrder = { 'legendary': 0, 'epic': 1, 'rare': 2, 'uncommon': 3, 'common': 4 };
-    filtered.sort((a, b) => (rarityOrder[a.rarity] || 99) - (rarityOrder[b.rarity] || 99));
+    // Use ?? instead of || because 0 is a valid value (legendary rarity)
+    filtered.sort((a, b) => (rarityOrder[a.rarity] ?? 99) - (rarityOrder[b.rarity] ?? 99));
   }
 
   return filtered;
