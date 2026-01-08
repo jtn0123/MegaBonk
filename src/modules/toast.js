@@ -47,11 +47,20 @@ const ToastManager = {
         // Auto-dismiss
         setTimeout(() => {
             toast.classList.remove('toast-visible');
+
+            // Use { once: true } to prevent memory leak
             toast.addEventListener('transitionend', () => {
                 if (toast.parentNode) {
                     toast.remove();
                 }
-            });
+            }, { once: true });
+
+            // Fallback timeout to ensure removal even if transition doesn't fire
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.remove();
+                }
+            }, 500); // Max transition duration
         }, duration);
     },
 

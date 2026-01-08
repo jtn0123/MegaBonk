@@ -238,6 +238,9 @@ function exportBuild() {
 
     navigator.clipboard.writeText(buildCode).then(() => {
         ToastManager.success('Build code copied to clipboard!');
+    }).catch(err => {
+        ToastManager.error(`Failed to copy to clipboard: ${err.message}`);
+        console.error('Clipboard error:', err);
     });
 }
 
@@ -259,7 +262,7 @@ function clearBuild() {
 
 // Bug fix #15: Provide getter instead of direct mutable reference
 window.getCurrentBuild = () => ({ ...currentBuild }); // Return a shallow copy
-window.currentBuild = currentBuild; // Keep for backward compatibility
+// Removed direct currentBuild exposure to prevent state corruption
 window.renderBuildPlanner = renderBuildPlanner;
 window.setupBuildPlannerEvents = setupBuildPlannerEvents;
 window.calculateBuildStats = calculateBuildStats;

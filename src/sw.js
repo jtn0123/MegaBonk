@@ -63,7 +63,9 @@ self.addEventListener('fetch', event => {
         return response || fetch(event.request).then(fetchResponse => {
           // Cache new responses
           return caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, fetchResponse.clone());
+            cache.put(event.request, fetchResponse.clone()).catch(err => {
+              console.warn('Failed to cache response:', err);
+            });
             return fetchResponse;
           });
         });

@@ -161,7 +161,12 @@ function openCompareModal() {
     // Initialize compare chart after DOM is ready
     if (chartableItems.length >= 2) {
         setTimeout(() => {
-            createCompareChart('compare-scaling-chart', chartableItems);
+            // Check if modal is still active and canvas exists before creating chart
+            const modal = safeGetElementById('compareModal');
+            const canvas = document.getElementById('compare-scaling-chart');
+            if (modal && modal.classList.contains('active') && canvas) {
+                createCompareChart('compare-scaling-chart', chartableItems);
+            }
         }, 100);
     }
 }
@@ -212,7 +217,7 @@ function clearCompare() {
 // Bug fix #15: Provide getter instead of direct mutable reference
 // This prevents external code from accidentally corrupting the array
 window.getCompareItems = () => [...compareItems]; // Return a copy
-window.compareItems = compareItems; // Keep for backward compatibility but prefer getter
+// Removed direct compareItems exposure to prevent state corruption
 window.toggleCompareItem = toggleCompareItem;
 window.updateCompareButton = updateCompareButton;
 window.openCompareModal = openCompareModal;

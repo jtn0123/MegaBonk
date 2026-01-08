@@ -118,7 +118,7 @@ function generateEmptyState(icon, entityType) {
  */
 function sortData(data, sortBy) {
     if (sortBy === 'name') {
-        return data.sort((a, b) => a.name.localeCompare(b.name));
+        return data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     } else if (sortBy === 'tier') {
         return data.sort((a, b) => (TIER_ORDER[a.tier] ?? 99) - (TIER_ORDER[b.tier] ?? 99));
     } else if (sortBy === 'rarity') {

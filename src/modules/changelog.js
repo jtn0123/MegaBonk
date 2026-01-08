@@ -193,7 +193,7 @@ function renderChangelog(patches) {
             <div class="changelog-changes" id="changes-${patch.id}">
                 ${renderChangesSections(patch.categories, patch.raw_notes)}
             </div>
-            <button class="changelog-expand-btn" data-target="changes-${patch.id}" onclick="toggleChangelogExpand(this)"
+            <button class="changelog-expand-btn" data-target="changes-${patch.id}"
                     aria-expanded="false" aria-controls="changes-${patch.id}">
                 Show Details
             </button>
@@ -201,6 +201,21 @@ function renderChangelog(patches) {
 
         container.appendChild(entry);
     });
+
+    // Event delegation for expand buttons
+    container.removeEventListener('click', handleExpandClick); // Remove any existing listener
+    container.addEventListener('click', handleExpandClick);
+}
+
+/**
+ * Handle expand button clicks via event delegation
+ * @param {Event} e - Click event
+ */
+function handleExpandClick(e) {
+    const button = e.target.closest('.changelog-expand-btn');
+    if (button) {
+        toggleChangelogExpand(button);
+    }
 }
 
 // ========================================

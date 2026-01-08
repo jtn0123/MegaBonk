@@ -2,6 +2,9 @@
 // MegaBonk Modal Module
 // ========================================
 
+// WeakMap to track tab click handlers per container (prevents memory leaks)
+const tabHandlers = new WeakMap();
+
 /**
  * Open detail modal for any entity type
  * @param {string} type - Entity type (item, weapon, tome, character, shrine)
@@ -144,6 +147,12 @@ function renderItemModal(data) {
     let initAttempts = 0;
     const MAX_INIT_ATTEMPTS = 50; // Prevent infinite loop - ~830ms max wait
     const initChart = () => {
+        // Check if modal is still active before continuing
+        const modal = safeGetElementById('itemModal');
+        if (!modal || !modal.classList.contains('active')) {
+            return; // Modal closed, stop trying
+        }
+
         const canvas = document.getElementById(`modal-chart-${data.id}`);
         if (!canvas) {
             initAttempts++;
@@ -217,8 +226,11 @@ function setupScalingTabHandlers(data) {
     };
 
     // Remove any existing handler before adding new one
-    container.removeEventListener('click', container._tabHandler);
-    container._tabHandler = handleTabClick;
+    const existingHandler = tabHandlers.get(container);
+    if (existingHandler) {
+        container.removeEventListener('click', existingHandler);
+    }
+    tabHandlers.set(container, handleTabClick);
     container.addEventListener('click', handleTabClick);
 }
 

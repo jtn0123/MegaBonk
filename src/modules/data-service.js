@@ -34,15 +34,14 @@ async function loadAllData() {
             fetch('../data/changelog.json')
         ]);
 
-        // Check for HTTP errors
-        const failedResponses = responses.filter(r => !r.ok);
-        if (failedResponses.length > 0) {
-            const failedUrls = failedResponses.map(r => r.url).join(', ');
-            throw new Error(`Failed to load: ${failedUrls}`);
-        }
-
+        // Check for HTTP errors and parse JSON safely
         const [items, weapons, tomes, characters, shrines, stats, changelog] = await Promise.all(
-            responses.map(r => r.json())
+            responses.map(async (r) => {
+                if (!r.ok) {
+                    throw new Error(`Failed to load ${r.url}: ${r.status} ${r.statusText}`);
+                }
+                return r.json();
+            })
         );
 
         allData = { items, weapons, tomes, characters, shrines, stats, changelog };
