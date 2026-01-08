@@ -73,6 +73,23 @@ function updateFilters(tabName) {
                 <option value="risk_reward">Risk/Reward</option>
             </select>
         `;
+    } else if (tabName === 'changelog') {
+        filtersContainer.innerHTML = `
+            <label>Category:</label>
+            <select id="categoryFilter">
+                <option value="all">All Categories</option>
+                <option value="balance">Balance Changes</option>
+                <option value="new_content">New Content</option>
+                <option value="bug_fixes">Bug Fixes</option>
+                <option value="removed">Removed</option>
+                <option value="other">Other</option>
+            </select>
+            <label>Sort:</label>
+            <select id="sortBy">
+                <option value="date_desc">Newest First</option>
+                <option value="date_asc">Oldest First</option>
+            </select>
+        `;
     }
 
     // Re-attach event listeners
@@ -125,6 +142,26 @@ function filterData(data, tabName) {
         if (typeFilter && typeFilter !== 'all') {
             filtered = filtered.filter(shrine => shrine.type === typeFilter);
         }
+    }
+
+    // Category filter and sorting (changelog only)
+    if (tabName === 'changelog') {
+        const categoryFilter = safeGetElementById('categoryFilter')?.value;
+        if (categoryFilter && categoryFilter !== 'all') {
+            filtered = filtered.filter(patch => {
+                return patch.categories?.[categoryFilter]?.length > 0;
+            });
+        }
+
+        // Changelog date sorting
+        const sortBy = safeGetElementById('sortBy')?.value;
+        if (sortBy === 'date_asc') {
+            filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+        } else {
+            // Default: newest first
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+        }
+        return filtered;
     }
 
     // Sorting

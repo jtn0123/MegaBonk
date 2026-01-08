@@ -2041,3 +2041,253 @@ footer a:hover {
         margin: 0 auto 1rem;
     }
 }
+
+/* ========================================
+   Changelog Tab
+   ======================================== */
+
+.changelog-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.changelog-entry {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--accent);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.changelog-entry:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.changelog-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.changelog-version {
+    background: var(--accent);
+    color: white;
+    padding: 0.375rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.changelog-title {
+    flex: 1;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 200px;
+}
+
+.changelog-date {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.changelog-summary {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+.changelog-categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.category-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.category-pill.balance {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+.category-pill.new_content {
+    background: rgba(34, 197, 94, 0.2);
+    color: #4ade80;
+}
+
+.category-pill.bug_fixes {
+    background: rgba(168, 85, 247, 0.2);
+    color: #c084fc;
+}
+
+.category-pill.removed {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+}
+
+.category-pill.other {
+    background: rgba(156, 163, 175, 0.2);
+    color: #9ca3af;
+}
+
+.changelog-changes {
+    display: none;
+}
+
+.changelog-changes.expanded {
+    display: block;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.changelog-section {
+    margin-bottom: 1rem;
+}
+
+.changelog-section-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.changelog-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.changelog-item::before {
+    content: '';
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    margin-top: 0.5rem;
+    border-radius: 50%;
+    background: var(--text-secondary);
+}
+
+.changelog-item.buff::before {
+    background: #4ade80;
+}
+
+.changelog-item.nerf::before {
+    background: #f87171;
+}
+
+.changelog-item.addition::before {
+    background: #60a5fa;
+}
+
+.changelog-item.fix::before {
+    background: #c084fc;
+}
+
+.changelog-item.removal::before {
+    background: #f87171;
+}
+
+.changelog-item.change::before {
+    background: var(--text-secondary);
+}
+
+.entity-link {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+    border-bottom: 1px dashed var(--accent);
+    transition: color 0.2s, border-color 0.2s;
+}
+
+.entity-link:hover {
+    color: var(--accent-hover);
+    border-color: var(--accent-hover);
+}
+
+.changelog-expand-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.changelog-expand-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.changelog-steam-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.8rem;
+    margin-left: auto;
+    transition: color 0.2s;
+}
+
+.changelog-steam-link:hover {
+    color: var(--accent);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .changelog-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .changelog-title {
+        order: 1;
+        width: 100%;
+    }
+
+    .changelog-version {
+        order: 2;
+    }
+
+    .changelog-date {
+        order: 3;
+    }
+
+    .changelog-steam-link {
+        order: 4;
+        margin-left: 0;
+        margin-top: 0.5rem;
+    }
+}

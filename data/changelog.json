@@ -1,0 +1,134 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-01-08",
+  "steam_app_id": "3405340",
+  "total_patches": 3,
+  "patches": [
+    {
+      "id": "patch_1_0_18",
+      "version": "1.0.18",
+      "title": "Balance Update - Item Adjustments",
+      "date": "2026-01-07",
+      "steam_url": "https://store.steampowered.com/news/app/3405340",
+      "summary": "Balance adjustments to several items and weapons based on community feedback.",
+      "categories": {
+        "balance": [
+          {
+            "text": "[[item:anvil|Anvil]] now applies to ALL stat upgrades, not just damage",
+            "change_type": "buff",
+            "affected_entities": [{"type": "item", "id": "anvil"}]
+          },
+          {
+            "text": "[[item:beefy_ring|Beefy Ring]] scaling reduced from 25% to 20% per 100 HP",
+            "change_type": "nerf",
+            "affected_entities": [{"type": "item", "id": "beefy_ring"}]
+          },
+          {
+            "text": "[[weapon:sniper_rifle|Sniper Rifle]] base damage increased from 20 to 22",
+            "change_type": "buff",
+            "affected_entities": [{"type": "weapon", "id": "sniper_rifle"}]
+          }
+        ],
+        "new_content": [],
+        "bug_fixes": [
+          {
+            "text": "Fixed [[item:anvil|Anvil]] not applying correctly to weapon upgrades in some cases",
+            "change_type": "fix",
+            "affected_entities": [{"type": "item", "id": "anvil"}]
+          }
+        ],
+        "removed": [],
+        "other": []
+      },
+      "raw_notes": "Balance Update 1.0.18\n\n- Anvil now applies to ALL stat upgrades\n- Beefy Ring scaling reduced from 25% to 20%\n- Sniper Rifle base damage: 20 -> 22\n- Fixed Anvil upgrade application bug"
+    },
+    {
+      "id": "patch_1_0_15",
+      "version": "1.0.15",
+      "title": "New Content - Winter Update",
+      "date": "2025-12-20",
+      "steam_url": "https://store.steampowered.com/news/app/3405340",
+      "summary": "New items, weapons, and quality of life improvements for the holidays!",
+      "categories": {
+        "balance": [
+          {
+            "text": "[[item:beefy_ring|Beefy Ring]] now shows damage bonus in tooltip",
+            "change_type": "change",
+            "affected_entities": [{"type": "item", "id": "beefy_ring"}]
+          }
+        ],
+        "new_content": [
+          {
+            "text": "Added new legendary item: [[item:anvil|Anvil]]",
+            "change_type": "addition",
+            "affected_entities": [{"type": "item", "id": "anvil"}]
+          },
+          {
+            "text": "Added new SS-tier weapon: [[weapon:sniper_rifle|Sniper Rifle]]",
+            "change_type": "addition",
+            "affected_entities": [{"type": "weapon", "id": "sniper_rifle"}]
+          }
+        ],
+        "bug_fixes": [
+          {
+            "text": "Fixed rare crash when opening inventory during boss fights",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed [[weapon:sniper_rifle|Sniper Rifle]] projectiles not piercing correctly",
+            "change_type": "fix",
+            "affected_entities": [{"type": "weapon", "id": "sniper_rifle"}]
+          }
+        ],
+        "removed": [],
+        "other": [
+          {
+            "text": "Improved item tooltip formatting",
+            "change_type": "change",
+            "affected_entities": []
+          }
+        ]
+      },
+      "raw_notes": "Winter Update 1.0.15\n\nNew Content:\n- Added Anvil legendary item\n- Added Sniper Rifle weapon\n\nBug Fixes:\n- Fixed crash during boss fights\n- Fixed Sniper Rifle piercing\n\nQoL:\n- Improved tooltips"
+    },
+    {
+      "id": "patch_1_0_10",
+      "version": "1.0.10",
+      "title": "Launch Patch - Bug Fixes",
+      "date": "2025-11-15",
+      "steam_url": "https://store.steampowered.com/news/app/3405340",
+      "summary": "Critical bug fixes and balance adjustments based on launch feedback.",
+      "categories": {
+        "balance": [],
+        "new_content": [],
+        "bug_fixes": [
+          {
+            "text": "Fixed game freezing when collecting too many items at once",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed audio cutting out during extended play sessions",
+            "change_type": "fix",
+            "affected_entities": []
+          }
+        ],
+        "removed": [],
+        "other": [
+          {
+            "text": "Optimized performance on lower-end hardware",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Added accessibility options for colorblind players",
+            "change_type": "addition",
+            "affected_entities": []
+          }
+        ]
+      },
+      "raw_notes": "Launch Patch 1.0.10\n\nBug Fixes:\n- Fixed freeze when collecting items\n- Fixed audio issues\n\nOther:\n- Performance optimizations\n- Colorblind accessibility options"
+    }
+  ]
+}

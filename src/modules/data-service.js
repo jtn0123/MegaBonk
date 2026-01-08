@@ -9,7 +9,8 @@ let allData = {
     tomes: null,
     characters: null,
     shrines: null,
-    stats: null
+    stats: null,
+    changelog: null
 };
 
 // ========================================
@@ -29,7 +30,8 @@ async function loadAllData() {
             fetch('../data/tomes.json'),
             fetch('../data/characters.json'),
             fetch('../data/shrines.json'),
-            fetch('../data/stats.json')
+            fetch('../data/stats.json'),
+            fetch('../data/changelog.json')
         ]);
 
         // Check for HTTP errors
@@ -39,11 +41,11 @@ async function loadAllData() {
             throw new Error(`Failed to load: ${failedUrls}`);
         }
 
-        const [items, weapons, tomes, characters, shrines, stats] = await Promise.all(
+        const [items, weapons, tomes, characters, shrines, stats, changelog] = await Promise.all(
             responses.map(r => r.json())
         );
 
-        allData = { items, weapons, tomes, characters, shrines, stats };
+        allData = { items, weapons, tomes, characters, shrines, stats, changelog };
 
         // Update version info
         const versionEl = safeGetElementById('version');
@@ -75,6 +77,7 @@ function getDataForTab(tabName) {
         case 'tomes': return allData.tomes?.tomes || [];
         case 'characters': return allData.characters?.characters || [];
         case 'shrines': return allData.shrines?.shrines || [];
+        case 'changelog': return allData.changelog?.patches || [];
         default: return [];
     }
 }

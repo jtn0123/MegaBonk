@@ -22,6 +22,15 @@ function renderTabContent(tabName) {
         return;
     }
 
+    if (tabName === 'changelog') {
+        const data = getDataForTab(tabName);
+        const filtered = filterData(data, tabName);
+        window.filteredData = filtered;
+        updateChangelogStats(filtered);
+        renderChangelog(filtered);
+        return;
+    }
+
     const data = getDataForTab(tabName);
     if (!data) return;
 
