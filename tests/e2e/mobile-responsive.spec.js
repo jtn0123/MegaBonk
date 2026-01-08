@@ -41,7 +41,7 @@ test.describe('Mobile Responsive - iPhone', () => {
 
   test('should allow search on mobile', async ({ page }) => {
     await page.fill('#searchInput', 'bonk');
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(500);
 
     const itemCards = page.locator('#itemsContainer .item-card');
     const count = await itemCards.count();

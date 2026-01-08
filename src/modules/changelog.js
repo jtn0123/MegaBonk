@@ -193,7 +193,8 @@ function renderChangelog(patches) {
             <div class="changelog-changes" id="changes-${patch.id}">
                 ${renderChangesSections(patch.categories, patch.raw_notes)}
             </div>
-            <button class="changelog-expand-btn" data-target="changes-${patch.id}" onclick="toggleChangelogExpand(this)">
+            <button class="changelog-expand-btn" data-target="changes-${patch.id}" onclick="toggleChangelogExpand(this)"
+                    aria-expanded="false" aria-controls="changes-${patch.id}">
                 Show Details
             </button>
         `;
@@ -221,9 +222,12 @@ function toggleChangelogExpand(button) {
     if (isExpanded) {
         target.classList.remove('expanded');
         button.textContent = 'Show Details';
+        // Bug fix: Update aria-expanded for screen readers
+        button.setAttribute('aria-expanded', 'false');
     } else {
         target.classList.add('expanded');
         button.textContent = 'Hide Details';
+        button.setAttribute('aria-expanded', 'true');
     }
 }
 

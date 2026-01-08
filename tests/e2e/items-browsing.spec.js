@@ -21,8 +21,8 @@ test.describe('Items Browsing', () => {
   test('should filter items by search', async ({ page }) => {
     await page.fill('#searchInput', 'bonk');
 
-    // Wait for filter to apply
-    await page.waitForTimeout(100);
+    // Wait for debounce (300ms) plus render time
+    await page.waitForTimeout(500);
 
     const itemCards = page.locator('#itemsContainer .item-card');
     // Should only show items containing "bonk"
@@ -76,14 +76,14 @@ test.describe('Items Browsing', () => {
   test('should clear search filter', async ({ page }) => {
     // First filter
     await page.fill('#searchInput', 'bonk');
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(500);
 
     const filteredCount = await page.locator('#itemsContainer .item-card').count();
     expect(filteredCount).toBeLessThan(78);
 
     // Clear filter
     await page.fill('#searchInput', '');
-    await page.waitForTimeout(100);
+    await page.waitForTimeout(500);
 
     const allCount = await page.locator('#itemsContainer .item-card').count();
     expect(allCount).toBe(78);

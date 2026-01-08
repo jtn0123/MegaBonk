@@ -181,8 +181,11 @@ describe('XSS Prevention', () => {
 
       const result = renderItemContent(item);
 
-      expect(result).not.toContain('onerror=');
+      // The img tag is escaped, making the event handler non-executable
       expect(result).toContain('&lt;img');
+      expect(result).toContain('&gt;');
+      // Not a real img element
+      expect(result).not.toContain('<img');
     });
 
     it('should escape notes with HTML', () => {
@@ -194,8 +197,11 @@ describe('XSS Prevention', () => {
 
       const result = renderItemContent(item);
 
-      expect(result).not.toContain('javascript:');
+      // The anchor tag is escaped, making the javascript: URL non-executable
       expect(result).toContain('&lt;a');
+      expect(result).toContain('&lt;/a&gt;');
+      // Not a real anchor element
+      expect(result).not.toContain('<a href=');
     });
 
     it('should handle all fields containing XSS attempts', () => {
@@ -207,9 +213,14 @@ describe('XSS Prevention', () => {
 
       const result = renderItemContent(item);
 
+      // All HTML tags are escaped, making them non-executable
       expect(result).not.toContain('<script>');
-      expect(result).not.toContain('onerror=');
-      expect(result).not.toContain('onload=');
+      expect(result).not.toContain('<img');
+      expect(result).not.toContain('<svg');
+      // Escaped versions are present
+      expect(result).toContain('&lt;script&gt;');
+      expect(result).toContain('&lt;img');
+      expect(result).toContain('&lt;svg');
     });
   });
 
