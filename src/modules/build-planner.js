@@ -141,7 +141,9 @@ function calculateBuildStats() {
     currentBuild.tomes.forEach(tome => {
         const tomeLevel = 5;
         // Bug fix #13: Use proper regex that won't match invalid numbers like "1.2.3"
-        const value = parseFloat(tome.value_per_level.match(/\d+(?:\.\d+)?/)?.[0] || 0);
+        // Bug fix: Add safety check for value_per_level before calling match()
+        const valueStr = tome.value_per_level || '';
+        const value = parseFloat(valueStr.toString().match(/\d+(?:\.\d+)?/)?.[0] || 0) || 0;
         if (tome.stat_affected === 'Damage') stats.damage += value * tomeLevel * 100;
         else if (tome.stat_affected === 'Crit Chance' || tome.id === 'precision') stats.crit_chance += value * tomeLevel * 100;
         else if (tome.stat_affected === 'Crit Damage') stats.crit_damage += value * tomeLevel * 100;

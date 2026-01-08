@@ -150,12 +150,17 @@ function filterData(data, tabName) {
         }
 
         // Changelog date sorting
+        // Bug fix: Handle invalid dates by putting them at the end
         const sortBy = safeGetElementById('sortBy')?.value;
+        const getDateValue = (dateStr) => {
+            const d = new Date(dateStr);
+            return isNaN(d.getTime()) ? (sortBy === 'date_asc' ? Infinity : -Infinity) : d.getTime();
+        };
         if (sortBy === 'date_asc') {
-            filtered.sort((a, b) => new Date(a.date) - new Date(b.date));
+            filtered.sort((a, b) => getDateValue(a.date) - getDateValue(b.date));
         } else {
             // Default: newest first
-            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+            filtered.sort((a, b) => getDateValue(b.date) - getDateValue(a.date));
         }
         return filtered;
     }

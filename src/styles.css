@@ -260,6 +260,14 @@ header h1 {
     border-color: var(--accent);
 }
 
+/* Bug fix: Add focus states for accessibility */
+.filters select:focus,
+.filters select:focus-visible {
+    border-color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
 /* ========================================
    Stats Panel
    ======================================== */
@@ -1231,7 +1239,8 @@ footer a:hover {
 
 .compare-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    /* Bug fix: Use smaller minmax for better mobile support */
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 350px), 1fr));
     gap: 1.5rem;
 }
 
