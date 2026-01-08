@@ -49,7 +49,7 @@
         "Slow fire rate",
         "Requires aim"
       ],
-      "image": "images/weapons/sniper_rifle.jpg"
+      "image": "images/weapons/sniper_rifle.png"
     },
     {
       "id": "revolver",
@@ -101,7 +101,7 @@
         "Lower base damage",
         "Requires crit investment"
       ],
-      "image": "images/weapons/revolver.jpg"
+      "image": "images/weapons/revolver.png"
     },
     {
       "id": "bow",
@@ -150,8 +150,7 @@
       "cons": [
         "Moderate damage",
         "Requires upgrades to shine"
-      ],
-      "image": "images/weapons/bow.png"
+      ]
     },
     {
       "id": "lightning_staff",
@@ -197,7 +196,7 @@
         "Requires enemy density",
         "Lower single-target"
       ],
-      "image": "images/weapons/lightning_staff.jpg"
+      "image": "images/weapons/lightning_staff.png"
     },
     {
       "id": "dragons_breath",
@@ -240,8 +239,7 @@
       "cons": [
         "Direction-dependent",
         "Limited upgrade paths"
-      ],
-      "image": "images/weapons/dragons_breath.jpg"
+      ]
     },
     {
       "id": "aura",
@@ -286,7 +284,7 @@
         "Very limited upgrades",
         "Requires proximity"
       ],
-      "image": "images/weapons/aura.jpg"
+      "image": "images/weapons/aura.png"
     },
     {
       "id": "sword",
@@ -333,7 +331,7 @@
         "Melee range only",
         "Requires positioning"
       ],
-      "image": "images/weapons/sword.jpg"
+      "image": "images/weapons/sword.png"
     },
     {
       "id": "axe",
@@ -427,7 +425,7 @@
         "Requires size investment",
         "Can push enemies away"
       ],
-      "image": "images/weapons/tornado.jpg"
+      "image": "images/weapons/tornado.png"
     },
     {
       "id": "black_hole",
@@ -520,7 +518,7 @@
         "Requires enemy setup",
         "Less effective vs full HP"
       ],
-      "image": "images/weapons/dexecutioner.jpg"
+      "image": "images/weapons/dexecutioner.png"
     },
     {
       "id": "katana",
@@ -569,7 +567,7 @@
         "RNG unlock",
         "Melee range"
       ],
-      "image": "images/weapons/katana.jpg"
+      "image": "images/weapons/katana.png"
     },
     {
       "id": "blood_magic",
@@ -613,7 +611,7 @@
         "Requires lifesteal build",
         "Limited upgrade paths"
       ],
-      "image": "images/weapons/blood_magic.jpg"
+      "image": "images/weapons/blood_magic.png"
     },
     {
       "id": "slutty_rocket",
@@ -657,8 +655,7 @@
       "cons": [
         "Requires CL4NK unlock",
         "Projectile speed matters"
-      ],
-      "image": "images/weapons/slutty_rocket.png"
+      ]
     },
     {
       "id": "poison_flask",
@@ -704,7 +701,7 @@
         "Requires duration",
         "Slower kill speed"
       ],
-      "image": "images/weapons/poison_flask.jpg"
+      "image": "images/weapons/poison_flask.png"
     },
     {
       "id": "frostwalker",
@@ -794,7 +791,7 @@
         "Requires armor build",
         "Sir Oofie-specific unlock"
       ],
-      "image": "images/weapons/aegis.jpg"
+      "image": "images/weapons/aegis.png"
     },
     {
       "id": "firestaff",
@@ -886,7 +883,7 @@
         "Requires luck build",
         "Low base damage"
       ],
-      "image": "images/weapons/dice.jpg"
+      "image": "images/weapons/dice.png"
     },
     {
       "id": "bananarang",
@@ -981,7 +978,7 @@
         "Falls off at distance",
         "Requires good positioning"
       ],
-      "image": "images/weapons/shotgun.jpg"
+      "image": "images/weapons/shotgun.png"
     },
     {
       "id": "mines",
@@ -1026,7 +1023,7 @@
         "Requires enemy positioning",
         "Passive playstyle"
       ],
-      "image": "images/weapons/mines.jpg"
+      "image": "images/weapons/mines.png"
     },
     {
       "id": "chunkers",
@@ -1119,7 +1116,7 @@
         "Latched enemy can't die",
         "Requires positioning"
       ],
-      "image": "images/weapons/space_noodle.jpg"
+      "image": "images/weapons/space_noodle.png"
     },
     {
       "id": "bone",
@@ -1163,7 +1160,7 @@
         "Calcium starter only",
         "Unpredictable bounces"
       ],
-      "image": "images/weapons/bone.jpg"
+      "image": "images/weapons/bone.png"
     },
     {
       "id": "hero_sword",
@@ -1255,7 +1252,7 @@
         "Tony McZoom starter",
         "Lower damage"
       ],
-      "image": "images/weapons/wireless_dagger.jpg"
+      "image": "images/weapons/wireless_dagger.png"
     },
     {
       "id": "corrupted_sword",
@@ -1300,8 +1297,7 @@
         "Risky playstyle",
         "Hard unlock",
         "Requires low HP"
-      ],
-      "image": "images/weapons/corrupted_sword.jpg"
+      ]
     },
     {
       "id": "flamewalker",

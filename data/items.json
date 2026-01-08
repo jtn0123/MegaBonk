@@ -194,7 +194,7 @@
       "notes": "STACKS WELL: Simple and effective. Always a good pick.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/gym_sauce.jpg"
+      "image": "images/items/gym_sauce.png"
     },
     {
       "id": "forbidden_juice",
@@ -232,7 +232,7 @@
       "notes": "STACKS VERY WELL: Stack to 100%+ for Overcrit scaling. Game-changing mechanic.",
       "graph_type": "threshold_scaling",
       "one_and_done": false,
-      "image": "images/items/forbidden_juice.jpg"
+      "image": "images/items/forbidden_juice.png"
     },
     {
       "id": "oats",
@@ -273,7 +273,7 @@
       "notes": "STACKS WELL: More HP = more survivability and Beefy Ring damage.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/oats.jpg"
+      "image": "images/items/oats.png"
     },
     {
       "id": "sucky_magnet",
@@ -538,7 +538,7 @@
       "notes": "ONE-AND-DONE: Only one enemy can be cursed. Multiple copies are wasted.",
       "graph_type": "flat",
       "one_and_done": true,
-      "image": "images/items/cursed_doll.jpg"
+      "image": "images/items/cursed_doll.png"
     },
     {
       "id": "lightning_orb",
@@ -848,7 +848,7 @@
       "notes": "STACKS WELL: More speed = better positioning and Turbo Skates value.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/turbo_socks.jpg"
+      "image": "images/items/turbo_socks.png"
     },
     {
       "id": "battery",
@@ -886,7 +886,7 @@
       "notes": "STACKS WELL: More attacks = more damage and more procs.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/battery.jpg"
+      "image": "images/items/battery.png"
     },
     {
       "id": "medkit",
@@ -926,7 +926,7 @@
       "notes": "STACKS MODERATELY: Useful for sustain but not game-changing.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/medkit.jpg"
+      "image": "images/items/medkit.png"
     },
     {
       "id": "clover",
@@ -963,7 +963,7 @@
       "notes": "STACKS MODERATELY: Useful but not essential for combat power.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/clover.jpg"
+      "image": "images/items/clover.png"
     },
     {
       "id": "moldy_cheese",
@@ -1002,7 +1002,7 @@
       "notes": "STACKS WELL: Reaches 100% at 3 copies. Excellent for poison builds.",
       "graph_type": "capped_chance",
       "one_and_done": false,
-      "image": "images/items/moldy_cheese.jpg"
+      "image": "images/items/moldy_cheese.png"
     },
     {
       "id": "borgar",
@@ -1036,7 +1036,7 @@
       "notes": "AVOID STACKING: Purely cosmetic, wastes item slots.",
       "graph_type": "flat",
       "one_and_done": false,
-      "image": "images/items/borgar.jpg"
+      "image": "images/items/borgar.png"
     },
     {
       "id": "boss_buster",
@@ -1073,7 +1073,7 @@
       "notes": "STACKS WELL: Great for boss-focused builds.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/boss_buster.jpg"
+      "image": "images/items/boss_buster.png"
     },
     {
       "id": "spiky_shield",
@@ -1490,7 +1490,7 @@
       "notes": "STACKS MODERATELY: Useful but not combat-focused.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/wrench.jpg"
+      "image": "images/items/wrench.png"
     },
     {
       "id": "slippery_ring",
@@ -1528,7 +1528,7 @@
       "notes": "STACKS WITH DIMINISHING RETURNS: Good up to ~50-60% evasion, then diminishes heavily.",
       "graph_type": "hyperbolic_scaling",
       "one_and_done": false,
-      "image": "images/items/slippery_ring.jpg"
+      "image": "images/items/slippery_ring.png"
     },
     {
       "id": "golden_glove",
@@ -1565,7 +1565,7 @@
       "notes": "STACKS MODERATELY: Good for gold farming but doesn't improve combat.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/golden_glove.jpg"
+      "image": "images/items/golden_glove.png"
     },
     {
       "id": "time_bracelet",
@@ -1603,7 +1603,7 @@
       "notes": "STACKS WELL UP TO CAP: After 12 copies (1000% XP), stop taking this item.",
       "graph_type": "hard_capped",
       "one_and_done": false,
-      "image": "images/items/time_bracelet.jpg"
+      "image": "images/items/time_bracelet.png"
     },
     {
       "id": "eagle_claw",
@@ -2599,7 +2599,7 @@
       "notes": "STACKS WELL: More copies = more needles. Strong with Kevin and Thorns builds.",
       "graph_type": "scaling_with_stat",
       "one_and_done": false,
-      "image": "images/items/cactus.jpg"
+      "image": "images/items/cactus.png"
     },
     {
       "id": "campfire",
@@ -2833,7 +2833,7 @@
       "notes": "STACKS WELL: More copies = more ghosts. Good passive damage and utility.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/ghost.jpg"
+      "image": "images/items/ghost.png"
     },
     {
       "id": "ice_crystal",
@@ -2871,7 +2871,7 @@
       "notes": "STACKS VERY WELL: Higher freeze chance + built-in execute. Strong crowd control + cleanup.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/ice_crystal.jpg"
+      "image": "images/items/ice_crystal.png"
     },
     {
       "id": "key",
@@ -2907,8 +2907,7 @@
       "anti_synergies": [],
       "notes": "ONE-AND-DONE: One key unlocks everything. Multiple copies only useful if keys are consumed.",
       "graph_type": "flat",
-      "one_and_done": true,
-      "image": "images/items/key.jpg"
+      "one_and_done": true
     },
     {
       "id": "scarf",
@@ -2985,7 +2984,7 @@
       "notes": "STACKS MODERATELY: More minions but higher difficulty. Balance risk carefully.",
       "graph_type": "tradeoff_scaling",
       "one_and_done": false,
-      "image": "images/items/skuleg.jpg"
+      "image": "images/items/skuleg.png"
     }
   ]
 }
