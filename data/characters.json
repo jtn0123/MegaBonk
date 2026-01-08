@@ -83,7 +83,8 @@
         "Aura",
         "Aegis"
       ],
-      "build_tips": "Stack HP and armor. Add thorns for passive damage. Unkillable late game."
+      "build_tips": "Stack HP and armor. Add thorns for passive damage. Unkillable late game.",
+      "image": "images/characters/sir_oofie.png"
     },
     {
       "id": "cl4nk",

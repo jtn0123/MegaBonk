@@ -129,9 +129,9 @@ test.describe('Mobile Responsive - Tablet', () => {
   });
 
   test('should allow comparison on tablet', async ({ page }) => {
-    // Select 2 items
-    await page.click('#itemsContainer .compare-checkbox >> nth=0');
-    await page.click('#itemsContainer .compare-checkbox >> nth=1');
+    // Select 2 items (click the labels, not the hidden checkboxes)
+    await page.click('#itemsContainer .compare-checkbox-label >> nth=0');
+    await page.click('#itemsContainer .compare-checkbox-label >> nth=1');
 
     // Compare button should be visible
     await expect(page.locator('#compare-btn')).toBeVisible();
