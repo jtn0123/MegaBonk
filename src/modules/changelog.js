@@ -48,13 +48,17 @@ function parseChangelogLinks(text) {
         // Verify entity exists in loaded data
         const entity = findEntityInData(type, id);
         if (!entity) {
-            return label; // Return plain text if entity not found
+            return escapeHtml(label); // Return escaped plain text if entity not found
         }
 
+        // Bug fix: Escape all user-provided content to prevent XSS
+        const safeType = escapeHtml(type);
+        const safeId = escapeHtml(id);
+        const safeLabel = escapeHtml(label);
         return `<a href="#" class="entity-link"
-                   data-entity-type="${type}"
-                   data-entity-id="${id}"
-                   title="View ${label}">${label}</a>`;
+                   data-entity-type="${safeType}"
+                   data-entity-id="${safeId}"
+                   title="View ${safeLabel}">${safeLabel}</a>`;
     });
 }
 

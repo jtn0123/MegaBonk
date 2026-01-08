@@ -1,5 +1,6 @@
 // MegaBonk Guide - Service Worker for offline support
-const CACHE_NAME = 'megabonk-guide-v1.2.0';
+// Bug fix: Added missing changelog.js to cache
+const CACHE_NAME = 'megabonk-guide-v1.2.1';
 const urlsToCache = [
   './',
   './index.html',
@@ -16,6 +17,7 @@ const urlsToCache = [
   './modules/build-planner.js',
   './modules/compare.js',
   './modules/calculator.js',
+  './modules/changelog.js',
   './modules/events.js',
   './libs/chart.min.js',
   './manifest.json',
@@ -24,7 +26,8 @@ const urlsToCache = [
   '../data/tomes.json',
   '../data/characters.json',
   '../data/shrines.json',
-  '../data/stats.json'
+  '../data/stats.json',
+  '../data/changelog.json'
 ];
 
 // Install event - cache files
