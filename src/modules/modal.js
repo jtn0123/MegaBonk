@@ -49,6 +49,10 @@ function openDetailModal(type, id) {
 
     modalBody.innerHTML = content;
     modal.style.display = 'block';
+    // Trigger animation after display is set
+    requestAnimationFrame(() => {
+        modal.classList.add('active');
+    });
 }
 
 /**
@@ -368,11 +372,17 @@ function renderShrineModal(data) {
 }
 
 /**
- * Close the detail modal
+ * Close the detail modal with animation
  */
 function closeModal() {
     const modal = safeGetElementById('itemModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) {
+        modal.classList.remove('active');
+        // Wait for animation to complete before hiding
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
 }
 
 // ========================================

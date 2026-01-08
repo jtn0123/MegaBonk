@@ -1,5 +1,5 @@
 // MegaBonk Guide - Service Worker for offline support
-const CACHE_NAME = 'megabonk-guide-v1.1.0';
+const CACHE_NAME = 'megabonk-guide-v1.2.0';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,6 +7,7 @@ const urlsToCache = [
   './script.js',
   './modules/constants.js',
   './modules/utils.js',
+  './modules/toast.js',
   './modules/data-service.js',
   './modules/filters.js',
   './modules/charts.js',

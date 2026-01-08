@@ -31,29 +31,29 @@
     </header>
 
     <!-- Tab Navigation -->
-    <nav class="tabs">
+    <nav class="tabs" aria-label="Main navigation">
         <div class="container">
-            <div class="tab-buttons">
-                <button class="tab-btn active" data-tab="items">📦 Items</button>
-                <button class="tab-btn" data-tab="weapons">⚔️ Weapons</button>
-                <button class="tab-btn" data-tab="tomes">📚 Tomes</button>
-                <button class="tab-btn" data-tab="characters">👤 Characters</button>
-                <button class="tab-btn" data-tab="shrines">⛩️ Shrines</button>
-                <button class="tab-btn" data-tab="build-planner">🛠️ Build Planner</button>
-                <button class="tab-btn" data-tab="calculator">🧮 Calculator</button>
-                <button class="tab-btn" data-tab="changelog">📋 Changelog</button>
+            <div class="tab-buttons" role="tablist" aria-label="Content categories">
+                <button class="tab-btn active" data-tab="items" role="tab" aria-selected="true" aria-controls="items-tab" id="tab-items">📦 Items</button>
+                <button class="tab-btn" data-tab="weapons" role="tab" aria-selected="false" aria-controls="weapons-tab" id="tab-weapons">⚔️ Weapons</button>
+                <button class="tab-btn" data-tab="tomes" role="tab" aria-selected="false" aria-controls="tomes-tab" id="tab-tomes">📚 Tomes</button>
+                <button class="tab-btn" data-tab="characters" role="tab" aria-selected="false" aria-controls="characters-tab" id="tab-characters">👤 Characters</button>
+                <button class="tab-btn" data-tab="shrines" role="tab" aria-selected="false" aria-controls="shrines-tab" id="tab-shrines">⛩️ Shrines</button>
+                <button class="tab-btn" data-tab="build-planner" role="tab" aria-selected="false" aria-controls="build-planner-tab" id="tab-build-planner">🛠️ Build Planner</button>
+                <button class="tab-btn" data-tab="calculator" role="tab" aria-selected="false" aria-controls="calculator-tab" id="tab-calculator">🧮 Calculator</button>
+                <button class="tab-btn" data-tab="changelog" role="tab" aria-selected="false" aria-controls="changelog-tab" id="tab-changelog">📋 Changelog</button>
             </div>
         </div>
     </nav>
 
     <!-- Filters (context-sensitive based on active tab) -->
-    <nav class="controls">
+    <nav class="controls" aria-label="Search and filters">
         <div class="container">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="🔍 Search..." />
+                <input type="search" id="searchInput" placeholder="🔍 Search..." aria-label="Search items, weapons, tomes, and characters" />
             </div>
 
-            <div class="filters" id="filters">
+            <div class="filters" id="filters" aria-label="Filter options">
                 <!-- Filters dynamically updated based on active tab -->
             </div>
         </div>
@@ -68,42 +68,42 @@
         <!-- Tab Content Containers -->
         <div id="tab-content">
             <!-- Items Tab -->
-            <div id="items-tab" class="tab-content active">
-                <div id="itemsContainer" class="items-grid">
+            <div id="items-tab" class="tab-content active" role="tabpanel" aria-labelledby="tab-items">
+                <div id="itemsContainer" class="items-grid" aria-label="Items grid">
                     <!-- Items loaded dynamically -->
                 </div>
             </div>
 
             <!-- Weapons Tab -->
-            <div id="weapons-tab" class="tab-content">
-                <div id="weaponsContainer" class="items-grid">
+            <div id="weapons-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-weapons">
+                <div id="weaponsContainer" class="items-grid" aria-label="Weapons grid">
                     <!-- Weapons loaded dynamically -->
                 </div>
             </div>
 
             <!-- Tomes Tab -->
-            <div id="tomes-tab" class="tab-content">
-                <div id="tomesContainer" class="items-grid">
+            <div id="tomes-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-tomes">
+                <div id="tomesContainer" class="items-grid" aria-label="Tomes grid">
                     <!-- Tomes loaded dynamically -->
                 </div>
             </div>
 
             <!-- Characters Tab -->
-            <div id="characters-tab" class="tab-content">
-                <div id="charactersContainer" class="items-grid">
+            <div id="characters-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-characters">
+                <div id="charactersContainer" class="items-grid" aria-label="Characters grid">
                     <!-- Characters loaded dynamically -->
                 </div>
             </div>
 
             <!-- Shrines Tab -->
-            <div id="shrines-tab" class="tab-content">
-                <div id="shrinesContainer" class="items-grid">
+            <div id="shrines-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-shrines">
+                <div id="shrinesContainer" class="items-grid" aria-label="Shrines grid">
                     <!-- Shrines loaded dynamically -->
                 </div>
             </div>
 
             <!-- Build Planner Tab -->
-            <div id="build-planner-tab" class="tab-content">
+            <div id="build-planner-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-build-planner">
                 <div id="buildPlannerContainer" class="build-planner">
                     <div class="build-section">
                         <h2>🛠️ Build Your Perfect Loadout</h2>
@@ -166,7 +166,7 @@
             </div>
 
             <!-- Calculator Tab -->
-            <div id="calculator-tab" class="tab-content">
+            <div id="calculator-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-calculator">
                 <div class="calculator-container">
                     <h2>🧮 Breakpoint Calculator</h2>
                     <p class="calculator-subtitle">Calculate how many stacks you need to reach desired thresholds</p>
@@ -235,7 +235,7 @@
             </div>
 
             <!-- Changelog Tab -->
-            <div id="changelog-tab" class="tab-content">
+            <div id="changelog-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-changelog">
                 <div id="changelogContainer" class="changelog-container">
                     <!-- Changelog entries loaded dynamically -->
                 </div>
@@ -244,9 +244,9 @@
     </main>
 
     <!-- Modal for detailed item view -->
-    <div id="itemModal" class="modal">
+    <div id="itemModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <button class="close" aria-label="Close modal">&times;</button>
             <div id="modalBody">
                 <!-- Modal content loaded dynamically -->
             </div>
@@ -254,9 +254,9 @@
     </div>
 
     <!-- Modal for item comparison -->
-    <div id="compareModal" class="modal">
+    <div id="compareModal" class="modal" role="dialog" aria-modal="true" aria-label="Item comparison">
         <div class="modal-content modal-wide">
-            <span class="close" id="closeCompare">&times;</span>
+            <button class="close" id="closeCompare" aria-label="Close comparison">&times;</button>
             <h2>📊 Item Comparison</h2>
             <div id="compareBody" class="compare-container">
                 <!-- Comparison content loaded dynamically -->
@@ -265,7 +265,7 @@
     </div>
 
     <!-- Floating Compare Button -->
-    <button id="compare-btn" class="floating-compare-btn" style="display: none;">
+    <button id="compare-btn" class="floating-compare-btn" style="display: none;" aria-label="Compare selected items">
         <span class="compare-count">0</span> Compare Items
     </button>
 
@@ -279,6 +279,7 @@
     <!-- Module scripts (load order matters - dependencies first) -->
     <script src="modules/constants.js"></script>
     <script src="modules/utils.js"></script>
+    <script src="modules/toast.js"></script>
     <script src="modules/data-service.js"></script>
     <script src="modules/filters.js"></script>
     <script src="modules/charts.js"></script>

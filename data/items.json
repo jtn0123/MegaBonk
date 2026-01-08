@@ -1,7 +1,7 @@
 {
   "version": "1.0.18",
   "last_updated": "2026-01-07",
-  "total_items": 77,
+  "total_items": 78,
   "items": [
     {
       "id": "anvil",
@@ -3219,6 +3219,45 @@
       "graph_type": "tradeoff_scaling",
       "one_and_done": false,
       "image": "images/items/skuleg.png"
+    },
+    {
+      "id": "quins_mask",
+      "name": "Quin's Mask",
+      "rarity": "epic",
+      "tier": "A",
+      "unlocked_by_default": false,
+      "unlock_requirement": "Play as Athena and deliver the final blow to a Stage Boss while equipped with Aegis",
+      "unlock_cost_silver": 12,
+      "base_effect": "Thorns damage has a 50% chance to explode",
+      "scaling_type": "proc_based",
+      "stacking_behavior": "additive_chance",
+      "stacks_well": true,
+      "stack_cap": null,
+      "formula": "Explosion Chance = 0.50 × Stack Count (capped at 100%), Explosion Damage = Thorns × Armor Multiplier",
+      "scaling_per_stack": [
+        50,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100,
+        100
+      ],
+      "detailed_description": "50% chance per copy for thorns damage to explode. Explosion damage scales with both Armor and Thorns stats. With 2 copies: 100% explosion chance. Essential for thorns builds.",
+      "synergies": [
+        "Spiky Shield",
+        "Cactus",
+        "Thorns Tome",
+        "Tank builds"
+      ],
+      "anti_synergies": [],
+      "notes": "STACKS WELL UP TO 2: First copy gives 50% chance, second guarantees explosions. Additional copies provide no benefit.",
+      "graph_type": "proc_capped",
+      "one_and_done": false,
+      "image": "images/items/quins_mask.png"
     }
   ]
 }

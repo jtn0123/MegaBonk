@@ -217,7 +217,7 @@ function exportBuild() {
     });
 
     navigator.clipboard.writeText(buildCode).then(() => {
-        alert('Build code copied to clipboard!');
+        ToastManager.success('Build code copied to clipboard!');
     });
 }
 

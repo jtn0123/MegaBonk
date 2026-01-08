@@ -96,14 +96,21 @@ function formatChangelogDate(dateStr) {
 /**
  * Render sections for each category of changes
  * @param {Object} categories - Categories object from patch
+ * @param {string} rawNotes - Fallback raw notes if categories are empty
  * @returns {string} HTML string for all sections
  */
-function renderChangesSections(categories) {
-    if (!categories) return '';
+function renderChangesSections(categories, rawNotes) {
+    if (!categories) {
+        // Fallback to raw notes if no categories
+        if (rawNotes) {
+            return `<div class="changelog-raw-notes">${escapeHtml(rawNotes)}</div>`;
+        }
+        return '';
+    }
 
     const order = ['new_content', 'balance', 'bug_fixes', 'removed', 'other'];
 
-    return order.map(cat => {
+    const sectionsHtml = order.map(cat => {
         const changes = categories[cat];
         if (!changes || changes.length === 0) return '';
 
@@ -120,6 +127,13 @@ function renderChangesSections(categories) {
             </div>
         `;
     }).join('');
+
+    // If no categorized content, show raw notes as fallback
+    if (!sectionsHtml.trim() && rawNotes) {
+        return `<div class="changelog-raw-notes">${escapeHtml(rawNotes)}</div>`;
+    }
+
+    return sectionsHtml;
 }
 
 // ========================================
@@ -169,7 +183,7 @@ function renderChangelog(patches) {
             <p class="changelog-summary">${escapeHtml(patch.summary)}</p>
             <div class="changelog-categories">${categoryPills}</div>
             <div class="changelog-changes" id="changes-${patch.id}">
-                ${renderChangesSections(patch.categories)}
+                ${renderChangesSections(patch.categories, patch.raw_notes)}
             </div>
             <button class="changelog-expand-btn" data-target="changes-${patch.id}" onclick="toggleChangelogExpand(this)">
                 Show Details

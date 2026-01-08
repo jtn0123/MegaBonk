@@ -28,7 +28,7 @@ function calculateBreakpoint() {
     const resultDiv = safeGetElementById('calc-result');
 
     if (!itemId || !target) {
-        alert('Please select an item and enter a target value!');
+        ToastManager.warning('Please select an item and enter a target value!');
         return;
     }
 

@@ -15,7 +15,7 @@ function toggleCompareItem(itemId) {
         compareItems.splice(index, 1);
     } else {
         if (compareItems.length >= 3) {
-            alert('You can only compare up to 3 items at once. Remove an item first.');
+            ToastManager.warning('You can only compare up to 3 items at once. Remove an item first.');
             return;
         }
         compareItems.push(itemId);
@@ -49,7 +49,7 @@ function updateCompareButton() {
  */
 function openCompareModal() {
     if (compareItems.length < 2) {
-        alert('Select at least 2 items to compare!');
+        ToastManager.warning('Select at least 2 items to compare!');
         return;
     }
 
@@ -151,6 +151,10 @@ function openCompareModal() {
     html += '</div>';
     compareBody.innerHTML = html;
     modal.style.display = 'block';
+    // Trigger animation after display is set
+    requestAnimationFrame(() => {
+        modal.classList.add('active');
+    });
 
     // Initialize compare chart after DOM is ready
     if (chartableItems.length >= 2) {
@@ -161,12 +165,24 @@ function openCompareModal() {
 }
 
 /**
+ * Close compare modal with animation
+ */
+function closeCompareModal() {
+    const modal = safeGetElementById('compareModal');
+    if (modal) {
+        modal.classList.remove('active');
+        setTimeout(() => {
+            modal.style.display = 'none';
+        }, 300);
+    }
+}
+
+/**
  * Update compare display after item removal
  */
 function updateCompareDisplay() {
     if (compareItems.length < 2) {
-        const modal = safeGetElementById('compareModal');
-        if (modal) modal.style.display = 'none';
+        closeCompareModal();
     } else {
         openCompareModal();
     }
@@ -178,8 +194,7 @@ function updateCompareDisplay() {
 function clearCompare() {
     compareItems = [];
     updateCompareButton();
-    const modal = safeGetElementById('compareModal');
-    if (modal) modal.style.display = 'none';
+    closeCompareModal();
 }
 
 // ========================================
@@ -190,5 +205,6 @@ window.compareItems = compareItems;
 window.toggleCompareItem = toggleCompareItem;
 window.updateCompareButton = updateCompareButton;
 window.openCompareModal = openCompareModal;
+window.closeCompareModal = closeCompareModal;
 window.updateCompareDisplay = updateCompareDisplay;
 window.clearCompare = clearCompare;
