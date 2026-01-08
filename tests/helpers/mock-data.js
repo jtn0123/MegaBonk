@@ -5,13 +5,13 @@ import { vi } from 'vitest';
  */
 export function createMockItem(overrides = {}) {
   return {
-    id: 'test_item',
+    id: 'test-item',
     name: 'Test Item',
     rarity: 'rare',
     tier: 'A',
     unlocked_by_default: true,
     base_effect: '+10% damage',
-    scaling_type: 'damage_scaling',
+    scaling_type: 'linear',
     stacking_behavior: 'additive',
     stacks_well: true,
     stack_cap: null,
