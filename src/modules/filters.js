@@ -12,9 +12,10 @@ function updateFilters(tabName) {
 
     filtersContainer.innerHTML = '';
 
+    // Bug fix: Add 'for' attributes to labels for accessibility (WCAG Level A)
     if (tabName === 'items') {
         filtersContainer.innerHTML = `
-            <label>Rarity:</label>
+            <label for="rarityFilter">Rarity:</label>
             <select id="rarityFilter">
                 <option value="all">All Rarities</option>
                 <option value="common">Common</option>
@@ -23,7 +24,7 @@ function updateFilters(tabName) {
                 <option value="epic">Epic</option>
                 <option value="legendary">Legendary</option>
             </select>
-            <label>Tier:</label>
+            <label for="tierFilter">Tier:</label>
             <select id="tierFilter">
                 <option value="all">All Tiers</option>
                 <option value="SS">SS Tier</option>
@@ -32,13 +33,13 @@ function updateFilters(tabName) {
                 <option value="B">B Tier</option>
                 <option value="C">C Tier</option>
             </select>
-            <label>Stacking:</label>
+            <label for="stackingFilter">Stacking:</label>
             <select id="stackingFilter">
                 <option value="all">All</option>
                 <option value="stacks_well">Stacks Well</option>
                 <option value="one_and_done">One-and-Done</option>
             </select>
-            <label>Sort:</label>
+            <label for="sortBy">Sort:</label>
             <select id="sortBy">
                 <option value="name">Name</option>
                 <option value="tier">Tier</option>
@@ -47,7 +48,7 @@ function updateFilters(tabName) {
         `;
     } else if (['weapons', 'tomes', 'characters'].includes(tabName)) {
         filtersContainer.innerHTML = `
-            <label>Tier:</label>
+            <label for="tierFilter">Tier:</label>
             <select id="tierFilter">
                 <option value="all">All Tiers</option>
                 <option value="SS">SS Tier</option>
@@ -56,7 +57,7 @@ function updateFilters(tabName) {
                 <option value="B">B Tier</option>
                 <option value="C">C Tier</option>
             </select>
-            <label>Sort:</label>
+            <label for="sortBy">Sort:</label>
             <select id="sortBy">
                 <option value="name">Name</option>
                 <option value="tier">Tier</option>
@@ -64,7 +65,7 @@ function updateFilters(tabName) {
         `;
     } else if (tabName === 'shrines') {
         filtersContainer.innerHTML = `
-            <label>Type:</label>
+            <label for="typeFilter">Type:</label>
             <select id="typeFilter">
                 <option value="all">All Types</option>
                 <option value="stat_upgrade">Stat Upgrade</option>
@@ -75,7 +76,7 @@ function updateFilters(tabName) {
         `;
     } else if (tabName === 'changelog') {
         filtersContainer.innerHTML = `
-            <label>Category:</label>
+            <label for="categoryFilter">Category:</label>
             <select id="categoryFilter">
                 <option value="all">All Categories</option>
                 <option value="balance">Balance Changes</option>
@@ -84,7 +85,7 @@ function updateFilters(tabName) {
                 <option value="removed">Removed</option>
                 <option value="other">Other</option>
             </select>
-            <label>Sort:</label>
+            <label for="sortBy">Sort:</label>
             <select id="sortBy">
                 <option value="date_desc">Newest First</option>
                 <option value="date_asc">Oldest First</option>
@@ -106,8 +107,12 @@ function filterData(data, tabName) {
     const searchTerm = safeGetElementById('searchInput')?.value?.toLowerCase() || '';
 
     // Search filter
+    // Bug fix: Handle null item.name to prevent "null" string in searchable text
     filtered = filtered.filter(item => {
-        const searchable = `${item.name} ${item.description || ''} ${item.base_effect || ''}`.toLowerCase();
+        const name = item.name || '';
+        const description = item.description || '';
+        const baseEffect = item.base_effect || '';
+        const searchable = `${name} ${description} ${baseEffect}`.toLowerCase();
         return searchable.includes(searchTerm);
     });
 

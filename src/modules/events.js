@@ -31,6 +31,29 @@ function toggleTextExpand(element) {
  * Setup all event delegation handlers
  */
 function setupEventDelegation() {
+    // Bug fix: Add keyboard event handler for breakpoint cards and Escape key for modals
+    document.addEventListener('keydown', (e) => {
+        // Escape key closes modals
+        if (e.key === 'Escape') {
+            closeModal();
+            closeCompareModal();
+            return;
+        }
+
+        // Enter or Space on breakpoint cards triggers quickCalc
+        if (e.key === 'Enter' || e.key === ' ') {
+            const target = e.target;
+            if (target.classList.contains('breakpoint-card')) {
+                e.preventDefault();
+                const itemId = target.dataset.item;
+                const targetVal = target.dataset.target;
+                if (itemId && targetVal) {
+                    quickCalc(itemId, parseInt(targetVal, 10));
+                }
+            }
+        }
+    });
+
     // Main click delegation
     document.addEventListener('click', (e) => {
         const target = e.target;
