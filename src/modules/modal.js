@@ -58,9 +58,47 @@ function openDetailModal(type, id) {
  */
 function renderItemModal(data) {
     const showGraph = data.scaling_per_stack && !data.one_and_done && data.graph_type !== 'flat';
-    const graphHtml = showGraph ? `
-        <div class="modal-graph-container">
-            <canvas id="modal-chart-${data.id}" class="scaling-chart"></canvas>
+    const hasScalingTracks = data.scaling_tracks && Object.keys(data.scaling_tracks).length > 0;
+
+    // Generate scaling tracks tabs if item has multiple tracks
+    let graphHtml = '';
+    if (hasScalingTracks) {
+        const trackKeys = Object.keys(data.scaling_tracks);
+        const tabsHtml = trackKeys.map((key, idx) =>
+            `<button class="scaling-tab ${idx === 0 ? 'active' : ''}" data-track="${key}" data-item-id="${data.id}">${data.scaling_tracks[key].stat}</button>`
+        ).join('');
+
+        graphHtml = `
+            <div class="scaling-tracks-container">
+                <div class="scaling-tabs">${tabsHtml}</div>
+                <div class="modal-graph-container">
+                    <canvas id="modal-chart-${data.id}" class="scaling-chart"></canvas>
+                </div>
+            </div>
+        `;
+    } else if (showGraph) {
+        graphHtml = `
+            <div class="modal-graph-container">
+                <canvas id="modal-chart-${data.id}" class="scaling-chart"></canvas>
+            </div>
+        `;
+    }
+
+    // Hidden mechanics section (prominent)
+    const hiddenMechanicsHtml = data.hidden_mechanics?.length ? `
+        <div class="hidden-mechanics">
+            <h4><span class="hidden-mechanics-icon">⚡</span> Hidden Mechanics</h4>
+            <ul>
+                ${data.hidden_mechanics.map(m => `<li>${m}</li>`).join('')}
+            </ul>
+        </div>
+    ` : '';
+
+    // Hyperbolic scaling indicator
+    const hyperbolicWarning = data.scaling_formula_type === 'hyperbolic' ? `
+        <div class="hyperbolic-warning">
+            <span class="warning-icon">⚠</span>
+            <span>Hyperbolic Scaling: Displayed values have diminishing returns</span>
         </div>
     ` : '';
 
@@ -78,6 +116,7 @@ function renderItemModal(data) {
                 <span>One-and-Done: Additional copies provide no benefit</span>
             </div>
         ` : ''}
+        ${hyperbolicWarning}
         ${(data.max_stacks || (data.stack_cap && data.stack_cap <= 100)) ? `
             <div class="stack-info">
                 <strong>Stack Limit:</strong> ${data.max_stacks || data.stack_cap} stacks
@@ -85,6 +124,7 @@ function renderItemModal(data) {
         ` : ''}
         <div class="item-effect" style="margin-top: 1rem;">${data.base_effect}</div>
         <p>${data.detailed_description}</p>
+        ${hiddenMechanicsHtml}
         <div class="item-formula"><strong>Formula:</strong> ${data.formula}</div>
         ${graphHtml}
         ${data.synergies?.length ? `<div class="synergies-section"><h3>Synergies</h3><div class="synergy-list">${data.synergies.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div></div>` : ''}
@@ -92,14 +132,59 @@ function renderItemModal(data) {
     `;
 
     // Initialize chart after modal is displayed
-    if (showGraph) {
-        setTimeout(() => {
+    setTimeout(() => {
+        if (hasScalingTracks) {
+            // Initialize with first track
+            const firstTrackKey = Object.keys(data.scaling_tracks)[0];
+            const firstTrack = data.scaling_tracks[firstTrackKey];
             const effectiveCap = getEffectiveStackCap(data);
-            createScalingChart(`modal-chart-${data.id}`, data.scaling_per_stack, data.name, data.scaling_type || '', true, data.secondary_scaling || null, effectiveCap);
-        }, 100);
-    }
+            const chartOptions = {
+                scalingFormulaType: data.scaling_formula_type || 'linear',
+                hyperbolicConstant: data.hyperbolic_constant || 1.0,
+                maxStacks: data.max_stacks || null
+            };
+            createScalingChart(`modal-chart-${data.id}`, firstTrack.values, firstTrack.stat, data.scaling_type || '', true, null, effectiveCap, chartOptions);
+
+            // Add tab click handlers
+            setupScalingTabHandlers(data);
+        } else if (showGraph) {
+            const effectiveCap = getEffectiveStackCap(data);
+            const chartOptions = {
+                scalingFormulaType: data.scaling_formula_type || 'linear',
+                hyperbolicConstant: data.hyperbolic_constant || 1.0,
+                maxStacks: data.max_stacks || null
+            };
+            createScalingChart(`modal-chart-${data.id}`, data.scaling_per_stack, data.name, data.scaling_type || '', true, data.secondary_scaling || null, effectiveCap, chartOptions);
+        }
+    }, 100);
 
     return content;
+}
+
+/**
+ * Setup tab click handlers for scaling tracks
+ * @param {Object} data - Item data with scaling_tracks
+ */
+function setupScalingTabHandlers(data) {
+    const tabs = document.querySelectorAll(`.scaling-tab[data-item-id="${data.id}"]`);
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Update active state
+            tabs.forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Get track data and redraw chart
+            const trackKey = tab.dataset.track;
+            const track = data.scaling_tracks[trackKey];
+            const effectiveCap = getEffectiveStackCap(data);
+            const chartOptions = {
+                scalingFormulaType: data.scaling_formula_type || 'linear',
+                hyperbolicConstant: data.hyperbolic_constant || 1.0,
+                maxStacks: data.max_stacks || null
+            };
+            createScalingChart(`modal-chart-${data.id}`, track.values, track.stat, data.scaling_type || '', true, null, effectiveCap, chartOptions);
+        });
+    });
 }
 
 /**

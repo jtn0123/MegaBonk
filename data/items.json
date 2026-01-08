@@ -353,7 +353,7 @@
       "id": "holy_book",
       "name": "Holy Book",
       "rarity": "legendary",
-      "tier": "S",
+      "tier": "SS",
       "unlocked_by_default": false,
       "unlock_requirement": "Kill first stage boss without taking damage",
       "unlock_cost_silver": 18,
@@ -362,7 +362,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "HP = Base + (100 \u00d7 Stacks), Regen = Base + (50 \u00d7 Stacks)",
+      "formula": "HP = +100/stack, Regen = +50/stack, Overheal = +25%/stack, Radius = 5m + 1m/stack. Damage = f(healing, level)",
       "scaling_per_stack": [
         100,
         200,
@@ -390,7 +390,7 @@
           500
         ]
       },
-      "detailed_description": "Massive HP and regen boost, plus offensive aura when healing. Each copy adds another 100 HP and 50 regen. Stacks very well for sustain builds.",
+      "detailed_description": "Massive HP, regen, and overheal boost. Healing radiates damage to enemies. CRITICAL: Acts as a 5th weapon - the healing damage can crit and proc other items like Ice Cube and Bonkhammer. This is why Holy Book is meta-defining.",
       "synergies": [
         "Beefy Ring",
         "Regen builds",
@@ -398,10 +398,79 @@
         "Medkit"
       ],
       "anti_synergies": [],
-      "notes": "STACKS VERY WELL: Incredible scaling for tank/sustain builds.",
+      "notes": "META-DEFINING: Acts as 5th weapon. Can proc Ice Cube, Bonkhammer, etc. Insane with HP builds.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/holy_book.png"
+      "image": "images/items/holy_book.png",
+      "scaling_tracks": {
+        "max_hp": {
+          "stat": "Max HP",
+          "values": [
+            100,
+            200,
+            300,
+            400,
+            500,
+            600,
+            700,
+            800,
+            900,
+            1000
+          ]
+        },
+        "hp_regen": {
+          "stat": "HP Regen",
+          "values": [
+            50,
+            100,
+            150,
+            200,
+            250,
+            300,
+            350,
+            400,
+            450,
+            500
+          ]
+        },
+        "overheal": {
+          "stat": "Overheal %",
+          "values": [
+            25,
+            50,
+            75,
+            100,
+            125,
+            150,
+            175,
+            200,
+            225,
+            250
+          ]
+        },
+        "radius": {
+          "stat": "Explosion Radius (m)",
+          "values": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14
+          ]
+        }
+      },
+      "hidden_mechanics": [
+        "ACTS AS 5TH WEAPON - healing damage can crit and proc other items",
+        "Can trigger Ice Cube, Bonkhammer, and other on-hit effects",
+        "Damage dealt every 1.5 seconds based on healing done",
+        "Damage formula scales with level and total healing in time window",
+        "Overheal creates yellow bar beyond max HP"
+      ]
     },
     {
       "id": "chonkplate",
@@ -542,33 +611,58 @@
       "unlock_requirement": "Die 10 times",
       "unlock_cost_silver": 5,
       "base_effect": "Curse an enemy, dealing 30% of their Max HP every second",
-      "scaling_type": "percentage_hp_damage",
-      "stacking_behavior": "one_enemy_at_time",
-      "stacks_well": false,
-      "stack_cap": 1,
-      "formula": "DPS = Enemy Max HP \u00d7 0.30 per second",
+      "scaling_type": "enemy_count_scaling",
+      "stacking_behavior": "additive_targets",
+      "stacks_well": true,
+      "stack_cap": null,
+      "formula": "Enemies Cursed = 2-6 base + 2 per additional copy. Boss damage heavily reduced by level.",
       "scaling_per_stack": [
-        30,
-        30,
-        30,
-        30,
-        30,
-        30,
-        30,
-        30,
-        30,
-        30
+        4,
+        6,
+        8,
+        10,
+        12,
+        14,
+        16,
+        18,
+        20,
+        22
       ],
-      "detailed_description": "Melts bosses and elites in 3.3 seconds regardless of HP. Can only curse one enemy at a time, so additional copies provide no benefit.",
+      "detailed_description": "Curse enemies dealing 30% of their max HP per second (non-bosses die in ~4 sec). STACKS: Each copy curses +2 more enemies. WARNING: Boss damage is heavily reduced based on level - not as strong vs bosses as the description implies.",
       "synergies": [
         "Boss fights",
         "Elite hunting"
       ],
       "anti_synergies": [],
-      "notes": "ONE-AND-DONE: Only one enemy can be cursed. Multiple copies are wasted.",
-      "graph_type": "flat",
-      "one_and_done": true,
-      "image": "images/items/cursed_doll.png"
+      "notes": "DOES STACK: Each copy = +2 enemies cursed. Boss damage is nerfed by level.",
+      "graph_type": "linear_scaling",
+      "one_and_done": false,
+      "image": "images/items/cursed_doll.png",
+      "scaling_tracks": {
+        "enemies_cursed": {
+          "stat": "Max Enemies Cursed",
+          "values": [
+            6,
+            8,
+            10,
+            12,
+            14,
+            16,
+            18,
+            20,
+            22,
+            24
+          ]
+        }
+      },
+      "hidden_mechanics": [
+        "Base enemies cursed is 2-6 (possibly bugged - intended may be 2)",
+        "Each additional copy adds +2 more enemies that can be cursed",
+        "Boss damage is HEAVILY reduced based on your level",
+        "Non-bosses die in ~4 seconds regardless of HP",
+        "30% max HP/second only applies at full strength to normal enemies"
+      ],
+      "boss_formula": "Boss damage scales with level (significantly reduced). See damage table."
     },
     {
       "id": "lightning_orb",
@@ -1237,39 +1331,78 @@
       "id": "bloody_cleaver",
       "name": "Bloody Cleaver",
       "rarity": "legendary",
-      "tier": "A",
+      "tier": "S",
       "unlocked_by_default": false,
       "unlock_requirement": "Reach level 50 as Vlad",
       "unlock_cost_silver": 18,
       "base_effect": "Lifesteal activates bloodmark; +50% bloodmark chance",
-      "scaling_type": "chance_based",
-      "stacking_behavior": "additive_chance",
+      "scaling_type": "additive_chance_uncapped",
+      "stacking_behavior": "additive_multi_proc",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Bloodmark Chance = 0.50 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Bloodmark Chance = 50% per copy. >100% = multiple bloodmarks per hit. 4 copies = 2 marks/hit.",
       "scaling_per_stack": [
         50,
         100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100
+        150,
+        200,
+        250,
+        300,
+        350,
+        400,
+        450,
+        500
       ],
-      "detailed_description": "50% chance to apply bloodmark. With 2 copies, guaranteed bloodmark. Incredibly strong for Vlad and lifesteal builds.",
+      "detailed_description": "50% additive bloodmark chance per copy. At 200% (4 copies), each hit applies 2 bloodmark stacks. Stacks reset the explosion timer. Damage scales with your damage modifier, level, and total blood stacks. Extremely strong for sustained DPS.",
       "synergies": [
         "Lifesteal builds",
         "Vlad character",
         "Unstable Transfusion"
       ],
       "anti_synergies": [],
-      "notes": "STACKS WELL: Reaches 100% at 2 copies. Perfect for bloodmark builds.",
-      "graph_type": "capped_chance",
+      "notes": "SCALES BEYOND 100%: 4 copies = 2 bloodmarks per hit. Timer resets on new stacks.",
+      "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/bloody_cleaver.png"
+      "image": "images/items/bloody_cleaver.png",
+      "scaling_tracks": {
+        "bloodmark_chance": {
+          "stat": "Bloodmark Chance (%)",
+          "values": [
+            50,
+            100,
+            150,
+            200,
+            250,
+            300,
+            350,
+            400,
+            450,
+            500
+          ]
+        },
+        "marks_per_hit": {
+          "stat": "Guaranteed Marks/Hit",
+          "values": [
+            0,
+            1,
+            1,
+            2,
+            2,
+            3,
+            3,
+            4,
+            4,
+            5
+          ]
+        }
+      },
+      "hidden_mechanics": [
+        "Bloodmark chance is ADDITIVE and can exceed 100%",
+        "200% = 2 bloodmark stacks applied per hit",
+        "Bloodmark timer (4-5 sec) RESETS when new stacks are applied",
+        "Bloodmark explosion damage = damage_modifier x level x stacks",
+        "Visible as dark red section on boss HP bars"
+      ]
     },
     {
       "id": "soul_harvester",
@@ -1823,7 +1956,7 @@
       "stacking_behavior": "additive_all",
       "stacks_well": false,
       "stack_cap": null,
-      "formula": "Difficulty = 1 + (0.10 \u00d7 Stacks), Max HP = Base \u00d7 (1 - 0.20 \u00d7 Stacks), Curse Chance = 0.05 \u00d7 Stacks",
+      "formula": "Curse Proc = Internal / (1 + Internal), where Internal = 5% per stack. Max 50% (never reached)",
       "scaling_per_stack": [
         5,
         10,
@@ -1836,20 +1969,29 @@
         45,
         50
       ],
-      "detailed_description": "Each copy: +10% difficulty, -20% HP, +5% curse chance. With 3 copies: +30% difficulty, -60% HP, 15% curse chance. Very risky.",
+      "detailed_description": "Each copy: +10% difficulty, -20% HP, +5% curse proc chance (hyperbolic). Due to diminishing returns, actual proc chance is lower than displayed. 10 stacks shows 50% but actual is ~33%. Damage scales linearly. Anti-synergy with HP-dependent builds.",
       "synergies": [
         "Cursed Doll",
         "High difficulty builds"
       ],
       "anti_synergies": [
+        "Holy Book",
         "Beefy Ring",
-        "Tank builds",
-        "Low skill players"
+        "HP builds"
       ],
-      "notes": "RISKY STACKING: High penalty for marginal proc chance. Generally avoid stacking.",
-      "graph_type": "tradeoff_scaling",
+      "notes": "HYPERBOLIC SCALING: Displayed % is misleading. Conflicts with Holy Book (reduces HP).",
+      "graph_type": "hyperbolic_chance",
       "one_and_done": false,
-      "image": "images/items/cursed_grabbies.png"
+      "image": "images/items/cursed_grabbies.png",
+      "scaling_formula_type": "hyperbolic",
+      "hyperbolic_constant": 1.0,
+      "hidden_mechanics": [
+        "Displayed 5% per stack uses hyperbolic formula - actual chance is lower",
+        "1 stack = ~4.8% actual (not 5% displayed)",
+        "Theoretical max 50% proc chance (can never reach)",
+        "Damage scales linearly with stack count",
+        "HP reduction (0.8x) conflicts with Holy Book builds"
+      ]
     },
     {
       "id": "shattered_knowledge",
@@ -2964,34 +3106,42 @@
       "unlocked_by_default": true,
       "unlock_requirement": null,
       "unlock_cost_silver": 0,
-      "base_effect": "Unlocks secret areas and chests",
-      "scaling_type": "utility",
-      "stacking_behavior": "additive_unlocks",
-      "stacks_well": false,
-      "stack_cap": 1,
-      "formula": "Can unlock all locked content",
+      "base_effect": "+10% chance to open chests for free (hyperbolic)",
+      "scaling_type": "hyperbolic_chance",
+      "stacking_behavior": "hyperbolic",
+      "stacks_well": true,
+      "stack_cap": null,
+      "formula": "Free Chest Chance = Internal / (1 + Internal), where Internal = 10% per key. 1 key = ~9.1% actual.",
       "scaling_per_stack": [
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100
       ],
-      "detailed_description": "Unlocks all locked content in the run. Additional copies provide no benefit unless you've used the first key.",
+      "detailed_description": "Chance to open chests for free. Uses HYPERBOLIC SCALING - displayed percentages are misleading. 1 key = ~9.1% actual (not 10%). 5 keys = ~33% actual (not 50%). Diminishing returns make stacking less efficient.",
       "synergies": [
         "Exploration",
         "Chest farming"
       ],
       "anti_synergies": [],
-      "notes": "ONE-AND-DONE: One key unlocks everything. Multiple copies only useful if keys are consumed.",
-      "graph_type": "flat",
-      "one_and_done": true,
-      "image": "images/items/key.png"
+      "notes": "HYPERBOLIC: 1 key = ~9.1% actual, not 10%. Diminishing returns.",
+      "graph_type": "hyperbolic_chance",
+      "one_and_done": false,
+      "image": "images/items/key.png",
+      "scaling_formula_type": "hyperbolic",
+      "hyperbolic_constant": 1.0,
+      "hidden_mechanics": [
+        "Uses hyperbolic formula - displayed 10% is actually ~9.1%",
+        "Diminishing returns: more keys = less benefit per key",
+        "10 keys shows 100% but actual is only ~50%",
+        "Theoretical max is 50% (can never reach 100%)"
+      ]
     },
     {
       "id": "scarf",
