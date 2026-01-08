@@ -91,12 +91,7 @@ function updateFilters(tabName) {
             </select>
         `;
     }
-
-    // Re-attach event listeners
-    const filterSelects = filtersContainer.querySelectorAll('select');
-    filterSelects.forEach(select => {
-        select.addEventListener('change', () => renderTabContent(currentTab));
-    });
+    // Event listeners handled via delegation in events.js
 }
 
 /**

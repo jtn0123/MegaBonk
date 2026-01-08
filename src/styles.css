@@ -42,6 +42,13 @@
     --chart-fill: rgba(233, 69, 96, 0.2);
     --chart-grid: rgba(255, 255, 255, 0.1);
     --chart-text: var(--text-secondary);
+
+    /* Tier Colors - Power Rating System */
+    --tier-ss: #ffd700;   /* Gold - Game breaking */
+    --tier-s: #22c55e;    /* Green - Excellent */
+    --tier-a: #3b82f6;    /* Blue - Strong */
+    --tier-b: #f59e0b;    /* Amber - Situational */
+    --tier-c: #ef4444;    /* Red - Weak */
 }
 
 * {
@@ -311,7 +318,6 @@ header h1 {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     cursor: pointer;
-    border-left: 4px solid var(--rarity-common);
     border: 1px solid transparent;
     border-left: 4px solid var(--rarity-common);
 }
@@ -1053,13 +1059,6 @@ footer a:hover {
     font-size: 0.85rem;
     font-weight: bold;
     margin-top: 0.5rem;
-}
-
-.strengths-weaknesses {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: 1rem;
 }
 
 .strengths,
@@ -1941,7 +1940,7 @@ footer a:hover {
 
 .hidden-mechanics li {
     margin-bottom: 0.4rem;
-    color: var(--text);
+    color: var(--text-primary);
     font-size: 0.9rem;
     line-height: 1.4;
 }
@@ -1988,7 +1987,7 @@ footer a:hover {
 
 .scaling-tab {
     background: var(--bg-dark);
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 4px;
     padding: 0.4rem 0.75rem;
     color: var(--text-muted);
@@ -1999,7 +1998,7 @@ footer a:hover {
 
 .scaling-tab:hover {
     border-color: var(--accent);
-    color: var(--text);
+    color: var(--text-primary);
 }
 
 .scaling-tab.active {

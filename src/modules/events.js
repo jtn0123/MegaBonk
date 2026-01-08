@@ -96,6 +96,17 @@ function setupEventDelegation() {
             }
             return;
         }
+
+        // Breakpoint card click (calculator quick calc)
+        if (target.closest('.breakpoint-card')) {
+            const card = target.closest('.breakpoint-card');
+            const itemId = card?.dataset.item;
+            const targetVal = card?.dataset.target;
+            if (itemId && targetVal) {
+                quickCalc(itemId, parseInt(targetVal, 10));
+            }
+            return;
+        }
     });
 
     // Change event delegation for checkboxes in build planner
@@ -111,6 +122,12 @@ function setupEventDelegation() {
         // Item checkbox in build planner
         if (target.classList.contains('item-checkbox')) {
             updateBuildAnalysis();
+            return;
+        }
+
+        // Filter select changes
+        if (target.closest('#filters') && target.tagName === 'SELECT') {
+            renderTabContent(currentTab);
             return;
         }
     });
