@@ -40,13 +40,23 @@ mockSelf.addEventListener = vi.fn((event, handler) => {
 });
 
 // Service worker constants (mirrored from sw.js)
-const CACHE_NAME = 'megabonk-guide-v1.0.19';
+const CACHE_NAME = 'megabonk-guide-v1.1.0';
 const urlsToCache = [
   './',
   './index.html',
   './styles.css',
   './script.js',
   './modules/constants.js',
+  './modules/utils.js',
+  './modules/data-service.js',
+  './modules/filters.js',
+  './modules/charts.js',
+  './modules/renderers.js',
+  './modules/modal.js',
+  './modules/build-planner.js',
+  './modules/compare.js',
+  './modules/calculator.js',
+  './modules/events.js',
   './libs/chart.min.js',
   './manifest.json',
   '../data/items.json',
@@ -154,11 +164,11 @@ describe('Service Worker', () => {
       expect(mockSelf.skipWaiting).toHaveBeenCalled();
     });
 
-    it('should cache exactly 13 URLs', async () => {
+    it('should cache exactly 23 URLs', async () => {
       await simulateInstall();
 
       const cachedUrls = mockCache.addAll.mock.calls[0][0];
-      expect(cachedUrls).toHaveLength(13);
+      expect(cachedUrls).toHaveLength(23);
     });
   });
 
@@ -249,7 +259,7 @@ describe('Service Worker', () => {
     });
 
     it('should have specific version format', () => {
-      expect(CACHE_NAME).toBe('megabonk-guide-v1.0.19');
+      expect(CACHE_NAME).toBe('megabonk-guide-v1.1.0');
     });
   });
 

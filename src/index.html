@@ -268,7 +268,18 @@
         </div>
     </footer>
 
+    <!-- Module scripts (load order matters - dependencies first) -->
     <script src="modules/constants.js"></script>
+    <script src="modules/utils.js"></script>
+    <script src="modules/data-service.js"></script>
+    <script src="modules/filters.js"></script>
+    <script src="modules/charts.js"></script>
+    <script src="modules/renderers.js"></script>
+    <script src="modules/modal.js"></script>
+    <script src="modules/build-planner.js"></script>
+    <script src="modules/compare.js"></script>
+    <script src="modules/calculator.js"></script>
+    <script src="modules/events.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
