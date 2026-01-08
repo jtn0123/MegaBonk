@@ -235,6 +235,26 @@ function findEntityById(dataCollection, key, id) {
 }
 
 // ========================================
+// URL Validation
+// ========================================
+
+/**
+ * Validate that a URL is safe for external linking
+ * Only allows http:// and https:// protocols
+ * @param {string} url - URL to validate
+ * @returns {boolean} True if URL is safe for external linking
+ */
+function isValidExternalUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    try {
+        const parsed = new URL(url);
+        return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    } catch {
+        return false;
+    }
+}
+
+// ========================================
 // Expose to global scope
 // ========================================
 
@@ -254,3 +274,4 @@ window.generateTierLabel = generateTierLabel;
 window.generateBadge = generateBadge;
 window.generateMetaTags = generateMetaTags;
 window.findEntityById = findEntityById;
+window.isValidExternalUrl = isValidExternalUrl;

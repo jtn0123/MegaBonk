@@ -204,16 +204,17 @@ function updateBuildAnalysis() {
     }
 
     // Synergy detection
+    // Bug fix: Escape HTML in synergy messages for defense in depth
     let synergies = [];
     if (currentBuild.character && currentBuild.weapon) {
         if (currentBuild.character.synergies_weapons?.includes(currentBuild.weapon.name)) {
-            synergies.push(`✓ ${currentBuild.character.name} synergizes with ${currentBuild.weapon.name}!`);
+            synergies.push(`✓ ${escapeHtml(currentBuild.character.name)} synergizes with ${escapeHtml(currentBuild.weapon.name)}!`);
         }
     }
 
     currentBuild.items.forEach(item => {
         if (currentBuild.weapon && item.synergies_weapons?.includes(currentBuild.weapon.name)) {
-            synergies.push(`✓ ${item.name} works great with ${currentBuild.weapon.name}`);
+            synergies.push(`✓ ${escapeHtml(item.name)} works great with ${escapeHtml(currentBuild.weapon.name)}`);
         }
     });
 

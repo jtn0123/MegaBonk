@@ -182,8 +182,8 @@ function renderChangelog(patches) {
                 <span class="changelog-version">v${escapeHtml(patch.version)}</span>
                 <h3 class="changelog-title">${escapeHtml(patch.title)}</h3>
                 <span class="changelog-date">${formatChangelogDate(patch.date)}</span>
-                ${patch.steam_url ? `
-                    <a href="${patch.steam_url}" target="_blank" rel="noopener" class="changelog-steam-link">
+                ${patch.steam_url && isValidExternalUrl(patch.steam_url) ? `
+                    <a href="${escapeHtml(patch.steam_url)}" target="_blank" rel="noopener" class="changelog-steam-link">
                         🔗 Steam
                     </a>
                 ` : ''}
