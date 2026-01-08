@@ -93,6 +93,49 @@ window.dismissError = dismissError;
 window.clearFilters = clearFilters;
 
 // ========================================
+// Expandable Text Helpers
+// ========================================
+
+/**
+ * Escape HTML special characters for use in data attributes
+ * @param {string} text - Text to escape
+ * @returns {string} Escaped text
+ */
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML.replace(/"/g, '&quot;');
+}
+
+/**
+ * Toggle text expansion on click
+ * @param {HTMLElement} element - The expandable text element
+ */
+function toggleTextExpand(element) {
+    if (!element.dataset.fullText) return;
+
+    const isTruncated = element.dataset.truncated === 'true';
+    const fullText = element.dataset.fullText;
+
+    if (isTruncated) {
+        // Expand
+        element.innerHTML = fullText + '<span class="expand-indicator">Click to collapse</span>';
+        element.dataset.truncated = 'false';
+        element.classList.add('expanded');
+    } else {
+        // Collapse
+        const truncated = fullText.length > 120 ? fullText.substring(0, 120) + '...' : fullText;
+        element.innerHTML = truncated + '<span class="expand-indicator">Click to expand</span>';
+        element.dataset.truncated = 'true';
+        element.classList.remove('expanded');
+    }
+}
+
+// Expose to global scope
+window.toggleTextExpand = toggleTextExpand;
+
+// ========================================
 // Chart.js Integration
 // ========================================
 
@@ -869,7 +912,11 @@ function renderItems(items) {
                 </label>
             </div>
             <div class="item-effect">${item.base_effect}</div>
-            <div class="item-description">${item.detailed_description.substring(0, 120)}...</div>
+            <div class="item-description ${item.detailed_description.length > 120 ? 'expandable-text' : ''}"
+                 ${item.detailed_description.length > 120 ? `data-full-text="${escapeHtml(item.detailed_description)}" data-truncated="true" onclick="toggleTextExpand(this)"` : ''}>
+                ${item.detailed_description.length > 120 ? item.detailed_description.substring(0, 120) + '...' : item.detailed_description}
+                ${item.detailed_description.length > 120 ? '<span class="expand-indicator">Click to expand</span>' : ''}
+            </div>
             <div class="item-meta">
                 <span class="meta-tag">${stackText}</span>
             </div>
@@ -1035,20 +1082,22 @@ function renderShrines(shrines) {
 
     shrines.forEach(shrine => {
         const card = document.createElement('div');
-        card.className = 'shrine-card';
+        card.className = 'item-card shrine-card';
 
         card.innerHTML = `
-            <div class="shrine-header">
-                <span class="shrine-icon">${shrine.icon}</span>
-                <div>
-                    <div class="shrine-name">${shrine.name}</div>
-                    <span class="shrine-type">${shrine.type.replace('_', ' ')}</span>
+            <div class="item-header">
+                <span class="shrine-icon-large">${shrine.icon}</span>
+                <div class="item-title">
+                    <div class="item-name">${shrine.name}</div>
+                    <span class="tier-label">${shrine.type.replace('_', ' ')}</span>
                 </div>
             </div>
-            <div class="shrine-description">${shrine.description}</div>
-            <div class="shrine-reward"><strong>Reward:</strong> ${shrine.reward}</div>
-            ${shrine.strategy ? `<div class="shrine-strategy"><strong>Strategy:</strong> ${shrine.strategy}</div>` : ''}
-            ${shrine.notes ? `<div class="item-notes">${shrine.notes}</div>` : ''}
+            <div class="item-effect">${shrine.description}</div>
+            <div class="item-description">${shrine.reward}</div>
+            <div class="item-meta">
+                ${shrine.reusable ? '<span class="meta-tag">Reusable</span>' : '<span class="meta-tag">One-time</span>'}
+            </div>
+            <button class="view-details-btn" onclick="openDetailModal('shrine', '${shrine.id}')">View Details</button>
         `;
 
         container.appendChild(card);
@@ -1251,6 +1300,9 @@ function openDetailModal(type, id) {
         case 'character':
             data = allData.characters?.characters.find(c => c.id === id);
             break;
+        case 'shrine':
+            data = allData.shrines?.shrines.find(s => s.id === id);
+            break;
     }
 
     if (!data) return;
@@ -1269,16 +1321,32 @@ function openDetailModal(type, id) {
             </div>
         ` : '';
 
+        // Item image
+        const imageHtml = data.image ? `<img src="${data.image}" alt="${data.name}" class="modal-item-image" onerror="this.style.display='none'">` : '';
+
         content += `
+            ${imageHtml}
             <div class="item-badges">
                 <span class="badge rarity-${data.rarity}">${data.rarity}</span>
                 <span class="badge tier-${data.tier}">${data.tier} Tier</span>
             </div>
+            ${data.one_and_done ? `
+                <div class="one-and-done-warning">
+                    <span class="warning-icon">!</span>
+                    <span>One-and-Done: Additional copies provide no benefit</span>
+                </div>
+            ` : ''}
+            ${(data.max_stacks || (data.stack_cap && data.stack_cap <= 100)) ? `
+                <div class="stack-info">
+                    <strong>Stack Limit:</strong> ${data.max_stacks || data.stack_cap} stacks
+                </div>
+            ` : ''}
             <div class="item-effect" style="margin-top: 1rem;">${data.base_effect}</div>
             <p>${data.detailed_description}</p>
             <div class="item-formula"><strong>Formula:</strong> ${data.formula}</div>
             ${graphHtml}
             ${data.synergies?.length ? `<div class="synergies-section"><h3>Synergies</h3><div class="synergy-list">${data.synergies.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div></div>` : ''}
+            ${data.anti_synergies?.length ? `<div class="anti-synergies-section"><h3>Anti-Synergies</h3><div class="antisynergy-list">${data.anti_synergies.map(s => `<span class="antisynergy-tag">${s}</span>`).join('')}</div></div>` : ''}
         `;
 
         // Initialize chart after modal is displayed
@@ -1325,6 +1393,121 @@ function openDetailModal(type, id) {
                 createScalingChart(`modal-tome-chart-${data.id}`, progression, data.name, data.stat_affected || '', true);
             }, 100);
         }
+    } else if (type === 'character') {
+        // Character image
+        const imageHtml = data.image ? `<img src="${data.image}" alt="${data.name}" class="modal-character-image" onerror="this.style.display='none'">` : '';
+
+        content += `
+            ${imageHtml}
+            <div class="item-badges">
+                <span class="badge tier-${data.tier}">${data.tier} Tier</span>
+                <span class="badge">${data.playstyle}</span>
+            </div>
+            <div class="character-passive">
+                <strong>${data.passive_ability}</strong>
+                <p>${data.passive_description}</p>
+            </div>
+            <div class="character-meta">
+                <div><strong>Starting Weapon:</strong> ${data.starting_weapon}</div>
+                <div><strong>Base HP:</strong> ${data.base_hp} | <strong>Base Damage:</strong> ${data.base_damage}</div>
+                ${data.unlock_requirement ? `<div><strong>Unlock:</strong> ${data.unlock_requirement}</div>` : ''}
+            </div>
+            ${data.best_for?.length ? `
+                <div class="character-section">
+                    <h3>Best For</h3>
+                    <div class="tag-list">${data.best_for.map(b => `<span class="meta-tag">${b}</span>`).join('')}</div>
+                </div>
+            ` : ''}
+            <div class="strengths-weaknesses">
+                <div class="strengths">
+                    <h4>Strengths</h4>
+                    <ul>${data.strengths?.map(s => `<li>${s}</li>`).join('') || '<li>None listed</li>'}</ul>
+                </div>
+                <div class="weaknesses">
+                    <h4>Weaknesses</h4>
+                    <ul>${data.weaknesses?.map(w => `<li>${w}</li>`).join('') || '<li>None listed</li>'}</ul>
+                </div>
+            </div>
+            <div class="synergies-section">
+                <h3>Synergies</h3>
+                ${data.synergies_weapons?.length ? `
+                    <div class="synergy-group">
+                        <h4>Weapons</h4>
+                        <div class="synergy-list">${data.synergies_weapons.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                    </div>
+                ` : ''}
+                ${data.synergies_items?.length ? `
+                    <div class="synergy-group">
+                        <h4>Items</h4>
+                        <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                    </div>
+                ` : ''}
+                ${data.synergies_tomes?.length ? `
+                    <div class="synergy-group">
+                        <h4>Tomes</h4>
+                        <div class="synergy-list">${data.synergies_tomes.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                    </div>
+                ` : ''}
+            </div>
+            ${data.build_tips ? `
+                <div class="build-tips">
+                    <h3>Build Tips</h3>
+                    <p>${data.build_tips}</p>
+                </div>
+            ` : ''}
+        `;
+    } else if (type === 'shrine') {
+        content += `
+            <div class="shrine-modal-header">
+                <span class="shrine-icon-modal">${data.icon}</span>
+                <div class="item-badges">
+                    <span class="badge">${data.type.replace('_', ' ')}</span>
+                    ${data.reusable ? '<span class="badge">Reusable</span>' : '<span class="badge">One-time</span>'}
+                </div>
+            </div>
+            <div class="shrine-description-full">
+                <p>${data.description}</p>
+            </div>
+            <div class="shrine-detail-section">
+                <strong>Reward</strong>
+                <p>${data.reward}</p>
+            </div>
+            ${data.activation ? `
+                <div class="shrine-detail-section">
+                    <strong>Activation</strong>
+                    <p>${data.activation}</p>
+                </div>
+            ` : ''}
+            ${data.spawn_count ? `
+                <div class="shrine-detail-section">
+                    <strong>Spawn Rate</strong>
+                    <p>${data.spawn_count}</p>
+                </div>
+            ` : ''}
+            ${data.best_for?.length ? `
+                <div class="shrine-detail-section">
+                    <strong>Best For</strong>
+                    <div class="tag-list">${data.best_for.map(b => `<span class="meta-tag">${b}</span>`).join('')}</div>
+                </div>
+            ` : ''}
+            ${data.synergies_items?.length ? `
+                <div class="synergies-section">
+                    <h3>Item Synergies</h3>
+                    <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                </div>
+            ` : ''}
+            ${data.strategy ? `
+                <div class="shrine-strategy">
+                    <strong>Strategy</strong>
+                    <p>${data.strategy}</p>
+                </div>
+            ` : ''}
+            ${data.notes ? `
+                <div class="item-notes" style="margin-top: 1rem;">
+                    <em>${data.notes}</em>
+                </div>
+            ` : ''}
+        `;
     }
 
     modalBody.innerHTML = content;

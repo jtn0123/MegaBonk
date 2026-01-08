@@ -1755,3 +1755,289 @@ footer a:hover {
 .error-message .error-close:hover {
     opacity: 1;
 }
+
+/* ========================================
+   Expandable Text
+   ======================================== */
+
+.expandable-text {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.expandable-text:hover {
+    background: rgba(233, 69, 96, 0.05);
+}
+
+.expandable-text.expanded {
+    background: rgba(233, 69, 96, 0.08);
+    padding: 0.75rem;
+    margin: -0.25rem;
+    border-radius: 6px;
+}
+
+.expand-indicator {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--accent);
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+.expandable-text:hover .expand-indicator {
+    text-decoration: underline;
+}
+
+/* ========================================
+   Modal Images
+   ======================================== */
+
+.modal-item-image,
+.modal-character-image {
+    max-width: 120px;
+    max-height: 120px;
+    border-radius: 12px;
+    float: right;
+    margin-left: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ========================================
+   One-and-Done Warning
+   ======================================== */
+
+.one-and-done-warning {
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid #ffc107;
+    border-radius: 6px;
+    padding: 0.75rem;
+    margin: 1rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.one-and-done-warning .warning-icon {
+    background: #ffc107;
+    color: #1a1a24;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    flex-shrink: 0;
+}
+
+/* ========================================
+   Stack Info
+   ======================================== */
+
+.stack-info {
+    margin: 0.75rem 0;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-dark);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+/* ========================================
+   Anti-Synergies Section
+   ======================================== */
+
+.anti-synergies-section {
+    margin-top: 1.5rem;
+}
+
+.anti-synergies-section h3 {
+    margin-bottom: 0.75rem;
+    color: var(--rare);
+}
+
+.antisynergy-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* ========================================
+   Character Modal
+   ======================================== */
+
+.character-passive {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+}
+
+.character-passive strong {
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+
+.character-meta {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+}
+
+.character-meta > div {
+    margin-bottom: 0.5rem;
+}
+
+.character-meta > div:last-child {
+    margin-bottom: 0;
+}
+
+.character-section {
+    margin: 1.5rem 0;
+}
+
+.character-section h3 {
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.strengths-weaknesses {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.strengths,
+.weaknesses {
+    padding: 1rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+}
+
+.strengths h4 {
+    color: #22c55e;
+    margin-bottom: 0.75rem;
+}
+
+.weaknesses h4 {
+    color: #ef4444;
+    margin-bottom: 0.75rem;
+}
+
+.strengths ul,
+.weaknesses ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.strengths li,
+.weaknesses li {
+    margin-bottom: 0.25rem;
+}
+
+.synergy-group {
+    margin-bottom: 1rem;
+}
+
+.synergy-group h4 {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.build-tips {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(233, 69, 96, 0.1);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+}
+
+.build-tips h3 {
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+}
+
+/* ========================================
+   Shrine Modal & Cards
+   ======================================== */
+
+.shrine-icon-large {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.shrine-icon-modal {
+    font-size: 3rem;
+}
+
+.shrine-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.shrine-description-full {
+    margin: 1rem 0;
+    font-size: 1.05rem;
+}
+
+.shrine-detail-section {
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: var(--bg-dark);
+    border-radius: 6px;
+}
+
+.shrine-detail-section strong {
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.shrine-strategy {
+    background: rgba(251, 191, 36, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--legendary);
+    margin-top: 1.5rem;
+}
+
+.shrine-strategy strong {
+    color: var(--legendary);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* Shrine card restyle to match item-card */
+.item-card.shrine-card {
+    border-left-color: var(--accent);
+}
+
+/* ========================================
+   Responsive: Strengths/Weaknesses
+   ======================================== */
+
+@media (max-width: 600px) {
+    .strengths-weaknesses {
+        grid-template-columns: 1fr;
+    }
+
+    .modal-item-image,
+    .modal-character-image {
+        float: none;
+        display: block;
+        margin: 0 auto 1rem;
+    }
+}
