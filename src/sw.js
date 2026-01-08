@@ -70,11 +70,14 @@ self.addEventListener('fetch', event => {
           });
         });
       })
-      .catch(() => {
+      .catch((error) => {
         // Offline fallback
+        console.warn('Fetch failed for:', event.request.url, error);
         if (event.request.mode === 'navigate') {
           return caches.match('./index.html');
         }
+        // For non-navigation requests, log but let fail gracefully
+        // (browser will handle missing resources)
       })
   );
 });

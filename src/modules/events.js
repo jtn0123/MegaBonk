@@ -235,13 +235,27 @@ function hideLoading() {
  */
 function showErrorMessage(message, isRetryable = true) {
     let errorContainer = safeGetElementById('error-container');
+    let isNewContainer = false;
+
     if (!errorContainer) {
         errorContainer = document.createElement('div');
         errorContainer.id = 'error-container';
         errorContainer.className = 'error-container';
         document.body.prepend(errorContainer);
+        isNewContainer = true;
     }
 
+    // If container already exists, just update the message text for efficiency
+    if (!isNewContainer) {
+        const messagePara = errorContainer.querySelector('.error-content p');
+        if (messagePara) {
+            messagePara.textContent = message;
+            errorContainer.style.display = 'block';
+            return; // Listeners already attached, no need to recreate
+        }
+    }
+
+    // First time or structure missing - create full HTML
     errorContainer.innerHTML = `
         <div class="error-message">
             <span class="error-icon">⚠️</span>
@@ -255,13 +269,10 @@ function showErrorMessage(message, isRetryable = true) {
     `;
     errorContainer.style.display = 'block';
 
-    // Bug fix: Use cloneNode to remove old listeners before adding new ones
-    // This prevents listener accumulation when showErrorMessage is called multiple times
+    // Attach listeners only when creating new structure
     const retryBtn = errorContainer.querySelector('.error-retry-btn');
     if (retryBtn) {
-        const newRetryBtn = retryBtn.cloneNode(true);
-        retryBtn.parentNode.replaceChild(newRetryBtn, retryBtn);
-        newRetryBtn.addEventListener('click', () => {
+        retryBtn.addEventListener('click', () => {
             dismissError();
             loadAllData();
         });
@@ -269,9 +280,7 @@ function showErrorMessage(message, isRetryable = true) {
 
     const closeBtn = errorContainer.querySelector('.error-close');
     if (closeBtn) {
-        const newCloseBtn = closeBtn.cloneNode(true);
-        closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
-        newCloseBtn.addEventListener('click', dismissError);
+        closeBtn.addEventListener('click', dismissError);
     }
 }
 

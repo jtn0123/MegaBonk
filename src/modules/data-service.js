@@ -18,6 +18,29 @@ let allData = {
 // ========================================
 
 /**
+ * Fetch with timeout to prevent indefinite waiting
+ * @param {string} url - URL to fetch
+ * @param {number} timeout - Timeout in milliseconds (default 30s)
+ * @returns {Promise<Response>} Fetch response
+ */
+async function fetchWithTimeout(url, timeout = 30000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeout);
+
+    try {
+        const response = await fetch(url, { signal: controller.signal });
+        clearTimeout(timeoutId);
+        return response;
+    } catch (error) {
+        clearTimeout(timeoutId);
+        if (error.name === 'AbortError') {
+            throw new Error(`Request timeout: ${url}`);
+        }
+        throw error;
+    }
+}
+
+/**
  * Load all game data from JSON files
  */
 async function loadAllData() {
@@ -25,13 +48,13 @@ async function loadAllData() {
 
     try {
         const responses = await Promise.all([
-            fetch('../data/items.json'),
-            fetch('../data/weapons.json'),
-            fetch('../data/tomes.json'),
-            fetch('../data/characters.json'),
-            fetch('../data/shrines.json'),
-            fetch('../data/stats.json'),
-            fetch('../data/changelog.json')
+            fetchWithTimeout('../data/items.json'),
+            fetchWithTimeout('../data/weapons.json'),
+            fetchWithTimeout('../data/tomes.json'),
+            fetchWithTimeout('../data/characters.json'),
+            fetchWithTimeout('../data/shrines.json'),
+            fetchWithTimeout('../data/stats.json'),
+            fetchWithTimeout('../data/changelog.json')
         ]);
 
         // Check for HTTP errors and parse JSON safely

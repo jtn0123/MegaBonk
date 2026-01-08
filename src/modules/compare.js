@@ -32,7 +32,7 @@ function updateCompareButton() {
     const compareBtn = safeGetElementById('compare-btn');
     if (!compareBtn) return;
 
-    const countSpan = compareBtn.querySelector('.compare-count');
+    const countSpan = safeQuerySelector('.compare-count', compareBtn);
     if (countSpan) {
         countSpan.textContent = compareItems.length;
     }

@@ -2,6 +2,9 @@
 // MegaBonk Renderers Module
 // ========================================
 
+// Track whether calculator button listener has been initialized
+let calculatorButtonInitialized = false;
+
 /**
  * Render content for the current tab
  * @param {string} tabName - Tab to render
@@ -14,10 +17,13 @@ function renderTabContent(tabName) {
 
     if (tabName === 'calculator') {
         populateCalculatorItems();
-        const calcBtn = safeGetElementById('calc-button');
-        if (calcBtn) {
-            calcBtn.removeEventListener('click', calculateBreakpoint);
-            calcBtn.addEventListener('click', calculateBreakpoint);
+        // Only add listener once to avoid unnecessary re-attachment
+        if (!calculatorButtonInitialized) {
+            const calcBtn = safeGetElementById('calc-button');
+            if (calcBtn) {
+                calcBtn.addEventListener('click', calculateBreakpoint);
+                calculatorButtonInitialized = true;
+            }
         }
         return;
     }
@@ -153,7 +159,7 @@ function renderItems(items) {
     // Bug fix #9: Use requestAnimationFrame for more reliable chart initialization
     // This ensures DOM is painted before chart initialization
     requestAnimationFrame(() => {
-        requestAnimationFrame(() => initializeItemCharts());
+        initializeItemCharts();
     });
 }
 
