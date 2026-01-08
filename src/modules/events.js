@@ -232,10 +232,13 @@ function showErrorMessage(message, isRetryable = true) {
     `;
     errorContainer.style.display = 'block';
 
-    // Add event listeners to error buttons
+    // Bug fix: Use cloneNode to remove old listeners before adding new ones
+    // This prevents listener accumulation when showErrorMessage is called multiple times
     const retryBtn = errorContainer.querySelector('.error-retry-btn');
     if (retryBtn) {
-        retryBtn.addEventListener('click', () => {
+        const newRetryBtn = retryBtn.cloneNode(true);
+        retryBtn.parentNode.replaceChild(newRetryBtn, retryBtn);
+        newRetryBtn.addEventListener('click', () => {
             dismissError();
             loadAllData();
         });
@@ -243,7 +246,9 @@ function showErrorMessage(message, isRetryable = true) {
 
     const closeBtn = errorContainer.querySelector('.error-close');
     if (closeBtn) {
-        closeBtn.addEventListener('click', dismissError);
+        const newCloseBtn = closeBtn.cloneNode(true);
+        closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+        newCloseBtn.addEventListener('click', dismissError);
     }
 }
 

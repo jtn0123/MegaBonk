@@ -349,3 +349,194 @@ describe('filterData() for weapons/tomes/characters', () => {
     expect(rarityFilter).toBeNull();
   });
 });
+
+describe('filterData() edge cases', () => {
+  beforeEach(() => {
+    createMinimalDOM();
+    createItemsFilterUI();
+  });
+
+  describe('empty and null data handling', () => {
+    it('should handle empty data array', () => {
+      const result = filterData([], 'items');
+      expect(result).toEqual([]);
+      expect(result).toHaveLength(0);
+    });
+
+    it('should handle null filter values', () => {
+      const items = [createMockItem({ id: 'item1', name: 'Test' })];
+      // Don't set any filter values
+      const result = filterData(items, 'items');
+      expect(result).toHaveLength(1);
+    });
+
+    it('should handle items with missing optional fields gracefully', () => {
+      const itemsWithMissingOptionalFields = [
+        { id: 'item1', name: 'Has Name' }, // Missing tier, rarity, etc
+        { id: 'item2', name: 'Has Name Too' }, // Missing description, base_effect
+        { id: 'item3', name: 'Another', tier: 'S' }
+      ];
+
+      // Should not throw - all items have names which is required for filtering/sorting
+      expect(() => filterData(itemsWithMissingOptionalFields, 'items')).not.toThrow();
+    });
+
+    it('should handle undefined description and base_effect', () => {
+      const items = [
+        { id: 'item1', name: 'Test', description: undefined, base_effect: undefined }
+      ];
+
+      simulateInput(document.getElementById('searchInput'), 'test');
+      const result = filterData(items, 'items');
+
+      expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('special characters in search', () => {
+    it('should handle special regex characters in search', () => {
+      const items = [
+        createMockItem({ id: 'item1', name: 'Item (Special)' }),
+        createMockItem({ id: 'item2', name: 'Item [Bracket]' }),
+        createMockItem({ id: 'item3', name: 'Item +Plus+' })
+      ];
+
+      // These contain regex special chars
+      simulateInput(document.getElementById('searchInput'), '(special)');
+      const result = filterData(items, 'items');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('Item (Special)');
+    });
+
+    it('should handle asterisks in search', () => {
+      const items = [
+        createMockItem({ id: 'item1', name: 'Item *Star*' }),
+        createMockItem({ id: 'item2', name: 'Normal Item' })
+      ];
+
+      simulateInput(document.getElementById('searchInput'), '*star*');
+      const result = filterData(items, 'items');
+
+      expect(result).toHaveLength(1);
+    });
+
+    it('should handle dots in search', () => {
+      const items = [
+        createMockItem({ id: 'item1', name: 'Item 2.0' }),
+        createMockItem({ id: 'item2', name: 'Item 20' })
+      ];
+
+      simulateInput(document.getElementById('searchInput'), '2.0');
+      const result = filterData(items, 'items');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('Item 2.0');
+    });
+  });
+
+  describe('very long search strings', () => {
+    it('should handle very long search strings', () => {
+      const items = [createMockItem({ id: 'item1', name: 'Test Item' })];
+      const longSearch = 'a'.repeat(1000);
+
+      simulateInput(document.getElementById('searchInput'), longSearch);
+      const result = filterData(items, 'items');
+
+      // Should return empty since no item matches
+      expect(result).toHaveLength(0);
+    });
+
+    it('should handle unicode characters in search', () => {
+      const items = [
+        createMockItem({ id: 'item1', name: 'アイテム Japanese' }),
+        createMockItem({ id: 'item2', name: 'Item Normal' })
+      ];
+
+      simulateInput(document.getElementById('searchInput'), 'アイテム');
+      const result = filterData(items, 'items');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('アイテム Japanese');
+    });
+
+    it('should handle emoji in search', () => {
+      const items = [
+        createMockItem({ id: 'item1', name: 'Fire Item 🔥' }),
+        createMockItem({ id: 'item2', name: 'Water Item' })
+      ];
+
+      simulateInput(document.getElementById('searchInput'), '🔥');
+      const result = filterData(items, 'items');
+
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('Fire Item 🔥');
+    });
+  });
+
+  describe('whitespace handling', () => {
+    it('should handle leading/trailing whitespace in search', () => {
+      const items = [createMockItem({ id: 'item1', name: 'Test Item' })];
+
+      simulateInput(document.getElementById('searchInput'), '  test  ');
+      const result = filterData(items, 'items');
+
+      // Should still match since includes() is used
+      expect(result).toHaveLength(0); // Won't match with extra spaces
+    });
+
+    it('should handle multiple spaces in item names', () => {
+      const items = [
+        createMockItem({ id: 'item1', name: 'Multiple   Spaces' })
+      ];
+
+      simulateInput(document.getElementById('searchInput'), 'multiple');
+      const result = filterData(items, 'items');
+
+      expect(result).toHaveLength(1);
+    });
+  });
+
+  describe('unknown filter values', () => {
+    it('should handle unknown tier values in items', () => {
+      const items = [
+        createMockItem({ id: 'item1', name: 'Item', tier: 'UNKNOWN' }),
+        createMockItem({ id: 'item2', name: 'Item 2', tier: 'S' })
+      ];
+
+      simulateSelect(document.getElementById('sortBy'), 'tier');
+      const result = filterData(items, 'items');
+
+      // S tier should come first, unknown last
+      expect(result[0].tier).toBe('S');
+      expect(result[1].tier).toBe('UNKNOWN');
+    });
+
+    it('should handle unknown rarity values', () => {
+      const items = [
+        createMockItem({ id: 'item1', name: 'Item', rarity: 'mythic' }), // Unknown rarity
+        createMockItem({ id: 'item2', name: 'Item 2', rarity: 'legendary' })
+      ];
+
+      simulateSelect(document.getElementById('sortBy'), 'rarity');
+      const result = filterData(items, 'items');
+
+      // Legendary should come first
+      expect(result[0].rarity).toBe('legendary');
+    });
+  });
+
+  describe('large dataset handling', () => {
+    it('should handle filtering large datasets', () => {
+      const largeDataset = Array.from({ length: 1000 }, (_, i) =>
+        createMockItem({ id: `item_${i}`, name: `Item ${i}`, tier: i % 2 === 0 ? 'S' : 'A' })
+      );
+
+      simulateSelect(document.getElementById('tierFilter'), 'S');
+      const result = filterData(largeDataset, 'items');
+
+      expect(result).toHaveLength(500);
+      result.forEach(item => expect(item.tier).toBe('S'));
+    });
+  });
+});

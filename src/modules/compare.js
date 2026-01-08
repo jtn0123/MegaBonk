@@ -170,6 +170,12 @@ function openCompareModal() {
  * Close compare modal with animation
  */
 function closeCompareModal() {
+    // Bug fix: Destroy compare chart before closing to prevent memory leak
+    if (typeof chartInstances !== 'undefined' && chartInstances['compare-scaling-chart']) {
+        chartInstances['compare-scaling-chart'].destroy();
+        delete chartInstances['compare-scaling-chart'];
+    }
+
     const modal = safeGetElementById('compareModal');
     if (modal) {
         modal.classList.remove('active');
