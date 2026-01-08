@@ -141,11 +141,17 @@ function renderItemModal(data) {
 
     // Bug fix #10: Use requestAnimationFrame for more reliable chart initialization
     // Initialize chart after modal is displayed and DOM is ready
+    let initAttempts = 0;
+    const MAX_INIT_ATTEMPTS = 50; // Prevent infinite loop - ~830ms max wait
     const initChart = () => {
         const canvas = document.getElementById(`modal-chart-${data.id}`);
         if (!canvas) {
-            // Canvas not ready yet, try again
-            requestAnimationFrame(initChart);
+            initAttempts++;
+            if (initAttempts < MAX_INIT_ATTEMPTS) {
+                // Canvas not ready yet, try again
+                requestAnimationFrame(initChart);
+            }
+            // If max attempts reached, silently give up (modal may have closed)
             return;
         }
 
