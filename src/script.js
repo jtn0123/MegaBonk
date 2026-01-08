@@ -26,6 +26,178 @@ let currentBuild = {
 // Compare mode state
 let compareItems = [];
 
+// Chart instances storage (for cleanup)
+let chartInstances = {};
+
+// ========================================
+// Chart.js Integration
+// ========================================
+
+/**
+ * Create a scaling chart for an item or tome
+ * @param {string} canvasId - The canvas element ID
+ * @param {number[]} data - Array of scaling values
+ * @param {string} label - Chart label (item/tome name)
+ * @param {string} scalingType - Type of scaling for formatting
+ * @param {boolean} isModal - If true, creates a larger chart for modals
+ */
+function createScalingChart(canvasId, data, label, scalingType = '', isModal = false) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return null;
+
+    // Check if Chart.js is available
+    if (typeof Chart === 'undefined') {
+        console.warn('Chart.js not loaded');
+        return null;
+    }
+
+    // Destroy existing chart if present
+    if (chartInstances[canvasId]) {
+        chartInstances[canvasId].destroy();
+    }
+
+    const labels = data.map((_, i) => `${i + 1}`);
+    const isPercentage = scalingType.includes('chance') ||
+                         scalingType.includes('percentage') ||
+                         scalingType.includes('damage') ||
+                         scalingType.includes('crit');
+
+    const ctx = canvas.getContext('2d');
+    const chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: label,
+                data: data,
+                borderColor: '#e94560',
+                backgroundColor: 'rgba(233, 69, 96, 0.2)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: isModal ? 5 : 3,
+                pointHoverRadius: isModal ? 8 : 5,
+                pointBackgroundColor: '#e94560',
+                borderWidth: isModal ? 3 : 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#1a1a2e',
+                    titleColor: '#ffffff',
+                    bodyColor: '#a0a0a0',
+                    borderColor: '#e94560',
+                    borderWidth: 1,
+                    callbacks: {
+                        label: (context) => {
+                            const val = context.parsed.y;
+                            return `${val}${isPercentage ? '%' : ''}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: {
+                        display: isModal,
+                        text: 'Stacks',
+                        color: '#a0a0a0',
+                        font: { size: isModal ? 14 : 10 }
+                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: {
+                        color: '#a0a0a0',
+                        font: { size: isModal ? 12 : 9 }
+                    }
+                },
+                y: {
+                    title: {
+                        display: isModal,
+                        text: isPercentage ? '%' : 'Value',
+                        color: '#a0a0a0',
+                        font: { size: isModal ? 14 : 10 }
+                    },
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                    ticks: {
+                        color: '#a0a0a0',
+                        font: { size: isModal ? 12 : 9 },
+                        callback: (value) => `${value}${isPercentage ? '%' : ''}`
+                    },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    chartInstances[canvasId] = chart;
+    return chart;
+}
+
+/**
+ * Calculate tome progression values for graphing
+ * @param {Object} tome - The tome object
+ * @param {number} maxLevels - Number of levels to calculate
+ * @returns {number[]} Array of progression values
+ */
+function calculateTomeProgression(tome, maxLevels = 10) {
+    const valueStr = tome.value_per_level;
+    // Parse numeric value from strings like "+7% crit chance" or "+0.08x (8% damage)"
+    const match = valueStr.match(/[+-]?([\d.]+)/);
+    if (!match) return null;
+
+    const perLevel = parseFloat(match[1]);
+    // Scale appropriately - percentages stay as-is, multipliers get scaled
+    const isMultiplier = valueStr.includes('x');
+    const scaledPerLevel = isMultiplier ? perLevel * 100 : perLevel;
+
+    return Array.from({length: maxLevels}, (_, i) =>
+        Math.round(scaledPerLevel * (i + 1) * 100) / 100
+    );
+}
+
+/**
+ * Initialize all item charts after rendering
+ */
+function initializeItemCharts() {
+    const items = allData.items?.items || [];
+    items.forEach(item => {
+        // Only create charts for items that stack
+        if (item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat') {
+            const canvasId = `chart-${item.id}`;
+            createScalingChart(canvasId, item.scaling_per_stack, item.name, item.scaling_type || '');
+        }
+    });
+}
+
+/**
+ * Initialize all tome charts after rendering
+ */
+function initializeTomeCharts() {
+    const tomes = allData.tomes?.tomes || [];
+    tomes.forEach(tome => {
+        const progression = calculateTomeProgression(tome);
+        if (progression) {
+            const canvasId = `tome-chart-${tome.id}`;
+            createScalingChart(canvasId, progression, tome.name, tome.stat_affected || '');
+        }
+    });
+}
+
+/**
+ * Destroy all chart instances (call before re-rendering)
+ */
+function destroyAllCharts() {
+    Object.keys(chartInstances).forEach(key => {
+        if (chartInstances[key]) {
+            chartInstances[key].destroy();
+        }
+    });
+    chartInstances = {};
+}
+
 // ========================================
 // Initialization
 // ========================================
@@ -117,6 +289,9 @@ function setupEventListeners() {
 // ========================================
 
 function switchTab(tabName) {
+    // Destroy existing charts before switching tabs
+    destroyAllCharts();
+
     currentTab = tabName;
 
     // Update tab buttons
@@ -382,6 +557,14 @@ function renderItems(items) {
         const stackText = item.one_and_done ? 'One-and-Done' : (item.stacks_well ? 'Stacks Well' : 'Limited');
         const imageHtml = item.image ? `<img src="${item.image}" alt="${item.name}" class="entity-image" onerror="this.style.display='none'">` : '';
 
+        // Determine if this item should show a scaling graph
+        const showGraph = item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat';
+        const graphHtml = showGraph ? `
+            <div class="item-graph-container">
+                <canvas id="chart-${item.id}" class="scaling-chart"></canvas>
+            </div>
+        ` : '';
+
         card.innerHTML = `
             <div class="item-header">
                 ${imageHtml}
@@ -404,11 +587,15 @@ function renderItems(items) {
             <div class="item-description">${item.detailed_description.substring(0, 150)}...</div>
             <div class="item-formula"><strong>Formula:</strong> ${item.formula}</div>
             ${item.notes ? `<div class="item-notes"><strong>⚠️ Note:</strong> ${item.notes}</div>` : ''}
+            ${graphHtml}
             <button class="view-details-btn" onclick="openDetailModal('item', '${item.id}')">View Details</button>
         `;
 
         container.appendChild(card);
     });
+
+    // Initialize charts after DOM is ready
+    setTimeout(() => initializeItemCharts(), 50);
 }
 
 function renderWeapons(weapons) {
@@ -463,6 +650,14 @@ function renderTomes(tomes) {
         card.className = 'item-card tome-card';
         const imageHtml = tome.image ? `<img src="${tome.image}" alt="${tome.name}" class="entity-image" onerror="this.style.display='none'">` : '';
 
+        // Check if we can calculate progression for this tome
+        const progression = calculateTomeProgression(tome);
+        const graphHtml = progression ? `
+            <div class="tome-graph-container">
+                <canvas id="tome-chart-${tome.id}" class="scaling-chart"></canvas>
+            </div>
+        ` : '';
+
         card.innerHTML = `
             <div class="item-header">
                 ${imageHtml}
@@ -481,11 +676,15 @@ function renderTomes(tomes) {
             <div class="item-description">${tome.description}</div>
             <div class="item-notes"><strong>Recommended for:</strong> ${tome.recommended_for.join(', ')}</div>
             ${tome.notes ? `<div class="item-formula">${tome.notes}</div>` : ''}
+            ${graphHtml}
             <button class="view-details-btn" onclick="openDetailModal('tome', '${tome.id}')">View Details</button>
         `;
 
         container.appendChild(card);
     });
+
+    // Initialize charts after DOM is ready
+    setTimeout(() => initializeTomeCharts(), 50);
 }
 
 function renderCharacters(characters) {
@@ -761,6 +960,14 @@ function openDetailModal(type, id) {
     let content = `<h2>${data.name}</h2>`;
 
     if (type === 'item') {
+        // Check if this item has scaling data for a graph
+        const showGraph = data.scaling_per_stack && !data.one_and_done && data.graph_type !== 'flat';
+        const graphHtml = showGraph ? `
+            <div class="modal-graph-container">
+                <canvas id="modal-chart-${data.id}" class="scaling-chart"></canvas>
+            </div>
+        ` : '';
+
         content += `
             <div class="item-badges">
                 <span class="badge rarity-${data.rarity}">${data.rarity}</span>
@@ -769,8 +976,16 @@ function openDetailModal(type, id) {
             <div class="item-effect" style="margin-top: 1rem;">${data.base_effect}</div>
             <p>${data.detailed_description}</p>
             <div class="item-formula"><strong>Formula:</strong> ${data.formula}</div>
-            ${data.synergies?.length ? `<div class="synergies-section"><h3>✅ Synergies</h3><div class="synergy-list">${data.synergies.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div></div>` : ''}
+            ${graphHtml}
+            ${data.synergies?.length ? `<div class="synergies-section"><h3>Synergies</h3><div class="synergy-list">${data.synergies.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div></div>` : ''}
         `;
+
+        // Initialize chart after modal is displayed
+        if (showGraph) {
+            setTimeout(() => {
+                createScalingChart(`modal-chart-${data.id}`, data.scaling_per_stack, data.name, data.scaling_type || '', true);
+            }, 100);
+        }
     } else if (type === 'weapon') {
         content += `
             <p><strong>Attack Pattern:</strong> ${data.attack_pattern}</p>
@@ -778,6 +993,36 @@ function openDetailModal(type, id) {
             <p><strong>Upgradeable Stats:</strong> ${data.upgradeable_stats.join(', ')}</p>
             <p><strong>Build Tips:</strong> ${data.build_tips}</p>
         `;
+    } else if (type === 'tome') {
+        // Check if we can calculate progression for this tome
+        const progression = calculateTomeProgression(data);
+        const graphHtml = progression ? `
+            <div class="modal-graph-container">
+                <canvas id="modal-tome-chart-${data.id}" class="scaling-chart"></canvas>
+            </div>
+        ` : '';
+
+        content += `
+            <div class="item-badges">
+                <span class="badge tier-${data.tier}">${data.tier} Tier</span>
+                <span class="badge" style="background: var(--bg-dark);">Priority: ${data.priority}</span>
+            </div>
+            <div class="tome-effect" style="margin-top: 1rem;">
+                <strong>Stat:</strong> ${data.stat_affected}<br>
+                <strong>Per Level:</strong> ${data.value_per_level}
+            </div>
+            <p>${data.description}</p>
+            ${graphHtml}
+            ${data.notes ? `<div class="item-formula">${data.notes}</div>` : ''}
+            <div class="item-notes"><strong>Recommended for:</strong> ${data.recommended_for.join(', ')}</div>
+        `;
+
+        // Initialize chart after modal is displayed
+        if (progression) {
+            setTimeout(() => {
+                createScalingChart(`modal-tome-chart-${data.id}`, progression, data.name, data.stat_affected || '', true);
+            }, 100);
+        }
     }
 
     modalBody.innerHTML = content;

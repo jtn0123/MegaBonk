@@ -23,8 +23,14 @@
     --bg-light: #0f3460;
     --text-light: #ffffff;
     --text-muted: #a0a0a0;
+    --text-primary: #ffffff;
 
     /* Accent */
+    /* Chart Theme Colors */
+    --chart-line: #e94560;
+    --chart-fill: rgba(233, 69, 96, 0.2);
+    --chart-grid: rgba(255, 255, 255, 0.1);
+    --chart-text: #a0a0a0;
     --accent: #e94560;
     --accent-hover: #ff6b8a;
 }
@@ -505,11 +511,12 @@ header h1 {
 }
 
 .synergy-tag {
-    padding: 6px 12px;
-    background: var(--bg-dark);
-    border-radius: 6px;
-    font-size: 0.9rem;
-    border: 2px solid var(--common);
+    background: rgba(92, 184, 92, 0.2);
+    color: var(--common);
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    border: 1px solid var(--common);
 }
 
 .anti-synergy-tag {
@@ -798,11 +805,7 @@ footer a:hover {
     margin-bottom: 0.75rem;
 }
 
-.synergy-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
+/* Note: .synergy-list defined once in Modal section (line ~506) */
 
 .synergy-badge {
     padding: 0.5rem 1rem;
@@ -1214,14 +1217,7 @@ footer a:hover {
     gap: 0.5rem;
 }
 
-.synergy-tag {
-    background: rgba(92, 184, 92, 0.2);
-    color: var(--common);
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
-    font-size: 0.85rem;
-    border: 1px solid var(--common);
-}
+/* Note: .synergy-tag defined once in Modal section (line ~513) */
 
 .antisynergy-tag {
     background: rgba(217, 83, 79, 0.2);
@@ -1536,5 +1532,56 @@ footer a:hover {
 
     .mini-bar-graph {
         height: 120px;
+    }
+}
+
+/* ========================================
+   Scaling Charts (Chart.js)
+   ======================================== */
+
+.item-graph-container {
+    width: 100%;
+    height: 120px;
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+}
+
+.scaling-chart {
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.tome-graph-container {
+    width: 100%;
+    height: 100px;
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+}
+
+/* Modal larger charts */
+.modal-graph-container {
+    width: 100%;
+    height: 250px;
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+    .item-graph-container {
+        height: 100px;
+    }
+
+    .tome-graph-container {
+        height: 80px;
+    }
+
+    .modal-graph-container {
+        height: 200px;
     }
 }
