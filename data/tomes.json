@@ -15,10 +15,23 @@
       "max_level": 99,
       "description": "Increases base damage for all attacks. The foundation of every offensive build. Multiplicative scaling.",
       "priority": 1,
-      "recommended_for": ["All builds", "Damage dealers", "Universal"],
-      "synergies_items": ["Gym Sauce", "Beefy Ring", "Demonic Soul"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["Ogre", "All damage dealers"],
+      "recommended_for": [
+        "All builds",
+        "Damage dealers",
+        "Universal"
+      ],
+      "synergies_items": [
+        "Gym Sauce",
+        "Beefy Ring",
+        "Demonic Soul"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "Ogre",
+        "All damage dealers"
+      ],
       "notes": "ALWAYS valuable. Core stat for any build."
     },
     {
@@ -33,10 +46,27 @@
       "max_level": 99,
       "description": "Increases critical hit chance. Over 100% enables Overcrits with exponential damage scaling. Essential for crit builds.",
       "priority": 2,
-      "recommended_for": ["Crit builds", "Bow", "Revolver", "Sniper Rifle"],
-      "synergies_items": ["Forbidden Juice", "Grandma's Secret Tonic", "Giant Fork"],
-      "synergies_weapons": ["Bow", "Revolver", "Sniper Rifle", "Katana"],
-      "synergies_characters": ["CL4NK", "Bush"],
+      "recommended_for": [
+        "Crit builds",
+        "Bow",
+        "Revolver",
+        "Sniper Rifle"
+      ],
+      "synergies_items": [
+        "Forbidden Juice",
+        "Grandma's Secret Tonic",
+        "Giant Fork"
+      ],
+      "synergies_weapons": [
+        "Bow",
+        "Revolver",
+        "Sniper Rifle",
+        "Katana"
+      ],
+      "synergies_characters": [
+        "CL4NK",
+        "Bush"
+      ],
       "notes": "Get to 100%+ for Overcrit mechanic. Game-changing with crit damage."
     },
     {
@@ -51,10 +81,26 @@
       "max_level": 99,
       "description": "Increases attack speed, dramatically increasing DPS and proc frequency. Essential for proc-based builds.",
       "priority": 3,
-      "recommended_for": ["Proc builds", "High attack speed weapons", "Universal"],
-      "synergies_items": ["Battery", "Turbo Skates", "Overpowered Lamp", "Big Bonk"],
-      "synergies_weapons": ["Revolver", "Bow", "All weapons"],
-      "synergies_characters": ["Bandit", "All characters"],
+      "recommended_for": [
+        "Proc builds",
+        "High attack speed weapons",
+        "Universal"
+      ],
+      "synergies_items": [
+        "Battery",
+        "Turbo Skates",
+        "Overpowered Lamp",
+        "Big Bonk"
+      ],
+      "synergies_weapons": [
+        "Revolver",
+        "Bow",
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "Bandit",
+        "All characters"
+      ],
       "notes": "More attacks = more damage and more procs. Universal value."
     },
     {
@@ -69,10 +115,26 @@
       "max_level": 99,
       "description": "Increases maximum health. Essential for survivability and Beefy Ring synergy.",
       "priority": 4,
-      "recommended_for": ["Tank builds", "Beefy Ring builds", "Survivability"],
-      "synergies_items": ["Oats", "Beefy Ring", "Holy Book", "Demonic Blood"],
-      "synergies_weapons": ["Aura", "Melee weapons"],
-      "synergies_characters": ["Sir Oofie", "Monke", "Athena"],
+      "recommended_for": [
+        "Tank builds",
+        "Beefy Ring builds",
+        "Survivability"
+      ],
+      "synergies_items": [
+        "Oats",
+        "Beefy Ring",
+        "Holy Book",
+        "Demonic Blood"
+      ],
+      "synergies_weapons": [
+        "Aura",
+        "Melee weapons"
+      ],
+      "synergies_characters": [
+        "Sir Oofie",
+        "Monke",
+        "Athena"
+      ],
       "notes": "More HP = survivability + Beefy Ring damage scaling."
     },
     {
@@ -87,10 +149,24 @@
       "max_level": 99,
       "description": "Increases movement speed for better positioning and kiting. Can be converted to attack speed via Turbo Skates.",
       "priority": 5,
-      "recommended_for": ["Kiting builds", "Turbo Skates builds", "Mobility"],
-      "synergies_items": ["Turbo Socks", "Turbo Skates", "Coward's Cloak"],
-      "synergies_weapons": ["Ranged weapons", "All weapons"],
-      "synergies_characters": ["Calcium", "Tony McZoom"],
+      "recommended_for": [
+        "Kiting builds",
+        "Turbo Skates builds",
+        "Mobility"
+      ],
+      "synergies_items": [
+        "Turbo Socks",
+        "Turbo Skates",
+        "Coward's Cloak"
+      ],
+      "synergies_weapons": [
+        "Ranged weapons",
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "Calcium",
+        "Tony McZoom"
+      ],
       "notes": "Better positioning = better survival. Turbo Skates converts to attack speed."
     },
     {
@@ -105,10 +181,25 @@
       "max_level": 99,
       "description": "Increases size of attacks, projectiles, and AoE. Especially powerful for Axe, Tornado, and Black Hole.",
       "priority": 6,
-      "recommended_for": ["Axe", "Tornado", "Black Hole", "Aura", "AoE builds"],
-      "synergies_items": ["Size-scaling items"],
-      "synergies_weapons": ["Axe", "Tornado", "Black Hole", "Aura"],
-      "synergies_characters": ["Noelle"],
+      "recommended_for": [
+        "Axe",
+        "Tornado",
+        "Black Hole",
+        "Aura",
+        "AoE builds"
+      ],
+      "synergies_items": [
+        "Size-scaling items"
+      ],
+      "synergies_weapons": [
+        "Axe",
+        "Tornado",
+        "Black Hole",
+        "Aura"
+      ],
+      "synergies_characters": [
+        "Noelle"
+      ],
       "notes": "Bigger = more enemies hit. Game-changing for certain weapons."
     },
     {
@@ -123,10 +214,20 @@
       "max_level": 99,
       "description": "Grants shield that absorbs damage and recharges after 5 seconds. Even small amounts prevent one-shots.",
       "priority": 7,
-      "recommended_for": ["Defensive builds", "All builds for safety"],
-      "synergies_items": ["Golden Shield", "Defensive items"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["All characters"],
+      "recommended_for": [
+        "Defensive builds",
+        "All builds for safety"
+      ],
+      "synergies_items": [
+        "Golden Shield",
+        "Defensive items"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "All characters"
+      ],
       "notes": "Recharges after not taking damage. Prevents burst deaths."
     },
     {
@@ -141,10 +242,21 @@
       "max_level": 99,
       "description": "Passive health regeneration per minute. Good for sustain builds.",
       "priority": 8,
-      "recommended_for": ["Sustain builds", "Long runs"],
-      "synergies_items": ["Medkit", "Holy Book", "Campfire"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["All characters"],
+      "recommended_for": [
+        "Sustain builds",
+        "Long runs"
+      ],
+      "synergies_items": [
+        "Medkit",
+        "Holy Book",
+        "Campfire"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "All characters"
+      ],
       "notes": "Passive healing. Better in longer fights."
     },
     {
@@ -159,10 +271,21 @@
       "max_level": 99,
       "description": "Chance to completely avoid damage. Hyperbolic scaling with diminishing returns.",
       "priority": 9,
-      "recommended_for": ["Dodge builds", "Ninja", "Evasion stacking"],
-      "synergies_items": ["Slippery Ring", "Phantom Shroud"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["Ninja"],
+      "recommended_for": [
+        "Dodge builds",
+        "Ninja",
+        "Evasion stacking"
+      ],
+      "synergies_items": [
+        "Slippery Ring",
+        "Phantom Shroud"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "Ninja"
+      ],
       "notes": "Diminishing returns. Can't reach 100%. Ninja gets bonus value."
     },
     {
@@ -177,10 +300,23 @@
       "max_level": 99,
       "description": "Increases knockback distance. Good for spacing and safety.",
       "priority": 10,
-      "recommended_for": ["Ranged builds", "Safety", "Knockback synergies"],
-      "synergies_items": ["Knockback items", "Power Gloves"],
-      "synergies_weapons": ["Sword", "Tornado", "Ranged weapons"],
-      "synergies_characters": ["All ranged characters"],
+      "recommended_for": [
+        "Ranged builds",
+        "Safety",
+        "Knockback synergies"
+      ],
+      "synergies_items": [
+        "Knockback items",
+        "Power Gloves"
+      ],
+      "synergies_weapons": [
+        "Sword",
+        "Tornado",
+        "Ranged weapons"
+      ],
+      "synergies_characters": [
+        "All ranged characters"
+      ],
       "notes": "Creates space. Can push enemies away from objectives."
     },
     {
@@ -195,10 +331,23 @@
       "max_level": 99,
       "description": "Increases the speed of all projectiles. Makes projectiles travel faster and hit distant enemies quicker.",
       "priority": 9,
-      "recommended_for": ["Projectile weapons", "Long range", "Fast gameplay"],
-      "synergies_items": ["Projectile items", "Backpack"],
-      "synergies_weapons": ["Bow", "Revolver", "All projectile weapons"],
-      "synergies_characters": ["All characters"],
+      "recommended_for": [
+        "Projectile weapons",
+        "Long range",
+        "Fast gameplay"
+      ],
+      "synergies_items": [
+        "Projectile items",
+        "Backpack"
+      ],
+      "synergies_weapons": [
+        "Bow",
+        "Revolver",
+        "All projectile weapons"
+      ],
+      "synergies_characters": [
+        "All characters"
+      ],
       "notes": "Quality of life. Faster projectiles = better hit rate on fast enemies."
     },
     {
@@ -213,10 +362,22 @@
       "max_level": 99,
       "description": "Adds extra projectiles to all weapons. Each projectile deals full damage.",
       "priority": 5,
-      "recommended_for": ["Projectile weapons", "Multi-shot builds"],
-      "synergies_items": ["Backpack", "Projectile items"],
-      "synergies_weapons": ["Bow", "Revolver", "All projectile weapons"],
-      "synergies_characters": ["All characters"],
+      "recommended_for": [
+        "Projectile weapons",
+        "Multi-shot builds"
+      ],
+      "synergies_items": [
+        "Backpack",
+        "Projectile items"
+      ],
+      "synergies_weapons": [
+        "Bow",
+        "Revolver",
+        "All projectile weapons"
+      ],
+      "synergies_characters": [
+        "All characters"
+      ],
       "notes": "Each projectile = full damage. Multiplicative value."
     },
     {
@@ -231,10 +392,23 @@
       "max_level": 99,
       "description": "Extends duration of projectiles and effects. Also extends status effects (Freeze, Burn, Poison).",
       "priority": 7,
-      "recommended_for": ["Axe", "DoT builds", "Status effect builds"],
-      "synergies_items": ["Duration items", "Status effect items"],
-      "synergies_weapons": ["Axe", "Poison Flask", "Frostwalker"],
-      "synergies_characters": ["All characters"],
+      "recommended_for": [
+        "Axe",
+        "DoT builds",
+        "Status effect builds"
+      ],
+      "synergies_items": [
+        "Duration items",
+        "Status effect items"
+      ],
+      "synergies_weapons": [
+        "Axe",
+        "Poison Flask",
+        "Frostwalker"
+      ],
+      "synergies_characters": [
+        "All characters"
+      ],
       "notes": "Essential for Axe. Extends DoT and status effects."
     },
     {
@@ -249,10 +423,23 @@
       "max_level": 99,
       "description": "Percentage-based damage reduction with diminishing returns. Can't reach 100%.",
       "priority": 6,
-      "recommended_for": ["Tank builds", "Sir Oofie", "Athena"],
-      "synergies_items": ["Spiky Shield", "Armor items"],
-      "synergies_weapons": ["Aura", "Melee weapons"],
-      "synergies_characters": ["Sir Oofie", "Athena"],
+      "recommended_for": [
+        "Tank builds",
+        "Sir Oofie",
+        "Athena"
+      ],
+      "synergies_items": [
+        "Spiky Shield",
+        "Armor items"
+      ],
+      "synergies_weapons": [
+        "Aura",
+        "Melee weapons"
+      ],
+      "synergies_characters": [
+        "Sir Oofie",
+        "Athena"
+      ],
       "notes": "Diminishing returns. Pairs with HP for tankiness."
     },
     {
@@ -267,10 +454,23 @@
       "max_level": 99,
       "description": "Chance to steal HP per hit. Over 100% = chance to steal 2 HP instead of 1.",
       "priority": 7,
-      "recommended_for": ["Lifesteal builds", "Vlad", "Sustain"],
-      "synergies_items": ["Bloody Cleaver", "Demonic Blade", "Chonkplate"],
-      "synergies_weapons": ["Blood Magic", "Fast attack weapons"],
-      "synergies_characters": ["Vlad"],
+      "recommended_for": [
+        "Lifesteal builds",
+        "Vlad",
+        "Sustain"
+      ],
+      "synergies_items": [
+        "Bloody Cleaver",
+        "Demonic Blade",
+        "Chonkplate"
+      ],
+      "synergies_weapons": [
+        "Blood Magic",
+        "Fast attack weapons"
+      ],
+      "synergies_characters": [
+        "Vlad"
+      ],
       "notes": "Great with high attack speed. Over 100% = 2 HP per proc."
     },
     {
@@ -285,10 +485,24 @@
       "max_level": 99,
       "description": "Reflects flat damage back when hit. Best in tanky close-range builds.",
       "priority": 9,
-      "recommended_for": ["Tank builds", "Athena", "Close-range"],
-      "synergies_items": ["Spiky Shield", "Quin's Mask", "Cactus"],
-      "synergies_weapons": ["Aura", "Aegis", "Melee weapons"],
-      "synergies_characters": ["Athena"],
+      "recommended_for": [
+        "Tank builds",
+        "Athena",
+        "Close-range"
+      ],
+      "synergies_items": [
+        "Spiky Shield",
+        "Quin's Mask",
+        "Cactus"
+      ],
+      "synergies_weapons": [
+        "Aura",
+        "Aegis",
+        "Melee weapons"
+      ],
+      "synergies_characters": [
+        "Athena"
+      ],
       "notes": "Requires taking hits. Best with armor and HP."
     },
     {
@@ -303,10 +517,23 @@
       "max_level": 99,
       "description": "Increases XP gain. CAPPED AT 10x (1000%). Faster leveling = more upgrades.",
       "priority": 1,
-      "recommended_for": ["All builds", "Fast leveling", "Early game"],
-      "synergies_items": ["Time Bracelet", "Echo Shard", "Sucky Magnet"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["Spaceman", "All characters"],
+      "recommended_for": [
+        "All builds",
+        "Fast leveling",
+        "Early game"
+      ],
+      "synergies_items": [
+        "Time Bracelet",
+        "Echo Shard",
+        "Sucky Magnet"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "Spaceman",
+        "All characters"
+      ],
       "notes": "HARD CAP at 1000% (10x). Priority early game for snowball."
     },
     {
@@ -321,10 +548,21 @@
       "max_level": 99,
       "description": "Increases item rarity. Does NOT affect proc chances or crit. Only drop quality.",
       "priority": 2,
-      "recommended_for": ["Item farming", "Better drops"],
-      "synergies_items": ["Clover", "Luck items"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["Fox", "All characters"],
+      "recommended_for": [
+        "Item farming",
+        "Better drops"
+      ],
+      "synergies_items": [
+        "Clover",
+        "Luck items"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "Fox",
+        "All characters"
+      ],
       "notes": "Better items = better runs. Does NOT affect procs/crits."
     },
     {
@@ -339,10 +577,20 @@
       "max_level": 99,
       "description": "Increases gold from kills and chests. More shop purchases.",
       "priority": 8,
-      "recommended_for": ["Shop builds", "Gold farming"],
-      "synergies_items": ["Golden Glove", "Golden Sneakers"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["Robinette"],
+      "recommended_for": [
+        "Shop builds",
+        "Gold farming"
+      ],
+      "synergies_items": [
+        "Golden Glove",
+        "Golden Sneakers"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "Robinette"
+      ],
       "notes": "More gold = more shop items. Robinette gets bonus."
     },
     {
@@ -357,10 +605,17 @@
       "max_level": 99,
       "description": "Permanent currency for meta progression. Long-term value only.",
       "priority": 10,
-      "recommended_for": ["Meta progression", "Long-term farming"],
+      "recommended_for": [
+        "Meta progression",
+        "Long-term farming"
+      ],
       "synergies_items": [],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["All characters"],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "All characters"
+      ],
       "notes": "No combat value. Only for meta progression."
     },
     {
@@ -375,10 +630,20 @@
       "max_level": 99,
       "description": "Increases XP pickup range. Quality of life for leveling.",
       "priority": 8,
-      "recommended_for": ["Convenience", "Fast leveling"],
-      "synergies_items": ["Sucky Magnet", "Shattered Knowledge"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["All characters"],
+      "recommended_for": [
+        "Convenience",
+        "Fast leveling"
+      ],
+      "synergies_items": [
+        "Sucky Magnet",
+        "Shattered Knowledge"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "All characters"
+      ],
       "notes": "QoL. Sucky Magnet makes this less important."
     },
     {
@@ -393,10 +658,21 @@
       "max_level": 99,
       "description": "Increases enemy stats. More enemies = more XP potential and better loot.",
       "priority": 9,
-      "recommended_for": ["Challenge runs", "Better loot", "Sir Chadwell"],
-      "synergies_items": ["Skuleg", "Cursed Grabbies"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["Sir Chadwell"],
+      "recommended_for": [
+        "Challenge runs",
+        "Better loot",
+        "Sir Chadwell"
+      ],
+      "synergies_items": [
+        "Skuleg",
+        "Cursed Grabbies"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "Sir Chadwell"
+      ],
       "notes": "Risk/reward. More danger but better rewards."
     },
     {
@@ -411,10 +687,21 @@
       "max_level": 99,
       "description": "Most complex unlock. Each level grants random stat. Wildly unpredictable but powerful.",
       "priority": 5,
-      "recommended_for": ["RNG builds", "Fun runs", "Dicehead"],
-      "synergies_items": ["Dice", "RNG items"],
-      "synergies_weapons": ["All weapons"],
-      "synergies_characters": ["Dicehead"],
+      "recommended_for": [
+        "RNG builds",
+        "Fun runs",
+        "Dicehead"
+      ],
+      "synergies_items": [
+        "Dice",
+        "RNG items"
+      ],
+      "synergies_weapons": [
+        "All weapons"
+      ],
+      "synergies_characters": [
+        "Dicehead"
+      ],
       "notes": "Hardest unlock. Pure RNG. High variance, high reward."
     }
   ]

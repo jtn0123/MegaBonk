@@ -1,0 +1,47 @@
+{
+  "version": "1.0.0",
+  "characters": [
+    {
+      "id": "cl4nk",
+      "name": "CL4NK",
+      "tier": "S",
+      "starting_weapon": "Revolver",
+      "passive_ability": "Gain 1% Crit Chance per level",
+      "passive_description": "At max level 50, gain +50% crit chance. Essential for overcrit builds.",
+      "playstyle": "Crit Master",
+      "strengths": ["Best crit scaling", "Synergizes with Revolver", "Overcrit potential"],
+      "weaknesses": ["Relies on crit gear", "Low base damage"],
+      "synergies_weapons": ["Revolver", "Sniper Rifle"],
+      "synergies_items": ["Forbidden Juice", "Precision Tonic"],
+      "synergies_tomes": ["Precision", "Damage"]
+    },
+    {
+      "id": "sir_oofie",
+      "name": "Sir Oofie",
+      "tier": "A",
+      "starting_weapon": "Sword",
+      "passive_ability": "Gain 1% Armor per level",
+      "passive_description": "At max level 50, gain +50% armor. Great for tanky builds.",
+      "playstyle": "Tank",
+      "strengths": ["High survivability", "Forgiving gameplay"],
+      "weaknesses": ["Lower damage output", "Slower clear speed"],
+      "synergies_weapons": ["Sword", "Shield"],
+      "synergies_items": ["Oats", "Leeching Crystal"],
+      "synergies_tomes": ["Vitality", "Armor"]
+    },
+    {
+      "id": "bonk_master",
+      "name": "Bonk Master",
+      "tier": "SS",
+      "starting_weapon": "Hammer",
+      "passive_ability": "Gain 1.5% Damage per level",
+      "passive_description": "At max level 50, gain +75% damage. Pure damage scaling.",
+      "playstyle": "Damage Dealer",
+      "strengths": ["Highest damage scaling", "Works with any weapon"],
+      "weaknesses": ["Low survivability", "Glass cannon"],
+      "synergies_weapons": ["All weapons"],
+      "synergies_items": ["Gym Sauce", "Beer", "Brass Knuckles"],
+      "synergies_tomes": ["Damage", "Attack Speed"]
+    }
+  ]
+}

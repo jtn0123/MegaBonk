@@ -287,8 +287,18 @@ header h1 {
 .item-header {
     display: flex;
     justify-content: space-between;
-    align-items: start;
+    align-items: center;
     margin-bottom: 1rem;
+    gap: 1rem;
+}
+
+.entity-image {
+    width: 64px;
+    height: 64px;
+    object-fit: contain;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
 }
 
 .item-title {

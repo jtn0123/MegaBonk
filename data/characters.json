@@ -13,13 +13,34 @@
       "unlock_cost_silver": 0,
       "unlocked_by_default": true,
       "playstyle": "Luck-based item hunter",
-      "best_for": ["Item farming", "Better drops", "Beginner-friendly"],
-      "strengths": ["Better item quality", "Available from start", "Simple passive"],
-      "weaknesses": ["No combat stats", "Passive doesn't help early game"],
-      "synergies_items": ["Clover", "Luck items"],
-      "synergies_tomes": ["Luck", "XP"],
-      "synergies_weapons": ["Firestaff", "Dragon's Breath"],
-      "build_tips": "Focus on leveling fast with XP tome. Better items = better run. Luck compounds over time."
+      "best_for": [
+        "Item farming",
+        "Better drops",
+        "Beginner-friendly"
+      ],
+      "strengths": [
+        "Better item quality",
+        "Available from start",
+        "Simple passive"
+      ],
+      "weaknesses": [
+        "No combat stats",
+        "Passive doesn't help early game"
+      ],
+      "synergies_items": [
+        "Clover",
+        "Luck items"
+      ],
+      "synergies_tomes": [
+        "Luck",
+        "XP"
+      ],
+      "synergies_weapons": [
+        "Firestaff",
+        "Dragon's Breath"
+      ],
+      "build_tips": "Focus on leveling fast with XP tome. Better items = better run. Luck compounds over time.",
+      "image": "images/characters/fox.png"
     },
     {
       "id": "sir_oofie",
@@ -32,12 +53,36 @@
       "unlock_cost_silver": 0,
       "unlocked_by_default": true,
       "playstyle": "Tanky melee fighter",
-      "best_for": ["Tank builds", "Beginners", "Melee combat", "Survivability"],
-      "strengths": ["Extreme tankiness", "Beginner-friendly", "Armor scaling"],
-      "weaknesses": ["Lower damage output", "Melee range"],
-      "synergies_items": ["Spiky Shield", "HP items", "Armor items"],
-      "synergies_tomes": ["Armor", "HP", "Thorns"],
-      "synergies_weapons": ["Sword", "Aura", "Aegis"],
+      "best_for": [
+        "Tank builds",
+        "Beginners",
+        "Melee combat",
+        "Survivability"
+      ],
+      "strengths": [
+        "Extreme tankiness",
+        "Beginner-friendly",
+        "Armor scaling"
+      ],
+      "weaknesses": [
+        "Lower damage output",
+        "Melee range"
+      ],
+      "synergies_items": [
+        "Spiky Shield",
+        "HP items",
+        "Armor items"
+      ],
+      "synergies_tomes": [
+        "Armor",
+        "HP",
+        "Thorns"
+      ],
+      "synergies_weapons": [
+        "Sword",
+        "Aura",
+        "Aegis"
+      ],
       "build_tips": "Stack HP and armor. Add thorns for passive damage. Unkillable late game."
     },
     {
@@ -51,13 +96,39 @@
       "unlock_cost_silver": 14,
       "unlocked_by_default": false,
       "playstyle": "Crit DPS machine",
-      "best_for": ["Crit builds", "Revolver", "Sniper Rifle", "Highest DPS"],
-      "strengths": ["Auto-scaling crit chance", "Overcrit potential", "Top tier DPS"],
-      "weaknesses": ["Requires crit damage items", "Fragile without defense"],
-      "synergies_items": ["Forbidden Juice", "Grandma's Secret Tonic", "Giant Fork"],
-      "synergies_tomes": ["Precision", "Damage", "Cooldown"],
-      "synergies_weapons": ["Revolver", "Sniper Rifle", "Bow", "Katana"],
-      "build_tips": "Get to 100%+ crit for Overcrit. Stack crit damage. Exponential scaling."
+      "best_for": [
+        "Crit builds",
+        "Revolver",
+        "Sniper Rifle",
+        "Highest DPS"
+      ],
+      "strengths": [
+        "Auto-scaling crit chance",
+        "Overcrit potential",
+        "Top tier DPS"
+      ],
+      "weaknesses": [
+        "Requires crit damage items",
+        "Fragile without defense"
+      ],
+      "synergies_items": [
+        "Forbidden Juice",
+        "Grandma's Secret Tonic",
+        "Giant Fork"
+      ],
+      "synergies_tomes": [
+        "Precision",
+        "Damage",
+        "Cooldown"
+      ],
+      "synergies_weapons": [
+        "Revolver",
+        "Sniper Rifle",
+        "Bow",
+        "Katana"
+      ],
+      "build_tips": "Get to 100%+ crit for Overcrit. Stack crit damage. Exponential scaling.",
+      "image": "images/characters/cl4nk.png"
     },
     {
       "id": "calcium",
@@ -70,13 +141,37 @@
       "unlock_cost_silver": 9,
       "unlocked_by_default": false,
       "playstyle": "Speed demon glass cannon",
-      "best_for": ["Speed builds", "High skill players", "Don't get hit"],
-      "strengths": ["Infinite speed scaling", "High damage potential", "Fast movement"],
-      "weaknesses": ["Reset on hit", "Requires not getting hit", "High skill floor"],
-      "synergies_items": ["Turbo Socks", "Turbo Skates", "Evasion items"],
-      "synergies_tomes": ["Agility", "Evasion", "Damage"],
-      "synergies_weapons": ["Bone", "Ranged weapons"],
-      "build_tips": "Don't get hit! Speed = damage. Evasion helps maintain stacks."
+      "best_for": [
+        "Speed builds",
+        "High skill players",
+        "Don't get hit"
+      ],
+      "strengths": [
+        "Infinite speed scaling",
+        "High damage potential",
+        "Fast movement"
+      ],
+      "weaknesses": [
+        "Reset on hit",
+        "Requires not getting hit",
+        "High skill floor"
+      ],
+      "synergies_items": [
+        "Turbo Socks",
+        "Turbo Skates",
+        "Evasion items"
+      ],
+      "synergies_tomes": [
+        "Agility",
+        "Evasion",
+        "Damage"
+      ],
+      "synergies_weapons": [
+        "Bone",
+        "Ranged weapons"
+      ],
+      "build_tips": "Don't get hit! Speed = damage. Evasion helps maintain stacks.",
+      "image": "images/characters/calcium.png"
     },
     {
       "id": "ogre",
@@ -89,13 +184,36 @@
       "unlock_cost_silver": 12,
       "unlocked_by_default": false,
       "playstyle": "High damage bruiser",
-      "best_for": ["Damage builds", "Axe", "Size scaling"],
-      "strengths": ["Consistent damage scaling", "Great with Axe", "Simple passive"],
-      "weaknesses": ["No defensive bonuses", "One-dimensional"],
-      "synergies_items": ["Gym Sauce", "Beefy Ring", "Damage items"],
-      "synergies_tomes": ["Damage", "Size", "Duration"],
-      "synergies_weapons": ["Axe", "All weapons"],
-      "build_tips": "Pure offense. Size + Damage on Axe is devastating."
+      "best_for": [
+        "Damage builds",
+        "Axe",
+        "Size scaling"
+      ],
+      "strengths": [
+        "Consistent damage scaling",
+        "Great with Axe",
+        "Simple passive"
+      ],
+      "weaknesses": [
+        "No defensive bonuses",
+        "One-dimensional"
+      ],
+      "synergies_items": [
+        "Gym Sauce",
+        "Beefy Ring",
+        "Damage items"
+      ],
+      "synergies_tomes": [
+        "Damage",
+        "Size",
+        "Duration"
+      ],
+      "synergies_weapons": [
+        "Axe",
+        "All weapons"
+      ],
+      "build_tips": "Pure offense. Size + Damage on Axe is devastating.",
+      "image": "images/characters/ogre.png"
     },
     {
       "id": "bush",
@@ -108,13 +226,36 @@
       "unlock_cost_silver": 21,
       "unlocked_by_default": false,
       "playstyle": "Crit damage sniper",
-      "best_for": ["Crit builds", "Sniper Rifle", "Boss killing"],
-      "strengths": ["Crit damage scaling", "Sniper synergy", "High burst"],
-      "weaknesses": ["Needs crit chance", "Sniper requires aim"],
-      "synergies_items": ["Forbidden Juice", "Grandma's Secret Tonic", "Boss Buster"],
-      "synergies_tomes": ["Precision", "Damage"],
-      "synergies_weapons": ["Sniper Rifle", "Revolver", "Bow"],
-      "build_tips": "Stack crit chance. Bush provides crit damage. Huge crits."
+      "best_for": [
+        "Crit builds",
+        "Sniper Rifle",
+        "Boss killing"
+      ],
+      "strengths": [
+        "Crit damage scaling",
+        "Sniper synergy",
+        "High burst"
+      ],
+      "weaknesses": [
+        "Needs crit chance",
+        "Sniper requires aim"
+      ],
+      "synergies_items": [
+        "Forbidden Juice",
+        "Grandma's Secret Tonic",
+        "Boss Buster"
+      ],
+      "synergies_tomes": [
+        "Precision",
+        "Damage"
+      ],
+      "synergies_weapons": [
+        "Sniper Rifle",
+        "Revolver",
+        "Bow"
+      ],
+      "build_tips": "Stack crit chance. Bush provides crit damage. Huge crits.",
+      "image": "images/characters/bush.png"
     },
     {
       "id": "vlad",
@@ -127,12 +268,34 @@
       "unlock_cost_silver": 32,
       "unlocked_by_default": false,
       "playstyle": "Lifesteal sustain fighter",
-      "best_for": ["Lifesteal builds", "Blood Magic", "Sustain"],
-      "strengths": ["Extreme sustain", "Hard to kill", "Lifesteal scaling"],
-      "weaknesses": ["Requires damage to heal", "Blood Magic weapon"],
-      "synergies_items": ["Bloody Cleaver", "Demonic Blade", "Chonkplate"],
-      "synergies_tomes": ["Bloody", "Cooldown", "Damage"],
-      "synergies_weapons": ["Blood Magic", "Fast weapons"],
+      "best_for": [
+        "Lifesteal builds",
+        "Blood Magic",
+        "Sustain"
+      ],
+      "strengths": [
+        "Extreme sustain",
+        "Hard to kill",
+        "Lifesteal scaling"
+      ],
+      "weaknesses": [
+        "Requires damage to heal",
+        "Blood Magic weapon"
+      ],
+      "synergies_items": [
+        "Bloody Cleaver",
+        "Demonic Blade",
+        "Chonkplate"
+      ],
+      "synergies_tomes": [
+        "Bloody",
+        "Cooldown",
+        "Damage"
+      ],
+      "synergies_weapons": [
+        "Blood Magic",
+        "Fast weapons"
+      ],
       "build_tips": "Attack speed = more heals. Bloody Cleaver is core. Unkillable."
     },
     {
@@ -146,13 +309,36 @@
       "unlock_cost_silver": 30,
       "unlocked_by_default": false,
       "playstyle": "Rapid-fire attacker",
-      "best_for": ["Attack speed builds", "Proc builds", "DPS"],
-      "strengths": ["Attack speed scaling", "Great with procs", "Universal value"],
-      "weaknesses": ["No defensive bonuses", "Fragile"],
-      "synergies_items": ["Battery", "Overpowered Lamp", "Big Bonk", "Spicy Meatball"],
-      "synergies_tomes": ["Cooldown", "Damage"],
-      "synergies_weapons": ["Revolver", "All fast weapons"],
-      "build_tips": "Stack attack speed. Proc items trigger constantly. High DPS."
+      "best_for": [
+        "Attack speed builds",
+        "Proc builds",
+        "DPS"
+      ],
+      "strengths": [
+        "Attack speed scaling",
+        "Great with procs",
+        "Universal value"
+      ],
+      "weaknesses": [
+        "No defensive bonuses",
+        "Fragile"
+      ],
+      "synergies_items": [
+        "Battery",
+        "Overpowered Lamp",
+        "Big Bonk",
+        "Spicy Meatball"
+      ],
+      "synergies_tomes": [
+        "Cooldown",
+        "Damage"
+      ],
+      "synergies_weapons": [
+        "Revolver",
+        "All fast weapons"
+      ],
+      "build_tips": "Stack attack speed. Proc items trigger constantly. High DPS.",
+      "image": "images/characters/bandit.png"
     },
     {
       "id": "ninja",
@@ -165,13 +351,35 @@
       "unlock_cost_silver": 32,
       "unlocked_by_default": false,
       "playstyle": "Evasion execute specialist",
-      "best_for": ["Evasion builds", "Execute builds", "High skill"],
-      "strengths": ["Execute synergy", "Evasion benefits", "Katana"],
-      "weaknesses": ["Requires evasion stacking", "High skill floor"],
-      "synergies_items": ["Slippery Ring", "Phantom Shroud", "Joe's Dagger"],
-      "synergies_tomes": ["Evasion", "Precision"],
-      "synergies_weapons": ["Katana", "Dexecutioner"],
-      "build_tips": "Stack evasion. Execute on dodge. High risk, high reward."
+      "best_for": [
+        "Evasion builds",
+        "Execute builds",
+        "High skill"
+      ],
+      "strengths": [
+        "Execute synergy",
+        "Evasion benefits",
+        "Katana"
+      ],
+      "weaknesses": [
+        "Requires evasion stacking",
+        "High skill floor"
+      ],
+      "synergies_items": [
+        "Slippery Ring",
+        "Phantom Shroud",
+        "Joe's Dagger"
+      ],
+      "synergies_tomes": [
+        "Evasion",
+        "Precision"
+      ],
+      "synergies_weapons": [
+        "Katana",
+        "Dexecutioner"
+      ],
+      "build_tips": "Stack evasion. Execute on dodge. High risk, high reward.",
+      "image": "images/characters/ninja.png"
     },
     {
       "id": "athena",
@@ -184,13 +392,36 @@
       "unlock_cost_silver": 16,
       "unlocked_by_default": false,
       "playstyle": "Low HP berserker tank",
-      "best_for": ["Tank builds", "Thorns builds", "Risk/reward"],
-      "strengths": ["Damage at low HP", "Thorns synergy", "Tanky"],
-      "weaknesses": ["Requires staying low HP", "Risky playstyle"],
-      "synergies_items": ["Spiky Shield", "Quin's Mask", "Speed Boi"],
-      "synergies_tomes": ["Armor", "Thorns", "HP"],
-      "synergies_weapons": ["Aegis", "Aura"],
-      "build_tips": "Stay low HP for damage. Tank with armor. Thorns for reflect."
+      "best_for": [
+        "Tank builds",
+        "Thorns builds",
+        "Risk/reward"
+      ],
+      "strengths": [
+        "Damage at low HP",
+        "Thorns synergy",
+        "Tanky"
+      ],
+      "weaknesses": [
+        "Requires staying low HP",
+        "Risky playstyle"
+      ],
+      "synergies_items": [
+        "Spiky Shield",
+        "Quin's Mask",
+        "Speed Boi"
+      ],
+      "synergies_tomes": [
+        "Armor",
+        "Thorns",
+        "HP"
+      ],
+      "synergies_weapons": [
+        "Aegis",
+        "Aura"
+      ],
+      "build_tips": "Stay low HP for damage. Tank with armor. Thorns for reflect.",
+      "image": "images/characters/athena.png"
     },
     {
       "id": "megachad",
@@ -203,13 +434,34 @@
       "unlock_cost_silver": 10,
       "unlocked_by_default": false,
       "playstyle": "Active defense fighter",
-      "best_for": ["High skill players", "Aura builds", "Close range"],
-      "strengths": ["Invulnerability mechanic", "Skill-based defense", "Aura synergy"],
-      "weaknesses": ["Requires active use", "High skill floor", "Aura weapon"],
-      "synergies_items": ["Size items", "HP items"],
-      "synergies_tomes": ["Size", "Damage"],
-      "synergies_weapons": ["Aura"],
-      "build_tips": "Time your flex. Size for Aura coverage. Skill-intensive."
+      "best_for": [
+        "High skill players",
+        "Aura builds",
+        "Close range"
+      ],
+      "strengths": [
+        "Invulnerability mechanic",
+        "Skill-based defense",
+        "Aura synergy"
+      ],
+      "weaknesses": [
+        "Requires active use",
+        "High skill floor",
+        "Aura weapon"
+      ],
+      "synergies_items": [
+        "Size items",
+        "HP items"
+      ],
+      "synergies_tomes": [
+        "Size",
+        "Damage"
+      ],
+      "synergies_weapons": [
+        "Aura"
+      ],
+      "build_tips": "Time your flex. Size for Aura coverage. Skill-intensive.",
+      "image": "images/characters/megachad.png"
     },
     {
       "id": "monke",
@@ -222,13 +474,34 @@
       "unlock_cost_silver": 18,
       "unlocked_by_default": false,
       "playstyle": "Mobile tank",
-      "best_for": ["Mobility", "HP builds", "Fun"],
-      "strengths": ["Wall climbing", "HP scaling", "Mobility"],
-      "weaknesses": ["Bananarang weapon", "Passive is just HP"],
-      "synergies_items": ["Oats", "Beefy Ring", "HP items"],
-      "synergies_tomes": ["HP", "Damage"],
-      "synergies_weapons": ["Bananarang"],
-      "build_tips": "Stack HP for Beefy Ring. Wall climb for positioning."
+      "best_for": [
+        "Mobility",
+        "HP builds",
+        "Fun"
+      ],
+      "strengths": [
+        "Wall climbing",
+        "HP scaling",
+        "Mobility"
+      ],
+      "weaknesses": [
+        "Bananarang weapon",
+        "Passive is just HP"
+      ],
+      "synergies_items": [
+        "Oats",
+        "Beefy Ring",
+        "HP items"
+      ],
+      "synergies_tomes": [
+        "HP",
+        "Damage"
+      ],
+      "synergies_weapons": [
+        "Bananarang"
+      ],
+      "build_tips": "Stack HP for Beefy Ring. Wall climb for positioning.",
+      "image": "images/characters/monke.png"
     },
     {
       "id": "spaceman",
@@ -241,12 +514,33 @@
       "unlock_cost_silver": 28,
       "unlocked_by_default": false,
       "playstyle": "Fast leveling crowd controller",
-      "best_for": ["Fast leveling", "Black Hole", "XP farming"],
-      "strengths": ["XP scaling", "Black Hole weapon", "Fast levels"],
-      "weaknesses": ["XP capped at 1000%", "Black Hole requires setup"],
-      "synergies_items": ["Time Bracelet", "Echo Shard", "Sucky Magnet"],
-      "synergies_tomes": ["XP", "Size", "Duration"],
-      "synergies_weapons": ["Black Hole"],
+      "best_for": [
+        "Fast leveling",
+        "Black Hole",
+        "XP farming"
+      ],
+      "strengths": [
+        "XP scaling",
+        "Black Hole weapon",
+        "Fast levels"
+      ],
+      "weaknesses": [
+        "XP capped at 1000%",
+        "Black Hole requires setup"
+      ],
+      "synergies_items": [
+        "Time Bracelet",
+        "Echo Shard",
+        "Sucky Magnet"
+      ],
+      "synergies_tomes": [
+        "XP",
+        "Size",
+        "Duration"
+      ],
+      "synergies_weapons": [
+        "Black Hole"
+      ],
       "build_tips": "Level fast. Black Hole with size is amazing. XP snowball."
     },
     {
@@ -260,13 +554,37 @@
       "unlock_cost_silver": 24,
       "unlocked_by_default": false,
       "playstyle": "Giant AoE freezer",
-      "best_for": ["Size builds", "Freeze builds", "AoE"],
-      "strengths": ["Size scaling", "Freeze synergy", "AoE master"],
-      "weaknesses": ["Frostwalker weapon", "Requires size items"],
-      "synergies_items": ["Ice Cube", "Ice Crystal", "Size items"],
-      "synergies_tomes": ["Size", "Duration"],
-      "synergies_weapons": ["Frostwalker", "Axe", "Tornado", "Black Hole"],
-      "build_tips": "Size scaling is insane. Axe with size clears screens."
+      "best_for": [
+        "Size builds",
+        "Freeze builds",
+        "AoE"
+      ],
+      "strengths": [
+        "Size scaling",
+        "Freeze synergy",
+        "AoE master"
+      ],
+      "weaknesses": [
+        "Frostwalker weapon",
+        "Requires size items"
+      ],
+      "synergies_items": [
+        "Ice Cube",
+        "Ice Crystal",
+        "Size items"
+      ],
+      "synergies_tomes": [
+        "Size",
+        "Duration"
+      ],
+      "synergies_weapons": [
+        "Frostwalker",
+        "Axe",
+        "Tornado",
+        "Black Hole"
+      ],
+      "build_tips": "Size scaling is insane. Axe with size clears screens.",
+      "image": "images/characters/noelle.png"
     },
     {
       "id": "amog",
@@ -279,13 +597,34 @@
       "unlock_cost_silver": 26,
       "unlocked_by_default": false,
       "playstyle": "Poison DoT chain master",
-      "best_for": ["Poison builds", "DoT", "Chain reactions"],
-      "strengths": ["Poison synergy", "Chain explosions", "DoT"],
-      "weaknesses": ["Poison Flask weapon", "Slower kills"],
-      "synergies_items": ["Moldy Cheese", "Toxic Barrel", "Gas Mask"],
-      "synergies_tomes": ["Duration", "Damage"],
-      "synergies_weapons": ["Poison Flask"],
-      "build_tips": "Stack poison chance. Chain explosions clear screens."
+      "best_for": [
+        "Poison builds",
+        "DoT",
+        "Chain reactions"
+      ],
+      "strengths": [
+        "Poison synergy",
+        "Chain explosions",
+        "DoT"
+      ],
+      "weaknesses": [
+        "Poison Flask weapon",
+        "Slower kills"
+      ],
+      "synergies_items": [
+        "Moldy Cheese",
+        "Toxic Barrel",
+        "Gas Mask"
+      ],
+      "synergies_tomes": [
+        "Duration",
+        "Damage"
+      ],
+      "synergies_weapons": [
+        "Poison Flask"
+      ],
+      "build_tips": "Stack poison chance. Chain explosions clear screens.",
+      "image": "images/characters/amog.png"
     },
     {
       "id": "tony_mczoom",
@@ -298,13 +637,35 @@
       "unlock_cost_silver": 19,
       "unlocked_by_default": false,
       "playstyle": "Mobile electric attacker",
-      "best_for": ["Movement builds", "Electric synergy", "Mobile play"],
-      "strengths": ["Movement synergy", "Electric attacks", "Unique mechanic"],
-      "weaknesses": ["Requires movement", "Wireless Dagger weapon"],
-      "synergies_items": ["Turbo Socks", "Thunder Mitts", "Lightning Orb"],
-      "synergies_tomes": ["Agility", "Damage"],
-      "synergies_weapons": ["Wireless Dagger", "Lightning Staff"],
-      "build_tips": "Keep moving. Movement = damage. Electric synergies."
+      "best_for": [
+        "Movement builds",
+        "Electric synergy",
+        "Mobile play"
+      ],
+      "strengths": [
+        "Movement synergy",
+        "Electric attacks",
+        "Unique mechanic"
+      ],
+      "weaknesses": [
+        "Requires movement",
+        "Wireless Dagger weapon"
+      ],
+      "synergies_items": [
+        "Turbo Socks",
+        "Thunder Mitts",
+        "Lightning Orb"
+      ],
+      "synergies_tomes": [
+        "Agility",
+        "Damage"
+      ],
+      "synergies_weapons": [
+        "Wireless Dagger",
+        "Lightning Staff"
+      ],
+      "build_tips": "Keep moving. Movement = damage. Electric synergies.",
+      "image": "images/characters/tony_mczoom.png"
     },
     {
       "id": "robinette",
@@ -317,13 +678,32 @@
       "unlock_cost_silver": 16,
       "unlocked_by_default": false,
       "playstyle": "Gold farmer",
-      "best_for": ["Gold farming", "Shop builds"],
-      "strengths": ["More gold", "Bow weapon", "Shop value"],
-      "weaknesses": ["No combat stats", "Passive doesn't help combat"],
-      "synergies_items": ["Golden Glove", "Golden Sneakers"],
-      "synergies_tomes": ["Gold", "Luck"],
-      "synergies_weapons": ["Bow"],
-      "build_tips": "Farm gold. Buy shop items. Utility character."
+      "best_for": [
+        "Gold farming",
+        "Shop builds"
+      ],
+      "strengths": [
+        "More gold",
+        "Bow weapon",
+        "Shop value"
+      ],
+      "weaknesses": [
+        "No combat stats",
+        "Passive doesn't help combat"
+      ],
+      "synergies_items": [
+        "Golden Glove",
+        "Golden Sneakers"
+      ],
+      "synergies_tomes": [
+        "Gold",
+        "Luck"
+      ],
+      "synergies_weapons": [
+        "Bow"
+      ],
+      "build_tips": "Farm gold. Buy shop items. Utility character.",
+      "image": "images/characters/robinette.png"
     },
     {
       "id": "birdo",
@@ -336,13 +716,34 @@
       "unlock_cost_silver": 22,
       "unlocked_by_default": false,
       "playstyle": "Airborne damage dealer",
-      "best_for": ["Airborne builds", "Tornado", "Mobility"],
-      "strengths": ["Airborne damage", "Floating mobility", "Tornado synergy"],
-      "weaknesses": ["Only while airborne", "Tornado weapon"],
-      "synergies_items": ["Scarf", "Eagle Claw", "Feathers"],
-      "synergies_tomes": ["Damage", "Size"],
-      "synergies_weapons": ["Tornado"],
-      "build_tips": "Stay airborne. Scarf doubles damage. Tornado with size."
+      "best_for": [
+        "Airborne builds",
+        "Tornado",
+        "Mobility"
+      ],
+      "strengths": [
+        "Airborne damage",
+        "Floating mobility",
+        "Tornado synergy"
+      ],
+      "weaknesses": [
+        "Only while airborne",
+        "Tornado weapon"
+      ],
+      "synergies_items": [
+        "Scarf",
+        "Eagle Claw",
+        "Feathers"
+      ],
+      "synergies_tomes": [
+        "Damage",
+        "Size"
+      ],
+      "synergies_weapons": [
+        "Tornado"
+      ],
+      "build_tips": "Stay airborne. Scarf doubles damage. Tornado with size.",
+      "image": "images/characters/birdo.png"
     },
     {
       "id": "sir_chadwell",
@@ -355,13 +756,34 @@
       "unlock_cost_silver": 33,
       "unlocked_by_default": false,
       "playstyle": "Challenge difficulty scaling",
-      "best_for": ["Challenge runs", "Better loot", "High skill"],
-      "strengths": ["Better rewards", "Difficulty scaling", "Late game"],
-      "weaknesses": ["Harder enemies", "High skill required"],
-      "synergies_items": ["Skuleg", "Cursed Grabbies"],
-      "synergies_tomes": ["Cursed", "Damage", "HP"],
-      "synergies_weapons": ["Corrupted Sword"],
-      "build_tips": "High difficulty = high reward. Dangerous but profitable."
+      "best_for": [
+        "Challenge runs",
+        "Better loot",
+        "High skill"
+      ],
+      "strengths": [
+        "Better rewards",
+        "Difficulty scaling",
+        "Late game"
+      ],
+      "weaknesses": [
+        "Harder enemies",
+        "High skill required"
+      ],
+      "synergies_items": [
+        "Skuleg",
+        "Cursed Grabbies"
+      ],
+      "synergies_tomes": [
+        "Cursed",
+        "Damage",
+        "HP"
+      ],
+      "synergies_weapons": [
+        "Corrupted Sword"
+      ],
+      "build_tips": "High difficulty = high reward. Dangerous but profitable.",
+      "image": "images/characters/sir_chadwell.png"
     },
     {
       "id": "dicehead",
@@ -374,13 +796,33 @@
       "unlock_cost_silver": 35,
       "unlocked_by_default": false,
       "playstyle": "RNG chaos master",
-      "best_for": ["Fun runs", "RNG lovers", "Chaos"],
-      "strengths": ["Random stats", "High variance", "Chaos Tome synergy"],
-      "weaknesses": ["Pure RNG", "Inconsistent", "Dice weapon"],
-      "synergies_items": ["Dice items", "RNG items"],
-      "synergies_tomes": ["Chaos"],
-      "synergies_weapons": ["Dice"],
-      "build_tips": "Embrace chaos. Every run is different. Fun but inconsistent."
+      "best_for": [
+        "Fun runs",
+        "RNG lovers",
+        "Chaos"
+      ],
+      "strengths": [
+        "Random stats",
+        "High variance",
+        "Chaos Tome synergy"
+      ],
+      "weaknesses": [
+        "Pure RNG",
+        "Inconsistent",
+        "Dice weapon"
+      ],
+      "synergies_items": [
+        "Dice items",
+        "RNG items"
+      ],
+      "synergies_tomes": [
+        "Chaos"
+      ],
+      "synergies_weapons": [
+        "Dice"
+      ],
+      "build_tips": "Embrace chaos. Every run is different. Fun but inconsistent.",
+      "image": "images/characters/dicehead.png"
     }
   ]
 }

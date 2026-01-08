@@ -380,9 +380,11 @@ function renderItems(items) {
 
         const stackIcon = item.one_and_done ? '✓' : (item.stacks_well ? '∞' : '~');
         const stackText = item.one_and_done ? 'One-and-Done' : (item.stacks_well ? 'Stacks Well' : 'Limited');
+        const imageHtml = item.image ? `<img src="${item.image}" alt="${item.name}" class="entity-image" onerror="this.style.display='none'">` : '';
 
         card.innerHTML = `
             <div class="item-header">
+                ${imageHtml}
                 <div class="item-title">
                     <div class="item-name">${item.name}</div>
                     <div class="item-badges">
@@ -416,9 +418,11 @@ function renderWeapons(weapons) {
     weapons.forEach(weapon => {
         const card = document.createElement('div');
         card.className = 'item-card weapon-card';
+        const imageHtml = weapon.image ? `<img src="${weapon.image}" alt="${weapon.name}" class="entity-image" onerror="this.style.display='none'">` : '';
 
         card.innerHTML = `
             <div class="item-header">
+                ${imageHtml}
                 <div class="item-title">
                     <div class="item-name">${weapon.name}</div>
                     <div class="item-badges">
@@ -457,9 +461,11 @@ function renderTomes(tomes) {
     tomes.forEach(tome => {
         const card = document.createElement('div');
         card.className = 'item-card tome-card';
+        const imageHtml = tome.image ? `<img src="${tome.image}" alt="${tome.name}" class="entity-image" onerror="this.style.display='none'">` : '';
 
         card.innerHTML = `
             <div class="item-header">
+                ${imageHtml}
                 <div class="item-title">
                     <div class="item-name">${tome.name}</div>
                     <div class="item-badges">
@@ -489,9 +495,11 @@ function renderCharacters(characters) {
     characters.forEach(char => {
         const card = document.createElement('div');
         card.className = 'item-card character-card';
+        const imageHtml = char.image ? `<img src="${char.image}" alt="${char.name}" class="entity-image" onerror="this.style.display='none'">` : '';
 
         card.innerHTML = `
             <div class="item-header">
+                ${imageHtml}
                 <div class="item-title">
                     <div class="item-name">${char.name}</div>
                     <div class="item-badges">
