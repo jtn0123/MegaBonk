@@ -219,14 +219,16 @@ test.describe('Touch Interactions', () => {
     await expect(weaponsTab).toHaveClass(/active/);
   });
 
-  test('should handle touch scroll on item list', async ({ page }) => {
+  test('should handle touch scroll on item list', async ({ page, browserName }) => {
     // This mainly tests that the page doesn't crash with touch events
     const container = page.locator('#itemsContainer');
     await expect(container).toBeVisible();
 
-    // Simulate scroll
-    await page.mouse.wheel(0, 500);
-    await page.waitForTimeout(100);
+    // Simulate scroll (skip mouse.wheel on webkit as it's not supported)
+    if (browserName !== 'webkit') {
+      await page.mouse.wheel(0, 500);
+      await page.waitForTimeout(100);
+    }
 
     // Page should still be functional
     const itemCards = page.locator('#itemsContainer .item-card');
