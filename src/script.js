@@ -570,23 +570,18 @@ function renderItems(items) {
                 ${imageHtml}
                 <div class="item-title">
                     <div class="item-name">${item.name}</div>
-                    <div class="item-badges">
-                        <span class="badge rarity-${item.rarity}">${item.rarity}</span>
-                        <span class="badge tier-${item.tier}">${item.tier} Tier</span>
-                    </div>
+                    <span class="tier-label">${item.tier} Tier</span>
                 </div>
-                <div class="stack-indicator">
-                    <span class="stack-icon" title="${stackText}">${stackIcon}</span>
-                    <label class="compare-checkbox-label" title="Add to comparison">
-                        <input type="checkbox" class="compare-checkbox" value="${item.id}" onchange="toggleCompareItem('${item.id}')">
-                        <span>📊</span>
-                    </label>
-                </div>
+                <label class="compare-checkbox-label" title="Add to comparison">
+                    <input type="checkbox" class="compare-checkbox" value="${item.id}" onchange="toggleCompareItem('${item.id}')">
+                    <span>+</span>
+                </label>
             </div>
             <div class="item-effect">${item.base_effect}</div>
-            <div class="item-description">${item.detailed_description.substring(0, 150)}...</div>
-            <div class="item-formula"><strong>Formula:</strong> ${item.formula}</div>
-            ${item.notes ? `<div class="item-notes"><strong>⚠️ Note:</strong> ${item.notes}</div>` : ''}
+            <div class="item-description">${item.detailed_description.substring(0, 120)}...</div>
+            <div class="item-meta">
+                <span class="meta-tag">${stackText}</span>
+            </div>
             ${graphHtml}
             <button class="view-details-btn" onclick="openDetailModal('item', '${item.id}')">View Details</button>
         `;
@@ -612,27 +607,13 @@ function renderWeapons(weapons) {
                 ${imageHtml}
                 <div class="item-title">
                     <div class="item-name">${weapon.name}</div>
-                    <div class="item-badges">
-                        <span class="badge tier-${weapon.tier}">${weapon.tier} Tier</span>
-                    </div>
+                    <span class="tier-label">${weapon.tier} Tier</span>
                 </div>
             </div>
-            <div class="weapon-pattern"><strong>Pattern:</strong> ${weapon.attack_pattern}</div>
+            <div class="item-effect">${weapon.attack_pattern}</div>
             <div class="item-description">${weapon.description}</div>
-            <div class="upgradeable-stats">
-                <strong>Upgradeable:</strong><br>
-                ${weapon.upgradeable_stats.map(stat => `<span class="stat-tag">${stat}</span>`).join(' ')}
-            </div>
-            <div class="playstyle-badge">${weapon.playstyle}</div>
-            <div class="strengths-weaknesses">
-                <div class="strengths">
-                    <h4>✓ Strengths</h4>
-                    <ul>${weapon.pros.map(pro => `<li>${pro}</li>`).join('')}</ul>
-                </div>
-                <div class="weaknesses">
-                    <h4>✗ Weaknesses</h4>
-                    <ul>${weapon.cons.map(con => `<li>${con}</li>`).join('')}</ul>
-                </div>
+            <div class="item-meta">
+                ${weapon.upgradeable_stats.slice(0, 4).map(stat => `<span class="meta-tag">${stat}</span>`).join(' ')}
             </div>
             <button class="view-details-btn" onclick="openDetailModal('weapon', '${weapon.id}')">View Details</button>
         `;
@@ -663,19 +644,11 @@ function renderTomes(tomes) {
                 ${imageHtml}
                 <div class="item-title">
                     <div class="item-name">${tome.name}</div>
-                    <div class="item-badges">
-                        <span class="badge tier-${tome.tier}">${tome.tier} Tier</span>
-                        <span class="badge" style="background: var(--bg-dark);">Priority: ${tome.priority}</span>
-                    </div>
+                    <span class="tier-label">${tome.tier} Tier · Priority ${tome.priority}</span>
                 </div>
             </div>
-            <div class="tome-effect">
-                <strong>Stat:</strong> ${tome.stat_affected}<br>
-                <strong>Per Level:</strong> ${tome.value_per_level}
-            </div>
+            <div class="item-effect">${tome.stat_affected}: ${tome.value_per_level}</div>
             <div class="item-description">${tome.description}</div>
-            <div class="item-notes"><strong>Recommended for:</strong> ${tome.recommended_for.join(', ')}</div>
-            ${tome.notes ? `<div class="item-formula">${tome.notes}</div>` : ''}
             ${graphHtml}
             <button class="view-details-btn" onclick="openDetailModal('tome', '${tome.id}')">View Details</button>
         `;
@@ -701,26 +674,14 @@ function renderCharacters(characters) {
                 ${imageHtml}
                 <div class="item-title">
                     <div class="item-name">${char.name}</div>
-                    <div class="item-badges">
-                        <span class="badge tier-${char.tier}">${char.tier} Tier</span>
-                    </div>
+                    <span class="tier-label">${char.tier} Tier</span>
                 </div>
             </div>
-            <div class="character-passive">
-                <strong>Starting Weapon:</strong> ${char.starting_weapon}<br>
-                <strong>Passive:</strong> ${char.passive_ability}
-            </div>
+            <div class="item-effect">${char.passive_ability}</div>
             <div class="item-description">${char.passive_description}</div>
-            <div class="playstyle-badge">${char.playstyle}</div>
-            <div class="strengths-weaknesses">
-                <div class="strengths">
-                    <h4>✓ Strengths</h4>
-                    <ul>${char.strengths.map(s => `<li>${s}</li>`).join('')}</ul>
-                </div>
-                <div class="weaknesses">
-                    <h4>✗ Weaknesses</h4>
-                    <ul>${char.weaknesses.map(w => `<li>${w}</li>`).join('')}</ul>
-                </div>
+            <div class="item-meta">
+                <span class="meta-tag">${char.starting_weapon}</span>
+                <span class="meta-tag">${char.playstyle}</span>
             </div>
             <button class="view-details-btn" onclick="openDetailModal('character', '${char.id}')">View Details</button>
         `;

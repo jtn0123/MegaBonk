@@ -3,36 +3,45 @@
    ======================================== */
 
 :root {
-    /* Rarity Colors */
-    --common: #5cb85c;
-    --uncommon: #5bc0de;
-    --rare: #d946ef;
-    --epic: #8b5cf6;
-    --legendary: #fbbf24;
+    /* Rarity - Primary Visual System (softer, elegant colors) */
+    --rarity-common: #6b9b6b;
+    --rarity-uncommon: #5bb8d0;
+    --rarity-rare: #c94de0;
+    --rarity-epic: #8b5cf6;
+    --rarity-legendary: #f0a800;
 
-    /* Tier Colors */
-    --tier-ss: #ffd700;
-    --tier-s: #c0c0c0;
-    --tier-a: #cd7f32;
-    --tier-b: #808080;
-    --tier-c: #dc3545;
+    /* Legacy rarity names (for backwards compatibility) */
+    --common: var(--rarity-common);
+    --uncommon: var(--rarity-uncommon);
+    --rare: var(--rarity-rare);
+    --epic: var(--rarity-epic);
+    --legendary: var(--rarity-legendary);
 
-    /* Background */
-    --bg-dark: #1a1a2e;
-    --bg-medium: #16213e;
-    --bg-light: #0f3460;
-    --text-light: #ffffff;
-    --text-muted: #a0a0a0;
+    /* Backgrounds - Simplified to 3 */
+    --bg-primary: #0f0f14;
+    --bg-elevated: #1a1a24;
+    --bg-subtle: #252530;
+
+    /* Legacy background names */
+    --bg-dark: var(--bg-elevated);
+    --bg-medium: var(--bg-primary);
+    --bg-light: var(--bg-subtle);
+
+    /* Text - 2 levels only */
     --text-primary: #ffffff;
+    --text-secondary: #8b8b9b;
+    --text-light: var(--text-primary);
+    --text-muted: var(--text-secondary);
 
-    /* Accent */
-    /* Chart Theme Colors */
-    --chart-line: #e94560;
-    --chart-fill: rgba(233, 69, 96, 0.2);
-    --chart-grid: rgba(255, 255, 255, 0.1);
-    --chart-text: #a0a0a0;
+    /* Interactive */
     --accent: #e94560;
     --accent-hover: #ff6b8a;
+
+    /* Chart Theme Colors */
+    --chart-line: var(--accent);
+    --chart-fill: rgba(233, 69, 96, 0.2);
+    --chart-grid: rgba(255, 255, 255, 0.1);
+    --chart-text: var(--text-secondary);
 }
 
 * {
@@ -43,8 +52,8 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, var(--bg-dark) 0%, var(--bg-medium) 100%);
-    color: var(--text-light);
+    background: var(--bg-primary);
+    color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
 }
@@ -60,20 +69,17 @@ body {
    ======================================== */
 
 header {
-    background: var(--bg-medium);
-    padding: 2rem 0;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    border-bottom: 3px solid var(--accent);
+    background: var(--bg-elevated);
+    padding: 1.5rem 0;
+    border-bottom: 1px solid var(--bg-subtle);
 }
 
 header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
     text-align: center;
-    background: linear-gradient(135deg, var(--legendary), var(--rare));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: var(--accent);
 }
 
 .subtitle {
@@ -96,10 +102,9 @@ header h1 {
    ======================================== */
 
 .tabs {
-    background: var(--bg-medium);
+    background: var(--bg-elevated);
     padding: 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-    border-bottom: 2px solid var(--bg-light);
+    border-bottom: 1px solid var(--bg-subtle);
 }
 
 .tab-buttons {
@@ -111,26 +116,25 @@ header h1 {
 
 .tab-btn {
     flex: 1;
-    min-width: 150px;
-    padding: 1rem 1.5rem;
-    background: var(--bg-light);
-    color: var(--text-muted);
+    min-width: 120px;
+    padding: 0.875rem 1rem;
+    background: transparent;
+    color: var(--text-secondary);
     border: none;
-    border-bottom: 3px solid transparent;
-    font-size: 1rem;
+    border-bottom: 2px solid transparent;
+    font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     white-space: nowrap;
 }
 
 .tab-btn:hover {
-    background: var(--bg-medium);
-    color: var(--text-light);
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.03);
 }
 
 .tab-btn.active {
-    background: var(--bg-dark);
     color: var(--accent);
     border-bottom-color: var(--accent);
 }
@@ -154,10 +158,10 @@ header h1 {
    ======================================== */
 
 .controls {
-    background: var(--bg-light);
-    padding: 1.5rem 0;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background: var(--bg-elevated);
+    padding: 1rem 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--bg-subtle);
 }
 
 .search-box {
@@ -259,35 +263,28 @@ header h1 {
 }
 
 .item-card {
-    background: var(--bg-light);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-    transition: all 0.3s ease;
+    background: var(--bg-elevated);
+    border-radius: 8px;
+    padding: 1.25rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
-    border: 3px solid transparent;
-    position: relative;
-    overflow: hidden;
+    border-left: 4px solid var(--rarity-common);
 }
 
-.item-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 5px;
-}
+/* Remove the old top bar */
+.item-card::before { display: none; }
 
-.item-card.rarity-common::before { background: var(--common); }
-.item-card.rarity-uncommon::before { background: var(--uncommon); }
-.item-card.rarity-rare::before { background: var(--rare); }
-.item-card.rarity-epic::before { background: var(--epic); }
-.item-card.rarity-legendary::before { background: var(--legendary); }
+/* Rarity shown via left border color */
+.item-card.rarity-common { border-left-color: var(--rarity-common); }
+.item-card.rarity-uncommon { border-left-color: var(--rarity-uncommon); }
+.item-card.rarity-rare { border-left-color: var(--rarity-rare); }
+.item-card.rarity-epic { border-left-color: var(--rarity-epic); }
+.item-card.rarity-legendary { border-left-color: var(--rarity-legendary); }
 
 .item-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .item-header {
@@ -312,16 +309,26 @@ header h1 {
 }
 
 .item-name {
-    font-size: 1.4rem;
-    font-weight: bold;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
     margin-bottom: 0.25rem;
+}
+
+/* Tier shown as subtle text label */
+.tier-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .item-badges {
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
-    margin-top: 0.5rem;
+    margin-top: 0.25rem;
 }
 
 .badge {
@@ -353,57 +360,69 @@ header h1 {
     opacity: 0.8;
 }
 
+/* Flattened content blocks - no nested box styling */
 .item-effect {
-    background: var(--bg-dark);
-    padding: 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
     font-size: 0.95rem;
-    border-left: 3px solid var(--accent);
+    color: var(--text-primary);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .item-description {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    line-height: 1.5;
-    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    line-height: 1.6;
+    margin-bottom: 0.75rem;
 }
 
 .item-formula {
-    background: rgba(233, 69, 96, 0.1);
-    padding: 0.75rem;
-    border-radius: 6px;
     font-family: 'Courier New', monospace;
-    font-size: 0.85rem;
-    margin-bottom: 1rem;
-    border: 1px solid var(--accent);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
 }
 
 .item-notes {
-    background: rgba(251, 191, 36, 0.1);
-    padding: 0.75rem;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    border-left: 3px solid var(--legendary);
-    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-style: italic;
+    margin-bottom: 0.75rem;
+}
+
+/* Item meta section */
+.item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+/* Meta tag for stacking info, stats, etc */
+.meta-tag {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    background: var(--bg-subtle);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
 }
 
 .stacking-indicator {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background: var(--bg-dark);
-    border-radius: 6px;
-    font-size: 0.9rem;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
 }
 
-.stacking-indicator.stacks-well {
-    border-left: 3px solid var(--common);
-}
-
+/* No colored borders on stacking indicators - keep it clean */
+.stacking-indicator.stacks-well,
 .stacking-indicator.one-and-done {
-    border-left: 3px solid var(--tier-c);
+    /* Border color removed - text only */
 }
 
 .mini-graph {
@@ -414,21 +433,21 @@ header h1 {
 
 .view-details-btn {
     width: 100%;
-    padding: 10px;
-    background: var(--accent);
-    color: white;
-    border: none;
+    padding: 0.75rem;
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent);
     border-radius: 6px;
-    font-size: 1rem;
-    font-weight: bold;
+    font-size: 0.875rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
-    margin-top: 1rem;
+    transition: all 0.2s ease;
+    margin-top: 0.75rem;
 }
 
 .view-details-btn:hover {
-    background: var(--accent-hover);
-    transform: scale(1.02);
+    background: var(--accent);
+    color: white;
 }
 
 /* ========================================
