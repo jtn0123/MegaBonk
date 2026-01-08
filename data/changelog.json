@@ -2,133 +2,576 @@
   "version": "1.0.0",
   "last_updated": "2026-01-08",
   "steam_app_id": "3405340",
-  "total_patches": 3,
+  "total_patches": 8,
   "patches": [
     {
-      "id": "patch_1_0_18",
-      "version": "1.0.18",
-      "title": "Balance Update - Item Adjustments",
-      "date": "2026-01-07",
-      "steam_url": "https://store.steampowered.com/news/app/3405340",
-      "summary": "Balance adjustments to several items and weapons based on community feedback.",
+      "id": "patch_1819386365107866",
+      "version": "Unknown",
+      "title": "Christmas Patch",
+      "date": "2025-12-25",
+      "steam_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1819386365107866",
+      "summary": "Happy Holidays bonkers!Hope you're all having a nice Christmas / holiday! Here are some changes I've made for Megabonk v1.0.49:New StuffSanta hatNew Item (more below)Spooky Update AchievementsMade som",
       "categories": {
-        "balance": [
-          {
-            "text": "[[item:anvil|Anvil]] now applies to ALL stat upgrades, not just damage",
-            "change_type": "buff",
-            "affected_entities": [{"type": "item", "id": "anvil"}]
-          },
-          {
-            "text": "[[item:beefy_ring|Beefy Ring]] scaling reduced from 25% to 20% per 100 HP",
-            "change_type": "nerf",
-            "affected_entities": [{"type": "item", "id": "beefy_ring"}]
-          },
-          {
-            "text": "[[weapon:sniper_rifle|Sniper Rifle]] base damage increased from 20 to 22",
-            "change_type": "buff",
-            "affected_entities": [{"type": "weapon", "id": "sniper_rifle"}]
-          }
-        ],
+        "balance": [],
         "new_content": [],
-        "bug_fixes": [
-          {
-            "text": "Fixed [[item:anvil|Anvil]] not applying correctly to weapon upgrades in some cases",
-            "change_type": "fix",
-            "affected_entities": [{"type": "item", "id": "anvil"}]
-          }
-        ],
+        "bug_fixes": [],
         "removed": [],
         "other": []
       },
-      "raw_notes": "Balance Update 1.0.18\n\n- Anvil now applies to ALL stat upgrades\n- Beefy Ring scaling reduced from 25% to 20%\n- Sniper Rifle base damage: 20 -> 22\n- Fixed Anvil upgrade application bug"
+      "raw_notes": "Happy Holidays bonkers!Hope you're all having a nice Christmas / holiday! Here are some changes I've made for Megabonk v1.0.49:New StuffSanta hatNew Item (more below)Spooky Update AchievementsMade some changes to the Graveyard achievements based on common feedback. Most people thought they were too difficult:Pot Achievement -> can now be done with any character you want. Based on feedback people hated this achievement with a passion, but it's now pretty easy if you just play Monke or somethingBob's Light Achievement -> Now you only need to kill Big Bob with a lamp explosion, so the achievement should be a lot easierAll Crypt Speedrun Skins have been made a little easier by giving +1 or +2 extra seconds to complete the crypt2 new achievementsSettings\\ Auto Select Levelup Upgrades by Highest Rarity -> You can now allow the game to select the highest rarity upgrades for you. Nice to have when you get Pots and start leveling your stuff very high.\\ Auto Select After Level -> Set the level at which you want the game to start automatically selecting upgrades for you\\ Use Horizontal movement keys to navigate Chest opening buttons -> This is now disabled by default. This is to prevent holding A or D for movement while opening a chest and accidentally banishing an itemBugsFixed a bug where Kevin and Leeching Crystal didn't proc Megachad's Flex passiveFixed a bug where you could reset as you exited the crypt to get a time of 0 seconds (thanks snek...)Fixed a bug where Cursed Grabbies didn't proc like it shouldFixed a bug where if a Micowave took away a maxed item, you could no longer get more of that item. Now, if you microwave a maxed item, that item is added back to the item pool.Fixed a bug where Steam Rich Presence didn't show your level properly (the text that shows what your friend is playing on Steam)Fixed a bug where Ninja's passive didn't display correctly at the end screenFixed a bug where the screen stayed dark after killing Big Bob right after he did his darkness attack.Fixed a bug where if you had custom music playing and reset, music would not work anymoreBalancing Pot (Stainless Steel) now only affects weapons and gives diminishing returns per amount stacked. It starts normally at 10 extra level to your weapons, and gives one less level per stack. So your 9th pot or more will only give +2 max levels for weapons. +2 is the minimum amount.New Item: Wizard's Hat -> Functions as a pot but for TomesFox passive nerf 2% -> 1.5% luck per levelDicehead's passive reward multiplier increased 50% -> 75% and minimum reward from 4% -> 6% Beefy ring now scales with overhealPower Gloves increased base damage, radius and decreased the minimum cooldownBrass Knuckles base radius increase 7 -> 8Golden sneakers now gain twice as much gold per meter travelled 0.05 -> 0.1Removed Silver Gain from Charge Shrines, Chaos Tome and Diceheads passiveRemoved Jump Height from Chaos Tome and Diceheads passiveBob's Light buff - now has a higher chance to one-shot Red Ghosts 15% -> 33%Roberto's passive buff -> it now takes longer to go from 60 -> 120 seconds. Previously it increased by 5s every chest, but now it only increases by 2.5sUnstable Transfusion - Chance to apply Bloodmark 27% -> 35%Giant Fork - By default a megacrit does 4x damage, but this now increases by 0.15 per stack of forks. This is a nice buff that makes stacking the item more valuable than previouslyBalancing (Credit Cards)Let's talk about credit card meta changes. One big issue right now is that the gold multiplier stat is completely useless because you just need a Kevin and a Golden Shield and you never have to worry about money again. Then you spam chests and banish all purples to stack tons of credit cards. Lots of people dislike this meta, and I also think it really devalues Robinette's passive, Gold Tome and the Gold Multiplier stat in general. So here are some changes to address this:Green Credit Card -> Each card increases chest prices by 10%. This change should still keep it fun in casual play, but hopefully not make it mandatory for leaderboard runs anymore, as chests will be very expensive if you keep stacking credit cards. It also makes canonical sense since it's a credit card lolKevin -> Moved up one tier in rarity (Purple / Epic) because of how strong and how much utility this item hasGolden Shield -> Now gives more gold upon taking damage, however if the damage is from Kevin or Leeching Crystal, the gold is reduced. Hopefully this gives Gold Multiplier stat some value againClover - Gives more luck 7.5% -> 10%Luck Tome - Gives more luck 7% -> 8%This will probably be adjusted more in the future when we see how this impacts stuff. Some other suggestions I've heard for the green credit cards is to give it diminishing returns per card, which is also an interesting idea. But let's see how this plays out for now, and then I'll adjust accordingly in future patches.OtherUpdated the Press Kit on Itch for any content creators who want the new item icons or whateverBuh's passive \"Bullseye\" now shows as its own damage source at the end screen, instead of showing as Sniper damageAlright imma go celebrate christmas now im late to the dinner uh oh cya "
     },
     {
-      "id": "patch_1_0_15",
-      "version": "1.0.15",
-      "title": "New Content - Winter Update",
-      "date": "2025-12-20",
-      "steam_url": "https://store.steampowered.com/news/app/3405340",
-      "summary": "New items, weapons, and quality of life improvements for the holidays!",
+      "id": "patch_1818752592133546",
+      "version": "Unknown",
+      "title": "Ah yes, here's Megabonk's Halloween update, just in time for Christmas",
+      "date": "2025-12-15",
+      "steam_url": "https://steamstore-a.akamaihd.net/news/externalpost/Rock, Paper, Shotgun/1818752592133546",
+      "summary": "Who's that I hear coming down my chimney? Why, it's… Megabonk's \"Spooky\" update? No, that doesn't sound quite right to me either, and yet it is in fact the truth of this world. As you've probably alre",
       "categories": {
-        "balance": [
-          {
-            "text": "[[item:beefy_ring|Beefy Ring]] now shows damage bonus in tooltip",
-            "change_type": "change",
-            "affected_entities": [{"type": "item", "id": "beefy_ring"}]
-          }
-        ],
-        "new_content": [
-          {
-            "text": "Added new legendary item: [[item:anvil|Anvil]]",
-            "change_type": "addition",
-            "affected_entities": [{"type": "item", "id": "anvil"}]
-          },
-          {
-            "text": "Added new SS-tier weapon: [[weapon:sniper_rifle|Sniper Rifle]]",
-            "change_type": "addition",
-            "affected_entities": [{"type": "weapon", "id": "sniper_rifle"}]
-          }
-        ],
-        "bug_fixes": [
-          {
-            "text": "Fixed rare crash when opening inventory during boss fights",
-            "change_type": "fix",
-            "affected_entities": []
-          },
-          {
-            "text": "Fixed [[weapon:sniper_rifle|Sniper Rifle]] projectiles not piercing correctly",
-            "change_type": "fix",
-            "affected_entities": [{"type": "weapon", "id": "sniper_rifle"}]
-          }
-        ],
+        "balance": [],
+        "new_content": [],
+        "bug_fixes": [],
         "removed": [],
-        "other": [
-          {
-            "text": "Improved item tooltip formatting",
-            "change_type": "change",
-            "affected_entities": []
-          }
-        ]
+        "other": []
       },
-      "raw_notes": "Winter Update 1.0.15\n\nNew Content:\n- Added Anvil legendary item\n- Added Sniper Rifle weapon\n\nBug Fixes:\n- Fixed crash during boss fights\n- Fixed Sniper Rifle piercing\n\nQoL:\n- Improved tooltips"
+      "raw_notes": " \nWho's that I hear coming down my chimney? Why, it's… Megabonk's \"Spooky\" update? No, that doesn't sound quite right to me either, and yet it is in fact the truth of this world. As you've probably already gathered by the name of the update, this is one that was meant to be out for Halloween, but developer Vedinad needed a touch more time for it.\n Read more"
     },
     {
-      "id": "patch_1_0_10",
-      "version": "1.0.10",
-      "title": "Launch Patch - Bug Fixes",
-      "date": "2025-11-15",
-      "steam_url": "https://store.steampowered.com/news/app/3405340",
-      "summary": "Critical bug fixes and balance adjustments based on launch feedback.",
+      "id": "patch_1818752592133089",
+      "version": "Unknown",
+      "title": "Spooky Update Fixes",
+      "date": "2025-12-15",
+      "steam_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1818752592133089",
+      "summary": "Hey guys, just a quick little patch to fix some of the issues that came with the Spooky update. sorry about that!ChangesFixed a bug where you got stuck at the Final Boss fight. This was caused by an i",
+      "categories": {
+        "balance": [],
+        "new_content": [],
+        "bug_fixes": [],
+        "removed": [],
+        "other": []
+      },
+      "raw_notes": "Hey guys, just a quick little patch to fix some of the issues that came with the Spooky update. sorry about that!ChangesFixed a bug where you got stuck at the Final Boss fight. This was caused by an issue with leveling up in the Final Boss arena.Fixed the Minimalist and Pacifist Challenges not workingFixed Amog's passive descriptionFixed Dragon's Breath descriptionHopefully fixed a bug where after killing the boss of Graveyard, the lights didn't turn back onChanged the pot item achievement a bit. You don't have to complete it before the timer reaches 0 anymore. So you get a few extra seconds of running around before Steve inevitably bonks you"
+    },
+    {
+      "id": "patch_1818752592132694",
+      "version": "Unknown",
+      "title": "The popular Megabonk gets a mega update with new content",
+      "date": "2025-12-15",
+      "steam_url": "https://steamstore-a.akamaihd.net/news/externalpost/GamingOnLinux/1818752592132694",
+      "summary": "New content for Megabonk? As if I needed more reasons to load it up. The absolute indie gem survivor-like bullet heaven just got even bigger.Read the full article here: https://www.gamingonlinux.com/2",
+      "categories": {
+        "balance": [],
+        "new_content": [],
+        "bug_fixes": [],
+        "removed": [],
+        "other": []
+      },
+      "raw_notes": "New content for Megabonk? As if I needed more reasons to load it up. The absolute indie gem survivor-like bullet heaven just got even bigger.Read the full article here: https://www.gamingonlinux.com/2025/12/the-popular-megabonk-gets-a-mega-update-with-new-content/"
+    },
+    {
+      "id": "patch_1818752592131516",
+      "version": "Unknown",
+      "title": "Megabonk Spooky Update",
+      "date": "2025-12-14",
+      "steam_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1818752592131516",
+      "summary": "Spooky Update!!yoo I've finally finished the update I was working on. was originally going to be a small halloween update, but I wanted to make it a bit bigger so it turned into a bit more work than i",
+      "categories": {
+        "balance": [],
+        "new_content": [],
+        "bug_fixes": [],
+        "removed": [],
+        "other": []
+      },
+      "raw_notes": "Spooky Update!!yoo I've finally finished the update I was working on. was originally going to be a small halloween update, but I wanted to make it a bit bigger so it turned into a bit more work than i initially planned. anyway hope you like it!New ContentNew MapNew CharacterNew WeaponNew ItemsNew Enemies and BossesNew Achievements and challengesGameMade a lot of improvements to FPS late-gameBugsFixed a bug where Giant Fork's Megacrit didn't workFixed a bug where you could buy items you didnt have unlockedFixed a bug where Frost Walker reset opacity when changing attack speedFixed a bug where Holy Book was not affected by Particle OpacityFixed weird text popup when trying to microwave an item that has already hit its max cap (for example Overpowered Lamp)Fixed a \"bug\" where you could just use the full map on the Blind ChallengeFixed a bug where you could reset as you teleported to the next stage to keep your progress and not move to the next stageFixed a bug where you got an error if you banished every item except one in a specific rarity and then talked to a shady guy.SettingsNew Game Setting: Advanced Settings - Will enable certain settings that most players don't need to use. This is disabled by default to avoid making the settings cluttered for new players.New Game Setting: Shrine Counter -> Shows you how many of each shrine is available, and how many you have used\\ New Game Setting: Show HUD -> Shwo or hide the HUD \\ New Game Setting: Skip Chest Animation -> Skips the chest animation. Note: You won't be able to banish items from chests if you use this setting.\\ New Game Setting: Skip Portal Animation -> Skips portal spawn animation (on stage 1)\\ New Game Setting: Enable Silver Pots -> Enable / Disable silver pots (Ghost Item in shambles if you do this)\\ New Game Setting: Show Item Feed -> Show what items you picked up in a feed at the left side of the screen.BalancingTried to fix the \"caveman\" bug / exploit where you could hide in caves and enemies wouldn't be able to spawn close to you or reach youIncreased Diceheads passive minimum reward potential (0.02 -> 0.04). Basically his late level up rewards will be twice as high, surely won't be OPChunkers now start with one more projectileAmog Passive now increases in radius every level, from 4 to 12 over 220 levels. Previously it was always 4. Also gain 1% Posion Damage per level.Calcium's passive has been changed slightly. Instead of losing half of his momentum upon taking damage, he now looses about 25%, which decreases the higher you level up. At level 110 (max) you lose about 6.6%Cursed grabbies now has a proc per tick limit of 250. Similar items (Spicy Meatball, Ice Cube, etc) already have a limit like this (at 50). It's to improve FPS, but it is probably a slight nerf to Cursed Grabbies if you're veeeryy late game.Poison Flask starting projectile speed increased 12 -> 16Dragon's Breath now has 200% faster rotation speed, and automatically targets enemies instead of following the player rotation. Damage buff 15 -> 16, duration buff 1s -> 1.5s and damage upgrade offer also buffed 3 -> 4Noelle passive gives less size per level: 1% -> 0.75%, and the damage she gains per frozen enemy has also been reduced a bit: 2% -> 1.5%Max Silver Multiplier in Final Swarm has changed from 16x -> 8x. People seem to have way too much silver, so it doesn't make sense to have such a high multiplier anyway. At some point it would be nice to create some features that use silver, but im not sure what that would be yetTo address some of the flying meta: Final swarm ghosts will start increasing their speed after 20 minutes have passed. Also, normally, an enemy can only be stunned or frozen 15 times (CC cap) before it becomes immune. After this update, starting at 20 minutes, the CC cap will slowly decrease until they can no longer be stunned or frozen.ConsoleYou can press f10 to open the consoleAt the moment, this is only really used to set a specific seed for the dungeon if you wanna speedrun it or somethingType \"help\" in the console to see all the commands and how to use themLemme know what you think, i hope you like it :)"
+    },
+    {
+      "id": "patch_1813674389045096",
+      "version": "1.0.17",
+      "title": "Megabonk v1.0.17 Patch",
+      "date": "2025-10-19",
+      "steam_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1813674389045096",
+      "summary": "Megabonk v1.0.17 Patch Notes",
+      "categories": {
+        "balance": [],
+        "new_content": [],
+        "bug_fixes": [],
+        "removed": [],
+        "other": []
+      },
+      "raw_notes": "Megabonk v1.0.17 Patch Notes\nTLDR There is now a full map with fog of war, so you can see where you've explored\n You can change the opacity of your projectiles and particles. No more sunglasses needed for late-game.\nSystem Support for running the game in DX12. DX11 is recommended, but if you are experiencing crashes, running in DX12 *might* help. There should be a Steam popup that shows when you boot the game, allowing you to choose. If it's not showing yet, try restarting Steam. Also keep in mind, if you run your game in DX12, certain graphical features will be broken, like Ambient Occlusion and Color Grading.\n Game Particles and effects opacity slider added in Visuals settings. Auto opacity is enabled by default, and should be enough for most players. Do keep in mind that a lot of transparent projectiles is a bit harder for your PC to render, but that doesn't really matter until you have a fuckton of projectiles in late game. When you do have a fuckton of projectiles with ridiculous size covering the entire screen, you might wanna make them fully transparent, or set them to 0 transparency for absolute best FPS. But you can just experiment with this.\n Silver Tome can now be toggled\n Charge shrines are now a different color on the minimap than other shrines\n Fixed an issue with Hero Sword and Corrupted Sword, where if you got a lot of size, the speed of the sword projectile didn't scale with the size.\n Money particles move faster now during final swarm, so that you can still pick them up while running\n Balancing Fox passive buff: 1% -> 2% Luck per level\n Birdo Passive: Birdo now gains 1% Airborne Damage per level\n Bush Passive: 0.5% -> 1% Crit Damage per level. Bullseyes appear more often on enemies, and the explosion size now scales with size mutliplier.\n Megachad Passive - Gain 2.5% damage every time you flex\n Noelle now gains Size instead of Duration per level. She also gains a damage multiplier per frozen enemy (0.02x per frozen enemy, so 50 frozen = 2x damage)\n Robinette Passive: Buffed early and mid game, but starts to gain less damage per gold after 200k gold. This only really affects super late-game leaderboard runs, and I'm making this change so we can see other characters on the leaderboards. It would be nice to buff all other characters to become as strong as robinette, but that is not something I can do overnight, so a short term solution was to just nerf her passive late-game for now. I'd like to eventually get in per-character leaderboards too, which also kinda solves this problem.\n Dicehead Passive: Buffed a bit, the rewards don't fall off as fast anymore. Previously his rewards were halved by level 25, now they are halved by level 50.\n Calcium Passive: Buffed and simplified a bit. Now gains 0.75% damage per level and 0.5% per 1% Speed Multiplier. This damage is applied gradually as Calcium approaches his top speed.\n Ogre Passive - Buffed 1% -> 1.5%\n Scarf does more damage now 33% -> 50%\n Brass knuckles: Changed from Additive to Flat, which makes scaling stronger, and now increases size per amount stacked\n Spaceman no longer takes fall damage\n Cursed Doll can now curse more than 1 enemy (1 -> 5) every time it ticks (every 1s).  \nOther Calcium's Theme is now extended and goes twice as hard\n Leaderboard reset time is scheduled 4 hours earlier every Sunday, just so I don't have to stay up until 2am to verify everything is working right\n I've signed up for Nvidia Geforce Now / Steam Cloud Play. I'm not sure how long it takes to get approved, but it should be available there soon!\n If gaining multiple levels instantly, you can now see the stats change on the right hand side as you pick upgrades. Previously the stats only updated after you completed all your level up offers.\nBugs Fixed a bug where Shady Guy doesn't disappear after purchasing from him\n Fixed a bug where HP gained from leveling didn't show in the stats screen. Also it didn't work with stuff like Beefy Ring. (You gain +1 Max HP per level on all characters.\n Fixed a bug where Campfire didn't go away after microwaving it\n If you're standing next to a chest, and get enough money to buy it, the text will now change from red to white without having to move away from the chest and back into range\n Fixed an issue where Shattered Wisdom didn't deal any damage. It now works as intended (and might be very strong idk)\n Fixed a bug where items could damage enemies when game was paused\n (Hopefully) Fixed a bug where the music stops playing at the intro of a game\n Fixed a bug where banishing every Epic item would no longer grant any Legendary items\n Fixed a bug where Chaos Tome reward was multiplied by Luck Multiplier twice. Basically legendary upgrades grew exponentially.\n Tried to fix an issue where some players couldn't play the game at all because the menu was bugged.\n okYep that's it for now. thanks for playing and for all the feedback. i realize there's still a lot of balancing changes that people wanna see, but keep in mind im just a single person working on this, so I can only do so much every week. Next week I might try to do some new content for Halloween, if I can cook something up in time. \n\npeace"
+    },
+    {
+      "id": "patch_1813041031176676",
+      "version": "1.0.12",
+      "title": "v1.0.12 (Leaderboard fix and Balacing)",
+      "date": "2025-10-08",
+      "steam_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1813041031176676",
+      "summary": "Version 1.0.12 Patch Notes Yo sorry about the leaderboards being broken the last few days, i took some time off over the weekend, and of course some mfers decided to break the leaderboard for everyone",
+      "categories": {
+        "balance": [],
+        "new_content": [],
+        "bug_fixes": [],
+        "removed": [],
+        "other": []
+      },
+      "raw_notes": "Version 1.0.12 Patch Notes Yo sorry about the leaderboards being broken the last few days, i took some time off over the weekend, and of course some mfers decided to break the leaderboard for everyone. But technically it's my fault for not securing the leaderboards enough, i just never expected this many people to play fucking Megabonk lol. Anyway should be fixed now! TLDRLeaderboards are fixed (i hope Shroud enjoyed his 2 day vacation)Final swarms now has some new stuff to prevent 5 hour long runs(Hopefully) fixed a bug where Alt-F4 or crashes corrupted save files   Changelog Final SwarmThe current meta required you to wear sunglasses and watch a slideshow / lightshow at 1.5fps for 5 hours to get a WR. This was never intended, and I don't think anyone actually enjoyed that, so I've stirred up some shit. The final swarm is harder to survive, and your executes and black holes won't really save you anymore... probablyNew ghosts appear in the Final Swarm  GameAdded Megachad's ThemeOptimized FPS when using Dexecutioner and Black Hole  OtherHopefully fixed an issue where players lost their save files if the game crashed BugsSpaceman's passive now properly works and gives XP increase per levelFixed a bug where the Black Hole hitboxes were like 10x the size of the actual projectile, basically covering the entire map lolFixed a bug where Spiky Shield didn't stack correctly Added max duration to weapons, so that they don't stop shooting once you hit the projectile limit. For example the sword projectile was being affected by duration, even though it's only ever active for 1 seconds. But too much duration made it active for much longer, which means the cap was being filled with empty projectiles. Basically: Weapons like Dexecutioner, Axe, Sword, etc are working properly and shooting their projectiles now, even with high duration. This is a buff for pretty much all weapons.  BalancingChaos Tome now gives 50% better rewardsRolly Bones enemies on Desert are now slowerBlack Hole default size increased by 20%Black Hole proc coefficient reduced (0.9 -> 0.7) to match similar weapons (sword, axe, aura, etc). Proc Coefficient is a multiplier used to proc stuff like Moldy Cheese or Spicy Meatball.Bush's passive Marksman now has its cooldown reduced by 0.4s per 10 levels. Starts at 5s cooldown, and caps at 1s cooldown at level 100.Joe's Dagger now has a max damage increase cap of 200 per minute. So if you have 10 daggers, that's a max of 2000% damage per minute. This means it's unchanged early and mid game, but very late game it's not gonna be the only viable option anymore. Before this change, you could get 20 000% damage in 10 seconds, which nothing else in the game could contest lolXP Tome nerf: 9% -> 7% . The majority wanted this nerf, but some people really don't like it. At least give it a try, and If everyone ends up hating it, I can just revert it back to 9% next week. please go easy on me  LeaderboardsFixed some issues that allowed players to break the leaderboards for othersRemoved the All Leaderboards button until I actually implement more leaderboard stuff, like character specific boards, etcSet up a list of known cheaters that are banned globally and will never show up on the leaderboards again once caught. Cheaters you better watch your ass or im clapping your cheeks back to the shadow realm where you belong  Future UpdatesThere's a lot more stuff I'm working on that's coming soon probably:Opacity setting for particles and projectilesFull sized map with fog of war so you can see where you've beenMore information when hovering stuff, like weapon stats, etcPinning / Tracking quests in-game when paused -  And for more major stuff I wanna look at once most of the common feedback has been addressed:MultiplayerMore maps, items, characters and weaponsAnything else you would like to see? :)"
+    },
+    {
+      "id": "patch_1811772772356053",
+      "version": "Unknown",
+      "title": "Megabonk Patch #2",
+      "date": "2025-09-28",
+      "steam_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1811772772356053",
+      "summary": "Yoo thanks again for the amazing feedback! I've worked a bit on a quick patch to fix some common issues and feedback.",
       "categories": {
         "balance": [],
         "new_content": [],
         "bug_fixes": [
           {
-            "text": "Fixed game freezing when collecting too many items at once",
-            "change_type": "fix",
-            "affected_entities": []
+            "text": "[[item:kevin|Kevin]] no longer makes you invincible (rip [[item:kevin|Kevin]] abusers)",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "kevin"
+              }
+            ]
           },
           {
-            "text": "Fixed audio cutting out during extended play sessions",
-            "change_type": "fix",
-            "affected_entities": []
-          }
-        ],
-        "removed": [],
-        "other": [
-          {
-            "text": "Optimized performance on lower-end hardware",
+            "text": "Leaderboard reset",
             "change_type": "change",
             "affected_entities": []
           },
           {
-            "text": "Added accessibility options for colorblind players",
+            "text": "Working on making the leaderboards more stable, currently cheaters are bricking them a bit. Update coming next week to properly address this.",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed [[weapon:dice|Dice]] description and upgrade description",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "dice"
+              }
+            ]
+          },
+          {
+            "text": "Optimized FPS late game when using the following: Bananas, [[weapon:chunkers|Chunkers]], [[weapon:axe|Axe]], [[weapon:flamewalker|Flamewalker]], Bloodmagic, [[weapon:poison_flask|Poison Flask]], [[weapon:black_hole|Black Hole]], [[weapon:frostwalker|Frostwalker]], [[weapon:katana|Katana]], and a bunch of items.",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "axe"
+              },
+              {
+                "type": "weapon",
+                "id": "black_hole"
+              },
+              {
+                "type": "weapon",
+                "id": "katana"
+              },
+              {
+                "type": "weapon",
+                "id": "poison_flask"
+              },
+              {
+                "type": "weapon",
+                "id": "frostwalker"
+              },
+              {
+                "type": "weapon",
+                "id": "chunkers"
+              },
+              {
+                "type": "weapon",
+                "id": "flamewalker"
+              }
+            ]
+          },
+          {
+            "text": "Shield recharge is no longer interrupted by [[item:kevin|Kevin]] or [[item:leeching_crystal|Leeching Crystal]]",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "kevin"
+              },
+              {
+                "type": "item",
+                "id": "leeching_crystal"
+              }
+            ]
+          },
+          {
+            "text": "Added a volume slider for xp and gold sfx",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "[[character:bush|Bush]]'s passive has been buffed. Also fixed an issue where it gave crit chance instead of crit damage.",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "bush"
+              }
+            ]
+          },
+          {
+            "text": "Enery Core isn't loud AF anymore",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Leaving final stage through teleporter now gives Rank xp for the character you played",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Anubis lasers are now rendering properly with lava and water",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "[[weapon:space_noodle|Space Noodle]] no longer stunlocks boss if he steals it",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "space_noodle"
+              }
+            ]
+          },
+          {
+            "text": "Pressing escape while hovering skin now hides the menu properly",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Tried fixing a bug where Speedboi slowed down time forever. Idk if it's fixed but I hope so, wasn't able to reproduce the issue D:",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "You no longer take damage when using [[weapon:aegis|Aegis]] while having a Shield Powerup active",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "aegis"
+              }
+            ]
+          },
+          {
+            "text": "Other small bugs",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Some people had issues with pink textures, that should be fixed now",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "For every phase, the boss gives back one of your weapons. You only need to do the first phase with your starter weapon now.",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Pylon zones are bigger, and heal the boss less",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Orbs deal less damage, and blue orbs freeze you for only 1s, instead of the previous 3s",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Orbs have slightly longer cooldown, so he doesn't spawn as many",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Weapon range has been increased during the fight",
+            "change_type": "buff",
+            "affected_entities": []
+          },
+          {
+            "text": "Weapon and Tome slots are unlocked earlier now (25 and 35 for 3rd slots, 45 and 55 for 4th slots)",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "All characters are about 10% faster, and accelerate faster and snappier, and the slower characters are much faster in general",
+            "change_type": "nerf",
+            "affected_entities": []
+          },
+          {
+            "text": "[[character:athena|Athena]] now gains +2 Thorns per level. Also increases her attack speed by 150% when no shields are active. Maybe Quin can actually deal some damage now idk?",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "athena"
+              }
+            ]
+          },
+          {
+            "text": "[[character:ogre|Ogre]] - More jump height and also [[weapon:axe|Axe]] spawns with 2 projectiles",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "axe"
+              },
+              {
+                "type": "character",
+                "id": "ogre"
+              }
+            ]
+          },
+          {
+            "text": "[[character:dicehead|Dicehead]] - Passive is stronger early game, but once you get really late game (lvl 100+) it falls off, so hopefully he's not the only character on the leaderboards anymore",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "dice"
+              },
+              {
+                "type": "character",
+                "id": "dicehead"
+              }
+            ]
+          },
+          {
+            "text": "[[character:calcium|Calcium]] - Passive deals more damage with speed now",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "calcium"
+              }
+            ]
+          },
+          {
+            "text": "[[character:bush|Bush]] - spawns more marks and also gains crit damage per level",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "bush"
+              }
+            ]
+          },
+          {
+            "text": "[[weapon:chunkers|Chunkers]] - Increased base damage and damage upgrades",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "chunkers"
+              }
+            ]
+          },
+          {
+            "text": "[[weapon:dice|Dice]] - Fixed a bug where the [[weapon:dice|Dice]] was increasing crit chance for all your weapons, instead of just the [[weapon:dice|Dice]] itself",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "dice"
+              }
+            ]
+          },
+          {
+            "text": "[[item:cactus|Cactus]] projectiles can no longer pierce [[weapon:aegis|Aegis]], and can be evaded as well. Also they shoot less [[item:cactus|Cactus]] projectiles",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "cactus"
+              },
+              {
+                "type": "weapon",
+                "id": "aegis"
+              }
+            ]
+          },
+          {
+            "text": "[[item:clover|Clover]] has been slightly buffed",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "clover"
+              }
+            ]
+          },
+          {
+            "text": "[[weapon:shotgun|Shotgun]] range has been increased",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "shotgun"
+              }
+            ]
+          },
+          {
+            "text": "Microwaves are cheaper",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Exploding spiders deal less damage and have less HP",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Refresh, Skip & Banish are cheaper early game",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed a bug where you could die while teleporting and become invincible",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Music doesn't spam theme songs anymore, only 25% chance to play. But if you really want to hear the theme song you can select it with the boombox",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Music doesn't randomly stop anymore",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Enemies don't spawn on top of trees or castles anymore",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Leaderboards are temporarily broken because of cheaters. It kinda works right now, but I'll try to get a proper fix out soon.",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed some UI bugs and issues",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Camera shouldn't clip into walls anymore (hopefully idk i tried to fix it)",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Tornadoes shouldn't abduct you anymore",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "tornado"
+              }
+            ]
+          },
+          {
+            "text": "Game Setting to choose how many of your projectiles you want to be aimed at random, and how many at the targeting mode. First projectile will always use targeting mode.",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "You can see the chest of prices in the HUD now (next to the level at the top right)",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Added silver pots, that give you silver. (No there's not fewer normal pots, dont worry)",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "Setting to lock the minimap instead of having them rotate",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Sandstorms are shorter and less obstructive",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "You can't knock bosses out of the map anymore lol",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Leaderboards are cooked because of cheaters, will try to get it fixed soon",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "I'll add an all time leaderboard and a weekly leaderboard, but it's not in yet :/",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Claiming quests is faster now",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Crit damage Mult displays properly now",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed some typos",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed an issue where falling out of bounds didnt teleport you back up to map",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Adding a setting under \"Video Settings\" to allow you to zoom out more by default",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Can disable numbered keys selection in upgrade screen",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "key"
+              }
+            ]
+          },
+          {
+            "text": "Shop in Menu now unlocks earlier",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "New Item: Quin's Mask",
             "change_type": "addition",
             "affected_entities": []
           }
-        ]
+        ],
+        "removed": [],
+        "other": []
       },
-      "raw_notes": "Launch Patch 1.0.10\n\nBug Fixes:\n- Fixed freeze when collecting items\n- Fixed audio issues\n\nOther:\n- Performance optimizations\n- Colorblind accessibility options"
+      "raw_notes": "Yoo thanks again for the amazing feedback! I've worked a bit on a quick patch to fix some common issues and feedback.\n\nVersion 1.0.7\nGame\n- Kevin no longer makes you invincible (rip kevin abusers)\n- Leaderboard reset\n- Working on making the leaderboards more stable, currently cheaters are bricking them a bit. Update coming next week to properly address this.\n\nOther\n- Fixed dice description and upgrade description\n- Optimized FPS late game when using the following: Bananas, Chunkers, Axe, Flamewalker, Bloodmagic, Poison Flask, Black Hole, Frostwalker, Katana, and a bunch of items.\n- Shield recharge is no longer interrupted by Kevin or Leeching Crystal\n- Added a volume slider for xp and gold sfx\n- Bush's passive has been buffed. Also fixed an issue where it gave crit chance instead of crit damage.\n\nBugs\n- Enery Core isn't loud AF anymore\n- Leaving final stage through teleporter now gives Rank xp for the character you played\n- Anubis lasers are now rendering properly with lava and water\n- Space Noodle no longer stunlocks boss if he steals it\n- Pressing escape while hovering skin now hides the menu properly\n- Tried fixing a bug where Speedboi slowed down time forever. Idk if it's fixed but I hope so, wasn't able to reproduce the issue D:\n- You no longer take damage when using Aegis while having a Shield Powerup active\n- Other small bugs\n\n\nVersion 1.0.4 (Previous patch)\n\nPink Textures\n- Some people had issues with pink textures, that should be fixed now\n\nFinal Boss Fight\n- For every phase, the boss gives back one of your weapons. You only need to do the first phase with your starter weapon now.\n- Pylon zones are bigger, and heal the boss less\n- Orbs deal less damage, and blue orbs freeze you for only 1s, instead of the previous 3s\n- Orbs have slightly longer cooldown, so he doesn't spawn as many\n- Weapon range has been increased during the fight\n\nBalancing\n- Weapon and Tome slots are unlocked earlier now (25 and 35 for 3rd slots, 45 and 55 for 4th slots)\n- All characters are about 10% faster, and accelerate faster and snappier, and the slower characters are much faster in general\n- Athena now gains +2 Thorns per level. Also increases her attack speed by 150% when no shields are active. Maybe Quin can actually deal some damage now idk?\n- Ogre - More jump height and also axe spawns with 2 projectiles\n- Dicehead - Passive is stronger early game, but once you get really late game (lvl 100+) it falls off, so hopefully he's not the only character on the leaderboards anymore\n- Calcium - Passive deals more damage with speed now\n- Bush - spawns more marks and also gains crit damage per level\n- Chunkers - Increased base damage and damage upgrades\n- Dice - Fixed a bug where the dice was increasing crit chance for all your weapons, instead of just the dice itself\n- Cactus projectiles can no longer pierce Aegis, and can be evaded as well. Also they shoot less cactus projectiles\n- Clover has been slightly buffed\n- Shotgun range has been increased\n- Microwaves are cheaper\n- Exploding spiders deal less damage and have less HP\n- Refresh, Skip & Banish are cheaper early game\n\nBugs\n- Fixed a bug where you could die while teleporting and become invincible\n- Music doesn't spam theme songs anymore, only 25% chance to play. But if you really want to hear the theme song you can select it with the boombox\n- Music doesn't randomly stop anymore\n- Enemies don't spawn on top of trees or castles anymore\n- Leaderboards are temporarily broken because of cheaters. It kinda works right now, but I'll try to get a proper fix out soon.\n- Fixed some UI bugs and issues\n- Camera shouldn't clip into walls anymore (hopefully idk i tried to fix it)\n- Tornadoes shouldn't abduct you anymore\n\nGame\n- Game Setting to choose how many of your projectiles you want to be aimed at random, and how many at the targeting mode. First projectile will always use targeting mode.\n- You can see the chest of prices in the HUD now (next to the level at the top right)\n- Added silver pots, that give you silver. (No there's not fewer normal pots, dont worry)\n- Setting to lock the minimap instead of having them rotate\n- Sandstorms are shorter and less obstructive\n- You can't knock bosses out of the map anymore lol\n\nLeaderboards\n- Leaderboards are cooked because of cheaters, will try to get it fixed soon\n- I'll add an all time leaderboard and a weekly leaderboard, but it's not in yet :/\n\nOther\n- Claiming quests is faster now\n- Crit damage Mult displays properly now\n- Fixed some typos\n- Fixed an issue where falling out of bounds didnt teleport you back up to map\n- Adding a setting under \"Video Settings\" to allow you to zoom out more by default\n- Can disable numbered keys selection in upgrade screen\n- Shop in Menu now unlocks earlier\n- New Item: Quin's Mask\n\n\nThanks guys, I will keep fixing stuff and adjusting things based on your feedback! :)\nOnce the game is a bit more stable I'll get to making more content, and probably get a little roadmap together. I definitely wanna try to add multiplayer down the line, but that is a very time consuming task."
     }
   ]
 }

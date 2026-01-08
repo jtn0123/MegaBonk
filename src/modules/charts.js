@@ -6,6 +6,34 @@
 let chartInstances = {};
 
 /**
+ * Apply hyperbolic scaling formula to values
+ * Formula: actual = internal / (constant + internal)
+ * Used for items like Cursed Grabbies, Key where displayed % uses diminishing returns
+ * @param {number[]} values - Array of "internal" percentage values (e.g., [5, 10, 15...])
+ * @param {number} constant - The hyperbolic constant (default 1.0 for standard formula)
+ * @returns {number[]} Array of actual percentage values after hyperbolic transformation
+ */
+function applyHyperbolicScaling(values, constant = 1.0) {
+    return values.map(v => {
+        const internal = v / 100;
+        const actual = internal / (constant + internal);
+        return Math.round(actual * 10000) / 100; // Round to 2 decimal places
+    });
+}
+
+/**
+ * Generate hyperbolic scaling values for a given per-stack increment
+ * @param {number} perStack - The displayed increment per stack (e.g., 5 for "5% per stack")
+ * @param {number} maxStacks - Maximum stacks to calculate (default 10)
+ * @param {number} constant - Hyperbolic constant (default 1.0)
+ * @returns {number[]} Array of actual values after hyperbolic transformation
+ */
+function generateHyperbolicValues(perStack, maxStacks = 10, constant = 1.0) {
+    const internalValues = Array.from({ length: maxStacks }, (_, i) => perStack * (i + 1));
+    return applyHyperbolicScaling(internalValues, constant);
+}
+
+/**
  * Determine the effective stack cap for an item
  * @param {Object} item - Item with scaling_per_stack and optional stack_cap/max_stacks
  * @returns {number} The effective maximum stacks to display
@@ -46,8 +74,12 @@ function getEffectiveStackCap(item) {
  * @param {boolean} isModal - If true, creates a larger chart for modals
  * @param {Object} secondaryData - Optional secondary scaling data {stat: string, values: number[]}
  * @param {number} stackCap - Optional stack cap to limit displayed data
+ * @param {Object} options - Additional options for chart rendering
+ * @param {string} options.scalingFormulaType - "hyperbolic", "linear", etc.
+ * @param {number} options.hyperbolicConstant - Constant for hyperbolic formula (default 1.0)
+ * @param {number} options.maxStacks - Hard cap where item stops being useful
  */
-function createScalingChart(canvasId, data, label, scalingType = '', isModal = false, secondaryData = null, stackCap = null) {
+function createScalingChart(canvasId, data, label, scalingType = '', isModal = false, secondaryData = null, stackCap = null, options = {}) {
     const canvas = safeGetElementById(canvasId);
     if (!canvas) return null;
 
@@ -62,9 +94,15 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
         chartInstances[canvasId].destroy();
     }
 
+    // Apply hyperbolic transformation if specified
+    let processedData = data;
+    if (options.scalingFormulaType === 'hyperbolic') {
+        processedData = applyHyperbolicScaling(data, options.hyperbolicConstant || 1.0);
+    }
+
     // Apply stack cap if provided
-    const effectiveCap = stackCap || data.length;
-    const displayData = data.slice(0, effectiveCap);
+    const effectiveCap = stackCap || processedData.length;
+    const displayData = processedData.slice(0, effectiveCap);
     const labels = displayData.map((_, i) => `${i + 1}`);
     const isPercentage = scalingType.includes('chance') ||
                          scalingType.includes('percentage') ||
@@ -105,37 +143,64 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
     }
 
     const ctx = canvas.getContext('2d');
+
+    // Build chart options
+    const chartOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: hasSecondary },
+            tooltip: { enabled: true }
+        },
+        scales: {
+            x: {
+                title: { display: isModal, text: 'Stacks' },
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            },
+            y: {
+                position: 'left',
+                title: { display: isModal, text: isPercentage ? '%' : 'Value' },
+                beginAtZero: true,
+                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+            },
+            y2: {
+                position: 'right',
+                display: hasSecondary,
+                grid: { drawOnChartArea: false }
+            }
+        }
+    };
+
+    // Add cap indicator annotation if max_stacks is specified and less than data length
+    if (options.maxStacks && options.maxStacks < data.length) {
+        chartOptions.plugins.annotation = {
+            annotations: {
+                capLine: {
+                    type: 'line',
+                    xMin: options.maxStacks - 0.5,
+                    xMax: options.maxStacks - 0.5,
+                    borderColor: '#f39c12',
+                    borderWidth: 2,
+                    borderDash: [5, 5],
+                    label: {
+                        display: isModal,
+                        content: 'MAX',
+                        position: 'start',
+                        backgroundColor: '#f39c12',
+                        color: '#000'
+                    }
+                }
+            }
+        };
+    }
+
     const chart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
             datasets: datasets
         },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { display: hasSecondary },
-                tooltip: { enabled: true }
-            },
-            scales: {
-                x: {
-                    title: { display: isModal, text: 'Stacks' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                },
-                y: {
-                    position: 'left',
-                    title: { display: isModal, text: isPercentage ? '%' : 'Value' },
-                    beginAtZero: true,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                },
-                y2: {
-                    position: 'right',
-                    display: hasSecondary,
-                    grid: { drawOnChartArea: false }
-                }
-            }
-        }
+        options: chartOptions
     });
 
     chartInstances[canvasId] = chart;
@@ -248,7 +313,21 @@ function initializeItemCharts() {
     items.forEach(item => {
         if (item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat') {
             const effectiveCap = getEffectiveStackCap(item);
-            createScalingChart(`chart-${item.id}`, item.scaling_per_stack, item.name, item.scaling_type || '', false, item.secondary_scaling || null, effectiveCap);
+            const chartOptions = {
+                scalingFormulaType: item.scaling_formula_type || 'linear',
+                hyperbolicConstant: item.hyperbolic_constant || 1.0,
+                maxStacks: item.max_stacks || null
+            };
+            createScalingChart(
+                `chart-${item.id}`,
+                item.scaling_per_stack,
+                item.name,
+                item.scaling_type || '',
+                false,
+                item.secondary_scaling || null,
+                effectiveCap,
+                chartOptions
+            );
         }
     });
 }
@@ -283,6 +362,8 @@ function destroyAllCharts() {
 // ========================================
 
 window.chartInstances = chartInstances;
+window.applyHyperbolicScaling = applyHyperbolicScaling;
+window.generateHyperbolicValues = generateHyperbolicValues;
 window.getEffectiveStackCap = getEffectiveStackCap;
 window.createScalingChart = createScalingChart;
 window.createCompareChart = createCompareChart;

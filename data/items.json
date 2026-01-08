@@ -377,7 +377,18 @@
       ],
       "secondary_scaling": {
         "stat": "HP Regen",
-        "values": [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+        "values": [
+          50,
+          100,
+          150,
+          200,
+          250,
+          300,
+          350,
+          400,
+          450,
+          500
+        ]
       },
       "detailed_description": "Massive HP and regen boost, plus offensive aura when healing. Each copy adds another 100 HP and 50 regen. Stacks very well for sustain builds.",
       "synergies": [
@@ -420,7 +431,18 @@
       ],
       "secondary_scaling": {
         "stat": "Lifesteal %",
-        "values": [20, 40, 60, 80, 100, 120, 140, 160, 180, 200]
+        "values": [
+          20,
+          40,
+          60,
+          80,
+          100,
+          120,
+          140,
+          160,
+          180,
+          200
+        ]
       },
       "detailed_description": "With 400 HP and 1 copy: +300 overheal shield. With 2 copies: +600 overheal. Lifesteal stacks additively. Insane survivability.",
       "synergies": [
@@ -628,40 +650,78 @@
       "id": "grandmas_secret_tonic",
       "name": "Grandma's Secret Tonic",
       "rarity": "rare",
-      "tier": "S",
+      "tier": "A",
       "unlocked_by_default": false,
       "unlock_requirement": "Kill 3,000 enemies with sniper rifle",
       "unlock_cost_silver": 12,
-      "base_effect": "Crits have 50% chance to explode; 50% damage radius",
-      "scaling_type": "chance_based",
-      "stacking_behavior": "additive_chance",
-      "stacks_well": true,
-      "stack_cap": null,
-      "formula": "Explosion Chance on Crit = 0.50 \u00d7 Stack Count (capped at 100%)",
+      "base_effect": "Crits have 50% chance to explode in 4m radius dealing 50% crit damage",
+      "scaling_type": "radius_scaling",
+      "stacking_behavior": "radius_per_stack",
+      "stacks_well": false,
+      "stack_cap": 5,
+      "max_stacks": 5,
+      "scaling_formula_type": "linear",
+      "formula": "Radius = 4m + (Stack Count - 1), capped at 8m. First copy: +2% crit",
       "scaling_per_stack": [
-        50,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100,
-        100
+        4,
+        5,
+        6,
+        7,
+        8,
+        8,
+        8,
+        8,
+        8,
+        8
       ],
-      "detailed_description": "50% chance for crits to explode. With 2 copies, every crit explodes. Insane with crit builds and Overcrit mechanics.",
+      "detailed_description": "Crits have 50% chance to explode dealing 50% crit damage in a radius. Each copy increases radius by 1m (4m to 8m max). HARD CAP: 5 copies - additional copies provide zero benefit. First copy only grants +2% crit chance.",
       "synergies": [
         "Forbidden Juice",
         "Crit builds",
-        "Precision Tome",
-        "AoE builds"
+        "Precision Tome"
       ],
       "anti_synergies": [],
-      "notes": "STACKS WELL: Reaches 100% at 2 copies. Perfect for crit builds.",
-      "graph_type": "capped_chance",
+      "notes": "HARD CAP at 5 copies. Additional copies do NOTHING. First copy gives +2% crit.",
+      "graph_type": "capped_radius",
       "one_and_done": false,
-      "image": "images/items/grandmas_secret_tonic.png"
+      "image": "images/items/grandmas_secret_tonic.png",
+      "scaling_tracks": {
+        "radius": {
+          "stat": "Explosion Radius (m)",
+          "values": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            8,
+            8,
+            8,
+            8,
+            8
+          ]
+        },
+        "proc_chance": {
+          "stat": "Proc Chance (%)",
+          "values": [
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50,
+            50
+          ]
+        }
+      },
+      "hidden_mechanics": [
+        "First copy ONLY gives +2% crit chance bonus - additional copies do NOT add more crit",
+        "Radius caps at 8m (5 copies) - 6th+ copies do NOTHING",
+        "Explosion deals 50% of your crit damage to nearby enemies"
+      ]
     },
     {
       "id": "ice_cube",
@@ -767,7 +827,18 @@
       ],
       "secondary_scaling": {
         "stat": "Max HP Penalty",
-        "values": [-5, -10, -15, -20, -25, -30, -35, -40, -45, -50]
+        "values": [
+          -5,
+          -10,
+          -15,
+          -20,
+          -25,
+          -30,
+          -35,
+          -40,
+          -45,
+          -50
+        ]
       },
       "detailed_description": "Each copy adds +20% damage but reduces max HP by 5%. With 5 copies: +100% damage but -25% HP. Risk/reward tradeoff.",
       "synergies": [
