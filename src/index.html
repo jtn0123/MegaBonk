@@ -9,6 +9,26 @@
             content="Complete MegaBonk guide with 77 items, 29 weapons, 23 tomes, build planner, and breakpoint calculator"
         />
         <meta name="theme-color" content="#00ff88" />
+
+        <!-- Security Headers -->
+        <meta
+            http-equiv="Content-Security-Policy"
+            content="default-src 'self';
+                     script-src 'self';
+                     style-src 'self' 'unsafe-inline';
+                     img-src 'self' data: https:;
+                     font-src 'self' data:;
+                     connect-src 'self';
+                     worker-src 'self';
+                     manifest-src 'self';
+                     frame-ancestors 'none';
+                     base-uri 'self';
+                     form-action 'self';"
+        />
+        <meta http-equiv="X-Frame-Options" content="DENY" />
+        <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+        <meta name="referrer" content="strict-origin-when-cross-origin" />
+
         <meta
             name="keywords"
             content="MegaBonk, roguelike, game guide, items, weapons, tomes, build planner, calculator"

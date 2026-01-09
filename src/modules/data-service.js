@@ -3,7 +3,7 @@
 // ========================================
 
 import { ToastManager } from './toast.js';
-import { validateAllData, logValidationResults } from './data-validation.js';
+import { validateAllData, logValidationResults, validateWithZod } from './data-validation.js';
 
 // ========================================
 // UI Helper Functions
@@ -58,46 +58,31 @@ function validateData(data, type) {
         return false;
     }
 
-    // Check for version and last_updated fields
-    if (!data.version || !data.last_updated) {
-        console.warn(`[Data Validation] Missing version/last_updated in ${type}`);
-    }
-
-    // Check for main data array/object
-    const dataKey = type === 'changelog' ? 'patches' : type;
-
-    // Stats uses an object structure, not an array
-    if (type === 'stats') {
-        if (!data[dataKey] || typeof data[dataKey] !== 'object' || Array.isArray(data[dataKey])) {
-            console.error(`[Data Validation] Invalid structure for ${type}: missing ${dataKey} object`);
+    // Skip Zod validation for changelog (schema not yet implemented)
+    if (type === 'changelog') {
+        // Fallback to basic validation for changelog
+        if (!data.patches || !Array.isArray(data.patches)) {
+            console.error(`[Data Validation] Invalid structure for changelog: missing patches array`);
             return false;
         }
+        console.log(`[Data Validation] ✓ changelog: ${data.patches.length} entries`);
         return true;
     }
 
-    if (!Array.isArray(data[dataKey])) {
-        console.error(`[Data Validation] Invalid structure for ${type}: missing ${dataKey} array`);
-        return false;
+    // Use Zod validation for typed data (items, weapons, tomes, characters, shrines, stats)
+    const zodResult = validateWithZod(data, type);
+
+    if (!zodResult.valid) {
+        console.error(`[Data Validation] Zod schema validation failed for ${type}:`, zodResult.errors);
+        // Still return true to allow app to load with warnings
+        // In production, you might want to return false to block invalid data
+        console.warn(`[Data Validation] ⚠️  Continuing with potentially invalid ${type} data`);
+    } else {
+        const dataKey = type === 'stats' ? 'mechanics' : type;
+        const count = Array.isArray(data[dataKey]) ? data[dataKey].length : 'N/A';
+        console.log(`[Data Validation] ✅ ${type} passed Zod validation: ${count} entries`);
     }
 
-    // Validate array has items
-    if (data[dataKey].length === 0) {
-        console.warn(`[Data Validation] Empty ${dataKey} array in ${type}`);
-    }
-
-    // Basic validation of first item (check for id and name)
-    if (data[dataKey].length > 0 && type !== 'stats') {
-        const firstItem = data[dataKey][0];
-        if (!firstItem.id) {
-            console.error(`[Data Validation] First item in ${dataKey} missing id field`);
-            return false;
-        }
-        if (type !== 'changelog' && !firstItem.name) {
-            console.warn(`[Data Validation] First item in ${dataKey} missing name field`);
-        }
-    }
-
-    console.log(`[Data Validation] ✓ ${type}: ${data[dataKey]?.length || 0} entries`);
     return true;
 }
 
