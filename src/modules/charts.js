@@ -79,7 +79,16 @@ function getEffectiveStackCap(item) {
  * @param {number} options.hyperbolicConstant - Constant for hyperbolic formula (default 1.0)
  * @param {number} options.maxStacks - Hard cap where item stops being useful
  */
-function createScalingChart(canvasId, data, label, scalingType = '', isModal = false, secondaryData = null, stackCap = null, options = {}) {
+function createScalingChart(
+    canvasId,
+    data,
+    label,
+    scalingType = '',
+    isModal = false,
+    secondaryData = null,
+    stackCap = null,
+    options = {}
+) {
     const canvas = safeGetElementById(canvasId);
     if (!canvas) return null;
 
@@ -104,25 +113,28 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
     const effectiveCap = stackCap || processedData.length;
     const displayData = processedData.slice(0, effectiveCap);
     const labels = displayData.map((_, i) => `${i + 1}`);
-    const isPercentage = scalingType.includes('chance') ||
-                         scalingType.includes('percentage') ||
-                         scalingType.includes('damage') ||
-                         scalingType.includes('crit');
+    const isPercentage =
+        scalingType.includes('chance') ||
+        scalingType.includes('percentage') ||
+        scalingType.includes('damage') ||
+        scalingType.includes('crit');
 
     // Build datasets array
-    const datasets = [{
-        label: label,
-        data: displayData,
-        borderColor: '#e94560',
-        backgroundColor: 'rgba(233, 69, 96, 0.2)',
-        fill: true,
-        tension: 0.3,
-        pointRadius: isModal ? 5 : 3,
-        pointHoverRadius: isModal ? 8 : 5,
-        pointBackgroundColor: '#e94560',
-        borderWidth: isModal ? 3 : 2,
-        yAxisID: 'y'
-    }];
+    const datasets = [
+        {
+            label: label,
+            data: displayData,
+            borderColor: '#e94560',
+            backgroundColor: 'rgba(233, 69, 96, 0.2)',
+            fill: true,
+            tension: 0.3,
+            pointRadius: isModal ? 5 : 3,
+            pointHoverRadius: isModal ? 8 : 5,
+            pointBackgroundColor: '#e94560',
+            borderWidth: isModal ? 3 : 2,
+            yAxisID: 'y',
+        },
+    ];
 
     // Add secondary dataset if provided
     const hasSecondary = secondaryData && secondaryData.values && secondaryData.values.length > 0;
@@ -138,7 +150,7 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
             pointHoverRadius: isModal ? 8 : 5,
             pointBackgroundColor: '#4ecdc4',
             borderWidth: isModal ? 3 : 2,
-            yAxisID: 'y2'
+            yAxisID: 'y2',
         });
     }
 
@@ -150,25 +162,25 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
         maintainAspectRatio: false,
         plugins: {
             legend: { display: hasSecondary },
-            tooltip: { enabled: true }
+            tooltip: { enabled: true },
         },
         scales: {
             x: {
                 title: { display: isModal, text: 'Stacks' },
-                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                grid: { color: 'rgba(255, 255, 255, 0.1)' },
             },
             y: {
                 position: 'left',
                 title: { display: isModal, text: isPercentage ? '%' : 'Value' },
                 beginAtZero: true,
-                grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                grid: { color: 'rgba(255, 255, 255, 0.1)' },
             },
             y2: {
                 position: 'right',
                 display: hasSecondary,
-                grid: { drawOnChartArea: false }
-            }
-        }
+                grid: { drawOnChartArea: false },
+            },
+        },
     };
 
     // Add cap indicator annotation if max_stacks is specified and less than data length
@@ -187,10 +199,10 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
                         content: 'MAX',
                         position: 'start',
                         backgroundColor: '#f39c12',
-                        color: '#000'
-                    }
-                }
-            }
+                        color: '#000',
+                    },
+                },
+            },
         };
     }
 
@@ -198,9 +210,9 @@ function createScalingChart(canvasId, data, label, scalingType = '', isModal = f
         type: 'line',
         data: {
             labels: labels,
-            datasets: datasets
+            datasets: datasets,
         },
-        options: chartOptions
+        options: chartOptions,
     });
 
     chartInstances[canvasId] = chart;
@@ -240,7 +252,7 @@ function createCompareChart(canvasId, items) {
             fill: false,
             tension: 0.3,
             pointRadius: 4,
-            borderWidth: 2
+            borderWidth: 2,
         };
     });
 
@@ -253,20 +265,20 @@ function createCompareChart(canvasId, items) {
             maintainAspectRatio: false,
             plugins: {
                 legend: { display: true, position: 'top' },
-                tooltip: { enabled: true, mode: 'index', intersect: false }
+                tooltip: { enabled: true, mode: 'index', intersect: false },
             },
             scales: {
                 x: {
                     title: { display: true, text: 'Stacks' },
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
                 },
                 y: {
                     title: { display: true, text: 'Value' },
                     beginAtZero: true,
-                    grid: { color: 'rgba(255, 255, 255, 0.1)' }
-                }
-            }
-        }
+                    grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                },
+            },
+        },
     });
 
     chartInstances[canvasId] = chart;
@@ -303,12 +315,12 @@ function calculateTomeProgression(tome, maxLevels = 10) {
         if (isHyperbolic && isEvasion) {
             // Evasion formula: actual = internal / (1 + internal)
             const internalDecimal = internalValue / 100;
-            const actualEvasion = internalDecimal / (1 + internalDecimal) * 100;
+            const actualEvasion = (internalDecimal / (1 + internalDecimal)) * 100;
             return Math.round(actualEvasion * 100) / 100;
         } else if (isHyperbolic && isArmor) {
             // Armor formula: actual = internal / (0.75 + internal)
             const internalDecimal = internalValue / 100;
-            const actualArmor = internalDecimal / (0.75 + internalDecimal) * 100;
+            const actualArmor = (internalDecimal / (0.75 + internalDecimal)) * 100;
             return Math.round(actualArmor * 100) / 100;
         }
 
@@ -327,7 +339,7 @@ function initializeItemCharts() {
             const chartOptions = {
                 scalingFormulaType: item.scaling_formula_type || 'linear',
                 hyperbolicConstant: item.hyperbolic_constant || 1.0,
-                maxStacks: item.max_stacks || null
+                maxStacks: item.max_stacks || null,
             };
             createScalingChart(
                 `chart-${item.id}`,

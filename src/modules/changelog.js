@@ -14,11 +14,11 @@
  */
 function findEntityInData(type, id) {
     const dataMap = {
-        'item': { collection: allData.items, key: 'items' },
-        'weapon': { collection: allData.weapons, key: 'weapons' },
-        'tome': { collection: allData.tomes, key: 'tomes' },
-        'character': { collection: allData.characters, key: 'characters' },
-        'shrine': { collection: allData.shrines, key: 'shrines' }
+        item: { collection: allData.items, key: 'items' },
+        weapon: { collection: allData.weapons, key: 'weapons' },
+        tome: { collection: allData.tomes, key: 'tomes' },
+        character: { collection: allData.characters, key: 'characters' },
+        shrine: { collection: allData.shrines, key: 'shrines' },
     };
 
     const mapping = dataMap[type];
@@ -73,11 +73,11 @@ function parseChangelogLinks(text) {
  */
 function formatCategoryName(category) {
     const names = {
-        'balance': 'Balance Changes',
-        'new_content': 'New Content',
-        'bug_fixes': 'Bug Fixes',
-        'removed': 'Removed',
-        'other': 'Other Changes'
+        balance: 'Balance Changes',
+        new_content: 'New Content',
+        bug_fixes: 'Bug Fixes',
+        removed: 'Removed',
+        other: 'Other Changes',
     };
     return names[category] || category;
 }
@@ -97,7 +97,7 @@ function formatChangelogDate(dateStr) {
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
     });
 }
 
@@ -118,23 +118,29 @@ function renderChangesSections(categories, rawNotes) {
 
     const order = ['new_content', 'balance', 'bug_fixes', 'removed', 'other'];
 
-    const sectionsHtml = order.map(cat => {
-        const changes = categories[cat];
-        if (!changes || changes.length === 0) return '';
+    const sectionsHtml = order
+        .map(cat => {
+            const changes = categories[cat];
+            if (!changes || changes.length === 0) return '';
 
-        const items = changes.map(change => `
+            const items = changes
+                .map(
+                    change => `
             <div class="changelog-item ${change.change_type || ''}">
                 ${parseChangelogLinks(change.text)}
             </div>
-        `).join('');
+        `
+                )
+                .join('');
 
-        return `
+            return `
             <div class="changelog-section">
                 <div class="changelog-section-title">${formatCategoryName(cat)}</div>
                 ${items}
             </div>
         `;
-    }).join('');
+        })
+        .join('');
 
     // If no categorized content, show raw notes as fallback
     if (!sectionsHtml.trim() && rawNotes) {
@@ -173,20 +179,27 @@ function renderChangelog(patches) {
             .filter(([_, changes]) => changes && changes.length > 0)
             .map(([cat, changes]) => ({ cat, count: changes.length }));
 
-        const categoryPills = categoryCounts.map(({ cat, count }) =>
-            `<span class="category-pill ${cat}">${formatCategoryName(cat).split(' ')[0]} (${count})</span>`
-        ).join('');
+        const categoryPills = categoryCounts
+            .map(
+                ({ cat, count }) =>
+                    `<span class="category-pill ${cat}">${formatCategoryName(cat).split(' ')[0]} (${count})</span>`
+            )
+            .join('');
 
         entry.innerHTML = `
             <div class="changelog-header">
                 <span class="changelog-version">v${escapeHtml(patch.version)}</span>
                 <h3 class="changelog-title">${escapeHtml(patch.title)}</h3>
                 <span class="changelog-date">${formatChangelogDate(patch.date)}</span>
-                ${patch.steam_url && isValidExternalUrl(patch.steam_url) ? `
+                ${
+                    patch.steam_url && isValidExternalUrl(patch.steam_url)
+                        ? `
                     <a href="${escapeHtml(patch.steam_url)}" target="_blank" rel="noopener" class="changelog-steam-link">
                         🔗 Steam
                     </a>
-                ` : ''}
+                `
+                        : ''
+                }
             </div>
             <p class="changelog-summary">${escapeHtml(patch.summary)}</p>
             <div class="changelog-categories">${categoryPills}</div>

@@ -55,17 +55,15 @@ function openCompareModal() {
         return;
     }
 
-    const items = compareItems.map(id =>
-        allData.items?.items.find(item => item.id === id)
-    ).filter(Boolean);
+    const items = compareItems.map(id => allData.items?.items.find(item => item.id === id)).filter(Boolean);
 
     const compareBody = safeGetElementById('compareBody');
     const modal = safeGetElementById('compareModal');
     if (!compareBody || !modal) return;
 
     // Filter items that have scaling data for the chart
-    const chartableItems = items.filter(item =>
-        item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat'
+    const chartableItems = items.filter(
+        item => item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat'
     );
 
     // Build HTML with optional chart section
@@ -114,29 +112,43 @@ function openCompareModal() {
                 <div class="compare-section">
                     <h4>Scaling (1-10 stacks)</h4>
                     <div class="scaling-values">
-                        ${item.scaling_per_stack.map((val, idx) =>
-                            `<span class="scale-value">${idx + 1}: <strong>${val}${item.scaling_type.includes('chance') || item.scaling_type.includes('damage') ? '%' : ''}</strong></span>`
-                        ).join('')}
+                        ${item.scaling_per_stack
+                            .map(
+                                (val, idx) =>
+                                    `<span class="scale-value">${idx + 1}: <strong>${val}${item.scaling_type.includes('chance') || item.scaling_type.includes('damage') ? '%' : ''}</strong></span>`
+                            )
+                            .join('')}
                     </div>
                 </div>
 
-                ${item.synergies?.length ? `
+                ${
+                    item.synergies?.length
+                        ? `
                     <div class="compare-section">
                         <h4>Synergies</h4>
                         <div class="synergy-tags">
-                            ${item.synergies.slice(0, 5).map(s => `<span class="synergy-tag">${s}</span>`).join('')}
+                            ${item.synergies
+                                .slice(0, 5)
+                                .map(s => `<span class="synergy-tag">${s}</span>`)
+                                .join('')}
                         </div>
                     </div>
-                ` : ''}
+                `
+                        : ''
+                }
 
-                ${item.anti_synergies?.length ? `
+                ${
+                    item.anti_synergies?.length
+                        ? `
                     <div class="compare-section">
                         <h4>Anti-Synergies</h4>
                         <div class="antisynergy-tags">
                             ${item.anti_synergies.map(s => `<span class="antisynergy-tag">${s}</span>`).join('')}
                         </div>
                     </div>
-                ` : ''}
+                `
+                        : ''
+                }
 
                 <div class="compare-section">
                     <h4>Notes</h4>

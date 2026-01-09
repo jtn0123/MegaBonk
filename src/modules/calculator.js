@@ -97,18 +97,18 @@ function calculateBreakpoint() {
                         ${(() => {
                             // Bug fix: Calculate max outside map to avoid Math.max on empty array
                             // and handle edge case where all values are 0
-                            const maxVal = item.scaling_per_stack.length > 0
-                                ? Math.max(...item.scaling_per_stack)
-                                : 1;
+                            const maxVal = item.scaling_per_stack.length > 0 ? Math.max(...item.scaling_per_stack) : 1;
                             const safeMax = maxVal > 0 ? maxVal : 1;
-                            return item.scaling_per_stack.map((val, idx) => {
-                                const height = (val / safeMax) * 100;
-                                const isTarget = (idx + 1) === stacksNeeded;
-                                return `<div class="bar-container">
+                            return item.scaling_per_stack
+                                .map((val, idx) => {
+                                    const height = (val / safeMax) * 100;
+                                    const isTarget = idx + 1 === stacksNeeded;
+                                    return `<div class="bar-container">
                                     <div class="bar ${isTarget ? 'target-bar' : ''}" style="height: ${height}%"></div>
                                     <span class="bar-label">${idx + 1}</span>
                                 </div>`;
-                            }).join('');
+                                })
+                                .join('');
                         })()}
                     </div>
                 </div>

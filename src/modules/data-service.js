@@ -90,6 +90,45 @@ async function fetchWithTimeout(url, timeout = 30000) {
 }
 
 /**
+ * Fetch with retry and exponential backoff
+ * @param {string} url - URL to fetch
+ * @param {number} maxRetries - Maximum retry attempts (default 4)
+ * @param {number} initialDelay - Initial delay in milliseconds (default 2000)
+ * @returns {Promise<Response>} Fetch response
+ */
+async function fetchWithRetry(url, maxRetries = 4, initialDelay = 2000) {
+    let lastError;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            console.log(`[Fetch] Attempting ${url} (attempt ${attempt + 1}/${maxRetries + 1})`);
+            const response = await fetchWithTimeout(url);
+
+            if (response.ok) {
+                console.log(`[Fetch] ✓ Success: ${url}`);
+                return response;
+            }
+
+            // HTTP error
+            lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+            console.warn(`[Fetch] ✗ ${url}: ${lastError.message}`);
+        } catch (error) {
+            lastError = error;
+            console.warn(`[Fetch] ✗ ${url}: ${error.message}`);
+        }
+
+        // Don't wait after the last attempt
+        if (attempt < maxRetries) {
+            const delay = initialDelay * Math.pow(2, attempt); // Exponential backoff
+            console.log(`[Fetch] Retrying ${url} in ${delay}ms...`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+        }
+    }
+
+    throw new Error(`Failed to fetch ${url} after ${maxRetries + 1} attempts: ${lastError?.message}`);
+}
+
+/**
  * Load all game data from JSON files
  */
 async function loadAllData() {
@@ -97,13 +136,13 @@ async function loadAllData() {
 
     try {
         const responses = await Promise.all([
-            fetchWithTimeout('../data/items.json'),
-            fetchWithTimeout('../data/weapons.json'),
-            fetchWithTimeout('../data/tomes.json'),
-            fetchWithTimeout('../data/characters.json'),
-            fetchWithTimeout('../data/shrines.json'),
-            fetchWithTimeout('../data/stats.json'),
-            fetchWithTimeout('../data/changelog.json'),
+            fetchWithRetry('../data/items.json'),
+            fetchWithRetry('../data/weapons.json'),
+            fetchWithRetry('../data/tomes.json'),
+            fetchWithRetry('../data/characters.json'),
+            fetchWithRetry('../data/shrines.json'),
+            fetchWithRetry('../data/stats.json'),
+            fetchWithRetry('../data/changelog.json'),
         ]);
 
         // Check for HTTP errors and parse JSON safely

@@ -7,7 +7,7 @@ let currentBuild = {
     character: null,
     weapon: null,
     tomes: [],
-    items: []
+    items: [],
 };
 
 /**
@@ -73,7 +73,7 @@ function renderBuildPlanner() {
 function setupBuildPlannerEvents() {
     const charSelect = safeGetElementById('build-character');
     if (charSelect) {
-        charSelect.addEventListener('change', (e) => {
+        charSelect.addEventListener('change', e => {
             const charId = e.target.value;
             currentBuild.character = allData.characters?.characters.find(c => c.id === charId);
             updateBuildAnalysis();
@@ -82,7 +82,7 @@ function setupBuildPlannerEvents() {
 
     const weaponSelect = safeGetElementById('build-weapon');
     if (weaponSelect) {
-        weaponSelect.addEventListener('change', (e) => {
+        weaponSelect.addEventListener('change', e => {
             const weaponId = e.target.value;
             currentBuild.weapon = allData.weapons?.weapons.find(w => w.id === weaponId);
             updateBuildAnalysis();
@@ -111,29 +111,36 @@ function setupBuildPlannerEvents() {
  */
 function calculateBuildStats() {
     // Use DEFAULT_BUILD_STATS from constants if available
-    const stats = typeof DEFAULT_BUILD_STATS !== 'undefined'
-        ? { ...DEFAULT_BUILD_STATS }
-        : {
-            damage: 100, hp: 100, crit_chance: 5, crit_damage: 150,
-            attack_speed: 100, movement_speed: 100, armor: 0,
-            evasion_internal: 0, projectiles: 1
-        };
+    const stats =
+        typeof DEFAULT_BUILD_STATS !== 'undefined'
+            ? { ...DEFAULT_BUILD_STATS }
+            : {
+                  damage: 100,
+                  hp: 100,
+                  crit_chance: 5,
+                  crit_damage: 150,
+                  attack_speed: 100,
+                  movement_speed: 100,
+                  armor: 0,
+                  evasion_internal: 0,
+                  projectiles: 1,
+              };
 
     // Bug fix #4: Use more specific matching instead of fragile includes()
     // Check for specific passive keywords that grant bonuses
     if (currentBuild.character) {
         const passive = currentBuild.character.passive_ability || '';
         // Match specific patterns to avoid false positives
-        if (/\+\d+%?\s*Crit(ical)?\s*Chance/i.test(passive) ||
-            currentBuild.character.id === 'fox') { // Fox has crit passive
+        if (/\+\d+%?\s*Crit(ical)?\s*Chance/i.test(passive) || currentBuild.character.id === 'fox') {
+            // Fox has crit passive
             stats.crit_chance += 50;
         }
-        if (/\+\d+%?\s*(Max\s*)?HP/i.test(passive) ||
-            currentBuild.character.id === 'ogre') { // Ogre has HP passive
+        if (/\+\d+%?\s*(Max\s*)?HP/i.test(passive) || currentBuild.character.id === 'ogre') {
+            // Ogre has HP passive
             stats.hp += 50;
         }
-        if (/\+\d+%?\s*Damage/i.test(passive) ||
-            currentBuild.character.id === 'megachad') { // Megachad has damage passive
+        if (/\+\d+%?\s*Damage/i.test(passive) || currentBuild.character.id === 'megachad') {
+            // Megachad has damage passive
             stats.damage += 20;
         }
     }
@@ -150,11 +157,14 @@ function calculateBuildStats() {
         const valueStr = tome.value_per_level || '';
         const value = parseFloat(valueStr.toString().match(/\d+(?:\.\d+)?/)?.[0] || 0) || 0;
         if (tome.stat_affected === 'Damage') stats.damage += value * tomeLevel * 100;
-        else if (tome.stat_affected === 'Crit Chance' || tome.id === 'precision') stats.crit_chance += value * tomeLevel * 100;
+        else if (tome.stat_affected === 'Crit Chance' || tome.id === 'precision')
+            stats.crit_chance += value * tomeLevel * 100;
         else if (tome.stat_affected === 'Crit Damage') stats.crit_damage += value * tomeLevel * 100;
         else if (tome.stat_affected === 'HP' || tome.id === 'vitality') stats.hp += value * tomeLevel * 100;
-        else if (tome.stat_affected === 'Attack Speed' || tome.id === 'cooldown') stats.attack_speed += value * tomeLevel * 100;
-        else if (tome.stat_affected === 'Movement Speed' || tome.id === 'agility') stats.movement_speed += value * tomeLevel * 100;
+        else if (tome.stat_affected === 'Attack Speed' || tome.id === 'cooldown')
+            stats.attack_speed += value * tomeLevel * 100;
+        else if (tome.stat_affected === 'Movement Speed' || tome.id === 'agility')
+            stats.movement_speed += value * tomeLevel * 100;
         else if (tome.id === 'armor') stats.armor += value * tomeLevel * 100;
     });
 
@@ -211,7 +221,8 @@ function updateBuildAnalysis() {
             <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-info"><div class="stat-label">Projectiles</div><div class="stat-value">${stats.projectiles}</div></div></div>
         `;
     } else {
-        statsDisplay.innerHTML = '<p class="stats-placeholder">Select character and weapon to see calculated stats...</p>';
+        statsDisplay.innerHTML =
+            '<p class="stats-placeholder">Select character and weapon to see calculated stats...</p>';
     }
 
     // Synergy detection
@@ -219,7 +230,9 @@ function updateBuildAnalysis() {
     let synergies = [];
     if (currentBuild.character && currentBuild.weapon) {
         if (currentBuild.character.synergies_weapons?.includes(currentBuild.weapon.name)) {
-            synergies.push(`✓ ${escapeHtml(currentBuild.character.name)} synergizes with ${escapeHtml(currentBuild.weapon.name)}!`);
+            synergies.push(
+                `✓ ${escapeHtml(currentBuild.character.name)} synergizes with ${escapeHtml(currentBuild.weapon.name)}!`
+            );
         }
     }
 
@@ -229,9 +242,10 @@ function updateBuildAnalysis() {
         }
     });
 
-    synergiesDisplay.innerHTML = synergies.length > 0
-        ? `<h4>🔗 Synergies Found:</h4><ul>${synergies.map(s => `<li>${s}</li>`).join('')}</ul>`
-        : '<p>Select character, weapon, and items to see synergies...</p>';
+    synergiesDisplay.innerHTML =
+        synergies.length > 0
+            ? `<h4>🔗 Synergies Found:</h4><ul>${synergies.map(s => `<li>${s}</li>`).join('')}</ul>`
+            : '<p>Select character, weapon, and items to see synergies...</p>';
 
     // Update URL with current build
     updateBuildURL();
@@ -245,15 +259,18 @@ function exportBuild() {
         character: currentBuild.character?.id,
         weapon: currentBuild.weapon?.id,
         tomes: currentBuild.tomes.map(t => t.id),
-        items: currentBuild.items.map(i => i.id)
+        items: currentBuild.items.map(i => i.id),
     });
 
-    navigator.clipboard.writeText(buildCode).then(() => {
-        ToastManager.success('Build code copied to clipboard!');
-    }).catch(err => {
-        ToastManager.error(`Failed to copy to clipboard: ${err.message}`);
-        console.error('Clipboard error:', err);
-    });
+    navigator.clipboard
+        .writeText(buildCode)
+        .then(() => {
+            ToastManager.success('Build code copied to clipboard!');
+        })
+        .catch(err => {
+            ToastManager.error(`Failed to copy to clipboard: ${err.message}`);
+            console.error('Clipboard error:', err);
+        });
 }
 
 /**
@@ -264,7 +281,7 @@ function shareBuildURL() {
         c: currentBuild.character?.id,
         w: currentBuild.weapon?.id,
         t: currentBuild.tomes.map(t => t.id),
-        i: currentBuild.items.map(i => i.id)
+        i: currentBuild.items.map(i => i.id),
     };
 
     // Remove empty fields
@@ -276,12 +293,15 @@ function shareBuildURL() {
     const encoded = btoa(JSON.stringify(buildData));
     const url = `${window.location.origin}${window.location.pathname}#build=${encoded}`;
 
-    navigator.clipboard.writeText(url).then(() => {
-        ToastManager.success('Build link copied to clipboard! Share it with friends.');
-    }).catch(err => {
-        ToastManager.error(`Failed to copy link: ${err.message}`);
-        console.error('Clipboard error:', err);
-    });
+    navigator.clipboard
+        .writeText(url)
+        .then(() => {
+            ToastManager.success('Build link copied to clipboard! Share it with friends.');
+        })
+        .catch(err => {
+            ToastManager.error(`Failed to copy link: ${err.message}`);
+            console.error('Clipboard error:', err);
+        });
 }
 
 /**
@@ -315,9 +335,7 @@ function loadBuildFromURL() {
 
         // Load tomes
         if (decoded.t && Array.isArray(decoded.t) && allData.tomes) {
-            currentBuild.tomes = decoded.t
-                .map(id => allData.tomes.tomes.find(t => t.id === id))
-                .filter(Boolean);
+            currentBuild.tomes = decoded.t.map(id => allData.tomes.tomes.find(t => t.id === id)).filter(Boolean);
             currentBuild.tomes.forEach(tome => {
                 const checkbox = document.querySelector(`.tome-checkbox[value="${tome.id}"]`);
                 if (checkbox) checkbox.checked = true;
@@ -326,9 +344,7 @@ function loadBuildFromURL() {
 
         // Load items
         if (decoded.i && Array.isArray(decoded.i) && allData.items) {
-            currentBuild.items = decoded.i
-                .map(id => allData.items.items.find(item => item.id === id))
-                .filter(Boolean);
+            currentBuild.items = decoded.i.map(id => allData.items.items.find(item => item.id === id)).filter(Boolean);
             currentBuild.items.forEach(item => {
                 const checkbox = document.querySelector(`.item-checkbox[value="${item.id}"]`);
                 if (checkbox) checkbox.checked = true;
@@ -349,8 +365,12 @@ function loadBuildFromURL() {
  * Update URL with current build (without page reload)
  */
 function updateBuildURL() {
-    if (!currentBuild.character && !currentBuild.weapon &&
-        currentBuild.tomes.length === 0 && currentBuild.items.length === 0) {
+    if (
+        !currentBuild.character &&
+        !currentBuild.weapon &&
+        currentBuild.tomes.length === 0 &&
+        currentBuild.items.length === 0
+    ) {
         // Empty build, remove hash
         if (window.location.hash) {
             history.replaceState(null, '', window.location.pathname);
@@ -362,7 +382,7 @@ function updateBuildURL() {
         c: currentBuild.character?.id,
         w: currentBuild.weapon?.id,
         t: currentBuild.tomes.map(t => t.id),
-        i: currentBuild.items.map(i => i.id)
+        i: currentBuild.items.map(i => i.id),
     };
 
     // Remove empty fields
@@ -375,7 +395,6 @@ function updateBuildURL() {
     history.replaceState(null, '', `#build=${encoded}`);
 }
 
-
 /**
  * Clear the current build
  */
@@ -383,8 +402,8 @@ function clearBuild() {
     currentBuild = { character: null, weapon: null, tomes: [], items: [] };
     safeSetValue('build-character', '');
     safeSetValue('build-weapon', '');
-    safeQuerySelectorAll('.tome-checkbox').forEach(cb => cb.checked = false);
-    safeQuerySelectorAll('.item-checkbox').forEach(cb => cb.checked = false);
+    safeQuerySelectorAll('.tome-checkbox').forEach(cb => (cb.checked = false));
+    safeQuerySelectorAll('.item-checkbox').forEach(cb => (cb.checked = false));
     updateBuildAnalysis();
 }
 

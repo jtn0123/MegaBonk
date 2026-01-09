@@ -32,7 +32,7 @@ function toggleTextExpand(element) {
  */
 function setupEventDelegation() {
     // Bug fix: Add keyboard event handler for breakpoint cards and Escape key for modals
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', e => {
         // Escape key closes modals
         if (e.key === 'Escape') {
             closeModal();
@@ -62,13 +62,13 @@ function setupEventDelegation() {
                 return;
             }
             const tabMap = {
-                '1': 'items',
-                '2': 'weapons',
-                '3': 'tomes',
-                '4': 'characters',
-                '5': 'shrines',
-                '6': 'build-planner',
-                '7': 'calculator'
+                1: 'items',
+                2: 'weapons',
+                3: 'tomes',
+                4: 'characters',
+                5: 'shrines',
+                6: 'build-planner',
+                7: 'calculator',
             };
             const tabName = tabMap[e.key];
             if (tabName && typeof switchTab === 'function') {
@@ -96,7 +96,7 @@ function setupEventDelegation() {
     });
 
     // Main click delegation
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', e => {
         const target = e.target;
 
         // View Details button
@@ -120,7 +120,9 @@ function setupEventDelegation() {
 
         // Expandable text
         if (target.classList.contains('expandable-text') || target.closest('.expandable-text')) {
-            const expandable = target.classList.contains('expandable-text') ? target : target.closest('.expandable-text');
+            const expandable = target.classList.contains('expandable-text')
+                ? target
+                : target.closest('.expandable-text');
             if (expandable) {
                 toggleTextExpand(expandable);
             }
@@ -129,7 +131,9 @@ function setupEventDelegation() {
 
         // Remove from comparison button
         if (target.classList.contains('remove-compare-btn') || target.closest('.remove-compare-btn')) {
-            const btn = target.classList.contains('remove-compare-btn') ? target : target.closest('.remove-compare-btn');
+            const btn = target.classList.contains('remove-compare-btn')
+                ? target
+                : target.closest('.remove-compare-btn');
             const id = btn?.dataset.removeId;
             if (id) {
                 toggleCompareItem(id);
@@ -197,7 +201,7 @@ function setupEventDelegation() {
     });
 
     // Change event delegation for checkboxes in build planner
-    document.addEventListener('change', (e) => {
+    document.addEventListener('change', e => {
         const target = e.target;
 
         // Tome checkbox in build planner
@@ -241,6 +245,13 @@ function setupEventListeners() {
     const searchInput = safeGetElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', debounce(handleSearch, 300));
+
+        // Show search history on focus
+        searchInput.addEventListener('focus', () => {
+            if (typeof showSearchHistoryDropdown === 'function') {
+                showSearchHistoryDropdown(searchInput);
+            }
+        });
     }
 
     // Modal close buttons
@@ -258,7 +269,7 @@ function setupEventListeners() {
     }
 
     // Click outside modal to close
-    window.addEventListener('click', (e) => {
+    window.addEventListener('click', e => {
         const itemModal = safeGetElementById('itemModal');
         const compareModal = safeGetElementById('compareModal');
         if (e.target === itemModal) closeModal();

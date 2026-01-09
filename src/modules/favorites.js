@@ -10,7 +10,7 @@ let favorites = {
     weapons: [],
     tomes: [],
     characters: [],
-    shrines: []
+    shrines: [],
 };
 
 /**
@@ -94,7 +94,7 @@ function clearAllFavorites() {
         weapons: [],
         tomes: [],
         characters: [],
-        shrines: []
+        shrines: [],
     };
     saveFavorites();
     if (typeof ToastManager !== 'undefined') {

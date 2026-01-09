@@ -4,20 +4,20 @@
 
 // Tier ordering for sorting (lower = better)
 const TIER_ORDER = {
-    'SS': 0,
-    'S': 1,
-    'A': 2,
-    'B': 3,
-    'C': 4
+    SS: 0,
+    S: 1,
+    A: 2,
+    B: 3,
+    C: 4,
 };
 
 // Rarity ordering for sorting (lower = rarer)
 const RARITY_ORDER = {
-    'legendary': 0,
-    'epic': 1,
-    'rare': 2,
-    'uncommon': 3,
-    'common': 4
+    legendary: 0,
+    epic: 1,
+    rare: 2,
+    uncommon: 3,
+    common: 4,
 };
 
 // Item IDs used in build calculations
@@ -34,7 +34,7 @@ const ITEM_IDS = {
     BEEFY_RING: 'beefy_ring',
     LEECHING_CRYSTAL: 'leeching_crystal',
     BRASS_KNUCKLES: 'brass_knuckles',
-    BOSS_BUSTER: 'boss_buster'
+    BOSS_BUSTER: 'boss_buster',
 };
 
 // Item stat effects for build calculator
@@ -52,7 +52,7 @@ const ITEM_EFFECTS = {
     [ITEM_IDS.BEEFY_RING]: { stat: 'damage', value: 20, type: 'hp_percent' },
     [ITEM_IDS.LEECHING_CRYSTAL]: { stat: 'hp', value: 1.5, type: 'multiply' },
     [ITEM_IDS.BRASS_KNUCKLES]: { stat: 'damage', value: 20, type: 'add' },
-    [ITEM_IDS.BOSS_BUSTER]: { stat: 'damage', value: 15, type: 'add' }
+    [ITEM_IDS.BOSS_BUSTER]: { stat: 'damage', value: 15, type: 'add' },
 };
 
 // Default stat values for build calculator
@@ -65,7 +65,7 @@ const DEFAULT_BUILD_STATS = {
     movement_speed: 100,
     armor: 0,
     evasion_internal: 0,
-    projectiles: 1
+    projectiles: 1,
 };
 
 // Bug fix #14: Define magic numbers as constants

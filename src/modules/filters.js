@@ -2,6 +2,185 @@
 // MegaBonk Filters Module
 // ========================================
 
+// ========================================
+// Search History Management
+// ========================================
+
+const SEARCH_HISTORY_KEY = 'megabonk_search_history';
+const MAX_SEARCH_HISTORY = 10;
+
+/**
+ * Get search history from localStorage
+ * @returns {Array<string>} Search history array
+ */
+function getSearchHistory() {
+    try {
+        const history = localStorage.getItem(SEARCH_HISTORY_KEY);
+        return history ? JSON.parse(history) : [];
+    } catch (error) {
+        console.error('[Search History] Failed to load:', error);
+        return [];
+    }
+}
+
+/**
+ * Add search term to history
+ * @param {string} term - Search term to add
+ */
+function addToSearchHistory(term) {
+    if (!term || term.trim().length < 2) return;
+
+    try {
+        let history = getSearchHistory();
+
+        // Remove duplicates and add to front
+        history = history.filter(item => item !== term);
+        history.unshift(term);
+
+        // Keep only MAX_SEARCH_HISTORY items
+        history = history.slice(0, MAX_SEARCH_HISTORY);
+
+        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+    } catch (error) {
+        console.error('[Search History] Failed to save:', error);
+    }
+}
+
+/**
+ * Clear search history
+ */
+function clearSearchHistory() {
+    try {
+        localStorage.removeItem(SEARCH_HISTORY_KEY);
+        console.log('[Search History] Cleared');
+    } catch (error) {
+        console.error('[Search History] Failed to clear:', error);
+    }
+}
+
+// ========================================
+// Fuzzy Search Algorithm
+// ========================================
+
+/**
+ * Calculate fuzzy match score between search term and text
+ * @param {string} searchTerm - Search term
+ * @param {string} text - Text to search in
+ * @returns {number} Match score (higher is better, 0 = no match)
+ */
+function fuzzyMatchScore(searchTerm, text) {
+    if (!searchTerm || !text) return 0;
+
+    searchTerm = searchTerm.toLowerCase();
+    text = text.toLowerCase();
+
+    // Exact match gets highest score
+    if (text.includes(searchTerm)) {
+        return 1000;
+    }
+
+    // Calculate fuzzy match score
+    let score = 0;
+    let searchIndex = 0;
+    let consecutiveMatches = 0;
+
+    for (let i = 0; i < text.length && searchIndex < searchTerm.length; i++) {
+        if (text[i] === searchTerm[searchIndex]) {
+            score += 1 + consecutiveMatches;
+            consecutiveMatches++;
+            searchIndex++;
+        } else {
+            consecutiveMatches = 0;
+        }
+    }
+
+    // Return 0 if not all characters matched
+    if (searchIndex !== searchTerm.length) {
+        return 0;
+    }
+
+    return score;
+}
+
+// ========================================
+// Advanced Search Syntax Parser
+// ========================================
+
+/**
+ * Parse advanced search syntax
+ * Examples: "tier:SS damage:>100 stacks_well:true fire"
+ * @param {string} query - Search query
+ * @returns {Object} Parsed search criteria
+ */
+function parseAdvancedSearch(query) {
+    const criteria = {
+        text: [],
+        filters: {},
+    };
+
+    if (!query) return criteria;
+
+    // Split by spaces but preserve quoted strings
+    const tokens = query.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+
+    tokens.forEach(token => {
+        // Remove quotes if present
+        token = token.replace(/^"(.*)"$/, '$1');
+
+        // Check if it's a filter syntax (key:value)
+        const filterMatch = token.match(/^(\w+):([\w><=!]+)$/);
+
+        if (filterMatch) {
+            const [, key, value] = filterMatch;
+            criteria.filters[key] = value;
+        } else {
+            // Regular search term
+            criteria.text.push(token);
+        }
+    });
+
+    return criteria;
+}
+
+/**
+ * Apply advanced filter criteria to an item
+ * @param {Object} item - Item to check
+ * @param {Object} filters - Filter criteria
+ * @returns {boolean} True if item matches all filters
+ */
+function matchesAdvancedFilters(item, filters) {
+    for (const [key, value] of Object.entries(filters)) {
+        const itemValue = item[key];
+
+        // Handle comparison operators
+        if (value.startsWith('>')) {
+            const threshold = parseFloat(value.substring(1));
+            if (isNaN(threshold) || parseFloat(itemValue) <= threshold) return false;
+        } else if (value.startsWith('<')) {
+            const threshold = parseFloat(value.substring(1));
+            if (isNaN(threshold) || parseFloat(itemValue) >= threshold) return false;
+        } else if (value.startsWith('>=')) {
+            const threshold = parseFloat(value.substring(2));
+            if (isNaN(threshold) || parseFloat(itemValue) < threshold) return false;
+        } else if (value.startsWith('<=')) {
+            const threshold = parseFloat(value.substring(2));
+            if (isNaN(threshold) || parseFloat(itemValue) > threshold) return false;
+        } else if (value.startsWith('!')) {
+            // Not equal
+            if (String(itemValue).toLowerCase() === value.substring(1).toLowerCase()) return false;
+        } else {
+            // Exact match (case insensitive)
+            if (String(itemValue).toLowerCase() !== value.toLowerCase()) return false;
+        }
+    }
+
+    return true;
+}
+
+// ========================================
+// Filter UI
+// ========================================
+
 /**
  * Update filter dropdowns based on active tab
  * @param {string} tabName - Current tab name
@@ -116,17 +295,42 @@ function updateFilters(tabName) {
 function filterData(data, tabName) {
     let filtered = [...data];
     // Bug fix #12: Complete optional chaining to handle null element AND null value
-    const searchTerm = safeGetElementById('searchInput')?.value?.toLowerCase() || '';
+    const searchQuery = safeGetElementById('searchInput')?.value || '';
 
-    // Search filter
-    // Bug fix: Handle null item.name to prevent "null" string in searchable text
-    filtered = filtered.filter(item => {
-        const name = item.name || '';
-        const description = item.description || '';
-        const baseEffect = item.base_effect || '';
-        const searchable = `${name} ${description} ${baseEffect}`.toLowerCase();
-        return searchable.includes(searchTerm);
-    });
+    // Advanced search with fuzzy matching and syntax parsing
+    if (searchQuery.trim()) {
+        const criteria = parseAdvancedSearch(searchQuery);
+
+        // Apply text search (fuzzy if enabled, exact otherwise)
+        if (criteria.text.length > 0) {
+            const searchTerm = criteria.text.join(' ').toLowerCase();
+
+            filtered = filtered
+                .map(item => {
+                    const name = item.name || '';
+                    const description = item.description || '';
+                    const baseEffect = item.base_effect || '';
+                    const searchable = `${name} ${description} ${baseEffect}`;
+
+                    // Try exact match first
+                    if (searchable.toLowerCase().includes(searchTerm)) {
+                        return { item, score: 1000 };
+                    }
+
+                    // Try fuzzy match
+                    const score = fuzzyMatchScore(searchTerm, searchable);
+                    return { item, score };
+                })
+                .filter(result => result.score > 0)
+                .sort((a, b) => b.score - a.score)
+                .map(result => result.item);
+        }
+
+        // Apply advanced filter criteria (tier:SS, damage:>100, etc.)
+        if (Object.keys(criteria.filters).length > 0) {
+            filtered = filtered.filter(item => matchesAdvancedFilters(item, criteria.filters));
+        }
+    }
 
     // Favorites filter
     const favoritesOnly = safeGetElementById('favoritesOnly')?.checked;
@@ -175,7 +379,7 @@ function filterData(data, tabName) {
         // Changelog date sorting
         // Bug fix: Handle invalid dates by putting them at the end
         const sortBy = safeGetElementById('sortBy')?.value;
-        const getDateValue = (dateStr) => {
+        const getDateValue = dateStr => {
             const d = new Date(dateStr);
             return isNaN(d.getTime()) ? (sortBy === 'date_asc' ? Infinity : -Infinity) : d.getTime();
         };
@@ -201,6 +405,14 @@ function filterData(data, tabName) {
  * Handle search input
  */
 function handleSearch() {
+    const searchInput = safeGetElementById('searchInput');
+    const searchQuery = searchInput?.value || '';
+
+    // Save to search history if query is substantial
+    if (searchQuery.trim().length >= 2) {
+        addToSearchHistory(searchQuery.trim());
+    }
+
     renderTabContent(currentTab);
 }
 
@@ -218,6 +430,78 @@ function clearFilters() {
     renderTabContent(currentTab);
 }
 
+/**
+ * Show search history dropdown
+ * @param {HTMLInputElement} searchInput - Search input element
+ */
+function showSearchHistoryDropdown(searchInput) {
+    const history = getSearchHistory();
+    if (history.length === 0) return;
+
+    // Remove existing dropdown if any
+    const existingDropdown = document.querySelector('.search-history-dropdown');
+    if (existingDropdown) {
+        existingDropdown.remove();
+    }
+
+    // Create dropdown
+    const dropdown = document.createElement('div');
+    dropdown.className = 'search-history-dropdown';
+    dropdown.innerHTML = `
+        <div class="search-history-header">
+            <span>Recent Searches</span>
+            <button class="clear-history-btn" aria-label="Clear search history">Clear</button>
+        </div>
+        <ul class="search-history-list">
+            ${history
+                .map(
+                    term => `
+                <li class="search-history-item" data-term="${term.replace(/"/g, '&quot;')}">
+                    ${term}
+                </li>
+            `
+                )
+                .join('')}
+        </ul>
+    `;
+
+    // Position dropdown
+    const searchBox = searchInput.parentElement;
+    searchBox.style.position = 'relative';
+    searchBox.appendChild(dropdown);
+
+    // Event listeners
+    dropdown.querySelector('.clear-history-btn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        clearSearchHistory();
+        dropdown.remove();
+    });
+
+    dropdown.querySelectorAll('.search-history-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const term = item.getAttribute('data-term');
+            if (term && searchInput) {
+                searchInput.value = term;
+                handleSearch();
+                dropdown.remove();
+            }
+        });
+    });
+
+    // Close dropdown when clicking outside
+    setTimeout(() => {
+        document.addEventListener(
+            'click',
+            e => {
+                if (!dropdown.contains(e.target) && e.target !== searchInput) {
+                    dropdown.remove();
+                }
+            },
+            { once: true }
+        );
+    }, 0);
+}
+
 // ========================================
 // Expose to global scope
 // ========================================
@@ -226,3 +510,9 @@ window.updateFilters = updateFilters;
 window.filterData = filterData;
 window.handleSearch = handleSearch;
 window.clearFilters = clearFilters;
+window.getSearchHistory = getSearchHistory;
+window.addToSearchHistory = addToSearchHistory;
+window.clearSearchHistory = clearSearchHistory;
+window.showSearchHistoryDropdown = showSearchHistoryDropdown;
+window.fuzzyMatchScore = fuzzyMatchScore;
+window.parseAdvancedSearch = parseAdvancedSearch;

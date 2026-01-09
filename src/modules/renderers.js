@@ -47,11 +47,21 @@ function renderTabContent(tabName) {
 
     // Render based on type
     switch (tabName) {
-        case 'items': renderItems(filtered); break;
-        case 'weapons': renderWeapons(filtered); break;
-        case 'tomes': renderTomes(filtered); break;
-        case 'characters': renderCharacters(filtered); break;
-        case 'shrines': renderShrines(filtered); break;
+        case 'items':
+            renderItems(filtered);
+            break;
+        case 'weapons':
+            renderWeapons(filtered);
+            break;
+        case 'tomes':
+            renderTomes(filtered);
+            break;
+        case 'characters':
+            renderCharacters(filtered);
+            break;
+        case 'shrines':
+            renderShrines(filtered);
+            break;
     }
 }
 
@@ -82,9 +92,8 @@ function updateStats(filtered, tabName) {
         `;
     } else {
         // Bug fix: Handle empty tabName to prevent errors
-        const categoryName = tabName && tabName.length > 0
-            ? tabName.charAt(0).toUpperCase() + tabName.slice(1)
-            : 'Items';
+        const categoryName =
+            tabName && tabName.length > 0 ? tabName.charAt(0).toUpperCase() + tabName.slice(1) : 'Items';
         statsPanel.innerHTML = `
             <h2>📊 Quick Stats</h2>
             <div class="stats-grid">
@@ -116,22 +125,24 @@ function renderItems(items) {
         card.dataset.entityType = 'item';
         card.dataset.entityId = item.id;
 
-        const stackIcon = item.one_and_done ? '✓' : (item.stacks_well ? '∞' : '~');
-        const stackText = item.one_and_done ? 'One-and-Done' : (item.stacks_well ? 'Stacks Well' : 'Limited');
+        const stackIcon = item.one_and_done ? '✓' : item.stacks_well ? '∞' : '~';
+        const stackText = item.one_and_done ? 'One-and-Done' : item.stacks_well ? 'Stacks Well' : 'Limited';
         const imageHtml = generateEntityImage(item, item.name);
 
         // Determine if this item should show a scaling graph
         const showGraph = item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat';
-        const graphHtml = showGraph ? `
+        const graphHtml = showGraph
+            ? `
             <div class="item-graph-container">
                 <canvas id="chart-${item.id}" class="scaling-chart"></canvas>
             </div>
-        ` : '';
+        `
+            : '';
 
         // Handle expandable description
         const { html: descHtml, needsExpand, fullText } = truncateText(item.detailed_description, 120);
 
-        const isFav = (typeof isFavorite === 'function') ? isFavorite('items', item.id) : false;
+        const isFav = typeof isFavorite === 'function' ? isFavorite('items', item.id) : false;
         card.innerHTML = `
             <div class="item-header">
                 ${imageHtml}
@@ -192,7 +203,7 @@ function renderWeapons(weapons) {
         card.dataset.entityId = weapon.id;
 
         const imageHtml = generateEntityImage(weapon, weapon.name);
-        const isFav = (typeof isFavorite === 'function') ? isFavorite('weapons', weapon.id) : false;
+        const isFav = typeof isFavorite === 'function' ? isFavorite('weapons', weapon.id) : false;
 
         card.innerHTML = `
             <div class="item-header">
@@ -239,15 +250,17 @@ function renderTomes(tomes) {
         card.dataset.entityId = tome.id;
 
         const imageHtml = generateEntityImage(tome, tome.name);
-        const isFav = (typeof isFavorite === 'function') ? isFavorite('tomes', tome.id) : false;
+        const isFav = typeof isFavorite === 'function' ? isFavorite('tomes', tome.id) : false;
 
         // Check if we can calculate progression for this tome
         const progression = calculateTomeProgression(tome);
-        const graphHtml = progression ? `
+        const graphHtml = progression
+            ? `
             <div class="tome-graph-container">
                 <canvas id="tome-chart-${tome.id}" class="scaling-chart"></canvas>
             </div>
-        ` : '';
+        `
+            : '';
 
         card.innerHTML = `
             <div class="item-header">
@@ -295,7 +308,7 @@ function renderCharacters(characters) {
         card.dataset.entityId = char.id;
 
         const imageHtml = generateEntityImage(char, char.name);
-        const isFav = (typeof isFavorite === 'function') ? isFavorite('characters', char.id) : false;
+        const isFav = typeof isFavorite === 'function' ? isFavorite('characters', char.id) : false;
 
         card.innerHTML = `
             <div class="item-header">
@@ -342,7 +355,7 @@ function renderShrines(shrines) {
         card.dataset.entityType = 'shrine';
         card.dataset.entityId = shrine.id;
 
-        const isFav = (typeof isFavorite === 'function') ? isFavorite('shrines', shrine.id) : false;
+        const isFav = typeof isFavorite === 'function' ? isFavorite('shrines', shrine.id) : false;
 
         card.innerHTML = `
             <div class="item-header">

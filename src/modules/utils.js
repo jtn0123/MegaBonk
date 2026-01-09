@@ -156,7 +156,7 @@ function truncateText(text, maxLength = 120) {
     return {
         html: text.substring(0, maxLength) + '...',
         needsExpand: true,
-        fullText: text
+        fullText: text,
     };
 }
 
