@@ -2,6 +2,8 @@
 // MegaBonk Utilities Module
 // ========================================
 
+import { TIER_ORDER, RARITY_ORDER } from './constants.js';
+
 // ========================================
 // Null-Safe DOM Helpers
 // ========================================
@@ -12,7 +14,7 @@
  * @param {*} fallback - Fallback value if element not found
  * @returns {HTMLElement|null} Element or fallback
  */
-function safeGetElementById(id, fallback = null) {
+export function safeGetElementById(id, fallback = null) {
     return document.getElementById(id) || fallback;
 }
 
@@ -23,7 +25,7 @@ function safeGetElementById(id, fallback = null) {
  * @param {*} fallback - Fallback value if element not found
  * @returns {HTMLElement|null} Element or fallback
  */
-function safeQuerySelector(selector, context = document, fallback = null) {
+export function safeQuerySelector(selector, context = document, fallback = null) {
     return context.querySelector(selector) || fallback;
 }
 
@@ -33,7 +35,7 @@ function safeQuerySelector(selector, context = document, fallback = null) {
  * @param {HTMLElement} context - Context element (defaults to document)
  * @returns {NodeList} NodeList (empty if none found)
  */
-function safeQuerySelectorAll(selector, context = document) {
+export function safeQuerySelectorAll(selector, context = document) {
     return context.querySelectorAll(selector);
 }
 
@@ -42,7 +44,7 @@ function safeQuerySelectorAll(selector, context = document) {
  * @param {string} id - Element ID
  * @param {*} value - Value to set
  */
-function safeSetValue(id, value) {
+export function safeSetValue(id, value) {
     const el = document.getElementById(id);
     if (el) el.value = value;
 }
@@ -52,7 +54,7 @@ function safeSetValue(id, value) {
  * @param {string} id - Element ID
  * @param {string} html - HTML content
  */
-function safeSetHTML(id, html) {
+export function safeSetHTML(id, html) {
     const el = document.getElementById(id);
     if (el) el.innerHTML = html;
 }
@@ -69,7 +71,7 @@ function safeSetHTML(id, html) {
  * @param {string} className - CSS class name
  * @returns {string} HTML string with <picture> element
  */
-function generateResponsiveImage(imagePath, altText, className = 'entity-image') {
+export function generateResponsiveImage(imagePath, altText, className = 'entity-image') {
     if (!imagePath) return '';
 
     // Convert .png/.jpg to .webp path
@@ -89,7 +91,7 @@ function generateResponsiveImage(imagePath, altText, className = 'entity-image')
  * @param {string} className - CSS class name (default: 'entity-image')
  * @returns {string} HTML string for the image or empty string
  */
-function generateEntityImage(entity, altText, className = 'entity-image') {
+export function generateEntityImage(entity, altText, className = 'entity-image') {
     if (!entity || !entity.image) return '';
     return generateResponsiveImage(entity.image, altText, className);
 }
@@ -101,7 +103,7 @@ function generateEntityImage(entity, altText, className = 'entity-image') {
  * @param {string} type - Entity type for class naming
  * @returns {string} HTML string
  */
-function generateModalImage(entity, altText, type) {
+export function generateModalImage(entity, altText, type) {
     if (!entity || !entity.image) return '';
     return generateResponsiveImage(entity.image, altText, `modal-${type}-image`);
 }
@@ -116,7 +118,7 @@ function generateModalImage(entity, altText, type) {
  * @param {string} entityType - Type of entity (Items, Weapons, etc.)
  * @returns {string} HTML string for empty state
  */
-function generateEmptyState(icon, entityType) {
+export function generateEmptyState(icon, entityType) {
     return `
         <div class="empty-state">
             <div class="empty-icon">${icon}</div>
@@ -137,7 +139,7 @@ function generateEmptyState(icon, entityType) {
  * @param {string} sortBy - Field to sort by ('name', 'tier', 'rarity')
  * @returns {Array} Sorted array (mutates original)
  */
-function sortData(data, sortBy) {
+export function sortData(data, sortBy) {
     if (sortBy === 'name') {
         return data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
     } else if (sortBy === 'tier') {
@@ -157,7 +159,7 @@ function sortData(data, sortBy) {
  * @param {string} text - Text to escape
  * @returns {string} Escaped text
  */
-function escapeHtml(text) {
+export function escapeHtml(text) {
     if (!text) return '';
     const div = document.createElement('div');
     div.textContent = text;
@@ -170,7 +172,7 @@ function escapeHtml(text) {
  * @param {number} maxLength - Maximum length before truncation
  * @returns {Object} {html, needsExpand, fullText}
  */
-function truncateText(text, maxLength = 120) {
+export function truncateText(text, maxLength = 120) {
     if (!text || text.length <= maxLength) {
         return { html: text || '', needsExpand: false, fullText: text || '' };
     }
@@ -187,7 +189,7 @@ function truncateText(text, maxLength = 120) {
  * @param {number} maxLength - Max length before truncating
  * @returns {string} HTML string with expand functionality
  */
-function generateExpandableText(text, maxLength = 120) {
+export function generateExpandableText(text, maxLength = 120) {
     const { html, needsExpand, fullText } = truncateText(text, maxLength);
 
     if (!needsExpand) {
@@ -214,7 +216,7 @@ function generateExpandableText(text, maxLength = 120) {
  * @param {string} tier - Tier value (SS, S, A, B, C)
  * @returns {string} HTML string
  */
-function generateTierLabel(tier) {
+export function generateTierLabel(tier) {
     return `<span class="tier-label">${tier} Tier</span>`;
 }
 
@@ -224,7 +226,7 @@ function generateTierLabel(tier) {
  * @param {string} className - Additional CSS class
  * @returns {string} HTML string
  */
-function generateBadge(text, className = '') {
+export function generateBadge(text, className = '') {
     return `<span class="badge ${className}">${text}</span>`;
 }
 
@@ -234,7 +236,7 @@ function generateBadge(text, className = '') {
  * @param {number} limit - Max number of tags to show
  * @returns {string} HTML string
  */
-function generateMetaTags(tags, limit = 0) {
+export function generateMetaTags(tags, limit = 0) {
     if (!tags || !tags.length) return '';
     const displayTags = limit > 0 ? tags.slice(0, limit) : tags;
     return displayTags.map(tag => `<span class="meta-tag">${tag}</span>`).join(' ');
@@ -251,7 +253,7 @@ function generateMetaTags(tags, limit = 0) {
  * @param {string} id - Entity ID to find
  * @returns {Object|undefined} Found entity or undefined
  */
-function findEntityById(dataCollection, key, id) {
+export function findEntityById(dataCollection, key, id) {
     return dataCollection?.[key]?.find(e => e.id === id);
 }
 
@@ -265,7 +267,7 @@ function findEntityById(dataCollection, key, id) {
  * @param {string} url - URL to validate
  * @returns {boolean} True if URL is safe for external linking
  */
-function isValidExternalUrl(url) {
+export function isValidExternalUrl(url) {
     if (!url || typeof url !== 'string') return false;
     try {
         const parsed = new URL(url);
@@ -286,34 +288,10 @@ function isValidExternalUrl(url) {
  * @param {number} delay - Delay in milliseconds
  * @returns {Function} Debounced function
  */
-function debounce(fn, delay) {
+export function debounce(fn, delay) {
     let timeoutId;
     return function (...args) {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => fn.apply(this, args), delay);
     };
 }
-
-// ========================================
-// Expose to global scope
-// ========================================
-
-window.safeGetElementById = safeGetElementById;
-window.safeQuerySelector = safeQuerySelector;
-window.safeQuerySelectorAll = safeQuerySelectorAll;
-window.safeSetValue = safeSetValue;
-window.safeSetHTML = safeSetHTML;
-window.generateResponsiveImage = generateResponsiveImage;
-window.generateEntityImage = generateEntityImage;
-window.generateModalImage = generateModalImage;
-window.generateEmptyState = generateEmptyState;
-window.sortData = sortData;
-window.escapeHtml = escapeHtml;
-window.truncateText = truncateText;
-window.generateExpandableText = generateExpandableText;
-window.generateTierLabel = generateTierLabel;
-window.generateBadge = generateBadge;
-window.generateMetaTags = generateMetaTags;
-window.findEntityById = findEntityById;
-window.isValidExternalUrl = isValidExternalUrl;
-window.debounce = debounce;

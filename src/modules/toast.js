@@ -6,7 +6,7 @@
  * Toast notification manager for user feedback
  * Replaces browser alert() with modern, styled notifications
  */
-const ToastManager = {
+export const ToastManager = {
     container: null,
 
     /**
@@ -100,9 +100,3 @@ const ToastManager = {
         this.show(message, 'error');
     },
 };
-
-// ========================================
-// Expose to global scope
-// ========================================
-
-window.ToastManager = ToastManager;

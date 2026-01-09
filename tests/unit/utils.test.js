@@ -2,141 +2,27 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
 import { createMockItem, createMockAllData } from '../helpers/mock-data.js';
 
-/**
- * Utils module functions for unit testing
- * Mirrors the implementation in src/modules/utils.js
- */
+// ✅ REFACTORED: Import functions directly from utils module instead of duplicating
+import {
+  safeGetElementById,
+  safeQuerySelector,
+  safeQuerySelectorAll,
+  escapeHtml,
+  truncateText,
+  generateExpandableText,
+  generateResponsiveImage,
+  generateEntityImage,
+  generateEmptyState,
+  sortData,
+  findEntityById,
+  generateTierLabel,
+  generateBadge,
+  generateMetaTags,
+  debounce,
+  isValidExternalUrl
+} from '../../src/modules/utils.js';
 
-// Tier and Rarity order constants
-const TIER_ORDER = { 'SS': 0, 'S': 1, 'A': 2, 'B': 3, 'C': 4 };
-const RARITY_ORDER = { 'legendary': 0, 'epic': 1, 'rare': 2, 'uncommon': 3, 'common': 4 };
-
-/**
- * Safely get element by ID with optional fallback
- */
-function safeGetElementById(id, fallback = null) {
-  return document.getElementById(id) || fallback;
-}
-
-/**
- * Safely query selector with optional fallback
- */
-function safeQuerySelector(selector, context = document, fallback = null) {
-  return context.querySelector(selector) || fallback;
-}
-
-/**
- * Safely query selector all
- */
-function safeQuerySelectorAll(selector, context = document) {
-  return context.querySelectorAll(selector);
-}
-
-/**
- * Escape HTML special characters
- */
-function escapeHtml(text) {
-  if (!text) return '';
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML.replace(/"/g, '&quot;');
-}
-
-/**
- * Truncate text with optional expand functionality data
- */
-function truncateText(text, maxLength = 120) {
-  if (!text || text.length <= maxLength) {
-    return { html: text || '', needsExpand: false, fullText: text || '' };
-  }
-  return {
-    html: text.substring(0, maxLength) + '...',
-    needsExpand: true,
-    fullText: text
-  };
-}
-
-/**
- * Generate expandable text HTML
- */
-function generateExpandableText(text, maxLength = 120) {
-  const { html, needsExpand, fullText } = truncateText(text, maxLength);
-
-  if (!needsExpand) {
-    return `<div class="item-description">${html}</div>`;
-  }
-
-  return `
-        <div class="item-description expandable-text"
-             data-full-text="${escapeHtml(fullText)}"
-             data-truncated="true"
-             onclick="toggleTextExpand(this)">
-            ${html}
-            <span class="expand-indicator">Click to expand</span>
-        </div>
-    `;
-}
-
-/**
- * Generate empty state HTML
- */
-function generateEmptyState(icon, entityType) {
-  return `
-        <div class="empty-state">
-            <div class="empty-icon">${icon}</div>
-            <h3>No ${entityType} Found</h3>
-            <p>Try adjusting your search or filter criteria.</p>
-            <button class="btn-secondary" onclick="clearFilters()">Clear Filters</button>
-        </div>
-    `;
-}
-
-/**
- * Sort data array by specified field
- */
-function sortData(data, sortBy) {
-  // Create a copy to avoid mutating original
-  const sortedData = [...data];
-
-  if (sortBy === 'name') {
-    return sortedData.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortBy === 'tier') {
-    return sortedData.sort((a, b) => (TIER_ORDER[a.tier] ?? 99) - (TIER_ORDER[b.tier] ?? 99));
-  } else if (sortBy === 'rarity') {
-    return sortedData.sort((a, b) => (RARITY_ORDER[a.rarity] ?? 99) - (RARITY_ORDER[b.rarity] ?? 99));
-  }
-  return sortedData;
-}
-
-/**
- * Find entity by ID in a data collection
- */
-function findEntityById(dataCollection, key, id) {
-  return dataCollection?.[key]?.find(e => e.id === id);
-}
-
-/**
- * Generate tier label HTML
- */
-function generateTierLabel(tier) {
-  return `<span class="tier-label">${tier} Tier</span>`;
-}
-
-/**
- * Generate badge HTML
- */
-function generateBadge(text, className = '') {
-  return `<span class="badge ${className}">${text}</span>`;
-}
-
-/**
- * Generate meta tags from array
- */
-function generateMetaTags(tags, limit = 0) {
-  if (!tags || !tags.length) return '';
-  const displayTags = limit > 0 ? tags.slice(0, limit) : tags;
-  return displayTags.map(tag => `<span class="meta-tag">${tag}</span>`).join(' ');
-}
+// ✅ All standalone function implementations removed - using direct imports instead
 
 describe('Utils Module', () => {
   beforeEach(() => {

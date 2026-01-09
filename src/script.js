@@ -2,22 +2,46 @@
 // MegaBonk Complete Guide - Main Script
 // ========================================
 // This file serves as the entry point and initializes all modules.
-// The functionality is split across:
-//   - modules/constants.js - Constants and configuration
-//   - modules/utils.js - Utility functions
-//   - modules/data-service.js - Data loading
-//   - modules/filters.js - Filtering and sorting
-//   - modules/charts.js - Chart.js integration
-//   - modules/renderers.js - Render functions
-//   - modules/modal.js - Modal dialogs
-//   - modules/build-planner.js - Build planner
-//   - modules/compare.js - Compare mode
-//   - modules/calculator.js - Breakpoint calculator
-//   - modules/events.js - Event handling
+// Uses ES6 modules for better code organization and tree-shaking.
 // ========================================
 
-// Global state
+// ========================================
+// ES Module Imports
+// ========================================
+
+// Core utilities (converted to ES modules)
+import { ToastManager } from './modules/toast.js';
+// Example imports (aliased with _ to avoid unused var warnings during migration)
+
+import { debounce as _debounce, escapeHtml as _escapeHtml } from './modules/utils.js';
+
+import {
+    TIER_ORDER as _TIER_ORDER,
+    RARITY_ORDER as _RARITY_ORDER,
+    MAX_COMPARE_ITEMS as _MAX_COMPARE_ITEMS,
+} from './modules/constants.js';
+
+// TODO: Complete module conversions and add imports for:
+// - modules/data-service.js - Data loading
+// - modules/filters.js - Filtering and sorting
+// - modules/charts.js - Chart.js integration
+// - modules/renderers.js - Render functions
+// - modules/modal.js - Modal dialogs
+// - modules/build-planner.js - Build planner
+// - modules/compare.js - Compare mode
+// - modules/calculator.js - Breakpoint calculator
+// - modules/events.js - Event handling
+
+// ========================================
+// Global State (to be refactored into state module)
+// ========================================
+
 let filteredData = [];
+
+// Expose to window for backwards compatibility during migration
+// TODO: Remove after all modules are converted
+window.ToastManager = ToastManager;
+window.filteredData = filteredData;
 
 /**
  * Setup global error tracking
@@ -30,7 +54,7 @@ function setupErrorTracking() {
             source,
             line: lineno,
             column: colno,
-            error
+            error,
         });
 
         // Show user-friendly error message
@@ -43,10 +67,10 @@ function setupErrorTracking() {
     };
 
     // Catch unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
+    window.addEventListener('unhandledrejection', event => {
         console.error('Unhandled promise rejection:', {
             reason: event.reason,
-            promise: event.promise
+            promise: event.promise,
         });
 
         // Show user-friendly error message
@@ -67,7 +91,7 @@ function setupOfflineIndicator() {
     const indicator = document.createElement('div');
     indicator.id = 'offline-indicator';
     indicator.className = 'offline-indicator';
-    indicator.innerHTML = '📡 You\'re offline - using cached data';
+    indicator.innerHTML = "📡 You're offline - using cached data";
     indicator.style.display = 'none';
     document.body.prepend(indicator);
 
@@ -91,7 +115,7 @@ function setupOfflineIndicator() {
     window.addEventListener('offline', () => {
         indicator.style.display = 'block';
         if (typeof ToastManager !== 'undefined') {
-            ToastManager.info('You\'re offline - using cached data');
+            ToastManager.info("You're offline - using cached data");
         }
     });
 
@@ -109,28 +133,34 @@ function setupUpdateNotification() {
     }
 
     // Listen for service worker updates
-    navigator.serviceWorker.register('./sw.js').then(registration => {
-        // Check for updates periodically (every hour)
-        setInterval(() => {
-            registration.update();
-        }, 60 * 60 * 1000);
+    navigator.serviceWorker
+        .register('./sw.js')
+        .then(registration => {
+            // Check for updates periodically (every hour)
+            setInterval(
+                () => {
+                    registration.update();
+                },
+                60 * 60 * 1000
+            );
 
-        // Listen for waiting service worker (new version available)
-        registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (!newWorker) return;
+            // Listen for waiting service worker (new version available)
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (!newWorker) return;
 
-            newWorker.addEventListener('statechange', () => {
-                // New service worker is waiting to activate
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                    // Show update notification
-                    showUpdateNotification(registration);
-                }
+                newWorker.addEventListener('statechange', () => {
+                    // New service worker is waiting to activate
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        // Show update notification
+                        showUpdateNotification(registration);
+                    }
+                });
             });
+        })
+        .catch(err => {
+            console.warn('Service worker registration failed:', err);
         });
-    }).catch(err => {
-        console.warn('Service worker registration failed:', err);
-    });
 }
 
 /**
@@ -195,15 +225,22 @@ function init() {
     setupUpdateNotification();
 
     // Load favorites from localStorage
-    if (typeof loadFavorites === 'function') {
-        loadFavorites();
+    // TODO: Convert favorites.js to ES module and import loadFavorites
+    if (typeof window.loadFavorites === 'function') {
+        window.loadFavorites();
     }
 
     // Setup event listeners
-    setupEventListeners();
+    // TODO: Convert events.js to ES module and import setupEventListeners
+    if (typeof window.setupEventListeners === 'function') {
+        window.setupEventListeners();
+    }
 
     // Load all game data
-    loadAllData();
+    // TODO: Convert data-service.js to ES module and import loadAllData
+    if (typeof window.loadAllData === 'function') {
+        window.loadAllData();
+    }
 }
 
 // Initialize when DOM is ready
