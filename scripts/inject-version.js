@@ -27,7 +27,7 @@ function injectVersion() {
     let swContent = fs.readFileSync(SW_FILE, 'utf-8');
 
     // Replace cache name with versioned name
-    const cacheNameRegex = /const CACHE_NAME = ['"]megabonk-guide-v[\d.]+['"]/;
+    const cacheNameRegex = /const CACHE_NAME = ['"]megabonk-guide-v[\d.\-]+['"]/;
     const newCacheName = `const CACHE_NAME = 'megabonk-guide-v${version}-${timestamp}'`;
 
     if (cacheNameRegex.test(swContent)) {

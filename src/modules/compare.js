@@ -4,7 +4,6 @@
 
 import { ToastManager } from './toast.js';
 import { allData } from './data-service.js';
-import { createCompareChart } from './charts.js';
 import { safeGetElementById } from './utils.js';
 // Compare mode state
 let compareItems = [];
@@ -53,7 +52,7 @@ export function updateCompareButton() {
 /**
  * Open the comparison modal
  */
-export function openCompareModal() {
+export async function openCompareModal() {
     if (compareItems.length < 2) {
         ToastManager.warning('Select at least 2 items to compare!');
         return;
@@ -176,6 +175,9 @@ export function openCompareModal() {
 
     // Initialize compare chart after DOM is ready
     if (chartableItems.length >= 2) {
+        // Dynamically import chart function only when needed
+        const { createCompareChart } = await import('./charts.js');
+
         setTimeout(() => {
             // Check if modal is still active and canvas exists before creating chart
             const modal = safeGetElementById('compareModal');
@@ -190,11 +192,17 @@ export function openCompareModal() {
 /**
  * Close compare modal with animation
  */
-export function closeCompareModal() {
+export async function closeCompareModal() {
     // Bug fix: Destroy compare chart before closing to prevent memory leak
-    if (typeof chartInstances !== 'undefined' && chartInstances['compare-scaling-chart']) {
-        chartInstances['compare-scaling-chart'].destroy();
-        delete chartInstances['compare-scaling-chart'];
+    // Dynamically import to access chartInstances
+    try {
+        const { chartInstances } = await import('./charts.js');
+        if (chartInstances && chartInstances['compare-scaling-chart']) {
+            chartInstances['compare-scaling-chart'].destroy();
+            delete chartInstances['compare-scaling-chart'];
+        }
+    } catch (err) {
+        // Chart module not loaded yet, nothing to clean up
     }
 
     const modal = safeGetElementById('compareModal');
