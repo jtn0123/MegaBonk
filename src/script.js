@@ -15,6 +15,10 @@ import { loadAllData } from './modules/data-service.js';
 import { loadFavorites } from './modules/favorites.js';
 import { setupEventListeners, setupEventDelegation } from './modules/events.js';
 import { domCache } from './modules/dom-cache.js';
+import { safeModuleInit, registerErrorBoundary } from './modules/error-boundary.js';
+import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.js';
+import { themeManager } from './modules/theme-manager.js';
+import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.js';
 
 // ========================================
 // Global State (to be refactored into state module)
@@ -214,31 +218,111 @@ function showUpdateNotification(registration) {
 /**
  * Initialize the application
  */
-function init() {
-    // Setup error tracking first
+async function init() {
+    // Setup error tracking first (critical - no error boundary)
     setupErrorTracking();
 
-    // Setup offline indicator
-    setupOfflineIndicator();
+    // Initialize theme manager early (before any UI rendering)
+    await safeModuleInit(
+        'theme-manager',
+        async () => {
+            themeManager.init();
+        },
+        { required: false }
+    );
 
-    // Setup update notification
-    setupUpdateNotification();
+    // Register error boundaries for modules
+    registerErrorBoundary('dom-cache', () => {
+        console.warn('DOM cache failed, using direct DOM queries as fallback');
+    });
 
-    // Initialize DOM cache
-    domCache.init();
+    registerErrorBoundary('data-service', () => {
+        console.warn('Data service failed, showing error state');
+        ToastManager.error('Failed to load game data. Please refresh the page.');
+    });
 
-    // Initialize toast manager
-    ToastManager.init();
+    // Setup offline indicator (non-critical)
+    await safeModuleInit(
+        'offline-indicator',
+        async () => {
+            setupOfflineIndicator();
+        },
+        { required: false }
+    );
 
-    // Load favorites from localStorage
-    loadFavorites();
+    // Setup update notification (non-critical)
+    await safeModuleInit(
+        'update-notification',
+        async () => {
+            setupUpdateNotification();
+        },
+        { required: false }
+    );
 
-    // Setup event delegation and listeners
-    setupEventDelegation();
-    setupEventListeners();
+    // Initialize DOM cache (important but can degrade)
+    await safeModuleInit(
+        'dom-cache',
+        async () => {
+            domCache.init();
+        },
+        { required: false, gracefulDegradation: true }
+    );
 
-    // Load all game data
-    loadAllData();
+    // Initialize toast manager (important)
+    await safeModuleInit(
+        'toast-manager',
+        async () => {
+            ToastManager.init();
+        },
+        { required: true }
+    );
+
+    // Load favorites from localStorage (non-critical)
+    await safeModuleInit(
+        'favorites',
+        async () => {
+            loadFavorites();
+        },
+        { required: false }
+    );
+
+    // Setup event delegation and listeners (critical)
+    await safeModuleInit(
+        'event-system',
+        async () => {
+            setupEventDelegation();
+            setupEventListeners();
+        },
+        { required: true }
+    );
+
+    // Setup keyboard shortcuts (non-critical)
+    await safeModuleInit(
+        'keyboard-shortcuts',
+        async () => {
+            setupKeyboardShortcuts();
+        },
+        { required: false }
+    );
+
+    // Load all game data (critical)
+    await safeModuleInit(
+        'data-service',
+        async () => {
+            loadAllData();
+        },
+        { required: true }
+    );
+
+    // Initialize Web Vitals monitoring (non-critical)
+    await safeModuleInit(
+        'web-vitals',
+        async () => {
+            initWebVitals();
+            createPerformanceBadge();
+        },
+        { required: false }
+    );
 }
 
 // Initialize when DOM is ready

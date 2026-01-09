@@ -3,11 +3,60 @@
 // Uses Zod for schema validation and cross-reference checking
 // ========================================
 
-// Note: This file uses require() instead of import because the project is CommonJS
-// In a browser environment, Zod would be loaded via CDN or bundler
+import {
+    validateItems,
+    validateWeapons,
+    validateTomes,
+    validateCharacters,
+    validateShrines,
+    validateStats,
+} from './schema-validator.js';
 
 // ========================================
-// Validation Schemas (for build-time/node validation)
+// Zod Schema Validation (Runtime Type Safety)
+// ========================================
+
+/**
+ * Validate data using Zod schemas
+ * @param {*} data - Data to validate
+ * @param {string} type - Data type
+ * @returns {{valid: boolean, errors: Array<string>, data?: any}} Validation result
+ */
+export function validateWithZod(data, type) {
+    let result;
+
+    switch (type) {
+        case 'items':
+            result = validateItems(data);
+            break;
+        case 'weapons':
+            result = validateWeapons(data);
+            break;
+        case 'tomes':
+            result = validateTomes(data);
+            break;
+        case 'characters':
+            result = validateCharacters(data);
+            break;
+        case 'shrines':
+            result = validateShrines(data);
+            break;
+        case 'stats':
+            result = validateStats(data);
+            break;
+        default:
+            return { valid: false, errors: [`Unknown data type: ${type}`] };
+    }
+
+    if (result.success) {
+        return { valid: true, errors: [], data: result.data };
+    } else {
+        return { valid: false, errors: [result.error] };
+    }
+}
+
+// ========================================
+// Legacy Validation (Basic Structure Checks)
 // ========================================
 
 /**

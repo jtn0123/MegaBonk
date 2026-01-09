@@ -1,25 +1,136 @@
-name: Tests
+name: Test Suite
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop, 'claude/**']
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 jobs:
   unit-tests:
+    name: Unit Tests
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install
-      - run: bun run test:unit
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run unit tests
+        run: bun run test:unit
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          files: ./coverage/coverage-final.json
+          flags: unit
+          name: unit-tests
+        env:
+          CODECOV_TOKEN: \${{ secrets.CODECOV_TOKEN }}
 
   e2e-tests:
+    name: E2E Tests
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v2
-      - run: bun install
-      - run: bunx playwright install --with-deps chromium webkit
-      - run: bun run test:e2e
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps chromium webkit
+
+      - name: Build application
+        run: bun run build
+
+      - name: Run E2E tests
+        run: bun run test:e2e
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-results
+          path: test-results/
+          retention-days: 30
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run ESLint
+        run: bun run lint
+
+  build:
+    name: Production Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Build for production
+        run: bun run build
+
+      - name: Check bundle size
+        run: |
+          MAIN_SIZE=\$(stat -c%s dist/assets/main-*.js 2>/dev/null)
+          MAIN_SIZE_KB=\$((MAIN_SIZE / 1024))
+          echo "Main bundle size: \${MAIN_SIZE_KB}KB"
+          
+          if [ \$MAIN_SIZE_KB -gt 80 ]; then
+            echo "❌ Main bundle too large: \${MAIN_SIZE_KB}KB (max: 80KB)"
+            exit 1
+          fi
+          
+          echo "✅ Bundle size within limits"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
