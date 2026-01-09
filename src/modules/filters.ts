@@ -58,11 +58,15 @@ const FILTER_STATE_KEY = 'megabonk_filter_state';
 // Global Function Types (from window object)
 // ========================================
 
+// Note: TabName type includes all tabs (items, weapons, tomes, characters, shrines, build-planner, calculator)
+// while EntityType only includes entity tabs. Window.currentTab uses TabName to support all tabs.
+type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator';
+
 declare global {
     interface Window {
         isFavorite?: (tabName: EntityType, id: string) => boolean;
-        renderTabContent?: (tabName: EntityType) => void;
-        currentTab?: EntityType;
+        renderTabContent?: (tabName: TabName) => void;
+        currentTab?: TabName;
         clearFilters?: () => void;
         toggleTextExpand?: (element: HTMLElement) => void;
     }
