@@ -105,8 +105,12 @@ function setupOfflineIndicator() {
     updateConnectionStatus();
 }
 
+// Track update interval ID for cleanup
+let updateIntervalId = null;
+
 /**
  * Setup service worker update notification
+ * Note: Service worker is registered by VitePWA plugin
  */
 function setupUpdateNotification() {
     // Check if service worker is supported
@@ -114,12 +118,11 @@ function setupUpdateNotification() {
         return;
     }
 
-    // Listen for service worker updates
-    navigator.serviceWorker
-        .register('./sw.js')
+    // Wait for service worker to be ready (VitePWA handles registration)
+    navigator.serviceWorker.ready
         .then(registration => {
             // Check for updates periodically (every hour)
-            setInterval(
+            updateIntervalId = setInterval(
                 () => {
                     registration.update();
                 },
@@ -141,8 +144,18 @@ function setupUpdateNotification() {
             });
         })
         .catch(err => {
-            console.warn('Service worker registration failed:', err);
+            console.warn('Service worker not available:', err);
         });
+}
+
+/**
+ * Cleanup service worker update checking
+ */
+function cleanupUpdateNotification() {
+    if (updateIntervalId) {
+        clearInterval(updateIntervalId);
+        updateIntervalId = null;
+    }
 }
 
 /**
@@ -169,27 +182,32 @@ function showUpdateNotification(registration) {
     `;
     document.body.appendChild(notification);
 
+    // Cleanup function to remove notification and event listeners
+    const cleanup = () => {
+        notification.remove();
+    };
+
     // Handle reload button
     const reloadBtn = document.getElementById('update-reload-btn');
     if (reloadBtn) {
-        reloadBtn.addEventListener('click', () => {
+        const handleReload = () => {
             // Tell waiting service worker to skip waiting
             if (registration.waiting) {
                 registration.waiting.postMessage({ type: 'SKIP_WAITING' });
             }
             // Reload page when new service worker takes control
-            navigator.serviceWorker.addEventListener('controllerchange', () => {
+            const handleControllerChange = () => {
                 window.location.reload();
-            });
-        });
+            };
+            navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange, { once: true });
+        };
+        reloadBtn.addEventListener('click', handleReload, { once: true });
     }
 
     // Handle dismiss button
     const dismissBtn = document.getElementById('update-dismiss-btn');
     if (dismissBtn) {
-        dismissBtn.addEventListener('click', () => {
-            notification.remove();
-        });
+        dismissBtn.addEventListener('click', cleanup, { once: true });
     }
 }
 
