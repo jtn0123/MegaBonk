@@ -184,22 +184,34 @@ function clearAllFilterStates() {
 
 /**
  * Calculate fuzzy match score between search term and text
+ * Returns both score and match type for UX context
  * @param {string} searchTerm - Search term
  * @param {string} text - Text to search in
- * @returns {number} Match score (higher is better, 0 = no match)
+ * @param {string} fieldName - Name of field being searched (for context)
+ * @returns {{score: number, matchType: string, field: string}} Match result with context
  */
-function fuzzyMatchScore(searchTerm, text) {
-    if (!searchTerm || !text) return 0;
+function fuzzyMatchScore(searchTerm, text, fieldName = 'text') {
+    if (!searchTerm || !text) return { score: 0, matchType: 'none', field: fieldName };
 
     searchTerm = searchTerm.toLowerCase();
     text = text.toLowerCase();
 
     // Exact match gets highest score
-    if (text.includes(searchTerm)) {
-        return 1000;
+    if (text === searchTerm) {
+        return { score: 2000, matchType: 'exact', field: fieldName };
     }
 
-    // Calculate fuzzy match score
+    // Starts with search term (very relevant)
+    if (text.startsWith(searchTerm)) {
+        return { score: 1500, matchType: 'starts_with', field: fieldName };
+    }
+
+    // Contains search term (substring match)
+    if (text.includes(searchTerm)) {
+        return { score: 1000, matchType: 'contains', field: fieldName };
+    }
+
+    // Calculate fuzzy match score (character sequence)
     let score = 0;
     let searchIndex = 0;
     let consecutiveMatches = 0;
@@ -216,10 +228,10 @@ function fuzzyMatchScore(searchTerm, text) {
 
     // Return 0 if not all characters matched
     if (searchIndex !== searchTerm.length) {
-        return 0;
+        return { score: 0, matchType: 'none', field: fieldName };
     }
 
-    return score;
+    return { score, matchType: 'fuzzy', field: fieldName };
 }
 
 // ========================================
@@ -432,7 +444,7 @@ function filterData(data, tabName) {
     if (searchQuery.trim()) {
         const criteria = parseAdvancedSearch(searchQuery);
 
-        // Apply text search (fuzzy if enabled, exact otherwise)
+        // Apply text search with match context for UX
         if (criteria.text.length > 0) {
             const searchTerm = criteria.text.join(' ').toLowerCase();
 
@@ -441,16 +453,26 @@ function filterData(data, tabName) {
                     const name = item.name || '';
                     const description = item.description || '';
                     const baseEffect = item.base_effect || '';
-                    const searchable = `${name} ${description} ${baseEffect}`;
+                    const tags = (item.tags || []).join(' ');
 
-                    // Try exact match first
-                    if (searchable.toLowerCase().includes(searchTerm)) {
-                        return { item, score: 1000 };
-                    }
+                    // Check each field separately for match context
+                    const matches = [
+                        fuzzyMatchScore(searchTerm, name, 'name'),
+                        fuzzyMatchScore(searchTerm, description, 'description'),
+                        fuzzyMatchScore(searchTerm, baseEffect, 'effect'),
+                        fuzzyMatchScore(searchTerm, tags, 'tags'),
+                    ];
 
-                    // Try fuzzy match
-                    const score = fuzzyMatchScore(searchTerm, searchable);
-                    return { item, score };
+                    // Find best match
+                    const bestMatch = matches.reduce((best, current) =>
+                        current.score > best.score ? current : best
+                    );
+
+                    // Attach match context to item for rendering
+                    return {
+                        item: { ...item, _matchContext: bestMatch },
+                        score: bestMatch.score,
+                    };
                 })
                 .filter(result => result.score > 0)
                 .sort((a, b) => b.score - a.score)
