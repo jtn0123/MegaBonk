@@ -2,6 +2,9 @@
 // MegaBonk Build Planner Module
 // ========================================
 
+import { ToastManager } from './toast.js';
+import { allData } from './data-service.js';
+import { safeGetElementById } from './utils.js';
 // Build planner state
 let currentBuild = {
     character: null,
@@ -18,7 +21,7 @@ const MAX_BUILD_HISTORY = 20;
 
 // Build templates - uses valid IDs from data files
 // Character passives: CL4NK=Crit, Sir Oofie=Armor, Monke=HP, Bandit=Attack Speed, Ogre=Damage
-const BUILD_TEMPLATES = {
+export const BUILD_TEMPLATES = {
     crit_build: {
         name: '🎯 Crit Build',
         description: 'Maximize critical hit chance and damage',
@@ -69,7 +72,7 @@ const BUILD_TEMPLATES = {
  * Get build history from localStorage
  * @returns {Array} Build history array
  */
-function getBuildHistory() {
+export function getBuildHistory() {
     try {
         const history = localStorage.getItem(BUILD_HISTORY_KEY);
         return history ? JSON.parse(history) : [];
@@ -82,7 +85,7 @@ function getBuildHistory() {
 /**
  * Save current build to history
  */
-function saveBuildToHistory() {
+export function saveBuildToHistory() {
     if (!currentBuild.character && !currentBuild.weapon) {
         ToastManager.warning('Build must have at least a character or weapon');
         return;
@@ -119,7 +122,7 @@ function saveBuildToHistory() {
  * Load a build from history
  * @param {number} index - Index in history array
  */
-function loadBuildFromHistory(index) {
+export function loadBuildFromHistory(index) {
     try {
         const history = getBuildHistory();
         if (index < 0 || index >= history.length) {
@@ -140,7 +143,7 @@ function loadBuildFromHistory(index) {
  * Delete a build from history
  * @param {number} index - Index in history array
  */
-function deleteBuildFromHistory(index) {
+export function deleteBuildFromHistory(index) {
     try {
         let history = getBuildHistory();
         if (index < 0 || index >= history.length) {
@@ -167,7 +170,7 @@ function deleteBuildFromHistory(index) {
 /**
  * Clear all build history
  */
-function clearBuildHistory() {
+export function clearBuildHistory() {
     try {
         localStorage.removeItem(BUILD_HISTORY_KEY);
         ToastManager.success('Build history cleared');
@@ -185,7 +188,7 @@ function clearBuildHistory() {
  * Load a build template
  * @param {string} templateId - Template identifier
  */
-function loadBuildTemplate(templateId) {
+export function loadBuildTemplate(templateId) {
     const template = BUILD_TEMPLATES[templateId];
     if (!template) {
         ToastManager.error('Template not found');
@@ -212,7 +215,7 @@ function loadBuildTemplate(templateId) {
  * Load build from data object
  * @param {Object} buildData - Build data with character, weapon, tomes, items IDs
  */
-function loadBuildFromData(buildData) {
+export function loadBuildFromData(buildData) {
     // Clear current build first
     clearBuild();
 
@@ -267,7 +270,7 @@ function loadBuildFromData(buildData) {
  * Import build from JSON string
  * @param {string} jsonString - JSON string containing build data
  */
-function importBuild(jsonString) {
+export function importBuild(jsonString) {
     try {
         const buildData = JSON.parse(jsonString);
         loadBuildFromData(buildData);
@@ -281,7 +284,7 @@ function importBuild(jsonString) {
 /**
  * Render the build planner UI
  */
-function renderBuildPlanner() {
+export function renderBuildPlanner() {
     const charSelect = safeGetElementById('build-character');
     if (charSelect) {
         charSelect.innerHTML = '<option value="">Select Character...</option>';
@@ -338,7 +341,7 @@ function renderBuildPlanner() {
 /**
  * Setup build planner event listeners
  */
-function setupBuildPlannerEvents() {
+export function setupBuildPlannerEvents() {
     const charSelect = safeGetElementById('build-character');
     if (charSelect) {
         charSelect.addEventListener('change', e => {
@@ -377,7 +380,7 @@ function setupBuildPlannerEvents() {
  * Calculate build statistics
  * @returns {Object} Calculated stats
  */
-function calculateBuildStats() {
+export function calculateBuildStats() {
     // Use DEFAULT_BUILD_STATS from constants if available
     const stats =
         typeof DEFAULT_BUILD_STATS !== 'undefined'
@@ -472,7 +475,7 @@ function calculateBuildStats() {
 /**
  * Update build analysis display
  */
-function updateBuildAnalysis() {
+export function updateBuildAnalysis() {
     const selectedTomes = Array.from(safeQuerySelectorAll('.tome-checkbox:checked')).map(cb => cb.value);
     currentBuild.tomes = selectedTomes.map(id => allData.tomes?.tomes.find(t => t.id === id)).filter(Boolean);
 
@@ -531,7 +534,7 @@ function updateBuildAnalysis() {
 /**
  * Export build to clipboard
  */
-function exportBuild() {
+export function exportBuild() {
     const buildCode = JSON.stringify({
         character: currentBuild.character?.id,
         weapon: currentBuild.weapon?.id,
@@ -553,7 +556,7 @@ function exportBuild() {
 /**
  * Share build via URL - encode build to URL hash
  */
-function shareBuildURL() {
+export function shareBuildURL() {
     const buildData = {
         c: currentBuild.character?.id,
         w: currentBuild.weapon?.id,
@@ -584,7 +587,7 @@ function shareBuildURL() {
 /**
  * Load build from URL hash
  */
-function loadBuildFromURL() {
+export function loadBuildFromURL() {
     const hash = window.location.hash;
     if (!hash || !hash.includes('build=')) return false;
 
@@ -641,7 +644,7 @@ function loadBuildFromURL() {
 /**
  * Update URL with current build (without page reload)
  */
-function updateBuildURL() {
+export function updateBuildURL() {
     if (
         !currentBuild.character &&
         !currentBuild.weapon &&
@@ -675,7 +678,7 @@ function updateBuildURL() {
 /**
  * Clear the current build
  */
-function clearBuild() {
+export function clearBuild() {
     currentBuild = { character: null, weapon: null, tomes: [], items: [] };
     safeSetValue('build-character', '');
     safeSetValue('build-weapon', '');
@@ -685,30 +688,16 @@ function clearBuild() {
 }
 
 // ========================================
-// Expose to global scope
+// Exported API
 // ========================================
 
-// Bug fix #15: Provide getter instead of direct mutable reference
-window.getCurrentBuild = () => ({ ...currentBuild }); // Return a shallow copy
-// Removed direct currentBuild exposure to prevent state corruption
-window.renderBuildPlanner = renderBuildPlanner;
-window.setupBuildPlannerEvents = setupBuildPlannerEvents;
-window.calculateBuildStats = calculateBuildStats;
-window.updateBuildAnalysis = updateBuildAnalysis;
-window.exportBuild = exportBuild;
-window.clearBuild = clearBuild;
-window.shareBuildURL = shareBuildURL;
-window.loadBuildFromURL = loadBuildFromURL;
-window.loadBuildFromData = loadBuildFromData;
-window.importBuild = importBuild;
+/**
+ * Get current build (returns a shallow copy to prevent state corruption)
+ * @returns {Object} Current build state
+ */
+export function getCurrentBuild() {
+    return { ...currentBuild };
+}
 
-// Build history
-window.getBuildHistory = getBuildHistory;
-window.saveBuildToHistory = saveBuildToHistory;
-window.loadBuildFromHistory = loadBuildFromHistory;
-window.deleteBuildFromHistory = deleteBuildFromHistory;
-window.clearBuildHistory = clearBuildHistory;
-
-// Build templates
-window.BUILD_TEMPLATES = BUILD_TEMPLATES;
-window.loadBuildTemplate = loadBuildTemplate;
+// Export currentBuild for direct access (use with caution)
+export { currentBuild };

@@ -1,4 +1,8 @@
 // ========================================
+
+// Note: imports removed as they're provided via window object by other modules
+// TODO: Refactor to use direct imports when filter functions are updated
+
 // MegaBonk Filters Module
 // ========================================
 
@@ -14,7 +18,7 @@ const FILTER_STATE_KEY = 'megabonk_filter_state';
  * Get search history from localStorage
  * @returns {Array<string>} Search history array
  */
-function getSearchHistory() {
+export function getSearchHistory() {
     try {
         const history = localStorage.getItem(SEARCH_HISTORY_KEY);
         return history ? JSON.parse(history) : [];
@@ -28,7 +32,7 @@ function getSearchHistory() {
  * Add search term to history
  * @param {string} term - Search term to add
  */
-function addToSearchHistory(term) {
+export function addToSearchHistory(term) {
     if (!term || term.trim().length < 2) return;
 
     try {
@@ -50,7 +54,7 @@ function addToSearchHistory(term) {
 /**
  * Clear search history
  */
-function clearSearchHistory() {
+export function clearSearchHistory() {
     try {
         localStorage.removeItem(SEARCH_HISTORY_KEY);
         console.log('[Search History] Cleared');
@@ -67,9 +71,9 @@ function clearSearchHistory() {
  * Get all filter states from sessionStorage
  * @returns {Object} Object with filter states per tab
  */
-function getAllFilterStates() {
+export function getAllFilterStates() {
     try {
-        const states = sessionStorage.getItem(FILTER_STATE_KEY);
+        const states = window.sessionStorage.getItem(FILTER_STATE_KEY);
         return states ? JSON.parse(states) : {};
     } catch (error) {
         console.error('[Filter State] Failed to load:', error);
@@ -81,7 +85,7 @@ function getAllFilterStates() {
  * Save current filter state for a specific tab
  * @param {string} tabName - Tab name
  */
-function saveFilterState(tabName) {
+export function saveFilterState(tabName) {
     if (!tabName || ['build-planner', 'calculator', 'shrines', 'changelog'].includes(tabName)) {
         return; // Don't save state for tabs without filters
     }
@@ -104,7 +108,7 @@ function saveFilterState(tabName) {
         const allStates = getAllFilterStates();
         allStates[tabName] = state;
 
-        sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(allStates));
+        window.sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(allStates));
     } catch (error) {
         console.error('[Filter State] Failed to save:', error);
     }
@@ -114,7 +118,7 @@ function saveFilterState(tabName) {
  * Restore filter state for a specific tab
  * @param {string} tabName - Tab name
  */
-function restoreFilterState(tabName) {
+export function restoreFilterState(tabName) {
     if (!tabName || ['build-planner', 'calculator', 'shrines', 'changelog'].includes(tabName)) {
         return; // No filters to restore for these tabs
     }
@@ -169,9 +173,9 @@ function restoreFilterState(tabName) {
 /**
  * Clear all saved filter states
  */
-function clearAllFilterStates() {
+export function clearAllFilterStates() {
     try {
-        sessionStorage.removeItem(FILTER_STATE_KEY);
+        window.sessionStorage.removeItem(FILTER_STATE_KEY);
         console.log('[Filter State] All states cleared');
     } catch (error) {
         console.error('[Filter State] Failed to clear:', error);
@@ -190,7 +194,7 @@ function clearAllFilterStates() {
  * @param {string} fieldName - Name of field being searched (for context)
  * @returns {{score: number, matchType: string, field: string}} Match result with context
  */
-function fuzzyMatchScore(searchTerm, text, fieldName = 'text') {
+export function fuzzyMatchScore(searchTerm, text, fieldName = 'text') {
     if (!searchTerm || !text) return { score: 0, matchType: 'none', field: fieldName };
 
     searchTerm = searchTerm.toLowerCase();
@@ -244,7 +248,7 @@ function fuzzyMatchScore(searchTerm, text, fieldName = 'text') {
  * @param {string} query - Search query
  * @returns {Object} Parsed search criteria
  */
-function parseAdvancedSearch(query) {
+export function parseAdvancedSearch(query) {
     const criteria = {
         text: [],
         filters: {},
@@ -280,7 +284,7 @@ function parseAdvancedSearch(query) {
  * @param {Object} filters - Filter criteria
  * @returns {boolean} True if item matches all filters
  */
-function matchesAdvancedFilters(item, filters) {
+export function matchesAdvancedFilters(item, filters) {
     for (const [key, value] of Object.entries(filters)) {
         const itemValue = item[key];
 
@@ -328,7 +332,7 @@ function matchesAdvancedFilters(item, filters) {
  * Update filter dropdowns based on active tab
  * @param {string} tabName - Current tab name
  */
-function updateFilters(tabName) {
+export function updateFilters(tabName) {
     const filtersContainer = safeGetElementById('filters');
     if (!filtersContainer) return;
 
@@ -435,7 +439,7 @@ function updateFilters(tabName) {
  * @param {string} tabName - Current tab name
  * @returns {Array} Filtered data array
  */
-function filterData(data, tabName) {
+export function filterData(data, tabName) {
     let filtered = [...data];
     // Bug fix #12: Complete optional chaining to handle null element AND null value
     const searchQuery = safeGetElementById('searchInput')?.value || '';
@@ -464,9 +468,7 @@ function filterData(data, tabName) {
                     ];
 
                     // Find best match
-                    const bestMatch = matches.reduce((best, current) =>
-                        current.score > best.score ? current : best
-                    );
+                    const bestMatch = matches.reduce((best, current) => (current.score > best.score ? current : best));
 
                     // Attach match context to item for rendering
                     return {
@@ -557,7 +559,7 @@ function filterData(data, tabName) {
 /**
  * Handle search input
  */
-function handleSearch() {
+export function handleSearch() {
     const searchInput = safeGetElementById('searchInput');
     const searchQuery = searchInput?.value || '';
 
@@ -577,7 +579,7 @@ function handleSearch() {
 /**
  * Clear all filters and search
  */
-function clearFilters() {
+export function clearFilters() {
     const searchInput = safeGetElementById('searchInput');
     if (searchInput) searchInput.value = '';
 
@@ -592,7 +594,7 @@ function clearFilters() {
  * Show search history dropdown
  * @param {HTMLInputElement} searchInput - Search input element
  */
-function showSearchHistoryDropdown(searchInput) {
+export function showSearchHistoryDropdown(searchInput) {
     const history = getSearchHistory();
     if (history.length === 0) return;
 
@@ -688,17 +690,3 @@ function showSearchHistoryDropdown(searchInput) {
 // ========================================
 // Expose to global scope
 // ========================================
-
-window.updateFilters = updateFilters;
-window.filterData = filterData;
-window.handleSearch = handleSearch;
-window.clearFilters = clearFilters;
-window.getSearchHistory = getSearchHistory;
-window.addToSearchHistory = addToSearchHistory;
-window.clearSearchHistory = clearSearchHistory;
-window.showSearchHistoryDropdown = showSearchHistoryDropdown;
-window.fuzzyMatchScore = fuzzyMatchScore;
-window.parseAdvancedSearch = parseAdvancedSearch;
-window.saveFilterState = saveFilterState;
-window.restoreFilterState = restoreFilterState;
-window.clearAllFilterStates = clearAllFilterStates;
