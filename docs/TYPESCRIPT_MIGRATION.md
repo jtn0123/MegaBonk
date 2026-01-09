@@ -1,7 +1,7 @@
 # TypeScript Migration Progress
 
 **Started**: 2026-01-09
-**Status**: 🟢 In Progress (9/27 modules converted - Phase 3 Complete!)
+**Status**: 🟢 In Progress (13/27 modules converted - Phase 4 In Progress!)
 
 ---
 
@@ -17,7 +17,7 @@ Gradual migration from JavaScript to TypeScript for improved type safety, better
 
 ---
 
-## Converted Modules (9)
+## Converted Modules (13)
 
 ### 1. ✅ Type Definitions (`src/types/index.ts`)
 
@@ -270,9 +270,108 @@ let allData: AllGameData = {
 - Type-safe chart initialization and scaling
 - Proper typing for accessibility features
 
+### 10. ✅ Toast (`src/modules/toast.ts`)
+
+**Converted from**: `toast.js`
+
+**Changes**:
+- Added ToastType union type: `'info' | 'success' | 'warning' | 'error'`
+- Strongly typed all ToastManager methods with proper parameter and return types
+- Proper HTMLElement typing for container
+- Added role and aria attributes for accessibility
+
+**Benefits**:
+- Compile-time validation of toast types
+- IDE autocomplete for toast methods
+- Type-safe DOM manipulation
+
+### 11. ✅ DOM Cache (`src/modules/dom-cache.ts`)
+
+**Converted from**: `dom-cache.js`
+
+**Changes**:
+- Added CachedElement union type: `HTMLElement | Element | NodeListOf<Element> | null`
+- Strongly typed DOMCache class with private properties
+- Proper Map typing for cache storage
+- Type-safe getter methods
+
+**Benefits**:
+- Compile-time validation of cached element types
+- IDE autocomplete for DOM cache methods
+- Type-safe cache operations with proper element type handling
+
+### 12. ✅ Events (`src/modules/events.ts`)
+
+**Converted from**: `events.js`
+
+**Changes**:
+- Added TabName type for valid tab names
+- Imported EntityType from central types
+- Strongly typed all event handlers with proper Event, MouseEvent, KeyboardEvent types
+- Proper HTMLElement typing for all DOM operations
+- Type-safe window global declarations
+
+**Type Safety Improvements**:
+```typescript
+// Type-safe tab names
+type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator';
+
+// Strongly typed event handlers
+document.addEventListener('click', (e: MouseEvent) => {
+    const target = e.target as HTMLElement;
+    // Type-safe DOM access
+});
+
+// Window.currentTab consistency across modules
+declare global {
+    interface Window {
+        currentTab?: TabName;
+    }
+}
+```
+
+**Benefits**:
+- Compile-time validation of tab names
+- IDE autocomplete for event types
+- Type-safe event delegation and DOM manipulation
+- Consistent Window interface across modules
+
+### 13. ✅ Error Boundary (`src/modules/error-boundary.ts`)
+
+**Converted from**: `error-boundary.js`
+
+**Changes**:
+- Added interfaces: `ErrorBoundary`, `ErrorBoundaryOptions`, `ModuleInitOptions`, `ErrorStats`
+- Generic type parameter for `withErrorBoundary` to preserve function signatures
+- Strongly typed all error handling functions
+- Proper Map typing for error boundary storage
+
+**Type Safety Improvements**:
+```typescript
+// Generic error boundary wrapper
+export function withErrorBoundary<T extends (...args: any[]) => any>(
+    moduleName: string,
+    fn: T,
+    options: ErrorBoundaryOptions = {}
+): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>> | undefined>
+
+// Type-safe module initialization
+export async function safeModuleInit<T = unknown>(
+    moduleName: string,
+    initFn: () => T | Promise<T>,
+    options: ModuleInitOptions = {}
+): Promise<T | DegradedModuleResult | undefined>
+```
+
+**Benefits**:
+- Compile-time validation of error boundary configuration
+- IDE autocomplete for error handling options
+- Type-safe error recovery with generics
+- Proper async/await typing
+
 ---
 
-## Remaining Modules (18 JavaScript files)
+## Remaining Modules (14 JavaScript files)
 
 ### Core Modules (High Priority)
 - `[✅]` `data-service.ts` - Data loading and caching **COMPLETED**
@@ -290,19 +389,19 @@ let allData: AllGameData = {
 - `[ ]` `favorites.js` - Favorites management
 
 ### UI Modules (Medium Priority)
-- `[ ]` `toast.js` - Toast notifications
-- `[ ]` `dom-cache.js` - DOM element caching
-- `[ ]` `events.js` - Event delegation
+- `[✅]` `toast.ts` - Toast notifications **COMPLETED**
+- `[✅]` `dom-cache.ts` - DOM element caching **COMPLETED**
+- `[✅]` `events.ts` - Event delegation **COMPLETED**
 - `[ ]` `keyboard-shortcuts.js` - Keyboard navigation
 - `[ ]` `theme-manager.js` - Theme switching
+- `[ ]` `web-vitals.js` - Performance monitoring
 
 ### Chart Modules (Low Priority - external library types)
 - `[ ]` `charts.js` - Chart rendering
 - `[ ]` `chart-loader.js` - Dynamic Chart.js loading
 
-### New Modules (Medium Priority)
-- `[ ]` `error-boundary.js` - Error recovery
-- `[ ]` `web-vitals.js` - Performance monitoring
+### Error Handling (Medium Priority)
+- `[✅]` `error-boundary.ts` - Error recovery **COMPLETED**
 
 ### Helpers (Low Priority)
 - `[ ]` `match-badge.js` - Badge generation
@@ -333,9 +432,14 @@ let allData: AllGameData = {
 2. ✅ Convert `renderers.js` → `renderers.ts`
 3. ✅ Convert `modal.js` → `modal.ts`
 
-### Phase 4: UI Modules (Next)
-1. Convert UI helper modules (toast, dom-cache, events)
-2. Convert new modules (error-boundary, web-vitals, theme-manager, keyboard-shortcuts)
+### Phase 4: UI Modules 🔄 (In Progress - 4/7 Complete)
+1. ✅ Convert `toast.js` → `toast.ts`
+2. ✅ Convert `dom-cache.js` → `dom-cache.ts`
+3. ✅ Convert `events.js` → `events.ts`
+4. ✅ Convert `error-boundary.js` → `error-boundary.ts`
+5. ⏳ Convert `web-vitals.js` → `web-vitals.ts` (pending)
+6. ⏳ Convert `theme-manager.js` → `theme-manager.ts` (pending)
+7. ⏳ Convert `keyboard-shortcuts.js` → `keyboard-shortcuts.ts` (pending)
 
 ### Phase 5: Remaining Modules
 1. Convert feature modules (compare, calculator, build-planner, changelog)
@@ -497,12 +601,13 @@ import { escapeHtml } from './utils.js'; // Actually imports from utils.ts
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
-| **Type-Safe Files** | 0% | 33% (9/27) | +33% |
+| **Type-Safe Files** | 0% | 48% (13/27) | +48% |
 | **Type Definitions** | 0 | 1 file (50+ types) | +50 types |
-| **Compile-Time Checks** | 0 | 9 modules | +9 modules |
+| **Compile-Time Checks** | 0 | 13 modules | +13 modules |
 | **Bundle Size** | 148KB | 148KB | No change |
 | **Build Time** | 3.5s | 3.9s | +0.4s |
 | **Phases Complete** | 0/6 | 3/6 (50%) | Phases 1, 2 & 3 ✅ |
+| **Phase 4 Progress** | - | 57% (4/7) | Phase 4 In Progress 🔄 |
 
 ---
 
@@ -515,5 +620,6 @@ import { escapeHtml } from './utils.js'; // Actually imports from utils.ts
 ---
 
 **Last Updated**: 2026-01-09
-**Progress**: 9/27 modules (33%) - Phase 3 Complete! 🎉
-**Next Target**: Phase 4 - UI Modules (toast, dom-cache, events, etc.)
+**Progress**: 13/27 modules (48%) - Phase 4 In Progress! 🚀
+**Phase 4**: 4/7 UI modules complete (toast, dom-cache, events, error-boundary ✅)
+**Next Targets**: web-vitals, theme-manager, keyboard-shortcuts

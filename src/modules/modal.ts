@@ -5,7 +5,7 @@
 import { allData } from './data-service.js';
 import { ToastManager } from './toast.js';
 import { safeGetElementById, generateModalImage } from './utils.js';
-import type { Tier, Rarity } from '../types/index.js';
+import type { Tier, Rarity, EntityType } from '../types/index.js';
 
 // ========================================
 // Extended Type Definitions for Modal Data
@@ -126,11 +126,6 @@ interface ModalShrine {
 }
 
 /**
- * Entity type discriminator for modal
- */
-type EntityType = 'item' | 'weapon' | 'tome' | 'character' | 'shrine';
-
-/**
  * Union type of all modal entity types
  */
 type ModalEntity = ModalItem | ModalWeapon | ModalTome | ModalCharacter | ModalShrine;
@@ -209,25 +204,25 @@ function deactivateFocusTrap(): void {
 
 /**
  * Open detail modal for any entity type
- * @param type - Entity type (item, weapon, tome, character, shrine)
+ * @param type - Entity type (items, weapons, tomes, characters, shrines)
  * @param id - Entity ID
  */
 export async function openDetailModal(type: EntityType, id: string): Promise<void> {
     let data: ModalEntity | undefined;
     switch (type) {
-        case 'item':
+        case 'items':
             data = allData.items?.items.find(i => i.id === id) as ModalItem | undefined;
             break;
-        case 'weapon':
+        case 'weapons':
             data = allData.weapons?.weapons.find(w => w.id === id) as ModalWeapon | undefined;
             break;
-        case 'tome':
+        case 'tomes':
             data = allData.tomes?.tomes.find(t => t.id === id) as ModalTome | undefined;
             break;
-        case 'character':
+        case 'characters':
             data = allData.characters?.characters.find(c => c.id === id) as ModalCharacter | undefined;
             break;
-        case 'shrine':
+        case 'shrines':
             data = allData.shrines?.shrines.find(s => s.id === id) as ModalShrine | undefined;
             break;
     }
@@ -244,15 +239,15 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
 
     let content = `<h2 id="modal-title">${data.name}</h2>`;
 
-    if (type === 'item') {
+    if (type === 'items') {
         content += renderItemModal(data as ModalItem);
-    } else if (type === 'weapon') {
+    } else if (type === 'weapons') {
         content += renderWeaponModal(data as ModalWeapon);
-    } else if (type === 'tome') {
+    } else if (type === 'tomes') {
         content += await renderTomeModal(data as ModalTome);
-    } else if (type === 'character') {
+    } else if (type === 'characters') {
         content += renderCharacterModal(data as ModalCharacter);
-    } else if (type === 'shrine') {
+    } else if (type === 'shrines') {
         content += renderShrineModal(data as ModalShrine);
     }
 
