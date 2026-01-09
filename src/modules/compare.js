@@ -2,6 +2,10 @@
 // MegaBonk Compare Mode Module
 // ========================================
 
+import { ToastManager } from './toast.js';
+import { allData } from './data-service.js';
+import { createCompareChart } from './charts.js';
+import { safeGetElementById } from './utils.js';
 // Compare mode state
 let compareItems = [];
 
@@ -9,7 +13,7 @@ let compareItems = [];
  * Toggle item in comparison list
  * @param {string} itemId - Item ID to toggle
  */
-function toggleCompareItem(itemId) {
+export function toggleCompareItem(itemId) {
     const index = compareItems.indexOf(itemId);
     if (index > -1) {
         compareItems.splice(index, 1);
@@ -28,7 +32,7 @@ function toggleCompareItem(itemId) {
 /**
  * Update compare button visibility and state
  */
-function updateCompareButton() {
+export function updateCompareButton() {
     const compareBtn = safeGetElementById('compare-btn');
     if (!compareBtn) return;
 
@@ -49,7 +53,7 @@ function updateCompareButton() {
 /**
  * Open the comparison modal
  */
-function openCompareModal() {
+export function openCompareModal() {
     if (compareItems.length < 2) {
         ToastManager.warning('Select at least 2 items to compare!');
         return;
@@ -186,7 +190,7 @@ function openCompareModal() {
 /**
  * Close compare modal with animation
  */
-function closeCompareModal() {
+export function closeCompareModal() {
     // Bug fix: Destroy compare chart before closing to prevent memory leak
     if (typeof chartInstances !== 'undefined' && chartInstances['compare-scaling-chart']) {
         chartInstances['compare-scaling-chart'].destroy();
@@ -205,7 +209,7 @@ function closeCompareModal() {
 /**
  * Update compare display after item removal
  */
-function updateCompareDisplay() {
+export function updateCompareDisplay() {
     if (compareItems.length < 2) {
         closeCompareModal();
     } else {
@@ -216,23 +220,23 @@ function updateCompareDisplay() {
 /**
  * Clear all compare selections
  */
-function clearCompare() {
+export function clearCompare() {
     compareItems = [];
     updateCompareButton();
     closeCompareModal();
 }
 
 // ========================================
-// Expose to global scope
+// Exported API
 // ========================================
 
-// Bug fix #15: Provide getter instead of direct mutable reference
-// This prevents external code from accidentally corrupting the array
-window.getCompareItems = () => [...compareItems]; // Return a copy
-// Removed direct compareItems exposure to prevent state corruption
-window.toggleCompareItem = toggleCompareItem;
-window.updateCompareButton = updateCompareButton;
-window.openCompareModal = openCompareModal;
-window.closeCompareModal = closeCompareModal;
-window.updateCompareDisplay = updateCompareDisplay;
-window.clearCompare = clearCompare;
+/**
+ * Get compare items (returns a copy to prevent state corruption)
+ * @returns {Array} Compare items array
+ */
+export function getCompareItems() {
+    return [...compareItems];
+}
+
+// Export compareItems for direct access (use with caution)
+export { compareItems };

@@ -1,9 +1,13 @@
 // ========================================
+
+// Note: Chart.js is currently loaded via CDN in index.html
+// TODO: Convert to npm package with: bun add chart.js
+
 // MegaBonk Charts Module
 // ========================================
 
 // Chart instances storage (for cleanup)
-let chartInstances = {};
+export let chartInstances = {};
 
 /**
  * Apply hyperbolic scaling formula to values
@@ -13,7 +17,7 @@ let chartInstances = {};
  * @param {number} constant - The hyperbolic constant (default 1.0 for standard formula)
  * @returns {number[]} Array of actual percentage values after hyperbolic transformation
  */
-function applyHyperbolicScaling(values, constant = 1.0) {
+export function applyHyperbolicScaling(values, constant = 1.0) {
     return values.map(v => {
         const internal = v / 100;
         const actual = internal / (constant + internal);
@@ -28,7 +32,7 @@ function applyHyperbolicScaling(values, constant = 1.0) {
  * @param {number} constant - Hyperbolic constant (default 1.0)
  * @returns {number[]} Array of actual values after hyperbolic transformation
  */
-function generateHyperbolicValues(perStack, maxStacks = 10, constant = 1.0) {
+export function generateHyperbolicValues(perStack, maxStacks = 10, constant = 1.0) {
     const internalValues = Array.from({ length: maxStacks }, (_, i) => perStack * (i + 1));
     return applyHyperbolicScaling(internalValues, constant);
 }
@@ -38,7 +42,7 @@ function generateHyperbolicValues(perStack, maxStacks = 10, constant = 1.0) {
  * @param {Object} item - Item with scaling_per_stack and optional stack_cap/max_stacks
  * @returns {number} The effective maximum stacks to display
  */
-function getEffectiveStackCap(item) {
+export function getEffectiveStackCap(item) {
     // Use explicit max_stacks if set
     if (item.max_stacks && item.max_stacks > 0) {
         return item.max_stacks;
@@ -79,7 +83,7 @@ function getEffectiveStackCap(item) {
  * @param {number} options.hyperbolicConstant - Constant for hyperbolic formula (default 1.0)
  * @param {number} options.maxStacks - Hard cap where item stops being useful
  */
-function createScalingChart(
+export function createScalingChart(
     canvasId,
     data,
     label,
@@ -224,7 +228,7 @@ function createScalingChart(
  * @param {string} canvasId - Canvas element ID
  * @param {Array} items - Array of items to compare
  */
-function createCompareChart(canvasId, items) {
+export function createCompareChart(canvasId, items) {
     const canvas = safeGetElementById(canvasId);
     if (!canvas || typeof Chart === 'undefined') return null;
 
@@ -291,7 +295,7 @@ function createCompareChart(canvasId, items) {
  * @param {number} maxLevels - Maximum levels to calculate
  * @returns {number[]|null} Array of progression values or null
  */
-function calculateTomeProgression(tome, maxLevels = 10) {
+export function calculateTomeProgression(tome, maxLevels = 10) {
     // Bug fix: Check for null/undefined before calling .match()
     const valueStr = tome?.value_per_level;
     if (!valueStr || typeof valueStr !== 'string') return null;
@@ -331,7 +335,7 @@ function calculateTomeProgression(tome, maxLevels = 10) {
 /**
  * Initialize charts for items in the current view
  */
-function initializeItemCharts() {
+export function initializeItemCharts() {
     const items = getDataForTab('items');
     items.forEach(item => {
         if (item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat') {
@@ -358,7 +362,7 @@ function initializeItemCharts() {
 /**
  * Initialize charts for tomes in the current view
  */
-function initializeTomeCharts() {
+export function initializeTomeCharts() {
     const tomes = getDataForTab('tomes');
     tomes.forEach(tome => {
         const progression = calculateTomeProgression(tome);
@@ -371,7 +375,7 @@ function initializeTomeCharts() {
 /**
  * Destroy all chart instances
  */
-function destroyAllCharts() {
+export function destroyAllCharts() {
     Object.keys(chartInstances).forEach(canvasId => {
         if (chartInstances[canvasId]) {
             chartInstances[canvasId].destroy();
@@ -383,14 +387,3 @@ function destroyAllCharts() {
 // ========================================
 // Expose to global scope
 // ========================================
-
-window.chartInstances = chartInstances;
-window.applyHyperbolicScaling = applyHyperbolicScaling;
-window.generateHyperbolicValues = generateHyperbolicValues;
-window.getEffectiveStackCap = getEffectiveStackCap;
-window.createScalingChart = createScalingChart;
-window.createCompareChart = createCompareChart;
-window.calculateTomeProgression = calculateTomeProgression;
-window.initializeItemCharts = initializeItemCharts;
-window.initializeTomeCharts = initializeTomeCharts;
-window.destroyAllCharts = destroyAllCharts;

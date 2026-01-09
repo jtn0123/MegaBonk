@@ -1,4 +1,10 @@
 // ========================================
+
+import { generateEntityImage, generateTierLabel, escapeHtml } from './utils.js';
+import { isFavorite } from './favorites.js';
+// Note: createScalingChart and generateMatchBadge accessed via window object
+// TODO: Add direct imports when all dependencies are resolved
+
 // MegaBonk Renderers Module
 // ========================================
 
@@ -9,7 +15,7 @@ let calculatorButtonInitialized = false;
  * Render content for the current tab
  * @param {string} tabName - Tab to render
  */
-function renderTabContent(tabName) {
+export function renderTabContent(tabName) {
     if (tabName === 'build-planner') {
         renderBuildPlanner();
         return;
@@ -70,7 +76,7 @@ function renderTabContent(tabName) {
  * @param {Array} filtered - Filtered data
  * @param {string} tabName - Current tab
  */
-function updateStats(filtered, tabName) {
+export function updateStats(filtered, tabName) {
     const statsPanel = safeGetElementById('stats-summary');
     if (!statsPanel) return;
 
@@ -108,7 +114,7 @@ function updateStats(filtered, tabName) {
  * Render items grid
  * @param {Array} items - Items to render
  */
-function renderItems(items) {
+export function renderItems(items) {
     const container = safeGetElementById('itemsContainer');
     if (!container) return;
 
@@ -125,7 +131,7 @@ function renderItems(items) {
         card.dataset.entityType = 'item';
         card.dataset.entityId = item.id;
 
-        const stackIcon = item.one_and_done ? '✓' : item.stacks_well ? '∞' : '~';
+        const _stackIcon = item.one_and_done ? '✓' : item.stacks_well ? '∞' : '~'; // Reserved for future use
         const stackText = item.one_and_done ? 'One-and-Done' : item.stacks_well ? 'Stacks Well' : 'Limited';
         const imageHtml = generateEntityImage(item, item.name);
 
@@ -189,7 +195,7 @@ function renderItems(items) {
  * Render weapons grid
  * @param {Array} weapons - Weapons to render
  */
-function renderWeapons(weapons) {
+export function renderWeapons(weapons) {
     const container = safeGetElementById('weaponsContainer');
     if (!container) return;
 
@@ -236,7 +242,7 @@ function renderWeapons(weapons) {
  * Render tomes grid
  * @param {Array} tomes - Tomes to render
  */
-function renderTomes(tomes) {
+export function renderTomes(tomes) {
     const container = safeGetElementById('tomesContainer');
     if (!container) return;
 
@@ -300,7 +306,7 @@ function renderTomes(tomes) {
  * Render characters grid
  * @param {Array} characters - Characters to render
  */
-function renderCharacters(characters) {
+export function renderCharacters(characters) {
     const container = safeGetElementById('charactersContainer');
     if (!container) return;
 
@@ -348,7 +354,7 @@ function renderCharacters(characters) {
  * Render shrines grid
  * @param {Array} shrines - Shrines to render
  */
-function renderShrines(shrines) {
+export function renderShrines(shrines) {
     const container = safeGetElementById('shrinesContainer');
     if (!container) return;
 
@@ -393,11 +399,3 @@ function renderShrines(shrines) {
 // ========================================
 // Expose to global scope
 // ========================================
-
-window.renderTabContent = renderTabContent;
-window.updateStats = updateStats;
-window.renderItems = renderItems;
-window.renderWeapons = renderWeapons;
-window.renderTomes = renderTomes;
-window.renderCharacters = renderCharacters;
-window.renderShrines = renderShrines;

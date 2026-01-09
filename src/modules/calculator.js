@@ -2,10 +2,13 @@
 // MegaBonk Breakpoint Calculator Module
 // ========================================
 
+import { ToastManager } from './toast.js';
+import { allData } from './data-service.js';
+import { safeGetElementById } from './utils.js';
 /**
  * Populate calculator item select dropdown
  */
-function populateCalculatorItems() {
+export function populateCalculatorItems() {
     const select = safeGetElementById('calc-item-select');
     if (!select || !allData.items) return;
 
@@ -22,7 +25,7 @@ function populateCalculatorItems() {
 /**
  * Calculate breakpoint for selected item and target
  */
-function calculateBreakpoint() {
+export function calculateBreakpoint() {
     const itemId = safeGetElementById('calc-item-select')?.value;
     const target = parseFloat(safeGetElementById('calc-target')?.value);
     const resultDiv = safeGetElementById('calc-result');
@@ -122,7 +125,7 @@ function calculateBreakpoint() {
  * @param {string} itemId - Item ID
  * @param {number} target - Target value
  */
-function quickCalc(itemId, target) {
+export function quickCalc(itemId, target) {
     safeSetValue('calc-item-select', itemId);
     safeSetValue('calc-target', target);
     calculateBreakpoint();
@@ -135,6 +138,7 @@ function quickCalc(itemId, target) {
 // Expose to global scope
 // ========================================
 
-window.populateCalculatorItems = populateCalculatorItems;
-window.calculateBreakpoint = calculateBreakpoint;
-window.quickCalc = quickCalc;
+// Exported functions:
+// - populateCalculatorItems()
+// - calculateBreakpoint()
+// - quickCalc(itemId, target)

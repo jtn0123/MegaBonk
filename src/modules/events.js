@@ -3,11 +3,22 @@
 // Event delegation to replace inline handlers
 // ========================================
 
+import { ToastManager } from './toast.js';
+import { safeGetElementById } from './utils.js';
+import { loadAllData } from './data-service.js';
+import { closeModal, openDetailModal } from './modal.js';
+import { closeCompareModal, toggleCompareItem, updateCompareDisplay } from './compare.js';
+import { quickCalc } from './calculator.js';
+import { toggleFavorite } from './favorites.js';
+import { clearFilters, handleSearch, updateFilters, restoreFilterState, saveFilterState } from './filters.js';
+import { renderTabContent } from './renderers.js';
+import { toggleChangelogExpand } from './changelog.js';
+
 /**
  * Toggle text expansion on click
  * @param {HTMLElement} element - The expandable text element
  */
-function toggleTextExpand(element) {
+export function toggleTextExpand(element) {
     if (!element.dataset.fullText) return;
 
     const isTruncated = element.dataset.truncated === 'true';
@@ -44,7 +55,7 @@ function toggleTextExpand(element) {
 /**
  * Setup all event delegation handlers
  */
-function setupEventDelegation() {
+export function setupEventDelegation() {
     // Bug fix: Add keyboard event handler for breakpoint cards and Escape key for modals
     document.addEventListener('keydown', e => {
         // Escape key closes modals
@@ -255,7 +266,7 @@ function setupEventDelegation() {
 /**
  * Setup all event listeners
  */
-function setupEventListeners() {
+export function setupEventListeners() {
     // Tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -318,7 +329,7 @@ function setupEventListeners() {
 /**
  * Show loading overlay
  */
-function showLoading() {
+export function showLoading() {
     const overlay = safeGetElementById('loading-overlay');
     if (overlay) overlay.style.display = 'flex';
 }
@@ -326,7 +337,7 @@ function showLoading() {
 /**
  * Hide loading overlay
  */
-function hideLoading() {
+export function hideLoading() {
     const overlay = safeGetElementById('loading-overlay');
     if (overlay) overlay.style.display = 'none';
 }
@@ -336,7 +347,7 @@ function hideLoading() {
  * @param {string} message - Error message to display
  * @param {boolean} isRetryable - Whether to show retry button
  */
-function showErrorMessage(message, isRetryable = true) {
+export function showErrorMessage(message, isRetryable = true) {
     let errorContainer = safeGetElementById('error-container');
     let isNewContainer = false;
 
@@ -390,7 +401,7 @@ function showErrorMessage(message, isRetryable = true) {
 /**
  * Dismiss error message
  */
-function dismissError() {
+export function dismissError() {
     const errorContainer = safeGetElementById('error-container');
     if (errorContainer) errorContainer.style.display = 'none';
 }
@@ -400,13 +411,13 @@ function dismissError() {
 // ========================================
 
 // Current tab state
-let currentTab = 'items';
+export let currentTab = 'items';
 
 /**
  * Switch to a different tab
  * @param {string} tabName - Tab name to switch to
  */
-function switchTab(tabName) {
+export function switchTab(tabName) {
     // Save current tab's filter state before switching
     if (currentTab && typeof saveFilterState === 'function') {
         saveFilterState(currentTab);
@@ -439,24 +450,13 @@ function switchTab(tabName) {
     updateFilters(tabName);
 
     // Restore filter state for new tab
-    if (typeof restoreFilterState === 'function') {
-        restoreFilterState(tabName);
-    }
+    restoreFilterState(tabName);
 
     // Render content for the tab
     renderTabContent(tabName);
 }
 
 // ========================================
-// Expose to global scope
+// Exported API
 // ========================================
-
-window.currentTab = currentTab;
-window.toggleTextExpand = toggleTextExpand;
-window.setupEventDelegation = setupEventDelegation;
-window.setupEventListeners = setupEventListeners;
-window.showLoading = showLoading;
-window.hideLoading = hideLoading;
-window.showErrorMessage = showErrorMessage;
-window.dismissError = dismissError;
-window.switchTab = switchTab;
+// All functions and currentTab variable are exported above

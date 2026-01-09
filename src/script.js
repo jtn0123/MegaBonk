@@ -9,28 +9,12 @@
 // ES Module Imports
 // ========================================
 
-// Core utilities (converted to ES modules)
+// Core utilities
 import { ToastManager } from './modules/toast.js';
-// Example imports (aliased with _ to avoid unused var warnings during migration)
-
-import { debounce as _debounce, escapeHtml as _escapeHtml } from './modules/utils.js';
-
-import {
-    TIER_ORDER as _TIER_ORDER,
-    RARITY_ORDER as _RARITY_ORDER,
-    MAX_COMPARE_ITEMS as _MAX_COMPARE_ITEMS,
-} from './modules/constants.js';
-
-// TODO: Complete module conversions and add imports for:
-// - modules/data-service.js - Data loading
-// - modules/filters.js - Filtering and sorting
-// - modules/charts.js - Chart.js integration
-// - modules/renderers.js - Render functions
-// - modules/modal.js - Modal dialogs
-// - modules/build-planner.js - Build planner
-// - modules/compare.js - Compare mode
-// - modules/calculator.js - Breakpoint calculator
-// - modules/events.js - Event handling
+import { loadAllData } from './modules/data-service.js';
+import { loadFavorites } from './modules/favorites.js';
+import { setupEventListeners, setupEventDelegation } from './modules/events.js';
+import { domCache } from './modules/dom-cache.js';
 
 // ========================================
 // Global State (to be refactored into state module)
@@ -38,10 +22,8 @@ import {
 
 let filteredData = [];
 
-// Expose to window for backwards compatibility during migration
-// TODO: Remove after all modules are converted
-window.ToastManager = ToastManager;
-window.filteredData = filteredData;
+// Export filteredData for module access
+export { filteredData };
 
 /**
  * Setup global error tracking
@@ -224,30 +206,22 @@ function init() {
     // Setup update notification
     setupUpdateNotification();
 
-    // Load favorites from localStorage
-    // TODO: Convert favorites.js to ES module and import loadFavorites
-    if (typeof window.loadFavorites === 'function') {
-        window.loadFavorites();
-    }
+    // Initialize DOM cache
+    domCache.init();
 
-    // Setup event listeners
-    // TODO: Convert events.js to ES module and import setupEventListeners
-    if (typeof window.setupEventListeners === 'function') {
-        window.setupEventListeners();
-    }
+    // Initialize toast manager
+    ToastManager.init();
+
+    // Load favorites from localStorage
+    loadFavorites();
+
+    // Setup event delegation and listeners
+    setupEventDelegation();
+    setupEventListeners();
 
     // Load all game data
-    // TODO: Convert data-service.js to ES module and import loadAllData
-    if (typeof window.loadAllData === 'function') {
-        window.loadAllData();
-    }
+    loadAllData();
 }
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', init);
-
-// ========================================
-// Expose globals for backwards compatibility
-// ========================================
-
-window.filteredData = filteredData;

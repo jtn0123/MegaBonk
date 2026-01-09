@@ -2,6 +2,8 @@
 // MegaBonk Changelog Module
 // ========================================
 
+import { allData } from './data-service.js';
+import { safeGetElementById, escapeHtml } from './utils.js';
 // ========================================
 // Entity Link Parsing
 // ========================================
@@ -12,7 +14,7 @@
  * @param {string} id - Entity ID
  * @returns {Object|null} Found entity or null
  */
-function findEntityInData(type, id) {
+export function findEntityInData(type, id) {
     const dataMap = {
         item: { collection: allData.items, key: 'items' },
         weapon: { collection: allData.weapons, key: 'weapons' },
@@ -32,7 +34,7 @@ function findEntityInData(type, id) {
  * @param {string} text - Text with [[type:id|label]] markup
  * @returns {string} HTML with clickable entity links
  */
-function parseChangelogLinks(text) {
+export function parseChangelogLinks(text) {
     if (!text) return '';
 
     // Pattern: [[type:id|Display Text]]
@@ -71,7 +73,7 @@ function parseChangelogLinks(text) {
  * @param {string} category - Category key
  * @returns {string} Formatted display name
  */
-function formatCategoryName(category) {
+export function formatCategoryName(category) {
     const names = {
         balance: 'Balance Changes',
         new_content: 'New Content',
@@ -87,7 +89,7 @@ function formatCategoryName(category) {
  * @param {string} dateStr - ISO date string (YYYY-MM-DD)
  * @returns {string} Formatted date
  */
-function formatChangelogDate(dateStr) {
+export function formatChangelogDate(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     // Bug fix #6: Validate date is valid before formatting
@@ -107,7 +109,7 @@ function formatChangelogDate(dateStr) {
  * @param {string} rawNotes - Fallback raw notes if categories are empty
  * @returns {string} HTML string for all sections
  */
-function renderChangesSections(categories, rawNotes) {
+export function renderChangesSections(categories, rawNotes) {
     if (!categories) {
         // Fallback to raw notes if no categories
         if (rawNotes) {
@@ -158,7 +160,7 @@ function renderChangesSections(categories, rawNotes) {
  * Render changelog entries
  * @param {Array} patches - Array of patch objects
  */
-function renderChangelog(patches) {
+export function renderChangelog(patches) {
     const container = safeGetElementById('changelogContainer');
     if (!container) return;
 
@@ -224,7 +226,7 @@ function renderChangelog(patches) {
  * Handle expand button clicks via event delegation
  * @param {Event} e - Click event
  */
-function handleExpandClick(e) {
+export function handleExpandClick(e) {
     const button = e.target.closest('.changelog-expand-btn');
     if (button) {
         toggleChangelogExpand(button);
@@ -239,7 +241,7 @@ function handleExpandClick(e) {
  * Toggle changelog expand/collapse
  * @param {HTMLElement} button - The expand button clicked
  */
-function toggleChangelogExpand(button) {
+export function toggleChangelogExpand(button) {
     const targetId = button.dataset.target;
     const target = safeGetElementById(targetId);
 
@@ -263,7 +265,7 @@ function toggleChangelogExpand(button) {
  * Update changelog stats panel
  * @param {Array} patches - Filtered patches array
  */
-function updateChangelogStats(patches) {
+export function updateChangelogStats(patches) {
     const statsPanel = safeGetElementById('stats-summary');
     if (!statsPanel) return;
 
@@ -274,7 +276,7 @@ function updateChangelogStats(patches) {
     let totalChanges = 0;
     let buffs = 0;
     let nerfs = 0;
-    let fixes = 0;
+    let _fixes = 0; // Counted but not displayed (reserved for future use)
 
     patches.forEach(patch => {
         Object.values(patch.categories || {}).forEach(changes => {
@@ -283,7 +285,7 @@ function updateChangelogStats(patches) {
                 totalChanges++;
                 if (change.change_type === 'buff') buffs++;
                 if (change.change_type === 'nerf') nerfs++;
-                if (change.change_type === 'fix') fixes++;
+                if (change.change_type === 'fix') _fixes++;
             });
         });
     });
@@ -303,10 +305,13 @@ function updateChangelogStats(patches) {
 // Expose to global scope
 // ========================================
 
-window.findEntityInData = findEntityInData;
-window.parseChangelogLinks = parseChangelogLinks;
-window.formatCategoryName = formatCategoryName;
-window.formatChangelogDate = formatChangelogDate;
-window.renderChangelog = renderChangelog;
-window.toggleChangelogExpand = toggleChangelogExpand;
-window.updateChangelogStats = updateChangelogStats;
+// Exported functions:
+// - findEntityInData(type, id)
+// - parseChangelogLinks(text)
+// - formatCategoryName(category)
+// - formatChangelogDate(dateStr)
+// - renderChangesSections(categories, rawNotes)
+// - renderChangelog(patches)
+// - handleExpandClick(e)
+// - toggleChangelogExpand(button)
+// - updateChangelogStats(patches)

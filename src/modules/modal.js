@@ -2,6 +2,11 @@
 // MegaBonk Modal Module
 // ========================================
 
+import { allData } from './data-service.js';
+import { ToastManager } from './toast.js';
+import { safeGetElementById, generateModalImage } from './utils.js';
+import { getEffectiveStackCap, createScalingChart, calculateTomeProgression } from './charts.js';
+
 // WeakMap to track tab click handlers per container (prevents memory leaks)
 const tabHandlers = new WeakMap();
 
@@ -75,7 +80,7 @@ function deactivateFocusTrap() {
  * @param {string} type - Entity type (item, weapon, tome, character, shrine)
  * @param {string} id - Entity ID
  */
-function openDetailModal(type, id) {
+export function openDetailModal(type, id) {
     let data;
     switch (type) {
         case 'item':
@@ -582,7 +587,7 @@ function renderShrineModal(data) {
 /**
  * Close the detail modal with animation
  */
-function closeModal() {
+export function closeModal() {
     const modal = safeGetElementById('itemModal');
     if (modal) {
         // Deactivate focus trap before closing
@@ -597,8 +602,7 @@ function closeModal() {
 }
 
 // ========================================
-// Expose to global scope
+// Exported functions:
+// - openDetailModal(type, id)
+// - closeModal()
 // ========================================
-
-window.openDetailModal = openDetailModal;
-window.closeModal = closeModal;
