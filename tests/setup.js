@@ -61,8 +61,19 @@ beforeEach(() => {
       key: vi.fn((index) => Object.keys(store)[index] || null)
     };
   })();
-  global.localStorage = localStorageMock;
-  global.window.localStorage = localStorageMock;
+
+  // Define localStorage on both global and window using Object.defineProperty
+  Object.defineProperty(global, 'localStorage', {
+    value: localStorageMock,
+    writable: true,
+    configurable: true
+  });
+
+  Object.defineProperty(dom.window, 'localStorage', {
+    value: localStorageMock,
+    writable: true,
+    configurable: true
+  });
 
   // Mock service worker
   global.navigator.serviceWorker = {

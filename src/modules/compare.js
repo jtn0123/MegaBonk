@@ -201,7 +201,7 @@ export async function closeCompareModal() {
             chartInstances['compare-scaling-chart'].destroy();
             delete chartInstances['compare-scaling-chart'];
         }
-    } catch (err) {
+    } catch {
         // Chart module not loaded yet, nothing to clean up
     }
 
