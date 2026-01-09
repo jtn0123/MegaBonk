@@ -555,6 +555,16 @@ header h1 {
     gap: 1rem;
 }
 
+/* Picture element for WebP support - should inherit sizing */
+picture {
+    display: inline-block;
+    line-height: 0;
+}
+
+picture img {
+    display: block;
+}
+
 .entity-image {
     width: 64px;
     height: 64px;
