@@ -1,7 +1,10 @@
 // MegaBonk Guide - Service Worker for offline support
 // Bug fix: Added missing changelog.js to cache
-const CACHE_NAME = 'megabonk-guide-v1.2.2';
-const urlsToCache = [
+// Bug fix: Use network-first strategy for data files to prevent stale cache
+const CACHE_NAME = 'megabonk-guide-v1.2.3';
+
+// Static assets - use cache-first strategy (rarely change)
+const staticAssets = [
   './',
   './index.html',
   './styles.css',
@@ -21,7 +24,11 @@ const urlsToCache = [
   './modules/changelog.js',
   './modules/events.js',
   './libs/chart.min.js',
-  './manifest.json',
+  './manifest.json'
+];
+
+// Data files - use network-first strategy (may change between SW updates)
+const dataFiles = [
   '../data/items.json',
   '../data/weapons.json',
   '../data/tomes.json',
@@ -30,6 +37,13 @@ const urlsToCache = [
   '../data/stats.json',
   '../data/changelog.json'
 ];
+
+const urlsToCache = [...staticAssets, ...dataFiles];
+
+// Check if URL is a data file (for network-first strategy)
+function isDataFile(url) {
+  return url.includes('/data/') && url.endsWith('.json');
+}
 
 // Install event - cache files
 self.addEventListener('install', event => {
@@ -55,8 +69,32 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch event - serve from cache, fallback to network
+// Fetch event - use different strategies based on resource type
 self.addEventListener('fetch', event => {
+  const url = event.request.url;
+
+  // Data files: network-first, cache-fallback (always get fresh data when online)
+  if (isDataFile(url)) {
+    event.respondWith(
+      fetch(event.request)
+        .then(fetchResponse => {
+          // Update cache with fresh response
+          return caches.open(CACHE_NAME).then(cache => {
+            cache.put(event.request, fetchResponse.clone()).catch(err => {
+              console.warn('Failed to cache data file:', err);
+            });
+            return fetchResponse;
+          });
+        })
+        .catch(() => {
+          // Network failed, fall back to cache
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+
+  // Static assets: cache-first, network-fallback
   event.respondWith(
     caches.match(event.request)
       .then(response => {

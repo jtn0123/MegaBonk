@@ -152,19 +152,30 @@ function matchesAdvancedFilters(item, filters) {
     for (const [key, value] of Object.entries(filters)) {
         const itemValue = item[key];
 
+        // Bug fix: Handle undefined/null itemValue
+        if (itemValue === undefined || itemValue === null) {
+            return false; // Item doesn't have this property, so it doesn't match
+        }
+
         // Handle comparison operators
-        if (value.startsWith('>')) {
+        if (value.startsWith('>=')) {
+            // Check >= before > since > would match >=
+            const threshold = parseFloat(value.substring(2));
+            const numValue = parseFloat(itemValue);
+            if (isNaN(threshold) || isNaN(numValue) || numValue < threshold) return false;
+        } else if (value.startsWith('<=')) {
+            // Check <= before < since < would match <=
+            const threshold = parseFloat(value.substring(2));
+            const numValue = parseFloat(itemValue);
+            if (isNaN(threshold) || isNaN(numValue) || numValue > threshold) return false;
+        } else if (value.startsWith('>')) {
             const threshold = parseFloat(value.substring(1));
-            if (isNaN(threshold) || parseFloat(itemValue) <= threshold) return false;
+            const numValue = parseFloat(itemValue);
+            if (isNaN(threshold) || isNaN(numValue) || numValue <= threshold) return false;
         } else if (value.startsWith('<')) {
             const threshold = parseFloat(value.substring(1));
-            if (isNaN(threshold) || parseFloat(itemValue) >= threshold) return false;
-        } else if (value.startsWith('>=')) {
-            const threshold = parseFloat(value.substring(2));
-            if (isNaN(threshold) || parseFloat(itemValue) < threshold) return false;
-        } else if (value.startsWith('<=')) {
-            const threshold = parseFloat(value.substring(2));
-            if (isNaN(threshold) || parseFloat(itemValue) > threshold) return false;
+            const numValue = parseFloat(itemValue);
+            if (isNaN(threshold) || isNaN(numValue) || numValue >= threshold) return false;
         } else if (value.startsWith('!')) {
             // Not equal
             if (String(itemValue).toLowerCase() === value.substring(1).toLowerCase()) return false;
@@ -470,11 +481,14 @@ function showSearchHistoryDropdown(searchInput) {
     searchBox.style.position = 'relative';
     searchBox.appendChild(dropdown);
 
+    // Helper to close dropdown properly (will be set up after AbortController is created)
+    let closeDropdown = () => dropdown.remove();
+
     // Event listeners
     dropdown.querySelector('.clear-history-btn')?.addEventListener('click', e => {
         e.stopPropagation();
         clearSearchHistory();
-        dropdown.remove();
+        closeDropdown();
     });
 
     dropdown.querySelectorAll('.search-history-item').forEach(item => {
@@ -483,23 +497,45 @@ function showSearchHistoryDropdown(searchInput) {
             if (term && searchInput) {
                 searchInput.value = term;
                 handleSearch();
-                dropdown.remove();
+                closeDropdown();
             }
         });
     });
 
-    // Close dropdown when clicking outside
-    setTimeout(() => {
-        document.addEventListener(
-            'click',
-            e => {
-                if (!dropdown.contains(e.target) && e.target !== searchInput) {
-                    dropdown.remove();
-                }
-            },
-            { once: true }
-        );
-    }, 0);
+    // Close dropdown when clicking outside - use AbortController to prevent memory leaks
+    const abortController = new AbortController();
+
+    const removeDropdown = () => {
+        abortController.abort(); // Clean up the event listener
+        if (dropdown.parentElement) {
+            dropdown.remove();
+        }
+    };
+
+    // Update closeDropdown to use the proper cleanup function
+    closeDropdown = removeDropdown;
+
+    document.addEventListener(
+        'click',
+        e => {
+            if (!dropdown.contains(e.target) && e.target !== searchInput) {
+                removeDropdown();
+            }
+        },
+        { signal: abortController.signal }
+    );
+
+    // Also close on Escape key
+    document.addEventListener(
+        'keydown',
+        e => {
+            if (e.key === 'Escape') {
+                removeDropdown();
+                searchInput?.focus();
+            }
+        },
+        { signal: abortController.signal }
+    );
 }
 
 // ========================================

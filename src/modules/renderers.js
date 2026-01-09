@@ -177,7 +177,11 @@ function renderItems(items) {
     // Bug fix #9: Use requestAnimationFrame for more reliable chart initialization
     // This ensures DOM is painted before chart initialization
     requestAnimationFrame(() => {
-        initializeItemCharts();
+        try {
+            initializeItemCharts();
+        } catch (err) {
+            console.warn('Failed to initialize item charts:', err);
+        }
     });
 }
 
@@ -282,8 +286,14 @@ function renderTomes(tomes) {
         container.appendChild(card);
     });
 
-    // Initialize charts after DOM is ready
-    setTimeout(() => initializeTomeCharts(), 50);
+    // Bug fix: Use requestAnimationFrame instead of setTimeout for more reliable chart initialization
+    requestAnimationFrame(() => {
+        try {
+            initializeTomeCharts();
+        } catch (err) {
+            console.warn('Failed to initialize tome charts:', err);
+        }
+    });
 }
 
 /**

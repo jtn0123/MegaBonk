@@ -5,6 +5,9 @@
 // WeakMap to track tab click handlers per container (prevents memory leaks)
 const tabHandlers = new WeakMap();
 
+// Track current modal session to cancel stale chart initializations
+let currentModalSessionId = 0;
+
 // Focus trap state for modal accessibility
 let focusTrapActive = false;
 let focusableElements = [];
@@ -225,9 +228,17 @@ function renderItemModal(data) {
 
     // Bug fix #10: Use requestAnimationFrame for more reliable chart initialization
     // Initialize chart after modal is displayed and DOM is ready
+    // Bug fix: Use session ID to cancel stale initialization attempts when modal changes
+    currentModalSessionId++;
+    const sessionId = currentModalSessionId;
     let initAttempts = 0;
     const MAX_INIT_ATTEMPTS = 50; // Prevent infinite loop - ~830ms max wait
     const initChart = () => {
+        // Check if this initialization is still valid (modal wasn't reopened with different content)
+        if (sessionId !== currentModalSessionId) {
+            return; // Stale initialization, abort
+        }
+
         // Check if modal is still active before continuing
         const modal = safeGetElementById('itemModal');
         if (!modal || !modal.classList.contains('active')) {

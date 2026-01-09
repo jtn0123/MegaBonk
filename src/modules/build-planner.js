@@ -16,16 +16,16 @@ let currentBuild = {
 const BUILD_HISTORY_KEY = 'megabonk_build_history';
 const MAX_BUILD_HISTORY = 20;
 
-// Build templates
+// Build templates - uses valid IDs from data files
 const BUILD_TEMPLATES = {
     crit_build: {
         name: '🎯 Crit Build',
         description: 'Maximize critical hit chance and damage',
         build: {
             character: 'fox', // Fox has crit passive
-            weapon: 'dual_pistols',
-            tomes: ['precision', 'devastation'],
-            items: ['lucky_clover', 'eagle_eye'],
+            weapon: 'revolver',
+            tomes: ['precision', 'damage'],
+            items: ['clover', 'eagle_claw'],
         },
     },
     tank_build: {
@@ -33,9 +33,9 @@ const BUILD_TEMPLATES = {
         description: 'High HP and survivability',
         build: {
             character: 'ogre', // Ogre has HP passive
-            weapon: 'hammer',
-            tomes: ['vitality', 'armor'],
-            items: ['heart_container', 'shield'],
+            weapon: 'sword',
+            tomes: ['hp', 'armor'],
+            items: ['chonkplate', 'golden_shield'],
         },
     },
     speed_build: {
@@ -43,9 +43,9 @@ const BUILD_TEMPLATES = {
         description: 'Fast attack and movement speed',
         build: {
             character: 'ninja',
-            weapon: 'daggers',
+            weapon: 'katana',
             tomes: ['cooldown', 'agility'],
-            items: ['boots_of_swiftness', 'attackspeed_boots'],
+            items: ['turbo_skates', 'turbo_socks'],
         },
     },
     glass_cannon: {
@@ -54,8 +54,8 @@ const BUILD_TEMPLATES = {
         build: {
             character: 'megachad', // Megachad has damage passive
             weapon: 'sniper_rifle',
-            tomes: ['devastation', 'cooldown'],
-            items: ['damage_potion', 'crit_crown'],
+            tomes: ['damage', 'cooldown'],
+            items: ['power_gloves', 'gym_sauce'],
         },
     },
 };
