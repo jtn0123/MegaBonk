@@ -1,12 +1,23 @@
 // ========================================
-
-import { generateEntityImage, generateTierLabel, escapeHtml } from './utils.js';
-import { isFavorite } from './favorites.js';
-// Note: createScalingChart and generateMatchBadge accessed via window object
-// TODO: Add direct imports when all dependencies are resolved
-
 // MegaBonk Renderers Module
 // ========================================
+
+import {
+    generateEntityImage,
+    generateTierLabel,
+    escapeHtml,
+    safeGetElementById,
+    truncateText,
+    generateMetaTags,
+    generateEmptyState,
+} from './utils.js';
+import { isFavorite } from './favorites.js';
+import { getDataForTab } from './data-service.js';
+import { filterData } from './filters.js';
+import { calculateBreakpoint, populateCalculatorItems } from './calculator.js';
+import { getCompareItems } from './compare.js';
+import { updateChangelogStats, renderChangelog } from './changelog.js';
+import { renderBuildPlanner } from './build-planner.js';
 
 // Track whether calculator button listener has been initialized
 let calculatorButtonInitialized = false;
@@ -160,7 +171,7 @@ export function renderItems(items) {
                     ${isFav ? '⭐' : '☆'}
                 </button>
                 <label class="compare-checkbox-label" title="Add to comparison">
-                    <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${compareItems.includes(item.id) ? 'checked' : ''}>
+                    <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${getCompareItems().includes(item.id) ? 'checked' : ''}>
                     <span>+</span>
                 </label>
             </div>
@@ -182,8 +193,10 @@ export function renderItems(items) {
 
     // Bug fix #9: Use requestAnimationFrame for more reliable chart initialization
     // This ensures DOM is painted before chart initialization
-    requestAnimationFrame(() => {
+    requestAnimationFrame(async () => {
         try {
+            // Dynamically import chart functions to enable code splitting
+            const { initializeItemCharts } = await import('./charts.js');
             initializeItemCharts();
         } catch (err) {
             console.warn('Failed to initialize item charts:', err);
@@ -262,15 +275,12 @@ export function renderTomes(tomes) {
         const imageHtml = generateEntityImage(tome, tome.name);
         const isFav = typeof isFavorite === 'function' ? isFavorite('tomes', tome.id) : false;
 
-        // Check if we can calculate progression for this tome
-        const progression = calculateTomeProgression(tome);
-        const graphHtml = progression
-            ? `
+        // Placeholder for progression - will be calculated dynamically
+        const graphHtml = `
             <div class="tome-graph-container">
                 <canvas id="tome-chart-${tome.id}" class="scaling-chart"></canvas>
             </div>
-        `
-            : '';
+        `;
 
         card.innerHTML = `
             <div class="item-header">
@@ -293,8 +303,10 @@ export function renderTomes(tomes) {
     });
 
     // Bug fix: Use requestAnimationFrame instead of setTimeout for more reliable chart initialization
-    requestAnimationFrame(() => {
+    requestAnimationFrame(async () => {
         try {
+            // Dynamically import chart functions to enable code splitting
+            const { initializeTomeCharts } = await import('./charts.js');
             initializeTomeCharts();
         } catch (err) {
             console.warn('Failed to initialize tome charts:', err);

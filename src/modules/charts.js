@@ -1,10 +1,8 @@
 // ========================================
-
-// Note: Chart.js is currently loaded via CDN in index.html
-// TODO: Convert to npm package with: bun add chart.js
-
 // MegaBonk Charts Module
 // ========================================
+
+import { Chart } from './chart-loader.js';
 
 // Chart instances storage (for cleanup)
 export let chartInstances = {};
@@ -95,12 +93,6 @@ export function createScalingChart(
 ) {
     const canvas = safeGetElementById(canvasId);
     if (!canvas) return null;
-
-    // Check if Chart.js is available
-    if (typeof Chart === 'undefined') {
-        console.warn('Chart.js not loaded');
-        return null;
-    }
 
     // Destroy existing chart if present
     if (chartInstances[canvasId]) {
@@ -230,7 +222,7 @@ export function createScalingChart(
  */
 export function createCompareChart(canvasId, items) {
     const canvas = safeGetElementById(canvasId);
-    if (!canvas || typeof Chart === 'undefined') return null;
+    if (!canvas) return null;
 
     if (chartInstances[canvasId]) {
         chartInstances[canvasId].destroy();

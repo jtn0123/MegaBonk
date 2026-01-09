@@ -5,7 +5,6 @@
 import { allData } from './data-service.js';
 import { ToastManager } from './toast.js';
 import { safeGetElementById, generateModalImage } from './utils.js';
-import { getEffectiveStackCap, createScalingChart, calculateTomeProgression } from './charts.js';
 
 // WeakMap to track tab click handlers per container (prevents memory leaks)
 const tabHandlers = new WeakMap();
@@ -80,7 +79,7 @@ function deactivateFocusTrap() {
  * @param {string} type - Entity type (item, weapon, tome, character, shrine)
  * @param {string} id - Entity ID
  */
-export function openDetailModal(type, id) {
+export async function openDetailModal(type, id) {
     let data;
     switch (type) {
         case 'item':
@@ -117,7 +116,7 @@ export function openDetailModal(type, id) {
     } else if (type === 'weapon') {
         content += renderWeaponModal(data);
     } else if (type === 'tome') {
-        content += renderTomeModal(data);
+        content += await renderTomeModal(data);
     } else if (type === 'character') {
         content += renderCharacterModal(data);
     } else if (type === 'shrine') {
@@ -238,7 +237,7 @@ function renderItemModal(data) {
     const sessionId = currentModalSessionId;
     let initAttempts = 0;
     const MAX_INIT_ATTEMPTS = 50; // Prevent infinite loop - ~830ms max wait
-    const initChart = () => {
+    const initChart = async () => {
         // Check if this initialization is still valid (modal wasn't reopened with different content)
         if (sessionId !== currentModalSessionId) {
             return; // Stale initialization, abort
@@ -260,6 +259,9 @@ function renderItemModal(data) {
             // If max attempts reached, silently give up (modal may have closed)
             return;
         }
+
+        // Dynamically import chart functions only when needed
+        const { getEffectiveStackCap, createScalingChart } = await import('./charts.js');
 
         if (hasScalingTracks) {
             // Initialize with first track
@@ -319,7 +321,7 @@ function setupScalingTabHandlers(data) {
     if (!container) return;
 
     // Store handler reference for potential cleanup
-    const handleTabClick = e => {
+    const handleTabClick = async e => {
         const tab = e.target.closest(`.scaling-tab[data-item-id="${data.id}"]`);
         if (!tab) return;
 
@@ -327,6 +329,9 @@ function setupScalingTabHandlers(data) {
         const tabs = container.querySelectorAll(`.scaling-tab[data-item-id="${data.id}"]`);
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
+
+        // Dynamically import chart functions
+        const { getEffectiveStackCap, createScalingChart } = await import('./charts.js');
 
         // Get track data and redraw chart
         const trackKey = tab.dataset.track;
@@ -377,7 +382,10 @@ function renderWeaponModal(data) {
  * @param {Object} data - Tome data
  * @returns {string} HTML content
  */
-function renderTomeModal(data) {
+async function renderTomeModal(data) {
+    // Dynamically import chart functions
+    const { calculateTomeProgression, createScalingChart } = await import('./charts.js');
+
     const progression = calculateTomeProgression(data);
     const graphHtml = progression
         ? `
