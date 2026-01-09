@@ -42,6 +42,20 @@ export interface Item {
     scaling?: Scaling;
     synergies?: string[];
     antiSynergies?: string[];
+    // Calculator/scaling properties
+    formula?: string;
+    scaling_type?: string;
+    scaling_per_stack?: number[];
+    stack_cap?: number;
+    one_and_done?: boolean;
+    stacks_well?: boolean;
+    // Compare module properties
+    base_effect?: string;
+    graph_type?: string;
+    notes?: string;
+    anti_synergies?: string[];
+    // Build planner properties
+    synergies_weapons?: string[];
 }
 
 /**
@@ -69,6 +83,8 @@ export interface Weapon {
     upgrades?: WeaponUpgrade[];
     scaling?: Scaling;
     tags?: string[];
+    // Build planner properties (snake_case from JSON)
+    base_damage?: number;
 }
 
 /**
@@ -85,6 +101,9 @@ export interface Tome {
     priority?: number;
     stackable?: boolean;
     tags?: string[];
+    // Build planner properties
+    stat_affected?: string;
+    value_per_level?: string | number;
 }
 
 /**
@@ -111,6 +130,9 @@ export interface Character {
     passive: string;
     startingWeapon?: string;
     tags?: string[];
+    // Build planner properties
+    passive_ability?: string;
+    synergies_weapons?: string[];
 }
 
 /**
@@ -282,4 +304,22 @@ export interface StoredMetric {
     formattedValue: string;
     delta: number;
     id: string;
+}
+
+// ========================================
+// Global Declarations
+// ========================================
+
+/**
+ * Global objects and functions available throughout the application
+ */
+declare global {
+    const allData: AllGameData;
+    const ToastManager:
+        | {
+              error: (message: string) => void;
+              success: (message: string) => void;
+              warning: (message: string) => void;
+          }
+        | undefined;
 }

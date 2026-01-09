@@ -230,7 +230,11 @@ export function setupEventDelegation(): void {
             const btn = (target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')) as HTMLButtonElement | null;
             const tabName = btn?.dataset.tab as TabName | undefined;
             const itemId = btn?.dataset.id;
-            if (btn && tabName && itemId && typeof toggleFavorite === 'function') {
+            // Type guard: favorites only work for entity tabs, not build-planner or calculator
+            const isEntityTab = (tab: TabName | undefined): tab is EntityType => {
+                return tab === 'items' || tab === 'weapons' || tab === 'tomes' || tab === 'characters' || tab === 'shrines';
+            };
+            if (btn && tabName && isEntityTab(tabName) && itemId && typeof toggleFavorite === 'function') {
                 const nowFavorited = toggleFavorite(tabName, itemId);
                 // Update button appearance
                 btn.classList.toggle('favorited', nowFavorited);
