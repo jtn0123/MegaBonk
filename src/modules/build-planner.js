@@ -8,7 +8,274 @@ let currentBuild = {
     weapon: null,
     tomes: [],
     items: [],
+    name: '',
+    notes: '',
 };
+
+// Build history management
+const BUILD_HISTORY_KEY = 'megabonk_build_history';
+const MAX_BUILD_HISTORY = 20;
+
+// Build templates
+const BUILD_TEMPLATES = {
+    crit_build: {
+        name: '🎯 Crit Build',
+        description: 'Maximize critical hit chance and damage',
+        build: {
+            character: 'fox', // Fox has crit passive
+            weapon: 'dual_pistols',
+            tomes: ['precision', 'devastation'],
+            items: ['lucky_clover', 'eagle_eye'],
+        },
+    },
+    tank_build: {
+        name: '🛡️ Tank Build',
+        description: 'High HP and survivability',
+        build: {
+            character: 'ogre', // Ogre has HP passive
+            weapon: 'hammer',
+            tomes: ['vitality', 'armor'],
+            items: ['heart_container', 'shield'],
+        },
+    },
+    speed_build: {
+        name: '⚡ Speed Build',
+        description: 'Fast attack and movement speed',
+        build: {
+            character: 'ninja',
+            weapon: 'daggers',
+            tomes: ['cooldown', 'agility'],
+            items: ['boots_of_swiftness', 'attackspeed_boots'],
+        },
+    },
+    glass_cannon: {
+        name: '💥 Glass Cannon',
+        description: 'Maximum damage, low defense',
+        build: {
+            character: 'megachad', // Megachad has damage passive
+            weapon: 'sniper_rifle',
+            tomes: ['devastation', 'cooldown'],
+            items: ['damage_potion', 'crit_crown'],
+        },
+    },
+};
+
+// ========================================
+// Build History Management
+// ========================================
+
+/**
+ * Get build history from localStorage
+ * @returns {Array} Build history array
+ */
+function getBuildHistory() {
+    try {
+        const history = localStorage.getItem(BUILD_HISTORY_KEY);
+        return history ? JSON.parse(history) : [];
+    } catch (error) {
+        console.error('[Build History] Failed to load:', error);
+        return [];
+    }
+}
+
+/**
+ * Save current build to history
+ */
+function saveBuildToHistory() {
+    if (!currentBuild.character && !currentBuild.weapon) {
+        ToastManager.warning('Build must have at least a character or weapon');
+        return;
+    }
+
+    try {
+        let history = getBuildHistory();
+
+        const buildData = {
+            name: currentBuild.name || `Build ${new Date().toLocaleString()}`,
+            notes: currentBuild.notes || '',
+            timestamp: Date.now(),
+            character: currentBuild.character?.id,
+            weapon: currentBuild.weapon?.id,
+            tomes: currentBuild.tomes.map(t => t.id),
+            items: currentBuild.items.map(i => i.id),
+        };
+
+        // Add to front of history
+        history.unshift(buildData);
+
+        // Keep only MAX_BUILD_HISTORY builds
+        history = history.slice(0, MAX_BUILD_HISTORY);
+
+        localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
+        ToastManager.success(`Build "${buildData.name}" saved to history!`);
+    } catch (error) {
+        console.error('[Build History] Failed to save:', error);
+        ToastManager.error('Failed to save build to history');
+    }
+}
+
+/**
+ * Load a build from history
+ * @param {number} index - Index in history array
+ */
+function loadBuildFromHistory(index) {
+    try {
+        const history = getBuildHistory();
+        if (index < 0 || index >= history.length) {
+            ToastManager.error('Build not found in history');
+            return;
+        }
+
+        const buildData = history[index];
+        loadBuildFromData(buildData);
+        ToastManager.success(`Loaded "${buildData.name}" from history`);
+    } catch (error) {
+        console.error('[Build History] Failed to load build:', error);
+        ToastManager.error('Failed to load build from history');
+    }
+}
+
+/**
+ * Delete a build from history
+ * @param {number} index - Index in history array
+ */
+function deleteBuildFromHistory(index) {
+    try {
+        let history = getBuildHistory();
+        if (index < 0 || index >= history.length) {
+            ToastManager.error('Build not found in history');
+            return;
+        }
+
+        const buildName = history[index].name;
+        history.splice(index, 1);
+
+        localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
+        ToastManager.success(`Deleted "${buildName}" from history`);
+
+        // Refresh history display if it's open
+        if (typeof showBuildHistoryModal === 'function') {
+            showBuildHistoryModal();
+        }
+    } catch (error) {
+        console.error('[Build History] Failed to delete:', error);
+        ToastManager.error('Failed to delete build from history');
+    }
+}
+
+/**
+ * Clear all build history
+ */
+function clearBuildHistory() {
+    try {
+        localStorage.removeItem(BUILD_HISTORY_KEY);
+        ToastManager.success('Build history cleared');
+    } catch (error) {
+        console.error('[Build History] Failed to clear:', error);
+        ToastManager.error('Failed to clear build history');
+    }
+}
+
+// ========================================
+// Build Templates
+// ========================================
+
+/**
+ * Load a build template
+ * @param {string} templateId - Template identifier
+ */
+function loadBuildTemplate(templateId) {
+    const template = BUILD_TEMPLATES[templateId];
+    if (!template) {
+        ToastManager.error('Template not found');
+        return;
+    }
+
+    try {
+        currentBuild.name = template.name;
+        currentBuild.notes = template.description;
+
+        loadBuildFromData(template.build);
+        ToastManager.success(`Loaded template: ${template.name}`);
+    } catch (error) {
+        console.error('[Build Templates] Failed to load:', error);
+        ToastManager.error('Failed to load template');
+    }
+}
+
+// ========================================
+// Build Import/Export/Load
+// ========================================
+
+/**
+ * Load build from data object
+ * @param {Object} buildData - Build data with character, weapon, tomes, items IDs
+ */
+function loadBuildFromData(buildData) {
+    // Clear current build first
+    clearBuild();
+
+    // Load character
+    if (buildData.character && allData.characters) {
+        const char = allData.characters.characters.find(c => c.id === buildData.character);
+        if (char) {
+            currentBuild.character = char;
+            safeSetValue('build-character', char.id);
+        }
+    }
+
+    // Load weapon
+    if (buildData.weapon && allData.weapons) {
+        const weapon = allData.weapons.weapons.find(w => w.id === buildData.weapon);
+        if (weapon) {
+            currentBuild.weapon = weapon;
+            safeSetValue('build-weapon', weapon.id);
+        }
+    }
+
+    // Load tomes
+    if (buildData.tomes && Array.isArray(buildData.tomes) && allData.tomes) {
+        buildData.tomes.forEach(tomeId => {
+            const tome = allData.tomes.tomes.find(t => t.id === tomeId);
+            if (tome) {
+                const checkbox = document.querySelector(`.tome-checkbox[value="${tomeId}"]`);
+                if (checkbox) checkbox.checked = true;
+            }
+        });
+    }
+
+    // Load items
+    if (buildData.items && Array.isArray(buildData.items) && allData.items) {
+        buildData.items.forEach(itemId => {
+            const item = allData.items.items.find(i => i.id === itemId);
+            if (item) {
+                const checkbox = document.querySelector(`.item-checkbox[value="${itemId}"]`);
+                if (checkbox) checkbox.checked = true;
+            }
+        });
+    }
+
+    // Load name and notes if available
+    if (buildData.name) currentBuild.name = buildData.name;
+    if (buildData.notes) currentBuild.notes = buildData.notes;
+
+    updateBuildAnalysis();
+}
+
+/**
+ * Import build from JSON string
+ * @param {string} jsonString - JSON string containing build data
+ */
+function importBuild(jsonString) {
+    try {
+        const buildData = JSON.parse(jsonString);
+        loadBuildFromData(buildData);
+        ToastManager.success('Build imported successfully!');
+    } catch (error) {
+        console.error('[Build Import] Failed:', error);
+        ToastManager.error('Invalid build data. Please check the format.');
+    }
+}
 
 /**
  * Render the build planner UI
@@ -422,3 +689,16 @@ window.exportBuild = exportBuild;
 window.clearBuild = clearBuild;
 window.shareBuildURL = shareBuildURL;
 window.loadBuildFromURL = loadBuildFromURL;
+window.loadBuildFromData = loadBuildFromData;
+window.importBuild = importBuild;
+
+// Build history
+window.getBuildHistory = getBuildHistory;
+window.saveBuildToHistory = saveBuildToHistory;
+window.loadBuildFromHistory = loadBuildFromHistory;
+window.deleteBuildFromHistory = deleteBuildFromHistory;
+window.clearBuildHistory = clearBuildHistory;
+
+// Build templates
+window.BUILD_TEMPLATES = BUILD_TEMPLATES;
+window.loadBuildTemplate = loadBuildTemplate;

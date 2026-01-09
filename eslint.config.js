@@ -106,6 +106,16 @@ module.exports = [
                 DEFAULT_BUILD_STATS: 'readonly',
                 ITEM_EFFECTS: 'readonly',
                 MAX_COMPARE_ITEMS: 'readonly',
+                BUILD_TEMPLATES: 'readonly',
+                getBuildHistory: 'readonly',
+                saveBuildToHistory: 'readonly',
+                loadBuildFromHistory: 'readonly',
+                deleteBuildFromHistory: 'readonly',
+                clearBuildHistory: 'readonly',
+                loadBuildTemplate: 'readonly',
+                loadBuildFromData: 'readonly',
+                importBuild: 'readonly',
+                showBuildHistoryModal: 'readonly',
             }
         },
         rules: {
