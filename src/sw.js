@@ -1,7 +1,7 @@
 // MegaBonk Guide - Service Worker for offline support
 // Bug fix: Added missing changelog.js to cache
 // Bug fix: Use network-first strategy for data files to prevent stale cache
-const CACHE_NAME = 'megabonk-guide-v1.2.3';
+const CACHE_NAME = 'megabonk-guide-v1.0.0-2026-01-09';
 
 // Static assets - use cache-first strategy (rarely change)
 const staticAssets = [
@@ -11,10 +11,13 @@ const staticAssets = [
   './script.js',
   './modules/constants.js',
   './modules/utils.js',
+  './modules/dom-cache.js',
   './modules/toast.js',
   './modules/favorites.js',
+  './modules/data-validation.js',
   './modules/data-service.js',
   './modules/filters.js',
+  './modules/match-badge.js',
   './modules/charts.js',
   './modules/renderers.js',
   './modules/modal.js',

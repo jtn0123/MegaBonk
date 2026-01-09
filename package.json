@@ -14,6 +14,8 @@
     "build:android": "bunx cap sync android && bunx cap open android",
     "build:ios": "bunx cap sync ios && bunx cap open ios",
     "optimize:images": "node scripts/convert-to-webp.js",
+    "version:inject": "node scripts/inject-version.js",
+    "prebuild": "npm run version:inject",
     "test": "bun vitest",
     "test:unit": "bun vitest run --coverage",
     "test:watch": "bun vitest watch",
