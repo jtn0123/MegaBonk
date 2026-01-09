@@ -1,7 +1,7 @@
 # TypeScript Migration Progress
 
 **Started**: 2026-01-09
-**Status**: 🟡 In Progress (3/27 modules converted)
+**Status**: 🟢 In Progress (6/27 modules converted - Phase 2 Complete!)
 
 ---
 
@@ -17,7 +17,7 @@ Gradual migration from JavaScript to TypeScript for improved type safety, better
 
 ---
 
-## Converted Modules (3)
+## Converted Modules (6)
 
 ### 1. ✅ Type Definitions (`src/types/index.ts`)
 
@@ -92,14 +92,140 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 - Catches type mismatches at compile time
 - Self-documenting function signatures
 
+### 4. ✅ Schema Validator (`src/modules/schema-validator.ts`)
+
+**Converted from**: `schema-validator.js`
+
+**Changes**:
+- Uses `z.infer<typeof Schema>` to auto-generate TypeScript types from Zod schemas
+- Exports `ZodItem`, `ZodWeapon`, `ZodTome`, `ZodCharacter`, `ZodShrine`, `ZodStats` types
+- Strongly typed validation functions with proper error handling
+- Fixed `z.record()` to use two parameters (key and value schemas)
+- Uses `zodError.issues` instead of `.errors` for Zod v4 compatibility
+
+**Key Pattern - Zod + TypeScript Integration**:
+```typescript
+// Define Zod schema
+const ItemSchema = z.object({
+    id: z.string(),
+    name: z.string(),
+    tier: z.enum(['SS', 'S', 'A', 'B', 'C']),
+    // ... more fields
+});
+
+// Automatically infer TypeScript type from schema
+export type ZodItem = z.infer<typeof ItemSchema>;
+
+// Type-safe validation function
+export function validateData<T>(
+    data: unknown,
+    schema: z.ZodSchema<T>,
+    dataType: string
+): ValidationResult<T> {
+    try {
+        const validatedData = schema.parse(data);
+        return { success: true, data: validatedData };
+    } catch (error) {
+        // Proper error handling with ZodError types
+    }
+}
+```
+
+**Benefits**:
+- Single source of truth (schema defines both runtime validation and compile-time types)
+- Runtime validation + compile-time type safety
+- No need to maintain separate type definitions and schemas
+- Type inference eliminates duplication
+
+### 5. ✅ Data Validation (`src/modules/data-validation.ts`)
+
+**Converted from**: `data-validation.js`
+
+**Changes**:
+- Added type interfaces: `LegacyValidationResult`, `ComprehensiveValidationResult`, `ZodValidationResult`
+- Strongly typed all function parameters and return values
+- Uses types from `schema-validator.ts` for Zod validation
+- Uses `VALID_RARITIES` and `VALID_TIERS` constants from `constants.ts`
+- Proper type guards for cross-reference validation
+- Type-safe iteration over entity collections
+
+**Type Safety Improvements**:
+```typescript
+// Strongly typed validation functions
+export function validateDataStructure(
+    data: DataStructure | null | undefined,
+    type: EntityType
+): LegacyValidationResult
+
+export function validateAllData(
+    allData: AllGameData | null | undefined
+): ComprehensiveValidationResult
+
+// Type-safe rarity/tier validation using constants
+export function validateRarity(entity: BasicEntity, type: string, index: number): string[] {
+    if (entity.rarity && !VALID_RARITIES.includes(entity.rarity.toLowerCase() as Rarity)) {
+        // TypeScript ensures we only use valid Rarity values
+    }
+}
+```
+
+**Benefits**:
+- Compile-time validation of function signatures
+- IDE autocomplete for all validation functions
+- Type-safe data structure traversal
+- Catches type errors before runtime
+
+### 6. ✅ Data Service (`src/modules/data-service.ts`)
+
+**Converted from**: `data-service.js`
+
+**Changes**:
+- Strongly typed all function parameters and return values
+- Uses `AllGameData` type for global data storage
+- Imports `ChangelogData` and `ChangelogPatch` from `types/index.ts`
+- Proper error handling with typed `Error` objects
+- Type-safe window global function calls
+- Typed fetch functions with retry logic and exponential backoff
+
+**Type Safety Improvements**:
+```typescript
+// Typed fetch with retry logic
+async function fetchWithRetry(
+    url: string,
+    maxRetries: number = 4,
+    initialDelay: number = 2000
+): Promise<Response>
+
+// Type-safe data loading
+export async function loadAllData(): Promise<void>
+
+// Strongly typed data getters
+export function getDataForTab(tabName: string): Entity[] | ChangelogPatch[]
+export function getAllData(): AllGameData
+
+// Type-safe global data storage
+let allData: AllGameData = {
+    items: undefined,
+    weapons: undefined,
+    // ... all properties properly typed
+}
+```
+
+**Benefits**:
+- Compile-time validation of data structures
+- IDE autocomplete for all data service functions
+- Type-safe data loading and validation
+- Proper typing for async/await patterns
+- Error handling with typed exceptions
+
 ---
 
-## Remaining Modules (24 JavaScript files)
+## Remaining Modules (21 JavaScript files)
 
 ### Core Modules (High Priority)
-- `[ ]` `data-service.js` - Data loading and caching
-- `[ ]` `data-validation.js` - Validation logic (integrates with Zod)
-- `[ ]` `schema-validator.js` - Zod schemas (can generate TS types!)
+- `[✅]` `data-service.ts` - Data loading and caching **COMPLETED**
+- `[✅]` `data-validation.ts` - Validation logic (integrates with Zod) **COMPLETED**
+- `[✅]` `schema-validator.ts` - Zod schemas (can generate TS types!) **COMPLETED**
 - `[ ]` `filters.js` - Filtering logic
 - `[ ]` `renderers.js` - Rendering functions
 
@@ -141,16 +267,16 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
 - ✅ Convert utilities (`utils.ts`)
 - ✅ Convert constants (`constants.ts`)
 
-### Phase 2: Data Layer (Next)
-1. Convert `schema-validator.js` → `schema-validator.ts`
+### Phase 2: Data Layer ✅ (Complete)
+1. ✅ Convert `schema-validator.js` → `schema-validator.ts`
    - Use `z.infer<typeof Schema>` to generate types from Zod
    - Export types for use in other modules
-2. Convert `data-validation.js` → `data-validation.ts`
+2. ✅ Convert `data-validation.js` → `data-validation.ts`
    - Integrate with Zod-generated types
-3. Convert `data-service.js` → `data-service.ts`
+3. ✅ Convert `data-service.js` → `data-service.ts`
    - Strong typing for all data fetching functions
 
-### Phase 3: Core Features
+### Phase 3: Core Features (Next)
 1. Convert `filters.js` → `filters.ts`
 2. Convert `renderers.js` → `renderers.ts`
 3. Convert `modal.js` → `modal.ts`
@@ -248,17 +374,20 @@ $ bun run test:unit
 
 ## Next Steps
 
-### Immediate (Phase 2)
-1. Convert `schema-validator.js` → `schema-validator.ts`
-   - Use Zod's `z.infer` to generate types
-   - Export inferred types for reuse
-2. Convert `data-validation.js` → `data-validation.ts`
-   - Use Zod-generated types
-3. Convert `data-service.js` → `data-service.ts`
-   - Type all data fetching functions
+### Immediate (Phase 3) ⏭️
+1. Convert `filters.js` → `filters.ts`
+   - Type all filter functions and predicates
+   - Use Entity union types for flexible filtering
+2. Convert `renderers.js` → `renderers.ts`
+   - Type all rendering functions with DOM types
+   - Use Entity types for rendering logic
+3. Convert `modal.js` → `modal.ts`
+   - Type modal state and configuration
+   - Use Entity types for modal content
 
-### Short-Term (Phase 3)
-- Convert core feature modules (filters, renderers, modal)
+### Short-Term (Phase 4)
+- Convert UI helper modules (toast, dom-cache, events)
+- Convert new modules (error-boundary, web-vitals, theme-manager, keyboard-shortcuts)
 - Update imports to use new TypeScript modules
 
 ### Long-Term (Phases 4-6)
@@ -318,11 +447,12 @@ import { escapeHtml } from './utils.js'; // Actually imports from utils.ts
 
 | Metric | Before | After | Change |
 |--------|--------|-------|--------|
-| **Type-Safe Files** | 0% | 11% (3/27) | +11% |
+| **Type-Safe Files** | 0% | 22% (6/27) | +22% |
 | **Type Definitions** | 0 | 1 file (50+ types) | +50 types |
-| **Compile-Time Checks** | 0 | 3 modules | +3 modules |
+| **Compile-Time Checks** | 0 | 6 modules | +6 modules |
 | **Bundle Size** | 148KB | 148KB | No change |
 | **Build Time** | 3.5s | 3.9s | +0.4s |
+| **Phases Complete** | 0/6 | 2/6 (33%) | Phase 1 & 2 ✅ |
 
 ---
 
@@ -335,5 +465,5 @@ import { escapeHtml } from './utils.js'; // Actually imports from utils.ts
 ---
 
 **Last Updated**: 2026-01-09
-**Progress**: 3/27 modules (11%)
-**Next Target**: schema-validator.ts (Zod integration)
+**Progress**: 6/27 modules (22%) - Phase 2 Complete! 🎉
+**Next Target**: Phase 3 - Core Features (filters, renderers, modal)
