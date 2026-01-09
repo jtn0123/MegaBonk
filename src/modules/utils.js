@@ -62,6 +62,27 @@ function safeSetHTML(id, html) {
 // ========================================
 
 /**
+ * Generate responsive image HTML with WebP support and fallbacks
+ * Uses <picture> element for optimal format delivery
+ * @param {string} imagePath - Path to image (PNG/JPG)
+ * @param {string} altText - Alt text for accessibility
+ * @param {string} className - CSS class name
+ * @returns {string} HTML string with <picture> element
+ */
+function generateResponsiveImage(imagePath, altText, className = 'entity-image') {
+    if (!imagePath) return '';
+
+    // Convert .png/.jpg to .webp path
+    const webpPath = imagePath.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+    const escapedAlt = escapeHtml(altText);
+
+    return `<picture>
+        <source srcset="${webpPath}" type="image/webp">
+        <img src="${imagePath}" alt="${escapedAlt}" class="${className}" onerror="this.style.display='none'" loading="lazy">
+    </picture>`;
+}
+
+/**
  * Generate image HTML for an entity (item, weapon, character, tome)
  * @param {Object} entity - Entity object with optional image property
  * @param {string} altText - Alt text for the image
@@ -70,7 +91,7 @@ function safeSetHTML(id, html) {
  */
 function generateEntityImage(entity, altText, className = 'entity-image') {
     if (!entity || !entity.image) return '';
-    return `<img src="${entity.image}" alt="${altText}" class="${className}" onerror="this.style.display='none'">`;
+    return generateResponsiveImage(entity.image, altText, className);
 }
 
 /**
@@ -82,7 +103,7 @@ function generateEntityImage(entity, altText, className = 'entity-image') {
  */
 function generateModalImage(entity, altText, type) {
     if (!entity || !entity.image) return '';
-    return `<img src="${entity.image}" alt="${altText}" class="modal-${type}-image" onerror="this.style.display='none'">`;
+    return generateResponsiveImage(entity.image, altText, `modal-${type}-image`);
 }
 
 // ========================================
@@ -282,6 +303,7 @@ window.safeQuerySelector = safeQuerySelector;
 window.safeQuerySelectorAll = safeQuerySelectorAll;
 window.safeSetValue = safeSetValue;
 window.safeSetHTML = safeSetHTML;
+window.generateResponsiveImage = generateResponsiveImage;
 window.generateEntityImage = generateEntityImage;
 window.generateModalImage = generateModalImage;
 window.generateEmptyState = generateEmptyState;

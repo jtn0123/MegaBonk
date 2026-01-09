@@ -13,6 +13,7 @@
     "ios": "bunx cap sync && bunx cap open ios",
     "build:android": "bunx cap sync android && bunx cap open android",
     "build:ios": "bunx cap sync ios && bunx cap open ios",
+    "optimize:images": "node scripts/convert-to-webp.js",
     "test": "bun vitest",
     "test:unit": "bun vitest run --coverage",
     "test:watch": "bun vitest watch",
@@ -47,7 +48,9 @@
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "serve": "^14.2.5",
-    "vitest": "^4.0.16"
+    "sharp": "^0.34.5",
+    "vitest": "^4.0.16",
+    "zod": "^4.3.5"
   },
   "lint-staged": {
     "src/**/*.js": [

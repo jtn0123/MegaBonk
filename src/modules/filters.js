@@ -8,6 +8,7 @@
 
 const SEARCH_HISTORY_KEY = 'megabonk_search_history';
 const MAX_SEARCH_HISTORY = 10;
+const FILTER_STATE_KEY = 'megabonk_filter_state';
 
 /**
  * Get search history from localStorage
@@ -55,6 +56,125 @@ function clearSearchHistory() {
         console.log('[Search History] Cleared');
     } catch (error) {
         console.error('[Search History] Failed to clear:', error);
+    }
+}
+
+// ========================================
+// Filter State Persistence (Per-Tab)
+// ========================================
+
+/**
+ * Get all filter states from sessionStorage
+ * @returns {Object} Object with filter states per tab
+ */
+function getAllFilterStates() {
+    try {
+        const states = sessionStorage.getItem(FILTER_STATE_KEY);
+        return states ? JSON.parse(states) : {};
+    } catch (error) {
+        console.error('[Filter State] Failed to load:', error);
+        return {};
+    }
+}
+
+/**
+ * Save current filter state for a specific tab
+ * @param {string} tabName - Tab name
+ */
+function saveFilterState(tabName) {
+    if (!tabName || ['build-planner', 'calculator', 'shrines', 'changelog'].includes(tabName)) {
+        return; // Don't save state for tabs without filters
+    }
+
+    try {
+        const state = {
+            search: safeGetElementById('searchInput')?.value || '',
+            favoritesOnly: safeGetElementById('favoritesOnly')?.checked || false,
+            tierFilter: safeGetElementById('tierFilter')?.value || 'all',
+            sortBy: safeGetElementById('sortBy')?.value || 'name',
+        };
+
+        // Add items-specific filters
+        if (tabName === 'items') {
+            state.rarityFilter = safeGetElementById('rarityFilter')?.value || 'all';
+            state.stackingFilter = safeGetElementById('stackingFilter')?.value || 'all';
+        }
+
+        // Get all states
+        const allStates = getAllFilterStates();
+        allStates[tabName] = state;
+
+        sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(allStates));
+    } catch (error) {
+        console.error('[Filter State] Failed to save:', error);
+    }
+}
+
+/**
+ * Restore filter state for a specific tab
+ * @param {string} tabName - Tab name
+ */
+function restoreFilterState(tabName) {
+    if (!tabName || ['build-planner', 'calculator', 'shrines', 'changelog'].includes(tabName)) {
+        return; // No filters to restore for these tabs
+    }
+
+    try {
+        const allStates = getAllFilterStates();
+        const state = allStates[tabName];
+
+        if (!state) return; // No saved state for this tab
+
+        // Restore search input
+        const searchInput = safeGetElementById('searchInput');
+        if (searchInput && state.search !== undefined) {
+            searchInput.value = state.search;
+        }
+
+        // Restore favorites checkbox
+        const favoritesOnly = safeGetElementById('favoritesOnly');
+        if (favoritesOnly && state.favoritesOnly !== undefined) {
+            favoritesOnly.checked = state.favoritesOnly;
+        }
+
+        // Restore tier filter
+        const tierFilter = safeGetElementById('tierFilter');
+        if (tierFilter && state.tierFilter) {
+            tierFilter.value = state.tierFilter;
+        }
+
+        // Restore sort order
+        const sortBy = safeGetElementById('sortBy');
+        if (sortBy && state.sortBy) {
+            sortBy.value = state.sortBy;
+        }
+
+        // Restore items-specific filters
+        if (tabName === 'items') {
+            const rarityFilter = safeGetElementById('rarityFilter');
+            if (rarityFilter && state.rarityFilter) {
+                rarityFilter.value = state.rarityFilter;
+            }
+
+            const stackingFilter = safeGetElementById('stackingFilter');
+            if (stackingFilter && state.stackingFilter) {
+                stackingFilter.value = state.stackingFilter;
+            }
+        }
+    } catch (error) {
+        console.error('[Filter State] Failed to restore:', error);
+    }
+}
+
+/**
+ * Clear all saved filter states
+ */
+function clearAllFilterStates() {
+    try {
+        sessionStorage.removeItem(FILTER_STATE_KEY);
+        console.log('[Filter State] All states cleared');
+    } catch (error) {
+        console.error('[Filter State] Failed to clear:', error);
     }
 }
 
@@ -425,6 +545,11 @@ function handleSearch() {
     }
 
     renderTabContent(currentTab);
+
+    // Save filter state when search changes
+    if (typeof saveFilterState === 'function') {
+        saveFilterState(currentTab);
+    }
 }
 
 /**
@@ -552,3 +677,6 @@ window.clearSearchHistory = clearSearchHistory;
 window.showSearchHistoryDropdown = showSearchHistoryDropdown;
 window.fuzzyMatchScore = fuzzyMatchScore;
 window.parseAdvancedSearch = parseAdvancedSearch;
+window.saveFilterState = saveFilterState;
+window.restoreFilterState = restoreFilterState;
+window.clearAllFilterStates = clearAllFilterStates;

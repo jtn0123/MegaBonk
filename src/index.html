@@ -35,6 +35,7 @@
         />
         <meta property="twitter:image" content="https://megabonk.guide/icons/icon-512.png" />
 
+        <!-- Note: CSS split into modules available in styles/ directory, needs refinement -->
         <link rel="stylesheet" href="styles.css" />
         <link rel="manifest" href="manifest.json" />
         <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
@@ -528,8 +529,10 @@
         <!-- Module scripts (load order matters - dependencies first) -->
         <script src="modules/constants.js"></script>
         <script src="modules/utils.js"></script>
+        <script src="modules/dom-cache.js"></script>
         <script src="modules/toast.js"></script>
         <script src="modules/favorites.js"></script>
+        <script src="modules/data-validation.js"></script>
         <script src="modules/data-service.js"></script>
         <script src="modules/filters.js"></script>
         <script src="modules/charts.js"></script>

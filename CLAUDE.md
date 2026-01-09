@@ -29,6 +29,11 @@ bun run android           # Sync and open Android Studio
 bun run ios               # Sync and open Xcode
 ```
 
+### Image Optimization
+```bash
+bun run optimize:images   # Convert PNG/JPG to WebP format (requires sharp)
+```
+
 ## Architecture
 
 ### Data Layer (`data/`)

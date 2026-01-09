@@ -233,12 +233,20 @@ function setupEventDelegation() {
         // Filter select changes
         if (target.closest('#filters') && target.tagName === 'SELECT') {
             renderTabContent(currentTab);
+            // Save filter state when filters change
+            if (typeof saveFilterState === 'function') {
+                saveFilterState(currentTab);
+            }
             return;
         }
 
         // Favorites filter checkbox
         if (target.id === 'favoritesOnly') {
             renderTabContent(currentTab);
+            // Save filter state when favorites checkbox changes
+            if (typeof saveFilterState === 'function') {
+                saveFilterState(currentTab);
+            }
             return;
         }
     });
@@ -399,6 +407,11 @@ let currentTab = 'items';
  * @param {string} tabName - Tab name to switch to
  */
 function switchTab(tabName) {
+    // Save current tab's filter state before switching
+    if (currentTab && typeof saveFilterState === 'function') {
+        saveFilterState(currentTab);
+    }
+
     // Destroy existing charts before switching tabs
     destroyAllCharts();
 
@@ -424,6 +437,11 @@ function switchTab(tabName) {
 
     // Update filters based on tab
     updateFilters(tabName);
+
+    // Restore filter state for new tab
+    if (typeof restoreFilterState === 'function') {
+        restoreFilterState(tabName);
+    }
 
     // Render content for the tab
     renderTabContent(tabName);

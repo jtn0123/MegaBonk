@@ -184,6 +184,19 @@ async function loadAllData() {
 
         allData = { items, weapons, tomes, characters, shrines, stats, changelog };
 
+        // Run comprehensive validation if available
+        if (typeof validateAllData === 'function') {
+            const validationResult = validateAllData(allData);
+            if (typeof logValidationResults === 'function') {
+                logValidationResults(validationResult);
+            }
+
+            // Show warning if validation fails critically
+            if (!validationResult.valid && validationResult.errors.length > 10) {
+                console.error('[Data Service] ⚠ Multiple validation errors detected. Data may be inconsistent.');
+            }
+        }
+
         // Update version info
         const versionEl = safeGetElementById('version');
         const updatedEl = safeGetElementById('last-updated');
