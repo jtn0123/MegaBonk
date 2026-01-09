@@ -94,7 +94,7 @@ class DOMCache {
 }
 
 // Create global DOM cache instance
-const domCache = new DOMCache();
+export const domCache = new DOMCache();
 
 // ========================================
 // Convenience Helper Functions
@@ -104,7 +104,7 @@ const domCache = new DOMCache();
  * Get search input element (cached)
  * @returns {HTMLInputElement|null}
  */
-function getSearchInput() {
+export function getSearchInput() {
     return domCache.get('searchInput');
 }
 
@@ -112,7 +112,7 @@ function getSearchInput() {
  * Get favorites checkbox element (cached)
  * @returns {HTMLInputElement|null}
  */
-function getFavoritesCheckbox() {
+export function getFavoritesCheckbox() {
     return domCache.get('favoritesOnly');
 }
 
@@ -120,7 +120,7 @@ function getFavoritesCheckbox() {
  * Get filters container (cached)
  * @returns {HTMLElement|null}
  */
-function getFiltersContainer() {
+export function getFiltersContainer() {
     return domCache.get('filters');
 }
 
@@ -128,7 +128,7 @@ function getFiltersContainer() {
  * Get stats summary panel (cached)
  * @returns {HTMLElement|null}
  */
-function getStatsSummary() {
+export function getStatsSummary() {
     return domCache.get('statsSummary');
 }
 
@@ -136,7 +136,7 @@ function getStatsSummary() {
  * Get all tab buttons (cached NodeList)
  * @returns {NodeList|null}
  */
-function getTabButtons() {
+export function getTabButtons() {
     return domCache.get('tabButtons');
 }
 
@@ -145,7 +145,7 @@ function getTabButtons() {
  * @param {string} tabName - Tab name (items, weapons, tomes, etc.)
  * @returns {HTMLElement|null}
  */
-function getTabContainer(tabName) {
+export function getTabContainer(tabName) {
     const key = `${tabName}Container`;
     return domCache.get(key);
 }
@@ -154,7 +154,7 @@ function getTabContainer(tabName) {
  * Get modal overlay (cached)
  * @returns {HTMLElement|null}
  */
-function getModalOverlay() {
+export function getModalOverlay() {
     return domCache.get('modalOverlay');
 }
 
@@ -162,7 +162,7 @@ function getModalOverlay() {
  * Get compare button (cached)
  * @returns {HTMLButtonElement|null}
  */
-function getCompareButton() {
+export function getCompareButton() {
     return domCache.get('compareButton');
 }
 
@@ -171,7 +171,7 @@ function getCompareButton() {
  * @param {string} filterId - Filter element ID
  * @returns {HTMLElement|null}
  */
-function getFilterElement(filterId) {
+export function getFilterElement(filterId) {
     const cached = domCache.get(`filter_${filterId}`);
     if (cached) return cached;
 
@@ -186,7 +186,7 @@ function getFilterElement(filterId) {
  * Invalidate cache when DOM structure changes
  * Call this after dynamically adding/removing elements
  */
-function invalidateDOMCache() {
+export function invalidateDOMCache() {
     domCache.invalidateAll();
     console.log('[DOM Cache] Cache invalidated');
 }
@@ -195,7 +195,7 @@ function invalidateDOMCache() {
  * Refresh cache after filter updates
  * Filters are recreated when switching tabs
  */
-function refreshFilterCache() {
+export function refreshFilterCache() {
     // Invalidate filter-related cache entries
     domCache.invalidate('rarityFilter');
     domCache.invalidate('tierFilter');
@@ -205,20 +205,3 @@ function refreshFilterCache() {
 
     console.log('[DOM Cache] Filter cache refreshed');
 }
-
-// ========================================
-// Expose to global scope
-// ========================================
-
-window.domCache = domCache;
-window.getSearchInput = getSearchInput;
-window.getFavoritesCheckbox = getFavoritesCheckbox;
-window.getFiltersContainer = getFiltersContainer;
-window.getStatsSummary = getStatsSummary;
-window.getTabButtons = getTabButtons;
-window.getTabContainer = getTabContainer;
-window.getModalOverlay = getModalOverlay;
-window.getCompareButton = getCompareButton;
-window.getFilterElement = getFilterElement;
-window.invalidateDOMCache = invalidateDOMCache;
-window.refreshFilterCache = refreshFilterCache;

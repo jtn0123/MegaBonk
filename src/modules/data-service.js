@@ -2,6 +2,35 @@
 // MegaBonk Data Service Module
 // ========================================
 
+import { ToastManager } from './toast.js';
+import { validateAllData, logValidationResults } from './data-validation.js';
+
+// ========================================
+// UI Helper Functions
+// ========================================
+
+function showLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'flex';
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) overlay.style.display = 'none';
+}
+
+function showErrorMessage(message) {
+    ToastManager.error(message);
+    const mainContent = document.getElementById('main-content');
+    if (mainContent) {
+        mainContent.innerHTML = `<div class="error-message">${message}</div>`;
+    }
+}
+
+function safeGetElementById(id) {
+    return document.getElementById(id);
+}
+
 // Global data storage
 let allData = {
     items: null,
@@ -141,7 +170,7 @@ async function fetchWithRetry(url, maxRetries = 4, initialDelay = 2000) {
 /**
  * Load all game data from JSON files
  */
-async function loadAllData() {
+export async function loadAllData() {
     showLoading();
 
     try {
@@ -184,17 +213,13 @@ async function loadAllData() {
 
         allData = { items, weapons, tomes, characters, shrines, stats, changelog };
 
-        // Run comprehensive validation if available
-        if (typeof validateAllData === 'function') {
-            const validationResult = validateAllData(allData);
-            if (typeof logValidationResults === 'function') {
-                logValidationResults(validationResult);
-            }
+        // Run comprehensive validation
+        const validationResult = validateAllData(allData);
+        logValidationResults(validationResult);
 
-            // Show warning if validation fails critically
-            if (!validationResult.valid && validationResult.errors.length > 10) {
-                console.error('[Data Service] ⚠ Multiple validation errors detected. Data may be inconsistent.');
-            }
+        // Show warning if validation fails critically
+        if (!validationResult.valid && validationResult.errors.length > 10) {
+            console.error('[Data Service] ⚠ Multiple validation errors detected. Data may be inconsistent.');
         }
 
         // Update version info
@@ -224,7 +249,7 @@ async function loadAllData() {
  * @param {string} tabName - Tab name
  * @returns {Array} Data array for the tab
  */
-function getDataForTab(tabName) {
+export function getDataForTab(tabName) {
     switch (tabName) {
         case 'items':
             return allData.items?.items || [];
@@ -247,15 +272,9 @@ function getDataForTab(tabName) {
  * Get all data object
  * @returns {Object} All loaded data
  */
-function getAllData() {
+export function getAllData() {
     return allData;
 }
 
-// ========================================
-// Expose to global scope
-// ========================================
-
-window.allData = allData;
-window.loadAllData = loadAllData;
-window.getDataForTab = getDataForTab;
-window.getAllData = getAllData;
+// Export allData object for direct access if needed
+export { allData };

@@ -16,7 +16,7 @@
  * @param {string} type - Data type (items, weapons, tomes, characters, shrines)
  * @returns {{valid: boolean, errors: Array<string>}} Validation result
  */
-function validateDataStructure(data, type) {
+export function validateDataStructure(data, type) {
     const errors = [];
 
     if (!data) {
@@ -78,7 +78,7 @@ function validateDataStructure(data, type) {
  * @param {Object} allData - All loaded data
  * @returns {{valid: boolean, errors: Array<string>}} Validation result
  */
-function validateCrossReferences(allData) {
+export function validateCrossReferences(allData) {
     const errors = [];
 
     if (!allData) {
@@ -145,9 +145,7 @@ function validateCrossReferences(allData) {
             const upgradeTo = Array.isArray(weapon.upgrades_to) ? weapon.upgrades_to : [weapon.upgrades_to];
             upgradeTo.forEach(target => {
                 if (!weaponIds.has(target)) {
-                    errors.push(
-                        `weapons[${index}] (${weapon.name}): upgrades_to '${target}' not found in weapons`
-                    );
+                    errors.push(`weapons[${index}] (${weapon.name}): upgrades_to '${target}' not found in weapons`);
                 }
             });
         }
@@ -163,7 +161,7 @@ function validateCrossReferences(allData) {
  * @param {number} index - Index in array
  * @returns {Array<string>} Validation errors
  */
-function validateRarity(entity, type, index) {
+export function validateRarity(entity, type, index) {
     const validRarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
     const errors = [];
 
@@ -183,7 +181,7 @@ function validateRarity(entity, type, index) {
  * @param {number} index - Index in array
  * @returns {Array<string>} Validation errors
  */
-function validateTier(entity, type, index) {
+export function validateTier(entity, type, index) {
     const validTiers = ['SS', 'S', 'A', 'B', 'C'];
     const errors = [];
 
@@ -201,7 +199,7 @@ function validateTier(entity, type, index) {
  * @param {Object} allData - All loaded data
  * @returns {{valid: boolean, errors: Array<string>, warnings: Array<string>}} Validation result
  */
-function validateAllData(allData) {
+export function validateAllData(allData) {
     const errors = [];
     const warnings = [];
 
@@ -262,7 +260,7 @@ function validateAllData(allData) {
  * Log validation results to console
  * @param {Object} result - Validation result from validateAllData
  */
-function logValidationResults(result) {
+export function logValidationResults(result) {
     if (result.valid) {
         console.log('[Data Validation] ✓ All data is valid');
     } else {
@@ -277,10 +275,5 @@ function logValidationResults(result) {
 }
 
 // ========================================
-// Expose to global scope
+// Note: All functions exported as ES modules
 // ========================================
-
-window.validateDataStructure = validateDataStructure;
-window.validateCrossReferences = validateCrossReferences;
-window.validateAllData = validateAllData;
-window.logValidationResults = logValidationResults;

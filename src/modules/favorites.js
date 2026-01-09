@@ -16,7 +16,7 @@ let favorites = {
 /**
  * Load favorites from localStorage
  */
-function loadFavorites() {
+export function loadFavorites() {
     try {
         const stored = localStorage.getItem(FAVORITES_KEY);
         if (stored) {
@@ -47,7 +47,7 @@ function saveFavorites() {
  * @param {string} itemId - Item ID
  * @returns {boolean} True if favorited
  */
-function isFavorite(tabName, itemId) {
+export function isFavorite(tabName, itemId) {
     return favorites[tabName]?.includes(itemId) || false;
 }
 
@@ -57,7 +57,7 @@ function isFavorite(tabName, itemId) {
  * @param {string} itemId - Item ID
  * @returns {boolean} New favorite status
  */
-function toggleFavorite(tabName, itemId) {
+export function toggleFavorite(tabName, itemId) {
     if (!favorites[tabName]) {
         favorites[tabName] = [];
     }
@@ -81,14 +81,14 @@ function toggleFavorite(tabName, itemId) {
  * @param {string} tabName - Tab name
  * @returns {Array} Array of favorited item IDs
  */
-function getFavorites(tabName) {
+export function getFavorites(tabName) {
     return favorites[tabName] || [];
 }
 
 /**
  * Clear all favorites
  */
-function clearAllFavorites() {
+export function clearAllFavorites() {
     favorites = {
         items: [],
         weapons: [],
@@ -101,13 +101,3 @@ function clearAllFavorites() {
         ToastManager.success('All favorites cleared');
     }
 }
-
-// ========================================
-// Expose to global scope
-// ========================================
-
-window.loadFavorites = loadFavorites;
-window.isFavorite = isFavorite;
-window.toggleFavorite = toggleFavorite;
-window.getFavorites = getFavorites;
-window.clearAllFavorites = clearAllFavorites;
