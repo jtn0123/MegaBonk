@@ -34,8 +34,18 @@ function validateData(data, type) {
         console.warn(`[Data Validation] Missing version/last_updated in ${type}`);
     }
 
-    // Check for main data array
+    // Check for main data array/object
     const dataKey = type === 'changelog' ? 'patches' : type;
+
+    // Stats uses an object structure, not an array
+    if (type === 'stats') {
+        if (!data[dataKey] || typeof data[dataKey] !== 'object' || Array.isArray(data[dataKey])) {
+            console.error(`[Data Validation] Invalid structure for ${type}: missing ${dataKey} object`);
+            return false;
+        }
+        return true;
+    }
+
     if (!Array.isArray(data[dataKey])) {
         console.error(`[Data Validation] Invalid structure for ${type}: missing ${dataKey} array`);
         return false;
