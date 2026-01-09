@@ -317,7 +317,7 @@ function renderItemModal(data) {
  */
 function setupScalingTabHandlers(data) {
     // Use event delegation on the container to avoid memory leaks
-    const container = document.querySelector(`.scaling-tabs`);
+    const container = document.querySelector('.scaling-tabs');
     if (!container) return;
 
     // Store handler reference for potential cleanup

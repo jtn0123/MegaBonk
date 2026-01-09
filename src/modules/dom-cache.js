@@ -22,7 +22,7 @@ class DOMCache {
         this.cache.set('searchInput', document.getElementById('searchInput'));
         this.cache.set('favoritesOnly', document.getElementById('favoritesOnly'));
         this.cache.set('filters', document.getElementById('filters'));
-        this.cache.set('statsSum mary', document.getElementById('stats-summary'));
+        this.cache.set('statsSummary', document.getElementById('stats-summary'));
         this.cache.set('mainContent', document.getElementById('main-content'));
         this.cache.set('modalOverlay', document.getElementById('modal-overlay'));
         this.cache.set('compareButton', document.getElementById('compare-button'));

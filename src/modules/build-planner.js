@@ -4,7 +4,7 @@
 
 import { ToastManager } from './toast.js';
 import { allData } from './data-service.js';
-import { safeGetElementById } from './utils.js';
+import { safeGetElementById, escapeHtml } from './utils.js';
 // Build planner state
 let currentBuild = {
     character: null,
@@ -317,7 +317,8 @@ export function renderBuildPlanner() {
         if (allData.tomes) {
             allData.tomes.tomes.forEach(tome => {
                 const label = document.createElement('label');
-                label.innerHTML = `<input type="checkbox" value="${tome.id}" class="tome-checkbox"> ${tome.name}`;
+                // Security: Use escapeHtml to prevent XSS from compromised JSON data
+                label.innerHTML = `<input type="checkbox" value="${escapeHtml(tome.id)}" class="tome-checkbox"> ${escapeHtml(tome.name)}`;
                 tomesSelection.appendChild(label);
             });
         }
@@ -331,7 +332,8 @@ export function renderBuildPlanner() {
             const limit = typeof BUILD_ITEMS_LIMIT !== 'undefined' ? BUILD_ITEMS_LIMIT : 40;
             allData.items.items.slice(0, limit).forEach(item => {
                 const label = document.createElement('label');
-                label.innerHTML = `<input type="checkbox" value="${item.id}" class="item-checkbox"> ${item.name} (${item.tier})`;
+                // Security: Use escapeHtml to prevent XSS from compromised JSON data
+                label.innerHTML = `<input type="checkbox" value="${escapeHtml(item.id)}" class="item-checkbox"> ${escapeHtml(item.name)} (${escapeHtml(item.tier)})`;
                 itemsSelection.appendChild(label);
             });
         }
