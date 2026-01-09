@@ -37,6 +37,7 @@ interface ModalItem {
     rarity: Rarity;
     tier: Tier;
     image?: string;
+    description?: string; // Added for compatibility with ChartableItem
     base_effect: string;
     detailed_description: string;
     formula: string;
@@ -50,7 +51,7 @@ interface ModalItem {
     max_stacks?: number;
     stack_cap?: number;
     scaling_type?: string;
-    secondary_scaling?: number[] | null;
+    secondary_scaling?: number[];
     synergies?: string[];
     anti_synergies?: string[];
 }
@@ -74,9 +75,11 @@ interface ModalTome {
     id: string;
     name: string;
     tier: Tier;
+    rarity?: Rarity; // Added for compatibility with ChartableTome/Tome
     stat_affected: string;
     value_per_level: string | number;
     description: string;
+    effect?: string; // Added for compatibility with Tome
     notes?: string;
     recommended_for?: string[];
     priority: number;
