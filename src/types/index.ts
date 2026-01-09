@@ -1,0 +1,285 @@
+// ========================================
+// MegaBonk Type Definitions
+// ========================================
+// Central type definitions for the entire application
+// ========================================
+
+/**
+ * Rarity types
+ */
+export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+
+/**
+ * Tier types
+ */
+export type Tier = 'SS' | 'S' | 'A' | 'B' | 'C';
+
+/**
+ * Scaling formula definition
+ */
+export interface Scaling {
+    formula: string;
+    min?: number;
+    max?: number;
+    cap?: number;
+}
+
+/**
+ * Item interface
+ */
+export interface Item {
+    id: string;
+    name: string;
+    description: string;
+    tier: Tier;
+    rarity: Rarity;
+    image?: string;
+    category?: string;
+    tags?: string[];
+    cooldown?: number;
+    damage?: number | string;
+    healing?: number | string;
+    scaling?: Scaling;
+    synergies?: string[];
+    antiSynergies?: string[];
+}
+
+/**
+ * Weapon upgrade definition
+ */
+export interface WeaponUpgrade {
+    level: number;
+    bonus: string;
+    cost?: number;
+}
+
+/**
+ * Weapon interface
+ */
+export interface Weapon {
+    id: string;
+    name: string;
+    description: string;
+    tier: Tier;
+    rarity: Rarity;
+    image?: string;
+    baseDamage: number;
+    attackSpeed: number;
+    range?: number;
+    upgrades?: WeaponUpgrade[];
+    scaling?: Scaling;
+    tags?: string[];
+}
+
+/**
+ * Tome interface
+ */
+export interface Tome {
+    id: string;
+    name: string;
+    description: string;
+    tier: Tier;
+    rarity: Rarity;
+    image?: string;
+    effect: string;
+    priority?: number;
+    stackable?: boolean;
+    tags?: string[];
+}
+
+/**
+ * Character base stats
+ */
+export interface CharacterStats {
+    health: number;
+    damage: number;
+    speed: number;
+    luck?: number;
+}
+
+/**
+ * Character interface
+ */
+export interface Character {
+    id: string;
+    name: string;
+    description: string;
+    tier: Tier;
+    rarity: Rarity;
+    image?: string;
+    baseStats: CharacterStats;
+    passive: string;
+    startingWeapon?: string;
+    tags?: string[];
+}
+
+/**
+ * Shrine interface
+ */
+export interface Shrine {
+    id: string;
+    name: string;
+    description: string;
+    tier: Tier;
+    image?: string;
+    effect: string;
+    cost?: number | string;
+    tags?: string[];
+}
+
+/**
+ * Stats/Mechanics interface
+ */
+export interface Stats {
+    version?: string;
+    last_updated?: string;
+    mechanics?: Record<string, unknown>;
+    breakpoints?: Record<string, unknown>;
+}
+
+/**
+ * Data collection wrapper types
+ */
+export interface ItemsData {
+    version: string;
+    last_updated: string;
+    items: Item[];
+}
+
+export interface WeaponsData {
+    version: string;
+    last_updated: string;
+    weapons: Weapon[];
+}
+
+export interface TomesData {
+    version: string;
+    last_updated: string;
+    tomes: Tome[];
+}
+
+export interface CharactersData {
+    version: string;
+    last_updated: string;
+    characters: Character[];
+}
+
+export interface ShrinesData {
+    version: string;
+    last_updated: string;
+    shrines: Shrine[];
+}
+
+/**
+ * All game data combined
+ */
+export interface AllGameData {
+    items?: ItemsData;
+    weapons?: WeaponsData;
+    tomes?: TomesData;
+    characters?: CharactersData;
+    shrines?: ShrinesData;
+    stats?: Stats;
+    changelog?: ChangelogData;
+}
+
+/**
+ * Changelog patch interface
+ */
+export interface ChangelogPatch {
+    id: string;
+    version: string;
+    date: string;
+    title: string;
+    changes: string[];
+    additions?: string[];
+    fixes?: string[];
+    removals?: string[];
+}
+
+/**
+ * Changelog data
+ */
+export interface ChangelogData {
+    version: string;
+    last_updated: string;
+    patches: ChangelogPatch[];
+}
+
+/**
+ * Filter options
+ */
+export interface FilterOptions {
+    search?: string;
+    tier?: Tier | Tier[];
+    rarity?: Rarity | Rarity[];
+    category?: string;
+    tags?: string[];
+}
+
+/**
+ * Sort options
+ */
+export type SortBy = 'name' | 'tier' | 'rarity';
+
+/**
+ * View mode
+ */
+export type ViewMode = 'grid' | 'list';
+
+/**
+ * Entity types (union of all game entities)
+ */
+export type Entity = Item | Weapon | Tome | Character | Shrine;
+
+/**
+ * Entity type discriminator
+ */
+export type EntityType = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines';
+
+/**
+ * Validation result
+ */
+export interface ValidationResult<T = unknown> {
+    success: boolean;
+    data?: T;
+    error?: string;
+    zodError?: unknown;
+}
+
+/**
+ * Theme type
+ */
+export type Theme = 'dark' | 'light';
+
+/**
+ * Web Vitals metric name
+ */
+export type MetricName = 'CLS' | 'FCP' | 'LCP' | 'TTFB' | 'INP';
+
+/**
+ * Web Vitals rating
+ */
+export type MetricRating = 'good' | 'needs-improvement' | 'poor' | 'unknown';
+
+/**
+ * Web Vitals metric
+ */
+export interface Metric {
+    name: MetricName;
+    value: number;
+    rating: MetricRating;
+    delta: number;
+    id: string;
+}
+
+/**
+ * Stored metric
+ */
+export interface StoredMetric {
+    value: number;
+    rating: MetricRating;
+    formattedValue: string;
+    delta: number;
+    id: string;
+}
