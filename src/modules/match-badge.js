@@ -8,7 +8,7 @@
  * @param {Object} matchContext - Match context from fuzzy search
  * @returns {string} HTML string for match badge
  */
-function generateMatchBadge(matchContext) {
+export function generateMatchBadge(matchContext) {
     if (!matchContext || matchContext.matchType === 'none') return '';
 
     const matchTypeLabels = {
@@ -32,9 +32,3 @@ function generateMatchBadge(matchContext) {
         ${label} in ${field}
     </span>`;
 }
-
-// ========================================
-// Expose to global scope
-// ========================================
-
-window.generateMatchBadge = generateMatchBadge;
