@@ -13,15 +13,29 @@ function toggleTextExpand(element) {
     const isTruncated = element.dataset.truncated === 'true';
     const fullText = element.dataset.fullText;
 
+    // Bug fix: Use textContent for user data and separate span for indicator
+    // This prevents XSS since dataset values are automatically decoded by browser
+    const textSpan = document.createElement('span');
+    const indicator = document.createElement('span');
+    indicator.className = 'expand-indicator';
+
     if (isTruncated) {
         // Expand
-        element.innerHTML = fullText + '<span class="expand-indicator">Click to collapse</span>';
+        textSpan.textContent = fullText;
+        indicator.textContent = 'Click to collapse';
+        element.innerHTML = '';
+        element.appendChild(textSpan);
+        element.appendChild(indicator);
         element.dataset.truncated = 'false';
         element.classList.add('expanded');
     } else {
         // Collapse
         const truncated = fullText.length > 120 ? fullText.substring(0, 120) + '...' : fullText;
-        element.innerHTML = truncated + '<span class="expand-indicator">Click to expand</span>';
+        textSpan.textContent = truncated;
+        indicator.textContent = 'Click to expand';
+        element.innerHTML = '';
+        element.appendChild(textSpan);
+        element.appendChild(indicator);
         element.dataset.truncated = 'true';
         element.classList.remove('expanded');
     }
@@ -389,6 +403,8 @@ function switchTab(tabName) {
     destroyAllCharts();
 
     currentTab = tabName;
+    // Bug fix: Keep window.currentTab in sync for external code
+    window.currentTab = tabName;
 
     // Update tab buttons
     document.querySelectorAll('.tab-btn').forEach(btn => {

@@ -17,12 +17,13 @@ const BUILD_HISTORY_KEY = 'megabonk_build_history';
 const MAX_BUILD_HISTORY = 20;
 
 // Build templates - uses valid IDs from data files
+// Character passives: CL4NK=Crit, Sir Oofie=Armor, Monke=HP, Bandit=Attack Speed, Ogre=Damage
 const BUILD_TEMPLATES = {
     crit_build: {
         name: '🎯 Crit Build',
         description: 'Maximize critical hit chance and damage',
         build: {
-            character: 'fox', // Fox has crit passive
+            character: 'cl4nk', // CL4NK has "Gain 1% Crit Chance per level"
             weapon: 'revolver',
             tomes: ['precision', 'damage'],
             items: ['clover', 'eagle_claw'],
@@ -32,7 +33,7 @@ const BUILD_TEMPLATES = {
         name: '🛡️ Tank Build',
         description: 'High HP and survivability',
         build: {
-            character: 'ogre', // Ogre has HP passive
+            character: 'sir_oofie', // Sir Oofie has "Gain 1% Armor per level"
             weapon: 'sword',
             tomes: ['hp', 'armor'],
             items: ['chonkplate', 'golden_shield'],
@@ -42,7 +43,7 @@ const BUILD_TEMPLATES = {
         name: '⚡ Speed Build',
         description: 'Fast attack and movement speed',
         build: {
-            character: 'ninja',
+            character: 'bandit', // Bandit has "Gain 1% Attack Speed per level"
             weapon: 'katana',
             tomes: ['cooldown', 'agility'],
             items: ['turbo_skates', 'turbo_socks'],
@@ -52,7 +53,7 @@ const BUILD_TEMPLATES = {
         name: '💥 Glass Cannon',
         description: 'Maximum damage, low defense',
         build: {
-            character: 'megachad', // Megachad has damage passive
+            character: 'ogre', // Ogre has "Gain 1.5% Damage per level"
             weapon: 'sniper_rifle',
             tomes: ['damage', 'cooldown'],
             items: ['power_gloves', 'gym_sauce'],
@@ -393,22 +394,31 @@ function calculateBuildStats() {
                   projectiles: 1,
               };
 
-    // Bug fix #4: Use more specific matching instead of fragile includes()
-    // Check for specific passive keywords that grant bonuses
+    // Apply character passive bonuses based on passive_ability text
+    // Character passives from data: CL4NK=Crit, Sir Oofie=Armor, Monke=HP, Bandit=Attack Speed, Ogre=Damage
     if (currentBuild.character) {
         const passive = currentBuild.character.passive_ability || '';
-        // Match specific patterns to avoid false positives
-        if (/\+\d+%?\s*Crit(ical)?\s*Chance/i.test(passive) || currentBuild.character.id === 'fox') {
-            // Fox has crit passive
+        const charId = currentBuild.character.id;
+
+        // Crit Chance passive (CL4NK: "Gain 1% Crit Chance per level")
+        if (/crit\s*chance/i.test(passive) || charId === 'cl4nk') {
             stats.crit_chance += 50;
         }
-        if (/\+\d+%?\s*(Max\s*)?HP/i.test(passive) || currentBuild.character.id === 'ogre') {
-            // Ogre has HP passive
+        // HP passive (Monke: "+2 Max HP per level")
+        if (/\+\d+.*max\s*hp/i.test(passive) || charId === 'monke') {
             stats.hp += 50;
         }
-        if (/\+\d+%?\s*Damage/i.test(passive) || currentBuild.character.id === 'megachad') {
-            // Megachad has damage passive
+        // Armor passive (Sir Oofie: "Gain 1% Armor per level")
+        if (/armor/i.test(passive) || charId === 'sir_oofie') {
+            stats.armor += 50;
+        }
+        // Damage passive (Ogre: "Gain 1.5% Damage per level")
+        if (/gain.*damage/i.test(passive) || charId === 'ogre') {
             stats.damage += 20;
+        }
+        // Attack Speed passive (Bandit: "Gain 1% Attack Speed per level")
+        if (/attack\s*speed/i.test(passive) || charId === 'bandit') {
+            stats.attack_speed += 50;
         }
     }
 
