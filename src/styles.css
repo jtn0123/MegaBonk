@@ -412,6 +412,15 @@ header h1 {
     color: var(--accent);
 }
 
+/* Focus and active states for keyboard navigation */
+.search-history-item:focus-visible,
+.search-history-item.active {
+    background: var(--bg-dark);
+    color: var(--accent);
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+}
+
 .filters {
     display: flex;
     flex-wrap: wrap;
@@ -1221,6 +1230,12 @@ footer a:hover {
     background-position: right 10px center;
     background-size: 16px;
     padding-right: 36px;
+}
+
+.build-slot select:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.25);
 }
 
 .slot-preview {
@@ -2116,6 +2131,17 @@ footer a:hover {
     gap: 1rem;
 }
 
+/* Button element used for accessibility - reset default button styles */
+button.breakpoint-card {
+    font-family: inherit;
+    font-size: inherit;
+    text-align: left;
+    color: inherit;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
 .breakpoint-card {
     background: var(--bg-light);
     padding: 1.5rem;
@@ -2132,6 +2158,12 @@ footer a:hover {
     transform: translateY(-4px);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
     border-color: var(--accent-hover);
+}
+
+.breakpoint-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.25);
 }
 
 .bp-icon {

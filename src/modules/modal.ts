@@ -186,8 +186,16 @@ function activateFocusTrap(modal: HTMLElement): void {
         firstFocusableElement = focusableElements[0];
         lastFocusableElement = focusableElements[focusableElements.length - 1];
 
-        // Focus first element (close button)
-        (firstFocusableElement as HTMLElement)?.focus();
+        // Focus the modal title for better screen reader context
+        // Make title programmatically focusable and focus it
+        const modalTitle = modal.querySelector('#modal-title, h2') as HTMLElement | null;
+        if (modalTitle) {
+            modalTitle.tabIndex = -1;
+            modalTitle.focus();
+        } else {
+            // Fallback to first focusable element if no title
+            (firstFocusableElement as HTMLElement)?.focus();
+        }
     }
 
     focusTrapActive = true;

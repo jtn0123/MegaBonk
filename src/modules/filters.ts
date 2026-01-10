@@ -718,8 +718,8 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement): void {
         <ul class="search-history-list" role="group">
             ${history
                 .map(
-                    term => `
-                <li class="search-history-item" role="option" data-term="${term.replace(/"/g, '&quot;')}">
+                    (term, index) => `
+                <li class="search-history-item" role="option" tabindex="0" data-term="${term.replace(/"/g, '&quot;')}" data-index="${index}" aria-selected="false">
                     ${term}
                 </li>
             `
@@ -746,7 +746,35 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement): void {
         closeDropdown();
     });
 
-    dropdown.querySelectorAll('.search-history-item').forEach(item => {
+    const historyItems = dropdown.querySelectorAll('.search-history-item');
+    let currentIndex = -1;
+
+    // Helper to update active item state
+    const updateActiveItem = (): void => {
+        historyItems.forEach((item, i) => {
+            const isActive = i === currentIndex;
+            item.classList.toggle('active', isActive);
+            item.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            if (isActive) {
+                (item as HTMLElement).focus();
+            }
+        });
+    };
+
+    // Helper to select current item
+    const selectCurrentItem = (): void => {
+        if (currentIndex >= 0 && currentIndex < historyItems.length) {
+            const item = historyItems[currentIndex] as HTMLElement;
+            const term = item.getAttribute('data-term');
+            if (term && searchInput) {
+                searchInput.value = term;
+                handleSearch();
+                closeDropdown();
+            }
+        }
+    };
+
+    historyItems.forEach(item => {
         item.addEventListener('click', () => {
             const term = item.getAttribute('data-term');
             if (term && searchInput) {
@@ -759,6 +787,26 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement): void {
 
     // Close dropdown when clicking outside - use AbortController to prevent memory leaks
     const abortController = new AbortController();
+
+    // Keyboard navigation for search history
+    searchInput.addEventListener(
+        'keydown',
+        (e: KeyboardEvent) => {
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                currentIndex = Math.min(currentIndex + 1, historyItems.length - 1);
+                updateActiveItem();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                currentIndex = Math.max(currentIndex - 1, 0);
+                updateActiveItem();
+            } else if (e.key === 'Enter' && currentIndex >= 0) {
+                e.preventDefault();
+                selectCurrentItem();
+            }
+        },
+        { signal: abortController.signal }
+    );
 
     const removeDropdown = (): void => {
         abortController.abort(); // Clean up the event listener
