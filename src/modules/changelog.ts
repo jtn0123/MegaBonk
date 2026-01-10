@@ -2,8 +2,8 @@
 // MegaBonk Changelog Module
 // ========================================
 
-import { allData } from './data-service.js';
-import { safeGetElementById, escapeHtml, isValidExternalUrl, generateEmptyState } from './utils.js';
+import { allData } from './data-service.ts';
+import { safeGetElementById, escapeHtml, isValidExternalUrl, generateEmptyState } from './utils.ts';
 import type { ChangelogPatch, Entity } from '../types/index.js';
 
 // ========================================

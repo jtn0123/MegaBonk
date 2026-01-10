@@ -10,16 +10,16 @@
 // ========================================
 
 // Core utilities
-import { ToastManager } from './modules/toast.js';
-import { loadAllData } from './modules/data-service.js';
-import { loadFavorites } from './modules/favorites.js';
-import { setupEventListeners, setupEventDelegation } from './modules/events.js';
-import { domCache } from './modules/dom-cache.js';
-import { safeModuleInit, registerErrorBoundary } from './modules/error-boundary.js';
-import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.js';
-import { themeManager } from './modules/theme-manager.js';
-import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.js';
-import type { Entity } from './types/index.js';
+import { ToastManager } from './modules/toast.ts';
+import { loadAllData } from './modules/data-service.ts';
+import { loadFavorites } from './modules/favorites.ts';
+import { setupEventListeners, setupEventDelegation } from './modules/events.ts';
+import { domCache } from './modules/dom-cache.ts';
+import { safeModuleInit, registerErrorBoundary } from './modules/error-boundary.ts';
+import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.ts';
+import { themeManager } from './modules/theme-manager.ts';
+import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
+import type { Entity } from './types/index.ts';
 
 // ========================================
 // Global State (to be refactored into state module)

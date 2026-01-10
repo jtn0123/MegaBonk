@@ -3,16 +3,16 @@
 // ========================================
 
 import type { Character, Weapon, Tome, Item } from '../types/index.js';
-import { ToastManager } from './toast.js';
-import { allData } from './data-service.js';
-import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue } from './utils.js';
+import { ToastManager } from './toast.ts';
+import { allData } from './data-service.ts';
+import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue } from './utils.ts';
 import {
     BUILD_ITEMS_LIMIT,
     DEFAULT_BUILD_STATS,
     ITEM_EFFECTS,
     type BuildStats,
     type ItemEffect,
-} from './constants.js';
+} from './constants.ts';
 
 // ========================================
 // Type Definitions
@@ -162,7 +162,7 @@ export function getBuildHistory(): BuildData[] {
         const history = localStorage.getItem(BUILD_HISTORY_KEY);
         return history ? (JSON.parse(history) as BuildData[]) : [];
     } catch (error) {
-        console.error('[Build History] Failed to load:', error);
+        // Toast handles user feedback
         return [];
     }
 }
@@ -198,7 +198,7 @@ export function saveBuildToHistory(): void {
         localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
         ToastManager.success(`Build "${buildData.name}" saved to history!`);
     } catch (error) {
-        console.error('[Build History] Failed to save:', error);
+        // Toast handles user feedback
         ToastManager.error('Failed to save build to history');
     }
 }
@@ -223,7 +223,7 @@ export function loadBuildFromHistory(index: number): void {
         loadBuildFromData(buildData);
         ToastManager.success(`Loaded "${buildData.name || 'Build'}" from history`);
     } catch (error) {
-        console.error('[Build History] Failed to load build:', error);
+        // Toast handles user feedback
         ToastManager.error('Failed to load build from history');
     }
 }
@@ -251,7 +251,7 @@ export function deleteBuildFromHistory(index: number): void {
             showBuildHistoryModal();
         }
     } catch (error) {
-        console.error('[Build History] Failed to delete:', error);
+        // Toast handles user feedback
         ToastManager.error('Failed to delete build from history');
     }
 }
@@ -264,7 +264,7 @@ export function clearBuildHistory(): void {
         localStorage.removeItem(BUILD_HISTORY_KEY);
         ToastManager.success('Build history cleared');
     } catch (error) {
-        console.error('[Build History] Failed to clear:', error);
+        // Toast handles user feedback
         ToastManager.error('Failed to clear build history');
     }
 }
@@ -291,7 +291,7 @@ export function loadBuildTemplate(templateId: string): void {
         loadBuildFromData(template.build);
         ToastManager.success(`Loaded template: ${template.name}`);
     } catch (error) {
-        console.error('[Build Templates] Failed to load:', error);
+        // Toast handles user feedback
         ToastManager.error('Failed to load template');
     }
 }
@@ -365,7 +365,7 @@ export function importBuild(jsonString: string): void {
         loadBuildFromData(buildData);
         ToastManager.success('Build imported successfully!');
     } catch (error) {
-        console.error('[Build Import] Failed:', error);
+        // Toast handles user feedback
         ToastManager.error('Invalid build data. Please check the format.');
     }
 }
@@ -645,7 +645,6 @@ export function exportBuild(): void {
         })
         .catch((err: Error) => {
             ToastManager.error(`Failed to copy to clipboard: ${err.message}`);
-            console.error('Clipboard error:', err);
         });
 }
 
@@ -676,7 +675,6 @@ export function shareBuildURL(): void {
         })
         .catch((err: Error) => {
             ToastManager.error(`Failed to copy link: ${err.message}`);
-            console.error('Clipboard error:', err);
         });
 }
 
@@ -739,7 +737,7 @@ export function loadBuildFromURL(): boolean {
         ToastManager.success('Build loaded from URL!');
         return true;
     } catch (error) {
-        console.error('Failed to load build from URL:', error);
+        // Toast handles user feedback
         ToastManager.error('Invalid build link');
         return false;
     }

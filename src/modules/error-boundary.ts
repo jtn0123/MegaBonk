@@ -4,7 +4,7 @@
 // Provides module-level error recovery and graceful degradation
 // ========================================
 
-import { ToastManager } from './toast.js';
+import { ToastManager } from './toast.ts';
 
 // ========================================
 // Type Definitions

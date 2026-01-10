@@ -3,7 +3,7 @@
 // ========================================
 
 import type { Entity, EntityType, Item, SortBy } from '../types/index.js';
-import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.js';
+import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 
 // ========================================
 // Type Definitions
@@ -86,7 +86,7 @@ export function getSearchHistory(): string[] {
         const history = localStorage.getItem(SEARCH_HISTORY_KEY);
         return history ? JSON.parse(history) : [];
     } catch (error) {
-        console.error('[Search History] Failed to load:', error);
+        // localStorage may be unavailable
         return [];
     }
 }
@@ -110,7 +110,7 @@ export function addToSearchHistory(term: string): void {
 
         localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
     } catch (error) {
-        console.error('[Search History] Failed to save:', error);
+        // localStorage may be unavailable
     }
 }
 
@@ -120,9 +120,8 @@ export function addToSearchHistory(term: string): void {
 export function clearSearchHistory(): void {
     try {
         localStorage.removeItem(SEARCH_HISTORY_KEY);
-        console.log('[Search History] Cleared');
     } catch (error) {
-        console.error('[Search History] Failed to clear:', error);
+        // localStorage may be unavailable
     }
 }
 
@@ -139,7 +138,7 @@ export function getAllFilterStates(): Record<string, FilterState> {
         const states = window.sessionStorage.getItem(FILTER_STATE_KEY);
         return states ? JSON.parse(states) : {};
     } catch (error) {
-        console.error('[Filter State] Failed to load:', error);
+        // sessionStorage may be unavailable
         return {};
     }
 }
@@ -180,7 +179,7 @@ export function saveFilterState(tabName: string): void {
 
         window.sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(allStates));
     } catch (error) {
-        console.error('[Filter State] Failed to save:', error);
+        // sessionStorage may be unavailable
     }
 }
 
@@ -236,7 +235,7 @@ export function restoreFilterState(tabName: string): void {
             }
         }
     } catch (error) {
-        console.error('[Filter State] Failed to restore:', error);
+        // sessionStorage may be unavailable
     }
 }
 
@@ -246,9 +245,8 @@ export function restoreFilterState(tabName: string): void {
 export function clearAllFilterStates(): void {
     try {
         window.sessionStorage.removeItem(FILTER_STATE_KEY);
-        console.log('[Filter State] All states cleared');
     } catch (error) {
-        console.error('[Filter State] Failed to clear:', error);
+        // sessionStorage may be unavailable
     }
 }
 

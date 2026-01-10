@@ -54,7 +54,7 @@ export function loadFavorites(): void {
             favorites = JSON.parse(stored) as FavoritesState;
         }
     } catch (error) {
-        console.error('Failed to load favorites:', error);
+        // localStorage may be unavailable
     }
 }
 
@@ -65,7 +65,7 @@ function saveFavorites(): void {
     try {
         localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     } catch (error) {
-        console.error('Failed to save favorites:', error);
+        // localStorage may be unavailable
         if (typeof ToastManager !== 'undefined') {
             ToastManager.error('Failed to save favorite');
         }

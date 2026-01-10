@@ -2,9 +2,9 @@
 // MegaBonk Modal Module
 // ========================================
 
-import { allData } from './data-service.js';
-import { ToastManager } from './toast.js';
-import { safeGetElementById, generateModalImage } from './utils.js';
+import { allData } from './data-service.ts';
+import { ToastManager } from './toast.ts';
+import { safeGetElementById, generateModalImage } from './utils.ts';
 import type { Tier, Rarity, EntityType, Entity } from '../types/index.js';
 
 // ========================================
