@@ -458,7 +458,7 @@ export function calculateTomeProgression(tome: Tome | ChartableTome, maxLevels: 
  * Initialize charts for items in the current view
  */
 export function initializeItemCharts(): void {
-    const items: ChartableItem[] = getDataForTab('items');
+    const items = getDataForTab('items') as ChartableItem[];
     items.forEach((item: ChartableItem) => {
         if (item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat') {
             const effectiveCap = getEffectiveStackCap(item);
@@ -485,7 +485,7 @@ export function initializeItemCharts(): void {
  * Initialize charts for tomes in the current view
  */
 export function initializeTomeCharts(): void {
-    const tomes: Tome[] = getDataForTab('tomes');
+    const tomes = getDataForTab('tomes') as Tome[];
     tomes.forEach((tome: Tome) => {
         const progression = calculateTomeProgression(tome);
         if (progression) {
