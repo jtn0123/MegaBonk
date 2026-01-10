@@ -5,7 +5,7 @@
 import type { Character, Weapon, Tome, Item } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
-import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue } from './utils.ts';
+import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue, safeLocalStorageSet } from './utils.ts';
 import { BUILD_ITEMS_LIMIT, DEFAULT_BUILD_STATS, ITEM_EFFECTS, type BuildStats, type ItemEffect } from './constants.ts';
 
 // ========================================
@@ -189,8 +189,12 @@ export function saveBuildToHistory(): void {
         // Keep only MAX_BUILD_HISTORY builds
         history = history.slice(0, MAX_BUILD_HISTORY);
 
-        localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
-        ToastManager.success(`Build "${buildData.name}" saved to history!`);
+        const success = safeLocalStorageSet(BUILD_HISTORY_KEY, JSON.stringify(history));
+        if (success) {
+            ToastManager.success(`Build "${buildData.name}" saved to history!`);
+        } else {
+            ToastManager.error('Failed to save build to history');
+        }
     } catch (error) {
         // Toast handles user feedback
         ToastManager.error('Failed to save build to history');
@@ -237,8 +241,12 @@ export function deleteBuildFromHistory(index: number): void {
         const buildName = history[index]?.name || 'Build';
         history.splice(index, 1);
 
-        localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
-        ToastManager.success(`Deleted "${buildName}" from history`);
+        const success = safeLocalStorageSet(BUILD_HISTORY_KEY, JSON.stringify(history));
+        if (success) {
+            ToastManager.success(`Deleted "${buildName}" from history`);
+        } else {
+            ToastManager.error('Failed to update build history');
+        }
 
         // Refresh history display if it's open
         if (typeof showBuildHistoryModal === 'function') {
@@ -529,13 +537,16 @@ export function calculateBuildStats(build?: Build): CalculatedBuildStats {
         const effect: ItemEffect | undefined = ITEM_EFFECTS[item.id];
         if (effect) {
             const statKey = effect.stat;
-            if (effect.type === 'add') {
-                stats[statKey] += effect.value;
-            } else if (effect.type === 'multiply') {
-                stats[statKey] *= effect.value;
-            } else if (effect.type === 'hp_percent') {
-                // Special: damage based on HP percentage
-                stats[statKey] += (stats.hp / 100) * effect.value;
+            // Defensive check: verify stat exists in BuildStats before modifying
+            if (statKey in stats) {
+                if (effect.type === 'add') {
+                    stats[statKey] += effect.value;
+                } else if (effect.type === 'multiply') {
+                    stats[statKey] *= effect.value;
+                } else if (effect.type === 'hp_percent') {
+                    // Special: damage based on HP percentage
+                    stats[statKey] += (stats.hp / 100) * effect.value;
+                }
             }
         }
     });

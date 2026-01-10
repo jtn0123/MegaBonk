@@ -4,7 +4,7 @@
 
 import type { Entity, EntityType, Item, ChangelogPatch, SortBy } from '../types/index.ts';
 import { isItem, isShrine } from '../types/index.ts';
-import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
+import { safeGetElementById, safeQuerySelectorAll, sortData, safeLocalStorageSet } from './utils.ts';
 
 // ========================================
 // Type Definitions
@@ -108,7 +108,7 @@ export function addToSearchHistory(term: string): void {
         // Keep only MAX_SEARCH_HISTORY items
         history = history.slice(0, MAX_SEARCH_HISTORY);
 
-        localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
+        safeLocalStorageSet(SEARCH_HISTORY_KEY, JSON.stringify(history));
     } catch (error) {
         // localStorage may be unavailable
     }
@@ -735,16 +735,23 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement): void {
         searchBox.appendChild(dropdown);
     }
 
+    // Close dropdown when clicking outside - use AbortController to prevent memory leaks
+    const abortController = new AbortController();
+
     // Helper to close dropdown properly (will be set up after AbortController is created)
     let closeDropdown: () => void = () => dropdown.remove();
 
     // Event listeners
     const clearBtn = dropdown.querySelector('.clear-history-btn') as HTMLButtonElement | null;
-    clearBtn?.addEventListener('click', e => {
-        e.stopPropagation();
-        clearSearchHistory();
-        closeDropdown();
-    });
+    clearBtn?.addEventListener(
+        'click',
+        e => {
+            e.stopPropagation();
+            clearSearchHistory();
+            closeDropdown();
+        },
+        { signal: abortController.signal }
+    );
 
     const historyItems = dropdown.querySelectorAll('.search-history-item');
     let currentIndex = -1;
@@ -775,18 +782,19 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement): void {
     };
 
     historyItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const term = item.getAttribute('data-term');
-            if (term && searchInput) {
-                searchInput.value = term;
-                handleSearch();
-                closeDropdown();
-            }
-        });
+        item.addEventListener(
+            'click',
+            () => {
+                const term = item.getAttribute('data-term');
+                if (term && searchInput) {
+                    searchInput.value = term;
+                    handleSearch();
+                    closeDropdown();
+                }
+            },
+            { signal: abortController.signal }
+        );
     });
-
-    // Close dropdown when clicking outside - use AbortController to prevent memory leaks
-    const abortController = new AbortController();
 
     // Keyboard navigation for search history
     searchInput.addEventListener(

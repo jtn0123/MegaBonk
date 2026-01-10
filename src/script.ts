@@ -197,15 +197,16 @@ function showUpdateNotification(registration: ServiceWorkerRegistration): void {
     const reloadBtn = document.getElementById('update-reload-btn');
     if (reloadBtn) {
         const handleReload = () => {
-            // Tell waiting service worker to skip waiting
-            if (registration.waiting) {
-                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-            }
             // Reload page when new service worker takes control
             const handleControllerChange = () => {
                 window.location.reload();
             };
+            // Add listener BEFORE posting message to avoid race condition
             navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange, { once: true });
+            // Tell waiting service worker to skip waiting
+            if (registration.waiting) {
+                registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+            }
         };
         reloadBtn.addEventListener('click', handleReload, { once: true });
     }

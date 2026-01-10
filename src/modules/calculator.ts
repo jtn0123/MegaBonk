@@ -96,7 +96,15 @@ export function calculateBreakpoint(): void {
 
     // Calculate stacks needed
     let stacksNeeded = 0;
-    const perStack = item.scaling_per_stack[0]!; // Value per stack from first entry (guaranteed to exist by check above)
+    const perStack = item.scaling_per_stack[0]; // Value per stack from first entry (guaranteed to exist by check above)
+
+    // Additional safety check to satisfy TypeScript
+    if (perStack === undefined) {
+        if (typeof ToastManager !== 'undefined') {
+            ToastManager.error('Invalid scaling data');
+        }
+        return;
+    }
 
     // Check for division by zero
     if (perStack > 0) {

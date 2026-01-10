@@ -27,7 +27,7 @@ function injectVersion() {
     let swContent = fs.readFileSync(SW_FILE, 'utf-8');
 
     // Replace cache name with versioned name
-    const cacheNameRegex = /const CACHE_NAME = ['"]megabonk-guide-v[\d.\-]+['"]/;
+    const cacheNameRegex = /const CACHE_NAME = ['"]megabonk-guide-v[\d.-]+['"]/;
     const newCacheName = `const CACHE_NAME = 'megabonk-guide-v${version}-${timestamp}'`;
 
     if (cacheNameRegex.test(swContent)) {
@@ -37,7 +37,7 @@ function injectVersion() {
         console.log(`   New cache name: megabonk-guide-v${version}-${timestamp}\n`);
     } else {
         console.error('✗ Could not find CACHE_NAME in service worker');
-        console.error('   Expected pattern: const CACHE_NAME = \'megabonk-guide-v...\'\n');
+        console.error("   Expected pattern: const CACHE_NAME = 'megabonk-guide-v...'\n");
         process.exit(1);
     }
 

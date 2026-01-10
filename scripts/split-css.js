@@ -9,6 +9,7 @@
  * Usage: node scripts/split-css.js
  */
 
+/* global Buffer */
 const fs = require('fs');
 const path = require('path');
 
@@ -17,12 +18,7 @@ const OUTPUT_DIR = path.join(__dirname, '../src/styles');
 
 // Section markers that indicate different CSS categories
 const SECTIONS = {
-    base: [
-        'MegaBonk Item Scaling Guide Styles',
-        'Focus States',
-        'Better selection color',
-        'Better scrollbar',
-    ],
+    base: ['MegaBonk Item Scaling Guide Styles', 'Focus States', 'Better selection color', 'Better scrollbar'],
     components: [
         'Header',
         'Tab Navigation',

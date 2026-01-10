@@ -3,6 +3,7 @@
 // ========================================
 
 import type { EntityType } from '../types/index.ts';
+import { safeLocalStorageSet } from './utils.ts';
 
 // ========================================
 // Type Definitions
@@ -63,7 +64,10 @@ export function loadFavorites(): void {
  */
 function saveFavorites(): void {
     try {
-        localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
+        const success = safeLocalStorageSet(FAVORITES_KEY, JSON.stringify(favorites));
+        if (!success && typeof ToastManager !== 'undefined') {
+            ToastManager.error('Failed to save favorite');
+        }
     } catch (error) {
         // localStorage may be unavailable
         if (typeof ToastManager !== 'undefined') {

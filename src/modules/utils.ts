@@ -313,3 +313,30 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
         timeoutId = setTimeout(() => fn.apply(this, args), delay);
     };
 }
+
+// ========================================
+// Local Storage Helpers
+// ========================================
+
+/**
+ * Safely set an item in localStorage with quota error handling
+ * Returns true if successful, false if quota exceeded or other error
+ */
+export function safeLocalStorageSet(key: string, value: string): boolean {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch (error) {
+        if (error instanceof DOMException && error.name === 'QuotaExceededError') {
+            console.error('localStorage quota exceeded. Unable to save data.');
+            // Attempt to clear some space by removing oldest items
+            // This is a last resort - applications should handle this more gracefully
+            if (typeof ToastManager !== 'undefined') {
+                ToastManager.error('Storage quota exceeded. Some data may not be saved.');
+            }
+        } else {
+            console.error('Failed to save to localStorage:', error);
+        }
+        return false;
+    }
+}

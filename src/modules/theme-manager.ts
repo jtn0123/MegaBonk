@@ -5,6 +5,7 @@
 // ========================================
 
 import type { Theme } from '../types/index.ts';
+import { safeLocalStorageSet } from './utils.ts';
 
 // ========================================
 // Type Definitions
@@ -190,7 +191,7 @@ class ThemeManager {
 
         // Store preference
         try {
-            localStorage.setItem(STORAGE_KEY, theme);
+            safeLocalStorageSet(STORAGE_KEY, theme);
         } catch (error) {
             console.warn('Failed to store theme preference:', error);
         }

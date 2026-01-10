@@ -114,8 +114,15 @@ function extractVersion(title) {
  */
 function detectChangeType(text) {
     const lower = text.toLowerCase();
-    if (lower.includes('increased') || lower.includes('buffed') || lower.includes('improved') || lower.includes('boost')) return 'buff';
-    if (lower.includes('decreased') || lower.includes('nerfed') || lower.includes('reduced') || lower.includes('lower')) return 'nerf';
+    if (
+        lower.includes('increased') ||
+        lower.includes('buffed') ||
+        lower.includes('improved') ||
+        lower.includes('boost')
+    )
+        return 'buff';
+    if (lower.includes('decreased') || lower.includes('nerfed') || lower.includes('reduced') || lower.includes('lower'))
+        return 'nerf';
     if (lower.includes('added') || lower.includes('new') || lower.includes('introduced')) return 'addition';
     if (lower.includes('removed') || lower.includes('deleted')) return 'removal';
     if (lower.includes('fixed') || lower.includes('fix') || lower.includes('resolved')) return 'fix';
@@ -188,9 +195,9 @@ function parsePatchNotes(newsItem, entityMap) {
             new_content: [],
             bug_fixes: [],
             removed: [],
-            other: []
+            other: [],
         },
-        raw_notes: plainText
+        raw_notes: plainText,
     };
 
     // Parse lines into categories
@@ -219,7 +226,7 @@ function parsePatchNotes(newsItem, entityMap) {
             patch.categories[currentCategory].push({
                 text: linkedText,
                 change_type: changeType,
-                affected_entities: affectedEntities
+                affected_entities: affectedEntities,
             });
         }
     }
@@ -236,18 +243,20 @@ function parsePatchNotes(newsItem, entityMap) {
  */
 async function fetchSteamNews() {
     return new Promise((resolve, reject) => {
-        https.get(STEAM_NEWS_URL, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    const json = JSON.parse(data);
-                    resolve(json.appnews?.newsitems || []);
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        }).on('error', reject);
+        https
+            .get(STEAM_NEWS_URL, res => {
+                let data = '';
+                res.on('data', chunk => (data += chunk));
+                res.on('end', () => {
+                    try {
+                        const json = JSON.parse(data);
+                        resolve(json.appnews?.newsitems || []);
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            })
+            .on('error', reject);
     });
 }
 
@@ -259,7 +268,7 @@ async function main() {
     const args = process.argv.slice(2);
     const fetchAll = args.includes('--all');
     const countArg = args.find(a => a.startsWith('--count='));
-    const count = countArg ? parseInt(countArg.split('=')[1], 10) : (fetchAll ? 20 : 1);
+    const count = countArg ? parseInt(countArg.split('=')[1], 10) : fetchAll ? 20 : 1;
 
     console.error(`MegaBonk Changelog Fetcher`);
     console.error(`========================`);
@@ -286,8 +295,13 @@ async function main() {
         // Filter to patch notes (skip regular news/announcements)
         const patchItems = newsItems.filter(item => {
             const title = item.title.toLowerCase();
-            return title.includes('update') || title.includes('patch') || title.includes('fix') ||
-                   title.includes('version') || title.match(/v?\d+\.\d+/);
+            return (
+                title.includes('update') ||
+                title.includes('patch') ||
+                title.includes('fix') ||
+                title.includes('version') ||
+                title.match(/v?\d+\.\d+/)
+            );
         });
 
         console.error(`Identified ${patchItems.length} as patch notes.`);
@@ -300,7 +314,7 @@ async function main() {
             last_updated: new Date().toISOString().split('T')[0],
             steam_app_id: STEAM_APP_ID,
             total_patches: patches.length,
-            patches
+            patches,
         };
 
         // Output JSON to stdout
@@ -315,7 +329,6 @@ async function main() {
         console.error('  3. Change types (buff/nerf/fix) are appropriate');
         console.error('');
         console.error('To save: node scripts/fetch-changelog.js > temp-changelog.json');
-
     } catch (error) {
         console.error('Error:', error.message);
         process.exit(1);
