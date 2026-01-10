@@ -25,10 +25,10 @@
     "test:e2e": "bunx playwright test",
     "test:e2e:ui": "bunx playwright test --ui",
     "test:all": "bun run test:unit && bun run test:e2e",
-    "lint": "eslint src/**/*.js",
-    "lint:fix": "eslint src/**/*.js --fix",
-    "format": "prettier --write \"src/**/*.{js,css,html,json}\"",
-    "format:check": "prettier --check \"src/**/*.{js,css,html,json}\"",
+    "lint": "tsc --noEmit && eslint *.js scripts/*.js",
+    "lint:fix": "eslint *.js scripts/*.js --fix",
+    "format": "prettier --write \"src/**/*.{ts,css,html,json}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,css,html,json}\"",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
     "prepare": "husky"
@@ -67,7 +67,10 @@
     "zod": "^4.3.5"
   },
   "lint-staged": {
-    "src/**/*.js": [
+    "src/**/*.ts": [
+      "prettier --write"
+    ],
+    "*.js": [
       "eslint --fix",
       "prettier --write"
     ],
