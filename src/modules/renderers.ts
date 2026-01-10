@@ -76,7 +76,7 @@ export interface Character extends BaseCharacter {
  */
 export interface Shrine extends BaseShrine {
     icon: string;
-    type: string;
+    type: 'stat_upgrade' | 'combat' | 'utility' | 'risk_reward';
     reward: string;
     reusable: boolean;
 }

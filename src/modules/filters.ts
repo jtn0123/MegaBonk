@@ -2,8 +2,8 @@
 // MegaBonk Filters Module
 // ========================================
 
-import type { Entity, EntityType, Item, Shrine, ChangelogPatch, SortBy } from '../types/index.ts';
-import { isItem, isShrine, isChangelogPatch } from '../types/index.ts';
+import type { Entity, EntityType, Item, ChangelogPatch, SortBy } from '../types/index.ts';
+import { isItem, isShrine } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 
 // ========================================
@@ -603,14 +603,17 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
 
     // Category filter and sorting (changelog only)
     if (tabName === 'changelog') {
-        // Cast to ChangelogPatch[] for this branch since we know the type
-        const patches = filtered as unknown as ChangelogPatch[];
+        // Extended patch type with categories for filtering
+        type PatchWithCategories = ChangelogPatch & {
+            categories?: Record<string, unknown[]>;
+        };
+        const patches = filtered as unknown as PatchWithCategories[];
         const categoryFilterEl = safeGetElementById('categoryFilter') as HTMLSelectElement | null;
         const categoryFilter = categoryFilterEl?.value;
         if (categoryFilter && categoryFilter !== 'all') {
             const filteredPatches = patches.filter(patch => {
                 if (patch.categories && categoryFilter in patch.categories) {
-                    const categoryItems = patch.categories[categoryFilter as keyof typeof patch.categories];
+                    const categoryItems = patch.categories[categoryFilter];
                     return categoryItems && categoryItems.length > 0;
                 }
                 return false;

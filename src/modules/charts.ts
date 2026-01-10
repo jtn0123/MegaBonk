@@ -18,12 +18,61 @@ interface SecondaryData {
 }
 
 /**
- * Chart rendering options
+ * Chart rendering options (function parameters)
  */
 interface ChartOptions {
     scalingFormulaType?: string;
     hyperbolicConstant?: number;
     maxStacks?: number;
+}
+
+/**
+ * Chart.js configuration options type
+ * Defines the structure for Chart.js chart options
+ */
+interface ChartJsOptions {
+    responsive: boolean;
+    maintainAspectRatio: boolean;
+    plugins: {
+        legend: { display: boolean };
+        tooltip: { enabled: boolean };
+        annotation?: {
+            annotations: {
+                capLine: {
+                    type: 'line';
+                    xMin: number;
+                    xMax: number;
+                    borderColor: string;
+                    borderWidth: number;
+                    borderDash: number[];
+                    label: {
+                        display: boolean;
+                        content: string;
+                        position: 'start' | 'center' | 'end';
+                        backgroundColor: string;
+                        color: string;
+                    };
+                };
+            };
+        };
+    };
+    scales: {
+        x: {
+            title: { display: boolean; text: string };
+            grid: { color: string };
+        };
+        y: {
+            position: 'left' | 'right';
+            title: { display: boolean; text: string };
+            beginAtZero: boolean;
+            grid: { color: string };
+        };
+        y2: {
+            position: 'left' | 'right';
+            display: boolean;
+            grid: { drawOnChartArea: boolean };
+        };
+    };
 }
 
 /**
@@ -237,7 +286,7 @@ export function createScalingChart(
     const ctx = canvas.getContext('2d')!;
 
     // Build chart options
-    const chartOptions: any = {
+    const chartOptions: ChartJsOptions = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {

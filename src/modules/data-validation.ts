@@ -100,7 +100,8 @@ interface BasicEntity {
 }
 
 /**
- * Data structure with version info
+ * Data structure with version info and dynamic entity array access
+ * Represents the common structure of all data wrapper types (ItemsData, WeaponsData, etc.)
  */
 interface DataStructure {
     version?: string;
@@ -296,8 +297,9 @@ export function validateAllData(allData: AllGameData | null | undefined): Compre
     // Validate structure for each data type
     const dataTypes: EntityType[] = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
     dataTypes.forEach(type => {
-        if (allData[type]) {
-            const result = validateDataStructure(allData[type] as unknown as DataStructure, type);
+        const data = allData[type] as DataStructure | undefined;
+        if (data) {
+            const result = validateDataStructure(data, type);
             errors.push(...result.errors);
         } else {
             warnings.push(`${type}: Data not loaded`);

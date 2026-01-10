@@ -208,6 +208,7 @@ export interface AllGameData {
 
 /**
  * Changelog patch interface
+ * Note: The changelog module extends this with ExtendedPatch to add categories and other fields
  */
 export interface ChangelogPatch {
     id: string;
@@ -218,13 +219,6 @@ export interface ChangelogPatch {
     additions?: string[];
     fixes?: string[];
     removals?: string[];
-    categories?: {
-        balance?: string[];
-        new_content?: string[];
-        bug_fixes?: string[];
-        removed?: string[];
-        other?: string[];
-    };
 }
 
 /**
