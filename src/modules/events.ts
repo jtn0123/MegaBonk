@@ -158,17 +158,22 @@ export function setupEventDelegation(): void {
 
         // Compare checkbox or its label
         // Only handle clicks on the label element itself, not the hidden checkbox
-        // This prevents double-toggling from event bubbling and native label behavior
+        // Use a timestamp to prevent rapid double-toggling from event bubbling
         if (target.closest('.compare-checkbox-label') && !target.classList.contains('compare-checkbox')) {
-            console.log('[COMPARE DEBUG] Handler matched once!', target.tagName);
-            e.preventDefault();
-            e.stopPropagation();
-            const label = target.closest('.compare-checkbox-label');
+            const label = target.closest('.compare-checkbox-label') as HTMLElement;
             const checkbox = label?.querySelector('.compare-checkbox') as HTMLInputElement | null;
             if (checkbox) {
+                // Prevent double-toggling by checking last toggle time
+                const now = Date.now();
+                const lastToggle = parseInt(checkbox.dataset.lastToggle || '0', 10);
+                if (now - lastToggle < 100) {
+                    return; // Ignore rapid repeated clicks
+                }
+                checkbox.dataset.lastToggle = now.toString();
+
                 const id = checkbox.dataset.id || checkbox.value;
                 if (id) {
-                    console.log('[COMPARE DEBUG] Toggling item:', id);
+                    e.preventDefault();
                     // Toggle the checkbox state manually since it may be hidden
                     checkbox.checked = !checkbox.checked;
                     toggleCompareItem(id);
