@@ -492,13 +492,20 @@ describe('Event Delegation', () => {
         it('should toggle compare item on checkbox click', async () => {
             const { toggleCompareItem } = await import('../../src/modules/compare.ts');
 
+            // The event handler expects checkbox to be inside a label wrapper
+            const label = document.createElement('label');
+            label.className = 'compare-checkbox-label';
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.className = 'compare-checkbox';
             checkbox.dataset.id = 'test-item';
-            document.body.appendChild(checkbox);
 
-            checkbox.click();
+            label.appendChild(checkbox);
+            document.body.appendChild(label);
+
+            // Click the label (which triggers the event delegation handler)
+            label.click();
 
             expect(toggleCompareItem).toHaveBeenCalledWith('test-item');
         });

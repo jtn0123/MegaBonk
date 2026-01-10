@@ -484,3 +484,4 @@ export function renderShrines(shrines: Shrine[]): void {
 // ========================================
 // Expose to global scope
 // ========================================
+(window as any).renderTabContent = renderTabContent;

@@ -29,12 +29,15 @@ export default defineConfig({
             //   - synergy.ts: 96%
             //   - favorites.ts: 88.46%
             //   - utils.ts: 88.31%
-            // Overall coverage: ~34% (up from 14.67%)
+            //   - charts.ts: 96.52%
+            //   - renderers.ts: 93.10%
+            //   - match-badge.ts: 100%
+            // Overall coverage: ~48% (up from 34%)
             thresholds: {
-                statements: 30,
-                branches: 25,
-                functions: 30,
-                lines: 30,
+                statements: 45,
+                branches: 40,
+                functions: 42,
+                lines: 45,
             },
         },
     },

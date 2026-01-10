@@ -156,12 +156,23 @@ export function setupEventDelegation(): void {
             return;
         }
 
-        // Compare checkbox
-        if (target.classList.contains('compare-checkbox')) {
-            const checkbox = target as HTMLInputElement;
-            const id = target.dataset.id || checkbox.value;
-            if (id) {
-                toggleCompareItem(id);
+        // Compare checkbox or its label
+        // Only handle clicks on the label element itself, not the hidden checkbox
+        // This prevents double-toggling from event bubbling and native label behavior
+        if (target.closest('.compare-checkbox-label') && !target.classList.contains('compare-checkbox')) {
+            console.log('[COMPARE DEBUG] Handler matched once!', target.tagName);
+            e.preventDefault();
+            e.stopPropagation();
+            const label = target.closest('.compare-checkbox-label');
+            const checkbox = label?.querySelector('.compare-checkbox') as HTMLInputElement | null;
+            if (checkbox) {
+                const id = checkbox.dataset.id || checkbox.value;
+                if (id) {
+                    console.log('[COMPARE DEBUG] Toggling item:', id);
+                    // Toggle the checkbox state manually since it may be hidden
+                    checkbox.checked = !checkbox.checked;
+                    toggleCompareItem(id);
+                }
             }
             return;
         }
@@ -256,19 +267,9 @@ export function setupEventDelegation(): void {
         }
     });
 
-    // Change event delegation for checkboxes
+    // Change event delegation for checkboxes in build planner
     document.addEventListener('change', (e: Event) => {
         const target = e.target as HTMLElement;
-
-        // Compare checkbox (handles both direct clicks and label clicks)
-        if (target.classList.contains('compare-checkbox')) {
-            const checkbox = target as HTMLInputElement;
-            const id = checkbox.dataset.id || checkbox.value;
-            if (id) {
-                toggleCompareItem(id);
-            }
-            return;
-        }
 
         // Tome checkbox in build planner
         if (target.classList.contains('tome-checkbox')) {
