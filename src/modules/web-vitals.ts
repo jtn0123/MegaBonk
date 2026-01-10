@@ -233,9 +233,9 @@ export function getMetrics(): MetricsCollection {
 export function logSummary(): void {
     console.groupCollapsed('[Web Vitals] Performance Summary');
 
-    const collectedMetrics = Object.entries(metrics).filter(
-        ([_, value]) => value !== null
-    ) as Array<[MetricName, StoredMetric]>;
+    const collectedMetrics = Object.entries(metrics).filter(([_, value]) => value !== null) as Array<
+        [MetricName, StoredMetric]
+    >;
 
     if (collectedMetrics.length === 0) {
         console.log('No metrics collected yet');
@@ -283,9 +283,9 @@ export function createPerformanceBadge(): void {
             opacity: 0.7;
         `;
 
-        const collectedMetrics = Object.entries(metrics).filter(
-            ([_, value]) => value !== null
-        ) as Array<[MetricName, StoredMetric]>;
+        const collectedMetrics = Object.entries(metrics).filter(([_, value]) => value !== null) as Array<
+            [MetricName, StoredMetric]
+        >;
         const goodCount = collectedMetrics.filter(([_, data]) => data.rating === 'good').length;
         const total = collectedMetrics.length;
         const score = total > 0 ? Math.round((goodCount / total) * 100) : 0;

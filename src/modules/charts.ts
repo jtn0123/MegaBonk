@@ -98,11 +98,7 @@ export function applyHyperbolicScaling(values: number[], constant: number = 1.0)
  * @param constant - Hyperbolic constant (default 1.0)
  * @returns Array of actual values after hyperbolic transformation
  */
-export function generateHyperbolicValues(
-    perStack: number,
-    maxStacks: number = 10,
-    constant: number = 1.0
-): number[] {
+export function generateHyperbolicValues(perStack: number, maxStacks: number = 10, constant: number = 1.0): number[] {
     const internalValues = Array.from({ length: maxStacks }, (_, i) => perStack * (i + 1));
     return applyHyperbolicScaling(internalValues, constant);
 }
@@ -444,13 +440,7 @@ export function initializeTomeCharts(): void {
     tomes.forEach((tome: Tome) => {
         const progression = calculateTomeProgression(tome);
         if (progression) {
-            createScalingChart(
-                `tome-chart-${tome.id}`,
-                progression,
-                tome.name,
-                tome.stat_affected ?? '',
-                false
-            );
+            createScalingChart(`tome-chart-${tome.id}`, progression, tome.name, tome.stat_affected ?? '', false);
         }
     });
 }

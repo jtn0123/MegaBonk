@@ -235,9 +235,7 @@ export function validateCrossReferences(allData: AllGameData | null | undefined)
         if ('upgrades_from' in weapon) {
             const upgradesFrom = (weapon as { upgrades_from?: string }).upgrades_from;
             if (upgradesFrom && !weaponIds.has(upgradesFrom)) {
-                errors.push(
-                    `weapons[${index}] (${weapon.name}): upgrades_from '${upgradesFrom}' not found in weapons`
-                );
+                errors.push(`weapons[${index}] (${weapon.name}): upgrades_from '${upgradesFrom}' not found in weapons`);
             }
         }
         if ('upgrades_to' in weapon) {

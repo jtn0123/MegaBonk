@@ -12,10 +12,7 @@ import type { Entity, SortBy, Tier, Rarity, EntityType } from '../types/index.ts
 /**
  * Safely get element by ID with optional fallback
  */
-export function safeGetElementById<T = HTMLElement>(
-    id: string,
-    fallback: T | null = null
-): HTMLElement | T | null {
+export function safeGetElementById<T = HTMLElement>(id: string, fallback: T | null = null): HTMLElement | T | null {
     return document.getElementById(id) || fallback;
 }
 
@@ -33,10 +30,7 @@ export function safeQuerySelector<T = Element>(
 /**
  * Safely query selector all
  */
-export function safeQuerySelectorAll(
-    selector: string,
-    context: ParentNode = document
-): NodeListOf<Element> {
+export function safeQuerySelectorAll(selector: string, context: ParentNode = document): NodeListOf<Element> {
     return context.querySelectorAll(selector);
 }
 
@@ -96,11 +90,7 @@ export function generateEntityImage(
 /**
  * Generate modal image HTML
  */
-export function generateModalImage(
-    entity: Entity | null | undefined,
-    altText: string,
-    type: string
-): string {
+export function generateModalImage(entity: Entity | null | undefined, altText: string, type: string): string {
     if (!entity || !entity.image) return '';
     return generateResponsiveImage(entity.image, altText, `modal-${type}-image`);
 }

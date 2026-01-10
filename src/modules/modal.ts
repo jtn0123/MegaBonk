@@ -392,7 +392,7 @@ function renderItemModal(data: ModalItem): string {
         }
 
         // Dynamically import chart functions only when needed
-        const { getEffectiveStackCap, createScalingChart } = await import('./charts.js');
+        const { getEffectiveStackCap, createScalingChart } = await import('./charts.ts');
 
         if (hasScalingTracks) {
             // Initialize with first track
@@ -465,7 +465,7 @@ function setupScalingTabHandlers(data: ModalItem): void {
         tab.classList.add('active');
 
         // Dynamically import chart functions
-        const { getEffectiveStackCap, createScalingChart } = await import('./charts.js');
+        const { getEffectiveStackCap, createScalingChart } = await import('./charts.ts');
 
         // Get track data and redraw chart
         const trackKey = tab.dataset.track!;
@@ -520,7 +520,7 @@ function renderWeaponModal(data: ModalWeapon): string {
  */
 async function renderTomeModal(data: ModalTome): Promise<string> {
     // Dynamically import chart functions
-    const { calculateTomeProgression, createScalingChart } = await import('./charts.js');
+    const { calculateTomeProgression, createScalingChart } = await import('./charts.ts');
 
     const progression = calculateTomeProgression(data);
     const graphHtml = progression

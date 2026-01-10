@@ -186,11 +186,7 @@ export type ZodShrinesData = z.infer<typeof ShrinesDataSchema>;
 /**
  * Validate data against a schema
  */
-export function validateData<T>(
-    data: unknown,
-    schema: z.ZodSchema<T>,
-    dataType: string
-): ValidationResult<T> {
+export function validateData<T>(data: unknown, schema: z.ZodSchema<T>, dataType: string): ValidationResult<T> {
     try {
         const validatedData = schema.parse(data);
         return {

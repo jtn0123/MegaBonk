@@ -103,10 +103,4 @@ export const DEFAULT_BUILD_STATS: Readonly<BuildStats> = Object.freeze({
 export const MAX_COMPARE_ITEMS = 3;
 export const BUILD_ITEMS_LIMIT = 40;
 export const VALID_TIERS: readonly Tier[] = Object.freeze(['SS', 'S', 'A', 'B', 'C']);
-export const VALID_RARITIES: readonly Rarity[] = Object.freeze([
-    'common',
-    'uncommon',
-    'rare',
-    'epic',
-    'legendary',
-]);
+export const VALID_RARITIES: readonly Rarity[] = Object.freeze(['common', 'uncommon', 'rare', 'epic', 'legendary']);

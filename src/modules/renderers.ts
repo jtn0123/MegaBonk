@@ -260,7 +260,7 @@ export function renderItems(items: Item[]): void {
     requestAnimationFrame(async () => {
         try {
             // Dynamically import chart functions to enable code splitting
-            const { initializeItemCharts } = await import('./charts.js');
+            const { initializeItemCharts } = await import('./charts.ts');
             initializeItemCharts();
         } catch (err) {
             console.warn('Failed to initialize item charts:', err);
@@ -370,7 +370,7 @@ export function renderTomes(tomes: Tome[]): void {
     requestAnimationFrame(async () => {
         try {
             // Dynamically import chart functions to enable code splitting
-            const { initializeTomeCharts } = await import('./charts.js');
+            const { initializeTomeCharts } = await import('./charts.ts');
             initializeTomeCharts();
         } catch (err) {
             console.warn('Failed to initialize tome charts:', err);
