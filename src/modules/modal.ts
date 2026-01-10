@@ -324,7 +324,7 @@ function renderItemModal(data: ModalItem): string {
     `
             : '';
 
-    const imageHtml = generateModalImage(data as unknown as Entity, data.name, 'item');
+    const imageHtml = generateModalImage(data, data.name, 'item');
 
     const content = `
         ${imageHtml}
@@ -595,7 +595,7 @@ async function renderTomeModal(data: ModalTome): Promise<string> {
  * @returns HTML content
  */
 function renderCharacterModal(data: ModalCharacter): string {
-    const imageHtml = generateModalImage(data as unknown as Entity, data.name, 'character');
+    const imageHtml = generateModalImage(data, data.name, 'character');
 
     return `
         ${imageHtml}

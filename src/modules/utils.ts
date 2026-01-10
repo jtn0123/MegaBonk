@@ -89,8 +89,13 @@ export function generateEntityImage(
 
 /**
  * Generate modal image HTML
+ * Accepts any object with an optional image property for flexibility with modal-specific types
  */
-export function generateModalImage(entity: Entity | null | undefined, altText: string, type: string): string {
+export function generateModalImage(
+    entity: { image?: string } | null | undefined,
+    altText: string,
+    type: string
+): string {
     if (!entity || !entity.image) return '';
     return generateResponsiveImage(entity.image, altText, `modal-${type}-image`);
 }
