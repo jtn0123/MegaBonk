@@ -16,6 +16,7 @@ module.exports = [
                 process: 'readonly',
                 __dirname: 'readonly',
                 __filename: 'readonly',
+                Buffer: 'readonly',
 
                 // Browser globals
                 window: 'readonly',

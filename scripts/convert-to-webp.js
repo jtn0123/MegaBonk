@@ -13,18 +13,12 @@ const path = require('path');
 let sharp;
 try {
     sharp = require('sharp');
-} catch (e) {
+} catch {
     console.error('❌ Sharp is not installed. Install it with: bun add -d sharp');
     process.exit(1);
 }
 
-const IMAGE_DIRS = [
-    'src/images/items',
-    'src/images/weapons',
-    'src/images/tomes',
-    'src/images/characters',
-    'src/icons'
-];
+const IMAGE_DIRS = ['src/images/items', 'src/images/weapons', 'src/images/tomes', 'src/images/characters', 'src/icons'];
 
 const WEBP_QUALITY = 85; // Balance between quality and file size
 
@@ -35,9 +29,7 @@ const WEBP_QUALITY = 85; // Balance between quality and file size
  */
 async function convertToWebP(inputPath, outputPath) {
     try {
-        await sharp(inputPath)
-            .webp({ quality: WEBP_QUALITY })
-            .toFile(outputPath);
+        await sharp(inputPath).webp({ quality: WEBP_QUALITY }).toFile(outputPath);
 
         const originalSize = fs.statSync(inputPath).size;
         const webpSize = fs.statSync(outputPath).size;
@@ -99,9 +91,7 @@ async function processDirectory(dirPath) {
         }
     }
 
-    const totalSavings = totalOriginalSize > 0
-        ? ((1 - totalWebPSize / totalOriginalSize) * 100).toFixed(1)
-        : 0;
+    const totalSavings = totalOriginalSize > 0 ? ((1 - totalWebPSize / totalOriginalSize) * 100).toFixed(1) : 0;
 
     console.log(`✓ Converted ${converted} images in ${dirPath} (${totalSavings}% total savings)`);
 
@@ -126,9 +116,7 @@ async function main() {
         grandTotalWebP += result.totalWebPSize || 0;
     }
 
-    const grandTotalSavings = grandTotalOriginal > 0
-        ? ((1 - grandTotalWebP / grandTotalOriginal) * 100).toFixed(1)
-        : 0;
+    const grandTotalSavings = grandTotalOriginal > 0 ? ((1 - grandTotalWebP / grandTotalOriginal) * 100).toFixed(1) : 0;
 
     const originalKB = (grandTotalOriginal / 1024).toFixed(1);
     const webpKB = (grandTotalWebP / 1024).toFixed(1);
@@ -144,7 +132,7 @@ async function main() {
     console.log('\n💡 Next steps:');
     console.log('   1. Images will automatically use WebP format with PNG fallbacks');
     console.log('   2. Update service worker cache if needed: src/sw.js');
-    console.log('   3. Test in browsers that support/don\'t support WebP');
+    console.log("   3. Test in browsers that support/don't support WebP");
 }
 
 main().catch(console.error);

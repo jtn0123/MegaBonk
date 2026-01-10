@@ -18,7 +18,7 @@
     "build:ios": "bunx cap sync ios && bunx cap open ios",
     "optimize:images": "node scripts/convert-to-webp.js",
     "version:inject": "node scripts/inject-version.js",
-    "test": "bun vitest",
+    "test": "vitest",
     "test:unit": "bun vitest run --coverage",
     "test:watch": "bun vitest watch",
     "test:e2e": "bunx playwright test",
