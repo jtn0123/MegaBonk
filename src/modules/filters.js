@@ -1,8 +1,4 @@
 // ========================================
-
-// Note: imports removed as they're provided via window object by other modules
-// TODO: Refactor to use direct imports when filter functions are updated
-
 // MegaBonk Filters Module
 // ========================================
 
