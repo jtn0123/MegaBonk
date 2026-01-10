@@ -704,19 +704,23 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement): void {
         existingDropdown.remove();
     }
 
-    // Create dropdown
+    // Create dropdown with ARIA attributes for accessibility
     const dropdown = document.createElement('div');
     dropdown.className = 'search-history-dropdown';
+    dropdown.setAttribute('role', 'listbox');
+    dropdown.setAttribute('aria-label', 'Search history');
+    searchInput.setAttribute('aria-expanded', 'true');
+    searchInput.setAttribute('aria-haspopup', 'listbox');
     dropdown.innerHTML = `
         <div class="search-history-header">
             <span>Recent Searches</span>
             <button class="clear-history-btn" aria-label="Clear search history">Clear</button>
         </div>
-        <ul class="search-history-list">
+        <ul class="search-history-list" role="group">
             ${history
                 .map(
                     term => `
-                <li class="search-history-item" data-term="${term.replace(/"/g, '&quot;')}">
+                <li class="search-history-item" role="option" data-term="${term.replace(/"/g, '&quot;')}">
                     ${term}
                 </li>
             `
@@ -759,6 +763,7 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement): void {
 
     const removeDropdown = (): void => {
         abortController.abort(); // Clean up the event listener
+        searchInput.setAttribute('aria-expanded', 'false');
         if (dropdown.parentElement) {
             dropdown.remove();
         }

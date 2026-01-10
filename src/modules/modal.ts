@@ -392,7 +392,14 @@ function renderItemModal(data: ModalItem): string {
         }
 
         // Dynamically import chart functions only when needed
-        const { getEffectiveStackCap, createScalingChart } = await import('./charts.ts');
+        let chartModule;
+        try {
+            chartModule = await import('./charts.ts');
+        } catch (err) {
+            console.warn('Failed to load chart module:', err);
+            return; // Can't render charts without the module
+        }
+        const { getEffectiveStackCap, createScalingChart } = chartModule;
 
         if (hasScalingTracks) {
             // Initialize with first track
@@ -465,7 +472,14 @@ function setupScalingTabHandlers(data: ModalItem): void {
         tab.classList.add('active');
 
         // Dynamically import chart functions
-        const { getEffectiveStackCap, createScalingChart } = await import('./charts.ts');
+        let chartModule;
+        try {
+            chartModule = await import('./charts.ts');
+        } catch (err) {
+            console.warn('Failed to load chart module for tab switch:', err);
+            return;
+        }
+        const { getEffectiveStackCap, createScalingChart } = chartModule;
 
         // Get track data and redraw chart
         const trackKey = tab.dataset.track;
@@ -524,7 +538,22 @@ function renderWeaponModal(data: ModalWeapon): string {
  */
 async function renderTomeModal(data: ModalTome): Promise<string> {
     // Dynamically import chart functions
-    const { calculateTomeProgression, createScalingChart } = await import('./charts.ts');
+    let chartModule;
+    try {
+        chartModule = await import('./charts.ts');
+    } catch (err) {
+        console.warn('Failed to load chart module for tome modal:', err);
+        // Return basic content without charts
+        return `
+            <div class="item-badges">
+                <span class="badge tier-${data.tier}">${data.tier} Tier</span>
+                <span class="badge" style="background: var(--bg-dark);">Priority: ${data.priority}</span>
+            </div>
+            <p>${data.description}</p>
+            <p class="error-message">Charts unavailable</p>
+        `;
+    }
+    const { calculateTomeProgression, createScalingChart } = chartModule;
 
     const progression = calculateTomeProgression(data);
     const graphHtml = progression
