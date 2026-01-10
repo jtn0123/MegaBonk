@@ -38,7 +38,6 @@ export function populateCalculatorItems(): void {
     const select = document.getElementById('calc-item-select') as HTMLSelectElement | null;
     if (!select || !allData.items?.items) {
         return; // Calculator not ready
-        return;
     }
 
     // Clear existing options except the first (placeholder)
@@ -57,7 +56,6 @@ export function populateCalculatorItems(): void {
         option.textContent = item.name;
         select.appendChild(option);
     });
-
 }
 
 /**
@@ -65,12 +63,11 @@ export function populateCalculatorItems(): void {
  */
 export function calculateBreakpoint(): void {
     const select = document.getElementById('calc-item-select') as HTMLSelectElement | null;
-    const input = document.getElementById('calc-target-value') as HTMLInputElement | null;
-    const resultDiv = document.getElementById('calc-results');
+    const input = document.getElementById('calc-target') as HTMLInputElement | null;
+    const resultDiv = document.getElementById('calc-result');
 
     if (!select || !input || !resultDiv) {
         return; // Calculator elements not ready
-        return;
     }
 
     const itemId = select.value;
@@ -138,7 +135,7 @@ export function calculateBreakpoint(): void {
  * @param result - Calculation result
  */
 function renderResults(result: CalculatorResult): void {
-    const resultDiv = document.getElementById('calc-results');
+    const resultDiv = document.getElementById('calc-result');
     if (!resultDiv) return;
 
     const isPercentage = result.scalingType.includes('chance') || result.scalingType.includes('percentage');
@@ -212,7 +209,7 @@ export function quickCalc(itemId: string, target?: number): void {
 
     // Set target if provided
     if (target !== undefined && target > 0) {
-        safeSetValue('calc-target-value', target.toString());
+        safeSetValue('calc-target', target.toString());
         // Auto-calculate
         setTimeout(() => {
             calculateBreakpoint();

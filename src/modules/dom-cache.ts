@@ -208,5 +208,4 @@ export function refreshFilterCache(): void {
     domCache.invalidate('stackingFilter');
     domCache.invalidate('sortBy');
     domCache.invalidate('favoritesOnly');
-
 }

@@ -45,7 +45,6 @@ interface ItemWithMatchContext extends Record<string, unknown> {
     _matchContext?: FuzzyMatchResult;
 }
 
-
 // ========================================
 // Constants
 // ========================================
@@ -555,7 +554,9 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
 
         // Apply advanced filter criteria (tier:SS, damage:>100, etc.)
         if (Object.keys(criteria.filters).length > 0) {
-            filtered = filtered.filter(item => matchesAdvancedFilters(item as unknown as Record<string, unknown>, criteria.filters));
+            filtered = filtered.filter(item =>
+                matchesAdvancedFilters(item as unknown as Record<string, unknown>, criteria.filters)
+            );
         }
     }
 
@@ -605,7 +606,9 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
         const categoryFilter = categoryFilterEl?.value;
         if (categoryFilter && categoryFilter !== 'all') {
             filtered = filtered.filter(patch => {
-                const categories = (patch as unknown as Record<string, unknown>).categories as Record<string, unknown[]> | undefined;
+                const categories = (patch as unknown as Record<string, unknown>).categories as
+                    | Record<string, unknown[]>
+                    | undefined;
                 if (categories && categoryFilter in categories) {
                     return (categories[categoryFilter] as unknown[])?.length > 0;
                 }

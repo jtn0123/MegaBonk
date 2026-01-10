@@ -6,13 +6,7 @@ import type { Character, Weapon, Tome, Item } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
 import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue } from './utils.ts';
-import {
-    BUILD_ITEMS_LIMIT,
-    DEFAULT_BUILD_STATS,
-    ITEM_EFFECTS,
-    type BuildStats,
-    type ItemEffect,
-} from './constants.ts';
+import { BUILD_ITEMS_LIMIT, DEFAULT_BUILD_STATS, ITEM_EFFECTS, type BuildStats, type ItemEffect } from './constants.ts';
 
 // ========================================
 // Type Definitions
@@ -436,8 +430,7 @@ export function setupBuildPlannerEvents(): void {
         charSelect.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement;
             const charId = target.value;
-            currentBuild.character =
-                allData.characters?.characters.find((c: Character) => c.id === charId) || null;
+            currentBuild.character = allData.characters?.characters.find((c: Character) => c.id === charId) || null;
             updateBuildAnalysis();
         });
     }
@@ -717,7 +710,9 @@ export function loadBuildFromURL(): boolean {
                 .map((id: string) => allData.tomes!.tomes.find((t: Tome) => t.id === id))
                 .filter((t): t is Tome => t !== undefined);
             currentBuild.tomes.forEach((tome: Tome) => {
-                const checkbox = document.querySelector(`.tome-checkbox[value="${tome.id}"]`) as HTMLInputElement | null;
+                const checkbox = document.querySelector(
+                    `.tome-checkbox[value="${tome.id}"]`
+                ) as HTMLInputElement | null;
                 if (checkbox) checkbox.checked = true;
             });
         }
@@ -728,7 +723,9 @@ export function loadBuildFromURL(): boolean {
                 .map((id: string) => allData.items!.items.find((item: Item) => item.id === id))
                 .filter((i): i is Item => i !== undefined);
             currentBuild.items.forEach((item: Item) => {
-                const checkbox = document.querySelector(`.item-checkbox[value="${item.id}"]`) as HTMLInputElement | null;
+                const checkbox = document.querySelector(
+                    `.item-checkbox[value="${item.id}"]`
+                ) as HTMLInputElement | null;
                 if (checkbox) checkbox.checked = true;
             });
         }

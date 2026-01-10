@@ -29,7 +29,9 @@ export function toggleCompareItem(itemId: string): void {
         compareItems.splice(index, 1);
     } else {
         if (compareItems.length >= MAX_COMPARE_ITEMS) {
-            ToastManager.warning(`You can only compare up to ${MAX_COMPARE_ITEMS} items at once. Remove an item first.`);
+            ToastManager.warning(
+                `You can only compare up to ${MAX_COMPARE_ITEMS} items at once. Remove an item first.`
+            );
             return;
         }
         compareItems.push(itemId);
@@ -196,7 +198,7 @@ export async function openCompareModal(): Promise<void> {
     // Initialize compare chart after DOM is ready
     if (chartableItems.length >= 2) {
         // Dynamically import chart function only when needed
-        const { createCompareChart } = await import('./charts.js');
+        const { createCompareChart } = await import('./charts.ts');
 
         setTimeout(() => {
             // Check if modal is still active and canvas exists before creating chart
@@ -216,7 +218,7 @@ export async function closeCompareModal(): Promise<void> {
     // Destroy compare chart before closing to prevent memory leak
     // Dynamically import to access chartInstances
     try {
-        const { chartInstances } = await import('./charts.js');
+        const { chartInstances } = await import('./charts.ts');
         const instances = chartInstances as Record<string, any>;
         if (instances && instances['compare-scaling-chart']) {
             instances['compare-scaling-chart'].destroy();

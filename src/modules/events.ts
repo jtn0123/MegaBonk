@@ -168,7 +168,7 @@ export function setupEventDelegation(): void {
         if (target.classList.contains('expandable-text') || target.closest('.expandable-text')) {
             const expandable = target.classList.contains('expandable-text')
                 ? target
-                : target.closest('.expandable-text') as HTMLElement | null;
+                : (target.closest('.expandable-text') as HTMLElement | null);
             if (expandable) {
                 toggleTextExpand(expandable);
             }
@@ -179,7 +179,7 @@ export function setupEventDelegation(): void {
         if (target.classList.contains('remove-compare-btn') || target.closest('.remove-compare-btn')) {
             const btn = target.classList.contains('remove-compare-btn')
                 ? target
-                : target.closest('.remove-compare-btn') as HTMLElement | null;
+                : (target.closest('.remove-compare-btn') as HTMLElement | null);
             const id = btn?.dataset.removeId;
             if (id) {
                 toggleCompareItem(id);
@@ -227,12 +227,16 @@ export function setupEventDelegation(): void {
 
         // Favorite button click
         if (target.classList.contains('favorite-btn') || target.closest('.favorite-btn')) {
-            const btn = (target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')) as HTMLButtonElement | null;
+            const btn = (
+                target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')
+            ) as HTMLButtonElement | null;
             const tabName = btn?.dataset.tab as TabName | undefined;
             const itemId = btn?.dataset.id;
             // Type guard: favorites only work for entity tabs, not build-planner or calculator
             const isEntityTab = (tab: TabName | undefined): tab is EntityType => {
-                return tab === 'items' || tab === 'weapons' || tab === 'tomes' || tab === 'characters' || tab === 'shrines';
+                return (
+                    tab === 'items' || tab === 'weapons' || tab === 'tomes' || tab === 'characters' || tab === 'shrines'
+                );
             };
             if (btn && tabName && isEntityTab(tabName) && itemId && typeof toggleFavorite === 'function') {
                 const nowFavorited = toggleFavorite(tabName, itemId);

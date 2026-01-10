@@ -33,7 +33,12 @@ function showErrorMessage(message: string): void {
     ToastManager.error(message);
     const mainContent = document.getElementById('main-content');
     if (mainContent) {
-        mainContent.innerHTML = `<div class="error-message">${message}</div>`;
+        // Use textContent to prevent XSS - error messages should be displayed as plain text
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.textContent = message;
+        mainContent.innerHTML = '';
+        mainContent.appendChild(errorDiv);
     }
 }
 
@@ -187,6 +192,7 @@ export async function loadAllData(): Promise<void> {
 
         // Show warning if validation fails critically
         if (!validationResult.valid && validationResult.errors.length > 10) {
+            ToastManager.warning('Some game data may be incomplete. Check console for details.');
         }
 
         // Update version info
