@@ -21,6 +21,7 @@ import { themeManager } from './modules/theme-manager.ts';
 import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
 import { setupImageFallbackHandler } from './modules/utils.ts';
 import type { Entity } from './types/index.ts';
+import { logger } from './modules/logger.ts';
 
 // ========================================
 // Global State (to be refactored into state module)
@@ -37,12 +38,20 @@ export { filteredData };
 function setupErrorTracking(): void {
     // Catch uncaught JavaScript errors
     window.onerror = (message, source, lineno, colno, error) => {
-        console.error('Global error caught:', {
-            message,
-            source,
-            line: lineno,
-            column: colno,
-            error,
+        const err = error as Error | undefined;
+        logger.error({
+            operation: 'error.unhandled',
+            error: {
+                name: err?.name || 'Error',
+                message: String(message),
+                stack: err?.stack,
+                module: 'global',
+            },
+            data: {
+                source,
+                line: lineno,
+                column: colno,
+            },
         });
 
         // Show user-friendly error message
@@ -56,9 +65,15 @@ function setupErrorTracking(): void {
 
     // Catch unhandled promise rejections
     window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
-        console.error('Unhandled promise rejection:', {
-            reason: event.reason,
-            promise: event.promise,
+        const reason = event.reason;
+        logger.error({
+            operation: 'error.promise',
+            error: {
+                name: reason?.name || 'UnhandledRejection',
+                message: reason?.message || String(reason),
+                stack: reason?.stack,
+                module: 'global',
+            },
         });
 
         // Show user-friendly error message
@@ -95,6 +110,10 @@ function setupOfflineIndicator(): void {
     // Listen for online/offline events
     window.addEventListener('online', () => {
         indicator.style.display = 'none';
+        logger.info({
+            operation: 'app.online',
+            data: { previousState: 'offline' },
+        });
         if (typeof ToastManager !== 'undefined') {
             ToastManager.success('Back online!');
         }
@@ -102,6 +121,10 @@ function setupOfflineIndicator(): void {
 
     window.addEventListener('offline', () => {
         indicator.style.display = 'block';
+        logger.info({
+            operation: 'app.offline',
+            data: { previousState: 'online' },
+        });
         if (typeof ToastManager !== 'undefined') {
             ToastManager.info("You're offline - using cached data");
         }
@@ -150,7 +173,15 @@ function setupUpdateNotification(): void {
             });
         })
         .catch((err: Error) => {
-            console.warn('Service worker not available:', err);
+            logger.warn({
+                operation: 'app.update',
+                error: {
+                    name: err.name,
+                    message: err.message,
+                    module: 'service-worker',
+                },
+                data: { reason: 'service_worker_not_available' },
+            });
         });
 }
 

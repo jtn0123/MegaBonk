@@ -97,6 +97,7 @@ interface BasicEntity {
     rarity?: string;
     tier?: string;
     description?: string;
+    detailed_description?: string;
 }
 
 /**
@@ -157,8 +158,8 @@ export function validateDataStructure(
             if (!entity.tier) {
                 errors.push(`${type}[${index}] (${entity.name || entity.id}): Missing 'tier' field`);
             }
-            if (!entity.description) {
-                errors.push(`${type}[${index}] (${entity.name || entity.id}): Missing 'description' field`);
+            if (!entity.detailed_description) {
+                errors.push(`${type}[${index}] (${entity.name || entity.id}): Missing 'detailed_description' field`);
             }
         }
 

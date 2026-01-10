@@ -5,6 +5,7 @@
 // ========================================
 
 import { ToastManager } from './toast.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // Type Definitions
@@ -99,8 +100,21 @@ export function withErrorBoundary<T extends (...args: any[]) => any>(
             } catch (error) {
                 const err = error as Error;
 
-                // Log error
-                console.error(`[ErrorBoundary:${moduleName}] Error caught:`, err);
+                // Log error with wide event
+                logger.error({
+                    operation: 'error.boundary',
+                    error: {
+                        name: err.name,
+                        message: err.message,
+                        stack: err.stack,
+                        module: moduleName,
+                    },
+                    data: {
+                        retries,
+                        maxRetries,
+                        phase: 'caught',
+                    },
+                });
 
                 // Update boundary stats
                 if (boundary) {
@@ -113,7 +127,17 @@ export function withErrorBoundary<T extends (...args: any[]) => any>(
                     try {
                         await onError(err, retries);
                     } catch (handlerError) {
-                        console.error(`[ErrorBoundary:${moduleName}] Error handler failed:`, handlerError);
+                        const hErr = handlerError as Error;
+                        logger.error({
+                            operation: 'error.boundary',
+                            error: {
+                                name: hErr.name,
+                                message: hErr.message,
+                                stack: hErr.stack,
+                                module: moduleName,
+                            },
+                            data: { phase: 'handler_failed' },
+                        });
                     }
                 }
 
@@ -135,7 +159,17 @@ export function withErrorBoundary<T extends (...args: any[]) => any>(
                     try {
                         return (await fallback(err)) as Awaited<ReturnType<T>>;
                     } catch (fallbackError) {
-                        console.error(`[ErrorBoundary:${moduleName}] Fallback failed:`, fallbackError);
+                        const fErr = fallbackError as Error;
+                        logger.error({
+                            operation: 'error.boundary',
+                            error: {
+                                name: fErr.name,
+                                message: fErr.message,
+                                stack: fErr.stack,
+                                module: moduleName,
+                            },
+                            data: { phase: 'fallback_failed', recoveryAttempted: true, recoverySucceeded: false },
+                        });
                     }
                 }
 
@@ -144,7 +178,21 @@ export function withErrorBoundary<T extends (...args: any[]) => any>(
                     try {
                         return (await boundary.fallback(err)) as Awaited<ReturnType<T>>;
                     } catch (boundaryError) {
-                        console.error(`[ErrorBoundary:${moduleName}] Boundary fallback failed:`, boundaryError);
+                        const bErr = boundaryError as Error;
+                        logger.error({
+                            operation: 'error.boundary',
+                            error: {
+                                name: bErr.name,
+                                message: bErr.message,
+                                stack: bErr.stack,
+                                module: moduleName,
+                            },
+                            data: {
+                                phase: 'boundary_fallback_failed',
+                                recoveryAttempted: true,
+                                recoverySucceeded: false,
+                            },
+                        });
                     }
                 }
 
@@ -177,12 +225,30 @@ export async function safeModuleInit<T = unknown>(
         maxRetries: 0,
         fallback: gracefulDegradation
             ? async (error: Error): Promise<DegradedModuleResult> => {
-                  console.warn(`[ErrorBoundary:${moduleName}] Module initialization failed, entering degraded mode`);
+                  logger.warn({
+                      operation: 'module.degraded',
+                      error: {
+                          name: error.name,
+                          message: error.message,
+                          stack: error.stack,
+                          module: moduleName,
+                      },
+                      data: { moduleName, gracefulDegradation: true },
+                  });
                   return { degraded: true, error };
               }
             : null,
         onError: async (error: Error): Promise<void> => {
-            console.error(`[ErrorBoundary] Failed to initialize ${moduleName}:`, error);
+            logger.error({
+                operation: 'module.init.failed',
+                error: {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack,
+                    module: moduleName,
+                },
+                data: { moduleName, required },
+            });
 
             if (required) {
                 // Show critical error

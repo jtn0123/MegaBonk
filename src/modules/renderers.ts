@@ -249,7 +249,7 @@ export function renderItems(items: Item[]): void {
                 <span class="meta-tag">${stackText}</span>
             </div>
             ${graphHtml}
-            <button class="view-details-btn" data-type="item" data-id="${item.id}">View Details</button>
+            <button class="view-details-btn" data-type="items" data-id="${item.id}">View Details</button>
         `;
 
         container.appendChild(card);
@@ -308,7 +308,7 @@ export function renderWeapons(weapons: Weapon[]): void {
             <div class="item-meta">
                 ${generateMetaTags(weapon.upgradeable_stats, 4)}
             </div>
-            <button class="view-details-btn" data-type="weapon" data-id="${weapon.id}">View Details</button>
+            <button class="view-details-btn" data-type="weapons" data-id="${weapon.id}">View Details</button>
         `;
 
         container.appendChild(card);
@@ -360,7 +360,7 @@ export function renderTomes(tomes: Tome[]): void {
             <div class="item-effect">${tome.stat_affected}: ${tome.value_per_level}</div>
             <div class="item-description">${tome.description}</div>
             ${graphHtml}
-            <button class="view-details-btn" data-type="tome" data-id="${tome.id}">View Details</button>
+            <button class="view-details-btn" data-type="tomes" data-id="${tome.id}">View Details</button>
         `;
 
         container.appendChild(card);
@@ -419,7 +419,7 @@ export function renderCharacters(characters: Character[]): void {
                 <span class="meta-tag">${char.starting_weapon}</span>
                 <span class="meta-tag">${char.playstyle}</span>
             </div>
-            <button class="view-details-btn" data-type="character" data-id="${char.id}">View Details</button>
+            <button class="view-details-btn" data-type="characters" data-id="${char.id}">View Details</button>
         `;
 
         container.appendChild(card);
@@ -465,7 +465,7 @@ export function renderShrines(shrines: Shrine[]): void {
             <div class="item-meta">
                 ${shrine.reusable ? '<span class="meta-tag">Reusable</span>' : '<span class="meta-tag">One-time</span>'}
             </div>
-            <button class="view-details-btn" data-type="shrine" data-id="${shrine.id}">View Details</button>
+            <button class="view-details-btn" data-type="shrines" data-id="${shrine.id}">View Details</button>
         `;
 
         container.appendChild(card);
