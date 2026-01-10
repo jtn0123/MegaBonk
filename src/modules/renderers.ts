@@ -26,7 +26,7 @@ import type {
     Shrine as BaseShrine,
     Entity,
     ChangelogPatch,
-} from '../types/index.js';
+} from '../types/index.ts';
 
 // ========================================
 // Extended Type Definitions for Actual Data

@@ -14,7 +14,7 @@ import { clearFilters, handleSearch, updateFilters, restoreFilterState, saveFilt
 import { renderTabContent } from './renderers.ts';
 import { toggleChangelogExpand } from './changelog.ts';
 
-import type { EntityType } from '../types/index.js';
+import type { EntityType } from '../types/index.ts';
 
 // Type definitions for tab names
 type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator';

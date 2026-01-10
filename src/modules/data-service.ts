@@ -4,7 +4,7 @@
 
 import { ToastManager } from './toast.ts';
 import { validateAllData, logValidationResults, validateWithZod } from './data-validation.ts';
-import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.js';
+import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.ts';
 
 // ========================================
 // Type Definitions

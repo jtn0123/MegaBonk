@@ -3,7 +3,7 @@
 // ========================================
 
 import { Chart } from './chart-loader.ts';
-import type { Tome } from '../types/index.js';
+import type { Tome } from '../types/index.ts';
 
 // ========================================
 // Type Definitions

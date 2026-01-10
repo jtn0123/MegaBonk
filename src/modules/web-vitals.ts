@@ -6,7 +6,7 @@
 // ========================================
 
 import { onCLS, onFCP, onLCP, onTTFB, onINP, type Metric as WebVitalsMetric } from 'web-vitals';
-import type { MetricName, MetricRating, StoredMetric } from '../types/index.js';
+import type { MetricName, MetricRating, StoredMetric } from '../types/index.ts';
 
 // ========================================
 // Type Definitions
