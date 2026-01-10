@@ -3,7 +3,7 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 export default defineConfig({
     root: 'src',
-    publicDir: '../public',
+    publicDir: false, // No separate public dir, static assets handled separately
     build: {
         outDir: '../dist',
         emptyOutDir: true,
@@ -30,6 +30,10 @@ export default defineConfig({
     server: {
         port: 8000,
         open: true,
+        fs: {
+            // Allow serving files from the data directory (outside root)
+            allow: ['..'],
+        },
     },
     resolve: {
         alias: {
