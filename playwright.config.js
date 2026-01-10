@@ -8,7 +8,7 @@ export default defineConfig({
     workers: process.env.CI ? 1 : undefined,
     reporter: 'html',
     use: {
-        baseURL: 'http://localhost:3333',
+        baseURL: 'http://localhost:8000',
         trace: 'on-first-retry',
     },
     projects: [
@@ -22,8 +22,8 @@ export default defineConfig({
         },
     ],
     webServer: {
-        command: 'bun run dev --port 3333',
-        url: 'http://localhost:3333',
+        command: 'bun run dev',
+        url: 'http://localhost:8000',
         reuseExistingServer: !process.env.CI,
         timeout: 120 * 1000, // Allow time for Vite to start
     },
