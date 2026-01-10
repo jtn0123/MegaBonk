@@ -5,7 +5,7 @@
 import type { Item } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
-import { safeGetElementById, safeQuerySelector, safeQuerySelectorAll } from './utils.ts';
+import { safeGetElementById, safeQuerySelector, safeQuerySelectorAll, escapeHtml } from './utils.ts';
 import { MAX_COMPARE_ITEMS } from './constants.ts';
 
 // ========================================
@@ -106,7 +106,7 @@ export async function openCompareModal(): Promise<void> {
         html += `
             <div class="compare-column">
                 <div class="compare-header">
-                    <h3>${item.name}</h3>
+                    <h3>${escapeHtml(item.name)}</h3>
                     <div class="item-badges">
                         <span class="badge rarity-${item.rarity}">${item.rarity}</span>
                         <span class="badge tier-${item.tier}">${item.tier} Tier</span>
@@ -115,7 +115,7 @@ export async function openCompareModal(): Promise<void> {
 
                 <div class="compare-section">
                     <h4>Base Effect</h4>
-                    <p>${item.base_effect || 'N/A'}</p>
+                    <p>${escapeHtml(item.base_effect || 'N/A')}</p>
                 </div>
 
                 <div class="compare-section">
@@ -127,7 +127,7 @@ export async function openCompareModal(): Promise<void> {
 
                 <div class="compare-section">
                     <h4>Formula</h4>
-                    <code class="formula-code">${item.formula || 'N/A'}</code>
+                    <code class="formula-code">${escapeHtml(item.formula || 'N/A')}</code>
                 </div>
 
                 <div class="compare-section">
@@ -154,7 +154,7 @@ export async function openCompareModal(): Promise<void> {
                         <div class="synergy-tags">
                             ${item.synergies
                                 .slice(0, 5)
-                                .map((s: string) => `<span class="synergy-tag">${s}</span>`)
+                                .map((s: string) => `<span class="synergy-tag">${escapeHtml(s)}</span>`)
                                 .join('')}
                         </div>
                     </div>
@@ -168,7 +168,7 @@ export async function openCompareModal(): Promise<void> {
                     <div class="compare-section">
                         <h4>Anti-Synergies</h4>
                         <div class="antisynergy-tags">
-                            ${item.anti_synergies.map((s: string) => `<span class="antisynergy-tag">${s}</span>`).join('')}
+                            ${item.anti_synergies.map((s: string) => `<span class="antisynergy-tag">${escapeHtml(s)}</span>`).join('')}
                         </div>
                     </div>
                 `
@@ -177,7 +177,7 @@ export async function openCompareModal(): Promise<void> {
 
                 <div class="compare-section">
                     <h4>Notes</h4>
-                    <p class="notes">${item.notes || 'N/A'}</p>
+                    <p class="notes">${escapeHtml(item.notes || 'N/A')}</p>
                 </div>
 
                 <button class="remove-compare-btn" data-remove-id="${item.id}">
@@ -190,6 +190,7 @@ export async function openCompareModal(): Promise<void> {
     html += '</div>';
     compareBody.innerHTML = html;
     modal.style.display = 'block';
+    modal.setAttribute('aria-hidden', 'false'); // Announce modal to screen readers
     // Trigger animation after display is set
     requestAnimationFrame(() => {
         modal.classList.add('active');
@@ -231,6 +232,7 @@ export async function closeCompareModal(): Promise<void> {
     const modal = safeGetElementById('compareModal');
     if (modal) {
         modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true'); // Hide from screen readers
         setTimeout(() => {
             modal.style.display = 'none';
         }, 300);

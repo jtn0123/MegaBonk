@@ -407,6 +407,12 @@ function renderItemModal(data: ModalItem): string {
             console.warn('Failed to load chart module:', err);
             return; // Can't render charts without the module
         }
+
+        // Re-check session ID after async operation to prevent stale chart creation
+        if (sessionId !== currentModalSessionId) {
+            return; // Modal changed during import, abort
+        }
+
         const { getEffectiveStackCap, createScalingChart } = chartModule;
 
         if (hasScalingTracks) {
@@ -545,6 +551,9 @@ function renderWeaponModal(data: ModalWeapon): string {
  * @returns HTML content
  */
 async function renderTomeModal(data: ModalTome): Promise<string> {
+    // Capture session ID for stale check after async operations
+    const sessionId = currentModalSessionId;
+
     // Dynamically import chart functions
     let chartModule;
     try {
@@ -561,6 +570,12 @@ async function renderTomeModal(data: ModalTome): Promise<string> {
             <p class="error-message">Charts unavailable</p>
         `;
     }
+
+    // Check if modal changed during import
+    if (sessionId !== currentModalSessionId) {
+        return ''; // Modal changed, return empty
+    }
+
     const { calculateTomeProgression, createScalingChart } = chartModule;
 
     const progression = calculateTomeProgression(data);
@@ -587,11 +602,22 @@ async function renderTomeModal(data: ModalTome): Promise<string> {
         <div class="item-notes"><strong>Recommended for:</strong> ${Array.isArray(data.recommended_for) ? data.recommended_for.join(', ') : 'General use'}</div>
     `;
 
-    // Initialize chart after modal is displayed
+    // Initialize chart after modal is displayed using requestAnimationFrame with session check
     if (progression) {
-        setTimeout(() => {
-            createScalingChart(`modal-tome-chart-${data.id}`, progression, data.name, data.stat_affected || '', true);
-        }, 100);
+        requestAnimationFrame(() => {
+            // Verify modal hasn't changed before creating chart
+            if (sessionId !== currentModalSessionId) return;
+            const canvas = document.getElementById(`modal-tome-chart-${data.id}`);
+            if (canvas) {
+                createScalingChart(
+                    `modal-tome-chart-${data.id}`,
+                    progression,
+                    data.name,
+                    data.stat_affected || '',
+                    true
+                );
+            }
+        });
     }
 
     return content;

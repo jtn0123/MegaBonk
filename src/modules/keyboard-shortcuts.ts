@@ -143,29 +143,42 @@ export function showShortcutsModal(): void {
 
     document.body.appendChild(modal);
 
-    // Add event listeners
-    const closeBtn = document.getElementById('shortcuts-modal-close');
-    const closeModal = (): void => modal.remove();
+    // Use AbortController to clean up all listeners when modal closes
+    const abortController = new AbortController();
+    const { signal } = abortController;
 
+    const closeModal = (): void => {
+        abortController.abort(); // Clean up all listeners
+        modal.remove();
+    };
+
+    // Add event listeners with signal for automatic cleanup
+    const closeBtn = document.getElementById('shortcuts-modal-close');
     if (closeBtn) {
-        closeBtn.addEventListener('click', closeModal, { once: true });
+        closeBtn.addEventListener('click', closeModal, { signal });
     }
 
     // Close on backdrop click
-    modal.addEventListener('click', (e: MouseEvent) => {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
+    modal.addEventListener(
+        'click',
+        (e: MouseEvent) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        },
+        { signal }
+    );
 
     // Close on Escape
-    const handleEscape = (e: KeyboardEvent): void => {
-        if (e.key === 'Escape') {
-            closeModal();
-            document.removeEventListener('keydown', handleEscape);
-        }
-    };
-    document.addEventListener('keydown', handleEscape);
+    document.addEventListener(
+        'keydown',
+        (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                closeModal();
+            }
+        },
+        { signal }
+    );
 
     // Show modal
     requestAnimationFrame(() => {
@@ -215,10 +228,10 @@ export function setupKeyboardShortcuts(): void {
         // Search focus
         if (e.key === '/' || (e.ctrlKey && e.key === 'f')) {
             e.preventDefault();
-            const searchBox = document.getElementById('search-box') as HTMLInputElement | null;
-            if (searchBox) {
-                searchBox.focus();
-                searchBox.select();
+            const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
+            if (searchInput) {
+                searchInput.focus();
+                searchInput.select();
             }
             return;
         }
@@ -235,12 +248,12 @@ export function setupKeyboardShortcuts(): void {
 
         // Escape - clear search and focus
         if (e.key === 'Escape') {
-            const searchBox = document.getElementById('search-box') as HTMLInputElement | null;
-            if (searchBox && searchBox.value) {
+            const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
+            if (searchInput && searchInput.value) {
                 e.preventDefault();
-                searchBox.value = '';
-                searchBox.dispatchEvent(new Event('input', { bubbles: true }));
-                searchBox.blur();
+                searchInput.value = '';
+                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+                searchInput.blur();
             }
             return;
         }

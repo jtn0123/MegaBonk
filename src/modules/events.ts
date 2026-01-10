@@ -328,8 +328,7 @@ export function setupEventListeners(): void {
     const closeCompare = safeGetElementById('closeCompare') as HTMLButtonElement | null;
     if (closeCompare) {
         closeCompare.addEventListener('click', () => {
-            const modal = safeGetElementById('compareModal') as HTMLElement | null;
-            if (modal) modal.style.display = 'none';
+            closeCompareModal(); // Use proper cleanup function
         });
     }
 
@@ -338,7 +337,7 @@ export function setupEventListeners(): void {
         const itemModal = safeGetElementById('itemModal') as HTMLElement | null;
         const compareModal = safeGetElementById('compareModal') as HTMLElement | null;
         if (e.target === itemModal) closeModal();
-        if (e.target === compareModal && compareModal) compareModal.style.display = 'none';
+        if (e.target === compareModal) closeCompareModal(); // Use proper cleanup function
     });
 
     // Compare button

@@ -33,8 +33,9 @@ export const ToastManager = {
      * @param message - Message to display
      * @param type - Toast type: 'info', 'success', 'warning', 'error'
      * @param duration - Duration in ms (default 3000)
+     * @returns The toast element (for testing purposes)
      */
-    show(message: string, type: ToastType = 'info', duration: number = 3000): void {
+    show(message: string, type: ToastType = 'info', duration: number = 3000): HTMLElement {
         this.init();
 
         const toast = document.createElement('div');
@@ -71,37 +72,54 @@ export const ToastManager = {
                 }
             }, 500); // Max transition duration
         }, duration);
+
+        return toast;
     },
 
     /**
      * Show info toast
      * @param message - Message to display
+     * @returns The toast element
      */
-    info(message: string): void {
-        this.show(message, 'info');
+    info(message: string): HTMLElement {
+        return this.show(message, 'info');
     },
 
     /**
      * Show success toast
      * @param message - Message to display
+     * @returns The toast element
      */
-    success(message: string): void {
-        this.show(message, 'success');
+    success(message: string): HTMLElement {
+        return this.show(message, 'success');
     },
 
     /**
      * Show warning toast
      * @param message - Message to display
+     * @returns The toast element
      */
-    warning(message: string): void {
-        this.show(message, 'warning');
+    warning(message: string): HTMLElement {
+        return this.show(message, 'warning');
     },
 
     /**
      * Show error toast
      * @param message - Message to display
+     * @returns The toast element
      */
-    error(message: string): void {
-        this.show(message, 'error');
+    error(message: string): HTMLElement {
+        return this.show(message, 'error');
+    },
+
+    /**
+     * Reset the toast manager (for testing)
+     * Removes the container and resets state
+     */
+    reset(): void {
+        if (this.container) {
+            this.container.remove();
+            this.container = null;
+        }
     },
 };

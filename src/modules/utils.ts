@@ -69,10 +69,28 @@ export function generateResponsiveImage(
     const webpPath = imagePath.replace(/\.(png|jpg|jpeg)$/i, '.webp');
     const escapedAlt = escapeHtml(altText);
 
+    // Use data-fallback instead of inline onerror for CSP compliance
     return `<picture>
         <source srcset="${webpPath}" type="image/webp">
-        <img src="${imagePath}" alt="${escapedAlt}" class="${className}" onerror="this.style.display='none'" loading="lazy">
+        <img src="${imagePath}" alt="${escapedAlt}" class="${className}" data-fallback="true" loading="lazy">
     </picture>`;
+}
+
+/**
+ * Setup global image error handler for CSP compliance
+ * Should be called once on page load to handle images with data-fallback attribute
+ */
+export function setupImageFallbackHandler(): void {
+    document.addEventListener(
+        'error',
+        (e: Event) => {
+            const target = e.target as HTMLElement;
+            if (target instanceof HTMLImageElement && target.dataset.fallback === 'true') {
+                target.style.display = 'none';
+            }
+        },
+        true
+    ); // Use capture phase to catch errors on images
 }
 
 /**

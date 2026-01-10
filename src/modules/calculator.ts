@@ -25,7 +25,93 @@ interface CalculatorResult {
     scalingPerStack: number[];
 }
 
+/**
+ * Pure calculation result (for testing)
+ */
+export interface BreakpointResult {
+    error?: string;
+    item?: Item;
+    target?: number;
+    stacksNeeded?: number;
+    perStack?: number;
+    actualValue?: number;
+    isCapped?: boolean;
+    isOneAndDone?: boolean;
+    hasWarning?: boolean;
+}
+
+/**
+ * Data structure expected by computeBreakpoint
+ */
+export interface BreakpointData {
+    items?: {
+        items: Item[];
+    };
+}
+
 // Note: Global declarations (allData, ToastManager) are in types/index.ts
+
+// ========================================
+// Pure Calculation Functions (Testable)
+// ========================================
+
+/**
+ * Pure function to compute breakpoint calculation
+ * This function has no side effects and can be easily unit tested
+ * @param data - Data containing items array
+ * @param itemId - Item ID to calculate for
+ * @param target - Target value to reach
+ * @returns Breakpoint calculation result
+ */
+export function computeBreakpoint(data: BreakpointData, itemId: string, target: number): BreakpointResult {
+    if (!itemId || !target || target <= 0) {
+        return { error: 'Please select an item and enter a target value!' };
+    }
+
+    const item = data.items?.items.find((i: Item) => i.id === itemId);
+    if (!item) {
+        return { error: 'Item not found' };
+    }
+
+    if (!item.scaling_per_stack || item.scaling_per_stack.length === 0) {
+        return { error: 'Item has no scaling data' };
+    }
+
+    // Calculate stacks needed
+    let stacksNeeded = 0;
+    const perStack = item.scaling_per_stack[0]!; // Value per stack from first entry
+
+    if (perStack > 0) {
+        stacksNeeded = Math.ceil(target / perStack);
+    } else {
+        return { error: 'Invalid scaling value' };
+    }
+
+    // Cap checks
+    const isCapped = item.stack_cap != null && stacksNeeded > item.stack_cap;
+    if (isCapped) {
+        stacksNeeded = item.stack_cap!;
+    }
+
+    // Calculate actual value achieved
+    const actualValue = stacksNeeded * perStack;
+
+    // Determine if there are warnings to show
+    const isOneAndDone = item.one_and_done === true;
+    const doesNotStackWell = item.stacks_well === false;
+    const hasWarning = isOneAndDone || doesNotStackWell || isCapped;
+
+    return {
+        item: item,
+        target: target,
+        stacksNeeded: stacksNeeded,
+        perStack: perStack,
+        actualValue: actualValue,
+        isCapped: isCapped,
+        isOneAndDone: isOneAndDone,
+        hasWarning: hasWarning,
+    };
+}
 
 // ========================================
 // Exported Functions

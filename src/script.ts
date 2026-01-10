@@ -19,6 +19,7 @@ import { safeModuleInit, registerErrorBoundary } from './modules/error-boundary.
 import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.ts';
 import { themeManager } from './modules/theme-manager.ts';
 import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
+import { setupImageFallbackHandler } from './modules/utils.ts';
 import type { Entity } from './types/index.ts';
 
 // ========================================
@@ -268,6 +269,15 @@ async function init(): Promise<void> {
             domCache.init();
         },
         { required: false, gracefulDegradation: true }
+    );
+
+    // Setup image fallback handler for CSP compliance (non-critical)
+    await safeModuleInit(
+        'image-fallback',
+        async () => {
+            setupImageFallbackHandler();
+        },
+        { required: false }
     );
 
     // Initialize toast manager (important)

@@ -91,6 +91,62 @@ function validateData(data: unknown, type: DataType): boolean {
 // ========================================
 
 /**
+ * Result of loading data (for testing)
+ */
+export interface LoadDataResult {
+    success: boolean;
+    data?: AllGameData;
+    error?: Error;
+}
+
+/**
+ * Pure function to load data from URLs (testable)
+ * This is a simplified version without retry logic for unit testing
+ * @param urls - Object with URLs for each data type
+ * @returns Promise with load result
+ */
+export async function loadDataFromUrls(urls: {
+    items: string;
+    weapons: string;
+    tomes: string;
+    characters: string;
+    shrines: string;
+    stats: string;
+}): Promise<LoadDataResult> {
+    try {
+        const [itemsRes, weaponsRes, tomesRes, charsRes, shrinesRes, statsRes] = await Promise.all([
+            fetch(urls.items),
+            fetch(urls.weapons),
+            fetch(urls.tomes),
+            fetch(urls.characters),
+            fetch(urls.shrines),
+            fetch(urls.stats),
+        ]);
+
+        const items = await itemsRes.json();
+        const weapons = await weaponsRes.json();
+        const tomes = await tomesRes.json();
+        const characters = await charsRes.json();
+        const shrines = await shrinesRes.json();
+        const stats = await statsRes.json();
+
+        const data: AllGameData = {
+            items,
+            weapons,
+            tomes,
+            characters,
+            shrines,
+            stats,
+            changelog: undefined,
+        };
+
+        return { success: true, data };
+    } catch (error) {
+        return { success: false, error: error as Error };
+    }
+}
+
+/**
  * Fetch with timeout to prevent indefinite waiting
  */
 async function fetchWithTimeout(url: string, timeout: number = 30000): Promise<Response> {
@@ -228,19 +284,29 @@ export async function loadAllData(): Promise<void> {
  * Get data array for a specific tab
  */
 export function getDataForTab(tabName: string): Entity[] | ChangelogPatch[] {
+    return getDataForTabFromData(allData, tabName);
+}
+
+/**
+ * Pure function to get data array for a specific tab (testable)
+ * @param data - All game data object
+ * @param tabName - Tab name to get data for
+ * @returns Array of entities for the tab
+ */
+export function getDataForTabFromData(data: AllGameData, tabName: string): Entity[] | ChangelogPatch[] {
     switch (tabName) {
         case 'items':
-            return allData.items?.items || [];
+            return data.items?.items || [];
         case 'weapons':
-            return allData.weapons?.weapons || [];
+            return data.weapons?.weapons || [];
         case 'tomes':
-            return allData.tomes?.tomes || [];
+            return data.tomes?.tomes || [];
         case 'characters':
-            return allData.characters?.characters || [];
+            return data.characters?.characters || [];
         case 'shrines':
-            return allData.shrines?.shrines || [];
+            return data.shrines?.shrines || [];
         case 'changelog':
-            return allData.changelog?.patches || [];
+            return data.changelog?.patches || [];
         default:
             return [];
     }

@@ -133,6 +133,7 @@ export interface Character {
     // Build planner properties
     passive_ability?: string;
     synergies_weapons?: string[];
+    synergies_items?: string[];
 }
 
 /**
