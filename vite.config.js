@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig({
     root: 'src',
@@ -42,6 +43,13 @@ export default defineConfig({
         },
     },
     plugins: [
+        viteStaticCopy({
+            targets: [
+                { src: '../data', dest: '.' },
+                { src: 'images', dest: '.' },
+                { src: 'icons', dest: '.' },
+            ],
+        }),
         VitePWA({
             registerType: 'autoUpdate',
             manifest: {

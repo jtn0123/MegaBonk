@@ -4,6 +4,8 @@
 
 import { Chart } from './chart-loader.ts';
 import type { Tome } from '../types/index.ts';
+import { safeGetElementById } from './utils.ts';
+import { getDataForTab } from './data-service.ts';
 
 // ========================================
 // Type Definitions
@@ -103,14 +105,6 @@ export interface ChartableTome {
     tier?: string;
     stat_affected?: string;
     value_per_level?: string | number;
-}
-
-/**
- * Global function declarations
- */
-declare global {
-    function safeGetElementById(id: string): HTMLElement | null;
-    function getDataForTab(tabName: string): any[];
 }
 
 // ========================================
