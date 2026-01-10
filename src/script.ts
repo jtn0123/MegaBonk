@@ -253,6 +253,14 @@ function showUpdateNotification(registration: ServiceWorkerRegistration): void {
  * Initialize the application
  */
 async function init(): Promise<void> {
+    const initStartTime = performance.now();
+
+    // Log app initialization start
+    logger.info({
+        operation: 'app.init',
+        data: { phase: 'start' },
+    });
+
     // Setup error tracking first (critical - no error boundary)
     setupErrorTracking();
 
@@ -267,11 +275,17 @@ async function init(): Promise<void> {
 
     // Register error boundaries for modules
     registerErrorBoundary('dom-cache', () => {
-        console.warn('DOM cache failed, using direct DOM queries as fallback');
+        logger.warn({
+            operation: 'module.degraded',
+            data: { moduleName: 'dom-cache', fallback: 'direct_dom_queries' },
+        });
     });
 
     registerErrorBoundary('data-service', () => {
-        console.warn('Data service failed, showing error state');
+        logger.error({
+            operation: 'module.init.failed',
+            data: { moduleName: 'data-service', critical: true },
+        });
         ToastManager.error('Failed to load game data. Please refresh the page.');
     });
 
@@ -366,6 +380,29 @@ async function init(): Promise<void> {
         },
         { required: false }
     );
+
+    // Log app initialization complete
+    const initDuration = Math.round(performance.now() - initStartTime);
+    logger.info({
+        operation: 'app.ready',
+        durationMs: initDuration,
+        data: {
+            phase: 'complete',
+            modulesLoaded: [
+                'theme-manager',
+                'offline-indicator',
+                'update-notification',
+                'dom-cache',
+                'image-fallback',
+                'toast-manager',
+                'favorites',
+                'event-system',
+                'keyboard-shortcuts',
+                'data-service',
+                'web-vitals',
+            ],
+        },
+    });
 }
 
 // Initialize when DOM is ready

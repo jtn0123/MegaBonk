@@ -4,6 +4,7 @@
 
 import { ToastManager } from './toast.ts';
 import { validateAllData, logValidationResults, validateWithZod } from './data-validation.ts';
+import { logger } from './logger.ts';
 import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.ts';
 
 // ========================================
@@ -201,6 +202,7 @@ async function fetchWithRetry(url: string, maxRetries: number = 4, initialDelay:
  */
 export async function loadAllData(): Promise<void> {
     showLoading();
+    const loadStartTime = performance.now();
 
     try {
         const responses = await Promise.all([
@@ -246,6 +248,30 @@ export async function loadAllData(): Promise<void> {
         const validationResult = validateAllData(allData);
         logValidationResults(validationResult);
 
+        // Log data load wide event
+        const loadDuration = Math.round(performance.now() - loadStartTime);
+        logger.info({
+            operation: 'data.load',
+            durationMs: loadDuration,
+            success: true,
+            data: {
+                filesLoaded: ['items', 'weapons', 'tomes', 'characters', 'shrines', 'stats', 'changelog'],
+                itemCounts: {
+                    items: items?.items?.length || 0,
+                    weapons: weapons?.weapons?.length || 0,
+                    tomes: tomes?.tomes?.length || 0,
+                    characters: characters?.characters?.length || 0,
+                    shrines: shrines?.shrines?.length || 0,
+                },
+                validationResults: {
+                    valid: validationResult.valid,
+                    errorCount: validationResult.errors.length,
+                    warningCount: validationResult.warnings.length,
+                },
+                version: items?.version || 'unknown',
+            },
+        });
+
         // Show warning if validation fails critically
         if (!validationResult.valid && validationResult.errors.length > 10) {
             ToastManager.warning('Some game data may be incomplete. Check console for details.');
@@ -273,10 +299,23 @@ export async function loadAllData(): Promise<void> {
             windowWithLoadBuild.loadBuildFromURL();
         }
     } catch (error) {
+        const loadDuration = Math.round(performance.now() - loadStartTime);
+        const err = error as Error;
+
+        logger.error({
+            operation: 'data.load',
+            durationMs: loadDuration,
+            success: false,
+            error: {
+                name: err.name,
+                message: err.message,
+                stack: err.stack,
+                module: 'data-service',
+            },
+        });
+
         hideLoading();
-        showErrorMessage(
-            `Could not load game data. ${(error as Error).message || 'Please check your connection and try again.'}`
-        );
+        showErrorMessage(`Could not load game data. ${err.message || 'Please check your connection and try again.'}`);
     }
 }
 
