@@ -21,100 +21,123 @@ const ScalingSchema = z
     .optional();
 
 /**
- * Item schema
+ * Item schema - matches actual items.json structure
  */
 const ItemSchema = z.object({
     id: z.string(),
     name: z.string(),
-    description: z.string(),
-    tier: z.enum(['SS', 'S', 'A', 'B', 'C']),
     rarity: z.enum(['common', 'uncommon', 'rare', 'epic', 'legendary']),
-    image: z.string().optional(),
-    category: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    cooldown: z.number().optional(),
-    damage: z.union([z.number(), z.string()]).optional(),
-    healing: z.union([z.number(), z.string()]).optional(),
-    scaling: ScalingSchema,
+    tier: z.enum(['SS', 'S', 'A', 'B', 'C']),
+    unlocked_by_default: z.boolean().optional(),
+    unlock_requirement: z.string().nullable().optional(),
+    unlock_cost_silver: z.number().optional(),
+    base_effect: z.string().optional(),
+    scaling_type: z.string().optional(),
+    stacking_behavior: z.string().optional(),
+    stacks_well: z.boolean().optional(),
+    stack_cap: z.number().nullable().optional(),
+    formula: z.string().optional(),
+    scaling_per_stack: z.array(z.number()).optional(),
+    detailed_description: z.string().optional(),
     synergies: z.array(z.string()).optional(),
-    antiSynergies: z.array(z.string()).optional(),
+    anti_synergies: z.array(z.string()).optional(),
+    notes: z.string().optional(),
+    graph_type: z.string().optional(),
+    one_and_done: z.boolean().optional(),
+    image: z.string().optional(),
 });
 
 /**
- * Weapon schema
+ * Weapon schema - matches actual weapons.json structure
  */
 const WeaponSchema = z.object({
     id: z.string(),
     name: z.string(),
-    description: z.string(),
     tier: z.enum(['SS', 'S', 'A', 'B', 'C']),
-    rarity: z.enum(['common', 'uncommon', 'rare', 'epic', 'legendary']),
+    base_damage: z.number().optional(),
+    base_projectile_count: z.number().optional(),
+    attack_pattern: z.string().optional(),
+    upgradeable_stats: z.array(z.string()).optional(),
+    unlock_requirement: z.string().nullable().optional(),
+    unlock_cost_silver: z.number().optional(),
+    unlocked_by_default: z.boolean().optional(),
+    description: z.string().optional(),
+    best_for: z.array(z.string()).optional(),
+    synergies_items: z.array(z.string()).optional(),
+    synergies_tomes: z.array(z.string()).optional(),
+    synergies_characters: z.array(z.string()).optional(),
+    playstyle: z.string().optional(),
+    pros: z.array(z.string()).optional(),
+    cons: z.array(z.string()).optional(),
     image: z.string().optional(),
-    baseDamage: z.number(),
-    attackSpeed: z.number(),
-    range: z.number().optional(),
-    upgrades: z
-        .array(
-            z.object({
-                level: z.number(),
-                bonus: z.string(),
-                cost: z.number().optional(),
-            })
-        )
-        .optional(),
-    scaling: ScalingSchema,
-    tags: z.array(z.string()).optional(),
 });
 
 /**
- * Tome schema
+ * Tome schema - matches actual tomes.json structure
  */
 const TomeSchema = z.object({
     id: z.string(),
     name: z.string(),
-    description: z.string(),
     tier: z.enum(['SS', 'S', 'A', 'B', 'C']),
-    rarity: z.enum(['common', 'uncommon', 'rare', 'epic', 'legendary']),
-    image: z.string().optional(),
-    effect: z.string(),
+    stat_affected: z.string().optional(),
+    value_per_level: z.string().optional(),
+    unlocked_by_default: z.boolean().optional(),
+    unlock_requirement: z.string().nullable().optional(),
+    unlock_cost_silver: z.number().optional(),
+    max_level: z.number().optional(),
+    description: z.string().optional(),
     priority: z.number().optional(),
-    stackable: z.boolean().optional(),
-    tags: z.array(z.string()).optional(),
+    recommended_for: z.array(z.string()).optional(),
+    synergies_items: z.array(z.string()).optional(),
+    synergies_weapons: z.array(z.string()).optional(),
+    synergies_characters: z.array(z.string()).optional(),
+    notes: z.string().optional(),
+    image: z.string().optional(),
 });
 
 /**
- * Character schema
+ * Character schema - matches actual characters.json structure
  */
 const CharacterSchema = z.object({
     id: z.string(),
     name: z.string(),
-    description: z.string(),
     tier: z.enum(['SS', 'S', 'A', 'B', 'C']),
-    rarity: z.enum(['common', 'uncommon', 'rare', 'epic', 'legendary']),
+    starting_weapon: z.string().optional(),
+    passive_ability: z.string().optional(),
+    passive_description: z.string().optional(),
+    unlock_requirement: z.string().nullable().optional(),
+    unlock_cost_silver: z.number().optional(),
+    unlocked_by_default: z.boolean().optional(),
+    playstyle: z.string().optional(),
+    best_for: z.array(z.string()).optional(),
+    strengths: z.array(z.string()).optional(),
+    weaknesses: z.array(z.string()).optional(),
+    synergies_items: z.array(z.string()).optional(),
+    synergies_tomes: z.array(z.string()).optional(),
+    synergies_weapons: z.array(z.string()).optional(),
+    build_tips: z.string().optional(),
     image: z.string().optional(),
-    baseStats: z.object({
-        health: z.number(),
-        damage: z.number(),
-        speed: z.number(),
-        luck: z.number().optional(),
-    }),
-    passive: z.string(),
-    startingWeapon: z.string().optional(),
-    tags: z.array(z.string()).optional(),
 });
 
 /**
- * Shrine schema
+ * Shrine schema - matches actual shrines.json structure
  */
 const ShrineSchema = z.object({
     id: z.string(),
     name: z.string(),
-    description: z.string(),
-    tier: z.enum(['SS', 'S', 'A', 'B', 'C']),
+    type: z.string().optional(),
+    icon: z.string().optional(),
+    description: z.string().optional(),
+    activation: z.string().optional(),
+    reward: z.string().optional(),
+    reusable: z.boolean().optional(),
+    spawn_count: z.string().optional(),
+    map_icon: z.string().optional(),
+    best_for: z.array(z.string()).optional(),
+    synergies_items: z.array(z.string()).optional(),
+    strategy: z.string().optional(),
+    notes: z.string().optional(),
     image: z.string().optional(),
-    effect: z.string(),
-    cost: z.union([z.number(), z.string()]).optional(),
-    tags: z.array(z.string()).optional(),
 });
 
 /**
@@ -128,37 +151,52 @@ const StatsSchema = z.object({
 });
 
 /**
- * Data collection schemas
+ * Data collection schemas - using passthrough() to allow extra fields like total_items
  */
-const ItemsDataSchema = z.object({
-    version: z.string(),
-    last_updated: z.string(),
-    items: z.array(ItemSchema),
-});
+const ItemsDataSchema = z
+    .object({
+        version: z.string(),
+        last_updated: z.string(),
+        total_items: z.number().optional(),
+        items: z.array(ItemSchema),
+    })
+    .passthrough();
 
-const WeaponsDataSchema = z.object({
-    version: z.string(),
-    last_updated: z.string(),
-    weapons: z.array(WeaponSchema),
-});
+const WeaponsDataSchema = z
+    .object({
+        version: z.string(),
+        last_updated: z.string(),
+        total_weapons: z.number().optional(),
+        weapons: z.array(WeaponSchema),
+    })
+    .passthrough();
 
-const TomesDataSchema = z.object({
-    version: z.string(),
-    last_updated: z.string(),
-    tomes: z.array(TomeSchema),
-});
+const TomesDataSchema = z
+    .object({
+        version: z.string(),
+        last_updated: z.string(),
+        total_tomes: z.number().optional(),
+        tomes: z.array(TomeSchema),
+    })
+    .passthrough();
 
-const CharactersDataSchema = z.object({
-    version: z.string(),
-    last_updated: z.string(),
-    characters: z.array(CharacterSchema),
-});
+const CharactersDataSchema = z
+    .object({
+        version: z.string(),
+        last_updated: z.string(),
+        total_characters: z.number().optional(),
+        characters: z.array(CharacterSchema),
+    })
+    .passthrough();
 
-const ShrinesDataSchema = z.object({
-    version: z.string(),
-    last_updated: z.string(),
-    shrines: z.array(ShrineSchema),
-});
+const ShrinesDataSchema = z
+    .object({
+        version: z.string(),
+        last_updated: z.string(),
+        total_shrines: z.number().optional(),
+        shrines: z.array(ShrineSchema),
+    })
+    .passthrough();
 
 // ========================================
 // TypeScript Types Inferred from Zod Schemas
