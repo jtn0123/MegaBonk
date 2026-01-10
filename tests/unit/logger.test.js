@@ -1,6 +1,6 @@
-/* global setTimeout */
+/* global setTimeout, Response */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { logger, Logger, LogLevel } from '../../src/modules/logger.ts';
+import { logger, Logger, LogLevel, EventBuilder } from '../../src/modules/logger.ts';
 
 describe('Logger Module', () => {
     let consoleSpy;
@@ -345,6 +345,242 @@ describe('Logger Module', () => {
 
             // Reset
             logger.configure({ enableConsole: true });
+        });
+    });
+
+    describe('EventBuilder', () => {
+        let consoleSpy;
+
+        beforeEach(() => {
+            logger.configure({ minLevel: LogLevel.DEBUG, enableConsole: true });
+            consoleSpy = {
+                debug: vi.spyOn(console, 'debug').mockImplementation(() => {}),
+                info: vi.spyOn(console, 'info').mockImplementation(() => {}),
+                warn: vi.spyOn(console, 'warn').mockImplementation(() => {}),
+                error: vi.spyOn(console, 'error').mockImplementation(() => {}),
+            };
+        });
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+        });
+
+        it('should create event with operation and timestamp', () => {
+            const builder = new EventBuilder('test.operation');
+            const event = builder.getEvent();
+
+            expect(event.operation).toBe('test.operation');
+            expect(event.timestamp).toBeDefined();
+            expect(typeof event.timestamp).toBe('number');
+        });
+
+        it('should accumulate data via addData()', () => {
+            const builder = new EventBuilder('test.data');
+            builder.addData('key1', 'value1');
+            builder.addData('key2', 42);
+
+            const event = builder.getEvent();
+            expect(event.data.key1).toBe('value1');
+            expect(event.data.key2).toBe(42);
+        });
+
+        it('should merge data via mergeData()', () => {
+            const builder = new EventBuilder('test.merge');
+            builder.addData('existing', 'value');
+            builder.mergeData({ new1: 'a', new2: 'b' });
+
+            const event = builder.getEvent();
+            expect(event.data.existing).toBe('value');
+            expect(event.data.new1).toBe('a');
+            expect(event.data.new2).toBe('b');
+        });
+
+        it('should set success status', () => {
+            const builder = new EventBuilder('test.success');
+            builder.setSuccess(true);
+
+            const event = builder.getEvent();
+            expect(event.success).toBe(true);
+        });
+
+        it('should set duration manually', () => {
+            const builder = new EventBuilder('test.duration');
+            builder.setDuration(150);
+
+            const event = builder.getEvent();
+            expect(event.durationMs).toBe(150);
+        });
+
+        it('should auto-calculate duration', async () => {
+            const builder = new EventBuilder('test.auto-duration');
+            await new Promise(resolve => setTimeout(resolve, 50));
+            builder.autoDuration();
+
+            const event = builder.getEvent();
+            expect(event.durationMs).toBeGreaterThanOrEqual(40);
+            expect(event.durationMs).toBeLessThan(200);
+        });
+
+        it('should set error and mark success=false', () => {
+            const builder = new EventBuilder('test.error');
+            builder.setError({
+                name: 'TestError',
+                message: 'Something failed',
+                retriable: true,
+            });
+
+            const event = builder.getEvent();
+            expect(event.error.name).toBe('TestError');
+            expect(event.error.message).toBe('Something failed');
+            expect(event.error.retriable).toBe(true);
+            expect(event.success).toBe(false);
+        });
+
+        it('should set correlation ID', () => {
+            const builder = new EventBuilder('test.correlation');
+            builder.setCorrelationId('corr-123');
+
+            const event = builder.getEvent();
+            expect(event.correlationId).toBe('corr-123');
+        });
+
+        it('should emit at correct log level', () => {
+            const builder = new EventBuilder('test.emit');
+            builder.addData('test', 'value');
+            builder.emit(LogLevel.WARN);
+
+            expect(consoleSpy.warn).toHaveBeenCalled();
+            expect(consoleSpy.info).not.toHaveBeenCalled();
+        });
+
+        it('should emit at INFO level by default', () => {
+            const builder = new EventBuilder('test.default-emit');
+            builder.emit();
+
+            expect(consoleSpy.info).toHaveBeenCalled();
+        });
+
+        it('should support fluent chaining', () => {
+            const builder = new EventBuilder('test.chain')
+                .addData('key', 'value')
+                .setSuccess(true)
+                .setDuration(100)
+                .setCorrelationId('chain-123');
+
+            const event = builder.getEvent();
+            expect(event.data.key).toBe('value');
+            expect(event.success).toBe(true);
+            expect(event.durationMs).toBe(100);
+            expect(event.correlationId).toBe('chain-123');
+        });
+
+        it('should auto-calculate duration on emit if not set', () => {
+            const builder = new EventBuilder('test.auto-emit');
+            builder.emit();
+
+            const callArgs = consoleSpy.info.mock.calls[0];
+            const eventArg = callArgs[callArgs.length - 1];
+            expect(eventArg.durationMs).toBeDefined();
+            expect(typeof eventArg.durationMs).toBe('number');
+        });
+    });
+
+    describe('SamplingConfig', () => {
+        it('should have default sampling config', () => {
+            const config = logger.getConfig();
+
+            expect(config.sampling).toBeDefined();
+            expect(config.sampling.errorSampleRate).toBe(1.0);
+            expect(config.sampling.slowRequestThresholdMs).toBe(1000);
+            expect(config.sampling.slowRequestSampleRate).toBe(1.0);
+            expect(config.sampling.defaultSampleRate).toBe(0.05);
+        });
+
+        it('should allow configuring sampling', () => {
+            const originalConfig = logger.getConfig();
+
+            logger.configure({
+                sampling: {
+                    errorSampleRate: 0.5,
+                    slowRequestThresholdMs: 500,
+                    slowRequestSampleRate: 0.8,
+                    defaultSampleRate: 0.1,
+                },
+            });
+
+            const config = logger.getConfig();
+            expect(config.sampling.errorSampleRate).toBe(0.5);
+            expect(config.sampling.slowRequestThresholdMs).toBe(500);
+
+            // Reset
+            logger.configure({ sampling: originalConfig.sampling });
+        });
+    });
+
+    describe('Remote logging', () => {
+        let fetchSpy;
+
+        beforeEach(() => {
+            fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response());
+            logger.configure({
+                enableRemote: true,
+                remoteEndpoint: 'https://test.example.com/logs',
+                enableConsole: false,
+            });
+        });
+
+        afterEach(() => {
+            vi.restoreAllMocks();
+            logger.configure({
+                enableRemote: false,
+                remoteEndpoint: undefined,
+                enableConsole: true,
+            });
+        });
+
+        it('should not send to remote when disabled', () => {
+            logger.configure({ enableRemote: false });
+            logger.info({ operation: 'test.no-remote' });
+
+            expect(fetchSpy).not.toHaveBeenCalled();
+        });
+
+        it('should not send to remote without endpoint', () => {
+            logger.configure({ enableRemote: true, remoteEndpoint: undefined });
+            logger.info({ operation: 'test.no-endpoint' });
+
+            expect(fetchSpy).not.toHaveBeenCalled();
+        });
+
+        it('should use keepalive option in fetch', async () => {
+            // Force high sample rate for this test
+            logger.configure({
+                sampling: {
+                    errorSampleRate: 1.0,
+                    slowRequestThresholdMs: 1000,
+                    slowRequestSampleRate: 1.0,
+                    defaultSampleRate: 1.0, // Always sample for test
+                },
+            });
+
+            // Log an error (always sampled)
+            logger.error({
+                operation: 'test.keepalive',
+                error: { name: 'TestError', message: 'test' },
+            });
+
+            // Trigger flush by logging 50 events
+            for (let i = 0; i < 50; i++) {
+                logger.error({
+                    operation: 'test.flush',
+                    error: { name: 'TestError', message: 'test' },
+                });
+            }
+
+            // Check fetch was called with keepalive
+            expect(fetchSpy).toHaveBeenCalled();
+            const fetchCall = fetchSpy.mock.calls[0];
+            expect(fetchCall[1].keepalive).toBe(true);
         });
     });
 });

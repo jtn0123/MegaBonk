@@ -256,9 +256,19 @@ export function setupEventDelegation(): void {
         }
     });
 
-    // Change event delegation for checkboxes in build planner
+    // Change event delegation for checkboxes
     document.addEventListener('change', (e: Event) => {
         const target = e.target as HTMLElement;
+
+        // Compare checkbox (handles both direct clicks and label clicks)
+        if (target.classList.contains('compare-checkbox')) {
+            const checkbox = target as HTMLInputElement;
+            const id = checkbox.dataset.id || checkbox.value;
+            if (id) {
+                toggleCompareItem(id);
+            }
+            return;
+        }
 
         // Tome checkbox in build planner
         if (target.classList.contains('tome-checkbox')) {
