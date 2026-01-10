@@ -69,6 +69,7 @@ declare global {
         currentTab?: TabName;
         clearFilters?: () => void;
         toggleTextExpand?: (element: HTMLElement) => void;
+        filteredData?: Entity[];
     }
 }
 

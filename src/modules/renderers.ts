@@ -24,6 +24,8 @@ import type {
     Tome as BaseTome,
     Character as BaseCharacter,
     Shrine as BaseShrine,
+    Entity,
+    ChangelogPatch,
 } from '../types/index.js';
 
 // ========================================
@@ -106,19 +108,20 @@ export function renderTabContent(tabName: string): void {
     }
 
     if (tabName === 'changelog') {
-        const data = getDataForTab(tabName);
-        const filtered = filterData(data as any, tabName);
-        (window as any).filteredData = filtered;
-        updateChangelogStats(filtered as any);
-        renderChangelog(filtered as any);
+        const data = getDataForTab(tabName) as ChangelogPatch[];
+        // filterData works with any array having name/description fields
+        const filtered = filterData(data as unknown as Entity[], tabName) as unknown as ChangelogPatch[];
+        window.filteredData = filtered as unknown as Entity[];
+        updateChangelogStats(filtered);
+        renderChangelog(filtered);
         return;
     }
 
-    const data = getDataForTab(tabName);
+    const data = getDataForTab(tabName) as Entity[];
     if (!data) return;
 
-    const filtered = filterData(data as any, tabName);
-    (window as any).filteredData = filtered;
+    const filtered = filterData(data, tabName);
+    window.filteredData = filtered;
 
     updateStats(filtered, tabName);
 

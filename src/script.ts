@@ -19,12 +19,13 @@ import { safeModuleInit, registerErrorBoundary } from './modules/error-boundary.
 import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.js';
 import { themeManager } from './modules/theme-manager.js';
 import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.js';
+import type { Entity } from './types/index.js';
 
 // ========================================
 // Global State (to be refactored into state module)
 // ========================================
 
-let filteredData: any[] = [];
+let filteredData: Entity[] = [];
 
 // Export filteredData for module access
 export { filteredData };

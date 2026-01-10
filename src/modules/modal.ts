@@ -5,7 +5,7 @@
 import { allData } from './data-service.js';
 import { ToastManager } from './toast.js';
 import { safeGetElementById, generateModalImage } from './utils.js';
-import type { Tier, Rarity, EntityType } from '../types/index.js';
+import type { Tier, Rarity, EntityType, Entity } from '../types/index.js';
 
 // ========================================
 // Extended Type Definitions for Modal Data
@@ -324,7 +324,7 @@ function renderItemModal(data: ModalItem): string {
     `
             : '';
 
-    const imageHtml = generateModalImage(data as any, data.name, 'item');
+    const imageHtml = generateModalImage(data as unknown as Entity, data.name, 'item');
 
     const content = `
         ${imageHtml}
@@ -562,7 +562,7 @@ async function renderTomeModal(data: ModalTome): Promise<string> {
  * @returns HTML content
  */
 function renderCharacterModal(data: ModalCharacter): string {
-    const imageHtml = generateModalImage(data as any, data.name, 'character');
+    const imageHtml = generateModalImage(data as unknown as Entity, data.name, 'character');
 
     return `
         ${imageHtml}
