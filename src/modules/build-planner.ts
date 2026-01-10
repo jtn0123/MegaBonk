@@ -23,7 +23,7 @@ interface CalculatedBuildStats extends BuildStats {
 /**
  * Build state structure
  */
-interface Build {
+export interface Build {
     character: Character | null;
     weapon: Weapon | null;
     tomes: Tome[];
@@ -463,16 +463,18 @@ export function setupBuildPlannerEvents(): void {
 
 /**
  * Calculate build statistics
+ * @param build - Optional build to calculate stats for (uses currentBuild if not provided)
  * @returns Calculated stats
  */
-export function calculateBuildStats(): CalculatedBuildStats {
+export function calculateBuildStats(build?: Build): CalculatedBuildStats {
+    const buildToUse = build || currentBuild;
     const stats: CalculatedBuildStats = { ...DEFAULT_BUILD_STATS, evasion: 0, overcrit: false };
 
     // Apply character passive bonuses based on passive_ability text
     // Character passives from data: CL4NK=Crit, Sir Oofie=Armor, Monke=HP, Bandit=Attack Speed, Ogre=Damage
-    if (currentBuild.character) {
-        const passive = currentBuild.character.passive_ability || '';
-        const charId = currentBuild.character.id;
+    if (buildToUse.character) {
+        const passive = buildToUse.character.passive_ability || '';
+        const charId = buildToUse.character.id;
 
         // Crit Chance passive (CL4NK: "Gain 1% Crit Chance per level")
         if (/crit\s*chance/i.test(passive) || charId === 'cl4nk') {
@@ -497,14 +499,14 @@ export function calculateBuildStats(): CalculatedBuildStats {
     }
 
     // Use parseFloat instead of parseInt for decimal damage values
-    if (currentBuild.weapon) {
-        const baseDamage = currentBuild.weapon.base_damage ?? currentBuild.weapon.baseDamage;
+    if (buildToUse.weapon) {
+        const baseDamage = buildToUse.weapon.base_damage ?? buildToUse.weapon.baseDamage;
         // Handle undefined/null: parseFloat(String(undefined)) returns NaN, and NaN || 0 still gives NaN
         const parsedDamage = baseDamage != null ? parseFloat(String(baseDamage)) : 0;
         stats.damage += Number.isNaN(parsedDamage) ? 0 : parsedDamage;
     }
 
-    currentBuild.tomes.forEach((tome: Tome) => {
+    buildToUse.tomes.forEach((tome: Tome) => {
         const tomeLevel = 5;
         // Use proper regex that won't match invalid numbers like "1.2.3"
         // Add safety check for value_per_level before calling match()
@@ -523,7 +525,7 @@ export function calculateBuildStats(): CalculatedBuildStats {
     });
 
     // Apply item effects using ITEM_EFFECTS constant
-    currentBuild.items.forEach((item: Item) => {
+    buildToUse.items.forEach((item: Item) => {
         const effect: ItemEffect | undefined = ITEM_EFFECTS[item.id];
         if (effect) {
             const statKey = effect.stat;

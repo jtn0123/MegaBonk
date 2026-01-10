@@ -11,14 +11,18 @@ export default defineConfig({
             reporter: ['text', 'json', 'html', 'lcov'],
             include: ['src/modules/**/*.ts', 'src/script.ts'],
             exclude: ['src/libs/**', 'src/sw.js', '**/*.test.js', '**/*.config.js'],
-            // Thresholds set to current coverage levels
-            // Most tests use mock implementations - only utils.ts imports from source
-            // TODO: Refactor tests to import from source modules to increase coverage
+            // Thresholds updated after refactoring filtering.test.js and build-stats.test.js
+            // to import from real source modules instead of standalone implementations.
+            // Key coverage improvements:
+            //   - filters.ts: 0% → 27%
+            //   - build-planner.ts: 0% → 13%
+            //   - utils.ts: 93%+ (already covered)
+            // TODO: Continue refactoring other test files to reach 70%+ coverage
             thresholds: {
-                statements: 3,
-                branches: 4,
-                functions: 6,
-                lines: 3,
+                statements: 9,
+                branches: 9,
+                functions: 9,
+                lines: 9,
             },
         },
     },
