@@ -531,13 +531,14 @@ export function calculateBuildStats(): CalculatedBuildStats {
     currentBuild.items.forEach((item: Item) => {
         const effect: ItemEffect | undefined = ITEM_EFFECTS[item.id];
         if (effect) {
+            const statKey = effect.stat;
             if (effect.type === 'add') {
-                (stats as any)[effect.stat] += effect.value;
+                stats[statKey] += effect.value;
             } else if (effect.type === 'multiply') {
-                (stats as any)[effect.stat] *= effect.value;
+                stats[statKey] *= effect.value;
             } else if (effect.type === 'hp_percent') {
                 // Special: damage based on HP percentage
-                (stats as any)[effect.stat] += (stats.hp / 100) * effect.value;
+                stats[statKey] += (stats.hp / 100) * effect.value;
             }
         }
     });

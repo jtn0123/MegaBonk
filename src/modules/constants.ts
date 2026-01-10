@@ -5,15 +5,6 @@
 import type { Tier, Rarity } from '../types/index.js';
 
 /**
- * Item stat effect definition
- */
-export interface ItemEffect {
-    stat: string;
-    value: number;
-    type: 'add' | 'multiply' | 'hp_percent';
-}
-
-/**
  * Build stats definition
  */
 export interface BuildStats {
@@ -26,6 +17,20 @@ export interface BuildStats {
     armor: number;
     evasion_internal: number;
     projectiles: number;
+}
+
+/**
+ * Valid stat keys for item effects
+ */
+export type StatKey = keyof BuildStats;
+
+/**
+ * Item stat effect definition
+ */
+export interface ItemEffect {
+    stat: StatKey;
+    value: number;
+    type: 'add' | 'multiply' | 'hp_percent';
 }
 
 // Tier ordering for sorting (lower = better)
