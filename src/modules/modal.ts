@@ -5,6 +5,7 @@
 import { allData } from './data-service.ts';
 import { ToastManager } from './toast.ts';
 import { safeGetElementById, generateModalImage } from './utils.ts';
+import { logger } from './logger.ts';
 import type { Tier, Rarity, EntityType } from '../types/index.ts';
 
 // ========================================
@@ -404,7 +405,11 @@ function renderItemModal(data: ModalItem): string {
         try {
             chartModule = await import('./charts.ts');
         } catch (err) {
-            console.warn('Failed to load chart module:', err);
+            logger.warn({
+                operation: 'chart.init',
+                error: { name: 'ImportError', message: 'Failed to load chart module', module: 'modal' },
+                data: { context: 'item_modal_init' },
+            });
             return; // Can't render charts without the module
         }
 
@@ -490,7 +495,11 @@ function setupScalingTabHandlers(data: ModalItem): void {
         try {
             chartModule = await import('./charts.ts');
         } catch (err) {
-            console.warn('Failed to load chart module for tab switch:', err);
+            logger.warn({
+                operation: 'chart.init',
+                error: { name: 'ImportError', message: 'Failed to load chart module for tab switch', module: 'modal' },
+                data: { context: 'tab_switch' },
+            });
             return;
         }
         const { getEffectiveStackCap, createScalingChart } = chartModule;
@@ -498,7 +507,10 @@ function setupScalingTabHandlers(data: ModalItem): void {
         // Get track data and redraw chart
         const trackKey = tab.dataset.track;
         if (!trackKey) {
-            console.warn('Missing data-track attribute on scaling tab');
+            logger.warn({
+                operation: 'chart.init',
+                data: { context: 'tab_switch', reason: 'missing_data_track_attribute' },
+            });
             return;
         }
         const track = data.scaling_tracks?.[trackKey];
@@ -559,7 +571,11 @@ async function renderTomeModal(data: ModalTome): Promise<string> {
     try {
         chartModule = await import('./charts.ts');
     } catch (err) {
-        console.warn('Failed to load chart module for tome modal:', err);
+        logger.warn({
+            operation: 'chart.init',
+            error: { name: 'ImportError', message: 'Failed to load chart module for tome modal', module: 'modal' },
+            data: { context: 'tome_modal' },
+        });
         // Return basic content without charts
         return `
             <div class="item-badges">

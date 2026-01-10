@@ -5,6 +5,7 @@
 // ========================================
 
 import type { Theme } from '../types/index.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // Type Definitions
@@ -192,7 +193,10 @@ class ThemeManager {
         try {
             localStorage.setItem(STORAGE_KEY, theme);
         } catch (error) {
-            console.warn('Failed to store theme preference:', error);
+            logger.warn({
+                operation: 'theme.storage',
+                error: { name: 'StorageError', message: 'Failed to store theme preference', module: 'theme-manager' },
+            });
         }
     }
 

@@ -6,6 +6,7 @@ import { Chart } from './chart-loader.ts';
 import type { Tome } from '../types/index.ts';
 import { safeGetElementById } from './utils.ts';
 import { getDataForTab } from './data-service.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // Type Definitions
@@ -201,7 +202,10 @@ export function createScalingChart(
 ): Chart | null {
     const canvas = safeGetElementById(canvasId) as HTMLCanvasElement | null;
     if (!canvas) {
-        console.warn(`Chart canvas not found: ${canvasId}`);
+        logger.warn({
+            operation: 'chart.init',
+            data: { chartId: canvasId, reason: 'canvas_not_found', chartType: 'scaling' },
+        });
         return null;
     }
 
@@ -350,7 +354,10 @@ export function createScalingChart(
 export function createCompareChart(canvasId: string, items: ChartableItem[]): Chart | null {
     const canvas = safeGetElementById(canvasId) as HTMLCanvasElement | null;
     if (!canvas) {
-        console.warn(`Compare chart canvas not found: ${canvasId}`);
+        logger.warn({
+            operation: 'chart.init',
+            data: { chartId: canvasId, reason: 'canvas_not_found', chartType: 'compare' },
+        });
         return null;
     }
 

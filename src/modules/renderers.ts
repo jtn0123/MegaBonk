@@ -18,6 +18,7 @@ import { calculateBreakpoint, populateCalculatorItems } from './calculator.ts';
 import { getCompareItems } from './compare.ts';
 import { updateChangelogStats, renderChangelog } from './changelog.ts';
 import { renderBuildPlanner } from './build-planner.ts';
+import { logger } from './logger.ts';
 import type {
     Item as BaseItem,
     Weapon as BaseWeapon,
@@ -263,7 +264,11 @@ export function renderItems(items: Item[]): void {
             const { initializeItemCharts } = await import('./charts.ts');
             initializeItemCharts();
         } catch (err) {
-            console.warn('Failed to initialize item charts:', err);
+            logger.warn({
+                operation: 'chart.init',
+                error: { name: 'ImportError', message: 'Failed to initialize item charts', module: 'renderers' },
+                data: { context: 'item_tab_render' },
+            });
         }
     });
 }
@@ -373,7 +378,11 @@ export function renderTomes(tomes: Tome[]): void {
             const { initializeTomeCharts } = await import('./charts.ts');
             initializeTomeCharts();
         } catch (err) {
-            console.warn('Failed to initialize tome charts:', err);
+            logger.warn({
+                operation: 'chart.init',
+                error: { name: 'ImportError', message: 'Failed to initialize tome charts', module: 'renderers' },
+                data: { context: 'tome_tab_render' },
+            });
         }
     });
 }

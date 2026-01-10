@@ -6,6 +6,7 @@
 // ========================================
 
 import { z, ZodError, ZodIssue } from 'zod';
+import { logger } from './logger.ts';
 import type { ValidationResult } from '../types/index.ts';
 
 /**
@@ -232,7 +233,16 @@ export function validateData<T>(data: unknown, schema: z.ZodSchema<T>, dataType:
             data: validatedData,
         };
     } catch (error) {
-        console.error(`[SchemaValidator] Validation failed for ${dataType}:`, error);
+        const err = error as Error;
+        logger.error({
+            operation: 'schema.validate',
+            error: {
+                name: err.name,
+                message: err.message,
+                module: 'schema-validator',
+            },
+            data: { dataType },
+        });
 
         // Format Zod errors for better readability
         let errorMessages: string;
