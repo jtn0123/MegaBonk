@@ -507,5 +507,107 @@ describe('Changelog Module', () => {
             expect(result).toContain('class="changelog-item "');
             expect(result).toContain('Some change');
         });
+
+        // Regression tests for entity link parsing in raw_notes
+        describe('entity links in raw_notes (regression)', () => {
+            beforeEach(() => {
+                // Set up multiple entity types for testing
+                const testItem = createMockItem({ id: 'bonk_stick', name: 'Bonk Stick' });
+                const testWeapon = createMockWeapon({ id: 'mega_sword', name: 'Mega Sword' });
+                const testCharacter = createMockCharacter({ id: 'fox', name: 'Fox' });
+                const testTome = createMockTome({ id: 'chaos', name: 'Chaos Tome' });
+                allData.items = { items: [testItem] };
+                allData.weapons = { weapons: [testWeapon] };
+                allData.characters = { characters: [testCharacter] };
+                allData.tomes = { tomes: [testTome] };
+            });
+
+            it('should parse entity links in raw_notes fallback when categories are empty objects', () => {
+                const categories = {
+                    new_content: [],
+                    balance: [],
+                    bug_fixes: [],
+                };
+                const rawNotes = 'Fixed [[item:bonk_stick|Bonk Stick]] damage.';
+                const result = renderChangesSections(categories, rawNotes);
+
+                expect(result).toContain('changelog-raw-notes');
+                expect(result).toContain('entity-link');
+                expect(result).toContain('data-entity-id="bonk_stick"');
+            });
+
+            it('should parse multiple entity links in raw_notes', () => {
+                const rawNotes = 'Updated [[item:bonk_stick|Bonk Stick]] and [[weapon:mega_sword|Mega Sword]] stats.';
+                const result = renderChangesSections(null, rawNotes);
+
+                const linkCount = (result.match(/class="entity-link"/g) || []).length;
+                expect(linkCount).toBe(2);
+                expect(result).toContain('data-entity-id="bonk_stick"');
+                expect(result).toContain('data-entity-id="mega_sword"');
+            });
+
+            it('should parse character entity links in raw_notes', () => {
+                const rawNotes = '[[character:fox|Fox]] passive nerf 2% -> 1.5%';
+                const result = renderChangesSections(null, rawNotes);
+
+                expect(result).toContain('entity-link');
+                expect(result).toContain('data-entity-type="character"');
+                expect(result).toContain('data-entity-id="fox"');
+            });
+
+            it('should parse tome entity links in raw_notes', () => {
+                const rawNotes = 'Removed Silver Gain from [[tome:chaos|Chaos Tome]]';
+                const result = renderChangesSections(null, rawNotes);
+
+                expect(result).toContain('entity-link');
+                expect(result).toContain('data-entity-type="tome"');
+                expect(result).toContain('data-entity-id="chaos"');
+            });
+
+            it('should handle mixed valid and invalid entity links in raw_notes', () => {
+                const rawNotes = 'Fixed [[item:bonk_stick|Bonk Stick]] and [[item:nonexistent|Missing Item]] issues.';
+                const result = renderChangesSections(null, rawNotes);
+
+                // Valid entity should be a link
+                expect(result).toContain('data-entity-id="bonk_stick"');
+                // Invalid entity should be plain text (label only)
+                expect(result).toContain('Missing Item');
+                // Should only have one entity-link
+                const linkCount = (result.match(/class="entity-link"/g) || []).length;
+                expect(linkCount).toBe(1);
+            });
+
+            it('should preserve entity links while escaping HTML in complex raw_notes', () => {
+                const rawNotes =
+                    '<b>Important:</b> [[item:bonk_stick|Bonk Stick]] now has <script>evil()</script> protection.';
+                const result = renderChangesSections(null, rawNotes);
+
+                // Entity link should work
+                expect(result).toContain('entity-link');
+                expect(result).toContain('>Bonk Stick</a>');
+                // HTML should be escaped
+                expect(result).not.toContain('<b>');
+                expect(result).not.toContain('<script>');
+                expect(result).toContain('&lt;b&gt;');
+                expect(result).toContain('&lt;script&gt;');
+            });
+
+            it('should handle raw_notes with only entity links and no other text', () => {
+                const rawNotes = '[[item:bonk_stick|Bonk Stick]]';
+                const result = renderChangesSections(null, rawNotes);
+
+                expect(result).toContain('entity-link');
+                expect(result).toContain('>Bonk Stick</a>');
+            });
+
+            it('should handle entity links at start, middle, and end of raw_notes', () => {
+                const rawNotes =
+                    '[[item:bonk_stick|Bonk Stick]] was buffed. Also [[weapon:mega_sword|Mega Sword]] changed. See [[character:fox|Fox]].';
+                const result = renderChangesSections(null, rawNotes);
+
+                const linkCount = (result.match(/class="entity-link"/g) || []).length;
+                expect(linkCount).toBe(3);
+            });
+        });
     });
 });
