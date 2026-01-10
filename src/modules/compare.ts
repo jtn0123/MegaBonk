@@ -268,6 +268,3 @@ export function clearCompare(): void {
 export function getCompareItems(): string[] {
     return [...compareItems];
 }
-
-// Export compareItems for direct access (use with caution)
-export { compareItems };
