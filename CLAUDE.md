@@ -10,7 +10,8 @@ MegaBonk Complete Guide is a web-based reference app for the roguelike game Mega
 
 ### Development Server
 ```bash
-python3 serve.py          # Starts local server at http://localhost:8000 with QR code for mobile
+bun run dev               # Starts Vite dev server with hot reload (handles TypeScript)
+bun run preview           # Preview production build locally
 ```
 
 ### Testing
@@ -48,15 +49,14 @@ All game content is stored in JSON files:
 Each JSON file has a `version` and `last_updated` field at the root level. Items/weapons/etc are in arrays under their respective keys.
 
 ### Frontend (`src/`)
-Single-page app with vanilla JavaScript:
+Single-page app with TypeScript (built via Vite):
 - `index.html` - Main interface with tab navigation
-- `script.js` - All app logic (~1000+ lines): data loading, filtering, search, build planner, breakpoint calculator, compare mode
+- `script.ts` - Main entry point, imports modules
+- `modules/` - TypeScript modules for data loading, filtering, search, build planner, breakpoint calculator, compare mode
 - `styles.css` - Dark theme styling with rarity color system
-- `sw.js` - Service worker for offline caching
 - `manifest.json` - PWA manifest
-- `libs/chart.min.js` - Chart.js for scaling graphs (bundled locally)
 
-### Key Global State in script.js
+### Key Global State
 ```javascript
 allData = { items, weapons, tomes, characters, shrines, stats }  // Loaded JSON data
 currentTab = 'items'                                              // Active tab
