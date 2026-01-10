@@ -499,7 +499,9 @@ export function calculateBuildStats(): CalculatedBuildStats {
     // Use parseFloat instead of parseInt for decimal damage values
     if (currentBuild.weapon) {
         const baseDamage = currentBuild.weapon.base_damage ?? currentBuild.weapon.baseDamage;
-        stats.damage += parseFloat(String(baseDamage)) || 0;
+        // Handle undefined/null: parseFloat(String(undefined)) returns NaN, and NaN || 0 still gives NaN
+        const parsedDamage = baseDamage != null ? parseFloat(String(baseDamage)) : 0;
+        stats.damage += Number.isNaN(parsedDamage) ? 0 : parsedDamage;
     }
 
     currentBuild.tomes.forEach((tome: Tome) => {
@@ -791,12 +793,13 @@ export function clearBuild(): void {
 // ========================================
 
 /**
- * Get current build (returns a shallow copy to prevent state corruption)
+ * Get current build (returns a deep copy to prevent state corruption)
  * @returns Current build state
  */
 export function getCurrentBuild(): Build {
-    return { ...currentBuild };
+    return {
+        ...currentBuild,
+        tomes: [...currentBuild.tomes],
+        items: [...currentBuild.items],
+    };
 }
-
-// Export currentBuild for direct access (use with caution)
-export { currentBuild };

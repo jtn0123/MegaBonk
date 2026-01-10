@@ -157,7 +157,10 @@ export function createScalingChart(
     options: ChartOptions = {}
 ): Chart | null {
     const canvas = safeGetElementById(canvasId) as HTMLCanvasElement | null;
-    if (!canvas) return null;
+    if (!canvas) {
+        console.warn(`Chart canvas not found: ${canvasId}`);
+        return null;
+    }
 
     // Destroy existing chart if present
     if (chartInstances[canvasId]) {
@@ -303,7 +306,10 @@ export function createScalingChart(
  */
 export function createCompareChart(canvasId: string, items: ChartableItem[]): Chart | null {
     const canvas = safeGetElementById(canvasId) as HTMLCanvasElement | null;
-    if (!canvas) return null;
+    if (!canvas) {
+        console.warn(`Compare chart canvas not found: ${canvasId}`);
+        return null;
+    }
 
     if (chartInstances[canvasId]) {
         chartInstances[canvasId].destroy();

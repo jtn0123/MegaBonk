@@ -468,8 +468,12 @@ function setupScalingTabHandlers(data: ModalItem): void {
         const { getEffectiveStackCap, createScalingChart } = await import('./charts.ts');
 
         // Get track data and redraw chart
-        const trackKey = tab.dataset.track!;
-        const track = trackKey ? data.scaling_tracks![trackKey] : undefined;
+        const trackKey = tab.dataset.track;
+        if (!trackKey) {
+            console.warn('Missing data-track attribute on scaling tab');
+            return;
+        }
+        const track = data.scaling_tracks?.[trackKey];
         if (!track) return;
 
         const effectiveCap = getEffectiveStackCap(data);
