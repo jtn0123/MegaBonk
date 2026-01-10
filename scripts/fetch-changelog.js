@@ -363,7 +363,11 @@ function detectCategory(line) {
 function parsePatchNotes(newsItem, entityMap) {
     const content = newsItem.contents || '';
 
-    // Strip HTML tags
+    // Use improved content conversion for parsing
+    const convertedText = convertSteamContent(content);
+    const lines = convertedText.split('\n').filter(l => l.trim());
+
+    // Keep a plain version for raw_notes display
     const plainText = content
         .replace(/<br\s*\/?>/gi, '\n')
         .replace(/<[^>]+>/g, '')
@@ -371,17 +375,24 @@ function parsePatchNotes(newsItem, entityMap) {
         .replace(/&amp;/g, '&')
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
-        .replace(/\[.*?\]/g, ''); // Remove BBCode-style tags
+        .replace(/\[.*?\]/g, '');
 
-    const lines = plainText.split('\n').filter(l => l.trim());
+    // Extract version from title or content
+    let version = extractVersion(newsItem.title);
+    if (!version) {
+        const contentVersionMatch = convertedText.match(/v?(\d+\.\d+(?:\.\d+)?)/i);
+        if (contentVersionMatch) {
+            version = contentVersionMatch[1];
+        }
+    }
 
     const patch = {
         id: `patch_${newsItem.gid || Date.now()}`,
-        version: extractVersion(newsItem.title) || 'Unknown',
+        version: version || 'Unknown',
         title: newsItem.title,
         date: new Date(newsItem.date * 1000).toISOString().split('T')[0],
         steam_url: newsItem.url || `https://store.steampowered.com/news/app/${STEAM_APP_ID}`,
-        summary: lines[0]?.substring(0, 200) || '',
+        summary: lines[0]?.replace(/##HEADER##\s*/g, '').substring(0, 200) || '',
         categories: {
             balance: [],
             new_content: [],
@@ -389,26 +400,49 @@ function parsePatchNotes(newsItem, entityMap) {
             removed: [],
             other: [],
         },
-        raw_notes: plainText,
+        raw_notes: plainText.trim(),
     };
 
     // Parse lines into categories
     let currentCategory = 'other';
 
-    for (const line of lines) {
-        const trimmed = line.trim();
+    for (let i = 0; i < lines.length; i++) {
+        let trimmed = lines[i].trim();
         if (!trimmed) continue;
 
-        // Check if this is a section header
-        const detectedCategory = detectCategory(trimmed);
-        if (detectedCategory && !trimmed.startsWith('-') && !trimmed.startsWith('*')) {
-            currentCategory = detectedCategory;
+        // Check for header markers (from our conversion)
+        if (trimmed.startsWith('##HEADER##')) {
+            const headerText = trimmed.replace('##HEADER##', '').trim();
+            const detectedCategory = detectCategory(headerText);
+            if (detectedCategory) {
+                currentCategory = detectedCategory;
+            }
             continue;
         }
 
-        // Parse change lines (lines starting with -, *, or bullet points)
-        if (trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.match(/^[•·]/)) {
-            const changeText = trimmed.substring(1).trim();
+        // Check if this line looks like a section header (short, not a bullet)
+        const detectedCategory = detectCategory(trimmed);
+        if (detectedCategory && trimmed.length < 50 && !trimmed.startsWith('-') && !trimmed.startsWith('*')) {
+            // Verify it's a header not a change description
+            const looksLikeHeader =
+                (!trimmed.includes(' -> ') && !trimmed.includes(': ')) ||
+                trimmed.toLowerCase() === 'balancing' ||
+                trimmed.toLowerCase() === 'bugs' ||
+                trimmed.toLowerCase() === 'game' ||
+                trimmed.toLowerCase() === 'other' ||
+                trimmed.toLowerCase().startsWith('new ');
+            if (looksLikeHeader) {
+                currentCategory = detectedCategory;
+                continue;
+            }
+        }
+
+        // Parse change lines (-, *, •, ·, or \ for Steam formatting)
+        const isBullet =
+            trimmed.startsWith('-') || trimmed.startsWith('*') || trimmed.match(/^[•·]/) || trimmed.startsWith('\\');
+
+        if (isBullet) {
+            const changeText = trimmed.replace(/^[-*•·\\]\s*/, '').trim();
             if (!changeText) continue;
 
             const linkedText = autoLinkEntities(changeText, entityMap);
@@ -420,6 +454,30 @@ function parsePatchNotes(newsItem, entityMap) {
                 change_type: changeType,
                 affected_entities: affectedEntities,
             });
+        } else if (trimmed.length > 10 && currentCategory !== 'other') {
+            // Non-bulleted line in a known category - still add if it looks like a change
+            const looksLikeChange =
+                trimmed.length > 20 ||
+                trimmed.toLowerCase().includes('fix') ||
+                trimmed.toLowerCase().includes('add') ||
+                trimmed.toLowerCase().includes('remov') ||
+                trimmed.toLowerCase().includes('chang') ||
+                trimmed.toLowerCase().includes('buff') ||
+                trimmed.toLowerCase().includes('nerf') ||
+                trimmed.toLowerCase().includes('increas') ||
+                trimmed.toLowerCase().includes('decreas');
+
+            if (looksLikeChange) {
+                const linkedText = autoLinkEntities(trimmed, entityMap);
+                const changeType = detectChangeType(trimmed);
+                const affectedEntities = extractAffectedEntities(trimmed, entityMap);
+
+                patch.categories[currentCategory].push({
+                    text: linkedText,
+                    change_type: changeType,
+                    affected_entities: affectedEntities,
+                });
+            }
         }
     }
 
@@ -484,9 +542,24 @@ async function main() {
 
         console.error(`Found ${newsItems.length} news items on Steam.`);
 
-        // Filter to patch notes (skip regular news/announcements)
+        // Filter to patch notes (skip regular news/announcements and external articles)
         const patchItems = newsItems.filter(item => {
             const title = item.title.toLowerCase();
+            const content = (item.contents || '').toLowerCase();
+
+            // Skip external news articles (they just link to other sites)
+            if (item.feedname && !item.feedname.includes('steam')) {
+                // Check if it's a short article with just a link
+                if (
+                    content.length < 500 ||
+                    content.includes('read the full article') ||
+                    content.includes('read more')
+                ) {
+                    return false;
+                }
+            }
+
+            // Include if title matches patch patterns
             return (
                 title.includes('update') ||
                 title.includes('patch') ||

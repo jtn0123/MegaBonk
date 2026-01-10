@@ -4,13 +4,22 @@
 // ========================================
 
 import { ToastManager } from './toast.ts';
-import { safeGetElementById } from './utils.ts';
+import { safeGetElementById, debounce } from './utils.ts';
 import { loadAllData } from './data-service.ts';
 import { closeModal, openDetailModal } from './modal.ts';
-import { closeCompareModal, toggleCompareItem, updateCompareDisplay } from './compare.ts';
+import { closeCompareModal, toggleCompareItem, updateCompareDisplay, openCompareModal } from './compare.ts';
 import { quickCalc } from './calculator.ts';
 import { toggleFavorite } from './favorites.ts';
-import { clearFilters, handleSearch, updateFilters, restoreFilterState, saveFilterState } from './filters.ts';
+import {
+    clearFilters,
+    handleSearch,
+    updateFilters,
+    restoreFilterState,
+    saveFilterState,
+    showSearchHistoryDropdown,
+} from './filters.ts';
+import { destroyAllCharts } from './charts.ts';
+import { setupBuildPlannerEvents, updateBuildAnalysis } from './build-planner.ts';
 import { renderTabContent } from './renderers.ts';
 import { toggleChangelogExpand } from './changelog.ts';
 
@@ -19,17 +28,9 @@ import type { EntityType } from '../types/index.ts';
 // Type definitions for tab names
 type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator';
 
-// Declare global functions that may exist on window
+// Declare global state that may exist on window
 declare global {
     // Note: Window.currentTab is declared in filters.ts to avoid duplicate declarations
-    // Functions that may be globally available
-    function switchTab(tabName: TabName): void;
-    function updateBuildAnalysis(): void;
-    function openCompareModal(): void;
-    function setupBuildPlannerEvents(): void;
-    function destroyAllCharts(): void;
-    function debounce<T extends (...args: any[]) => any>(func: T, delay: number): (...args: Parameters<T>) => void;
-    function showSearchHistoryDropdown(input: HTMLInputElement): void;
 }
 
 /**
@@ -486,6 +487,12 @@ export function switchTab(tabName: TabName): void {
     // Render content for the tab
     renderTabContent(tabName);
 }
+
+// ========================================
+// Global Assignments
+// ========================================
+// Expose switchTab globally for cross-module access (avoids circular dependencies)
+(window as any).switchTab = switchTab;
 
 // ========================================
 // Exported API

@@ -5,6 +5,9 @@
 import type { Item } from '../types/index.ts';
 import { safeSetValue } from './utils.ts';
 
+// Declare switchTab as a global (defined in events.ts, exposed on window to avoid circular deps)
+declare function switchTab(tabName: string): void;
+
 // ========================================
 // Type Definitions
 // ========================================
