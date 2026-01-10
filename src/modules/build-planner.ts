@@ -2,7 +2,7 @@
 // MegaBonk Build Planner Module
 // ========================================
 
-import type { Character, Weapon, Tome, Item } from '../types/index.js';
+import type { Character, Weapon, Tome, Item } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
 import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue } from './utils.ts';

@@ -3,7 +3,7 @@
 // ========================================
 
 import { TIER_ORDER, RARITY_ORDER } from './constants.ts';
-import type { Entity, SortBy, Tier, Rarity, EntityType } from '../types/index.js';
+import type { Entity, SortBy, Tier, Rarity, EntityType } from '../types/index.ts';
 
 // ========================================
 // Null-Safe DOM Helpers

@@ -2,7 +2,7 @@
 // MegaBonk Compare Mode Module
 // ========================================
 
-import type { Item } from '../types/index.js';
+import type { Item } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
 import { safeGetElementById, safeQuerySelector, safeQuerySelectorAll } from './utils.ts';

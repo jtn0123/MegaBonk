@@ -4,7 +4,7 @@
 
 import { allData } from './data-service.ts';
 import { safeGetElementById, escapeHtml, isValidExternalUrl, generateEmptyState } from './utils.ts';
-import type { ChangelogPatch, Entity } from '../types/index.js';
+import type { ChangelogPatch, Entity } from '../types/index.ts';
 
 // ========================================
 // Type Definitions

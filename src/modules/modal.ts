@@ -5,7 +5,7 @@
 import { allData } from './data-service.ts';
 import { ToastManager } from './toast.ts';
 import { safeGetElementById, generateModalImage } from './utils.ts';
-import type { Tier, Rarity, EntityType, Entity } from '../types/index.js';
+import type { Tier, Rarity, EntityType, Entity } from '../types/index.ts';
 
 // ========================================
 // Extended Type Definitions for Modal Data

@@ -6,7 +6,7 @@
 // ========================================
 
 import { z, ZodError, ZodIssue } from 'zod';
-import type { ValidationResult } from '../types/index.js';
+import type { ValidationResult } from '../types/index.ts';
 
 /**
  * Common schemas

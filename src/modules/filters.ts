@@ -2,7 +2,7 @@
 // MegaBonk Filters Module
 // ========================================
 
-import type { Entity, EntityType, Item, SortBy } from '../types/index.js';
+import type { Entity, EntityType, Item, SortBy } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 
 // ========================================
