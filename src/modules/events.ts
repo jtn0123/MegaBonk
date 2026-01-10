@@ -505,16 +505,16 @@ export function switchTab(tabName: TabName): void {
     // Get item count for the new tab (data tabs only)
     let itemCount = 0;
     if (typeof allData !== 'undefined' && allData) {
-        const tabDataMap: Record<string, { items?: unknown[] } | undefined> = {
-            items: allData.items,
-            weapons: allData.weapons,
-            tomes: allData.tomes,
-            characters: allData.characters,
-            shrines: allData.shrines,
+        const tabDataMap: Record<string, unknown[] | undefined> = {
+            items: allData.items?.items,
+            weapons: allData.weapons?.weapons,
+            tomes: allData.tomes?.tomes,
+            characters: allData.characters?.characters,
+            shrines: allData.shrines?.shrines,
         };
         const tabData = tabDataMap[tabName];
-        if (tabData && Array.isArray(tabData.items)) {
-            itemCount = tabData.items.length;
+        if (Array.isArray(tabData)) {
+            itemCount = tabData.length;
         }
     }
 

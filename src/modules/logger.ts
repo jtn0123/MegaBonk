@@ -509,9 +509,9 @@ class Logger {
         const levelColors = ['#6b7280', '#3b82f6', '#f59e0b', '#ef4444'];
         const levelMethods = [console.debug, console.info, console.warn, console.error];
 
-        const levelName = levelNames[level];
-        const color = levelColors[level];
-        const method = levelMethods[level];
+        const levelName = levelNames[level] ?? 'INFO';
+        const color = levelColors[level] ?? '#3b82f6';
+        const method = levelMethods[level] ?? console.info;
 
         if (this.isProduction()) {
             // Production: minimal JSON output

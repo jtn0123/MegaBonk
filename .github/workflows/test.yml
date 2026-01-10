@@ -117,15 +117,16 @@ jobs:
 
       - name: Check bundle size
         run: |
-          MAIN_SIZE=\$(stat -c%s dist/assets/main-*.js 2>/dev/null)
-          MAIN_SIZE_KB=\$((MAIN_SIZE / 1024))
-          echo "Main bundle size: \${MAIN_SIZE_KB}KB"
-          
-          if [ \$MAIN_SIZE_KB -gt 80 ]; then
-            echo "❌ Main bundle too large: \${MAIN_SIZE_KB}KB (max: 80KB)"
+          MAIN_SIZE=$(stat -c%s dist/assets/main-*.js 2>/dev/null)
+          MAIN_SIZE_KB=$((MAIN_SIZE / 1024))
+          echo "Main bundle size: ${MAIN_SIZE_KB}KB"
+
+          # Chart.js adds ~200KB, so 400KB limit accounts for app + charts
+          if [ $MAIN_SIZE_KB -gt 400 ]; then
+            echo "❌ Main bundle too large: ${MAIN_SIZE_KB}KB (max: 400KB)"
             exit 1
           fi
-          
+
           echo "✅ Bundle size within limits"
 
       - name: Upload build artifacts
