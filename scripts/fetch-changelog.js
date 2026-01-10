@@ -400,7 +400,7 @@ function parsePatchNotes(newsItem, entityMap) {
             removed: [],
             other: [],
         },
-        raw_notes: plainText.trim(),
+        raw_notes: autoLinkEntities(plainText.trim(), entityMap),
     };
 
     // Parse lines into categories

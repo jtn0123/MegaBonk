@@ -157,7 +157,9 @@ export function renderChangesSections(categories: ChangeCategories | undefined, 
     if (!categories) {
         // Fallback to raw notes if no categories
         if (rawNotes) {
-            return `<div class="changelog-raw-notes">${escapeHtml(rawNotes)}</div>`;
+            // Escape HTML first for XSS prevention, then parse entity links
+            // Entity link syntax [[type:id|label]] survives escaping since it uses no HTML chars
+            return `<div class="changelog-raw-notes">${parseChangelogLinks(escapeHtml(rawNotes))}</div>`;
         }
         return '';
     }
@@ -190,7 +192,8 @@ export function renderChangesSections(categories: ChangeCategories | undefined, 
 
     // If no categorized content, show raw notes as fallback
     if (!sectionsHtml.trim() && rawNotes) {
-        return `<div class="changelog-raw-notes">${escapeHtml(rawNotes)}</div>`;
+        // Escape HTML first for XSS prevention, then parse entity links
+        return `<div class="changelog-raw-notes">${parseChangelogLinks(escapeHtml(rawNotes))}</div>`;
     }
 
     return sectionsHtml;
