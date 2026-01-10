@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
 import { createMockItem, createMockAllData } from '../helpers/mock-data.js';
 
@@ -7,11 +7,14 @@ import {
     safeGetElementById,
     safeQuerySelector,
     safeQuerySelectorAll,
+    safeSetValue,
+    safeSetHTML,
     escapeHtml,
     truncateText,
     generateExpandableText,
     generateResponsiveImage,
     generateEntityImage,
+    generateModalImage,
     generateEmptyState,
     sortData,
     findEntityById,
@@ -121,6 +124,45 @@ describe('Utils Module', () => {
 
             const result = safeQuerySelectorAll('.inner', container);
             expect(result.length).toBe(2);
+        });
+    });
+
+    describe('safeSetValue()', () => {
+        it('should set value on input element', () => {
+            const input = document.createElement('input');
+            input.id = 'test-input';
+            document.body.appendChild(input);
+
+            safeSetValue('test-input', 'test value');
+            expect(input.value).toBe('test value');
+        });
+
+        it('should convert number to string', () => {
+            const input = document.createElement('input');
+            input.id = 'number-input';
+            document.body.appendChild(input);
+
+            safeSetValue('number-input', 42);
+            expect(input.value).toBe('42');
+        });
+
+        it('should not throw when element not found', () => {
+            expect(() => safeSetValue('non-existent', 'value')).not.toThrow();
+        });
+    });
+
+    describe('safeSetHTML()', () => {
+        it('should set innerHTML on element', () => {
+            const div = document.createElement('div');
+            div.id = 'test-div';
+            document.body.appendChild(div);
+
+            safeSetHTML('test-div', '<span>content</span>');
+            expect(div.innerHTML).toBe('<span>content</span>');
+        });
+
+        it('should not throw when element not found', () => {
+            expect(() => safeSetHTML('non-existent', '<p>test</p>')).not.toThrow();
         });
     });
 
@@ -449,6 +491,107 @@ describe('Utils Module', () => {
             expect(result).toContain('b');
             expect(result).toContain('c');
             expect(result).toContain('d');
+        });
+    });
+
+    describe('generateModalImage()', () => {
+        it('should generate modal image HTML for entity with image', () => {
+            const entity = { id: 'test', name: 'Test Item', image: 'images/test.png' };
+            const result = generateModalImage(entity, 'Test Item', 'item');
+
+            expect(result).toContain('picture');
+            expect(result).toContain('images/test.webp');
+            expect(result).toContain('images/test.png');
+            expect(result).toContain('modal-item-image');
+        });
+
+        it('should return empty string for null entity', () => {
+            expect(generateModalImage(null, 'Test', 'item')).toBe('');
+        });
+
+        it('should return empty string for entity without image', () => {
+            const entity = { id: 'test', name: 'Test' };
+            expect(generateModalImage(entity, 'Test', 'item')).toBe('');
+        });
+    });
+
+    describe('debounce()', () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+        });
+
+        it('should delay function execution', () => {
+            let callCount = 0;
+            const fn = () => callCount++;
+            const debouncedFn = debounce(fn, 50);
+
+            debouncedFn();
+            debouncedFn();
+            debouncedFn();
+
+            expect(callCount).toBe(0);
+
+            vi.advanceTimersByTime(100);
+            expect(callCount).toBe(1);
+        });
+
+        it('should only call function once after rapid calls', () => {
+            let callCount = 0;
+            const fn = () => callCount++;
+            const debouncedFn = debounce(fn, 50);
+
+            for (let i = 0; i < 10; i++) {
+                debouncedFn();
+            }
+
+            vi.advanceTimersByTime(100);
+            expect(callCount).toBe(1);
+        });
+
+        it('should pass arguments to debounced function', () => {
+            let receivedArgs = null;
+            const fn = (...args) => {
+                receivedArgs = args;
+            };
+            const debouncedFn = debounce(fn, 50);
+
+            debouncedFn('a', 'b', 'c');
+
+            vi.advanceTimersByTime(100);
+            expect(receivedArgs).toEqual(['a', 'b', 'c']);
+        });
+    });
+
+    describe('isValidExternalUrl()', () => {
+        it('should accept https URLs', () => {
+            expect(isValidExternalUrl('https://example.com')).toBe(true);
+            expect(isValidExternalUrl('https://example.com/path')).toBe(true);
+        });
+
+        it('should accept http URLs', () => {
+            expect(isValidExternalUrl('http://example.com')).toBe(true);
+        });
+
+        it('should reject javascript: URLs', () => {
+            expect(isValidExternalUrl('javascript:alert(1)')).toBe(false);
+        });
+
+        it('should reject data: URLs', () => {
+            expect(isValidExternalUrl('data:text/html,<script>alert(1)</script>')).toBe(false);
+        });
+
+        it('should reject null/undefined', () => {
+            expect(isValidExternalUrl(null)).toBe(false);
+            expect(isValidExternalUrl(undefined)).toBe(false);
+        });
+
+        it('should reject invalid URLs', () => {
+            expect(isValidExternalUrl('not a url')).toBe(false);
+            expect(isValidExternalUrl('')).toBe(false);
         });
     });
 });
