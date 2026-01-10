@@ -81,6 +81,137 @@ function escapeRegex(string) {
 }
 
 /**
+ * Convert Steam HTML/BBCode content to structured text with preserved formatting
+ */
+function convertSteamContent(content) {
+    if (!content) return '';
+
+    let text = content;
+
+    // Convert BBCode headers to markers we can detect later
+    text = text.replace(/\[h1\](.*?)\[\/h1\]/gi, '\n##HEADER## $1\n');
+    text = text.replace(/\[h2\](.*?)\[\/h2\]/gi, '\n##HEADER## $1\n');
+    text = text.replace(/\[h3\](.*?)\[\/h3\]/gi, '\n##HEADER## $1\n');
+    text = text.replace(/\[b\](.*?)\[\/b\]/gi, '**$1**');
+
+    // Convert BBCode lists to bullet points
+    text = text.replace(/\[\*\]/gi, '\n- ');
+    text = text.replace(/\[list\]/gi, '\n');
+    text = text.replace(/\[\/list\]/gi, '\n');
+
+    // Convert HTML elements to line breaks
+    text = text.replace(/<br\s*\/?>/gi, '\n');
+    text = text.replace(/<\/p>/gi, '\n');
+    text = text.replace(/<p[^>]*>/gi, '\n');
+    text = text.replace(/<\/div>/gi, '\n');
+    text = text.replace(/<div[^>]*>/gi, '\n');
+    text = text.replace(/<\/li>/gi, '\n');
+    text = text.replace(/<li[^>]*>/gi, '\n- ');
+    text = text.replace(/<\/h[1-6]>/gi, '\n');
+    text = text.replace(/<h[1-6][^>]*>/gi, '\n##HEADER## ');
+    text = text.replace(/<hr\s*\/?>/gi, '\n---\n');
+
+    // Strip remaining HTML tags
+    text = text.replace(/<[^>]+>/g, '');
+
+    // Strip remaining BBCode tags (but not our markers)
+    text = text.replace(/\[(?!#)[^\]]+\]/g, '');
+
+    // Decode HTML entities
+    text = text.replace(/&nbsp;/g, ' ');
+    text = text.replace(/&amp;/g, '&');
+    text = text.replace(/&lt;/g, '<');
+    text = text.replace(/&gt;/g, '>');
+    text = text.replace(/&quot;/g, '"');
+    text = text.replace(/&#39;/g, "'");
+    text = text.replace(/&apos;/g, "'");
+
+    // Try to split run-on text by detecting section headers
+    // Pattern: lowercase letter immediately followed by capital letter starting a new word
+    // e.g., "somethingNew Stuff" -> "something\n##HEADER## New Stuff"
+    const sectionKeywords = [
+        'New Stuff',
+        'New Content',
+        'New Items',
+        'New Features',
+        'Additions',
+        'Balancing',
+        'Balance',
+        'Balance Changes',
+        'Buffs',
+        'Nerfs',
+        'Bug Fixes',
+        'Bugs',
+        'Bug',
+        'Fixes',
+        'Fixed',
+        'Changes',
+        'Changelog',
+        'Patch Notes',
+        'Removed',
+        'Deletions',
+        'Other',
+        'Misc',
+        'Miscellaneous',
+        'Game',
+        'Gameplay',
+        'Settings',
+        'Options',
+        'Console',
+        'Commands',
+        'Leaderboards',
+        'Leaderboard',
+        'System',
+        'Performance',
+        'FPS',
+        'Optimization',
+        'TLDR',
+        'TL;DR',
+        'Summary',
+        'Final Swarm',
+        'Final Boss',
+        'Credit Cards', // specific to MegaBonk
+    ];
+
+    for (const keyword of sectionKeywords) {
+        // Match keyword preceded by lowercase letter (run-on text)
+        const runOnPattern = new RegExp(`([a-z])\\s*(${escapeRegex(keyword)})\\s*(?=[A-Z-]|$)`, 'g');
+        text = text.replace(runOnPattern, '$1\n##HEADER## $2\n');
+
+        // Also match keyword at start of line or after newline
+        const headerPattern = new RegExp(`^\\s*(${escapeRegex(keyword)})\\s*$`, 'gim');
+        text = text.replace(headerPattern, '##HEADER## $1');
+    }
+
+    // Split run-on bullet points: "textFixed something" -> "text\n- Fixed something"
+    const bulletKeywords = [
+        'Fixed',
+        'Added',
+        'Removed',
+        'Changed',
+        'Updated',
+        'Increased',
+        'Decreased',
+        'Buffed',
+        'Nerfed',
+        'Improved',
+        'Hopefully',
+    ];
+    for (const keyword of bulletKeywords) {
+        const pattern = new RegExp(`([a-z.!?)])\\s*(${keyword})\\s+`, 'g');
+        text = text.replace(pattern, '$1\n- $2 ');
+    }
+
+    // Normalize whitespace
+    text = text.replace(/\r\n/g, '\n');
+    text = text.replace(/\r/g, '\n');
+    text = text.replace(/\n{3,}/g, '\n\n');
+    text = text.replace(/[ \t]+/g, ' ');
+
+    return text.trim();
+}
+
+/**
  * Auto-detect entity references in text and convert to link format
  */
 function autoLinkEntities(text, entityMap) {
@@ -114,8 +245,15 @@ function extractVersion(title) {
  */
 function detectChangeType(text) {
     const lower = text.toLowerCase();
-    if (lower.includes('increased') || lower.includes('buffed') || lower.includes('improved') || lower.includes('boost')) return 'buff';
-    if (lower.includes('decreased') || lower.includes('nerfed') || lower.includes('reduced') || lower.includes('lower')) return 'nerf';
+    if (
+        lower.includes('increased') ||
+        lower.includes('buffed') ||
+        lower.includes('improved') ||
+        lower.includes('boost')
+    )
+        return 'buff';
+    if (lower.includes('decreased') || lower.includes('nerfed') || lower.includes('reduced') || lower.includes('lower'))
+        return 'nerf';
     if (lower.includes('added') || lower.includes('new') || lower.includes('introduced')) return 'addition';
     if (lower.includes('removed') || lower.includes('deleted')) return 'removal';
     if (lower.includes('fixed') || lower.includes('fix') || lower.includes('resolved')) return 'fix';
@@ -139,22 +277,83 @@ function extractAffectedEntities(text, entityMap) {
 }
 
 /**
- * Detect category from line context
+ * Detect category from line context - more comprehensive matching
  */
 function detectCategory(line) {
-    const lower = line.toLowerCase();
-    if (lower.includes('balance') || lower.includes('changes') || lower.includes('buff') || lower.includes('nerf')) {
-        return 'balance';
-    }
-    if (lower.includes('new') || lower.includes('added') || lower.includes('content')) {
+    const lower = line.toLowerCase().trim();
+
+    // New content patterns - check first since "new" is common
+    if (
+        lower.includes('new stuff') ||
+        lower.includes('new content') ||
+        lower.includes('new item') ||
+        lower.includes('new feature') ||
+        lower.includes('new character') ||
+        lower.includes('new weapon') ||
+        lower.includes('new map') ||
+        lower.includes('new enem') ||
+        lower.includes('new boss') ||
+        lower.includes('new achievement') ||
+        lower.includes('additions') ||
+        lower === 'new' ||
+        lower === 'content'
+    ) {
         return 'new_content';
     }
-    if (lower.includes('fix') || lower.includes('bug') || lower.includes('issue')) {
+
+    // Balance patterns
+    if (
+        lower.includes('balance') ||
+        lower.includes('balancing') ||
+        lower.includes('buff') ||
+        lower.includes('nerf') ||
+        lower === 'changes' ||
+        lower.includes('credit card') // specific MegaBonk balance section
+    ) {
+        return 'balance';
+    }
+
+    // Bug fix patterns
+    if (
+        lower.includes('bug') ||
+        lower.includes('fix') ||
+        lower.includes('issue') ||
+        lower.includes('resolved') ||
+        lower.includes('patch') ||
+        lower.includes('hotfix')
+    ) {
         return 'bug_fixes';
     }
-    if (lower.includes('removed') || lower.includes('deleted')) {
+
+    // Removed patterns
+    if (lower.includes('removed') || lower.includes('deleted') || lower.includes('removal')) {
         return 'removed';
     }
+
+    // Settings/Options - map to other
+    if (
+        lower.includes('setting') ||
+        lower.includes('option') ||
+        lower.includes('console') ||
+        lower.includes('command')
+    ) {
+        return 'other';
+    }
+
+    // Game/Gameplay - usually misc changes
+    if (
+        lower === 'game' ||
+        lower === 'gameplay' ||
+        lower === 'other' ||
+        lower === 'misc' ||
+        lower.includes('leaderboard') ||
+        lower.includes('performance') ||
+        lower.includes('fps') ||
+        lower.includes('optimization')
+    ) {
+        return 'other';
+    }
+
     return null;
 }
 
@@ -188,9 +387,9 @@ function parsePatchNotes(newsItem, entityMap) {
             new_content: [],
             bug_fixes: [],
             removed: [],
-            other: []
+            other: [],
         },
-        raw_notes: plainText
+        raw_notes: plainText,
     };
 
     // Parse lines into categories
@@ -219,7 +418,7 @@ function parsePatchNotes(newsItem, entityMap) {
             patch.categories[currentCategory].push({
                 text: linkedText,
                 change_type: changeType,
-                affected_entities: affectedEntities
+                affected_entities: affectedEntities,
             });
         }
     }
@@ -236,18 +435,20 @@ function parsePatchNotes(newsItem, entityMap) {
  */
 async function fetchSteamNews() {
     return new Promise((resolve, reject) => {
-        https.get(STEAM_NEWS_URL, (res) => {
-            let data = '';
-            res.on('data', chunk => data += chunk);
-            res.on('end', () => {
-                try {
-                    const json = JSON.parse(data);
-                    resolve(json.appnews?.newsitems || []);
-                } catch (e) {
-                    reject(e);
-                }
-            });
-        }).on('error', reject);
+        https
+            .get(STEAM_NEWS_URL, res => {
+                let data = '';
+                res.on('data', chunk => (data += chunk));
+                res.on('end', () => {
+                    try {
+                        const json = JSON.parse(data);
+                        resolve(json.appnews?.newsitems || []);
+                    } catch (e) {
+                        reject(e);
+                    }
+                });
+            })
+            .on('error', reject);
     });
 }
 
@@ -259,7 +460,7 @@ async function main() {
     const args = process.argv.slice(2);
     const fetchAll = args.includes('--all');
     const countArg = args.find(a => a.startsWith('--count='));
-    const count = countArg ? parseInt(countArg.split('=')[1], 10) : (fetchAll ? 20 : 1);
+    const count = countArg ? parseInt(countArg.split('=')[1], 10) : fetchAll ? 20 : 1;
 
     console.error(`MegaBonk Changelog Fetcher`);
     console.error(`========================`);
@@ -286,8 +487,13 @@ async function main() {
         // Filter to patch notes (skip regular news/announcements)
         const patchItems = newsItems.filter(item => {
             const title = item.title.toLowerCase();
-            return title.includes('update') || title.includes('patch') || title.includes('fix') ||
-                   title.includes('version') || title.match(/v?\d+\.\d+/);
+            return (
+                title.includes('update') ||
+                title.includes('patch') ||
+                title.includes('fix') ||
+                title.includes('version') ||
+                title.match(/v?\d+\.\d+/)
+            );
         });
 
         console.error(`Identified ${patchItems.length} as patch notes.`);
@@ -300,7 +506,7 @@ async function main() {
             last_updated: new Date().toISOString().split('T')[0],
             steam_app_id: STEAM_APP_ID,
             total_patches: patches.length,
-            patches
+            patches,
         };
 
         // Output JSON to stdout
@@ -315,7 +521,6 @@ async function main() {
         console.error('  3. Change types (buff/nerf/fix) are appropriate');
         console.error('');
         console.error('To save: node scripts/fetch-changelog.js > temp-changelog.json');
-
     } catch (error) {
         console.error('Error:', error.message);
         process.exit(1);
