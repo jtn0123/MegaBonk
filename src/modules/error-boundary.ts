@@ -246,6 +246,7 @@ export async function safeModuleInit<T = unknown>(
                     message: error.message,
                     stack: error.stack,
                     module: moduleName,
+                    retriable: true, // Module initialization can often be retried
                 },
                 data: { moduleName, required },
             });

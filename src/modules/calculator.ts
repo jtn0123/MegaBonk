@@ -4,6 +4,7 @@
 
 import type { Item } from '../types/index.ts';
 import { safeSetValue } from './utils.ts';
+import { logger } from './logger.ts';
 
 // Declare switchTab as a global (defined in events.ts, exposed on window to avoid circular deps)
 declare function switchTab(tabName: string): void;
@@ -202,6 +203,10 @@ export function calculateBreakpoint(): void {
         stacksNeeded = item.stack_cap;
     }
 
+    // Check if capped
+    const isCapped = item.stack_cap != null && stacksNeeded === item.stack_cap;
+    const actualValue = stacksNeeded * perStack;
+
     // Display result
     const result: CalculatorResult = {
         itemName: item.name,
@@ -215,6 +220,24 @@ export function calculateBreakpoint(): void {
         stacksWell: item.stacks_well,
         scalingPerStack: item.scaling_per_stack,
     };
+
+    // Log calculator event
+    logger.info({
+        operation: 'calculator.compute',
+        success: true,
+        data: {
+            itemId: item.id,
+            itemName: item.name,
+            targetValue: target,
+            result: {
+                stacksNeeded,
+                perStack,
+                actualValue,
+                isCapped,
+                isOneAndDone: item.one_and_done === true,
+            },
+        },
+    });
 
     renderResults(result);
 }

@@ -5,6 +5,7 @@
 
 import { ToastManager } from './toast.ts';
 import { safeGetElementById, debounce } from './utils.ts';
+import { logger } from './logger.ts';
 import { loadAllData } from './data-service.ts';
 import { closeModal, openDetailModal } from './modal.ts';
 import { closeCompareModal, toggleCompareItem, updateCompareDisplay, openCompareModal } from './compare.ts';
@@ -450,6 +451,8 @@ export let currentTab: TabName = 'items';
  * @param {string} tabName - Tab name to switch to
  */
 export function switchTab(tabName: TabName): void {
+    const previousTab = currentTab;
+
     // Save current tab's filter state before switching
     if (currentTab && typeof saveFilterState === 'function') {
         saveFilterState(currentTab);
@@ -459,6 +462,35 @@ export function switchTab(tabName: TabName): void {
     destroyAllCharts();
 
     currentTab = tabName;
+
+    // Update logger context with current tab
+    logger.setContext('currentTab', tabName);
+
+    // Get item count for the new tab (data tabs only)
+    let itemCount = 0;
+    if (typeof allData !== 'undefined' && allData) {
+        const tabDataMap: Record<string, { items?: unknown[] } | undefined> = {
+            items: allData.items,
+            weapons: allData.weapons,
+            tomes: allData.tomes,
+            characters: allData.characters,
+            shrines: allData.shrines,
+        };
+        const tabData = tabDataMap[tabName];
+        if (tabData && Array.isArray(tabData.items)) {
+            itemCount = tabData.items.length;
+        }
+    }
+
+    // Log tab switch event
+    logger.info({
+        operation: 'tab.switch',
+        data: {
+            fromTab: previousTab,
+            toTab: tabName,
+            itemCount,
+        },
+    });
     // Bug fix: Keep window.currentTab in sync for external code
     window.currentTab = tabName;
 

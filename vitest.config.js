@@ -11,21 +11,30 @@ export default defineConfig({
             reporter: ['text', 'json', 'html', 'lcov'],
             include: ['src/modules/**/*.ts', 'src/script.ts'],
             exclude: ['src/libs/**', 'src/sw.js', '**/*.test.js', '**/*.config.js'],
-            // Thresholds updated after refactoring test files to import real source modules:
-            // Key coverage improvements:
-            //   - filters.ts: 0% → 27%
-            //   - build-planner.ts: 0% → 13%
-            //   - favorites.ts: 0% → 88%
-            //   - compare.ts: 0% → 33%
-            //   - synergy.ts: 0% → 96%
-            //   - toast.ts: 87% → 94%
-            //   - utils.ts: 93%+ (already covered)
-            // Overall coverage: 14.67%
+            // Thresholds updated 2026-01-10 after adding comprehensive unit tests:
+            // New test files added:
+            //   - filters-advanced.test.js (72 tests) - search history, filter state, fuzzy search
+            //   - events.test.js (47 tests) - event delegation, loading, errors, tab switching
+            //   - error-boundary.test.js (26 tests) - error recovery functions
+            //   - theme-manager.test.js (36 tests) - theme toggle and persistence
+            //   - logger.test.js (34 tests) - wide events logging
+            //   - dom-cache.test.js (35 tests) - DOM element caching
+            // Key module coverage:
+            //   - dom-cache.ts: 100%
+            //   - theme-manager.ts: 92.15%
+            //   - error-boundary.ts: 87.71%
+            //   - events.ts: 77.72%
+            //   - logger.ts: 72.63%
+            //   - filters.ts: 64.83%
+            //   - synergy.ts: 96%
+            //   - favorites.ts: 88.46%
+            //   - utils.ts: 88.31%
+            // Overall coverage: ~34% (up from 14.67%)
             thresholds: {
-                statements: 12,
-                branches: 12,
-                functions: 12,
-                lines: 12,
+                statements: 30,
+                branches: 25,
+                functions: 30,
+                lines: 30,
             },
         },
     },

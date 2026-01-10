@@ -311,6 +311,7 @@ export async function loadAllData(): Promise<void> {
                 message: err.message,
                 stack: err.stack,
                 module: 'data-service',
+                retriable: true, // Network errors are often transient
             },
         });
 
