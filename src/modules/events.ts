@@ -350,13 +350,33 @@ export function setupEventListeners(): void {
         });
     }
 
-    // Click outside modal to close
-    window.addEventListener('click', (e: MouseEvent) => {
+    // Click/touch outside modal to close - handle backdrop clicks
+    // Check if click is inside modal but outside modal-content (the backdrop area)
+    const handleModalBackdropInteraction = (e: MouseEvent | TouchEvent): void => {
+        const target = e.target as HTMLElement;
         const itemModal = safeGetElementById('itemModal') as HTMLElement | null;
         const compareModal = safeGetElementById('compareModal') as HTMLElement | null;
-        if (e.target === itemModal) closeModal();
-        if (e.target === compareModal) closeCompareModal(); // Use proper cleanup function
-    });
+
+        // Close item modal if clicking on backdrop (modal element but not modal-content)
+        if (itemModal && itemModal.classList.contains('active')) {
+            const modalContent = itemModal.querySelector('.modal-content');
+            if (target === itemModal || (itemModal.contains(target) && !modalContent?.contains(target))) {
+                closeModal();
+            }
+        }
+
+        // Close compare modal if clicking on backdrop
+        if (compareModal && compareModal.classList.contains('active')) {
+            const modalContent = compareModal.querySelector('.modal-content');
+            if (target === compareModal || (compareModal.contains(target) && !modalContent?.contains(target))) {
+                closeCompareModal();
+            }
+        }
+    };
+
+    // Handle both click and touch events for desktop/mobile compatibility
+    window.addEventListener('click', handleModalBackdropInteraction);
+    window.addEventListener('touchend', handleModalBackdropInteraction);
 
     // Compare button
     const compareBtn = safeGetElementById('compare-btn') as HTMLButtonElement | null;
