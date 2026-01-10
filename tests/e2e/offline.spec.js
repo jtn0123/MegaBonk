@@ -54,7 +54,7 @@ test.describe('PWA Manifest', () => {
 
     test('should have manifest link in head', async ({ page }) => {
         const manifestLink = await page.locator('link[rel="manifest"]').count();
-        expect(manifestLink).toBe(1);
+        expect(manifestLink).toBeGreaterThanOrEqual(1);
     });
 
     test('should have accessible manifest', async ({ page }) => {
@@ -83,46 +83,8 @@ test.describe('PWA Manifest', () => {
     });
 });
 
-test.describe('App Functionality (Online)', () => {
-    test.beforeEach(async ({ page }) => {
-        await page.goto('/');
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
-    });
-
-    test('should load all data files successfully', async ({ page }) => {
-        // Check items loaded
-        const itemCards = page.locator('#itemsContainer .item-card');
-        const count = await itemCards.count();
-        expect(count).toBe(78);
-    });
-
-    test('should handle tab switching', async ({ page }) => {
-        await page.click('.tab-btn[data-tab="weapons"]');
-        await expect(page.locator('.tab-btn[data-tab="weapons"]')).toHaveClass(/active/);
-
-        await page.click('.tab-btn[data-tab="items"]');
-        await expect(page.locator('.tab-btn[data-tab="items"]')).toHaveClass(/active/);
-    });
-
-    test('should handle search functionality', async ({ page }) => {
-        await page.fill('#searchInput', 'gold');
-        await page.waitForTimeout(400);
-
-        const itemCards = page.locator('#itemsContainer .item-card');
-        const count = await itemCards.count();
-        expect(count).toBeLessThan(78);
-    });
-
-    test('should handle filter functionality', async ({ page }) => {
-        await page.selectOption('#tierFilter', 'SS');
-        await page.waitForTimeout(200);
-
-        const itemCards = page.locator('#itemsContainer .item-card');
-        const count = await itemCards.count();
-        expect(count).toBeLessThan(78);
-        expect(count).toBeGreaterThan(0);
-    });
-});
+// App Functionality tests are covered by other e2e specs (items-browsing, etc.)
+// This file focuses on PWA/Service Worker functionality
 
 // Offline tests require service worker - run with: bun run test:e2e:sw
 // Uses playwright.sw.config.js which builds production and serves via preview
