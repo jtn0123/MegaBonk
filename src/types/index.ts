@@ -320,6 +320,7 @@ declare global {
               error: (message: string) => void;
               success: (message: string) => void;
               warning: (message: string) => void;
+              info: (message: string) => void;
           }
         | undefined;
 }
