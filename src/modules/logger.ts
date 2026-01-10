@@ -30,6 +30,22 @@ export interface LoggerConfig {
     remoteEndpoint?: string;
     includeStackTrace: boolean;
     maxContextSize: number;
+    sampling: SamplingConfig;
+}
+
+/**
+ * Tail sampling configuration (loggingsucks.com pattern)
+ * Keep 100% of errors/slow requests, sample the rest
+ */
+export interface SamplingConfig {
+    /** Always send errors (default: 1.0 = 100%) */
+    errorSampleRate: number;
+    /** Threshold in ms for "slow" requests */
+    slowRequestThresholdMs: number;
+    /** Always send slow requests (default: 1.0 = 100%) */
+    slowRequestSampleRate: number;
+    /** Sample rate for normal successful requests (default: 0.05 = 5%) */
+    defaultSampleRate: number;
 }
 
 /**
@@ -68,6 +84,8 @@ export interface EventError {
     stack?: string;
     module?: string;
     cause?: unknown;
+    /** Whether this error can be retried (loggingsucks.com pattern) */
+    retriable?: boolean;
 }
 
 // ========================================
@@ -263,6 +281,12 @@ class Logger {
             enableRemote: false,
             includeStackTrace: !this.isProduction(),
             maxContextSize: 10000,
+            sampling: {
+                errorSampleRate: 1.0, // Keep 100% of errors
+                slowRequestThresholdMs: 1000, // 1 second threshold
+                slowRequestSampleRate: 1.0, // Keep 100% of slow requests
+                defaultSampleRate: 0.05, // Sample 5% of normal requests
+            },
         };
     }
 
@@ -507,12 +531,41 @@ class Logger {
     }
 
     /**
-     * Send event to remote endpoint (batched)
+     * Determine if event should be sampled for remote logging
+     * Implements tail sampling from loggingsucks.com:
+     * - Keep 100% of errors
+     * - Keep 100% of slow requests
+     * - Random sample the rest
+     */
+    private shouldSample(event: WideEvent): boolean {
+        const { sampling } = this.config;
+
+        // Always keep errors
+        if (event.error || event.success === false) {
+            return Math.random() < sampling.errorSampleRate;
+        }
+
+        // Always keep slow requests
+        if (event.durationMs && event.durationMs > sampling.slowRequestThresholdMs) {
+            return Math.random() < sampling.slowRequestSampleRate;
+        }
+
+        // Random sample normal requests
+        return Math.random() < sampling.defaultSampleRate;
+    }
+
+    /**
+     * Send event to remote endpoint (batched with tail sampling)
      */
     private remoteBuffer: WideEvent[] = [];
     private remoteFlushTimeout: ReturnType<typeof setTimeout> | null = null;
 
     private sendToRemote(event: WideEvent): void {
+        // Apply tail sampling
+        if (!this.shouldSample(event)) {
+            return;
+        }
+
         this.remoteBuffer.push(event);
 
         // Flush if buffer is full
