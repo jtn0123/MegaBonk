@@ -5,6 +5,7 @@
 import type { Item } from '../types/index.ts';
 import { safeSetValue } from './utils.ts';
 import { logger } from './logger.ts';
+import { allData } from './data-service.ts';
 
 // Declare switchTab as a global (defined in events.ts, exposed on window to avoid circular deps)
 declare function switchTab(tabName: string): void;
@@ -52,8 +53,6 @@ export interface BreakpointData {
         items: Item[];
     };
 }
-
-// Note: Global declarations (allData, ToastManager) are in types/index.ts
 
 // ========================================
 // Pure Calculation Functions (Testable)
