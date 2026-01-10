@@ -2,7 +2,8 @@
 // MegaBonk Filters Module
 // ========================================
 
-import type { Entity, EntityType, Item, SortBy } from '../types/index.ts';
+import type { Entity, EntityType, Item, Shrine, ChangelogPatch, SortBy } from '../types/index.ts';
+import { isItem, isShrine, isChangelogPatch } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 
 // ========================================
@@ -524,11 +525,11 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
 
             filtered = filtered
                 .map(item => {
-                    const itemObj = item as unknown as Record<string, unknown>;
-                    const name = (itemObj.name as string) || '';
-                    const description = (itemObj.description as string) || '';
-                    const baseEffect = (itemObj.base_effect as string) || '';
-                    const tags = ((itemObj.tags as string[]) || []).join(' ');
+                    const name = item.name || '';
+                    const description = item.description || '';
+                    // base_effect is only on Item type, use type guard
+                    const baseEffect = isItem(item) ? item.base_effect || '' : '';
+                    const tags = (item.tags || []).join(' ');
 
                     // Check each field separately for match context
                     const matches = [
@@ -543,13 +544,13 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
 
                     // Attach match context to item for rendering
                     return {
-                        item: { ...itemObj, _matchContext: bestMatch } as ItemWithMatchContext,
+                        item: { ...item, _matchContext: bestMatch } as Entity & ItemWithMatchContext,
                         score: bestMatch.score,
                     };
                 })
                 .filter(result => result.score > 0)
                 .sort((a, b) => b.score - a.score)
-                .map(result => result.item as unknown as Entity);
+                .map(result => result.item as Entity);
         }
 
         // Apply advanced filter criteria (tier:SS, damage:>100, etc.)
@@ -585,9 +586,9 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
         const stackingFilterEl = safeGetElementById('stackingFilter') as HTMLSelectElement | null;
         const stackingFilter = stackingFilterEl?.value;
         if (stackingFilter === 'stacks_well') {
-            filtered = filtered.filter(item => (item as unknown as Record<string, unknown>).stacks_well === true);
+            filtered = filtered.filter(item => isItem(item) && item.stacks_well === true);
         } else if (stackingFilter === 'one_and_done') {
-            filtered = filtered.filter(item => (item as unknown as Record<string, unknown>).one_and_done === true);
+            filtered = filtered.filter(item => isItem(item) && item.one_and_done === true);
         }
     }
 
@@ -596,24 +597,26 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
         const typeFilterEl = safeGetElementById('typeFilter') as HTMLSelectElement | null;
         const typeFilter = typeFilterEl?.value;
         if (typeFilter && typeFilter !== 'all') {
-            filtered = filtered.filter(shrine => (shrine as unknown as Record<string, unknown>).type === typeFilter);
+            filtered = filtered.filter(shrine => isShrine(shrine) && shrine.type === typeFilter);
         }
     }
 
     // Category filter and sorting (changelog only)
     if (tabName === 'changelog') {
+        // Cast to ChangelogPatch[] for this branch since we know the type
+        const patches = filtered as unknown as ChangelogPatch[];
         const categoryFilterEl = safeGetElementById('categoryFilter') as HTMLSelectElement | null;
         const categoryFilter = categoryFilterEl?.value;
         if (categoryFilter && categoryFilter !== 'all') {
-            filtered = filtered.filter(patch => {
-                const categories = (patch as unknown as Record<string, unknown>).categories as
-                    | Record<string, unknown[]>
-                    | undefined;
-                if (categories && categoryFilter in categories) {
-                    return (categories[categoryFilter] as unknown[])?.length > 0;
+            const filteredPatches = patches.filter(patch => {
+                if (patch.categories && categoryFilter in patch.categories) {
+                    const categoryItems = patch.categories[categoryFilter as keyof typeof patch.categories];
+                    return categoryItems && categoryItems.length > 0;
                 }
                 return false;
             });
+            // Update filtered for the rest of the function
+            filtered = filteredPatches as unknown as Entity[];
         }
 
         // Changelog date sorting
@@ -624,21 +627,14 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
             const d = new Date(dateStr);
             return isNaN(d.getTime()) ? (sortBy === 'date_asc' ? Infinity : -Infinity) : d.getTime();
         };
+        const patchesForSort = filtered as unknown as ChangelogPatch[];
         if (sortBy === 'date_asc') {
-            filtered.sort((a, b) => {
-                const aDate = (a as unknown as Record<string, unknown>).date as string;
-                const bDate = (b as unknown as Record<string, unknown>).date as string;
-                return getDateValue(aDate) - getDateValue(bDate);
-            });
+            patchesForSort.sort((a, b) => getDateValue(a.date) - getDateValue(b.date));
         } else {
             // Default: newest first
-            filtered.sort((a, b) => {
-                const aDate = (a as unknown as Record<string, unknown>).date as string;
-                const bDate = (b as unknown as Record<string, unknown>).date as string;
-                return getDateValue(bDate) - getDateValue(aDate);
-            });
+            patchesForSort.sort((a, b) => getDateValue(b.date) - getDateValue(a.date));
         }
-        return filtered;
+        return patchesForSort as unknown as Entity[];
     }
 
     // Sorting

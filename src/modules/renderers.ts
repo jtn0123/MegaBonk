@@ -147,10 +147,10 @@ export function renderTabContent(tabName: string): void {
 
 /**
  * Update stats panel
- * @param {Array} filtered - Filtered data
+ * @param {Entity[]} filtered - Filtered data
  * @param {string} tabName - Current tab
  */
-export function updateStats(filtered: any[], tabName: string): void {
+export function updateStats(filtered: Entity[], tabName: string): void {
     const statsPanel = safeGetElementById('stats-summary');
     if (!statsPanel) return;
 

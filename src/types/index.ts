@@ -147,6 +147,7 @@ export interface Shrine {
     effect: string;
     cost?: number | string;
     tags?: string[];
+    type?: 'stat_upgrade' | 'combat' | 'utility' | 'risk_reward';
 }
 
 /**
@@ -217,6 +218,13 @@ export interface ChangelogPatch {
     additions?: string[];
     fixes?: string[];
     removals?: string[];
+    categories?: {
+        balance?: string[];
+        new_content?: string[];
+        bug_fixes?: string[];
+        removed?: string[];
+        other?: string[];
+    };
 }
 
 /**
@@ -304,6 +312,58 @@ export interface StoredMetric {
     formattedValue: string;
     delta: number;
     id: string;
+}
+
+// ========================================
+// Type Guards
+// ========================================
+
+/**
+ * Type guard to check if entity is an Item
+ */
+export function isItem(entity: Entity | ChangelogPatch): entity is Item {
+    return (
+        'rarity' in entity &&
+        'tier' in entity &&
+        !('baseDamage' in entity) &&
+        !('effect' in entity) &&
+        !('baseStats' in entity)
+    );
+}
+
+/**
+ * Type guard to check if entity is a Weapon
+ */
+export function isWeapon(entity: Entity | ChangelogPatch): entity is Weapon {
+    return 'baseDamage' in entity || 'attackSpeed' in entity;
+}
+
+/**
+ * Type guard to check if entity is a Tome
+ */
+export function isTome(entity: Entity | ChangelogPatch): entity is Tome {
+    return 'effect' in entity && 'stackable' in entity;
+}
+
+/**
+ * Type guard to check if entity is a Character
+ */
+export function isCharacter(entity: Entity | ChangelogPatch): entity is Character {
+    return 'baseStats' in entity || 'passive' in entity;
+}
+
+/**
+ * Type guard to check if entity is a Shrine
+ */
+export function isShrine(entity: Entity | ChangelogPatch): entity is Shrine {
+    return 'effect' in entity && !('stackable' in entity) && !('baseDamage' in entity);
+}
+
+/**
+ * Type guard to check if entity is a ChangelogPatch
+ */
+export function isChangelogPatch(entity: Entity | ChangelogPatch): entity is ChangelogPatch {
+    return 'version' in entity && 'changes' in entity;
 }
 
 // ========================================
