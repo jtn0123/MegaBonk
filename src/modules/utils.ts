@@ -2,7 +2,7 @@
 // MegaBonk Utilities Module
 // ========================================
 
-import { TIER_ORDER, RARITY_ORDER } from './constants.js';
+import { TIER_ORDER, RARITY_ORDER } from './constants.ts';
 import type { Entity, SortBy, Tier, Rarity, EntityType } from '../types/index.js';
 
 // ========================================
@@ -118,7 +118,7 @@ export function generateEmptyState(icon: string, entityType: string): string {
             <div class="empty-icon">${icon}</div>
             <h3>No ${entityType} Found</h3>
             <p>Try adjusting your search or filter criteria.</p>
-            <button class="btn-secondary" onclick="clearFilters()">Clear Filters</button>
+            <button class="btn-secondary" data-action="clear-filters">Clear Filters</button>
         </div>
     `;
 }
@@ -228,7 +228,7 @@ export function generateExpandableText(text: string, maxLength: number = 120): s
         <div class="item-description expandable-text"
              data-full-text="${escapeHtml(fullText)}"
              data-truncated="true"
-             onclick="toggleTextExpand(this)">
+             data-action="toggle-text-expand">
             ${html}
             <span class="expand-indicator">Click to expand</span>
         </div>

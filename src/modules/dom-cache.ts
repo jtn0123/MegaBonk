@@ -47,7 +47,6 @@ class DOMCache {
         this.cache.set('shrinesContainer', document.getElementById('shrinesContainer'));
 
         this.initialized = true;
-        console.log('[DOM Cache] Initialized with', this.cache.size, 'cached elements');
     }
 
     /**
@@ -196,7 +195,6 @@ export function getFilterElement(filterId: string): HTMLElement | null {
  */
 export function invalidateDOMCache(): void {
     domCache.invalidateAll();
-    console.log('[DOM Cache] Cache invalidated');
 }
 
 /**
@@ -211,5 +209,4 @@ export function refreshFilterCache(): void {
     domCache.invalidate('sortBy');
     domCache.invalidate('favoritesOnly');
 
-    console.log('[DOM Cache] Filter cache refreshed');
 }

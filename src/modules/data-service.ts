@@ -2,8 +2,8 @@
 // MegaBonk Data Service Module
 // ========================================
 
-import { ToastManager } from './toast.js';
-import { validateAllData, logValidationResults, validateWithZod } from './data-validation.js';
+import { ToastManager } from './toast.ts';
+import { validateAllData, logValidationResults, validateWithZod } from './data-validation.ts';
 import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.js';
 
 // ========================================
@@ -61,37 +61,23 @@ let allData: AllGameData = {
  */
 function validateData(data: unknown, type: DataType): boolean {
     if (!data || typeof data !== 'object') {
-        console.error(`[Data Validation] Invalid structure for ${type}: not an object`);
         return false;
     }
 
     // Skip Zod validation for changelog (schema not yet implemented)
     if (type === 'changelog') {
-        // Fallback to basic validation for changelog
         const changelogData = data as ChangelogData;
         if (!changelogData.patches || !Array.isArray(changelogData.patches)) {
-            console.error(`[Data Validation] Invalid structure for changelog: missing patches array`);
             return false;
         }
-        console.log(`[Data Validation] ✓ changelog: ${changelogData.patches.length} entries`);
         return true;
     }
 
     // Use Zod validation for typed data (items, weapons, tomes, characters, shrines, stats)
-    const zodResult = validateWithZod(data, type);
+    // Validation errors are logged by the validation module itself
+    validateWithZod(data, type);
 
-    if (!zodResult.valid) {
-        console.error(`[Data Validation] Zod schema validation failed for ${type}:`, zodResult.errors);
-        // Still return true to allow app to load with warnings
-        // In production, you might want to return false to block invalid data
-        console.warn(`[Data Validation] ⚠️  Continuing with potentially invalid ${type} data`);
-    } else {
-        const dataObj = data as Record<string, unknown>;
-        const dataKey = type === 'stats' ? 'mechanics' : type;
-        const count = Array.isArray(dataObj[dataKey]) ? dataObj[dataKey].length : 'N/A';
-        console.log(`[Data Validation] ✅ ${type} passed Zod validation: ${count} entries`);
-    }
-
+    // Return true even if validation fails to allow app to load
     return true;
 }
 
@@ -127,26 +113,21 @@ async function fetchWithRetry(url: string, maxRetries: number = 4, initialDelay:
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
-            console.log(`[Fetch] Attempting ${url} (attempt ${attempt + 1}/${maxRetries + 1})`);
             const response = await fetchWithTimeout(url);
 
             if (response.ok) {
-                console.log(`[Fetch] ✓ Success: ${url}`);
                 return response;
             }
 
             // HTTP error
             lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
-            console.warn(`[Fetch] ✗ ${url}: ${lastError.message}`);
         } catch (error) {
             lastError = error as Error;
-            console.warn(`[Fetch] ✗ ${url}: ${(error as Error).message}`);
         }
 
         // Don't wait after the last attempt
         if (attempt < maxRetries) {
             const delay = initialDelay * Math.pow(2, attempt); // Exponential backoff
-            console.log(`[Fetch] Retrying ${url} in ${delay}ms...`);
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }
@@ -206,7 +187,6 @@ export async function loadAllData(): Promise<void> {
 
         // Show warning if validation fails critically
         if (!validationResult.valid && validationResult.errors.length > 10) {
-            console.error('[Data Service] ⚠ Multiple validation errors detected. Data may be inconsistent.');
         }
 
         // Update version info
@@ -231,7 +211,6 @@ export async function loadAllData(): Promise<void> {
             windowWithLoadBuild.loadBuildFromURL();
         }
     } catch (error) {
-        console.error('Error loading data:', error);
         hideLoading();
         showErrorMessage(
             `Could not load game data. ${(error as Error).message || 'Please check your connection and try again.'}`

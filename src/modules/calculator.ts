@@ -3,7 +3,7 @@
 // ========================================
 
 import type { Item } from '../types/index.js';
-import { safeSetValue } from './utils.js';
+import { safeSetValue } from './utils.ts';
 
 // ========================================
 // Type Definitions
@@ -37,7 +37,7 @@ interface CalculatorResult {
 export function populateCalculatorItems(): void {
     const select = document.getElementById('calc-item-select') as HTMLSelectElement | null;
     if (!select || !allData.items?.items) {
-        console.warn('Calculator items dropdown not found or data not loaded');
+        return; // Calculator not ready
         return;
     }
 
@@ -58,7 +58,6 @@ export function populateCalculatorItems(): void {
         select.appendChild(option);
     });
 
-    console.log(`[Calculator] Loaded ${scalingItems.length} items with scaling`);
 }
 
 /**
@@ -70,7 +69,7 @@ export function calculateBreakpoint(): void {
     const resultDiv = document.getElementById('calc-results');
 
     if (!select || !input || !resultDiv) {
-        console.warn('Calculator elements not found');
+        return; // Calculator elements not ready
         return;
     }
 
