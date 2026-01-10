@@ -12,6 +12,7 @@ import {
     validateStats,
 } from './schema-validator.ts';
 import { VALID_RARITIES, VALID_TIERS } from './constants.ts';
+import { logger } from './logger.ts';
 import type { ValidationResult, AllGameData, EntityType, Rarity, Tier } from '../types/index.ts';
 
 // ========================================
@@ -347,19 +348,40 @@ export function validateAllData(allData: AllGameData | null | undefined): Compre
 }
 
 /**
- * Log validation results to console
+ * Log validation results using wide events
  */
 export function logValidationResults(result: ComprehensiveValidationResult): void {
     if (result.valid) {
-        console.log('[Data Validation] ✓ All data is valid');
+        logger.info({
+            operation: 'data.validate',
+            success: true,
+            data: {
+                valid: true,
+                errorCount: 0,
+                warningCount: result.warnings.length,
+            },
+        });
     } else {
-        console.error('[Data Validation] ✗ Validation failed');
-        result.errors.forEach(error => console.error(`  - ${error}`));
+        logger.error({
+            operation: 'data.validate',
+            success: false,
+            data: {
+                valid: false,
+                errorCount: result.errors.length,
+                warningCount: result.warnings.length,
+                errors: result.errors.slice(0, 10), // Limit to first 10 errors
+            },
+        });
     }
 
     if (result.warnings.length > 0) {
-        console.warn('[Data Validation] ⚠ Warnings:');
-        result.warnings.forEach(warning => console.warn(`  - ${warning}`));
+        logger.warn({
+            operation: 'data.validate',
+            data: {
+                warningCount: result.warnings.length,
+                warnings: result.warnings.slice(0, 10), // Limit to first 10 warnings
+            },
+        });
     }
 }
 

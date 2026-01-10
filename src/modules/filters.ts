@@ -5,6 +5,7 @@
 import type { Entity, EntityType, Item, ChangelogPatch, SortBy } from '../types/index.ts';
 import { isItem, isShrine } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // Type Definitions
@@ -510,6 +511,8 @@ export function updateFilters(tabName: string): void {
  * @returns {Entity[]} Filtered data array
  */
 export function filterData(data: Entity[], tabName: string): Entity[] {
+    const filterStartTime = performance.now();
+    const originalCount = data.length;
     let filtered = [...data];
     // Bug fix #12: Complete optional chaining to handle null element AND null value
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
@@ -637,6 +640,23 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
             // Default: newest first
             patchesForSort.sort((a, b) => getDateValue(b.date) - getDateValue(a.date));
         }
+
+        // Log filter event for changelog
+        const filterDuration = Math.round(performance.now() - filterStartTime);
+        if (searchQuery.trim() || categoryFilter !== 'all') {
+            logger.debug({
+                operation: 'filter.apply',
+                durationMs: filterDuration,
+                data: {
+                    tabName,
+                    searchQuery: searchQuery.trim(),
+                    filters: { category: categoryFilter, sortBy },
+                    totalItems: originalCount,
+                    matchedItems: patchesForSort.length,
+                },
+            });
+        }
+
         return patchesForSort as unknown as Entity[];
     }
 
@@ -645,6 +665,31 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
     const sortBy = sortByEl?.value;
     if (sortBy) {
         sortData(filtered, sortBy as SortBy);
+    }
+
+    // Log filter event
+    const filterDuration = Math.round(performance.now() - filterStartTime);
+    const logTierFilter = tierFilterEl?.value || 'all';
+    const logFavoritesOnly = favoritesOnlyEl?.checked || false;
+
+    // Only log if there's an active filter (not just initial load)
+    if (searchQuery.trim() || logTierFilter !== 'all' || logFavoritesOnly) {
+        logger.debug({
+            operation: 'filter.apply',
+            durationMs: filterDuration,
+            data: {
+                tabName,
+                searchQuery: searchQuery.trim(),
+                filters: {
+                    tier: logTierFilter,
+                    favoritesOnly: logFavoritesOnly,
+                    sortBy,
+                },
+                totalItems: originalCount,
+                matchedItems: filtered.length,
+                matchType: searchQuery.trim() ? 'fuzzy' : 'standard',
+            },
+        });
     }
 
     return filtered;

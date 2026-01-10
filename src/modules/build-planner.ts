@@ -7,6 +7,7 @@ import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
 import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue } from './utils.ts';
 import { BUILD_ITEMS_LIMIT, DEFAULT_BUILD_STATS, ITEM_EFFECTS, type BuildStats, type ItemEffect } from './constants.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // Type Definitions
@@ -190,6 +191,22 @@ export function saveBuildToHistory(): void {
         history = history.slice(0, MAX_BUILD_HISTORY);
 
         localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
+
+        // Log build save event
+        logger.info({
+            operation: 'build.save',
+            data: {
+                action: 'save_to_history',
+                characterId: currentBuild.character?.id,
+                weaponId: currentBuild.weapon?.id,
+                tomeIds: currentBuild.tomes.map((t: Tome) => t.id),
+                itemIds: currentBuild.items.map((i: Item) => i.id),
+                tomesCount: currentBuild.tomes.length,
+                itemsCount: currentBuild.items.length,
+                historySize: history.length,
+            },
+        });
+
         ToastManager.success(`Build "${buildData.name}" saved to history!`);
     } catch (error) {
         // Toast handles user feedback
@@ -215,6 +232,21 @@ export function loadBuildFromHistory(index: number): void {
             return;
         }
         loadBuildFromData(buildData);
+
+        // Log build load event
+        logger.info({
+            operation: 'build.load',
+            data: {
+                action: 'load_from_history',
+                source: 'history',
+                historyIndex: index,
+                characterId: buildData.character,
+                weaponId: buildData.weapon,
+                tomesCount: buildData.tomes?.length || 0,
+                itemsCount: buildData.items?.length || 0,
+            },
+        });
+
         ToastManager.success(`Loaded "${buildData.name || 'Build'}" from history`);
     } catch (error) {
         // Toast handles user feedback
@@ -665,6 +697,18 @@ export function shareBuildURL(): void {
     const encoded = btoa(JSON.stringify(buildData));
     const url = `${window.location.origin}${window.location.pathname}#build=${encoded}`;
 
+    // Log build share event
+    logger.info({
+        operation: 'build.share',
+        data: {
+            action: 'share_url',
+            characterId: currentBuild.character?.id,
+            weaponId: currentBuild.weapon?.id,
+            tomesCount: currentBuild.tomes.length,
+            itemsCount: currentBuild.items.length,
+        },
+    });
+
     navigator.clipboard
         .writeText(url)
         .then(() => {
@@ -735,6 +779,20 @@ export function loadBuildFromURL(): boolean {
         }
 
         updateBuildAnalysis();
+
+        // Log build load from URL event
+        logger.info({
+            operation: 'build.load',
+            data: {
+                action: 'load_from_url',
+                source: 'url',
+                characterId: currentBuild.character?.id,
+                weaponId: currentBuild.weapon?.id,
+                tomesCount: currentBuild.tomes.length,
+                itemsCount: currentBuild.items.length,
+            },
+        });
+
         ToastManager.success('Build loaded from URL!');
         return true;
     } catch (error) {
@@ -782,6 +840,18 @@ export function updateBuildURL(): void {
  * Clear the current build
  */
 export function clearBuild(): void {
+    // Log build clear event before clearing
+    logger.info({
+        operation: 'build.clear',
+        data: {
+            action: 'clear',
+            hadCharacter: currentBuild.character !== null,
+            hadWeapon: currentBuild.weapon !== null,
+            tomesCleared: currentBuild.tomes.length,
+            itemsCleared: currentBuild.items.length,
+        },
+    });
+
     currentBuild = { character: null, weapon: null, tomes: [], items: [] };
     safeSetValue('build-character', '');
     safeSetValue('build-weapon', '');
