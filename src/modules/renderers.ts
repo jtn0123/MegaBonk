@@ -146,42 +146,26 @@ export function renderTabContent(tabName: string): void {
 }
 
 /**
- * Update stats panel
+ * Update item count badge
  * @param {Entity[]} filtered - Filtered data
  * @param {string} tabName - Current tab
  */
 export function updateStats(filtered: Entity[], tabName: string): void {
-    const statsPanel = safeGetElementById('stats-summary');
-    if (!statsPanel) return;
+    const itemCount = safeGetElementById('item-count');
+    if (!itemCount) return;
 
     const totalCount = getDataForTab(tabName).length;
     const showingCount = filtered.length;
 
-    if (tabName === 'items') {
-        const items = filtered as Item[];
-        const oneAndDone = items.filter(i => i.one_and_done).length;
-        const stackWell = items.filter(i => i.stacks_well).length;
+    // Get singular/plural label based on tab
+    const categoryName = tabName && tabName.length > 0 ? tabName : 'items';
+    const label = showingCount === 1 ? categoryName.slice(0, -1) : categoryName;
 
-        statsPanel.innerHTML = `
-            <h2>📊 Quick Stats</h2>
-            <div class="stats-grid">
-                <div class="stat-item"><span class="stat-label">Total Items:</span><span class="stat-value">${totalCount}</span></div>
-                <div class="stat-item"><span class="stat-label">Showing:</span><span class="stat-value">${showingCount}</span></div>
-                <div class="stat-item"><span class="stat-label">One-and-Done:</span><span class="stat-value">${oneAndDone}</span></div>
-                <div class="stat-item"><span class="stat-label">Stack Well:</span><span class="stat-value">${stackWell}</span></div>
-            </div>
-        `;
+    // Show "X items" or "X/Y items" if filtered
+    if (showingCount === totalCount) {
+        itemCount.textContent = `${showingCount} ${label}`;
     } else {
-        // Bug fix: Handle empty tabName to prevent errors
-        const categoryName =
-            tabName && tabName.length > 0 ? tabName.charAt(0).toUpperCase() + tabName.slice(1) : 'Items';
-        statsPanel.innerHTML = `
-            <h2>📊 Quick Stats</h2>
-            <div class="stats-grid">
-                <div class="stat-item"><span class="stat-label">Total ${categoryName}:</span><span class="stat-value">${totalCount}</span></div>
-                <div class="stat-item"><span class="stat-label">Showing:</span><span class="stat-value">${showingCount}</span></div>
-            </div>
-        `;
+        itemCount.textContent = `${showingCount}/${totalCount} ${label}`;
     }
 }
 

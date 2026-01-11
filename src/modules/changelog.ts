@@ -310,43 +310,22 @@ export function toggleChangelogExpand(button: HTMLButtonElement): void {
 }
 
 /**
- * Update changelog stats panel
+ * Update changelog item count badge
  * @param patches - Filtered patches array
  */
 export function updateChangelogStats(patches: ExtendedPatch[]): void {
-    const statsPanel = safeGetElementById('stats-summary');
-    if (!statsPanel) return;
+    const itemCount = safeGetElementById('item-count');
+    if (!itemCount) return;
 
     const totalPatches = allData.changelog?.patches?.length || 0;
     const showingPatches = patches.length;
 
-    // Count total changes across categories
-    let totalChanges = 0;
-    let buffs = 0;
-    let nerfs = 0;
-    let _fixes = 0; // Counted but not displayed (reserved for future use)
-
-    patches.forEach(patch => {
-        Object.values(patch.categories || {}).forEach(changes => {
-            if (!changes) return;
-            changes.forEach(change => {
-                totalChanges++;
-                if (change.change_type === 'buff') buffs++;
-                if (change.change_type === 'nerf') nerfs++;
-                if (change.change_type === 'fix') _fixes++;
-            });
-        });
-    });
-
-    statsPanel.innerHTML = `
-        <h2>📊 Changelog Stats</h2>
-        <div class="stats-grid">
-            <div class="stat-item"><span class="stat-label">Total Patches:</span><span class="stat-value">${totalPatches}</span></div>
-            <div class="stat-item"><span class="stat-label">Showing:</span><span class="stat-value">${showingPatches}</span></div>
-            <div class="stat-item"><span class="stat-label">Total Changes:</span><span class="stat-value">${totalChanges}</span></div>
-            <div class="stat-item"><span class="stat-label">Buffs / Nerfs:</span><span class="stat-value">${buffs} / ${nerfs}</span></div>
-        </div>
-    `;
+    // Show "X patches" or "X/Y patches" if filtered
+    if (showingPatches === totalPatches) {
+        itemCount.textContent = `${showingPatches} patches`;
+    } else {
+        itemCount.textContent = `${showingPatches}/${totalPatches} patches`;
+    }
 }
 
 // ========================================

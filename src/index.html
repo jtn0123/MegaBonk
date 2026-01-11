@@ -98,9 +98,6 @@
         </script>
     </head>
     <body>
-        <!-- Skip to Content Link (Accessibility) -->
-        <a href="#main-content" class="skip-to-content">Skip to main content</a>
-
         <!-- Loading Overlay -->
         <div id="loading-overlay" class="loading-overlay" role="alert" aria-live="assertive" aria-busy="true">
             <div class="loading-spinner"></div>
@@ -214,6 +211,8 @@
                     />
                 </div>
 
+                <span id="item-count" class="item-count" aria-live="polite">0 items</span>
+
                 <div class="filters" id="filters" aria-label="Filter options">
                     <!-- Filters dynamically updated based on active tab -->
                 </div>
@@ -221,17 +220,6 @@
         </nav>
 
         <main id="main-content" class="container">
-            <!-- Stats Summary (context-sensitive) -->
-            <div
-                id="stats-summary"
-                class="stats-panel"
-                role="region"
-                aria-label="Statistics summary"
-                aria-live="polite"
-            >
-                <!-- Dynamically populated based on active tab -->
-            </div>
-
             <!-- Tab Content Containers -->
             <div id="tab-content">
                 <!-- Items Tab -->

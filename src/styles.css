@@ -114,25 +114,6 @@ body {
    Focus States (Accessibility)
    ======================================== */
 
-/* Skip to Content Link - WCAG AAA */
-.skip-to-content {
-    position: absolute;
-    top: -40px;
-    left: 0;
-    background: var(--accent);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    text-decoration: none;
-    font-weight: 600;
-    z-index: 10001;
-    border-radius: 0 0 8px 0;
-    transition: top 0.3s ease;
-}
-
-.skip-to-content:focus {
-    top: 0;
-}
-
 /* Default focus-visible state for keyboard navigation */
 :focus-visible {
     outline: 2px solid var(--accent);
@@ -496,44 +477,17 @@ header h1 {
 }
 
 /* ========================================
-   Stats Panel
+   Item Count Badge
    ======================================== */
 
-.stats-panel {
-    background: var(--bg-light);
-    padding: 0.75rem 1rem;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
-}
-
-.stats-panel h2 {
-    margin-bottom: 0.5rem;
-    font-size: 1rem;
-    color: var(--legendary);
-}
-
-.stats-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-}
-
-.stat-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem;
-    background: var(--bg-dark);
-    border-radius: 6px;
-}
-
-.stat-label {
+.item-count {
+    font-size: 0.8rem;
     color: var(--text-muted);
-}
-
-.stat-value {
-    font-weight: bold;
-    color: var(--accent);
+    padding: 0.25rem 0.6rem;
+    background: var(--bg-dark);
+    border-radius: 4px;
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 /* ========================================
@@ -1066,16 +1020,6 @@ footer a:hover {
         flex: 0 0 auto;
         width: auto;
         min-width: 100px;
-    }
-
-    /* Stats panel */
-    .stats-panel {
-        padding: 0.5rem 0.75rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .stats-grid {
-        gap: 0.5rem;
     }
 
     /* Items grid */
