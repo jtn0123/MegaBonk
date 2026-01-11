@@ -377,8 +377,8 @@ function renderItemModal(data: ModalItem): string {
         <div class="item-effect" style="margin-top: 1rem;">${data.base_effect}</div>
         <p>${data.detailed_description}</p>
         ${hiddenMechanicsHtml}
-        <div class="item-formula"><strong>Formula:</strong> ${data.formula}</div>
         ${graphHtml}
+        <div class="item-formula"><strong>Formula:</strong> ${data.formula}</div>
         ${data.synergies?.length ? `<div class="synergies-section"><h3>Synergies</h3><div class="synergy-list">${data.synergies.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div></div>` : ''}
         ${data.anti_synergies?.length ? `<div class="anti-synergies-section"><h3>Anti-Synergies</h3><div class="antisynergy-list">${data.anti_synergies.map(s => `<span class="antisynergy-tag">${s}</span>`).join('')}</div></div>` : ''}
     `;
