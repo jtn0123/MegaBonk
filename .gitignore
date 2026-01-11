@@ -49,3 +49,4 @@ test-results/
 
 # Claude Code
 .claude/
+fix_claude.sh
