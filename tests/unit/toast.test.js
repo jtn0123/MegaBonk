@@ -76,29 +76,25 @@ describe('ToastManager', () => {
         });
 
         it('should add toast-visible class via requestAnimationFrame', async () => {
-            vi.useRealTimers(); // Use real timers for this test
             const toast = ToastManager.show('Test message');
 
             // Initially should not have visible class
             expect(toast.classList.contains('toast-visible')).toBe(false);
 
-            // Wait for requestAnimationFrame to run (use setTimeout as fallback in jsdom)
-            await new Promise(resolve => setTimeout(resolve, 20));
+            // Advance timers to process requestAnimationFrame
+            await vi.runAllTimersAsync();
             expect(toast.classList.contains('toast-visible')).toBe(true);
         });
 
         it('should auto-dismiss after duration', async () => {
-            vi.useRealTimers(); // Use real timers for this test
             const toast = ToastManager.show('Test message', 'info', 50); // Short duration
 
-            // Wait for requestAnimationFrame
-            await new Promise(resolve => requestAnimationFrame(resolve));
-
-            // Should have visible class after animation frame
+            // Advance timers past the animation frame
+            await vi.advanceTimersByTimeAsync(1);
             expect(toast.classList.contains('toast-visible')).toBe(true);
 
-            // After duration, visible class should be removed
-            await new Promise(resolve => setTimeout(resolve, 60));
+            // Advance timers past the duration (50ms + buffer)
+            await vi.advanceTimersByTimeAsync(60);
             expect(toast.classList.contains('toast-visible')).toBe(false);
         });
 

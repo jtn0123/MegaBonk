@@ -7,9 +7,9 @@
     "doc": "docs"
   },
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview",
+    "dev": "vite --config vite.build.config.js",
+    "build": "vite build --config vite.build.config.js",
+    "preview": "vite preview --config vite.build.config.js",
     "serve": "python3 serve.py",
     "sync": "npx cap sync",
     "android": "npx cap sync && npx cap open android",
@@ -18,7 +18,7 @@
     "build:ios": "npx cap sync ios && npx cap open ios",
     "optimize:images": "node scripts/convert-to-webp.js",
     "version:inject": "node scripts/inject-version.js",
-    "test": "npx vitest",
+    "test": "node scripts/test.mjs",
     "test:unit": "node scripts/run-tests.mjs",
     "test:unit:coverage": "node scripts/run-coverage.mjs",
     "test:unit:coverage:quick": "npx vitest run --coverage --shard=1/5",
