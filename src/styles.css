@@ -752,6 +752,21 @@ picture img {
     overflow-x: auto;
 }
 
+/* KaTeX overrides for dark theme */
+.item-formula .katex {
+    color: var(--text-primary);
+    font-size: 1.1em;
+}
+
+.item-formula .katex .mord.text {
+    color: var(--accent);
+}
+
+.formula-text {
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
 .item-notes {
     font-size: 0.8rem;
     color: var(--text-secondary);

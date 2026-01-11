@@ -6,6 +6,7 @@ import { allData } from './data-service.ts';
 import { ToastManager } from './toast.ts';
 import { safeGetElementById, generateModalImage } from './utils.ts';
 import { logger } from './logger.ts';
+import { renderFormulaDisplay } from './formula-renderer.ts';
 import type { Tier, Rarity, EntityType } from '../types/index.ts';
 
 // ========================================
@@ -378,7 +379,7 @@ function renderItemModal(data: ModalItem): string {
         <p>${data.detailed_description}</p>
         ${hiddenMechanicsHtml}
         ${graphHtml}
-        <div class="item-formula"><strong>Formula:</strong> ${data.formula}</div>
+        <div class="item-formula"><strong>Formula:</strong> ${renderFormulaDisplay(data.formula)}</div>
         ${data.synergies?.length ? `<div class="synergies-section"><h3>Synergies</h3><div class="synergy-list">${data.synergies.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div></div>` : ''}
         ${data.anti_synergies?.length ? `<div class="anti-synergies-section"><h3>Anti-Synergies</h3><div class="antisynergy-list">${data.anti_synergies.map(s => `<span class="antisynergy-tag">${s}</span>`).join('')}</div></div>` : ''}
     `;
@@ -729,12 +730,12 @@ async function renderTomeModal(data: ModalTome): Promise<string> {
             <span class="badge" style="background: var(--bg-dark);">Priority: ${data.priority}</span>
         </div>
         <div class="tome-effect" style="margin-top: 1rem;">
-            <strong>Stat:</strong> ${data.stat_affected}<br>
-            <strong>Per Level:</strong> ${data.value_per_level}
+            <strong>Stat:</strong> ${data.stat_affected}
         </div>
         <p>${data.description}</p>
         ${graphHtml}
-        ${data.notes ? `<div class="item-formula">${data.notes}</div>` : ''}
+        <div class="item-formula"><strong>Per Level:</strong> ${renderFormulaDisplay(String(data.value_per_level))}</div>
+        ${data.notes ? `<div class="item-notes">${data.notes}</div>` : ''}
         <div class="item-notes"><strong>Recommended for:</strong> ${Array.isArray(data.recommended_for) ? data.recommended_for.join(', ') : 'General use'}</div>
     `;
 
