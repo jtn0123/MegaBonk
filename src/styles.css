@@ -816,7 +816,8 @@ picture img {
 /* When button follows a graph or placeholder, use normal spacing instead */
 .item-graph-container + .view-details-btn,
 .item-graph-placeholder + .view-details-btn,
-.tome-graph-container + .view-details-btn {
+.tome-graph-container + .view-details-btn,
+.tome-graph-placeholder + .view-details-btn {
     margin-top: 0.75rem;
 }
 
@@ -2287,6 +2288,21 @@ button.breakpoint-card {
     align-items: center;
     justify-content: center;
     height: 60px;
+    margin: 1rem 0;
+    margin-top: auto;
+    padding: 0.75rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.tome-graph-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 50px;
     margin: 1rem 0;
     margin-top: auto;
     padding: 0.75rem;

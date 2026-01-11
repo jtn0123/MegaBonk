@@ -410,6 +410,40 @@ describe('Renderers Module', () => {
             const container = document.getElementById('itemsContainer');
             expect(container.querySelector('.item-graph-container')).toBeNull();
         });
+
+        it('should show placeholder for one_and_done items', () => {
+            const oneAndDoneItem = [
+                {
+                    ...mockItems[0],
+                    scaling_per_stack: [1, 2, 3],
+                    one_and_done: true,
+                    graph_type: 'linear',
+                },
+            ];
+            renderItems(oneAndDoneItem);
+
+            const container = document.getElementById('itemsContainer');
+            const placeholder = container.querySelector('.item-graph-placeholder');
+            expect(placeholder).not.toBeNull();
+            expect(placeholder.textContent).toContain('One-and-done');
+        });
+
+        it('should show placeholder for flat graph_type items', () => {
+            const flatItem = [
+                {
+                    ...mockItems[0],
+                    scaling_per_stack: [1, 1, 1],
+                    one_and_done: false,
+                    graph_type: 'flat',
+                },
+            ];
+            renderItems(flatItem);
+
+            const container = document.getElementById('itemsContainer');
+            const placeholder = container.querySelector('.item-graph-placeholder');
+            expect(placeholder).not.toBeNull();
+            expect(placeholder.textContent).toContain('Flat bonus');
+        });
     });
 
     describe('renderWeapons()', () => {
@@ -538,6 +572,64 @@ describe('Renderers Module', () => {
 
             const container = document.getElementById('tomesContainer');
             expect(container.innerHTML).toContain('empty-state');
+        });
+
+        it('should show placeholder for tomes without valid progression data', () => {
+            const tomeWithoutProgression = [
+                {
+                    id: 'tome2',
+                    name: 'Mystery Tome',
+                    tier: 'B',
+                    priority: 3,
+                    stat_affected: 'Unknown',
+                    value_per_level: null,
+                    description: 'Unknown effect',
+                },
+            ];
+            renderTomes(tomeWithoutProgression);
+
+            const container = document.getElementById('tomesContainer');
+            const placeholder = container.querySelector('.tome-graph-placeholder');
+            expect(placeholder).not.toBeNull();
+            expect(placeholder.textContent).toContain('No progression data');
+        });
+
+        it('should show placeholder for tomes with non-numeric value_per_level', () => {
+            const tomeWithTextOnly = [
+                {
+                    id: 'tome3',
+                    name: 'Text Tome',
+                    tier: 'C',
+                    priority: 5,
+                    stat_affected: 'Special',
+                    value_per_level: 'Variable effect',
+                    description: 'Effect varies',
+                },
+            ];
+            renderTomes(tomeWithTextOnly);
+
+            const container = document.getElementById('tomesContainer');
+            const placeholder = container.querySelector('.tome-graph-placeholder');
+            expect(placeholder).not.toBeNull();
+        });
+
+        it('should show graph container for tomes with valid numeric value_per_level', () => {
+            const tomeWithProgression = [
+                {
+                    id: 'tome4',
+                    name: 'Numeric Tome',
+                    tier: 'A',
+                    priority: 2,
+                    stat_affected: 'Damage',
+                    value_per_level: '+10% damage',
+                    description: 'Increases damage',
+                },
+            ];
+            renderTomes(tomeWithProgression);
+
+            const container = document.getElementById('tomesContainer');
+            expect(container.querySelector('.tome-graph-container')).not.toBeNull();
+            expect(container.querySelector('.tome-graph-placeholder')).toBeNull();
         });
     });
 

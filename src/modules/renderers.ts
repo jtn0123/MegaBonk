@@ -348,10 +348,17 @@ export function renderTomes(tomes: Tome[]): void {
         const imageHtml = generateEntityImage(tome, tome.name);
         const isFav = typeof isFavorite === 'function' ? isFavorite('tomes', tome.id) : false;
 
-        // Placeholder for progression - will be calculated dynamically
-        const graphHtml = `
+        // Check if tome has valid progression data (numeric value in value_per_level)
+        const hasProgression = tome.value_per_level && /[+-]?[\d.]+/.test(tome.value_per_level);
+        const graphHtml = hasProgression
+            ? `
             <div class="tome-graph-container">
                 <canvas id="tome-chart-${tome.id}" class="scaling-chart"></canvas>
+            </div>
+        `
+            : `
+            <div class="tome-graph-placeholder">
+                <span>No progression data available</span>
             </div>
         `;
 
