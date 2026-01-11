@@ -700,14 +700,51 @@ picture img {
     overflow-x: auto;
 }
 
-/* KaTeX overrides for dark theme */
-.item-formula .katex {
-    color: var(--text-primary);
-    font-size: 1.1em;
+/* Formula rendering styles (CSS-only, no KaTeX) */
+.formula-container {
+    font-family: 'Cambria Math', 'Times New Roman', Georgia, serif;
+    font-style: italic;
+    line-height: 1.4;
 }
 
-.item-formula .katex .mord.text {
+.formula-display {
+    display: block;
+    text-align: center;
+    font-size: 1.1em;
+    margin: 0.5rem 0;
+}
+
+.formula-fraction {
+    display: inline-flex;
+    flex-direction: column;
+    text-align: center;
+    vertical-align: middle;
+    margin: 0 0.2em;
+    font-size: 0.9em;
+}
+
+.formula-num {
+    border-bottom: 1px solid var(--text-primary);
+    padding: 0 0.3em 0.15em;
+}
+
+.formula-den {
+    padding: 0.15em 0.3em 0;
+}
+
+.formula-var {
     color: var(--accent);
+    font-weight: 500;
+}
+
+.formula-op {
+    color: var(--text-secondary);
+    padding: 0 0.15em;
+}
+
+.formula-eq {
+    color: var(--text-primary);
+    padding: 0 0.3em;
 }
 
 .formula-text {

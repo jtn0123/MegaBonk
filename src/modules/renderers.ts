@@ -649,5 +649,7 @@ function truncateSearchDescription(text: string, maxLength: number): string {
 // Register renderTabContent for type-safe cross-module access
 registerFunction('renderTabContent', renderTabContent);
 // Keep window assignment for backwards compatibility during migration
-(window as any).renderTabContent = renderTabContent;
-(window as any).renderGlobalSearchResults = renderGlobalSearchResults;
+if (typeof window !== 'undefined') {
+    (window as any).renderTabContent = renderTabContent;
+    (window as any).renderGlobalSearchResults = renderGlobalSearchResults;
+}

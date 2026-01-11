@@ -36,6 +36,7 @@ export default defineConfig({
         // Limit hanging test timeouts
         testTimeout: 30000,
         hookTimeout: 30000,
+        bail: 0, // Run all tests, don't stop on failure
         coverage: {
             provider: 'istanbul', // Changed from v8 - lower memory footprint
             reporter: ['text', 'json', 'html', 'lcov'],

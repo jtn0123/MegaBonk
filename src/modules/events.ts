@@ -760,7 +760,9 @@ export function getSavedTab(): TabName {
 // Register switchTab for type-safe cross-module access
 registerFunction('switchTab', switchTab);
 // Keep window assignment for backwards compatibility during migration
-(window as any).switchTab = switchTab;
+if (typeof window !== 'undefined') {
+    (window as any).switchTab = switchTab;
+}
 
 // ========================================
 // Exported API
