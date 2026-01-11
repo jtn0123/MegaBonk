@@ -7,12 +7,12 @@
       "name": "Fox",
       "tier": "A",
       "starting_weapon": "Firestaff",
-      "passive_ability": "Gain 2% Luck per level",
+      "passive_ability": "Gain 2% luck per level",
       "passive_description": "Increases item rarity with each level. Better drops throughout the run.",
       "unlock_requirement": null,
       "unlock_cost_silver": 0,
       "unlocked_by_default": true,
-      "playstyle": "Luck-based item hunter",
+      "playstyle": "luck-based item hunter",
       "best_for": [
         "Item farming",
         "Better drops",
@@ -29,17 +29,17 @@
       ],
       "synergies_items": [
         "Clover",
-        "Luck items"
+        "luck items"
       ],
       "synergies_tomes": [
-        "Luck",
-        "XP"
+        "luck",
+        "xp"
       ],
       "synergies_weapons": [
         "Firestaff",
         "Dragon's Breath"
       ],
-      "build_tips": "Focus on leveling fast with XP tome. Better items = better run. Luck compounds over time.",
+      "build_tips": "Focus on leveling fast with xp tome. Better items = better run. luck compounds over time.",
       "image": "images/characters/fox.png"
     },
     {
@@ -47,8 +47,8 @@
       "name": "Sir Oofie",
       "tier": "S",
       "starting_weapon": "Sword",
-      "passive_ability": "Gain 1% Armor per level",
-      "passive_description": "Becomes incredibly tanky. Armor reduces damage with hyperbolic scaling.",
+      "passive_ability": "Gain 1% armor per level",
+      "passive_description": "Becomes incredibly tanky. armor reduces damage with hyperbolic scaling.",
       "unlock_requirement": null,
       "unlock_cost_silver": 0,
       "unlocked_by_default": true,
@@ -62,7 +62,7 @@
       "strengths": [
         "Extreme tankiness",
         "Beginner-friendly",
-        "Armor scaling"
+        "armor scaling"
       ],
       "weaknesses": [
         "Lower damage output",
@@ -70,20 +70,20 @@
       ],
       "synergies_items": [
         "Spiky Shield",
-        "HP items",
-        "Armor items"
+        "hp items",
+        "armor items"
       ],
       "synergies_tomes": [
-        "Armor",
-        "HP",
-        "Thorns"
+        "armor",
+        "hp",
+        "thorns"
       ],
       "synergies_weapons": [
         "Sword",
         "Aura",
         "Aegis"
       ],
-      "build_tips": "Stack HP and armor. Add thorns for passive damage. Unkillable late game.",
+      "build_tips": "Stack hp and armor. Add thorns for passive damage. Unkillable late game.",
       "image": "images/characters/sir_oofie.png"
     },
     {
@@ -118,9 +118,9 @@
         "Giant Fork"
       ],
       "synergies_tomes": [
-        "Precision",
-        "Damage",
-        "Cooldown"
+        "precision",
+        "damage",
+        "cooldown"
       ],
       "synergies_weapons": [
         "Revolver",
@@ -136,7 +136,7 @@
       "name": "Calcium",
       "tier": "A",
       "starting_weapon": "Bone",
-      "passive_ability": "Speed accumulates over time, halved when damaged. Damage scales with speed.",
+      "passive_ability": "Speed accumulates over time, halved when damaged. damage scales with speed.",
       "passive_description": "Speed ramps up infinitely if you don't get hit. High skill, high reward.",
       "unlock_requirement": "Kill 1,000 Skeletons",
       "unlock_cost_silver": 9,
@@ -160,18 +160,18 @@
       "synergies_items": [
         "Turbo Socks",
         "Turbo Skates",
-        "Evasion items"
+        "evasion items"
       ],
       "synergies_tomes": [
-        "Agility",
-        "Evasion",
-        "Damage"
+        "agility",
+        "evasion",
+        "damage"
       ],
       "synergies_weapons": [
         "Bone",
         "Ranged weapons"
       ],
-      "build_tips": "Don't get hit! Speed = damage. Evasion helps maintain stacks.",
+      "build_tips": "Don't get hit! Speed = damage. evasion helps maintain stacks.",
       "image": "images/characters/calcium.png"
     },
     {
@@ -179,16 +179,16 @@
       "name": "Ogre",
       "tier": "S",
       "starting_weapon": "Axe",
-      "passive_ability": "Gain 1.5% Damage per level",
+      "passive_ability": "Gain 1.5% damage per level",
       "passive_description": "Straight damage scaling. Simple and effective.",
       "unlock_requirement": "Kill 15,000 Goblins",
       "unlock_cost_silver": 12,
       "unlocked_by_default": false,
       "playstyle": "High damage bruiser",
       "best_for": [
-        "Damage builds",
+        "damage builds",
         "Axe",
-        "Size scaling"
+        "size scaling"
       ],
       "strengths": [
         "Consistent damage scaling",
@@ -202,18 +202,18 @@
       "synergies_items": [
         "Gym Sauce",
         "Beefy Ring",
-        "Damage items"
+        "damage items"
       ],
       "synergies_tomes": [
-        "Damage",
-        "Size",
-        "Duration"
+        "damage",
+        "size",
+        "duration"
       ],
       "synergies_weapons": [
         "Axe",
         "All weapons"
       ],
-      "build_tips": "Pure offense. Size + Damage on Axe is devastating.",
+      "build_tips": "Pure offense. size + damage on Axe is devastating.",
       "image": "images/characters/ogre.png"
     },
     {
@@ -221,7 +221,7 @@
       "name": "Bush",
       "tier": "S",
       "starting_weapon": "Sniper Rifle",
-      "passive_ability": "Gain 1% Crit Damage per level",
+      "passive_ability": "Gain 1% Crit damage per level",
       "passive_description": "Crit damage scaling. Pairs perfectly with crit chance sources.",
       "unlock_requirement": "Defeat Bush in Forest",
       "unlock_cost_silver": 21,
@@ -247,8 +247,8 @@
         "Boss Buster"
       ],
       "synergies_tomes": [
-        "Precision",
-        "Damage"
+        "precision",
+        "damage"
       ],
       "synergies_weapons": [
         "Sniper Rifle",
@@ -284,20 +284,20 @@
         "Blood Magic weapon"
       ],
       "synergies_items": [
-        "Bloody Cleaver",
+        "bloody Cleaver",
         "Demonic Blade",
         "Chonkplate"
       ],
       "synergies_tomes": [
-        "Bloody",
-        "Cooldown",
-        "Damage"
+        "bloody",
+        "cooldown",
+        "damage"
       ],
       "synergies_weapons": [
         "Blood Magic",
         "Fast weapons"
       ],
-      "build_tips": "Attack speed = more heals. Bloody Cleaver is core. Unkillable.",
+      "build_tips": "Attack speed = more heals. bloody Cleaver is core. Unkillable.",
       "image": "images/characters/vlad.png"
     },
     {
@@ -332,8 +332,8 @@
         "Spicy Meatball"
       ],
       "synergies_tomes": [
-        "Cooldown",
-        "Damage"
+        "cooldown",
+        "damage"
       ],
       "synergies_weapons": [
         "Revolver",
@@ -352,15 +352,15 @@
       "unlock_requirement": "Complete Desert Tier 1",
       "unlock_cost_silver": 32,
       "unlocked_by_default": false,
-      "playstyle": "Evasion execute specialist",
+      "playstyle": "evasion execute specialist",
       "best_for": [
-        "Evasion builds",
+        "evasion builds",
         "Execute builds",
         "High skill"
       ],
       "strengths": [
         "Execute synergy",
-        "Evasion benefits",
+        "evasion benefits",
         "Katana"
       ],
       "weaknesses": [
@@ -373,8 +373,8 @@
         "Joe's Dagger"
       ],
       "synergies_tomes": [
-        "Evasion",
-        "Precision"
+        "evasion",
+        "precision"
       ],
       "synergies_weapons": [
         "Katana",
@@ -388,24 +388,24 @@
       "name": "Athena",
       "tier": "A",
       "starting_weapon": "Aegis",
-      "passive_ability": "Higher damage at lower HP. Gains Thorns.",
-      "passive_description": "Risk/reward damage scaling. Thorns for tanky builds.",
-      "unlock_requirement": "Thorns Tome to level 9",
+      "passive_ability": "Higher damage at lower hp. Gains thorns.",
+      "passive_description": "Risk/reward damage scaling. thorns for tanky builds.",
+      "unlock_requirement": "thorns Tome to level 9",
       "unlock_cost_silver": 16,
       "unlocked_by_default": false,
-      "playstyle": "Low HP berserker tank",
+      "playstyle": "Low hp berserker tank",
       "best_for": [
         "Tank builds",
-        "Thorns builds",
+        "thorns builds",
         "Risk/reward"
       ],
       "strengths": [
-        "Damage at low HP",
-        "Thorns synergy",
+        "damage at low hp",
+        "thorns synergy",
         "Tanky"
       ],
       "weaknesses": [
-        "Requires staying low HP",
+        "Requires staying low hp",
         "Risky playstyle"
       ],
       "synergies_items": [
@@ -414,15 +414,15 @@
         "Speed Boi"
       ],
       "synergies_tomes": [
-        "Armor",
-        "Thorns",
-        "HP"
+        "armor",
+        "thorns",
+        "hp"
       ],
       "synergies_weapons": [
         "Aegis",
         "Aura"
       ],
-      "build_tips": "Stay low HP for damage. Tank with armor. Thorns for reflect.",
+      "build_tips": "Stay low hp for damage. Tank with armor. thorns for reflect.",
       "image": "images/characters/athena.png"
     },
     {
@@ -430,9 +430,9 @@
       "name": "Megachad",
       "tier": "B",
       "starting_weapon": "Aura",
-      "passive_ability": "Flex to stop damage. Cooldown -0.2s per level.",
+      "passive_ability": "Flex to stop damage. cooldown -0.2s per level.",
       "passive_description": "Invulnerability frames. Active defense mechanic.",
-      "unlock_requirement": "Damage Tome to level 7",
+      "unlock_requirement": "damage Tome to level 7",
       "unlock_cost_silver": 10,
       "unlocked_by_default": false,
       "playstyle": "Active defense fighter",
@@ -452,17 +452,17 @@
         "Aura weapon"
       ],
       "synergies_items": [
-        "Size items",
-        "HP items"
+        "size items",
+        "hp items"
       ],
       "synergies_tomes": [
-        "Size",
-        "Damage"
+        "size",
+        "damage"
       ],
       "synergies_weapons": [
         "Aura"
       ],
-      "build_tips": "Time your flex. Size for Aura coverage. Skill-intensive.",
+      "build_tips": "Time your flex. size for Aura coverage. Skill-intensive.",
       "image": "images/characters/megachad.png"
     },
     {
@@ -470,39 +470,39 @@
       "name": "Monke",
       "tier": "B",
       "starting_weapon": "Bananarang",
-      "passive_ability": "Climb walls. +2 Max HP per level.",
-      "passive_description": "Mobility + HP scaling. Fun but not top tier.",
+      "passive_ability": "Climb walls. +2 Max hp per level.",
+      "passive_description": "Mobility + hp scaling. Fun but not top tier.",
       "unlock_requirement": "Release Monke in Forest",
       "unlock_cost_silver": 18,
       "unlocked_by_default": false,
       "playstyle": "Mobile tank",
       "best_for": [
         "Mobility",
-        "HP builds",
+        "hp builds",
         "Fun"
       ],
       "strengths": [
         "Wall climbing",
-        "HP scaling",
+        "hp scaling",
         "Mobility"
       ],
       "weaknesses": [
         "Bananarang weapon",
-        "Passive is just HP"
+        "Passive is just hp"
       ],
       "synergies_items": [
         "Oats",
         "Beefy Ring",
-        "HP items"
+        "hp items"
       ],
       "synergies_tomes": [
-        "HP",
-        "Damage"
+        "hp",
+        "damage"
       ],
       "synergies_weapons": [
         "Bananarang"
       ],
-      "build_tips": "Stack HP for Beefy Ring. Wall climb for positioning.",
+      "build_tips": "Stack hp for Beefy Ring. Wall climb for positioning.",
       "image": "images/characters/monke.png"
     },
     {
@@ -510,7 +510,7 @@
       "name": "Spaceman",
       "tier": "A",
       "starting_weapon": "Black Hole",
-      "passive_ability": "Gain 1% XP Gain per level",
+      "passive_ability": "Gain 1% xp Gain per level",
       "passive_description": "Faster leveling. Black Hole crowd control.",
       "unlock_requirement": "Complete 6 Challenges",
       "unlock_cost_silver": 28,
@@ -519,15 +519,15 @@
       "best_for": [
         "Fast leveling",
         "Black Hole",
-        "XP farming"
+        "xp farming"
       ],
       "strengths": [
-        "XP scaling",
+        "xp scaling",
         "Black Hole weapon",
         "Fast levels"
       ],
       "weaknesses": [
-        "XP capped at 1000%",
+        "xp capped at 1000%",
         "Black Hole requires setup"
       ],
       "synergies_items": [
@@ -536,14 +536,14 @@
         "Sucky Magnet"
       ],
       "synergies_tomes": [
-        "XP",
-        "Size",
-        "Duration"
+        "xp",
+        "size",
+        "duration"
       ],
       "synergies_weapons": [
         "Black Hole"
       ],
-      "build_tips": "Level fast. Black Hole with size is amazing. XP snowball.",
+      "build_tips": "Level fast. Black Hole with size is amazing. xp snowball.",
       "image": "images/characters/spaceman.png"
     },
     {
@@ -551,19 +551,19 @@
       "name": "Noelle",
       "tier": "A",
       "starting_weapon": "Frostwalker",
-      "passive_ability": "Gain 1% Size per level",
-      "passive_description": "Size scaling. Huge AoE potential.",
+      "passive_ability": "Gain 1% size per level",
+      "passive_description": "size scaling. Huge AoE potential.",
       "unlock_requirement": "Duplicate Ice Crystal 3x via Microwave",
       "unlock_cost_silver": 24,
       "unlocked_by_default": false,
       "playstyle": "Giant AoE freezer",
       "best_for": [
-        "Size builds",
+        "size builds",
         "Freeze builds",
         "AoE"
       ],
       "strengths": [
-        "Size scaling",
+        "size scaling",
         "Freeze synergy",
         "AoE master"
       ],
@@ -574,11 +574,11 @@
       "synergies_items": [
         "Ice Cube",
         "Ice Crystal",
-        "Size items"
+        "size items"
       ],
       "synergies_tomes": [
-        "Size",
-        "Duration"
+        "size",
+        "duration"
       ],
       "synergies_weapons": [
         "Frostwalker",
@@ -586,7 +586,7 @@
         "Tornado",
         "Black Hole"
       ],
-      "build_tips": "Size scaling is insane. Axe with size clears screens.",
+      "build_tips": "size scaling is insane. Axe with size clears screens.",
       "image": "images/characters/noelle.png"
     },
     {
@@ -620,8 +620,8 @@
         "Gas Mask"
       ],
       "synergies_tomes": [
-        "Duration",
-        "Damage"
+        "duration",
+        "damage"
       ],
       "synergies_weapons": [
         "Poison Flask"
@@ -660,8 +660,8 @@
         "Lightning Orb"
       ],
       "synergies_tomes": [
-        "Agility",
-        "Damage"
+        "agility",
+        "damage"
       ],
       "synergies_weapons": [
         "Wireless Dagger",
@@ -675,14 +675,14 @@
       "name": "Robinette",
       "tier": "C",
       "starting_weapon": "Bow",
-      "passive_ability": "Gain 1% Gold Gain per level",
+      "passive_ability": "Gain 1% gold Gain per level",
       "passive_description": "More gold for shop purchases. Utility passive.",
       "unlock_requirement": "Complete Forest Tier 2",
       "unlock_cost_silver": 16,
       "unlocked_by_default": false,
-      "playstyle": "Gold farmer",
+      "playstyle": "gold farmer",
       "best_for": [
-        "Gold farming",
+        "gold farming",
         "Shop builds"
       ],
       "strengths": [
@@ -695,12 +695,12 @@
         "Passive doesn't help combat"
       ],
       "synergies_items": [
-        "Golden Glove",
-        "Golden Sneakers"
+        "golden Glove",
+        "golden Sneakers"
       ],
       "synergies_tomes": [
-        "Gold",
-        "Luck"
+        "gold",
+        "luck"
       ],
       "synergies_weapons": [
         "Bow"
@@ -713,7 +713,7 @@
       "name": "Birdo",
       "tier": "B",
       "starting_weapon": "Tornado",
-      "passive_ability": "Hold Jump to float. +1% Airborne Damage per level.",
+      "passive_ability": "Hold Jump to float. +1% Airborne damage per level.",
       "passive_description": "Airborne damage scaling. Mobility + damage.",
       "unlock_requirement": "Kill 100 enemies with Tornado",
       "unlock_cost_silver": 22,
@@ -739,8 +739,8 @@
         "Feathers"
       ],
       "synergies_tomes": [
-        "Damage",
-        "Size"
+        "damage",
+        "size"
       ],
       "synergies_weapons": [
         "Tornado"
@@ -775,12 +775,12 @@
       ],
       "synergies_items": [
         "Skuleg",
-        "Cursed Grabbies"
+        "cursed Grabbies"
       ],
       "synergies_tomes": [
-        "Cursed",
-        "Damage",
-        "HP"
+        "cursed",
+        "damage",
+        "hp"
       ],
       "synergies_weapons": [
         "Corrupted Sword"
@@ -802,12 +802,12 @@
       "best_for": [
         "Fun runs",
         "RNG lovers",
-        "Chaos"
+        "chaos"
       ],
       "strengths": [
         "Random stats",
         "High variance",
-        "Chaos Tome synergy"
+        "chaos Tome synergy"
       ],
       "weaknesses": [
         "Pure RNG",
@@ -819,7 +819,7 @@
         "RNG items"
       ],
       "synergies_tomes": [
-        "Chaos"
+        "chaos"
       ],
       "synergies_weapons": [
         "Dice"
