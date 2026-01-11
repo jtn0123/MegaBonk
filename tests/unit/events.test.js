@@ -12,6 +12,7 @@ import {
     showErrorMessage,
     dismissError,
     switchTab,
+    getSavedTab,
 } from '../../src/modules/events.ts';
 
 // Mock dependencies
@@ -620,5 +621,138 @@ describe('setupEventListeners()', () => {
         compareBtn.click();
 
         expect(openCompareModal).toHaveBeenCalled();
+    });
+});
+
+describe('Tab Persistence', () => {
+    const TAB_STORAGE_KEY = 'megabonk-current-tab';
+
+    beforeEach(() => {
+        createMinimalDOM();
+        vi.clearAllMocks();
+        // Clear localStorage before each test
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        // Clean up localStorage after each test
+        localStorage.clear();
+    });
+
+    describe('getSavedTab()', () => {
+        it('should return "items" as default when nothing is saved', () => {
+            expect(getSavedTab()).toBe('items');
+        });
+
+        it('should return "items" when localStorage is empty', () => {
+            localStorage.removeItem(TAB_STORAGE_KEY);
+            expect(getSavedTab()).toBe('items');
+        });
+
+        it('should return saved tab when valid', () => {
+            localStorage.setItem(TAB_STORAGE_KEY, 'weapons');
+            expect(getSavedTab()).toBe('weapons');
+        });
+
+        it('should return saved tab for all valid tab names', () => {
+            const validTabs = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator'];
+
+            validTabs.forEach(tab => {
+                localStorage.setItem(TAB_STORAGE_KEY, tab);
+                expect(getSavedTab()).toBe(tab);
+            });
+        });
+
+        it('should return "items" when saved tab is invalid', () => {
+            localStorage.setItem(TAB_STORAGE_KEY, 'invalid-tab');
+            expect(getSavedTab()).toBe('items');
+        });
+
+        it('should return "items" when saved tab is null string', () => {
+            localStorage.setItem(TAB_STORAGE_KEY, 'null');
+            expect(getSavedTab()).toBe('items');
+        });
+
+        it('should return "items" when saved tab is undefined string', () => {
+            localStorage.setItem(TAB_STORAGE_KEY, 'undefined');
+            expect(getSavedTab()).toBe('items');
+        });
+
+        it('should return "items" when saved tab is empty string', () => {
+            localStorage.setItem(TAB_STORAGE_KEY, '');
+            expect(getSavedTab()).toBe('items');
+        });
+
+        it('should return "items" for malformed data', () => {
+            localStorage.setItem(TAB_STORAGE_KEY, '{"malformed": true}');
+            expect(getSavedTab()).toBe('items');
+        });
+
+        it('should return "items" for XSS attempt in localStorage', () => {
+            localStorage.setItem(TAB_STORAGE_KEY, '<script>alert("xss")</script>');
+            expect(getSavedTab()).toBe('items');
+        });
+    });
+
+    describe('switchTab() persistence', () => {
+        it('should save tab to localStorage when switching', () => {
+            switchTab('weapons');
+            expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe('weapons');
+        });
+
+        it('should overwrite previous tab in localStorage', () => {
+            switchTab('weapons');
+            switchTab('tomes');
+            expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe('tomes');
+        });
+
+        it('should persist all valid tabs correctly', () => {
+            const validTabs = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator'];
+
+            validTabs.forEach(tab => {
+                switchTab(tab);
+                expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe(tab);
+            });
+        });
+
+        it('should allow getSavedTab to retrieve what switchTab saved', () => {
+            switchTab('characters');
+            expect(getSavedTab()).toBe('characters');
+        });
+    });
+
+    describe('Tab persistence integration', () => {
+        it('should restore saved tab after simulated page reload', () => {
+            // Simulate initial session
+            switchTab('shrines');
+
+            // Simulate page reload by clearing currentTab but keeping localStorage
+            // (In real scenario, page reload would call getSavedTab on init)
+            const savedTab = getSavedTab();
+
+            expect(savedTab).toBe('shrines');
+        });
+
+        it('should handle rapid tab switches correctly', () => {
+            switchTab('items');
+            switchTab('weapons');
+            switchTab('tomes');
+            switchTab('characters');
+            switchTab('shrines');
+
+            expect(getSavedTab()).toBe('shrines');
+            expect(localStorage.getItem(TAB_STORAGE_KEY)).toBe('shrines');
+        });
+
+        it('should maintain persistence across multiple getSavedTab calls', () => {
+            switchTab('build-planner');
+
+            // Multiple reads shouldn't affect the value
+            getSavedTab();
+            getSavedTab();
+            getSavedTab();
+
+            expect(getSavedTab()).toBe('build-planner');
+        });
     });
 });

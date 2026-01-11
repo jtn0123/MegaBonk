@@ -29,6 +29,12 @@ import type { EntityType } from '../types/index.ts';
 // Type definitions for tab names
 type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator';
 
+// LocalStorage key for persisting tab selection
+const TAB_STORAGE_KEY = 'megabonk-current-tab';
+
+// Valid tab names for validation
+const VALID_TABS: TabName[] = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator'];
+
 // Declare global state that may exist on window
 declare global {
     // Note: Window.currentTab is declared in filters.ts to avoid duplicate declarations
@@ -288,22 +294,26 @@ export function setupEventDelegation(): void {
             return;
         }
 
-        // Filter select changes
+        // Filter select changes - guard against uninitialized currentTab
         if (target.closest('#filters') && target.tagName === 'SELECT') {
-            renderTabContent(currentTab as TabName);
-            // Save filter state when filters change
-            if (typeof saveFilterState === 'function') {
-                saveFilterState(currentTab as TabName);
+            if (currentTab) {
+                renderTabContent(currentTab as TabName);
+                // Save filter state when filters change
+                if (typeof saveFilterState === 'function') {
+                    saveFilterState(currentTab as TabName);
+                }
             }
             return;
         }
 
-        // Favorites filter checkbox
+        // Favorites filter checkbox - guard against uninitialized currentTab
         if ((target as HTMLInputElement).id === 'favoritesOnly') {
-            renderTabContent(currentTab as TabName);
-            // Save filter state when favorites checkbox changes
-            if (typeof saveFilterState === 'function') {
-                saveFilterState(currentTab as TabName);
+            if (currentTab) {
+                renderTabContent(currentTab as TabName);
+                // Save filter state when favorites checkbox changes
+                if (typeof saveFilterState === 'function') {
+                    saveFilterState(currentTab as TabName);
+                }
             }
             return;
         }
@@ -519,6 +529,9 @@ export function switchTab(tabName: TabName): void {
 
     currentTab = tabName;
 
+    // Persist tab selection to localStorage
+    localStorage.setItem(TAB_STORAGE_KEY, tabName);
+
     // Update logger context with current tab
     logger.setContext('currentTab', tabName);
 
@@ -574,6 +587,23 @@ export function switchTab(tabName: TabName): void {
 
     // Render content for the tab
     renderTabContent(tabName);
+}
+
+// ========================================
+// Tab Persistence
+// ========================================
+
+/**
+ * Get the saved tab from localStorage
+ * Returns the saved tab if valid, otherwise defaults to 'items'
+ * @returns Valid tab name
+ */
+export function getSavedTab(): TabName {
+    const saved = localStorage.getItem(TAB_STORAGE_KEY);
+    if (saved && VALID_TABS.includes(saved as TabName)) {
+        return saved as TabName;
+    }
+    return 'items'; // Default fallback
 }
 
 // ========================================

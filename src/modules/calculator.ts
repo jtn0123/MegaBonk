@@ -82,13 +82,15 @@ export function computeBreakpoint(data: BreakpointData, itemId: string, target: 
 
     // Calculate stacks needed
     let stacksNeeded = 0;
-    const perStack = item.scaling_per_stack[0]!; // Value per stack from first entry
+    const firstValue = item.scaling_per_stack[0];
 
-    if (perStack > 0) {
-        stacksNeeded = Math.ceil(target / perStack);
-    } else {
+    // Validate that first value is a valid positive number
+    if (typeof firstValue !== 'number' || !Number.isFinite(firstValue) || firstValue <= 0) {
         return { error: 'Invalid scaling value' };
     }
+
+    const perStack = firstValue;
+    stacksNeeded = Math.ceil(target / perStack);
 
     // Cap checks
     const isCapped = item.stack_cap != null && stacksNeeded > item.stack_cap;

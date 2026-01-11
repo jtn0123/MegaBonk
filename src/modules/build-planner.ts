@@ -352,10 +352,11 @@ export function loadBuildFromData(buildData: BuildData): void {
         }
     }
 
-    // Load tomes
-    if (buildData.tomes && Array.isArray(buildData.tomes) && allData.tomes?.tomes) {
+    // Load tomes - use local variable to avoid null assertion issues
+    const tomes = allData.tomes?.tomes;
+    if (buildData.tomes && Array.isArray(buildData.tomes) && tomes) {
         buildData.tomes.forEach((tomeId: string) => {
-            const tome = allData.tomes!.tomes.find((t: Tome) => t.id === tomeId);
+            const tome = tomes.find((t: Tome) => t.id === tomeId);
             if (tome) {
                 const checkbox = document.querySelector(`.tome-checkbox[value="${tomeId}"]`) as HTMLInputElement | null;
                 if (checkbox) checkbox.checked = true;
@@ -363,10 +364,11 @@ export function loadBuildFromData(buildData: BuildData): void {
         });
     }
 
-    // Load items
-    if (buildData.items && Array.isArray(buildData.items) && allData.items?.items) {
+    // Load items - use local variable to avoid null assertion issues
+    const items = allData.items?.items;
+    if (buildData.items && Array.isArray(buildData.items) && items) {
         buildData.items.forEach((itemId: string) => {
-            const item = allData.items!.items.find((i: Item) => i.id === itemId);
+            const item = items.find((i: Item) => i.id === itemId);
             if (item) {
                 const checkbox = document.querySelector(`.item-checkbox[value="${itemId}"]`) as HTMLInputElement | null;
                 if (checkbox) checkbox.checked = true;

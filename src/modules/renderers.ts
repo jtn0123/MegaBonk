@@ -82,8 +82,8 @@ export interface Shrine extends BaseShrine {
     reusable: boolean;
 }
 
-// Track whether calculator button listener has been initialized
-let calculatorButtonInitialized = false;
+// NOTE: Calculator button listener tracking moved to data attribute on element
+// to properly handle DOM recreation scenarios
 
 /**
  * Render content for the current tab
@@ -97,13 +97,12 @@ export function renderTabContent(tabName: string): void {
 
     if (tabName === 'calculator') {
         populateCalculatorItems();
-        // Only add listener once to avoid unnecessary re-attachment
-        if (!calculatorButtonInitialized) {
-            const calcBtn = safeGetElementById('calc-button');
-            if (calcBtn) {
-                calcBtn.addEventListener('click', calculateBreakpoint);
-                calculatorButtonInitialized = true;
-            }
+        // Use data attribute to track listener on the actual element
+        // This handles DOM recreation scenarios (HMR, re-renders) correctly
+        const calcBtn = safeGetElementById('calc-button');
+        if (calcBtn && !calcBtn.dataset.listenerAttached) {
+            calcBtn.addEventListener('click', calculateBreakpoint);
+            calcBtn.dataset.listenerAttached = 'true';
         }
         return;
     }

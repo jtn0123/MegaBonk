@@ -5,6 +5,7 @@
 import { ToastManager } from './toast.ts';
 import { validateAllData, logValidationResults, validateWithZod } from './data-validation.ts';
 import { logger } from './logger.ts';
+import { getSavedTab } from './events.ts';
 import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.ts';
 
 // ========================================
@@ -285,11 +286,11 @@ export async function loadAllData(): Promise<void> {
 
         hideLoading();
 
-        // Initialize UI
+        // Initialize UI - restore saved tab or default to 'items'
         // Note: switchTab is a global function from script.js
         const windowWithSwitchTab = window as Window & { switchTab?: (tab: string) => void };
         if (typeof windowWithSwitchTab.switchTab === 'function') {
-            windowWithSwitchTab.switchTab('items');
+            windowWithSwitchTab.switchTab(getSavedTab());
         }
 
         // Load build from URL if present

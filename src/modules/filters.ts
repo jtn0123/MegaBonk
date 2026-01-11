@@ -819,19 +819,24 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement): void {
         }
     };
 
-    historyItems.forEach(item => {
-        item.addEventListener('click', () => {
-            const term = item.getAttribute('data-term');
-            if (term && searchInput) {
-                searchInput.value = term;
-                handleSearch();
-                closeDropdown();
-            }
-        });
-    });
-
     // Close dropdown when clicking outside - use AbortController to prevent memory leaks
+    // NOTE: AbortController must be created BEFORE adding event listeners to avoid memory leaks
     const abortController = new AbortController();
+
+    historyItems.forEach(item => {
+        item.addEventListener(
+            'click',
+            () => {
+                const term = item.getAttribute('data-term');
+                if (term && searchInput) {
+                    searchInput.value = term;
+                    handleSearch();
+                    closeDropdown();
+                }
+            },
+            { signal: abortController.signal }
+        );
+    });
 
     // Keyboard navigation for search history
     searchInput.addEventListener(

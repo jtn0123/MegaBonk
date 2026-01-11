@@ -158,18 +158,28 @@ function setupUpdateNotification(): void {
                 60 * 60 * 1000
             );
 
+            // Track if update notification has been shown to prevent duplicates
+            let updateNotificationShown = false;
+
             // Listen for waiting service worker (new version available)
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 if (!newWorker) return;
 
-                newWorker.addEventListener('statechange', () => {
+                const handleStateChange = (): void => {
                     // New service worker is waiting to activate
                     if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                        // Show update notification
-                        showUpdateNotification(registration);
+                        // Only show notification once per session
+                        if (!updateNotificationShown) {
+                            updateNotificationShown = true;
+                            showUpdateNotification(registration);
+                            // Clean up listener after notification shown
+                            newWorker.removeEventListener('statechange', handleStateChange);
+                        }
                     }
-                });
+                };
+
+                newWorker.addEventListener('statechange', handleStateChange);
             });
         })
         .catch((err: Error) => {
