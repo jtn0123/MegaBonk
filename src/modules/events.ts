@@ -324,6 +324,26 @@ export function setupEventListeners(): void {
         });
     });
 
+    // Tab scroll indicators (mobile)
+    const tabContainer = document.querySelector('.tabs .container') as HTMLElement | null;
+    const tabButtons = document.querySelector('.tab-buttons') as HTMLElement | null;
+
+    if (tabContainer && tabButtons) {
+        const updateTabScrollIndicators = (): void => {
+            const canScrollLeft = tabButtons.scrollLeft > 5;
+            const canScrollRight = tabButtons.scrollLeft < tabButtons.scrollWidth - tabButtons.clientWidth - 5;
+
+            tabContainer.classList.toggle('can-scroll-left', canScrollLeft);
+            tabContainer.classList.toggle('can-scroll-right', canScrollRight);
+        };
+
+        tabButtons.addEventListener('scroll', updateTabScrollIndicators, { passive: true });
+        // Initial check after a short delay to ensure layout is complete
+        setTimeout(updateTabScrollIndicators, 100);
+        // Recheck on resize
+        window.addEventListener('resize', debounce(updateTabScrollIndicators, 100));
+    }
+
     // Search input - Bug fix: Add debounce to prevent excessive re-renders
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
     if (searchInput) {
