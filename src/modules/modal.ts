@@ -63,10 +63,23 @@ interface ModalItem {
 interface ModalWeapon {
     id: string;
     name: string;
+    tier: Tier;
+    base_damage: number;
+    base_projectile_count?: number;
     attack_pattern: string;
-    description: string;
     upgradeable_stats: string[] | string;
-    build_tips: string;
+    unlock_requirement?: string;
+    unlocked_by_default?: boolean;
+    description: string;
+    best_for?: string[];
+    synergies_items?: string[];
+    synergies_tomes?: string[];
+    synergies_characters?: string[];
+    playstyle?: string;
+    pros?: string[];
+    cons?: string[];
+    build_tips?: string;
+    image?: string;
 }
 
 /**
@@ -549,11 +562,118 @@ function setupScalingTabHandlers(data: ModalItem): void {
  * @returns HTML content
  */
 function renderWeaponModal(data: ModalWeapon): string {
+    const imageHtml = generateModalImage(data, data.name, 'weapon');
+
+    // Build upgradeable stats as tags
+    const upgradeableStatsHtml =
+        Array.isArray(data.upgradeable_stats) && data.upgradeable_stats.length
+            ? `<div class="tag-list">${data.upgradeable_stats.map(s => `<span class="meta-tag">${s}</span>`).join('')}</div>`
+            : '<span class="text-muted">None</span>';
+
+    // Build synergies section if any exist
+    const hasSynergies =
+        data.synergies_items?.length || data.synergies_tomes?.length || data.synergies_characters?.length;
+    const synergiesHtml = hasSynergies
+        ? `
+        <div class="synergies-section">
+            <h3>Synergies</h3>
+            ${
+                data.synergies_items?.length
+                    ? `
+                <div class="synergy-group">
+                    <h4>Items</h4>
+                    <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                </div>
+            `
+                    : ''
+            }
+            ${
+                data.synergies_tomes?.length
+                    ? `
+                <div class="synergy-group">
+                    <h4>Tomes</h4>
+                    <div class="synergy-list">${data.synergies_tomes.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                </div>
+            `
+                    : ''
+            }
+            ${
+                data.synergies_characters?.length
+                    ? `
+                <div class="synergy-group">
+                    <h4>Characters</h4>
+                    <div class="synergy-list">${data.synergies_characters.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                </div>
+            `
+                    : ''
+            }
+        </div>
+    `
+        : '';
+
+    // Build pros/cons section if any exist
+    const hasProsOrCons = data.pros?.length || data.cons?.length;
+    const prosConsHtml = hasProsOrCons
+        ? `
+        <div class="strengths-weaknesses">
+            <div class="strengths">
+                <h4>Pros</h4>
+                <ul>${data.pros?.map(p => `<li>${p}</li>`).join('') || '<li>None listed</li>'}</ul>
+            </div>
+            <div class="weaknesses">
+                <h4>Cons</h4>
+                <ul>${data.cons?.map(c => `<li>${c}</li>`).join('') || '<li>None listed</li>'}</ul>
+            </div>
+        </div>
+    `
+        : '';
+
     return `
-        <p><strong>Attack Pattern:</strong> ${data.attack_pattern}</p>
-        <p>${data.description}</p>
-        <p><strong>Upgradeable Stats:</strong> ${Array.isArray(data.upgradeable_stats) ? data.upgradeable_stats.join(', ') : 'None'}</p>
-        <p><strong>Build Tips:</strong> ${data.build_tips}</p>
+        ${imageHtml}
+        <div class="item-badges">
+            <span class="badge tier-${data.tier}">${data.tier} Tier</span>
+            ${data.playstyle ? `<span class="badge">${data.playstyle}</span>` : ''}
+        </div>
+        <div class="weapon-stats-section">
+            <div><strong>Base Damage:</strong> ${data.base_damage}${data.base_projectile_count ? ` × ${data.base_projectile_count} projectiles` : ''}</div>
+            <div><strong>Attack Pattern:</strong> ${data.attack_pattern}</div>
+        </div>
+        <p class="weapon-description">${data.description}</p>
+        ${
+            data.best_for?.length
+                ? `
+            <div class="weapon-section">
+                <h3>Best For</h3>
+                <div class="tag-list">${data.best_for.map(b => `<span class="meta-tag">${b}</span>`).join('')}</div>
+            </div>
+        `
+                : ''
+        }
+        <div class="weapon-section">
+            <h3>Upgradeable Stats</h3>
+            ${upgradeableStatsHtml}
+        </div>
+        ${prosConsHtml}
+        ${synergiesHtml}
+        ${
+            data.build_tips
+                ? `
+            <div class="build-tips">
+                <h3>Build Tips</h3>
+                <p>${data.build_tips}</p>
+            </div>
+        `
+                : ''
+        }
+        ${
+            data.unlock_requirement
+                ? `
+            <div class="unlock-requirement">
+                <strong>Unlock:</strong> ${data.unlock_requirement}
+            </div>
+        `
+                : ''
+        }
     `;
 }
 

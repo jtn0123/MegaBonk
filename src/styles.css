@@ -2813,6 +2813,51 @@ button.breakpoint-card {
     margin-bottom: 0.5rem;
 }
 
+/* Weapon Modal Styles */
+.weapon-stats-section {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+}
+
+.weapon-stats-section div {
+    margin-bottom: 0.5rem;
+}
+
+.weapon-stats-section div:last-child {
+    margin-bottom: 0;
+}
+
+.weapon-description {
+    margin: 1rem 0;
+    line-height: 1.6;
+}
+
+.weapon-section {
+    margin: 1.5rem 0;
+}
+
+.weapon-section h3 {
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+}
+
+.unlock-requirement {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid #ffc107;
+    border-radius: 6px;
+    color: var(--text-secondary);
+}
+
+.text-muted {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
 .build-tips {
     margin-top: 1.5rem;
     padding: 1rem;
