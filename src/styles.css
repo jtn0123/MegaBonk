@@ -770,8 +770,9 @@ picture img {
     margin-top: auto; /* Push to bottom for cards without graphs */
 }
 
-/* When button follows a graph, use normal spacing instead */
+/* When button follows a graph or placeholder, use normal spacing instead */
 .item-graph-container + .view-details-btn,
+.item-graph-placeholder + .view-details-btn,
 .tome-graph-container + .view-details-btn {
     margin-top: 0.75rem;
 }
@@ -2236,6 +2237,21 @@ button.breakpoint-card {
 .scaling-chart {
     width: 100% !important;
     height: 100% !important;
+}
+
+.item-graph-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+    margin: 1rem 0;
+    margin-top: auto;
+    padding: 0.75rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    text-align: center;
 }
 
 .tome-graph-container {

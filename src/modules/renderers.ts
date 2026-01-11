@@ -219,7 +219,11 @@ export function renderItems(items: Item[]): void {
                 <canvas id="chart-${item.id}" class="scaling-chart"></canvas>
             </div>
         `
-            : '';
+            : `
+            <div class="item-graph-placeholder">
+                <span>${item.one_and_done ? 'One-and-done: no scaling benefit from stacks' : 'Flat bonus: does not scale'}</span>
+            </div>
+        `;
 
         // Handle expandable description
         const { html: descHtml, needsExpand, fullText } = truncateText(item.detailed_description, 120);
