@@ -2,7 +2,18 @@
 // MegaBonk Filters Module
 // ========================================
 
-import type { Entity, EntityType, Item, ChangelogPatch, SortBy } from '../types/index.ts';
+import type {
+    Entity,
+    EntityType,
+    Item,
+    Weapon,
+    Tome,
+    Character,
+    Shrine,
+    ChangelogPatch,
+    SortBy,
+    AllGameData,
+} from '../types/index.ts';
 import { isItem, isShrine } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 import { logger } from './logger.ts';
@@ -43,6 +54,15 @@ export interface AdvancedSearchCriteria {
 }
 
 /**
+ * Global search result with type and score
+ */
+export interface GlobalSearchResult {
+    type: EntityType;
+    item: Item | Weapon | Tome | Character | Shrine;
+    score: number;
+}
+
+/**
  * Item with match context (internal)
  */
 interface ItemWithMatchContext extends Record<string, unknown> {
@@ -67,8 +87,12 @@ const FILTER_STATE_KEY = 'megabonk_filter_state';
 declare global {
     interface Window {
         renderTabContent?: (tabName: TabName) => void;
+        renderGlobalSearchResults?: (results: GlobalSearchResult[]) => void;
+        currentTab?: TabName;
         clearFilters?: () => void;
         toggleTextExpand?: (element: HTMLElement) => void;
+        filteredData?: Entity[];
+        globalSearch?: (query: string, allData: AllGameData) => GlobalSearchResult[];
     }
 }
 
@@ -303,6 +327,86 @@ export function fuzzyMatchScore(searchTerm: string, text: string, fieldName: str
     }
 
     return { score, matchType: 'fuzzy', field: fieldName };
+}
+
+// ========================================
+// Global Search
+// ========================================
+
+/**
+ * Search across all data types (items, weapons, tomes, characters, shrines)
+ * Returns results sorted by match score
+ * @param {string} query - Search query
+ * @param {AllGameData} allData - All game data
+ * @returns {GlobalSearchResult[]} Sorted array of search results
+ */
+export function globalSearch(query: string, allData: AllGameData): GlobalSearchResult[] {
+    if (!query || !query.trim()) {
+        return [];
+    }
+
+    const results: GlobalSearchResult[] = [];
+    const searchTerm = query.trim().toLowerCase();
+    const searchFields = [
+        'name',
+        'description',
+        'base_effect',
+        'effect',
+        'passive',
+        'passive_ability',
+        'reward',
+        'attack_pattern',
+    ];
+
+    // Define data sources with their types
+    const dataSources: Array<{ type: EntityType; data: Entity[] | undefined }> = [
+        { type: 'items', data: allData.items?.items },
+        { type: 'weapons', data: allData.weapons?.weapons },
+        { type: 'tomes', data: allData.tomes?.tomes },
+        { type: 'characters', data: allData.characters?.characters },
+        { type: 'shrines', data: allData.shrines?.shrines },
+    ];
+
+    // Search each data type
+    for (const { type, data } of dataSources) {
+        if (!data) continue;
+
+        for (const item of data) {
+            // Calculate match score across all relevant fields
+            let bestScore = 0;
+
+            for (const field of searchFields) {
+                const value = (item as Record<string, unknown>)[field];
+                if (typeof value === 'string' && value) {
+                    const match = fuzzyMatchScore(searchTerm, value, field);
+                    if (match.score > bestScore) {
+                        bestScore = match.score;
+                    }
+                }
+            }
+
+            // Also check tags array
+            const tags = item.tags;
+            if (Array.isArray(tags)) {
+                const tagsString = tags.join(' ');
+                const match = fuzzyMatchScore(searchTerm, tagsString, 'tags');
+                if (match.score > bestScore) {
+                    bestScore = match.score;
+                }
+            }
+
+            if (bestScore > 0) {
+                results.push({
+                    type,
+                    item: item as Item | Weapon | Tome | Character | Shrine,
+                    score: bestScore,
+                });
+            }
+        }
+    }
+
+    // Sort by score (highest first)
+    return results.sort((a, b) => b.score - a.score);
 }
 
 // ========================================
@@ -699,7 +803,7 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
 }
 
 /**
- * Handle search input
+ * Handle search input - performs global search across all tabs
  */
 export function handleSearch(): void {
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
@@ -710,6 +814,18 @@ export function handleSearch(): void {
         addToSearchHistory(searchQuery.trim());
     }
 
+    // If there's a search query, perform global search
+    if (searchQuery.trim()) {
+        // Get allData from global scope
+        const allData = (window as any).allData;
+        if (allData && window.renderGlobalSearchResults) {
+            const results = globalSearch(searchQuery.trim(), allData);
+            window.renderGlobalSearchResults(results);
+            return;
+        }
+    }
+
+    // No search query - render normal tab content
     const currentTab = getState('currentTab');
     if (window.renderTabContent && currentTab) {
         window.renderTabContent(currentTab);
@@ -919,5 +1035,6 @@ if (typeof window !== 'undefined') {
         handleSearch,
         clearFilters,
         showSearchHistoryDropdown,
+        globalSearch,
     });
 }

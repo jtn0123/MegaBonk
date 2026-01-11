@@ -360,6 +360,42 @@ export function setupEventDelegation(): void {
                 }
                 return;
             }
+
+            // Global search result card click - navigate to item
+            if (target.closest('.search-result-card')) {
+                const card = target.closest('.search-result-card') as HTMLElement | null;
+                const tabType = card?.dataset.tabType as TabName | undefined;
+                const entityId = card?.dataset.entityId;
+
+                if (tabType && entityId) {
+                    // Clear search and switch to the appropriate tab
+                    const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
+                    if (searchInput) {
+                        searchInput.value = '';
+                    }
+
+                    // Switch to the target tab
+                    if (typeof switchTab === 'function') {
+                        switchTab(tabType);
+                    }
+
+                    // After tab switch, scroll to and highlight the item
+                    requestAnimationFrame(() => {
+                        const itemCard = document.querySelector(`[data-entity-id="${entityId}"]`) as HTMLElement | null;
+                        if (itemCard) {
+                            // Scroll into view with smooth behavior
+                            itemCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                            // Add highlight animation
+                            itemCard.classList.add('search-highlight');
+                            setTimeout(() => {
+                                itemCard.classList.remove('search-highlight');
+                            }, 2000);
+                        }
+                    });
+                }
+                return;
+            }
         },
         getListenerOptions()
     );

@@ -68,9 +68,9 @@ function convertToLatex(formula: string): string {
     // Handle "n" as stack count variable (standalone n)
     latex = latex.replace(/\bn\b(?![a-zA-Z])/g, 'n');
 
-    // Convert fractions like "X / Y" to proper stacked fractions
-    // Only for simple cases like "100 / 5"
-    latex = latex.replace(/(\d+)\s*\/\s*(\d+)/g, '\\frac{$1}{$2}');
+    // Convert fractions to stacked format
+    // Match: word/number / word/number/parenthesized expression
+    latex = latex.replace(/(\w+|\([^)]+\))\s*\/\s*(\w+|\([^)]+\)|\d+)/g, '\\frac{$1}{$2}');
 
     // Handle percentages
     latex = latex.replace(/(\d+)%/g, '$1\\%');

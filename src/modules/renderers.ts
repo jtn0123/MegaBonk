@@ -13,7 +13,7 @@ import {
 } from './utils.ts';
 import { isFavorite } from './favorites.ts';
 import { getDataForTab } from './data-service.ts';
-import { filterData } from './filters.ts';
+import { filterData, GlobalSearchResult } from './filters.ts';
 import { calculateBreakpoint, populateCalculatorItems } from './calculator.ts';
 import { getCompareItems } from './compare.ts';
 import { updateChangelogStats, renderChangelog } from './changelog.ts';
@@ -21,7 +21,69 @@ import { renderBuildPlanner } from './build-planner.ts';
 import { logger } from './logger.ts';
 import { setState } from './store.ts';
 import { registerFunction } from './registry.ts';
-import type { Item, Weapon, Tome, Character, Shrine, Entity, ChangelogPatch } from '../types/index.ts';
+import type {
+    Item as BaseItem,
+    Weapon as BaseWeapon,
+    Tome as BaseTome,
+    Character as BaseCharacter,
+    Shrine as BaseShrine,
+    Entity,
+    EntityType,
+    ChangelogPatch,
+} from '../types/index.ts';
+
+// ========================================
+// Extended Type Definitions for Actual Data
+// ========================================
+
+/**
+ * Extended Item interface matching actual data structure
+ */
+export interface Item extends BaseItem {
+    base_effect: string;
+    detailed_description: string;
+    one_and_done?: boolean;
+    stacks_well?: boolean;
+    scaling_per_stack?: number[];
+    graph_type?: string;
+}
+
+/**
+ * Extended Weapon interface matching actual data structure
+ */
+export interface Weapon extends BaseWeapon {
+    attack_pattern: string;
+    upgradeable_stats?: string[];
+}
+
+/**
+ * Extended Tome interface matching actual data structure
+ */
+export interface Tome extends BaseTome {
+    stat_affected: string;
+    value_per_level: string;
+    priority: number;
+}
+
+/**
+ * Extended Character interface matching actual data structure
+ */
+export interface Character extends BaseCharacter {
+    passive_ability: string;
+    passive_description: string;
+    starting_weapon: string;
+    playstyle: string;
+}
+
+/**
+ * Extended Shrine interface matching actual data structure
+ */
+export interface Shrine extends BaseShrine {
+    icon: string;
+    type: 'stat_upgrade' | 'combat' | 'utility' | 'risk_reward';
+    reward: string;
+    reusable: boolean;
+}
 
 // NOTE: Calculator button listener tracking moved to data attribute on element
 // to properly handle DOM recreation scenarios
@@ -418,9 +480,174 @@ export function renderShrines(shrines: Shrine[]): void {
 }
 
 // ========================================
+// Global Search Results Rendering
+// ========================================
+
+/**
+ * Type label mapping for display
+ */
+const TYPE_LABELS: Record<EntityType, { label: string; icon: string }> = {
+    items: { label: 'Items', icon: '📦' },
+    weapons: { label: 'Weapons', icon: '⚔️' },
+    tomes: { label: 'Tomes', icon: '📚' },
+    characters: { label: 'Characters', icon: '👤' },
+    shrines: { label: 'Shrines', icon: '⛩️' },
+};
+
+/**
+ * Maximum results to show per category in global search
+ */
+const MAX_RESULTS_PER_TYPE = 10;
+
+/**
+ * Render global search results grouped by type
+ * @param {GlobalSearchResult[]} results - Search results sorted by score
+ */
+export function renderGlobalSearchResults(results: GlobalSearchResult[]): void {
+    const container = safeGetElementById('itemsContainer');
+    if (!container) return;
+
+    // Update stats to show global search mode
+    const itemCount = safeGetElementById('item-count');
+    if (itemCount) {
+        itemCount.textContent = `${results.length} results across all categories`;
+    }
+
+    // Clear container
+    container.innerHTML = '';
+
+    if (results.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">🔍</span>
+                <h3>No Results Found</h3>
+                <p>Try a different search term</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Group results by type
+    const grouped = new Map<EntityType, GlobalSearchResult[]>();
+    for (const result of results) {
+        const existing = grouped.get(result.type) || [];
+        if (existing.length < MAX_RESULTS_PER_TYPE) {
+            existing.push(result);
+            grouped.set(result.type, existing);
+        }
+    }
+
+    // Render each group
+    const typeOrder: EntityType[] = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
+
+    for (const type of typeOrder) {
+        const typeResults = grouped.get(type);
+        if (!typeResults || typeResults.length === 0) continue;
+
+        const { label, icon } = TYPE_LABELS[type];
+
+        // Create section header
+        const sectionHeader = document.createElement('div');
+        sectionHeader.className = 'global-search-section-header';
+        sectionHeader.innerHTML = `
+            <span class="section-icon">${icon}</span>
+            <span class="section-title">${label}</span>
+            <span class="section-count">(${typeResults.length})</span>
+        `;
+        container.appendChild(sectionHeader);
+
+        // Create section container for results
+        const sectionContainer = document.createElement('div');
+        sectionContainer.className = 'global-search-section';
+        sectionContainer.dataset.type = type;
+
+        // Render each result
+        for (const result of typeResults) {
+            const card = createSearchResultCard(result);
+            sectionContainer.appendChild(card);
+        }
+
+        container.appendChild(sectionContainer);
+    }
+}
+
+/**
+ * Create a compact search result card
+ * @param {GlobalSearchResult} result - Search result
+ * @returns {HTMLElement} Card element
+ */
+function createSearchResultCard(result: GlobalSearchResult): HTMLElement {
+    const { type, item } = result;
+    const card = document.createElement('div');
+    card.className = 'search-result-card';
+    card.dataset.entityType = type.slice(0, -1); // Remove trailing 's' (items -> item)
+    card.dataset.entityId = item.id;
+    card.dataset.tabType = type;
+
+    // Get item details based on type
+    const name = item.name || 'Unknown';
+    const tier = 'tier' in item ? (item as any).tier : '';
+    const description = getItemDescription(item, type);
+
+    // Generate image or icon
+    let imageHtml = '';
+    if (type === 'shrines' && 'icon' in item) {
+        imageHtml = `<span class="search-result-icon">${(item as any).icon}</span>`;
+    } else {
+        imageHtml = generateEntityImage(item as Entity, name);
+    }
+
+    card.innerHTML = `
+        <div class="search-result-content">
+            ${imageHtml}
+            <div class="search-result-info">
+                <div class="search-result-name">${escapeHtml(name)}</div>
+                ${tier ? generateTierLabel(tier) : ''}
+                <div class="search-result-description">${escapeHtml(truncateSearchDescription(description, 80))}</div>
+            </div>
+        </div>
+        <div class="search-result-action">
+            <span class="go-to-icon">→</span>
+        </div>
+    `;
+
+    return card;
+}
+
+/**
+ * Get appropriate description text for an item based on its type
+ */
+function getItemDescription(item: any, type: EntityType): string {
+    switch (type) {
+        case 'items':
+            return item.base_effect || item.description || '';
+        case 'weapons':
+            return item.attack_pattern || item.description || '';
+        case 'tomes':
+            return `${item.stat_affected || ''}: ${item.value_per_level || ''}`.trim() || item.description || '';
+        case 'characters':
+            return item.passive_ability || item.description || '';
+        case 'shrines':
+            return item.reward || item.description || '';
+        default:
+            return item.description || '';
+    }
+}
+
+/**
+ * Truncate description for search results
+ */
+function truncateSearchDescription(text: string, maxLength: number): string {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength - 3) + '...';
+}
+
+// ========================================
 // Registry & Global Assignments
 // ========================================
 // Register renderTabContent for type-safe cross-module access
 registerFunction('renderTabContent', renderTabContent);
 // Keep window assignment for backwards compatibility during migration
 (window as any).renderTabContent = renderTabContent;
+(window as any).renderGlobalSearchResults = renderGlobalSearchResults;
