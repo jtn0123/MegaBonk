@@ -5,12 +5,17 @@ export default defineConfig({
         environment: 'jsdom',
         globals: true,
         setupFiles: ['./tests/setup.js'],
-        include: ['tests/unit/**/*.test.js', 'tests/integration/**/*.test.js'],
+        include: [
+            'tests/unit/**/*.test.js',
+            'tests/unit/**/*.test.ts',
+            'tests/integration/**/*.test.js',
+            'tests/performance/**/*.test.ts',
+        ],
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html', 'lcov'],
             include: ['src/modules/**/*.ts', 'src/script.ts'],
-            exclude: ['src/libs/**', 'src/sw.js', '**/*.test.js', '**/*.config.js'],
+            exclude: ['src/libs/**', 'src/sw.js', '**/*.test.js', '**/*.test.ts', '**/*.config.js'],
             // Thresholds updated 2026-01-10 after adding comprehensive unit tests:
             // New test files added:
             //   - filters-advanced.test.js (72 tests) - search history, filter state, fuzzy search
