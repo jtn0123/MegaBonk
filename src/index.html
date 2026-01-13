@@ -489,8 +489,87 @@
                             </p>
                         </div>
 
+                        <!-- NEW: Scan Build Section -->
+                        <div class="advisor-section scan-section">
+                            <h3>📸 Scan Your Build (Beta)</h3>
+                            <p class="scan-subtitle">
+                                Upload a screenshot of your pause menu and manually select the items you see. We'll help
+                                you make the best decisions!
+                            </p>
+
+                            <div class="scan-upload-area">
+                                <input
+                                    type="file"
+                                    id="scan-file-input"
+                                    accept="image/*"
+                                    capture="environment"
+                                    style="display: none"
+                                />
+                                <button id="scan-upload-btn" class="btn-primary scan-upload-btn">
+                                    📷 Upload Screenshot
+                                </button>
+                                <p class="scan-hint">Supports JPG, PNG, WebP. Max 10MB.</p>
+                            </div>
+
+                            <!-- Image Preview -->
+                            <div id="scan-image-preview" class="scan-image-preview" style="display: none">
+                                <!-- Image displayed here -->
+                            </div>
+
+                            <!-- Item Selection Area -->
+                            <div id="scan-selection-area" class="scan-selection-area" style="display: none">
+                                <div class="scan-selection-columns">
+                                    <!-- Character Selection -->
+                                    <div class="scan-selection-group">
+                                        <h4>👤 Select Your Character</h4>
+                                        <div id="scan-character-grid" class="scan-character-grid">
+                                            <!-- Characters loaded dynamically -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Weapon Selection -->
+                                    <div class="scan-selection-group">
+                                        <h4>⚔️ Select Your Weapon</h4>
+                                        <div id="scan-weapon-grid" class="scan-weapon-grid">
+                                            <!-- Weapons loaded dynamically -->
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Items Grid -->
+                                <div class="scan-selection-group full-width">
+                                    <h4>📦 Select Items (tap + to add, - to remove)</h4>
+                                    <div id="scan-item-grid" class="scan-item-grid">
+                                        <!-- Items loaded dynamically -->
+                                    </div>
+                                </div>
+
+                                <!-- Tomes Grid -->
+                                <div class="scan-selection-group full-width">
+                                    <h4>📚 Select Tomes</h4>
+                                    <div id="scan-tome-grid" class="scan-tome-grid">
+                                        <!-- Tomes loaded dynamically -->
+                                    </div>
+                                </div>
+
+                                <!-- Selection Summary -->
+                                <div class="scan-summary-container">
+                                    <div id="scan-selection-summary" class="scan-selection-summary">
+                                        <!-- Summary displayed here -->
+                                    </div>
+                                    <button
+                                        id="scan-apply-to-advisor"
+                                        class="btn-primary scan-apply-btn"
+                                        style="display: none"
+                                    >
+                                        ✅ Apply to Advisor Below
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Current Build Input -->
-                        <div class="advisor-section">
+                        <div class="advisor-section" id="advisor-current-build-section">
                             <h3>📋 Your Current Build</h3>
 
                             <div class="advisor-grid">

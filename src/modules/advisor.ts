@@ -62,6 +62,60 @@ export function initAdvisor(gameData: AllGameData): void {
 }
 
 /**
+ * Apply build state from scan module
+ */
+export function applyScannedBuild(state: BuildState): void {
+    // Set character
+    if (state.character) {
+        currentBuild.character = state.character;
+        const characterSelect = document.getElementById('advisor-character') as HTMLSelectElement;
+        if (characterSelect) {
+            characterSelect.value = state.character.id;
+        }
+    }
+
+    // Set weapon
+    if (state.weapon) {
+        currentBuild.weapon = state.weapon;
+        const weaponSelect = document.getElementById('advisor-weapon') as HTMLSelectElement;
+        if (weaponSelect) {
+            weaponSelect.value = state.weapon.id;
+        }
+    }
+
+    // Set items
+    if (state.items && state.items.length > 0) {
+        selectedItems.clear();
+        state.items.forEach(item => {
+            selectedItems.set(item.id, item);
+        });
+        currentBuild.items = state.items;
+    }
+
+    // Set tomes
+    if (state.tomes && state.tomes.length > 0) {
+        selectedTomes.clear();
+        state.tomes.forEach(tome => {
+            selectedTomes.set(tome.id, tome);
+        });
+        currentBuild.tomes = state.tomes;
+    }
+
+    // Update UI
+    updateCurrentBuildDisplay();
+
+    logger.info({
+        operation: 'advisor.scanned_build_applied',
+        data: {
+            character: state.character?.name,
+            weapon: state.weapon?.name,
+            itemsCount: state.items?.length || 0,
+            tomesCount: state.tomes?.length || 0,
+        },
+    });
+}
+
+/**
  * Setup all event listeners for the advisor
  */
 function setupEventListeners(): void {
@@ -502,5 +556,6 @@ export function resetAdvisor(): void {
 // ========================================
 // Global Assignments
 // ========================================
-// Expose initAdvisor globally for cross-module access
+// Expose functions globally for cross-module access
 (window as any).initAdvisor = initAdvisor;
+(window as any).applyScannedBuild = applyScannedBuild;
