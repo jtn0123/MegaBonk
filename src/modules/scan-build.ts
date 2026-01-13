@@ -7,6 +7,7 @@
 import type { Item, Tome, AllGameData, Character, Weapon } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
+import { autoDetectFromImage, initOCR, type DetectionResult } from './ocr.ts';
 
 // State
 let allData: AllGameData = {};
@@ -34,6 +35,9 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
     if (stateChangeCallback) {
         onBuildStateChange = stateChangeCallback;
     }
+
+    // Initialize OCR module
+    initOCR(gameData);
 
     setupEventListeners();
 
@@ -64,6 +68,10 @@ function setupEventListeners(): void {
     // Apply to advisor button
     const applyBtn = document.getElementById('scan-apply-to-advisor');
     applyBtn?.addEventListener('click', applyToAdvisor);
+
+    // Auto-detect button
+    const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
+    autoDetectBtn?.addEventListener('click', handleAutoDetect);
 }
 
 /**
@@ -145,6 +153,12 @@ function displayUploadedImage(): void {
 
     previewContainer.style.display = 'block';
 
+    // Show auto-detect button
+    const autoDetectArea = document.getElementById('scan-auto-detect-area');
+    if (autoDetectArea) {
+        autoDetectArea.style.display = 'block';
+    }
+
     // Re-attach clear button listener
     const clearBtn = document.getElementById('scan-clear-image');
     clearBtn?.addEventListener('click', clearUploadedImage);
@@ -171,6 +185,16 @@ function clearUploadedImage(): void {
         selectionContainer.style.display = 'none';
     }
 
+    const autoDetectArea = document.getElementById('scan-auto-detect-area');
+    if (autoDetectArea) {
+        autoDetectArea.style.display = 'none';
+    }
+
+    const detectionInfo = document.getElementById('scan-detection-info');
+    if (detectionInfo) {
+        detectionInfo.style.display = 'none';
+    }
+
     // Clear file input
     const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
     if (fileInput) {
@@ -178,6 +202,267 @@ function clearUploadedImage(): void {
     }
 
     ToastManager.info('Image cleared');
+}
+
+/**
+ * Handle auto-detect button click - use OCR to detect items
+ */
+async function handleAutoDetect(): Promise<void> {
+    if (!uploadedImage) {
+        ToastManager.error('Please upload an image first');
+        return;
+    }
+
+    try {
+        // Show progress indicator
+        const progressDiv = createProgressIndicator();
+
+        ToastManager.info('Starting auto-detection...');
+
+        // Run OCR
+        const results = await autoDetectFromImage(uploadedImage, (progress, status) => {
+            updateProgressIndicator(progressDiv, progress, status);
+        });
+
+        // Hide progress
+        progressDiv.remove();
+
+        // Apply detected items
+        applyDetectionResults(results);
+
+        ToastManager.success(
+            `Detected: ${results.items.length} items, ${results.tomes.length} tomes` +
+                (results.character ? ', 1 character' : '') +
+                (results.weapon ? ', 1 weapon' : '')
+        );
+
+        logger.info({
+            operation: 'scan_build.auto_detect_complete',
+            data: {
+                itemsDetected: results.items.length,
+                tomesDetected: results.tomes.length,
+                characterDetected: results.character ? 1 : 0,
+                weaponDetected: results.weapon ? 1 : 0,
+            },
+        });
+    } catch (error) {
+        logger.error({
+            operation: 'scan_build.auto_detect_error',
+            error: {
+                name: (error as Error).name,
+                message: (error as Error).message,
+            },
+        });
+        ToastManager.error('Auto-detection failed. Please try manual selection.');
+    }
+}
+
+/**
+ * Create progress indicator
+ */
+function createProgressIndicator(): HTMLElement {
+    const container = document.getElementById('scan-image-preview');
+    if (!container) return document.createElement('div');
+
+    const progressDiv = document.createElement('div');
+    progressDiv.className = 'scan-progress-overlay';
+    progressDiv.innerHTML = `
+        <div class="scan-progress-content">
+            <div class="scan-progress-spinner"></div>
+            <div class="scan-progress-text">Initializing...</div>
+            <div class="scan-progress-bar">
+                <div class="scan-progress-fill" style="width: 0%"></div>
+            </div>
+        </div>
+    `;
+
+    container.appendChild(progressDiv);
+    return progressDiv;
+}
+
+/**
+ * Update progress indicator
+ */
+function updateProgressIndicator(progressDiv: HTMLElement, progress: number, status: string): void {
+    const textEl = progressDiv.querySelector('.scan-progress-text');
+    const fillEl = progressDiv.querySelector('.scan-progress-fill') as HTMLElement;
+
+    if (textEl) {
+        textEl.textContent = status;
+    }
+
+    if (fillEl) {
+        fillEl.style.width = `${progress}%`;
+    }
+}
+
+/**
+ * Apply detection results to the UI
+ */
+function applyDetectionResults(results: {
+    items: DetectionResult[];
+    tomes: DetectionResult[];
+    character: DetectionResult | null;
+    weapon: DetectionResult | null;
+}): void {
+    // Clear existing selections
+    selectedItems.clear();
+    selectedTomes.clear();
+    selectedCharacter = null;
+    selectedWeapon = null;
+
+    // Show selection grid
+    showItemSelectionGrid();
+
+    // Apply character
+    if (results.character) {
+        selectedCharacter = results.character.entity as Character;
+        highlightDetectedEntity('character', results.character.entity.id);
+    }
+
+    // Apply weapon
+    if (results.weapon) {
+        selectedWeapon = results.weapon.entity as Weapon;
+        highlightDetectedEntity('weapon', results.weapon.entity.id);
+    }
+
+    // Apply items (deduplicate and count)
+    const itemCounts = new Map<string, number>();
+    results.items.forEach(detection => {
+        const item = detection.entity as Item;
+        const currentCount = itemCounts.get(item.id) || 0;
+        itemCounts.set(item.id, currentCount + 1);
+    });
+
+    itemCounts.forEach((count, itemId) => {
+        const item = allData.items?.items.find(i => i.id === itemId);
+        if (item) {
+            selectedItems.set(item.id, { item, count });
+            updateItemCardCount(item.id, count);
+        }
+    });
+
+    // Apply tomes (unique)
+    const uniqueTomes = new Set<string>();
+    results.tomes.forEach(detection => {
+        const tome = detection.entity as Tome;
+        if (!uniqueTomes.has(tome.id)) {
+            uniqueTomes.add(tome.id);
+            selectedTomes.set(tome.id, tome);
+            highlightDetectedEntity('tome', tome.id);
+        }
+    });
+
+    // Update summary
+    updateSelectionSummary();
+
+    // Show detection confidence info
+    displayDetectionConfidence(results);
+}
+
+/**
+ * Highlight detected entity in the grid
+ */
+function highlightDetectedEntity(type: 'character' | 'weapon' | 'tome', entityId: string): void {
+    let gridId = '';
+    switch (type) {
+        case 'character':
+            gridId = 'scan-character-grid';
+            break;
+        case 'weapon':
+            gridId = 'scan-weapon-grid';
+            break;
+        case 'tome':
+            gridId = 'scan-tome-grid';
+            break;
+    }
+
+    const grid = document.getElementById(gridId);
+    if (!grid) return;
+
+    // Remove existing selections
+    grid.querySelectorAll('.scan-entity-card, .scan-tome-card').forEach(card => {
+        card.classList.remove('selected');
+    });
+
+    // Add selection to detected entity
+    const card = grid.querySelector(`[data-id="${entityId}"]`);
+    if (card) {
+        card.classList.add('selected');
+    }
+}
+
+/**
+ * Update item card count display
+ */
+function updateItemCardCount(itemId: string, count: number): void {
+    const gridContainer = document.getElementById('scan-grid-items-container');
+    if (!gridContainer) return;
+
+    const card = gridContainer.querySelector(`[data-id="${itemId}"]`);
+    if (!card) return;
+
+    const countDisplay = card.querySelector('.scan-count-display');
+    if (countDisplay) {
+        countDisplay.textContent = count.toString();
+    }
+
+    card.classList.add('selected');
+}
+
+/**
+ * Display detection confidence information
+ */
+function displayDetectionConfidence(results: {
+    items: DetectionResult[];
+    tomes: DetectionResult[];
+    character: DetectionResult | null;
+    weapon: DetectionResult | null;
+}): void {
+    const container = document.getElementById('scan-detection-info');
+    if (!container) return;
+
+    let html = '<div class="scan-detection-results"><h4>🔍 Detection Confidence:</h4>';
+
+    if (results.character) {
+        html += `<div class="scan-detection-item">
+            <span>Character: ${results.character.entity.name}</span>
+            <span class="confidence">${Math.round(results.character.confidence * 100)}%</span>
+        </div>`;
+    }
+
+    if (results.weapon) {
+        html += `<div class="scan-detection-item">
+            <span>Weapon: ${results.weapon.entity.name}</span>
+            <span class="confidence">${Math.round(results.weapon.confidence * 100)}%</span>
+        </div>`;
+    }
+
+    if (results.items.length > 0) {
+        html += '<div class="scan-detection-section"><strong>Items:</strong>';
+        results.items.forEach(item => {
+            html += `<div class="scan-detection-item">
+                <span>${item.entity.name}</span>
+                <span class="confidence">${Math.round(item.confidence * 100)}%</span>
+            </div>`;
+        });
+        html += '</div>';
+    }
+
+    if (results.tomes.length > 0) {
+        html += '<div class="scan-detection-section"><strong>Tomes:</strong>';
+        results.tomes.forEach(tome => {
+            html += `<div class="scan-detection-item">
+                <span>${tome.entity.name}</span>
+                <span class="confidence">${Math.round(tome.confidence * 100)}%</span>
+            </div>`;
+        });
+        html += '</div>';
+    }
+
+    html += '<p class="scan-detection-hint">💡 Review and adjust selections below if needed</p></div>';
+    container.innerHTML = html;
+    container.style.display = 'block';
 }
 
 /**
