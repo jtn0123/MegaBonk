@@ -165,6 +165,133 @@
     "notes": "Boss fight, heavy visual effects, Turkish localization, FPS counter visible. Tests detection during visual chaos."
   },
 
+  "level_38_boss_portal_clean.png": {
+    "character": "Unknown",
+    "level": 38,
+    "resolution": "1920x1080",
+    "language": "English",
+    "items": [
+      "Green Potion",
+      "Banana (x3)",
+      "Yellow Wrench",
+      "Tomato",
+      "Red Spiky Item",
+      "Blue Portal",
+      "Green Wrench",
+      "Blue Penguin",
+      "White Hand",
+      "First Aid Kit (x2)",
+      "Blue Orb (x2)",
+      "Green Plant",
+      "Pink Item",
+      "Yellow Item",
+      "Yellow Gear",
+      "Wrench",
+      "First Aid Kit",
+      "Yellow Puzzle"
+    ],
+    "equipped_weapons": [
+      "LVL 13, LVL 4, LVL 4, LVL 3",
+      "LVL 6, LVL 7, LVL 1"
+    ],
+    "quests": [
+      "Find the Boss Portal (completed)",
+      "Defeat the Boss (completed)",
+      "Enter the Portal (in progress)"
+    ],
+    "stats_visible": {
+      "boss_curses": "0/2",
+      "challenges": "2/4",
+      "charge_shrines": "14/15",
+      "chests": "10/46",
+      "greed_shrines": "0/8",
+      "magnet_shrines": "2/2",
+      "microwaves": "0/1",
+      "moais": "2/2",
+      "pots": "26/55",
+      "shady_guy": "3/4"
+    },
+    "notes": "EXCELLENT BASELINE: Clean UI, no visual effects, stats panel fully visible. Perfect for tuning OCR parameters. Expected accuracy: 80-90%"
+  },
+
+  "level_86_roberto_crypt.png": {
+    "character": "Roberto",
+    "level": 86,
+    "resolution": "1920x1080",
+    "language": "English",
+    "quest": "Kill Spooky Steve",
+    "items": [
+      "Green Slime (x4)",
+      "Blue Portal (x5)",
+      "Green Wrench (x4)",
+      "Pink Item (x2)",
+      "Purple Potion (x2)",
+      "Pink Demon (x2)",
+      "Burger (x5)",
+      "Yellow Bomb",
+      "Ice Crystal (x2)",
+      "Meat (x2)",
+      "Red Flame (x2)",
+      "Wrench",
+      "Yellow Tool (x5)",
+      "Green Magnet",
+      "Burger",
+      "Hourglass (x2)",
+      "First Aid Kit (x3)",
+      "Red Soda (x2)",
+      "Blue Ice (x3)",
+      "Beer (x2)",
+      "Yellow Cookie (x2)"
+    ],
+    "equipped_weapons": [
+      "LVL 15, LVL 6, LVL 8, LVL 11",
+      "LVL 13, LVL 11, LVL 10, LVL 13"
+    ],
+    "quests": [
+      "Find the exit (completed)",
+      "Find Crypt Keys 4/4 (completed)",
+      "Find the Crypt (in progress)"
+    ],
+    "notes": "INTERMEDIATE TEST: Indoor lighting, purple portal effects, many duplicate items with counts. Tests duplicate detection (x2, x3, x4, x5). Expected accuracy: 70-80%"
+  },
+
+  "level_98_final_boss.png": {
+    "character": "Unknown",
+    "level": 98,
+    "resolution": "1920x1080",
+    "language": "English",
+    "quest": "Defeat the Final Boss (completed)",
+    "items": [
+      "Green Slime",
+      "Pink Item",
+      "Orange Item",
+      "Yellow Item",
+      "Red Soda (x5)",
+      "Orange Item (x6)",
+      "Orange Orb (x4)",
+      "Green Item (x3)",
+      "Blue Orb (x5)",
+      "Blue Gear (x4)",
+      "Blue Portal",
+      "Yellow Item (x4)",
+      "Green Plant (x3)",
+      "Pink Item (x4)",
+      "Brown Item",
+      "First Aid Kit (x2)",
+      "Blue Orb",
+      "Brown Orb (x2)",
+      "Burger",
+      "Blue Magnet (x2)",
+      "Yellow Wrench",
+      "Burger (x2)"
+    ],
+    "equipped_weapons": [
+      "LVL 22, LVL 13, LVL 11, LVL 6",
+      "LVL 11, LVL 16, LVL 12, LVL 8"
+    ],
+    "notes": "EXTREME STRESS TEST: Heavy fire/particle effects, red/orange lighting, final boss arena. Tests detection under worst visual conditions. Expected accuracy: 60-70%"
+  },
+
   "_testing_instructions": {
     "1_save_screenshots": "Save the 4 screenshots from the chat to test-images/gameplay/pc-1080p/ with the filenames listed above",
     "2_open_app": "Open the MegaBonk Complete Guide app in browser (bun run dev)",
