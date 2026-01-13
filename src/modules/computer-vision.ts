@@ -6,6 +6,7 @@
 
 import type { AllGameData, Item, Tome, Character, Weapon } from '../types/index.ts';
 import { logger } from './logger.ts';
+import { detectResolution, detectUILayout } from './test-utils.ts';
 
 // CV detection result with position
 export interface CVDetectionResult {
@@ -380,32 +381,125 @@ export function extractDominantColors(
 
 /**
  * Detect UI regions (for finding inventory, stats, etc.)
+ * Adapts to different UI layouts (PC vs Steam Deck)
  */
-export function detectUIRegions(width: number, height: number): { inventory?: ROI; stats?: ROI; character?: ROI } {
-    // Common UI layouts in games
-    return {
-        // Typical inventory region (center-right)
-        inventory: {
-            x: Math.floor(width * 0.5),
-            y: Math.floor(height * 0.2),
-            width: Math.floor(width * 0.4),
-            height: Math.floor(height * 0.6),
-            label: 'inventory',
+export function detectUIRegions(
+    width: number,
+    height: number
+): { inventory?: ROI; stats?: ROI; character?: ROI; pauseMenu?: ROI; gameplay?: ROI } {
+    const uiLayout = detectUILayout(width, height);
+    const resolution = detectResolution(width, height);
+
+    logger.info({
+        operation: 'cv.detect_ui_regions',
+        data: {
+            width,
+            height,
+            uiLayout,
+            resolution: resolution.category,
         },
-        // Stats region (top-left)
+    });
+
+    // Detect if this is pause menu or gameplay
+    // Pause menu typically has centered UI, gameplay has distributed UI
+    const isPauseMenu = true; // TODO: Add heuristic detection
+
+    if (isPauseMenu) {
+        return detectPauseMenuRegions(width, height, uiLayout);
+    } else {
+        return detectGameplayRegions(width, height, uiLayout);
+    }
+}
+
+/**
+ * Detect regions for pause menu layout
+ */
+function detectPauseMenuRegions(
+    width: number,
+    height: number,
+    uiLayout: 'pc' | 'steam_deck' | 'unknown'
+): { inventory?: ROI; stats?: ROI; character?: ROI; pauseMenu?: ROI } {
+    if (uiLayout === 'steam_deck') {
+        // Steam Deck: More compact layout
+        return {
+            pauseMenu: {
+                x: Math.floor(width * 0.15),
+                y: Math.floor(height * 0.15),
+                width: Math.floor(width * 0.7),
+                height: Math.floor(height * 0.7),
+                label: 'pause_menu',
+            },
+            stats: {
+                x: Math.floor(width * 0.2),
+                y: Math.floor(height * 0.15),
+                width: Math.floor(width * 0.6),
+                height: Math.floor(height * 0.2),
+                label: 'stats',
+            },
+            inventory: {
+                x: Math.floor(width * 0.2),
+                y: Math.floor(height * 0.4),
+                width: Math.floor(width * 0.6),
+                height: Math.floor(height * 0.45),
+                label: 'inventory',
+            },
+        };
+    } else {
+        // PC: Standard layout
+        return {
+            pauseMenu: {
+                x: Math.floor(width * 0.15),
+                y: Math.floor(height * 0.1),
+                width: Math.floor(width * 0.7),
+                height: Math.floor(height * 0.8),
+                label: 'pause_menu',
+            },
+            stats: {
+                x: Math.floor(width * 0.25),
+                y: Math.floor(height * 0.15),
+                width: Math.floor(width * 0.5),
+                height: Math.floor(height * 0.2),
+                label: 'stats',
+            },
+            inventory: {
+                x: Math.floor(width * 0.25),
+                y: Math.floor(height * 0.4),
+                width: Math.floor(width * 0.5),
+                height: Math.floor(height * 0.5),
+                label: 'inventory',
+            },
+        };
+    }
+}
+
+/**
+ * Detect regions for gameplay layout
+ */
+function detectGameplayRegions(
+    width: number,
+    height: number,
+    uiLayout: 'pc' | 'steam_deck' | 'unknown'
+): { stats?: ROI; character?: ROI; gameplay?: ROI } {
+    return {
+        gameplay: {
+            x: 0,
+            y: 0,
+            width,
+            height,
+            label: 'gameplay',
+        },
         stats: {
-            x: Math.floor(width * 0.05),
-            y: Math.floor(height * 0.05),
-            width: Math.floor(width * 0.2),
-            height: Math.floor(height * 0.15),
+            x: Math.floor(width * 0.02),
+            y: Math.floor(height * 0.02),
+            width: Math.floor(width * 0.15),
+            height: Math.floor(height * 0.12),
             label: 'stats',
         },
-        // Character region (left)
         character: {
-            x: Math.floor(width * 0.05),
-            y: Math.floor(height * 0.25),
-            width: Math.floor(width * 0.2),
-            height: Math.floor(height * 0.5),
+            x: Math.floor(width * 0.02),
+            y: Math.floor(height * 0.2),
+            width: Math.floor(width * 0.15),
+            height: Math.floor(height * 0.4),
             label: 'character',
         },
     };
