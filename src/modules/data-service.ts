@@ -306,6 +306,13 @@ export async function loadAllData(): Promise<void> {
         if (typeof windowWithAdvisor.initAdvisor === 'function') {
             windowWithAdvisor.initAdvisor(allData);
         }
+
+        // Initialize scan build module
+        // Note: initScanBuild is a global function from scan-build.ts
+        const windowWithScanBuild = window as Window & { initScanBuild?: (data: AllGameData) => void };
+        if (typeof windowWithScanBuild.initScanBuild === 'function') {
+            windowWithScanBuild.initScanBuild(allData);
+        }
     } catch (error) {
         const loadDuration = Math.round(performance.now() - loadStartTime);
         const err = error as Error;
