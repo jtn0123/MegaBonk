@@ -1,0 +1,185 @@
+{
+  "_instructions": "This file contains ground truth labels for gameplay screenshots. Save your screenshots to pc-1080p/ folder and fill in the detected items below.",
+
+  "level_33_early_game_english.png": {
+    "character": "Unknown",
+    "level": 33,
+    "resolution": "1920x1080",
+    "language": "English",
+    "items": [
+      "First Aid Kit",
+      "Wrench",
+      "Feather",
+      "Banana",
+      "Cheese",
+      "Portal (x4)",
+      "Burger",
+      "Blue Orb (x3)",
+      "Green Plant",
+      "Boomerang",
+      "Yellow Wrench",
+      "Teal Wrench",
+      "Chili Pepper",
+      "Hoodie"
+    ],
+    "equipped_weapons": [
+      "Boomerang LVL 14",
+      "Sword LVL 6",
+      "Knife LVL 4"
+    ],
+    "notes": "Early game, clean UI, minimal effects. Good baseline test."
+  },
+
+  "level_803_late_game_russian.png": {
+    "character": "Unknown",
+    "level": 803,
+    "resolution": "1920x1080",
+    "language": "Russian",
+    "items": [
+      "Chili Pepper (x2)",
+      "Blue Shield",
+      "Owl",
+      "Beer",
+      "Yellow Cross",
+      "Purple Eye",
+      "Hourglass",
+      "Blue Wrench",
+      "Hoodie",
+      "Rainbow Item (x3)",
+      "Pink Jar (x2)",
+      "Red Meat",
+      "Purple Ghost (x2)",
+      "Red Sword (x3)",
+      "Blue Rocket (x2)",
+      "Yellow Wrench",
+      "Blue Gear",
+      "Blue Boomerang (x3)",
+      "Cyan Potion (x2)",
+      "Yellow Lantern (x2)",
+      "Orange Orb (x3)",
+      "Green Plant (x2)",
+      "White Feather (x2)",
+      "Orange Flame",
+      "Blue Crystal (x2)",
+      "Green Slime (x2)",
+      "Yellow Cheese (x2)",
+      "Brown Cookie (x3)",
+      "First Aid Kit (x3)",
+      "Blue First Aid (x3)",
+      "Purple Ghost (x3)",
+      "Yellow Chicken (x3)",
+      "Red Rocket (x4)",
+      "Blue Orb (x3)",
+      "Burger (x4)",
+      "Purple Potion (x5)",
+      "Purple Portal",
+      "Pink Jar",
+      "Red Meat",
+      "Purple Barrier",
+      "Blue Orb (x2)",
+      "Cyan Item",
+      "Purple Crown",
+      "Orange Carrot",
+      "Blue Magnet",
+      "Ice Crystal",
+      "Purple Item (x2)",
+      "Blue Shield"
+    ],
+    "equipped_weapons": [
+      "Multiple weapons at LVL 481, 481, 481, 48",
+      "LVL 551, 341, 16, 39"
+    ],
+    "notes": "STRESS TEST: 70+ items, 3 inventory rows, Russian text, late game. Perfect for testing detection limits."
+  },
+
+  "level_52_mid_game_spanish.png": {
+    "character": "Unknown",
+    "level": 52,
+    "resolution": "1920x1080",
+    "language": "Spanish",
+    "items": [
+      "Blue Penguin (x5)",
+      "First Aid Kit (x2)",
+      "Blue First Aid (x3)",
+      "Blue Gear (x4)",
+      "Burger",
+      "Pink Rocket",
+      "Purple Pyramid",
+      "Green Building (x3)",
+      "Yellow Hammer (x2)",
+      "Banana",
+      "Orange Orb",
+      "Beer",
+      "Green Cards",
+      "Orange Boots",
+      "Cheese",
+      "Blue Boomerang (x2)",
+      "Potion",
+      "Blue Portal",
+      "Yellow Key"
+    ],
+    "equipped_weapons": [
+      "Various at LVL 11, 2, 5, 7",
+      "LVL 12, 14, 2"
+    ],
+    "notes": "Mid-game, Spanish localization, moderate item count with combat effects."
+  },
+
+  "level_281_late_game_turkish_boss.png": {
+    "character": "Unknown",
+    "level": 281,
+    "resolution": "1920x1080",
+    "language": "Turkish",
+    "items": [
+      "Blue Tentacle (x2)",
+      "Brown Cookie",
+      "Purple Orb",
+      "Cheese",
+      "Blue Ice (x2)",
+      "Red Flame",
+      "Beer",
+      "Green Slime (x5)",
+      "Purple Portal (x6)",
+      "Orange Orb (x3)",
+      "Potion",
+      "Yellow Item (x3)",
+      "Red Item (x3)",
+      "Beer",
+      "Blue Portal",
+      "Green Plant (x2)",
+      "First Aid Kit (x3)",
+      "Orange Gear",
+      "Brown Cookie (x2)",
+      "Orange Orb",
+      "Purple Eye",
+      "Orange Boots (x2)",
+      "Blue Item",
+      "Orange Item",
+      "Ice Crystal (x3)",
+      "Blue Pyramid (x6)"
+    ],
+    "equipped_weapons": [
+      "LVL 481, 24, 22, 48",
+      "LVL 551, 341, 16, 39"
+    ],
+    "notes": "Boss fight, heavy visual effects, Turkish localization, FPS counter visible. Tests detection during visual chaos."
+  },
+
+  "_testing_instructions": {
+    "1_save_screenshots": "Save the 4 screenshots from the chat to test-images/gameplay/pc-1080p/ with the filenames listed above",
+    "2_open_app": "Open the MegaBonk Complete Guide app in browser (bun run dev)",
+    "3_navigate_to_scan": "Go to Advisor tab > Build Scanner section",
+    "4_upload_screenshot": "Click 'Upload Screenshot' and select one of the saved images",
+    "5_run_detection": "Click 'Hybrid: OCR + CV (Phase 3)' button to run detection",
+    "6_compare_results": "Compare detected items with ground truth above",
+    "7_calculate_accuracy": "Use browser console to run: window.testUtils.calculateAccuracyMetrics(detectedItems, groundTruthArray)",
+    "8_iterate": "Adjust OCR/CV parameters based on accuracy, then retest"
+  },
+
+  "_accuracy_targets": {
+    "baseline": "Screenshot 1 (early game, clean UI) should achieve >80% accuracy",
+    "standard": "Screenshots 3-4 (mid/late game) should achieve >70% accuracy",
+    "stress_test": "Screenshot 2 (70+ items) should achieve >60% accuracy",
+    "item_count_detection": "Should detect x2, x3 counts with >70% accuracy"
+  }
+}
