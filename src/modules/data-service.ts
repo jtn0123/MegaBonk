@@ -299,6 +299,13 @@ export async function loadAllData(): Promise<void> {
         if (typeof windowWithLoadBuild.loadBuildFromURL === 'function') {
             windowWithLoadBuild.loadBuildFromURL();
         }
+
+        // Initialize advisor with loaded data
+        // Note: initAdvisor is a global function from advisor.ts
+        const windowWithAdvisor = window as Window & { initAdvisor?: (data: AllGameData) => void };
+        if (typeof windowWithAdvisor.initAdvisor === 'function') {
+            windowWithAdvisor.initAdvisor(allData);
+        }
     } catch (error) {
         const loadDuration = Math.round(performance.now() - loadStartTime);
         const err = error as Error;
