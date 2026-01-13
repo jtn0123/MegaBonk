@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Screenshot Testing - MegaBonk</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 {
+            color: #4ecdc4;
+        }
+        .drop-zone {
+            border: 3px dashed #4ecdc4;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            margin: 20px 0;
+            background: rgba(78, 205, 196, 0.1);
+            cursor: pointer;
+        }
+        .drop-zone:hover {
+            background: rgba(78, 205, 196, 0.2);
+        }
+        .drop-zone.dragging {
+            background: rgba(78, 205, 196, 0.3);
+            border-color: #45b7d1;
+        }
+        .preview {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .preview img {
+            max-width: 100%;
+            max-height: 400px;
+            border: 2px solid #4ecdc4;
+            border-radius: 5px;
+        }
+        .instructions {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .instructions h3 {
+            color: #4ecdc4;
+            margin-top: 0;
+        }
+        .instructions ol {
+            line-height: 1.8;
+        }
+        .instructions code {
+            background: #0f3460;
+            padding: 2px 8px;
+            border-radius: 3px;
+            color: #ff6b6b;
+        }
+        .save-btn {
+            background: #4ecdc4;
+            color: #1a1a2e;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .save-btn:hover {
+            background: #45b7d1;
+        }
+        .save-btn:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .filename-input {
+            background: #16213e;
+            border: 2px solid #4ecdc4;
+            color: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            width: 400px;
+            margin: 10px;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+        }
+        .status.success {
+            background: rgba(78, 205, 196, 0.2);
+            border: 2px solid #4ecdc4;
+            display: block;
+        }
+        .status.error {
+            background: rgba(255, 107, 107, 0.2);
+            border: 2px solid #ff6b6b;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎮 Quick Screenshot Testing</h1>
+
+    <div class="instructions">
+        <h3>How to Save Screenshots from Chat:</h3>
+        <ol>
+            <li><strong>Right-click</strong> on each screenshot image in the chat</li>
+            <li>Select <strong>"Save Image As..."</strong></li>
+            <li>Save to: <code>test-images/gameplay/pc-1080p/</code></li>
+            <li>Use these filenames:
+                <ul>
+                    <li><code>level_33_early_game_english.png</code></li>
+                    <li><code>level_803_late_game_russian.png</code></li>
+                    <li><code>level_52_mid_game_spanish.png</code></li>
+                    <li><code>level_281_late_game_turkish_boss.png</code></li>
+                </ul>
+            </li>
+        </ol>
+
+        <h3>Or Use This Quick Test Page:</h3>
+        <ol>
+            <li>Drag and drop a screenshot below (or click to select)</li>
+            <li>The image will display for preview</li>
+            <li>Enter a filename and click "Save to Test Directory"</li>
+            <li>Or click "Open in Main App" to test immediately</li>
+        </ol>
+    </div>
+
+    <div class="drop-zone" id="dropZone">
+        <h2>📸 Drop Screenshot Here</h2>
+        <p>or click to select a file</p>
+        <input type="file" id="fileInput" accept="image/*" style="display: none;">
+    </div>
+
+    <div id="preview" class="preview" style="display: none;">
+        <h3>Preview:</h3>
+        <img id="previewImg" alt="Screenshot preview">
+        <br>
+        <input type="text" id="filenameInput" class="filename-input" placeholder="Enter filename (e.g., level_33_early_game_english.png)">
+        <br>
+        <button class="save-btn" id="saveBtn">💾 Save to Test Directory</button>
+        <button class="save-btn" id="testBtn">🎯 Open in Main App to Test</button>
+    </div>
+
+    <div id="status" class="status"></div>
+
+    <div class="instructions">
+        <h3>Testing in the Main App:</h3>
+        <ol>
+            <li>Start the dev server: <code>bun run dev</code></li>
+            <li>Open <a href="http://localhost:5173" target="_blank" style="color: #4ecdc4;">http://localhost:5173</a></li>
+            <li>Navigate to <strong>Advisor</strong> tab → <strong>Build Scanner</strong> section</li>
+            <li>Upload your saved screenshot</li>
+            <li>Click <strong>"🎯 Hybrid: OCR + CV (Phase 3)"</strong></li>
+            <li>Review detected items</li>
+        </ol>
+
+        <h3>Validate Accuracy (Browser Console):</h3>
+        <pre style="background: #0f3460; padding: 15px; border-radius: 5px; overflow-x: auto;"><code>// Get ground truth from ground-truth.json
+const groundTruth = ["First Aid Kit", "Wrench", "Feather", /* ... */];
+
+// Get detected items
+const detected = window.getCurrentScanResults();
+
+// Calculate metrics
+const metrics = window.testUtils.calculateAccuracyMetrics(detected, groundTruth);
+console.log(`Accuracy: ${(metrics.accuracy * 100).toFixed(1)}%`);
+console.log(`Precision: ${(metrics.precision * 100).toFixed(1)}%`);
+console.log(`Recall: ${(metrics.recall * 100).toFixed(1)}%`);</code></pre>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const previewImg = document.getElementById('previewImg');
+        const filenameInput = document.getElementById('filenameInput');
+        const saveBtn = document.getElementById('saveBtn');
+        const testBtn = document.getElementById('testBtn');
+        const status = document.getElementById('status');
+
+        let currentFile = null;
+        let currentDataUrl = null;
+
+        // Click to select file
+        dropZone.addEventListener('click', () => {
+            fileInput.click();
+        });
+
+        // File input change
+        fileInput.addEventListener('change', (e) => {
+            handleFile(e.target.files[0]);
+        });
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragging');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragging');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragging');
+            handleFile(e.dataTransfer.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) {
+                showStatus('Please select an image file', 'error');
+                return;
+            }
+
+            currentFile = file;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                currentDataUrl = e.target.result;
+                previewImg.src = currentDataUrl;
+                preview.style.display = 'block';
+
+                // Suggest filename based on file name
+                const originalName = file.name.replace(/\.[^/.]+$/, "");
+                filenameInput.value = originalName + '.png';
+
+                showStatus('Screenshot loaded! Enter filename and save, or test directly.', 'success');
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Save to directory
+        saveBtn.addEventListener('click', () => {
+            const filename = filenameInput.value.trim();
+
+            if (!filename) {
+                showStatus('Please enter a filename', 'error');
+                return;
+            }
+
+            if (!currentDataUrl) {
+                showStatus('No image loaded', 'error');
+                return;
+            }
+
+            // Download the file
+            const a = document.createElement('a');
+            a.href = currentDataUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            showStatus(`Downloaded as "${filename}". Now move it to: test-images/gameplay/pc-1080p/`, 'success');
+        });
+
+        // Open in main app
+        testBtn.addEventListener('click', () => {
+            if (!currentDataUrl) {
+                showStatus('No image loaded', 'error');
+                return;
+            }
+
+            // Store in localStorage for the main app to pick up
+            localStorage.setItem('megabonk_test_screenshot', currentDataUrl);
+            localStorage.setItem('megabonk_test_filename', filenameInput.value);
+
+            // Open main app
+            window.open('http://localhost:5173', '_blank');
+
+            showStatus('Screenshot saved to localStorage. Open the main app and go to Advisor > Build Scanner!', 'success');
+        });
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = 'status ' + type;
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>
