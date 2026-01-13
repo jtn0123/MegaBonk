@@ -243,27 +243,63 @@ function calculateSimilarity(imageData1: ImageData, imageData2: ImageData): numb
 }
 
 /**
+ * Detect the inventory bar region (typically at bottom of screen)
+ */
+function detectInventoryRegion(ctx: CanvasRenderingContext2D, width: number, height: number): ROI {
+    // Inventory is typically in bottom 15-20% of screen
+    const inventoryHeight = Math.floor(height * 0.15);
+    const inventoryY = height - inventoryHeight;
+
+    return {
+        x: 0,
+        y: inventoryY,
+        width: width,
+        height: inventoryHeight,
+        label: 'inventory',
+    };
+}
+
+/**
  * Detect grid structure in image (for item grids)
- * Returns potential grid positions
+ * Returns potential grid positions with dynamic detection
  */
 export function detectGridPositions(width: number, height: number, gridSize: number = 64): ROI[] {
-    const positions: ROI[] = [];
-    const margin = Math.floor(width * 0.1); // 10% margin
+    // Use resolution-appropriate grid size
+    const resolution = detectResolution(width, height);
 
-    // Scan for grid positions (typical game UI layout)
-    for (let y = margin; y < height - margin - gridSize; y += gridSize + 10) {
-        for (let x = margin; x < width - margin - gridSize; x += gridSize + 10) {
-            positions.push({
-                x,
-                y,
-                width: gridSize,
-                height: gridSize,
-                label: `grid_${positions.length}`,
-            });
-        }
+    const gridSizes: Record<string, number> = {
+        '720p': 48,
+        '1080p': 64,
+        '1440p': 80,
+        '4K': 96,
+        steam_deck: 52,
+    };
+
+    const adaptiveGridSize = gridSizes[resolution.category] || gridSize;
+
+    // Focus on bottom inventory bar (where items actually are)
+    const inventoryHeight = Math.floor(height * 0.15);
+    const inventoryY = height - inventoryHeight;
+
+    const positions: ROI[] = [];
+    const margin = 10; // Small margin from screen edges
+    const spacing = Math.floor(adaptiveGridSize * 0.15); // 15% spacing between cells
+
+    // Single row at the bottom (where inventory actually is)
+    const y = inventoryY + Math.floor((inventoryHeight - adaptiveGridSize) / 2);
+
+    for (let x = margin; x < width - margin - adaptiveGridSize; x += adaptiveGridSize + spacing) {
+        positions.push({
+            x,
+            y,
+            width: adaptiveGridSize,
+            height: adaptiveGridSize,
+            label: `cell_${positions.length}`,
+        });
     }
 
-    return positions;
+    // Limit to reasonable number of cells (typical inventory has 15-25 slots)
+    return positions.slice(0, 30);
 }
 
 /**
@@ -359,6 +395,85 @@ function preprocessImage(imageData: ImageData): ImageData {
 }
 
 /**
+ * Check if a cell is likely empty (mostly uniform background)
+ * Empty cells have low color variance
+ */
+function isEmptyCell(imageData: ImageData): boolean {
+    const pixels = imageData.data;
+    let sumR = 0;
+    let sumG = 0;
+    let sumB = 0;
+    let sumSquareR = 0;
+    let sumSquareG = 0;
+    let sumSquareB = 0;
+    let count = 0;
+
+    // Sample every 4th pixel for performance
+    for (let i = 0; i < pixels.length; i += 16) {
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+
+        sumR += r;
+        sumG += g;
+        sumB += b;
+        sumSquareR += r * r;
+        sumSquareG += g * g;
+        sumSquareB += b * b;
+        count++;
+    }
+
+    // Calculate variance for each channel
+    const meanR = sumR / count;
+    const meanG = sumG / count;
+    const meanB = sumB / count;
+
+    const varianceR = sumSquareR / count - meanR * meanR;
+    const varianceG = sumSquareG / count - meanG * meanG;
+    const varianceB = sumSquareB / count - meanB * meanB;
+
+    const totalVariance = varianceR + varianceG + varianceB;
+
+    // Low variance = uniform color = likely empty
+    // Threshold: < 500 is very uniform (empty cell or solid background)
+    const EMPTY_THRESHOLD = 500;
+
+    return totalVariance < EMPTY_THRESHOLD;
+}
+
+/**
+ * Calculate color variance to detect empty cells or low-detail regions
+ */
+function calculateColorVariance(imageData: ImageData): number {
+    const pixels = imageData.data;
+    let sumR = 0;
+    let sumG = 0;
+    let sumB = 0;
+    let count = 0;
+
+    for (let i = 0; i < pixels.length; i += 16) {
+        sumR += pixels[i];
+        sumG += pixels[i + 1];
+        sumB += pixels[i + 2];
+        count++;
+    }
+
+    const meanR = sumR / count;
+    const meanG = sumG / count;
+    const meanB = sumB / count;
+
+    let varianceSum = 0;
+    for (let i = 0; i < pixels.length; i += 16) {
+        const diffR = pixels[i] - meanR;
+        const diffG = pixels[i + 1] - meanG;
+        const diffB = pixels[i + 2] - meanB;
+        varianceSum += diffR * diffR + diffG * diffG + diffB * diffB;
+    }
+
+    return varianceSum / count;
+}
+
+/**
  * Detect items using template matching against stored item icons
  */
 export async function detectItemsWithCV(
@@ -393,15 +508,24 @@ export async function detectItemsWithCV(
 
         const detections: CVDetectionResult[] = [];
         const items = allData.items?.items || [];
-        const SIMILARITY_THRESHOLD = 0.75; // Adjust based on testing
 
-        // For each grid cell, find best matching template
+        // Phase 1: Collect all best matches (no threshold yet)
+        const candidateMatches: Array<{ item: Item; similarity: number; cell: ROI }> = [];
+        let emptyCells = 0;
+
         for (let i = 0; i < gridPositions.length; i++) {
             const cell = gridPositions[i];
 
             if (progressCallback && i % 5 === 0) {
-                const progress = 30 + Math.floor((i / gridPositions.length) * 60);
+                const progress = 30 + Math.floor((i / gridPositions.length) * 50);
                 progressCallback(progress, `Matching cell ${i + 1}/${gridPositions.length}...`);
+            }
+
+            // Check if cell is empty (skip template matching for empty cells)
+            const iconRegion = extractIconRegion(ctx, cell);
+            if (isEmptyCell(iconRegion)) {
+                emptyCells++;
+                continue; // Skip this cell
             }
 
             let bestMatch: { item: Item; similarity: number } | null = null;
@@ -413,21 +537,49 @@ export async function detectItemsWithCV(
 
                 const similarity = matchTemplate(ctx, cell, template);
 
-                if (similarity > SIMILARITY_THRESHOLD && (!bestMatch || similarity > bestMatch.similarity)) {
+                if (!bestMatch || similarity > bestMatch.similarity) {
                     bestMatch = { item, similarity };
                 }
             }
 
-            if (bestMatch) {
-                detections.push({
-                    type: 'item',
-                    entity: bestMatch.item,
-                    confidence: bestMatch.similarity,
-                    position: cell,
-                    method: 'template_match',
+            if (bestMatch && bestMatch.similarity > 0.5) {
+                // Only include if above minimum threshold (0.50)
+                candidateMatches.push({
+                    item: bestMatch.item,
+                    similarity: bestMatch.similarity,
+                    cell,
                 });
             }
         }
+
+        // Phase 2: Calculate adaptive threshold
+        if (progressCallback) {
+            progressCallback(85, 'Calculating adaptive threshold...');
+        }
+
+        const allSimilarities = candidateMatches.map(m => m.similarity);
+        const adaptiveThreshold = calculateAdaptiveThreshold(allSimilarities);
+
+        logger.info({
+            operation: 'cv.adaptive_threshold',
+            data: {
+                candidates: candidateMatches.length,
+                threshold: adaptiveThreshold.toFixed(3),
+            },
+        });
+
+        // Phase 3: Apply adaptive threshold
+        candidateMatches.forEach(match => {
+            if (match.similarity > adaptiveThreshold) {
+                detections.push({
+                    type: 'item',
+                    entity: match.item,
+                    confidence: match.similarity,
+                    position: match.cell,
+                    method: 'template_match',
+                });
+            }
+        });
 
         if (progressCallback) {
             progressCallback(100, 'Template matching complete');
@@ -438,7 +590,9 @@ export async function detectItemsWithCV(
             data: {
                 detectionsCount: detections.length,
                 gridPositions: gridPositions.length,
-                matchRate: ((detections.length / gridPositions.length) * 100).toFixed(1) + '%',
+                emptyCells,
+                processedCells: gridPositions.length - emptyCells,
+                matchRate: ((detections.length / (gridPositions.length - emptyCells)) * 100).toFixed(1) + '%',
             },
         });
 
@@ -453,6 +607,84 @@ export async function detectItemsWithCV(
         });
         throw error;
     }
+}
+
+/**
+ * Calculate adaptive similarity threshold based on match score distribution
+ * Finds natural gap between good and bad matches
+ */
+function calculateAdaptiveThreshold(similarities: number[]): number {
+    if (similarities.length === 0) return 0.75; // Fallback
+
+    // Sort similarities descending
+    const sorted = [...similarities].sort((a, b) => b - a);
+
+    // Find largest gap in similarities
+    let maxGap = 0;
+    let gapIndex = 0;
+
+    for (let i = 0; i < sorted.length - 1; i++) {
+        const gap = sorted[i] - sorted[i + 1];
+        if (gap > maxGap) {
+            maxGap = gap;
+            gapIndex = i;
+        }
+    }
+
+    // Threshold is just below the gap (or use default if gap too small)
+    if (maxGap > 0.05) {
+        const threshold = sorted[gapIndex + 1] + 0.02; // Slightly above low side
+        // Clamp between 0.60 and 0.90
+        return Math.max(0.6, Math.min(0.9, threshold));
+    }
+
+    // Fallback: use 75th percentile
+    const percentile75Index = Math.floor(sorted.length * 0.25);
+    const threshold = sorted[percentile75Index];
+    return Math.max(0.65, Math.min(0.85, threshold));
+}
+
+/**
+ * Aggregate duplicate detections into single entries with counts
+ * Converts [Wrench, Wrench, Wrench] → [Wrench x3]
+ */
+export function aggregateDuplicates(detections: CVDetectionResult[]): Array<CVDetectionResult & { count: number }> {
+    const grouped = new Map<string, Array<CVDetectionResult & { count?: number }>>();
+
+    // Group by entity ID
+    detections.forEach(detection => {
+        const key = detection.entity.id;
+        if (!grouped.has(key)) {
+            grouped.set(key, []);
+        }
+        grouped.get(key)!.push(detection);
+    });
+
+    // Aggregate each group
+    const aggregated: Array<CVDetectionResult & { count: number }> = [];
+
+    grouped.forEach((group, entityId) => {
+        // Sum up counts (default to 1 per detection)
+        const totalCount = group.reduce((sum, d) => sum + (d.count || 1), 0);
+
+        // Use highest confidence from group
+        const maxConfidence = Math.max(...group.map(d => d.confidence));
+
+        // Keep first detection's position
+        const firstDetection = group[0];
+
+        aggregated.push({
+            type: firstDetection.type,
+            entity: firstDetection.entity,
+            confidence: maxConfidence,
+            position: firstDetection.position,
+            method: firstDetection.method,
+            count: totalCount,
+        });
+    });
+
+    // Sort by entity name for consistent ordering
+    return aggregated.sort((a, b) => a.entity.name.localeCompare(b.entity.name));
 }
 
 /**
