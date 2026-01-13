@@ -1,0 +1,65 @@
+{
+  "_instructions": "This file contains ground truth labels for test images. Add entries for each screenshot.",
+  "_format": {
+    "filename.png": {
+      "character": "Character name (optional)",
+      "weapon": "Weapon name (optional)",
+      "items": ["Item1", "Item1", "Item2"],
+      "tomes": ["Tome1", "Tome2"],
+      "notes": "Optional description"
+    }
+  },
+  "_examples": {
+    "example_crit_build.png": {
+      "character": "CL4NK",
+      "weapon": "Hammer",
+      "items": [
+        "Battery",
+        "Battery",
+        "Battery",
+        "Gym Sauce",
+        "Gym Sauce",
+        "Anvil",
+        "Forbidden Juice",
+        "Spiky Ball"
+      ],
+      "tomes": [
+        "Damage Tome",
+        "Crit Tome",
+        "Attack Speed Tome"
+      ],
+      "notes": "Late game crit build - Battery stacks for speed, Forbidden Juice for crit"
+    },
+    "example_tank_build.png": {
+      "character": "Sir Oofie",
+      "weapon": "Shield",
+      "items": [
+        "Beefy Ring",
+        "Beefy Ring",
+        "Gym Sauce",
+        "Ice Cube",
+        "Armor Plate"
+      ],
+      "tomes": [
+        "HP Tome",
+        "Armor Tome"
+      ],
+      "notes": "Early game tank build - Double Beefy Ring for HP scaling"
+    },
+    "example_speed_build.png": {
+      "character": "Monke",
+      "weapon": "Katana",
+      "items": [
+        "Jetpack",
+        "Coffee",
+        "Speed Boots",
+        "Battery"
+      ],
+      "tomes": [
+        "Movement Speed Tome",
+        "Attack Speed Tome"
+      ],
+      "notes": "Speed demon build - gotta go fast!"
+    }
+  }
+}
