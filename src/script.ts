@@ -22,10 +22,11 @@ import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
 import { setupImageFallbackHandler } from './modules/utils.ts';
 import type { Entity } from './types/index.ts';
 import { logger } from './modules/logger.ts';
-// Import advisor, scan-build, and ocr to ensure they're initialized
+// Import advisor, scan-build, ocr, and computer-vision to ensure they're initialized
 import './modules/advisor.ts';
 import './modules/scan-build.ts';
 import './modules/ocr.ts';
+import './modules/computer-vision.ts';
 
 // ========================================
 // Global State (to be refactored into state module)

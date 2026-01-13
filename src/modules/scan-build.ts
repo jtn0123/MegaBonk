@@ -8,6 +8,7 @@ import type { Item, Tome, AllGameData, Character, Weapon } from '../types/index.
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
 import { autoDetectFromImage, initOCR, type DetectionResult } from './ocr.ts';
+import { detectItemsWithCV, initCV, combineDetections, type CVDetectionResult } from './computer-vision.ts';
 
 // State
 let allData: AllGameData = {};
@@ -36,8 +37,9 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
         onBuildStateChange = stateChangeCallback;
     }
 
-    // Initialize OCR module
+    // Initialize OCR and CV modules
     initOCR(gameData);
+    initCV(gameData);
 
     setupEventListeners();
 
@@ -69,9 +71,13 @@ function setupEventListeners(): void {
     const applyBtn = document.getElementById('scan-apply-to-advisor');
     applyBtn?.addEventListener('click', applyToAdvisor);
 
-    // Auto-detect button
+    // Auto-detect button (OCR)
     const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
     autoDetectBtn?.addEventListener('click', handleAutoDetect);
+
+    // Hybrid detect button (OCR + CV)
+    const hybridDetectBtn = document.getElementById('scan-hybrid-detect-btn');
+    hybridDetectBtn?.addEventListener('click', handleHybridDetect);
 }
 
 /**
@@ -254,6 +260,120 @@ async function handleAutoDetect(): Promise<void> {
             },
         });
         ToastManager.error('Auto-detection failed. Please try manual selection.');
+    }
+}
+
+/**
+ * Handle hybrid detect button click - use OCR + CV together
+ */
+async function handleHybridDetect(): Promise<void> {
+    if (!uploadedImage) {
+        ToastManager.error('Please upload an image first');
+        return;
+    }
+
+    try {
+        const progressDiv = createProgressIndicator();
+
+        ToastManager.info('Starting hybrid detection (OCR + Computer Vision)...');
+
+        // Run OCR first
+        updateProgressIndicator(progressDiv, 10, 'Running OCR...');
+        const ocrResults = await autoDetectFromImage(uploadedImage, (progress, status) => {
+            updateProgressIndicator(progressDiv, 10 + progress * 0.4, status);
+        });
+
+        // Run computer vision
+        updateProgressIndicator(progressDiv, 50, 'Running computer vision...');
+        const cvResults = await detectItemsWithCV(uploadedImage, (progress, status) => {
+            updateProgressIndicator(progressDiv, 50 + progress * 0.4, status);
+        });
+
+        // Combine results
+        updateProgressIndicator(progressDiv, 90, 'Combining detections...');
+
+        // Convert CV results to match OCR format
+        const cvAsOCR: DetectionResult[] = cvResults.map(cv => ({
+            type: cv.type,
+            entity: cv.entity,
+            confidence: cv.confidence,
+            rawText: `cv_detected_${cv.entity.name}`,
+        }));
+
+        // Combine both detection methods
+        const combinedItems = combineDetections(
+            [...ocrResults.items, ...cvAsOCR.filter(r => r.type === 'item')],
+            cvResults.filter(r => r.type === 'item')
+        );
+        const combinedTomes = combineDetections(
+            [...ocrResults.tomes, ...cvAsOCR.filter(r => r.type === 'tome')],
+            cvResults.filter(r => r.type === 'tome')
+        );
+
+        const hybridResults = {
+            items: combinedItems.map(r => ({
+                type: r.type as 'item',
+                entity: r.entity,
+                confidence: r.confidence,
+                rawText: `hybrid_${r.method}`,
+            })),
+            tomes: combinedTomes.map(r => ({
+                type: r.type as 'tome',
+                entity: r.entity,
+                confidence: r.confidence,
+                rawText: `hybrid_${r.method}`,
+            })),
+            character:
+                ocrResults.character ||
+                (cvResults.find(r => r.type === 'character')
+                    ? {
+                          type: 'character' as const,
+                          entity: cvResults.find(r => r.type === 'character')!.entity,
+                          confidence: cvResults.find(r => r.type === 'character')!.confidence,
+                          rawText: 'hybrid_cv',
+                      }
+                    : null),
+            weapon:
+                ocrResults.weapon ||
+                (cvResults.find(r => r.type === 'weapon')
+                    ? {
+                          type: 'weapon' as const,
+                          entity: cvResults.find(r => r.type === 'weapon')!.entity,
+                          confidence: cvResults.find(r => r.type === 'weapon')!.confidence,
+                          rawText: 'hybrid_cv',
+                      }
+                    : null),
+            rawText: 'hybrid_detection',
+        };
+
+        progressDiv.remove();
+
+        applyDetectionResults(hybridResults);
+
+        ToastManager.success(
+            `🎯 Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Enhanced accuracy!)`
+        );
+
+        logger.info({
+            operation: 'scan_build.hybrid_detect_complete',
+            data: {
+                itemsDetected: hybridResults.items.length,
+                tomesDetected: hybridResults.tomes.length,
+                characterDetected: hybridResults.character ? 1 : 0,
+                weaponDetected: hybridResults.weapon ? 1 : 0,
+                ocrItems: ocrResults.items.length,
+                cvItems: cvResults.length,
+            },
+        });
+    } catch (error) {
+        logger.error({
+            operation: 'scan_build.hybrid_detect_error',
+            error: {
+                name: (error as Error).name,
+                message: (error as Error).message,
+            },
+        });
+        ToastManager.error('Hybrid detection failed. Please try manual selection.');
     }
 }
 

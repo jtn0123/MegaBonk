@@ -516,14 +516,19 @@
                                 <!-- Image displayed here -->
                             </div>
 
-                            <!-- Auto-Detect Button -->
+                            <!-- Auto-Detect Buttons -->
                             <div id="scan-auto-detect-area" class="scan-auto-detect-area" style="display: none">
-                                <button id="scan-auto-detect-btn" class="btn-primary scan-auto-detect-btn">
-                                    🤖 Auto-Detect Items (Phase 2 - OCR)
-                                </button>
+                                <div class="scan-detect-buttons">
+                                    <button id="scan-auto-detect-btn" class="btn-primary scan-auto-detect-btn">
+                                        🤖 OCR Only (Phase 2)
+                                    </button>
+                                    <button id="scan-hybrid-detect-btn" class="btn-primary scan-hybrid-detect-btn">
+                                        🎯 Hybrid: OCR + CV (Phase 3)
+                                    </button>
+                                </div>
                                 <p class="scan-hint">
-                                    Use AI to automatically detect items from the screenshot. You can review and adjust
-                                    after.
+                                    <strong>OCR</strong>: Text recognition only. <strong>Hybrid</strong>: Text + visual
+                                    pattern recognition for best accuracy.
                                 </p>
                             </div>
 
