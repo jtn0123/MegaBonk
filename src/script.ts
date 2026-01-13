@@ -22,6 +22,8 @@ import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
 import { setupImageFallbackHandler } from './modules/utils.ts';
 import type { Entity } from './types/index.ts';
 import { logger } from './modules/logger.ts';
+// Import advisor to ensure it's initialized
+import './modules/advisor.ts';
 
 // ========================================
 // Global State (to be refactored into state module)

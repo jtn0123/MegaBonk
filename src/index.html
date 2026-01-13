@@ -186,6 +186,16 @@
                     </button>
                     <button
                         class="tab-btn"
+                        data-tab="advisor"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="advisor-tab"
+                        id="tab-advisor"
+                    >
+                        🤖 Advisor
+                    </button>
+                    <button
+                        class="tab-btn"
                         data-tab="changelog"
                         role="tab"
                         aria-selected="false"
@@ -463,6 +473,136 @@
                                     </div>
                                     <div class="bp-answer">5 stacks</div>
                                 </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advisor Tab -->
+                <div id="advisor-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-advisor">
+                    <div class="advisor-container">
+                        <div class="advisor-header">
+                            <h2>🤖 Build Advisor</h2>
+                            <p class="advisor-subtitle">
+                                Input your current build and the choices you're presented with to get intelligent
+                                recommendations
+                            </p>
+                        </div>
+
+                        <!-- Current Build Input -->
+                        <div class="advisor-section">
+                            <h3>📋 Your Current Build</h3>
+
+                            <div class="advisor-grid">
+                                <!-- Character Selection -->
+                                <div class="advisor-input-group">
+                                    <label for="advisor-character">👤 Character</label>
+                                    <select id="advisor-character" class="advisor-select">
+                                        <option value="">Select your character...</option>
+                                    </select>
+                                </div>
+
+                                <!-- Weapon Selection -->
+                                <div class="advisor-input-group">
+                                    <label for="advisor-weapon">⚔️ Weapon</label>
+                                    <select id="advisor-weapon" class="advisor-select">
+                                        <option value="">Select your weapon...</option>
+                                    </select>
+                                </div>
+
+                                <!-- Current Items -->
+                                <div class="advisor-input-group full-width">
+                                    <label>📦 Current Items</label>
+                                    <div id="advisor-current-items" class="advisor-chips-container">
+                                        <button class="advisor-add-btn" id="add-current-item">+ Add Item</button>
+                                    </div>
+                                </div>
+
+                                <!-- Current Tomes -->
+                                <div class="advisor-input-group full-width">
+                                    <label>📚 Current Tomes</label>
+                                    <div id="advisor-current-tomes" class="advisor-chips-container">
+                                        <button class="advisor-add-btn" id="add-current-tome">+ Add Tome</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Choice Options -->
+                        <div class="advisor-section">
+                            <h3>🎲 What are you choosing between?</h3>
+                            <div class="advisor-choices-grid" id="advisor-choices">
+                                <div class="advisor-choice-card">
+                                    <div class="advisor-input-group">
+                                        <label for="choice-1-type">Choice 1 Type</label>
+                                        <select class="advisor-select choice-type" id="choice-1-type">
+                                            <option value="">Select type...</option>
+                                            <option value="item">Item</option>
+                                            <option value="weapon">Weapon</option>
+                                            <option value="tome">Tome</option>
+                                            <option value="shrine">Shrine</option>
+                                        </select>
+                                    </div>
+                                    <div class="advisor-input-group">
+                                        <label for="choice-1-entity">Choice 1</label>
+                                        <select class="advisor-select choice-entity" id="choice-1-entity">
+                                            <option value="">Select...</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="advisor-choice-card">
+                                    <div class="advisor-input-group">
+                                        <label for="choice-2-type">Choice 2 Type</label>
+                                        <select class="advisor-select choice-type" id="choice-2-type">
+                                            <option value="">Select type...</option>
+                                            <option value="item">Item</option>
+                                            <option value="weapon">Weapon</option>
+                                            <option value="tome">Tome</option>
+                                            <option value="shrine">Shrine</option>
+                                        </select>
+                                    </div>
+                                    <div class="advisor-input-group">
+                                        <label for="choice-2-entity">Choice 2</label>
+                                        <select class="advisor-select choice-entity" id="choice-2-entity">
+                                            <option value="">Select...</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="advisor-choice-card">
+                                    <div class="advisor-input-group">
+                                        <label for="choice-3-type">Choice 3 Type (Optional)</label>
+                                        <select class="advisor-select choice-type" id="choice-3-type">
+                                            <option value="">Select type...</option>
+                                            <option value="item">Item</option>
+                                            <option value="weapon">Weapon</option>
+                                            <option value="tome">Tome</option>
+                                            <option value="shrine">Shrine</option>
+                                        </select>
+                                    </div>
+                                    <div class="advisor-input-group">
+                                        <label for="choice-3-entity">Choice 3 (Optional)</label>
+                                        <select class="advisor-select choice-entity" id="choice-3-entity">
+                                            <option value="">Select...</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Get Recommendation Button -->
+                        <div class="advisor-action">
+                            <button id="get-recommendation" class="btn-primary advisor-btn">
+                                🎯 Get Recommendation
+                            </button>
+                        </div>
+
+                        <!-- Recommendation Results -->
+                        <div id="advisor-results" class="advisor-results" style="display: none">
+                            <h3>💡 Recommendation</h3>
+                            <div id="advisor-results-content">
+                                <!-- Results displayed here -->
                             </div>
                         </div>
                     </div>
