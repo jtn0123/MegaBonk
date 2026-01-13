@@ -40,6 +40,11 @@ interface TemplateData {
 const itemTemplates = new Map<string, TemplateData>();
 const templatesByColor = new Map<string, Item[]>();
 let templatesLoaded = false;
+let priorityTemplatesLoaded = false;
+
+// Detection result cache (key = image hash, value = results)
+const detectionCache = new Map<string, { results: CVDetectionResult[]; timestamp: number }>();
+const CACHE_TTL = 1000 * 60 * 15; // 15 minutes
 
 /**
  * Initialize computer vision module
@@ -56,18 +61,31 @@ export function initCV(gameData: AllGameData): void {
 }
 
 /**
- * Load all item template images into memory
+ * Categorize items by priority (common items first)
  */
-export async function loadItemTemplates(): Promise<void> {
-    if (templatesLoaded) return;
+function prioritizeItems(items: Item[]): { priority: Item[]; standard: Item[] } {
+    const priority: Item[] = [];
+    const standard: Item[] = [];
 
-    const items = allData.items?.items || [];
-    let loaded = 0;
+    // High-priority items (common, frequently seen)
+    const priorityRarities = ['common', 'uncommon'];
 
-    logger.info({
-        operation: 'cv.load_templates',
-        data: { phase: 'start', totalItems: items.length },
+    items.forEach(item => {
+        if (priorityRarities.includes(item.rarity)) {
+            priority.push(item);
+        } else {
+            standard.push(item);
+        }
     });
+
+    return { priority, standard };
+}
+
+/**
+ * Load item templates progressively (priority items first)
+ */
+async function loadTemplatesBatch(items: Item[]): Promise<number> {
+    let loaded = 0;
 
     const loadPromises = items.map(async item => {
         try {
@@ -148,7 +166,13 @@ export async function loadItemTemplates(): Promise<void> {
 
     await Promise.all(loadPromises);
 
-    // Group templates by dominant color for faster matching
+    return loaded;
+}
+
+/**
+ * Group loaded templates by dominant color
+ */
+function groupTemplatesByColor(items: Item[]): void {
     items.forEach(item => {
         const template = itemTemplates.get(item.id);
         if (!template) return;
@@ -161,19 +185,127 @@ export async function loadItemTemplates(): Promise<void> {
         }
         templatesByColor.get(colorCategory)!.push(item);
     });
+}
 
-    templatesLoaded = true;
+/**
+ * Load all item template images into memory (with progressive loading)
+ */
+export async function loadItemTemplates(): Promise<void> {
+    if (templatesLoaded) return;
+
+    const items = allData.items?.items || [];
+
+    logger.info({
+        operation: 'cv.load_templates',
+        data: { phase: 'start', totalItems: items.length },
+    });
+
+    // Prioritize items (common/uncommon first)
+    const { priority, standard } = prioritizeItems(items);
+
+    // Load priority items first
+    const priorityLoaded = await loadTemplatesBatch(priority);
+    groupTemplatesByColor(priority);
+    priorityTemplatesLoaded = true;
 
     logger.info({
         operation: 'cv.load_templates',
         data: {
-            phase: 'complete',
-            loaded,
-            total: items.length,
-            colorGroups: Object.fromEntries(
-                Array.from(templatesByColor.entries()).map(([color, items]) => [color, items.length])
-            ),
+            phase: 'priority_complete',
+            priorityLoaded,
+            priorityTotal: priority.length,
         },
+    });
+
+    // Load remaining items in background (non-blocking)
+    setTimeout(async () => {
+        const standardLoaded = await loadTemplatesBatch(standard);
+        groupTemplatesByColor(standard);
+        templatesLoaded = true;
+
+        logger.info({
+            operation: 'cv.load_templates',
+            data: {
+                phase: 'complete',
+                priorityLoaded,
+                standardLoaded,
+                total: items.length,
+                colorGroups: Object.fromEntries(
+                    Array.from(templatesByColor.entries()).map(([color, items]) => [color, items.length])
+                ),
+            },
+        });
+    }, 100); // Small delay to allow UI to update
+}
+
+/**
+ * Generate simple hash from image data URL
+ * Used for caching detection results
+ */
+function hashImageDataUrl(dataUrl: string): string {
+    // Simple hash based on data URL length and sample characters
+    const len = dataUrl.length;
+    let hash = 0;
+
+    // Sample characters at regular intervals
+    const sampleCount = Math.min(100, len);
+    const step = Math.floor(len / sampleCount);
+
+    for (let i = 0; i < len; i += step) {
+        const char = dataUrl.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash = hash & hash; // Convert to 32bit integer
+    }
+
+    return `img_${hash}_${len}`;
+}
+
+/**
+ * Get cached detection results if available
+ */
+function getCachedResults(imageHash: string): CVDetectionResult[] | null {
+    const cached = detectionCache.get(imageHash);
+
+    if (!cached) return null;
+
+    // Check if cache is expired
+    if (Date.now() - cached.timestamp > CACHE_TTL) {
+        detectionCache.delete(imageHash);
+        return null;
+    }
+
+    return cached.results;
+}
+
+/**
+ * Cache detection results
+ */
+function cacheResults(imageHash: string, results: CVDetectionResult[]): void {
+    detectionCache.set(imageHash, {
+        results,
+        timestamp: Date.now(),
+    });
+
+    // Cleanup old cache entries (keep last 50)
+    if (detectionCache.size > 50) {
+        const entries = Array.from(detectionCache.entries());
+        entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+        // Remove oldest 10 entries
+        for (let i = 0; i < 10; i++) {
+            detectionCache.delete(entries[i][0]);
+        }
+    }
+}
+
+/**
+ * Clear detection cache
+ */
+export function clearDetectionCache(): void {
+    detectionCache.clear();
+    logger.info({
+        operation: 'cv.cache_cleared',
+        data: { cleared: true },
     });
 }
 
@@ -623,12 +755,29 @@ export async function detectItemsWithCV(
     useWorkers: boolean = false
 ): Promise<CVDetectionResult[]> {
     try {
+        // Check cache first
+        const imageHash = hashImageDataUrl(imageDataUrl);
+        const cachedResults = getCachedResults(imageHash);
+
+        if (cachedResults) {
+            logger.info({
+                operation: 'cv.cache_hit',
+                data: { imageHash, resultCount: cachedResults.length },
+            });
+
+            if (progressCallback) {
+                progressCallback(100, 'Loaded from cache (instant)');
+            }
+
+            return cachedResults;
+        }
+
         if (progressCallback) {
             progressCallback(0, 'Loading image...');
         }
 
-        // Ensure templates are loaded
-        if (!templatesLoaded) {
+        // Ensure templates are loaded (at least priority ones)
+        if (!priorityTemplatesLoaded) {
             if (progressCallback) {
                 progressCallback(5, 'Loading item templates...');
             }
@@ -666,6 +815,9 @@ export async function detectItemsWithCV(
                     gridPositions: gridPositions.length,
                 },
             });
+
+            // Cache worker results
+            cacheResults(imageHash, workerResults);
 
             return workerResults;
         }
@@ -837,6 +989,9 @@ export async function detectItemsWithCV(
                 matchRate: ((boostedDetections.length / validCells.length) * 100).toFixed(1) + '%',
             },
         });
+
+        // Cache results for future use
+        cacheResults(imageHash, boostedDetections);
 
         return boostedDetections;
     } catch (error) {
