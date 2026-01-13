@@ -38,6 +38,7 @@ interface TemplateData {
 }
 
 const itemTemplates = new Map<string, TemplateData>();
+const templatesByColor = new Map<string, Item[]>();
 let templatesLoaded = false;
 
 /**
@@ -147,6 +148,20 @@ export async function loadItemTemplates(): Promise<void> {
 
     await Promise.all(loadPromises);
 
+    // Group templates by dominant color for faster matching
+    items.forEach(item => {
+        const template = itemTemplates.get(item.id);
+        if (!template) return;
+
+        const imageData = template.ctx.getImageData(0, 0, template.width, template.height);
+        const colorCategory = getDominantColor(imageData);
+
+        if (!templatesByColor.has(colorCategory)) {
+            templatesByColor.set(colorCategory, []);
+        }
+        templatesByColor.get(colorCategory)!.push(item);
+    });
+
     templatesLoaded = true;
 
     logger.info({
@@ -155,6 +170,9 @@ export async function loadItemTemplates(): Promise<void> {
             phase: 'complete',
             loaded,
             total: items.length,
+            colorGroups: Object.fromEntries(
+                Array.from(templatesByColor.entries()).map(([color, items]) => [color, items.length])
+            ),
         },
     });
 }
@@ -474,11 +492,135 @@ function calculateColorVariance(imageData: ImageData): number {
 }
 
 /**
+ * Detect items using Web Workers for parallel processing (optional)
+ * Offloads template matching to workers to avoid blocking UI
+ */
+async function detectItemsWithWorkers(
+    ctx: CanvasRenderingContext2D,
+    gridPositions: ROI[],
+    items: Item[],
+    progressCallback?: (progress: number, status: string) => void
+): Promise<CVDetectionResult[]> {
+    // Create worker pool (4 workers for parallel processing)
+    const workerCount = 4;
+    const workers: Worker[] = [];
+
+    try {
+        // Initialize workers
+        for (let i = 0; i < workerCount; i++) {
+            workers.push(new Worker('/workers/template-matcher-worker.js'));
+        }
+
+        // Prepare template data for workers (serialize ImageData)
+        const templateData = items
+            .map(item => {
+                const template = itemTemplates.get(item.id);
+                if (!template) return null;
+
+                const imageData = template.ctx.getImageData(0, 0, template.width, template.height);
+
+                return {
+                    itemId: item.id,
+                    itemName: item.name,
+                    imageData: {
+                        width: imageData.width,
+                        height: imageData.height,
+                        data: Array.from(imageData.data), // Convert Uint8ClampedArray to regular array
+                    },
+                };
+            })
+            .filter(t => t !== null);
+
+        // Split cells into batches for workers
+        const batchSize = Math.ceil(gridPositions.length / workerCount);
+        const batches: ROI[][] = [];
+
+        for (let i = 0; i < gridPositions.length; i += batchSize) {
+            batches.push(gridPositions.slice(i, i + batchSize));
+        }
+
+        // Send batches to workers and collect results
+        const batchPromises = batches.map((batch, batchIndex) => {
+            return new Promise<any[]>(resolve => {
+                const worker = workers[batchIndex % workerCount];
+
+                // Prepare cell data
+                const cells = batch.map((cell, index) => {
+                    const iconRegion = extractIconRegion(ctx, cell);
+
+                    return {
+                        index,
+                        position: cell,
+                        imageData: {
+                            width: iconRegion.width,
+                            height: iconRegion.height,
+                            data: Array.from(iconRegion.data),
+                        },
+                    };
+                });
+
+                // Listen for response
+                const handler = (e: MessageEvent) => {
+                    if (e.data.type === 'BATCH_COMPLETE' && e.data.data.batchId === batchIndex) {
+                        worker.removeEventListener('message', handler);
+                        resolve(e.data.data.results);
+                    }
+                };
+
+                worker.addEventListener('message', handler);
+
+                // Send batch to worker
+                worker.postMessage({
+                    type: 'MATCH_BATCH',
+                    data: {
+                        batchId: batchIndex,
+                        cells,
+                        templates: templateData,
+                    },
+                });
+            });
+        });
+
+        // Wait for all batches to complete
+        if (progressCallback) {
+            progressCallback(60, 'Processing with workers...');
+        }
+
+        const allResults = await Promise.all(batchPromises);
+
+        // Flatten results
+        const flatResults = allResults.flat();
+
+        // Convert to CVDetectionResult format
+        const detections: CVDetectionResult[] = flatResults
+            .map(result => {
+                const item = items.find(i => i.id === result.itemId);
+                if (!item) return null;
+
+                return {
+                    type: 'item' as const,
+                    entity: item,
+                    confidence: result.similarity,
+                    position: result.position,
+                    method: 'template_match' as const,
+                };
+            })
+            .filter(d => d !== null) as CVDetectionResult[];
+
+        return detections;
+    } finally {
+        // Terminate all workers
+        workers.forEach(w => w.terminate());
+    }
+}
+
+/**
  * Detect items using template matching against stored item icons
  */
 export async function detectItemsWithCV(
     imageDataUrl: string,
-    progressCallback?: (progress: number, status: string) => void
+    progressCallback?: (progress: number, status: string) => void,
+    useWorkers: boolean = false
 ): Promise<CVDetectionResult[]> {
     try {
         if (progressCallback) {
@@ -502,36 +644,54 @@ export async function detectItemsWithCV(
         // Detect potential grid positions
         const gridPositions = detectGridPositions(width, height);
 
+        const items = allData.items?.items || [];
+
+        // Use workers for parallel processing if enabled
+        if (useWorkers) {
+            logger.info({
+                operation: 'cv.detect_items_workers',
+                data: { gridPositions: gridPositions.length, workers: 4 },
+            });
+
+            const workerResults = await detectItemsWithWorkers(ctx, gridPositions, items, progressCallback);
+
+            if (progressCallback) {
+                progressCallback(100, 'Worker processing complete');
+            }
+
+            logger.info({
+                operation: 'cv.detect_items_workers_complete',
+                data: {
+                    detectionsCount: workerResults.length,
+                    gridPositions: gridPositions.length,
+                },
+            });
+
+            return workerResults;
+        }
+
+        // Standard multi-pass detection (more accurate)
         if (progressCallback) {
             progressCallback(30, `Detecting items in ${gridPositions.length} cells...`);
         }
 
         const detections: CVDetectionResult[] = [];
-        const items = allData.items?.items || [];
-
-        // Phase 1: Collect all best matches (no threshold yet)
-        const candidateMatches: Array<{ item: Item; similarity: number; cell: ROI }> = [];
         let emptyCells = 0;
 
-        for (let i = 0; i < gridPositions.length; i++) {
-            const cell = gridPositions[i];
-
-            if (progressCallback && i % 5 === 0) {
-                const progress = 30 + Math.floor((i / gridPositions.length) * 50);
-                progressCallback(progress, `Matching cell ${i + 1}/${gridPositions.length}...`);
-            }
-
-            // Check if cell is empty (skip template matching for empty cells)
+        // Helper function to match a cell against templates
+        const matchCell = (cell: ROI): { item: Item; similarity: number } | null => {
             const iconRegion = extractIconRegion(ctx, cell);
-            if (isEmptyCell(iconRegion)) {
-                emptyCells++;
-                continue; // Skip this cell
-            }
+
+            // Color-based pre-filtering
+            const cellColor = getDominantColor(iconRegion);
+            const colorCandidates = templatesByColor.get(cellColor) || [];
+            const mixedCandidates = templatesByColor.get('mixed') || [];
+            const candidateItems = [...colorCandidates, ...mixedCandidates];
+            const itemsToCheck = candidateItems.length > 0 ? candidateItems : items;
 
             let bestMatch: { item: Item; similarity: number } | null = null;
 
-            // Compare cell against all item templates
-            for (const item of items) {
+            for (const item of itemsToCheck) {
                 const template = itemTemplates.get(item.id);
                 if (!template) continue;
 
@@ -542,57 +702,125 @@ export async function detectItemsWithCV(
                 }
             }
 
-            if (bestMatch && bestMatch.similarity > 0.5) {
-                // Only include if above minimum threshold (0.50)
-                candidateMatches.push({
-                    item: bestMatch.item,
-                    similarity: bestMatch.similarity,
-                    cell,
-                });
+            return bestMatch;
+        };
+
+        // Filter out empty cells first
+        const validCells: ROI[] = [];
+        for (let i = 0; i < gridPositions.length; i++) {
+            const cell = gridPositions[i];
+            const iconRegion = extractIconRegion(ctx, cell);
+
+            if (isEmptyCell(iconRegion)) {
+                emptyCells++;
+            } else {
+                validCells.push(cell);
             }
         }
 
-        // Phase 2: Calculate adaptive threshold
+        // PASS 1: High confidence (>0.85) - lock in obvious matches
         if (progressCallback) {
-            progressCallback(85, 'Calculating adaptive threshold...');
+            progressCallback(30, 'Pass 1: High confidence matching...');
         }
 
-        const allSimilarities = candidateMatches.map(m => m.similarity);
-        const adaptiveThreshold = calculateAdaptiveThreshold(allSimilarities);
+        const matchedCells = new Set<ROI>();
+        const pass1Detections: Array<{ item: Item; similarity: number; cell: ROI }> = [];
 
-        logger.info({
-            operation: 'cv.adaptive_threshold',
-            data: {
-                candidates: candidateMatches.length,
-                threshold: adaptiveThreshold.toFixed(3),
-            },
-        });
+        for (let i = 0; i < validCells.length; i++) {
+            const cell = validCells[i];
 
-        // Phase 3: Apply adaptive threshold
-        candidateMatches.forEach(match => {
-            if (match.similarity > adaptiveThreshold) {
-                detections.push({
-                    type: 'item',
-                    entity: match.item,
-                    confidence: match.similarity,
-                    position: match.cell,
-                    method: 'template_match',
-                });
+            if (progressCallback && i % 5 === 0) {
+                const progress = 30 + Math.floor((i / validCells.length) * 20);
+                progressCallback(progress, `Pass 1: ${i + 1}/${validCells.length}...`);
             }
+
+            const match = matchCell(cell);
+            if (match && match.similarity > 0.85) {
+                pass1Detections.push({ item: match.item, similarity: match.similarity, cell });
+                matchedCells.add(cell);
+            }
+        }
+
+        // PASS 2: Medium confidence (>0.70) on unmatched cells
+        if (progressCallback) {
+            progressCallback(55, 'Pass 2: Medium confidence matching...');
+        }
+
+        const unmatchedAfterPass1 = validCells.filter(cell => !matchedCells.has(cell));
+        const pass2Detections: Array<{ item: Item; similarity: number; cell: ROI }> = [];
+
+        for (let i = 0; i < unmatchedAfterPass1.length; i++) {
+            const cell = unmatchedAfterPass1[i];
+
+            if (progressCallback && i % 3 === 0) {
+                const progress = 55 + Math.floor((i / unmatchedAfterPass1.length) * 15);
+                progressCallback(progress, `Pass 2: ${i + 1}/${unmatchedAfterPass1.length}...`);
+            }
+
+            const match = matchCell(cell);
+            if (match && match.similarity > 0.7) {
+                pass2Detections.push({ item: match.item, similarity: match.similarity, cell });
+                matchedCells.add(cell);
+            }
+        }
+
+        // PASS 3: Low confidence (>0.60) with context validation
+        if (progressCallback) {
+            progressCallback(75, 'Pass 3: Low confidence with validation...');
+        }
+
+        const unmatchedAfterPass2 = validCells.filter(cell => !matchedCells.has(cell));
+        const pass3Detections: Array<{ item: Item; similarity: number; cell: ROI }> = [];
+
+        for (let i = 0; i < unmatchedAfterPass2.length; i++) {
+            const cell = unmatchedAfterPass2[i];
+
+            if (progressCallback && i % 2 === 0) {
+                const progress = 75 + Math.floor((i / unmatchedAfterPass2.length) * 15);
+                progressCallback(progress, `Pass 3: ${i + 1}/${unmatchedAfterPass2.length}...`);
+            }
+
+            const match = matchCell(cell);
+            if (match && match.similarity > 0.6) {
+                // Context validation: boost common items
+                const isCommonItem = match.item.rarity === 'common' || match.item.rarity === 'uncommon';
+                const boostedSimilarity = isCommonItem ? match.similarity + 0.05 : match.similarity;
+
+                if (boostedSimilarity > 0.62) {
+                    pass3Detections.push({ item: match.item, similarity: boostedSimilarity, cell });
+                    matchedCells.add(cell);
+                }
+            }
+        }
+
+        // Combine all passes
+        const allMatches = [...pass1Detections, ...pass2Detections, ...pass3Detections];
+
+        allMatches.forEach(match => {
+            detections.push({
+                type: 'item',
+                entity: match.item,
+                confidence: match.similarity,
+                position: match.cell,
+                method: 'template_match',
+            });
         });
 
         if (progressCallback) {
-            progressCallback(100, 'Template matching complete');
+            progressCallback(100, 'Multi-pass matching complete');
         }
 
         logger.info({
-            operation: 'cv.detect_items',
+            operation: 'cv.detect_items_multipass',
             data: {
                 detectionsCount: detections.length,
+                pass1: pass1Detections.length,
+                pass2: pass2Detections.length,
+                pass3: pass3Detections.length,
                 gridPositions: gridPositions.length,
                 emptyCells,
-                processedCells: gridPositions.length - emptyCells,
-                matchRate: ((detections.length / (gridPositions.length - emptyCells)) * 100).toFixed(1) + '%',
+                validCells: validCells.length,
+                matchRate: ((detections.length / validCells.length) * 100).toFixed(1) + '%',
             },
         });
 
@@ -857,6 +1085,67 @@ export function extractDominantColors(
 }
 
 /**
+ * Get dominant color category from ImageData
+ * Used for color-based pre-filtering
+ */
+function getDominantColor(imageData: ImageData): string {
+    const pixels = imageData.data;
+    let sumR = 0;
+    let sumG = 0;
+    let sumB = 0;
+    let count = 0;
+
+    // Sample pixels (skip alpha, sample every 4th pixel)
+    for (let i = 0; i < pixels.length; i += 16) {
+        sumR += pixels[i];
+        sumG += pixels[i + 1];
+        sumB += pixels[i + 2];
+        count++;
+    }
+
+    const avgR = sumR / count;
+    const avgG = sumG / count;
+    const avgB = sumB / count;
+
+    // Categorize into color buckets
+    const maxChannel = Math.max(avgR, avgG, avgB);
+    const minChannel = Math.min(avgR, avgG, avgB);
+    const diff = maxChannel - minChannel;
+
+    // Low saturation = gray/white/black
+    if (diff < 30) {
+        const brightness = (avgR + avgG + avgB) / 3;
+        if (brightness < 60) return 'black';
+        if (brightness > 200) return 'white';
+        return 'gray';
+    }
+
+    // High saturation = color
+    if (avgR > avgG && avgR > avgB) {
+        // Red dominant
+        if (avgG > avgB * 1.3) return 'orange';
+        if (avgR > 180 && avgG > 140) return 'yellow';
+        return 'red';
+    } else if (avgG > avgR && avgG > avgB) {
+        // Green dominant
+        if (avgB > avgR * 1.3) return 'cyan';
+        if (avgG > 180 && avgB < 100) return 'lime';
+        return 'green';
+    } else if (avgB > avgR && avgB > avgG) {
+        // Blue dominant
+        if (avgR > avgG * 1.3) return 'purple';
+        if (avgB > 180 && avgG < 100) return 'blue';
+        return 'blue';
+    }
+
+    // Mixed colors
+    if (avgR > 150 && avgG < 100 && avgB > 150) return 'magenta';
+    if (avgR > 100 && avgG > 100 && avgB < 80) return 'brown';
+
+    return 'mixed'; // Fallback
+}
+
+/**
  * Detect UI regions (for finding inventory, stats, etc.)
  * Adapts to different UI layouts (PC vs Steam Deck)
  */
@@ -980,6 +1269,145 @@ function detectGameplayRegions(
             label: 'character',
         },
     };
+}
+
+/**
+ * Render debug overlay showing detection grid and results
+ * Draws colored boxes around detections with confidence scores
+ */
+export function renderDebugOverlay(
+    canvas: HTMLCanvasElement,
+    imageDataUrl: string,
+    gridPositions: ROI[],
+    detections: CVDetectionResult[],
+    emptyCells: Set<number>
+): void {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Load and draw original image first
+    const img = new Image();
+    img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        // Draw grid positions (yellow boxes)
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Yellow, semi-transparent
+        ctx.font = '12px monospace';
+
+        gridPositions.forEach((cell, index) => {
+            // Draw cell border
+            if (emptyCells.has(index)) {
+                // Empty cells in gray
+                ctx.strokeStyle = 'rgba(128, 128, 128, 0.3)';
+                ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
+
+                // Label as empty
+                ctx.fillStyle = 'rgba(128, 128, 128, 0.7)';
+                ctx.fillRect(cell.x, cell.y - 18, 60, 18);
+                ctx.fillStyle = 'white';
+                ctx.fillText('EMPTY', cell.x + 5, cell.y - 5);
+            } else {
+                // Valid cells in yellow
+                ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+                ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
+            }
+        });
+
+        // Draw detections with confidence-based colors
+        detections.forEach(detection => {
+            if (!detection.position) return;
+
+            const pos = detection.position;
+            const confidence = detection.confidence;
+
+            // Color based on confidence
+            let color: string;
+            if (confidence >= 0.85) {
+                color = 'rgba(0, 255, 0, 0.8)'; // Green = high confidence
+            } else if (confidence >= 0.7) {
+                color = 'rgba(255, 165, 0, 0.8)'; // Orange = medium confidence
+            } else {
+                color = 'rgba(255, 0, 0, 0.8)'; // Red = low confidence
+            }
+
+            // Draw detection border (thicker)
+            ctx.lineWidth = 3;
+            ctx.strokeStyle = color;
+            ctx.strokeRect(pos.x, pos.y, pos.width, pos.height);
+
+            // Draw label background
+            const label = `${detection.entity.name}`;
+            const confidenceText = `${(confidence * 100).toFixed(0)}%`;
+            const labelWidth = Math.max(ctx.measureText(label).width, ctx.measureText(confidenceText).width) + 10;
+
+            ctx.fillStyle = color;
+            ctx.fillRect(pos.x, pos.y + pos.height, labelWidth, 36);
+
+            // Draw label text
+            ctx.fillStyle = 'black';
+            ctx.font = 'bold 12px monospace';
+            ctx.fillText(label, pos.x + 5, pos.y + pos.height + 14);
+            ctx.fillText(confidenceText, pos.x + 5, pos.y + pos.height + 30);
+        });
+
+        // Draw legend
+        const legendX = 10;
+        const legendY = 10;
+        const legendHeight = 120;
+
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillRect(legendX, legendY, 200, legendHeight);
+
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 14px monospace';
+        ctx.fillText('Debug Overlay Legend', legendX + 10, legendY + 20);
+
+        ctx.font = '12px monospace';
+        ctx.fillStyle = 'rgba(0, 255, 0, 1)';
+        ctx.fillText('■ High (≥85%)', legendX + 10, legendY + 45);
+
+        ctx.fillStyle = 'rgba(255, 165, 0, 1)';
+        ctx.fillText('■ Medium (70-85%)', legendX + 10, legendY + 65);
+
+        ctx.fillStyle = 'rgba(255, 0, 0, 1)';
+        ctx.fillText('■ Low (60-70%)', legendX + 10, legendY + 85);
+
+        ctx.fillStyle = 'rgba(255, 255, 0, 1)';
+        ctx.fillText('□ Grid cells', legendX + 10, legendY + 105);
+    };
+
+    img.src = imageDataUrl;
+}
+
+/**
+ * Create debug overlay canvas and return as data URL
+ * Useful for downloading or displaying debug visualization
+ */
+export async function createDebugOverlay(imageDataUrl: string, detections: CVDetectionResult[]): Promise<string> {
+    const { width, height } = await loadImageToCanvas(imageDataUrl);
+
+    // Re-detect grid to get positions
+    const gridPositions = detectGridPositions(width, height);
+
+    // Create canvas for debug overlay
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    // Determine which cells are empty (simplified - no actual check)
+    const emptyCells = new Set<number>();
+
+    renderDebugOverlay(canvas, imageDataUrl, gridPositions, detections, emptyCells);
+
+    return new Promise(resolve => {
+        // Wait for image to load and render
+        setTimeout(() => {
+            resolve(canvas.toDataURL('image/png'));
+        }, 100);
+    });
 }
 
 // ========================================
