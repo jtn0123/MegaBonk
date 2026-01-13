@@ -13,6 +13,7 @@ import {
     initCV,
     loadItemTemplates,
     combineDetections,
+    aggregateDuplicates,
     type CVDetectionResult,
 } from './computer-vision.ts';
 
@@ -328,18 +329,24 @@ async function handleHybridDetect(): Promise<void> {
             cvResults.filter(r => r.type === 'tome')
         );
 
+        // Aggregate duplicates (e.g., [Wrench, Wrench, Wrench] → [Wrench x3])
+        const aggregatedItems = aggregateDuplicates(combinedItems);
+        const aggregatedTomes = aggregateDuplicates(combinedTomes);
+
         const hybridResults = {
-            items: combinedItems.map(r => ({
+            items: aggregatedItems.map(r => ({
                 type: r.type as 'item',
                 entity: r.entity,
                 confidence: r.confidence,
                 rawText: `hybrid_${r.method}`,
+                count: r.count,
             })),
-            tomes: combinedTomes.map(r => ({
+            tomes: aggregatedTomes.map(r => ({
                 type: r.type as 'tome',
                 entity: r.entity,
                 confidence: r.confidence,
                 rawText: `hybrid_${r.method}`,
+                count: r.count,
             })),
             character:
                 ocrResults.character ||
