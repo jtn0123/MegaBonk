@@ -8,7 +8,13 @@ import type { Item, Tome, AllGameData, Character, Weapon } from '../types/index.
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
 import { autoDetectFromImage, initOCR, type DetectionResult } from './ocr.ts';
-import { detectItemsWithCV, initCV, combineDetections, type CVDetectionResult } from './computer-vision.ts';
+import {
+    detectItemsWithCV,
+    initCV,
+    loadItemTemplates,
+    combineDetections,
+    type CVDetectionResult,
+} from './computer-vision.ts';
 
 // State
 let allData: AllGameData = {};
@@ -40,6 +46,18 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
     // Initialize OCR and CV modules
     initOCR(gameData);
     initCV(gameData);
+
+    // Preload item templates for template matching
+    loadItemTemplates().catch(error => {
+        logger.error({
+            operation: 'scan_build.load_templates',
+            error: {
+                name: error.name,
+                message: error.message,
+            },
+        });
+        ToastManager.error('Failed to load item templates for recognition');
+    });
 
     setupEventListeners();
 

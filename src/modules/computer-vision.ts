@@ -28,6 +28,18 @@ export interface ROI {
 
 let allData: AllGameData = {};
 
+// Template cache for item images
+interface TemplateData {
+    image: HTMLImageElement;
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    width: number;
+    height: number;
+}
+
+const itemTemplates = new Map<string, TemplateData>();
+let templatesLoaded = false;
+
 /**
  * Initialize computer vision module
  */
@@ -38,6 +50,111 @@ export function initCV(gameData: AllGameData): void {
         operation: 'cv.init',
         data: {
             itemsCount: gameData.items?.items.length || 0,
+        },
+    });
+}
+
+/**
+ * Load all item template images into memory
+ */
+export async function loadItemTemplates(): Promise<void> {
+    if (templatesLoaded) return;
+
+    const items = allData.items?.items || [];
+    let loaded = 0;
+
+    logger.info({
+        operation: 'cv.load_templates',
+        data: { phase: 'start', totalItems: items.length },
+    });
+
+    const loadPromises = items.map(async item => {
+        try {
+            // Try WebP first (smaller), fallback to PNG
+            const imagePath = item.image.replace('.png', '.webp');
+            const img = new Image();
+
+            await new Promise<void>((resolve, reject) => {
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+                    const ctx = canvas.getContext('2d');
+
+                    if (!ctx) {
+                        reject(new Error('Failed to get canvas context'));
+                        return;
+                    }
+
+                    ctx.drawImage(img, 0, 0);
+
+                    itemTemplates.set(item.id, {
+                        image: img,
+                        canvas,
+                        ctx,
+                        width: img.width,
+                        height: img.height,
+                    });
+
+                    loaded++;
+                    resolve();
+                };
+
+                img.onerror = () => {
+                    // Try PNG fallback
+                    const pngImg = new Image();
+                    pngImg.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = pngImg.width;
+                        canvas.height = pngImg.height;
+                        const ctx = canvas.getContext('2d');
+
+                        if (!ctx) {
+                            reject(new Error('Failed to get canvas context'));
+                            return;
+                        }
+
+                        ctx.drawImage(pngImg, 0, 0);
+
+                        itemTemplates.set(item.id, {
+                            image: pngImg,
+                            canvas,
+                            ctx,
+                            width: pngImg.width,
+                            height: pngImg.height,
+                        });
+
+                        loaded++;
+                        resolve();
+                    };
+                    pngImg.onerror = () => reject(new Error(`Failed to load: ${item.image}`));
+                    pngImg.src = item.image;
+                };
+
+                img.src = imagePath;
+            });
+        } catch (error) {
+            logger.error({
+                operation: 'cv.load_template',
+                error: {
+                    name: (error as Error).name,
+                    message: (error as Error).message,
+                    itemId: item.id,
+                },
+            });
+        }
+    });
+
+    await Promise.all(loadPromises);
+
+    templatesLoaded = true;
+
+    logger.info({
+        operation: 'cv.load_templates',
+        data: {
+            phase: 'complete',
+            loaded,
+            total: items.length,
         },
     });
 }
@@ -150,6 +267,73 @@ export function detectGridPositions(width: number, height: number, gridSize: num
 }
 
 /**
+ * Extract icon region from cell, excluding count number area
+ * Count numbers are typically in bottom-right corner (last 25-30% of cell)
+ */
+function extractIconRegion(ctx: CanvasRenderingContext2D, cell: ROI): ImageData {
+    // Extract 80% of cell to avoid count number area in bottom-right
+    const iconWidth = Math.floor(cell.width * 0.8);
+    const iconHeight = Math.floor(cell.height * 0.8);
+
+    return ctx.getImageData(cell.x, cell.y, iconWidth, iconHeight);
+}
+
+/**
+ * Resize ImageData to target dimensions
+ */
+function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight: number): ImageData {
+    const canvas = document.createElement('canvas');
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+
+    const ctx = canvas.getContext('2d')!;
+    ctx.putImageData(imageData, 0, 0);
+
+    // Create output canvas
+    const outputCanvas = document.createElement('canvas');
+    outputCanvas.width = targetWidth;
+    outputCanvas.height = targetHeight;
+
+    const outputCtx = outputCanvas.getContext('2d')!;
+    outputCtx.drawImage(canvas, 0, 0, imageData.width, imageData.height, 0, 0, targetWidth, targetHeight);
+
+    return outputCtx.getImageData(0, 0, targetWidth, targetHeight);
+}
+
+/**
+ * Match a screenshot cell against an item template
+ * Returns similarity score (0-1, higher is better)
+ */
+function matchTemplate(screenshotCtx: CanvasRenderingContext2D, cell: ROI, template: TemplateData): number {
+    // Extract icon region from screenshot (exclude count area)
+    const iconRegion = extractIconRegion(screenshotCtx, cell);
+
+    // Get template image data
+    const templateImageData = template.ctx.getImageData(0, 0, template.width, template.height);
+
+    // Resize template to match icon region size
+    const resizedTemplate = resizeImageData(templateImageData, iconRegion.width, iconRegion.height);
+
+    // Calculate similarity
+    return calculateSimilarity(iconRegion, resizedTemplate);
+}
+
+/**
+ * Extract count number region from cell (bottom-right corner)
+ */
+function extractCountRegion(cell: ROI): ROI {
+    const countSize = Math.min(25, Math.floor(cell.width * 0.25));
+
+    return {
+        x: cell.x + cell.width - countSize,
+        y: cell.y + cell.height - countSize,
+        width: countSize,
+        height: countSize,
+        label: `${cell.label}_count`,
+    };
+}
+
+/**
  * Pre-process image for better recognition
  */
 function preprocessImage(imageData: ImageData): ImageData {
@@ -175,8 +359,7 @@ function preprocessImage(imageData: ImageData): ImageData {
 }
 
 /**
- * Detect items using template matching
- * (Simplified version - in production would use actual icon templates)
+ * Detect items using template matching against stored item icons
  */
 export async function detectItemsWithCV(
     imageDataUrl: string,
@@ -185,6 +368,14 @@ export async function detectItemsWithCV(
     try {
         if (progressCallback) {
             progressCallback(0, 'Loading image...');
+        }
+
+        // Ensure templates are loaded
+        if (!templatesLoaded) {
+            if (progressCallback) {
+                progressCallback(5, 'Loading item templates...');
+            }
+            await loadItemTemplates();
         }
 
         const { canvas, ctx, width, height } = await loadImageToCanvas(imageDataUrl);
@@ -197,62 +388,49 @@ export async function detectItemsWithCV(
         const gridPositions = detectGridPositions(width, height);
 
         if (progressCallback) {
-            progressCallback(40, 'Detecting items...');
+            progressCallback(30, `Detecting items in ${gridPositions.length} cells...`);
         }
 
         const detections: CVDetectionResult[] = [];
+        const items = allData.items?.items || [];
+        const SIMILARITY_THRESHOLD = 0.75; // Adjust based on testing
 
-        // Analyze image regions for patterns
-        // In a full implementation, we would compare against actual item icon templates
-        // For now, we'll use heuristics based on color patterns and positions
+        // For each grid cell, find best matching template
+        for (let i = 0; i < gridPositions.length; i++) {
+            const cell = gridPositions[i];
 
-        const fullImageData = ctx.getImageData(0, 0, width, height);
-
-        // Analyze color distribution to infer possible items
-        const colorStats = analyzeColorDistribution(fullImageData);
-
-        if (progressCallback) {
-            progressCallback(60, 'Matching patterns...');
-        }
-
-        // Use color heuristics to make educated guesses
-        // This is a placeholder - real implementation would use actual templates
-        if (colorStats.hasGreenTint) {
-            // Might indicate health/HP items
-            const hpItems =
-                allData.items?.items.filter(
-                    item =>
-                        item.base_effect.toLowerCase().includes('hp') ||
-                        item.base_effect.toLowerCase().includes('health')
-                ) || [];
-
-            if (hpItems.length > 0) {
-                detections.push({
-                    type: 'item',
-                    entity: hpItems[0],
-                    confidence: 0.55, // Lower confidence for heuristic-based detection
-                    method: 'icon_similarity',
-                });
+            if (progressCallback && i % 5 === 0) {
+                const progress = 30 + Math.floor((i / gridPositions.length) * 60);
+                progressCallback(progress, `Matching cell ${i + 1}/${gridPositions.length}...`);
             }
-        }
 
-        if (colorStats.hasRedTint) {
-            // Might indicate damage items
-            const damageItems =
-                allData.items?.items.filter(item => item.base_effect.toLowerCase().includes('damage')) || [];
+            let bestMatch: { item: Item; similarity: number } | null = null;
 
-            if (damageItems.length > 0 && Math.random() > 0.5) {
+            // Compare cell against all item templates
+            for (const item of items) {
+                const template = itemTemplates.get(item.id);
+                if (!template) continue;
+
+                const similarity = matchTemplate(ctx, cell, template);
+
+                if (similarity > SIMILARITY_THRESHOLD && (!bestMatch || similarity > bestMatch.similarity)) {
+                    bestMatch = { item, similarity };
+                }
+            }
+
+            if (bestMatch) {
                 detections.push({
                     type: 'item',
-                    entity: damageItems[0],
-                    confidence: 0.52,
-                    method: 'icon_similarity',
+                    entity: bestMatch.item,
+                    confidence: bestMatch.similarity,
+                    position: cell,
+                    method: 'template_match',
                 });
             }
         }
 
         if (progressCallback) {
-            progressCallback(100, 'Analysis complete');
+            progressCallback(100, 'Template matching complete');
         }
 
         logger.info({
@@ -260,6 +438,7 @@ export async function detectItemsWithCV(
             data: {
                 detectionsCount: detections.length,
                 gridPositions: gridPositions.length,
+                matchRate: ((detections.length / gridPositions.length) * 100).toFixed(1) + '%',
             },
         });
 
@@ -309,6 +488,72 @@ function analyzeColorDistribution(imageData: ImageData): {
         hasBlueTint: avgBlue > avgRed * 1.2 && avgBlue > avgGreen * 1.2,
         brightness: avgBrightness,
     };
+}
+
+/**
+ * Extract count numbers from item cells using OCR
+ * Returns a map of cell labels to counts
+ */
+export async function detectItemCounts(imageDataUrl: string, cells: ROI[]): Promise<Map<string, number>> {
+    const Tesseract = await import('tesseract.js');
+    const counts = new Map<string, number>();
+
+    // Load screenshot
+    const { canvas, ctx } = await loadImageToCanvas(imageDataUrl);
+
+    for (const cell of cells) {
+        try {
+            // Extract count region (bottom-right corner)
+            const countROI = extractCountRegion(cell);
+
+            // Create canvas for just the count region
+            const countCanvas = document.createElement('canvas');
+            countCanvas.width = countROI.width;
+            countCanvas.height = countROI.height;
+            const countCtx = countCanvas.getContext('2d')!;
+
+            countCtx.drawImage(
+                canvas,
+                countROI.x,
+                countROI.y,
+                countROI.width,
+                countROI.height,
+                0,
+                0,
+                countROI.width,
+                countROI.height
+            );
+
+            // OCR just this tiny region
+            const result = await Tesseract.recognize(countCanvas.toDataURL(), 'eng', {
+                tessedit_char_whitelist: 'x×0123456789', // Only numbers and x/×
+                tessedit_pageseg_mode: Tesseract.PSM.SINGLE_WORD,
+            });
+
+            const text = result.data.text.trim();
+
+            // Parse count (look for patterns like "x5", "5", "×3")
+            const countMatch = text.match(/[x×]?(\d+)/);
+            if (countMatch) {
+                const count = parseInt(countMatch[1], 10);
+                if (!isNaN(count) && count > 1 && count <= 20) {
+                    counts.set(cell.label || '', count);
+                }
+            }
+        } catch (error) {
+            // Silently fail for individual cells, default to 1
+            logger.error({
+                operation: 'cv.detect_count',
+                error: {
+                    name: (error as Error).name,
+                    message: (error as Error).message,
+                    cell: cell.label,
+                },
+            });
+        }
+    }
+
+    return counts;
 }
 
 /**
