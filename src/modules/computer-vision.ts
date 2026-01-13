@@ -807,24 +807,38 @@ export async function detectItemsWithCV(
         });
 
         if (progressCallback) {
+            progressCallback(92, 'Applying context boosting...');
+        }
+
+        // Apply confidence boosting with game context
+        let boostedDetections = boostConfidenceWithContext(detections);
+
+        if (progressCallback) {
+            progressCallback(96, 'Validating with border rarity...');
+        }
+
+        // Validate detections with border rarity check
+        boostedDetections = boostedDetections.map(detection => validateWithBorderRarity(detection, ctx));
+
+        if (progressCallback) {
             progressCallback(100, 'Multi-pass matching complete');
         }
 
         logger.info({
             operation: 'cv.detect_items_multipass',
             data: {
-                detectionsCount: detections.length,
+                detectionsCount: boostedDetections.length,
                 pass1: pass1Detections.length,
                 pass2: pass2Detections.length,
                 pass3: pass3Detections.length,
                 gridPositions: gridPositions.length,
                 emptyCells,
                 validCells: validCells.length,
-                matchRate: ((detections.length / validCells.length) * 100).toFixed(1) + '%',
+                matchRate: ((boostedDetections.length / validCells.length) * 100).toFixed(1) + '%',
             },
         });
 
-        return detections;
+        return boostedDetections;
     } catch (error) {
         logger.error({
             operation: 'cv.detect_items',
@@ -1014,6 +1028,183 @@ export async function detectItemCounts(imageDataUrl: string, cells: ROI[]): Prom
     }
 
     return counts;
+}
+
+/**
+ * Boost confidence based on game context (rarity, synergies)
+ * Helps with ambiguous detections
+ */
+function boostConfidenceWithContext(detections: CVDetectionResult[]): CVDetectionResult[] {
+    const boosted = detections.map(detection => {
+        let boost = 0;
+        const entity = detection.entity as Item;
+
+        // Boost common items (more likely to appear)
+        if (entity.rarity === 'common') {
+            boost += 0.03;
+        } else if (entity.rarity === 'uncommon') {
+            boost += 0.02;
+        } else if (entity.rarity === 'legendary') {
+            // Reduce legendary confidence slightly (less likely)
+            boost -= 0.02;
+        }
+
+        // Boost items that synergize with already detected items
+        const detectedItemNames = detections.map(d => d.entity.name.toLowerCase());
+
+        // Known synergies (simplified - could be expanded)
+        const synergies: Record<string, string[]> = {
+            wrench: ['scrap', 'metal', 'gear'],
+            battery: ['tesla', 'electric', 'shock'],
+            'gym sauce': ['protein', 'fitness', 'muscle'],
+            medkit: ['bandage', 'health', 'healing'],
+        };
+
+        const itemNameLower = entity.name.toLowerCase();
+        const itemSynergies = synergies[itemNameLower] || [];
+
+        for (const synergy of itemSynergies) {
+            if (detectedItemNames.some(name => name.includes(synergy))) {
+                boost += 0.03;
+                break; // Only boost once per item
+            }
+        }
+
+        // Clamp confidence to [0, 0.99]
+        const newConfidence = Math.min(0.99, Math.max(0, detection.confidence + boost));
+
+        return {
+            ...detection,
+            confidence: newConfidence,
+        };
+    });
+
+    return boosted;
+}
+
+/**
+ * Extract border pixels from an image region
+ * Used for rarity detection
+ */
+function extractBorderPixels(imageData: ImageData, borderWidth: number = 2): Uint8ClampedArray {
+    const { width, height, data } = imageData;
+    const borderPixels: number[] = [];
+
+    // Top and bottom borders
+    for (let x = 0; x < width; x++) {
+        for (let y = 0; y < borderWidth; y++) {
+            // Top border
+            const topIndex = (y * width + x) * 4;
+            borderPixels.push(data[topIndex], data[topIndex + 1], data[topIndex + 2]);
+
+            // Bottom border
+            const bottomIndex = ((height - 1 - y) * width + x) * 4;
+            borderPixels.push(data[bottomIndex], data[bottomIndex + 1], data[bottomIndex + 2]);
+        }
+    }
+
+    // Left and right borders
+    for (let y = borderWidth; y < height - borderWidth; y++) {
+        for (let x = 0; x < borderWidth; x++) {
+            // Left border
+            const leftIndex = (y * width + x) * 4;
+            borderPixels.push(data[leftIndex], data[leftIndex + 1], data[leftIndex + 2]);
+
+            // Right border
+            const rightIndex = (y * width + (width - 1 - x)) * 4;
+            borderPixels.push(data[rightIndex], data[rightIndex + 1], data[rightIndex + 2]);
+        }
+    }
+
+    return new Uint8ClampedArray(borderPixels);
+}
+
+/**
+ * Detect rarity from border color
+ * Returns rarity string or null if no clear match
+ */
+function detectBorderRarity(imageData: ImageData): string | null {
+    const borderPixels = extractBorderPixels(imageData, 3);
+
+    // Calculate average RGB
+    let sumR = 0;
+    let sumG = 0;
+    let sumB = 0;
+    let count = 0;
+
+    for (let i = 0; i < borderPixels.length; i += 3) {
+        sumR += borderPixels[i];
+        sumG += borderPixels[i + 1];
+        sumB += borderPixels[i + 2];
+        count++;
+    }
+
+    const avgR = sumR / count;
+    const avgG = sumG / count;
+    const avgB = sumB / count;
+
+    // Define rarity colors (approximate, may need tuning)
+    const rarityColors: Record<string, { r: number; g: number; b: number; tolerance: number }> = {
+        common: { r: 128, g: 128, b: 128, tolerance: 40 }, // Gray
+        uncommon: { r: 0, g: 255, b: 0, tolerance: 60 }, // Green
+        rare: { r: 0, g: 128, b: 255, tolerance: 60 }, // Blue
+        epic: { r: 128, g: 0, b: 255, tolerance: 60 }, // Purple
+        legendary: { r: 255, g: 165, b: 0, tolerance: 60 }, // Orange/Gold
+    };
+
+    // Find closest color match
+    let bestMatch: string | null = null;
+    let bestDistance = Infinity;
+
+    for (const [rarity, color] of Object.entries(rarityColors)) {
+        const distance = Math.sqrt(
+            Math.pow(avgR - color.r, 2) + Math.pow(avgG - color.g, 2) + Math.pow(avgB - color.b, 2)
+        );
+
+        if (distance < color.tolerance && distance < bestDistance) {
+            bestMatch = rarity;
+            bestDistance = distance;
+        }
+    }
+
+    return bestMatch;
+}
+
+/**
+ * Validate detections using border rarity check
+ * Reduces confidence if border color doesn't match expected rarity
+ */
+function validateWithBorderRarity(detection: CVDetectionResult, ctx: CanvasRenderingContext2D): CVDetectionResult {
+    if (!detection.position) return detection;
+
+    const entity = detection.entity as Item;
+    const pos = detection.position;
+
+    // Extract cell image data
+    const cellImageData = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
+
+    // Detect border rarity
+    const detectedRarity = detectBorderRarity(cellImageData);
+
+    if (!detectedRarity) {
+        // No clear border detected, keep original confidence
+        return detection;
+    }
+
+    // Check if detected rarity matches item rarity
+    if (detectedRarity === entity.rarity) {
+        // Match! Boost confidence slightly
+        return {
+            ...detection,
+            confidence: Math.min(0.99, detection.confidence * 1.05),
+        };
+    } else {
+        // Mismatch - reduce confidence
+        return {
+            ...detection,
+            confidence: detection.confidence * 0.85,
+        };
+    }
 }
 
 /**
