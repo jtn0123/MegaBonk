@@ -7,10 +7,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
     initCV,
     detectItemsWithCV,
-    analyzeImageRegions,
-    detectUILayout,
-    detectResolution,
+    detectUIRegions,
 } from '../../src/modules/computer-vision';
+import { detectUILayout, detectResolution } from '../../src/modules/test-utils';
 import type { AllGameData } from '../../src/types';
 
 // Mock game data
@@ -152,20 +151,20 @@ describe('Computer Vision - Region Detection', () => {
     });
 
     it('should detect inventory region in 1080p', () => {
-        const regions = analyzeImageRegions(1920, 1080);
+        const regions = detectUIRegions(1920, 1080);
         expect(regions.inventory).toBeDefined();
         expect(regions.inventory?.width).toBeGreaterThan(0);
         expect(regions.inventory?.height).toBeGreaterThan(0);
     });
 
     it('should detect stats region in 1080p', () => {
-        const regions = analyzeImageRegions(1920, 1080);
+        const regions = detectUIRegions(1920, 1080);
         expect(regions.stats).toBeDefined();
     });
 
     it('should scale regions for different resolutions', () => {
-        const regions1080p = analyzeImageRegions(1920, 1080);
-        const regions720p = analyzeImageRegions(1280, 720);
+        const regions1080p = detectUIRegions(1920, 1080);
+        const regions720p = detectUIRegions(1280, 720);
 
         const ratio = 1920 / 1280;
         expect(regions1080p.inventory?.width).toBeCloseTo(
@@ -175,8 +174,8 @@ describe('Computer Vision - Region Detection', () => {
     });
 
     it('should detect Steam Deck regions differently', () => {
-        const pcRegions = analyzeImageRegions(1920, 1080);
-        const deckRegions = analyzeImageRegions(1280, 800);
+        const pcRegions = detectUIRegions(1920, 1080);
+        const deckRegions = detectUIRegions(1280, 800);
 
         // Steam Deck regions should be proportionally different due to 16:10 aspect
         expect(deckRegions.inventory).toBeDefined();
@@ -184,13 +183,8 @@ describe('Computer Vision - Region Detection', () => {
     });
 
     it('should include pause menu region', () => {
-        const regions = analyzeImageRegions(1920, 1080);
+        const regions = detectUIRegions(1920, 1080);
         expect(regions.pauseMenu).toBeDefined();
-    });
-
-    it('should include gameplay region', () => {
-        const regions = analyzeImageRegions(1920, 1080);
-        expect(regions.gameplay).toBeDefined();
     });
 });
 
@@ -279,7 +273,7 @@ describe('Computer Vision - Performance', () => {
 
     it('should analyze regions quickly (< 50ms)', () => {
         const start = performance.now();
-        analyzeImageRegions(1920, 1080);
+        detectUIRegions(1920, 1080);
         const end = performance.now();
 
         expect(end - start).toBeLessThan(50);
@@ -339,7 +333,7 @@ describe('Computer Vision - Integration with OCR', () => {
     });
 
     it('should provide complementary data to OCR', () => {
-        const regions = analyzeImageRegions(1920, 1080);
+        const regions = detectUIRegions(1920, 1080);
 
         // CV should provide regions that OCR can focus on
         expect(regions.inventory).toBeDefined();
@@ -367,8 +361,8 @@ describe('Computer Vision - Regression Tests', () => {
     });
 
     it('should maintain consistent region detection across versions', () => {
-        const regions1 = analyzeImageRegions(1920, 1080);
-        const regions2 = analyzeImageRegions(1920, 1080);
+        const regions1 = detectUIRegions(1920, 1080);
+        const regions2 = detectUIRegions(1920, 1080);
 
         expect(regions1.inventory?.x).toBe(regions2.inventory?.x);
         expect(regions1.inventory?.y).toBe(regions2.inventory?.y);

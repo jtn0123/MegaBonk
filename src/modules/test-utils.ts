@@ -393,12 +393,14 @@ export function compareDetectionResults(
 // ========================================
 // Global Assignments
 // ========================================
-(window as any).testUtils = {
-    calculateAccuracyMetrics,
-    calculateF1Score,
-    detectResolution,
-    detectUILayout,
-    generateTestReport,
-    runAutomatedTest,
-    compareDetectionResults,
-};
+if (typeof window !== 'undefined') {
+    (window as any).testUtils = {
+        calculateAccuracyMetrics,
+        calculateF1Score,
+        detectResolution,
+        detectUILayout,
+        generateTestReport,
+        runAutomatedTest,
+        compareDetectionResults,
+    };
+}
