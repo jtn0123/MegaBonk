@@ -21,7 +21,6 @@
         "@types/chart.js": "^4.0.1",
         "@types/node": "^25.0.3",
         "@vitest/coverage-v8": "^4.0.16",
-        "canvas": "^3.2.1",
         "eslint": "^9.39.2",
         "eslint-config-prettier": "^10.1.8",
         "eslint-plugin-prettier": "^5.5.4",
@@ -37,6 +36,9 @@
         "vite-plugin-static-copy": "^3.1.4",
         "vitest": "^4.0.16",
         "zod": "^4.3.5",
+      },
+      "optionalDependencies": {
+        "canvas": "^3.2.1",
       },
     },
   },
