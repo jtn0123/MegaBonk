@@ -17,6 +17,8 @@ vi.mock('../../src/modules/renderers.ts', () => ({
 
 vi.mock('../../src/modules/filters.ts', () => ({
     restoreFilterState: vi.fn(),
+    saveFilterState: vi.fn(),
+    updateFilters: vi.fn(),
 }));
 
 vi.mock('../../src/modules/logger.ts', () => ({
@@ -25,7 +27,12 @@ vi.mock('../../src/modules/logger.ts', () => ({
         debug: vi.fn(),
         warn: vi.fn(),
         error: vi.fn(),
+        setContext: vi.fn(),
     },
+}));
+
+vi.mock('../../src/modules/charts.ts', () => ({
+    destroyAllCharts: vi.fn(),
 }));
 
 describe('events.ts - Edge Cases', () => {

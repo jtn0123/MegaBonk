@@ -1,4 +1,5 @@
-import { vi, beforeEach, afterEach } from 'vitest';
+/* eslint-disable no-undef */
+import { vi, beforeEach, afterEach, afterAll } from 'vitest';
 import { JSDOM } from 'jsdom';
 import fs from 'fs';
 import path from 'path';
@@ -7,118 +8,148 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load the HTML template
-const html = fs.readFileSync(
-  path.resolve(__dirname, '../src/index.html'),
-  'utf8'
-);
+// Load the HTML template once (shared across tests)
+const html = fs.readFileSync(path.resolve(__dirname, '../src/index.html'), 'utf8');
 
 // Store original globals for cleanup
 let originalDocument;
 let originalWindow;
+let currentDom = null;
 
 beforeEach(() => {
-  // Create a fresh DOM for each test
-  const dom = new JSDOM(html, {
-    url: 'http://localhost:3000',
-    pretendToBeVisual: true,
-    runScripts: 'outside-only'
-  });
+    // Clean up previous DOM if it exists to prevent memory leaks
+    if (currentDom && currentDom.window) {
+        currentDom.window.close();
+        currentDom = null;
+    }
 
-  // Store originals
-  originalDocument = global.document;
-  originalWindow = global.window;
+    // Create a fresh DOM for each test
+    currentDom = new JSDOM(html, {
+        url: 'http://localhost:3000',
+        pretendToBeVisual: true,
+        runScripts: 'outside-only',
+    });
 
-  // Set up globals
-  global.document = dom.window.document;
-  global.window = dom.window;
-  global.navigator = dom.window.navigator;
-  global.HTMLElement = dom.window.HTMLElement;
-  global.Event = dom.window.Event;
-  global.CustomEvent = dom.window.CustomEvent;
+    const dom = currentDom;
 
-  // Mock fetch
-  global.fetch = vi.fn();
+    // Store originals
+    originalDocument = global.document;
+    originalWindow = global.window;
 
-  // Mock clipboard
-  global.navigator.clipboard = {
-    writeText: vi.fn().mockResolvedValue(undefined),
-    readText: vi.fn().mockResolvedValue('')
-  };
+    // Set up globals
+    global.document = dom.window.document;
+    global.window = dom.window;
+    global.navigator = dom.window.navigator;
+    global.HTMLElement = dom.window.HTMLElement;
+    global.Event = dom.window.Event;
+    global.CustomEvent = dom.window.CustomEvent;
 
-  // Mock alert
-  global.alert = vi.fn();
+    // Mock fetch
+    global.fetch = vi.fn();
 
-  // Mock localStorage
-  const localStorageMock = (() => {
-    let store = {};
-    return {
-      getItem: vi.fn((key) => store[key] || null),
-      setItem: vi.fn((key, value) => { store[key] = value.toString(); }),
-      removeItem: vi.fn((key) => { delete store[key]; }),
-      clear: vi.fn(() => { store = {}; }),
-      get length() { return Object.keys(store).length; },
-      key: vi.fn((index) => Object.keys(store)[index] || null)
+    // Mock clipboard
+    global.navigator.clipboard = {
+        writeText: vi.fn().mockResolvedValue(undefined),
+        readText: vi.fn().mockResolvedValue(''),
     };
-  })();
 
-  // Define localStorage on both global and window using Object.defineProperty
-  Object.defineProperty(global, 'localStorage', {
-    value: localStorageMock,
-    writable: true,
-    configurable: true
-  });
+    // Mock alert
+    global.alert = vi.fn();
 
-  Object.defineProperty(dom.window, 'localStorage', {
-    value: localStorageMock,
-    writable: true,
-    configurable: true
-  });
+    // Mock localStorage
+    const localStorageMock = (() => {
+        let store = {};
+        return {
+            getItem: vi.fn(key => store[key] || null),
+            setItem: vi.fn((key, value) => {
+                store[key] = value.toString();
+            }),
+            removeItem: vi.fn(key => {
+                delete store[key];
+            }),
+            clear: vi.fn(() => {
+                store = {};
+            }),
+            get length() {
+                return Object.keys(store).length;
+            },
+            key: vi.fn(index => Object.keys(store)[index] || null),
+        };
+    })();
 
-  // Mock service worker
-  global.navigator.serviceWorker = {
-    register: vi.fn().mockResolvedValue({
-      update: vi.fn(),
-      unregister: vi.fn().mockResolvedValue(true)
-    }),
-    ready: Promise.resolve({
-      active: null
-    })
-  };
+    // Define localStorage on both global and window using Object.defineProperty
+    Object.defineProperty(global, 'localStorage', {
+        value: localStorageMock,
+        writable: true,
+        configurable: true,
+    });
 
-  // Mock console methods for cleaner test output
-  vi.spyOn(console, 'log').mockImplementation(() => {});
-  vi.spyOn(console, 'error').mockImplementation(() => {});
+    Object.defineProperty(dom.window, 'localStorage', {
+        value: localStorageMock,
+        writable: true,
+        configurable: true,
+    });
+
+    // Mock service worker
+    global.navigator.serviceWorker = {
+        register: vi.fn().mockResolvedValue({
+            update: vi.fn(),
+            unregister: vi.fn().mockResolvedValue(true),
+        }),
+        ready: Promise.resolve({
+            active: null,
+        }),
+    };
+
+    // Mock console methods for cleaner test output
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
 afterEach(() => {
-  vi.clearAllMocks();
-  vi.resetModules();
+    // Clear all timers to prevent memory leaks
+    vi.clearAllTimers();
+    vi.clearAllMocks();
+    vi.resetModules();
 
-  // Restore originals
-  if (originalDocument) global.document = originalDocument;
-  if (originalWindow) global.window = originalWindow;
+    // Close the current DOM window to free memory
+    if (currentDom && currentDom.window) {
+        currentDom.window.close();
+        currentDom = null;
+    }
+
+    // Restore originals
+    if (originalDocument) global.document = originalDocument;
+    if (originalWindow) global.window = originalWindow;
+});
+
+// Final cleanup after all tests in a file
+afterAll(() => {
+    if (currentDom && currentDom.window) {
+        currentDom.window.close();
+        currentDom = null;
+    }
 });
 
 // Helper to reset global application state
 export function resetAppState() {
-  return {
-    allData: {
-      items: null,
-      weapons: null,
-      tomes: null,
-      characters: null,
-      shrines: null,
-      stats: null
-    },
-    currentTab: 'items',
-    filteredData: [],
-    currentBuild: {
-      character: null,
-      weapon: null,
-      tomes: [],
-      items: []
-    },
-    compareItems: []
-  };
+    return {
+        allData: {
+            items: null,
+            weapons: null,
+            tomes: null,
+            characters: null,
+            shrines: null,
+            stats: null,
+        },
+        currentTab: 'items',
+        filteredData: [],
+        currentBuild: {
+            character: null,
+            weapon: null,
+            tomes: [],
+            items: [],
+        },
+        compareItems: [],
+    };
 }
