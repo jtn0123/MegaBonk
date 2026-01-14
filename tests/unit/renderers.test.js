@@ -223,7 +223,7 @@ describe('Renderers Module', () => {
     });
 
     describe('updateStats()', () => {
-        it('should update stats panel for items', () => {
+        it('should update item count display', () => {
             const items = [
                 { id: '1', name: 'Item 1', one_and_done: true, stacks_well: false },
                 { id: '2', name: 'Item 2', one_and_done: false, stacks_well: true },
@@ -231,10 +231,9 @@ describe('Renderers Module', () => {
 
             updateStats(items, 'items');
 
-            const statsPanel = document.getElementById('stats-summary');
-            expect(statsPanel.innerHTML).toContain('Quick Stats');
-            expect(statsPanel.innerHTML).toContain('One-and-Done');
-            expect(statsPanel.innerHTML).toContain('Stack Well');
+            const itemCount = document.getElementById('item-count');
+            expect(itemCount.textContent).toContain('2');
+            expect(itemCount.textContent).toContain('items');
         });
 
         it('should show showing count', () => {
@@ -242,30 +241,30 @@ describe('Renderers Module', () => {
 
             updateStats(items, 'items');
 
-            const statsPanel = document.getElementById('stats-summary');
-            expect(statsPanel.innerHTML).toContain('Showing');
-            expect(statsPanel.innerHTML).toContain('1');
+            const itemCount = document.getElementById('item-count');
+            expect(itemCount.textContent).toContain('1');
         });
 
-        it('should show total count from data service', () => {
+        it('should show filtered count when filtered', () => {
             updateStats([], 'items');
 
-            const statsPanel = document.getElementById('stats-summary');
-            expect(statsPanel.innerHTML).toContain('Total Items');
+            const itemCount = document.getElementById('item-count');
+            expect(itemCount.textContent).toContain('0');
+            expect(itemCount.textContent).toContain('items');
         });
 
-        it('should capitalize category name for non-items', () => {
+        it('should use correct label for non-items', () => {
             updateStats([], 'weapons');
 
-            const statsPanel = document.getElementById('stats-summary');
-            expect(statsPanel.innerHTML).toContain('Total Weapons');
+            const itemCount = document.getElementById('item-count');
+            expect(itemCount.textContent).toContain('weapons');
         });
 
         it('should handle empty tabName gracefully', () => {
             updateStats([], '');
 
-            const statsPanel = document.getElementById('stats-summary');
-            expect(statsPanel.innerHTML).toContain('Total Items'); // Default fallback
+            const itemCount = document.getElementById('item-count');
+            expect(itemCount.textContent).toContain('items'); // Default fallback
         });
     });
 

@@ -35,7 +35,7 @@ export function initOCR(gameData: AllGameData): void {
     // Initialize Fuse.js for fuzzy matching
     const fuseOptions = {
         includeScore: true,
-        threshold: 0.4, // 0 = perfect match, 1 = match anything
+        threshold: 0.5, // 0 = perfect match, 1 = match anything (0.5 allows for OCR errors)
         keys: ['name'],
         ignoreLocation: true,
     };
@@ -115,26 +115,58 @@ export async function extractTextFromImage(
 }
 
 /**
+ * Split text into searchable segments (by newlines and common delimiters)
+ */
+function splitIntoSegments(text: string): string[] {
+    // Split by newlines first
+    const lines = text.split('\n');
+    const segments: string[] = [];
+
+    for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.length <= 2) continue;
+
+        // If line is very long (e.g., repeated items), also split by common delimiters
+        if (trimmed.length > 50) {
+            // Split by common OCR/game delimiters: comma, semicolon, pipe, tab
+            const subSegments = trimmed.split(/[,;|\t]+/);
+            for (const seg of subSegments) {
+                const segTrimmed = seg.trim();
+                if (segTrimmed.length > 2) {
+                    segments.push(segTrimmed);
+                }
+            }
+        } else {
+            segments.push(trimmed);
+        }
+    }
+
+    return segments;
+}
+
+/**
  * Detect items from extracted text
  */
 export function detectItemsFromText(text: string): DetectionResult[] {
     if (!itemFuse) return [];
 
-    const lines = text.split('\n').filter(line => line.trim().length > 2);
+    const segments = splitIntoSegments(text);
     const detections: DetectionResult[] = [];
+    const seenEntities = new Set<string>(); // Avoid duplicates
 
-    for (const line of lines) {
-        const results = itemFuse.search(line);
+    for (const segment of segments) {
+        const results = itemFuse.search(segment);
 
         if (results.length > 0 && results[0].score !== undefined) {
             const match = results[0];
-            // Only include matches with confidence > 60%
-            if (match.score < 0.4) {
+            // Only include matches with confidence > 50% (score < 0.5)
+            if (match.score < 0.5 && !seenEntities.has(match.item.id)) {
+                seenEntities.add(match.item.id);
                 detections.push({
                     type: 'item',
                     entity: match.item,
                     confidence: 1 - match.score, // Fuse score is 0 (best) to 1 (worst), invert it
-                    rawText: line.trim(),
+                    rawText: segment,
                 });
             }
         }
@@ -149,20 +181,22 @@ export function detectItemsFromText(text: string): DetectionResult[] {
 export function detectTomesFromText(text: string): DetectionResult[] {
     if (!tomeFuse) return [];
 
-    const lines = text.split('\n').filter(line => line.trim().length > 2);
+    const segments = splitIntoSegments(text);
     const detections: DetectionResult[] = [];
+    const seenEntities = new Set<string>();
 
-    for (const line of lines) {
-        const results = tomeFuse.search(line);
+    for (const segment of segments) {
+        const results = tomeFuse.search(segment);
 
         if (results.length > 0 && results[0].score !== undefined) {
             const match = results[0];
-            if (match.score < 0.4) {
+            if (match.score < 0.5 && !seenEntities.has(match.item.id)) {
+                seenEntities.add(match.item.id);
                 detections.push({
                     type: 'tome',
                     entity: match.item,
                     confidence: 1 - match.score,
-                    rawText: line.trim(),
+                    rawText: segment,
                 });
             }
         }
@@ -181,7 +215,7 @@ export function detectCharacterFromText(text: string): DetectionResult | null {
 
     if (results.length > 0 && results[0].score !== undefined) {
         const match = results[0];
-        if (match.score < 0.4) {
+        if (match.score < 0.5) {
             return {
                 type: 'character',
                 entity: match.item,
@@ -195,6 +229,36 @@ export function detectCharacterFromText(text: string): DetectionResult | null {
 }
 
 /**
+ * Detect characters from extracted text (multiple lines)
+ */
+export function detectCharactersFromText(text: string): DetectionResult[] {
+    if (!characterFuse) return [];
+
+    const segments = splitIntoSegments(text);
+    const detections: DetectionResult[] = [];
+    const seenEntities = new Set<string>();
+
+    for (const segment of segments) {
+        const results = characterFuse.search(segment);
+
+        if (results.length > 0 && results[0].score !== undefined) {
+            const match = results[0];
+            if (match.score < 0.5 && !seenEntities.has(match.item.id)) {
+                seenEntities.add(match.item.id);
+                detections.push({
+                    type: 'character',
+                    entity: match.item,
+                    confidence: 1 - match.score,
+                    rawText: segment,
+                });
+            }
+        }
+    }
+
+    return detections;
+}
+
+/**
  * Detect weapon from extracted text
  */
 export function detectWeaponFromText(text: string): DetectionResult | null {
@@ -204,7 +268,7 @@ export function detectWeaponFromText(text: string): DetectionResult | null {
 
     if (results.length > 0 && results[0].score !== undefined) {
         const match = results[0];
-        if (match.score < 0.4) {
+        if (match.score < 0.5) {
             return {
                 type: 'weapon',
                 entity: match.item,
@@ -215,6 +279,36 @@ export function detectWeaponFromText(text: string): DetectionResult | null {
     }
 
     return null;
+}
+
+/**
+ * Detect weapons from extracted text (multiple lines)
+ */
+export function detectWeaponsFromText(text: string): DetectionResult[] {
+    if (!weaponFuse) return [];
+
+    const segments = splitIntoSegments(text);
+    const detections: DetectionResult[] = [];
+    const seenEntities = new Set<string>();
+
+    for (const segment of segments) {
+        const results = weaponFuse.search(segment);
+
+        if (results.length > 0 && results[0].score !== undefined) {
+            const match = results[0];
+            if (match.score < 0.5 && !seenEntities.has(match.item.id)) {
+                seenEntities.add(match.item.id);
+                detections.push({
+                    type: 'weapon',
+                    entity: match.item,
+                    confidence: 1 - match.score,
+                    rawText: segment,
+                });
+            }
+        }
+    }
+
+    return detections;
 }
 
 /**

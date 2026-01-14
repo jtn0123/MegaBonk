@@ -29,7 +29,9 @@ export function createMinimalDOM() {
     </nav>
 
     <main>
-      <div id="stats-summary" class="stats-panel"></div>
+      <div class="stats-panel">
+        <span id="item-count" class="item-count" aria-live="polite">0 items</span>
+      </div>
 
       <div id="items-tab" class="tab-content active">
         <div id="itemsContainer" class="items-grid"></div>
