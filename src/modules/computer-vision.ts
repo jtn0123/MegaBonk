@@ -1676,34 +1676,122 @@ function getDominantColor(imageData: ImageData): string {
 }
 
 /**
+ * Detect if screenshot shows pause menu or gameplay by analyzing bottom hotbar region
+ * Gameplay has colorful icons at bottom, pause menu has empty/dark bottom
+ */
+function detectScreenType(ctx: CanvasRenderingContext2D, width: number, height: number): 'pause_menu' | 'gameplay' {
+    // Sample bottom 20% of screen (where hotbar is during gameplay)
+    const hotbarY = Math.floor(height * 0.8);
+    const hotbarHeight = height - hotbarY;
+    const imageData = ctx.getImageData(0, hotbarY, width, hotbarHeight);
+    const pixels = imageData.data;
+
+    // Calculate brightness and color variance
+    let totalBrightness = 0;
+    let totalVariance = 0;
+    let sampleCount = 0;
+
+    // Sample every 10th pixel for performance
+    for (let i = 0; i < pixels.length; i += 40) {
+        // 40 = 10 pixels * 4 channels (RGBA)
+        const r = pixels[i];
+        const g = pixels[i + 1];
+        const b = pixels[i + 2];
+        const a = pixels[i + 3];
+
+        // Skip transparent pixels
+        if (a < 128) continue;
+
+        // Brightness (0-255)
+        const brightness = (r + g + b) / 3;
+        totalBrightness += brightness;
+
+        // Color variance (how different are R, G, B from each other)
+        const mean = brightness;
+        const variance = Math.pow(r - mean, 2) + Math.pow(g - mean, 2) + Math.pow(b - mean, 2);
+        totalVariance += variance;
+
+        sampleCount++;
+    }
+
+    if (sampleCount === 0) {
+        // No pixels sampled, assume pause menu (fully transparent bottom)
+        return 'pause_menu';
+    }
+
+    const avgBrightness = totalBrightness / sampleCount;
+    const avgVariance = totalVariance / sampleCount;
+
+    // Thresholds:
+    // - Gameplay: Bright colorful icons (brightness > 80, variance > 1000)
+    // - Pause menu: Dark or uniform bottom (brightness < 60 or variance < 800)
+    const isGameplay = avgBrightness > 70 && avgVariance > 900;
+
+    logger.info({
+        operation: 'cv.detect_screen_type',
+        data: {
+            avgBrightness: Math.round(avgBrightness),
+            avgVariance: Math.round(avgVariance),
+            sampleCount,
+            screenType: isGameplay ? 'gameplay' : 'pause_menu',
+        },
+    });
+
+    return isGameplay ? 'gameplay' : 'pause_menu';
+}
+
+/**
  * Detect UI regions (for finding inventory, stats, etc.)
  * Adapts to different UI layouts (PC vs Steam Deck)
+ *
+ * @param ctxOrWidth - Canvas context for screen type detection, or width if called without context
+ * @param widthOrHeight - Width if ctx provided, or height if called without context
+ * @param height - Height (only used when ctx is provided)
  */
 export function detectUIRegions(
-    width: number,
-    height: number
+    ctxOrWidth: CanvasRenderingContext2D | number,
+    widthOrHeight: number,
+    height?: number
 ): { inventory?: ROI; stats?: ROI; character?: ROI; pauseMenu?: ROI; gameplay?: ROI } {
-    const uiLayout = detectUILayout(width, height);
-    const resolution = detectResolution(width, height);
+    // Handle both signatures: detectUIRegions(ctx, width, height) or detectUIRegions(width, height)
+    let ctx: CanvasRenderingContext2D | null = null;
+    let width: number;
+    let actualHeight: number;
+
+    if (typeof ctxOrWidth === 'number') {
+        // Called as detectUIRegions(width, height)
+        width = ctxOrWidth;
+        actualHeight = widthOrHeight;
+    } else {
+        // Called as detectUIRegions(ctx, width, height)
+        ctx = ctxOrWidth;
+        width = widthOrHeight;
+        actualHeight = height!;
+    }
+
+    const uiLayout = detectUILayout(width, actualHeight);
+    const resolution = detectResolution(width, actualHeight);
+
+    // Detect if this is pause menu or gameplay by analyzing bottom hotbar region
+    // If no context provided, default to pause_menu for backwards compatibility
+    const screenType = ctx ? detectScreenType(ctx, width, actualHeight) : 'pause_menu';
 
     logger.info({
         operation: 'cv.detect_ui_regions',
         data: {
             width,
-            height,
+            height: actualHeight,
             uiLayout,
             resolution: resolution.category,
+            screenType,
+            hasContext: ctx !== null,
         },
     });
 
-    // Detect if this is pause menu or gameplay
-    // Pause menu typically has centered UI, gameplay has distributed UI
-    const isPauseMenu = true; // TODO: Add heuristic detection
-
-    if (isPauseMenu) {
-        return detectPauseMenuRegions(width, height, uiLayout);
+    if (screenType === 'pause_menu') {
+        return detectPauseMenuRegions(width, actualHeight, uiLayout);
     } else {
-        return detectGameplayRegions(width, height, uiLayout);
+        return detectGameplayRegions(width, actualHeight, uiLayout);
     }
 }
 
