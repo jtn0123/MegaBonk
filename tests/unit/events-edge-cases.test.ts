@@ -179,9 +179,7 @@ describe('events.ts - Edge Cases', () => {
             expect(errorContainer?.innerHTML).toContain(longMessage);
         });
 
-        // TODO: This test reveals an XSS vulnerability - showErrorMessage uses innerHTML without escaping.
-        // The function should use textContent or escape the message. Skipping until fixed.
-        it.skip('should escape HTML in error messages', () => {
+        it('should escape HTML in error messages', () => {
             const maliciousMessage = '<script>alert("xss")</script>';
             showErrorMessage(maliciousMessage, false);
 
