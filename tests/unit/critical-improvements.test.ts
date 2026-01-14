@@ -6,10 +6,26 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { aggregateDuplicates, detectGridPositions } from '../../src/modules/computer-vision';
 
+// Mock ImageData for jsdom environment
+class MockImageData {
+    data: Uint8ClampedArray;
+    width: number;
+    height: number;
+
+    constructor(width: number, height: number) {
+        this.width = width;
+        this.height = height;
+        this.data = new Uint8ClampedArray(width * height * 4);
+    }
+}
+
+// Use MockImageData if ImageData is not defined
+const ImageDataClass = typeof ImageData !== 'undefined' ? ImageData : MockImageData;
+
 describe('Empty Cell Detection', () => {
     it('should detect uniform background as empty', () => {
         // Create imageData with uniform color (empty cell)
-        const imageData = new ImageData(64, 64);
+        const imageData = new ImageDataClass(64, 64);
         const pixels = imageData.data;
 
         // Fill with uniform blue color
@@ -28,7 +44,7 @@ describe('Empty Cell Detection', () => {
 
     it('should not detect textured images as empty', () => {
         // Create imageData with varied colors (item icon)
-        const imageData = new ImageData(64, 64);
+        const imageData = new ImageDataClass(64, 64);
         const pixels = imageData.data;
 
         // Fill with random colors
