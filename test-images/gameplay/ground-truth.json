@@ -455,5 +455,119 @@
     "standard": "Screenshots 3-4 (mid/late game) should achieve >70% accuracy",
     "stress_test": "Screenshot 2 (70+ items) should achieve >60% accuracy",
     "item_count_detection": "Should detect x2, x3 counts with >70% accuracy"
+  },
+
+  "pc-1080p/level_21_english_desert_scorpion.jpg": {
+    "character": "Unknown",
+    "level": 21,
+    "resolution": "1280x800",
+    "language": "English",
+    "items": ["TODO: Fill in items from hotbar"],
+    "notes": "Desert biome, boss Scorpionussy, stats panel visible. Early game test."
+  },
+
+  "pc-1080p/level_33_english_forest_early.jpg": {
+    "character": "Unknown",
+    "level": 33,
+    "resolution": "1280x720",
+    "language": "English",
+    "items": [
+      "Forbidden Juice",
+      "Oats",
+      "Oats",
+      "Boomerang",
+      "Moldy Cheese",
+      "Moldy Cheese",
+      "Time Bracelet",
+      "Borgar",
+      "Borgar",
+      "Ring of Haste",
+      "Chicken",
+      "Chicken",
+      "Chicken",
+      "Chicken",
+      "Wrench",
+      "Wrench",
+      "Shovel",
+      "Shovel",
+      "Tent"
+    ],
+    "items_visual_description": [
+      "Blue orb → Forbidden Juice",
+      "Banana x2 → Oats x2",
+      "Boomerang → Boomerang",
+      "Yellow cheese x2 → Moldy Cheese x2",
+      "Clock → Time Bracelet",
+      "Burger x2 → Borgar x2",
+      "Ring → Ring of Haste",
+      "Drumstick x4 → Chicken x4",
+      "Wrench x2 → Wrench x2",
+      "Shovel x2 → Shovel x2",
+      "Green pyramid → Tent"
+    ],
+    "notes": "Forest biome, early game, clean UI. Good baseline test. Items identified visually from hotbar."
+  },
+
+  "pc-1080p/level_52_spanish_ocean.jpg": {
+    "character": "Unknown",
+    "level": 52,
+    "resolution": "1280x720",
+    "language": "Spanish",
+    "items": ["TODO: Fill in items from hotbar"],
+    "notes": "Ocean biome, Spanish localization, mid-game."
+  },
+
+  "pc-1080p/level_66_russian_desert.jpg": {
+    "character": "Unknown",
+    "level": 66,
+    "resolution": "1280x720",
+    "language": "Russian",
+    "items": ["TODO: Fill in items from hotbar"],
+    "notes": "Desert biome, Russian localization, stats panel visible."
+  },
+
+  "pc-1080p/level_75_portuguese_hell_final.jpg": {
+    "character": "Unknown",
+    "level": 75,
+    "resolution": "1280x720",
+    "language": "Portuguese",
+    "items": ["TODO: Fill in items from hotbar - 2 rows"],
+    "notes": "Hell biome, Portuguese localization, final boss quest, 2 inventory rows."
+  },
+
+  "pc-1080p/level_108_english_snow_boss.jpg": {
+    "character": "Unknown",
+    "level": 108,
+    "resolution": "1280x720",
+    "language": "English",
+    "items": ["TODO: Fill in items from hotbar"],
+    "notes": "Snow/desert biome, boss 'Cooked', English UI."
+  },
+
+  "pc-1080p/level_112_russian_crypt_boss.jpg": {
+    "character": "Unknown",
+    "level": 112,
+    "resolution": "1280x800",
+    "language": "Russian",
+    "items": ["TODO: Fill in items from hotbar - 2 rows"],
+    "notes": "Crypt/dungeon, boss Spooky Steve (Жуткий Стив), Russian localization."
+  },
+
+  "pc-1080p/level_281_turkish_hell.jpg": {
+    "character": "Unknown",
+    "level": 281,
+    "resolution": "1280x800",
+    "language": "Turkish",
+    "items": ["TODO: Fill in items from hotbar - 2 rows"],
+    "notes": "Hell/red biome, Turkish localization, many items, FPS counter visible."
+  },
+
+  "pc-1080p/level_803_russian_stress_test.jpg": {
+    "character": "Unknown",
+    "level": 803,
+    "resolution": "1280x800",
+    "language": "Russian",
+    "items": ["TODO: Fill in items from hotbar - 3 rows, 50+ items"],
+    "notes": "STRESS TEST: Graveyard biome, Russian, 3 inventory rows, 50+ items. Tests detection limits."
   }
 }

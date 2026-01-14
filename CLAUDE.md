@@ -69,8 +69,22 @@ compareItems = []                                                 // Compare mod
 - `tests/e2e/` - Playwright browser tests
 - `tests/fixtures/` - Sample JSON data for tests
 - `tests/helpers/` - DOM setup and mock utilities
+- `test-images/gameplay/` - Real screenshots for CV testing with ground-truth.json
 
 Coverage thresholds: 70% statements/functions/lines, 60% branches.
+
+### CV/OCR Testing
+```bash
+bun run test:cv:real      # Run real image CV tests (requires canvas)
+bun run test:cv:offline   # Run offline CV runner
+bun run test:recognition  # Run all OCR/CV related tests
+```
+
+**Important:** The `canvas` module requires native bindings. On Windows, use bun to install:
+```bash
+bun install canvas        # Bun handles native bindings automatically
+```
+Do NOT use `npm install canvas` on Windows - it requires Visual Studio Build Tools and often fails. Bun downloads pre-built binaries.
 
 ## Content Updates
 
