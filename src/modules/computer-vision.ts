@@ -98,7 +98,7 @@ async function loadTemplatesBatch(items: Item[]): Promise<number> {
                     const canvas = document.createElement('canvas');
                     canvas.width = img.width;
                     canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
                     if (!ctx) {
                         reject(new Error('Failed to get canvas context'));
@@ -126,7 +126,7 @@ async function loadTemplatesBatch(items: Item[]): Promise<number> {
                         const canvas = document.createElement('canvas');
                         canvas.width = pngImg.width;
                         canvas.height = pngImg.height;
-                        const ctx = canvas.getContext('2d');
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
                         if (!ctx) {
                             reject(new Error('Failed to get canvas context'));
@@ -324,7 +324,7 @@ async function loadImageToCanvas(imageDataUrl: string): Promise<{
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
             canvas.height = img.height;
-            const ctx = canvas.getContext('2d');
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
             if (!ctx) {
                 reject(new Error('Failed to get canvas context'));
@@ -472,7 +472,7 @@ function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight
     canvas.width = imageData.width;
     canvas.height = imageData.height;
 
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
     ctx.putImageData(imageData, 0, 0);
 
     // Create output canvas
@@ -480,7 +480,7 @@ function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight
     outputCanvas.width = targetWidth;
     outputCanvas.height = targetHeight;
 
-    const outputCtx = outputCanvas.getContext('2d')!;
+    const outputCtx = outputCanvas.getContext('2d', { willReadFrequently: true })!;
     outputCtx.drawImage(canvas, 0, 0, imageData.width, imageData.height, 0, 0, targetWidth, targetHeight);
 
     return outputCtx.getImageData(0, 0, targetWidth, targetHeight);
@@ -1166,7 +1166,7 @@ export async function detectItemCounts(imageDataUrl: string, cells: ROI[]): Prom
             const countCanvas = document.createElement('canvas');
             countCanvas.width = countROI.width;
             countCanvas.height = countROI.height;
-            const countCtx = countCanvas.getContext('2d')!;
+            const countCtx = countCanvas.getContext('2d', { willReadFrequently: true })!;
 
             countCtx.drawImage(
                 canvas,
