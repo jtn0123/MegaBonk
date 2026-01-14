@@ -417,24 +417,24 @@ export function detectGridPositions(width: number, height: number, gridSize: num
     // Use resolution-appropriate grid size
     const resolution = detectResolution(width, height);
 
-    // MegaBonk icons are smaller than typical inventory icons
+    // MegaBonk icons are approximately 40-48px depending on resolution
     const gridSizes: Record<string, number> = {
-        '720p': 40,
-        '1080p': 52,
-        '1440p': 70,
-        '4K': 80,
-        steam_deck: 44,
+        '720p': 38,
+        '1080p': 45,
+        '1440p': 55,
+        '4K': 70,
+        steam_deck: 40,
     };
 
-    const adaptiveGridSize = gridSizes[resolution.category] || gridSize;
+    const adaptiveGridSize = gridSizes[resolution.category] || 45;
 
     const positions: ROI[] = [];
-    const margin = 10; // Small margin from screen edges
-    const spacing = Math.floor(adaptiveGridSize * 0.08); // 8% spacing between cells
+    const margin = 50; // Hotbar has margins on sides
+    const spacing = Math.floor(adaptiveGridSize * 0.12); // Small gap between icons
 
-    // MegaBonk hotbar is positioned at approximately 70% down the screen
-    // For 1080p: hotbar is around y=756, not at the very bottom
-    const hotbarY = Math.floor(height * 0.70);
+    // MegaBonk hotbar is at the VERY BOTTOM of the screen (last 5-8%)
+    // For 1080p: approximately y=1020-1030
+    const hotbarY = height - adaptiveGridSize - 15; // 15px from bottom edge
 
     for (let x = margin; x < width - margin - adaptiveGridSize; x += adaptiveGridSize + spacing) {
         positions.push({

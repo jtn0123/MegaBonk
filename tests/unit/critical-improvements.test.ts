@@ -175,36 +175,36 @@ describe('Adaptive Threshold Calculation', () => {
 
 describe('Dynamic Grid Detection', () => {
     it('should adapt grid size to resolution', () => {
-        // 1080p should use 64px grid
+        // 1080p should use ~45px grid (MegaBonk icons are small)
         const grid1080 = detectGridPositions(1920, 1080);
         expect(grid1080.length).toBeGreaterThan(0);
-        expect(grid1080[0].width).toBeGreaterThan(50);
-        expect(grid1080[0].width).toBeLessThan(80);
+        expect(grid1080[0].width).toBeGreaterThanOrEqual(40);
+        expect(grid1080[0].width).toBeLessThan(60);
     });
 
     it('should adapt grid size to 720p', () => {
-        // 720p should use 40px grid (MegaBonk icons are smaller)
+        // 720p should use ~38px grid (MegaBonk icons are small)
         const grid720 = detectGridPositions(1280, 720);
         expect(grid720.length).toBeGreaterThan(0);
-        expect(grid720[0].width).toBeGreaterThanOrEqual(40);
-        expect(grid720[0].width).toBeLessThan(55);
+        expect(grid720[0].width).toBeGreaterThanOrEqual(35);
+        expect(grid720[0].width).toBeLessThan(50);
     });
 
     it('should adapt grid size to 4K', () => {
-        // 4K should use 80px grid (MegaBonk icons are smaller)
+        // 4K should use ~70px grid (MegaBonk icons scale with resolution)
         const grid4K = detectGridPositions(3840, 2160);
         expect(grid4K.length).toBeGreaterThan(0);
-        expect(grid4K[0].width).toBeGreaterThanOrEqual(80);
-        expect(grid4K[0].width).toBeLessThan(100);
+        expect(grid4K[0].width).toBeGreaterThanOrEqual(60);
+        expect(grid4K[0].width).toBeLessThan(90);
     });
 
-    it('should focus on hotbar area', () => {
+    it('should focus on bottom hotbar area', () => {
         const grid = detectGridPositions(1920, 1080);
 
-        // All cells should be at approximately 70% down the screen (MegaBonk hotbar position)
+        // All cells should be at the BOTTOM of screen (last 10%)
         grid.forEach(cell => {
-            expect(cell.y).toBeGreaterThanOrEqual(1080 * 0.65);
-            expect(cell.y).toBeLessThan(1080 * 0.85);
+            expect(cell.y).toBeGreaterThanOrEqual(1080 * 0.90);
+            expect(cell.y).toBeLessThan(1080);
         });
     });
 
@@ -228,11 +228,11 @@ describe('Dynamic Grid Detection', () => {
     });
 
     it('should handle Steam Deck resolution', () => {
-        // Steam Deck should use 44px grid (MegaBonk icons are smaller)
+        // Steam Deck should use ~40px grid (MegaBonk icons are small)
         const grid = detectGridPositions(1280, 800);
         expect(grid.length).toBeGreaterThan(0);
-        expect(grid[0].width).toBeGreaterThanOrEqual(40);
-        expect(grid[0].width).toBeLessThan(55);
+        expect(grid[0].width).toBeGreaterThanOrEqual(35);
+        expect(grid[0].width).toBeLessThan(50);
     });
 });
 
