@@ -3,7 +3,7 @@
  * This is useful when tests need a lighter-weight DOM than the full index.html
  */
 export function createMinimalDOM() {
-  document.body.innerHTML = `
+    document.body.innerHTML = `
     <header>
       <span id="version"></span>
       <span id="last-updated"></span>
@@ -89,6 +89,17 @@ export function createMinimalDOM() {
     <button id="compare-btn" class="floating-compare-btn" style="display: none;">
       <span class="compare-count">0</span> Compare Items
     </button>
+
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+      <div class="spinner"></div>
+      <span>Loading...</span>
+    </div>
+
+    <div id="error-container" class="error-container" style="display: none;">
+      <div class="error-message"></div>
+      <button class="retry-btn">Retry</button>
+      <button class="close-btn">Close</button>
+    </div>
   `;
 }
 
@@ -96,8 +107,8 @@ export function createMinimalDOM() {
  * Creates filter UI for items tab testing
  */
 export function createItemsFilterUI() {
-  const filtersContainer = document.getElementById('filters');
-  filtersContainer.innerHTML = `
+    const filtersContainer = document.getElementById('filters');
+    filtersContainer.innerHTML = `
     <label>Rarity:</label>
     <select id="rarityFilter">
       <option value="all">All Rarities</option>
@@ -135,8 +146,8 @@ export function createItemsFilterUI() {
  * Creates filter UI for weapons/tomes/characters tab testing
  */
 export function createTierFilterUI() {
-  const filtersContainer = document.getElementById('filters');
-  filtersContainer.innerHTML = `
+    const filtersContainer = document.getElementById('filters');
+    filtersContainer.innerHTML = `
     <label>Tier:</label>
     <select id="tierFilter">
       <option value="all">All Tiers</option>
@@ -158,8 +169,8 @@ export function createTierFilterUI() {
  * Creates filter UI for shrines tab testing
  */
 export function createShrinesFilterUI() {
-  const filtersContainer = document.getElementById('filters');
-  filtersContainer.innerHTML = `
+    const filtersContainer = document.getElementById('filters');
+    filtersContainer.innerHTML = `
     <label>Type:</label>
     <select id="typeFilter">
       <option value="all">All Types</option>
@@ -175,13 +186,13 @@ export function createShrinesFilterUI() {
  * Gets the active tab name from DOM
  */
 export function getActiveTab() {
-  const activeBtn = document.querySelector('.tab-btn.active');
-  return activeBtn?.getAttribute('data-tab') || null;
+    const activeBtn = document.querySelector('.tab-btn.active');
+    return activeBtn?.getAttribute('data-tab') || null;
 }
 
 /**
  * Gets the active tab content element
  */
 export function getActiveTabContent() {
-  return document.querySelector('.tab-content.active');
+    return document.querySelector('.tab-content.active');
 }
