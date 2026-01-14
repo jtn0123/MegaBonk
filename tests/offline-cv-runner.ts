@@ -8,17 +8,38 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { createCanvas, loadImage, ImageData as NodeImageData } from 'canvas';
 import type { CVStrategy } from '../src/modules/cv-strategy.ts';
 import { STRATEGY_PRESETS } from '../src/modules/cv-strategy.ts';
 
-/**
- * Polyfill ImageData for Node.js environment
- */
-declare global {
-    var ImageData: typeof NodeImageData;
+// Try to load canvas module (optional dependency)
+let createCanvas: any;
+let loadImage: any;
+let NodeImageData: any;
+
+try {
+    const canvas = require('canvas');
+    createCanvas = canvas.createCanvas;
+    loadImage = canvas.loadImage;
+    NodeImageData = canvas.ImageData;
+
+    /**
+     * Polyfill ImageData for Node.js environment
+     */
+    declare global {
+        var ImageData: typeof NodeImageData;
+    }
+    globalThis.ImageData = NodeImageData as any;
+
+    console.log('✓ Canvas module loaded successfully');
+} catch (error) {
+    console.error('✗ Canvas module not available');
+    console.error('  Install with: bun install canvas');
+    console.error('  Or on systems with build issues: npm install --ignore-scripts');
+    console.error('');
+    console.error('  Note: Canvas requires native dependencies.');
+    console.error('  See docs/TESTING.md for details.');
+    process.exit(1);
 }
-globalThis.ImageData = NodeImageData as any;
 
 /**
  * Ground truth test case

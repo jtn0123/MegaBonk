@@ -53,9 +53,35 @@ bun run test:all           # Run both unit and e2e tests
 
 ### Canvas Module Installation
 
-The `canvas` module requires native dependencies and may fail to install on some systems. It's only needed for CV tests with real images (`cv-real-images.test.ts`).
+The `canvas` module requires native dependencies (Cairo, Pango, etc.) and may fail to install on some systems.
 
-**Solution:** Tests automatically skip canvas-dependent tests if the module isn't available.
+**When is it needed?**
+- CV tests with real images (`cv-real-images.test.ts`)
+- Offline CV runner (`tests/offline-cv-runner.ts`)
+- NOT needed for regular unit tests or E2E tests
+
+**Installation:**
+
+On Linux/Mac with dependencies:
+```bash
+bun install canvas
+```
+
+On Windows or systems without build tools:
+```bash
+npm install --ignore-scripts
+# Canvas will be unavailable but tests will skip gracefully
+```
+
+**Native dependencies required:**
+- **Linux**: `apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev`
+- **Mac**: `brew install pkg-config cairo pango libpng jpeg giflib librsvg`
+- **Windows**: Visual Studio Build Tools (or use --ignore-scripts)
+
+**Graceful degradation:**
+- Tests automatically skip canvas-dependent tests if module isn't available
+- Offline CV runner exits with helpful error message
+- Canvas is marked as `optionalDependencies` in package.json
 
 ## Test Coverage
 
