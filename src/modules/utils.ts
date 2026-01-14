@@ -234,7 +234,7 @@ export function generateExpandableText(text: string, maxLength: number = 120): s
     const { html, needsExpand, fullText } = truncateText(text, maxLength);
 
     if (!needsExpand) {
-        return `<div class="item-description">${html}</div>`;
+        return `<div class="item-description">${escapeHtml(html)}</div>`;
     }
 
     return `
@@ -242,7 +242,7 @@ export function generateExpandableText(text: string, maxLength: number = 120): s
              data-full-text="${escapeHtml(fullText)}"
              data-truncated="true"
              data-action="toggle-text-expand">
-            ${html}
+            ${escapeHtml(html)}
             <span class="expand-indicator">Click to expand</span>
         </div>
     `;
