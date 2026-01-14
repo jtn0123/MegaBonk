@@ -1,0 +1,237 @@
+name: Computer Vision Testing
+
+on:
+  push:
+    branches: [ main, develop, claude/** ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  cv-strategy-comparison:
+    name: CV Strategy Comparison
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        strategy: [current, optimized, fast, accurate, balanced]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run CV tests for ${{ matrix.strategy }} strategy
+        run: bun run tests/offline-cv-runner.ts --strategies ${{ matrix.strategy }} --output test-results/cv-${{ matrix.strategy }}
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cv-results-${{ matrix.strategy }}
+          path: test-results/cv-${{ matrix.strategy }}/
+
+  cv-full-comparison:
+    name: Full Strategy Comparison
+    runs-on: ubuntu-latest
+    needs: cv-strategy-comparison
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run all strategies comparison
+        run: bun run test:cv:ci
+
+      - name: Upload comparison report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: cv-comparison-report
+          path: test-results/cv/
+
+      - name: Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const reportPath = 'test-results/cv/cv-test-report.md';
+
+            if (fs.existsSync(reportPath)) {
+              const report = fs.readFileSync(reportPath, 'utf8');
+
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: `## 🔍 Computer Vision Test Results\n\n${report}`
+              });
+            }
+
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Run unit tests
+        run: bun run test:unit
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: always()
+        with:
+          file: ./coverage/coverage-final.json
+          fail_ci_if_error: false
+
+  e2e-tests:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Install Playwright browsers
+        run: bunx playwright install --with-deps
+
+      - name: Run E2E tests
+        run: bun run test:e2e
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+  performance-check:
+    name: Performance Check
+    runs-on: ubuntu-latest
+    needs: cv-full-comparison
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Download CV results
+        uses: actions/download-artifact@v4
+        with:
+          name: cv-comparison-report
+          path: test-results/cv/
+
+      - name: Check performance regressions
+        run: |
+          echo "Checking for performance regressions..."
+          if [ -f test-results/cv/cv-test-results.json ]; then
+            node -e "
+              const fs = require('fs');
+              const results = JSON.parse(fs.readFileSync('test-results/cv/cv-test-results.json', 'utf8'));
+
+              // Check if optimized strategy meets targets
+              const optimized = results.find(r => r.strategy === 'optimized');
+
+              if (optimized) {
+                const f1Score = optimized.metrics.f1Score;
+                const time = optimized.metrics.totalTime;
+
+                console.log('Optimized Strategy:');
+                console.log('  F1 Score:', (f1Score * 100).toFixed(1) + '%');
+                console.log('  Time:', time.toFixed(0) + 'ms');
+
+                // Targets: F1 > 0.85, Time < 5000ms
+                if (f1Score < 0.85) {
+                  console.error('❌ FAIL: F1 score below target (85%)');
+                  process.exit(1);
+                }
+
+                if (time > 5000) {
+                  console.error('❌ FAIL: Detection time exceeds target (5000ms)');
+                  process.exit(1);
+                }
+
+                console.log('✅ PASS: Performance targets met');
+              } else {
+                console.warn('⚠️ WARNING: No optimized strategy results found');
+              }
+            "
+          else
+            echo "⚠️ WARNING: No results file found"
+          fi
+
+  build:
+    name: Build Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: TypeScript type check
+        run: bun run typecheck
+
+      - name: Build production bundle
+        run: bun run build
+
+      - name: Check bundle size
+        run: |
+          echo "Checking bundle size..."
+          BUNDLE_SIZE=$(du -sk dist | cut -f1)
+          echo "Bundle size: ${BUNDLE_SIZE}KB"
+
+          # Warn if bundle exceeds 5MB
+          if [ $BUNDLE_SIZE -gt 5120 ]; then
+            echo "⚠️ WARNING: Bundle size exceeds 5MB"
+          else
+            echo "✅ Bundle size OK"
+          fi
