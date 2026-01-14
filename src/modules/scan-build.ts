@@ -251,17 +251,72 @@ async function handleAutoDetect(): Promise<void> {
             updateProgressIndicator(progressDiv, progress, status);
         });
 
+        // If OCR found nothing, try CV as fallback
+        if (results.items.length === 0 && results.tomes.length === 0) {
+            logger.info({
+                operation: 'scan_build.ocr_empty_trying_cv',
+                data: { message: 'OCR found no items, trying icon detection' },
+            });
+
+            updateProgressIndicator(progressDiv, 50, 'Trying icon detection...');
+            ToastManager.info('No text found, trying icon detection...');
+
+            try {
+                const cvResults = await detectItemsWithCV(uploadedImage, (progress, status) => {
+                    updateProgressIndicator(progressDiv, 50 + progress * 0.5, status);
+                });
+
+                if (cvResults.length > 0) {
+                    progressDiv.remove();
+
+                    // Convert CV results to detection format
+                    const cvItems = cvResults
+                        .filter(r => r.type === 'item')
+                        .map(r => ({
+                            type: 'item' as const,
+                            entity: r.entity,
+                            confidence: r.confidence,
+                            rawText: `cv_detected_${r.entity.name}`,
+                        }));
+
+                    applyDetectionResults({
+                        items: cvItems,
+                        tomes: [],
+                        character: null,
+                        weapon: null,
+                    });
+
+                    ToastManager.success(`Detected ${cvResults.length} items via icon matching`);
+
+                    logger.info({
+                        operation: 'scan_build.cv_fallback_success',
+                        data: { itemsDetected: cvResults.length },
+                    });
+                    return;
+                }
+            } catch (cvError) {
+                logger.warn({
+                    operation: 'scan_build.cv_fallback_failed',
+                    error: { message: (cvError as Error).message },
+                });
+            }
+        }
+
         // Hide progress
         progressDiv.remove();
 
         // Apply detected items
         applyDetectionResults(results);
 
-        ToastManager.success(
-            `Detected: ${results.items.length} items, ${results.tomes.length} tomes` +
-                (results.character ? ', 1 character' : '') +
-                (results.weapon ? ', 1 weapon' : '')
-        );
+        if (results.items.length === 0 && results.tomes.length === 0) {
+            ToastManager.info('No items detected. Try Hybrid mode or a clearer screenshot.');
+        } else {
+            ToastManager.success(
+                `Detected: ${results.items.length} items, ${results.tomes.length} tomes` +
+                    (results.character ? ', 1 character' : '') +
+                    (results.weapon ? ', 1 weapon' : '')
+            );
+        }
 
         logger.info({
             operation: 'scan_build.auto_detect_complete',

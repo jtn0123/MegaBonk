@@ -795,6 +795,18 @@ export async function detectItemsWithCV(
 
         const items = allData.items?.items || [];
 
+        // Log detection start with details
+        logger.info({
+            operation: 'cv.detect_start',
+            data: {
+                imageWidth: width,
+                imageHeight: height,
+                gridCells: gridPositions.length,
+                templatesLoaded: itemTemplates.size,
+                gridSample: gridPositions.slice(0, 3).map(g => ({ x: g.x, y: g.y, w: g.width, h: g.height })),
+            },
+        });
+
         // Use workers for parallel processing if enabled
         if (useWorkers) {
             logger.info({
@@ -976,18 +988,33 @@ export async function detectItemsWithCV(
             progressCallback(100, 'Multi-pass matching complete');
         }
 
+        // Log detailed results, with extra debug info if nothing found
+        const logData: Record<string, unknown> = {
+            detectionsCount: boostedDetections.length,
+            pass1: pass1Detections.length,
+            pass2: pass2Detections.length,
+            pass3: pass3Detections.length,
+            gridPositions: gridPositions.length,
+            emptyCells,
+            validCells: validCells.length,
+            matchRate: validCells.length > 0
+                ? ((boostedDetections.length / validCells.length) * 100).toFixed(1) + '%'
+                : '0%',
+        };
+
+        // If nothing detected, add debug hints
+        if (boostedDetections.length === 0) {
+            logData.debugHint = validCells.length === 0
+                ? 'No valid cells found - image may not show inventory/hotbar'
+                : 'Valid cells found but no template matches - icons may not match database';
+            logData.suggestion = 'Try Hybrid mode or ensure screenshot shows item icons clearly';
+        } else {
+            logData.detectedItems = boostedDetections.slice(0, 5).map(d => d.entity.name);
+        }
+
         logger.info({
             operation: 'cv.detect_items_multipass',
-            data: {
-                detectionsCount: boostedDetections.length,
-                pass1: pass1Detections.length,
-                pass2: pass2Detections.length,
-                pass3: pass3Detections.length,
-                gridPositions: gridPositions.length,
-                emptyCells,
-                validCells: validCells.length,
-                matchRate: ((boostedDetections.length / validCells.length) * 100).toFixed(1) + '%',
-            },
+            data: logData,
         });
 
         // Cache results for future use

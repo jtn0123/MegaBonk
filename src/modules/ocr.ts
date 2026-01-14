@@ -97,6 +97,7 @@ export async function extractTextFromImage(
                 phase: 'complete',
                 textLength: extractedText.length,
                 confidence: result.data.confidence,
+                textPreview: extractedText.substring(0, 500).replace(/\n/g, ' | '),
             },
         });
 
@@ -154,11 +155,21 @@ export function detectItemsFromText(text: string): DetectionResult[] {
     const detections: DetectionResult[] = [];
     const seenEntities = new Set<string>(); // Avoid duplicates
 
+    let bestUnmatchedScore = 1;
+    let bestUnmatchedName = '';
+
     for (const segment of segments) {
         const results = itemFuse.search(segment);
 
         if (results.length > 0 && results[0].score !== undefined) {
             const match = results[0];
+
+            // Track best unmatched score for debugging
+            if (match.score >= 0.5 && match.score < bestUnmatchedScore) {
+                bestUnmatchedScore = match.score;
+                bestUnmatchedName = match.item.name;
+            }
+
             // Only include matches with confidence > 50% (score < 0.5)
             if (match.score < 0.5 && !seenEntities.has(match.item.id)) {
                 seenEntities.add(match.item.id);
@@ -168,8 +179,30 @@ export function detectItemsFromText(text: string): DetectionResult[] {
                     confidence: 1 - match.score, // Fuse score is 0 (best) to 1 (worst), invert it
                     rawText: segment,
                 });
+
+                logger.debug({
+                    operation: 'ocr.item_matched',
+                    data: {
+                        segment: segment.substring(0, 30),
+                        matchedItem: match.item.name,
+                        score: match.score.toFixed(3),
+                    },
+                });
             }
         }
+    }
+
+    // Log summary for debugging when nothing matched
+    if (detections.length === 0 && segments.length > 0) {
+        logger.debug({
+            operation: 'ocr.no_items_matched',
+            data: {
+                segmentsChecked: segments.length,
+                bestScore: bestUnmatchedScore < 1 ? bestUnmatchedScore.toFixed(3) : 'none',
+                bestMatch: bestUnmatchedName || 'none',
+                sampleSegments: segments.slice(0, 5).map(s => s.substring(0, 20)),
+            },
+        });
     }
 
     return detections;
