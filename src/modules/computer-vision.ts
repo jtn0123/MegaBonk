@@ -437,8 +437,259 @@ function detectInventoryRegion(ctx: CanvasRenderingContext2D, width: number, hei
 }
 
 /**
+ * Calculate Intersection over Union (IoU) between two boxes
+ * Used for Non-Maximum Suppression
+ */
+function calculateIoU(box1: ROI, box2: ROI): number {
+    const x1 = Math.max(box1.x, box2.x);
+    const y1 = Math.max(box1.y, box2.y);
+    const x2 = Math.min(box1.x + box1.width, box2.x + box2.width);
+    const y2 = Math.min(box1.y + box1.height, box2.y + box2.height);
+
+    const intersectionWidth = Math.max(0, x2 - x1);
+    const intersectionHeight = Math.max(0, y2 - y1);
+    const intersectionArea = intersectionWidth * intersectionHeight;
+
+    const box1Area = box1.width * box1.height;
+    const box2Area = box2.width * box2.height;
+    const unionArea = box1Area + box2Area - intersectionArea;
+
+    return unionArea > 0 ? intersectionArea / unionArea : 0;
+}
+
+/**
+ * Non-Maximum Suppression to remove overlapping detections
+ * Keeps highest confidence detection when boxes overlap
+ */
+function nonMaxSuppression(detections: CVDetectionResult[], iouThreshold: number = 0.3): CVDetectionResult[] {
+    if (detections.length === 0) return [];
+
+    // Sort by confidence (highest first)
+    const sorted = [...detections].sort((a, b) => b.confidence - a.confidence);
+    const kept: CVDetectionResult[] = [];
+
+    for (const detection of sorted) {
+        if (!detection.position) {
+            kept.push(detection);
+            continue;
+        }
+
+        // Check if this detection overlaps with any already kept
+        let shouldKeep = true;
+        for (const keptDetection of kept) {
+            if (!keptDetection.position) continue;
+
+            const iou = calculateIoU(detection.position, keptDetection.position);
+            if (iou > iouThreshold) {
+                shouldKeep = false;
+                break;
+            }
+        }
+
+        if (shouldKeep) {
+            kept.push(detection);
+        }
+    }
+
+    return kept;
+}
+
+/**
+ * Get adaptive icon sizes based on image dimensions
+ * Returns array of sizes to try for multi-scale detection
+ */
+function getAdaptiveIconSizes(width: number, height: number): number[] {
+    const resolution = detectResolution(width, height);
+
+    // Base sizes for each resolution
+    const baseSizes: Record<string, number[]> = {
+        '720p': [32, 38, 44],
+        '1080p': [40, 48, 56],
+        '1440p': [48, 55, 64],
+        '4K': [64, 72, 80],
+        steam_deck: [36, 42, 48],
+    };
+
+    return baseSizes[resolution.category] || [40, 50, 60];
+}
+
+/**
+ * Sliding window detection to find icons anywhere on screen
+ * Returns detected icons with their positions
+ */
+async function detectIconsWithSlidingWindow(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    items: Item[],
+    options: {
+        stepSize?: number;
+        minConfidence?: number;
+        regionOfInterest?: ROI;
+        progressCallback?: (progress: number, status: string) => void;
+    } = {}
+): Promise<CVDetectionResult[]> {
+    const { stepSize = 12, minConfidence = 0.72, regionOfInterest, progressCallback } = options;
+
+    const detections: CVDetectionResult[] = [];
+    const iconSizes = getAdaptiveIconSizes(width, height);
+    const primarySize = iconSizes[1] || 48; // Use middle size as primary
+
+    // Define scan region (full image or ROI)
+    const scanX = regionOfInterest?.x ?? 0;
+    const scanY = regionOfInterest?.y ?? 0;
+    const scanWidth = regionOfInterest?.width ?? width;
+    const scanHeight = regionOfInterest?.height ?? height;
+
+    // Calculate total steps for progress tracking
+    const totalStepsX = Math.ceil((scanWidth - primarySize) / stepSize);
+    const totalStepsY = Math.ceil((scanHeight - primarySize) / stepSize);
+    const totalSteps = totalStepsX * totalStepsY;
+    let currentStep = 0;
+
+    logger.info({
+        operation: 'cv.sliding_window_start',
+        data: {
+            scanRegion: { x: scanX, y: scanY, w: scanWidth, h: scanHeight },
+            iconSize: primarySize,
+            stepSize,
+            totalSteps,
+            templatesLoaded: itemTemplates.size,
+        },
+    });
+
+    // Scan across the region
+    for (let y = scanY; y <= scanY + scanHeight - primarySize; y += stepSize) {
+        for (let x = scanX; x <= scanX + scanWidth - primarySize; x += stepSize) {
+            currentStep++;
+
+            // Update progress periodically
+            if (progressCallback && currentStep % 100 === 0) {
+                const progress = Math.floor((currentStep / totalSteps) * 60) + 20;
+                progressCallback(progress, `Scanning ${currentStep}/${totalSteps}...`);
+            }
+
+            // Extract window region
+            const windowROI: ROI = {
+                x,
+                y,
+                width: primarySize,
+                height: primarySize,
+            };
+
+            const windowData = ctx.getImageData(x, y, primarySize, primarySize);
+
+            // Skip empty/uniform regions
+            if (isEmptyCell(windowData)) {
+                continue;
+            }
+
+            // Check variance - skip low-detail areas
+            const variance = calculateColorVariance(windowData);
+            if (variance < 800) {
+                continue;
+            }
+
+            // Color-based pre-filtering
+            const windowColor = getDominantColor(windowData);
+            const colorCandidates = templatesByColor.get(windowColor) || [];
+            const mixedCandidates = templatesByColor.get('mixed') || [];
+            const candidateItems = [...colorCandidates, ...mixedCandidates];
+            const itemsToCheck = candidateItems.length > 0 ? candidateItems : items.slice(0, 30);
+
+            // Match against candidate templates
+            let bestMatch: { item: Item; similarity: number } | null = null;
+
+            for (const item of itemsToCheck) {
+                const template = itemTemplates.get(item.id);
+                if (!template) continue;
+
+                const similarity = matchTemplate(ctx, windowROI, template);
+
+                if (similarity > minConfidence && (!bestMatch || similarity > bestMatch.similarity)) {
+                    bestMatch = { item, similarity };
+                }
+            }
+
+            if (bestMatch) {
+                detections.push({
+                    type: 'item',
+                    entity: bestMatch.item,
+                    confidence: bestMatch.similarity,
+                    position: { ...windowROI },
+                    method: 'template_match',
+                });
+            }
+        }
+    }
+
+    logger.info({
+        operation: 'cv.sliding_window_complete',
+        data: {
+            rawDetections: detections.length,
+            scannedPositions: currentStep,
+        },
+    });
+
+    // Apply Non-Maximum Suppression to remove overlapping detections
+    const nmsDetections = nonMaxSuppression(detections, 0.3);
+
+    logger.info({
+        operation: 'cv.nms_complete',
+        data: {
+            beforeNMS: detections.length,
+            afterNMS: nmsDetections.length,
+        },
+    });
+
+    return nmsDetections;
+}
+
+/**
+ * Detect equipment (weapons/tomes) in top-left area of screen
+ * These appear in a different location than inventory items
+ */
+async function detectEquipmentRegion(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    items: Item[],
+    progressCallback?: (progress: number, status: string) => void
+): Promise<CVDetectionResult[]> {
+    // Equipment is typically in top-left 25% of screen
+    const equipmentROI: ROI = {
+        x: 0,
+        y: 0,
+        width: Math.floor(width * 0.25),
+        height: Math.floor(height * 0.4),
+        label: 'equipment_region',
+    };
+
+    if (progressCallback) {
+        progressCallback(85, 'Scanning equipment region...');
+    }
+
+    logger.info({
+        operation: 'cv.equipment_region_scan',
+        data: {
+            region: equipmentROI,
+        },
+    });
+
+    // Use sliding window on equipment region with smaller step for precision
+    const equipmentDetections = await detectIconsWithSlidingWindow(ctx, width, height, items, {
+        stepSize: 8,
+        minConfidence: 0.7,
+        regionOfInterest: equipmentROI,
+    });
+
+    return equipmentDetections;
+}
+
+/**
  * Detect grid structure in image (for item grids)
  * Returns potential grid positions with dynamic detection
+ * @deprecated Use detectIconsWithSlidingWindow for better accuracy
  */
 export function detectGridPositions(width: number, height: number, gridSize: number = 64): ROI[] {
     // Use resolution-appropriate grid size
@@ -773,6 +1024,7 @@ async function detectItemsWithWorkers(
 
 /**
  * Detect items using template matching against stored item icons
+ * Uses smart sliding window detection to find icons anywhere on screen
  */
 export async function detectItemsWithCV(
     imageDataUrl: string,
@@ -812,11 +1064,8 @@ export async function detectItemsWithCV(
         const { canvas, ctx, width, height } = await loadImageToCanvas(imageDataUrl);
 
         if (progressCallback) {
-            progressCallback(20, 'Analyzing image structure...');
+            progressCallback(15, 'Analyzing image structure...');
         }
-
-        // Detect potential grid positions
-        const gridPositions = detectGridPositions(width, height);
 
         const items = allData.items?.items || [];
 
@@ -826,14 +1075,14 @@ export async function detectItemsWithCV(
             data: {
                 imageWidth: width,
                 imageHeight: height,
-                gridCells: gridPositions.length,
                 templatesLoaded: itemTemplates.size,
-                gridSample: gridPositions.slice(0, 3).map(g => ({ x: g.x, y: g.y, w: g.width, h: g.height })),
+                mode: 'sliding_window',
             },
         });
 
-        // Use workers for parallel processing if enabled
+        // Use workers for parallel processing if enabled (legacy path)
         if (useWorkers) {
+            const gridPositions = detectGridPositions(width, height);
             logger.info({
                 operation: 'cv.detect_items_workers',
                 data: { gridPositions: gridPositions.length, workers: 4 },
@@ -859,148 +1108,39 @@ export async function detectItemsWithCV(
             return workerResults;
         }
 
-        // Standard multi-pass detection (more accurate)
-        if (progressCallback) {
-            progressCallback(30, `Detecting items in ${gridPositions.length} cells...`);
-        }
-
-        const detections: CVDetectionResult[] = [];
-        let emptyCells = 0;
-
-        // Helper function to match a cell against templates
-        const matchCell = (cell: ROI): { item: Item; similarity: number } | null => {
-            const iconRegion = extractIconRegion(ctx, cell);
-
-            // Color-based pre-filtering
-            const cellColor = getDominantColor(iconRegion);
-            const colorCandidates = templatesByColor.get(cellColor) || [];
-            const mixedCandidates = templatesByColor.get('mixed') || [];
-            const candidateItems = [...colorCandidates, ...mixedCandidates];
-            const itemsToCheck = candidateItems.length > 0 ? candidateItems : items;
-
-            let bestMatch: { item: Item; similarity: number } | null = null;
-
-            for (const item of itemsToCheck) {
-                const template = itemTemplates.get(item.id);
-                if (!template) continue;
-
-                const similarity = matchTemplate(ctx, cell, template);
-
-                if (!bestMatch || similarity > bestMatch.similarity) {
-                    bestMatch = { item, similarity };
-                }
-            }
-
-            return bestMatch;
+        // NEW: Smart sliding window detection
+        // Scan hotbar region (bottom 20% of screen)
+        const hotbarROI: ROI = {
+            x: 0,
+            y: Math.floor(height * 0.8),
+            width: width,
+            height: Math.floor(height * 0.2),
+            label: 'hotbar_region',
         };
 
-        // Filter out empty cells first
-        const validCells: ROI[] = [];
-        for (let i = 0; i < gridPositions.length; i++) {
-            const cell = gridPositions[i];
-            const iconRegion = extractIconRegion(ctx, cell);
-
-            if (isEmptyCell(iconRegion)) {
-                emptyCells++;
-            } else {
-                validCells.push(cell);
-            }
-        }
-
-        // PASS 1: High confidence (>0.85) - lock in obvious matches
         if (progressCallback) {
-            progressCallback(30, 'Pass 1: High confidence matching...');
+            progressCallback(20, 'Scanning hotbar region...');
         }
 
-        const matchedCells = new Set<ROI>();
-        const pass1Detections: Array<{ item: Item; similarity: number; cell: ROI }> = [];
-
-        for (let i = 0; i < validCells.length; i++) {
-            const cell = validCells[i];
-
-            if (progressCallback && i % 5 === 0) {
-                const progress = 30 + Math.floor((i / validCells.length) * 20);
-                progressCallback(progress, `Pass 1: ${i + 1}/${validCells.length}...`);
-            }
-
-            const match = matchCell(cell);
-            if (match && match.similarity > 0.85) {
-                pass1Detections.push({ item: match.item, similarity: match.similarity, cell });
-                matchedCells.add(cell);
-            }
-        }
-
-        // PASS 2: Medium confidence (>0.70) on unmatched cells
-        if (progressCallback) {
-            progressCallback(55, 'Pass 2: Medium confidence matching...');
-        }
-
-        const unmatchedAfterPass1 = validCells.filter(cell => !matchedCells.has(cell));
-        const pass2Detections: Array<{ item: Item; similarity: number; cell: ROI }> = [];
-
-        for (let i = 0; i < unmatchedAfterPass1.length; i++) {
-            const cell = unmatchedAfterPass1[i];
-
-            if (progressCallback && i % 3 === 0) {
-                const progress = 55 + Math.floor((i / unmatchedAfterPass1.length) * 15);
-                progressCallback(progress, `Pass 2: ${i + 1}/${unmatchedAfterPass1.length}...`);
-            }
-
-            const match = matchCell(cell);
-            if (match && match.similarity > 0.7) {
-                pass2Detections.push({ item: match.item, similarity: match.similarity, cell });
-                matchedCells.add(cell);
-            }
-        }
-
-        // PASS 3: Low confidence (>0.60) with context validation
-        if (progressCallback) {
-            progressCallback(75, 'Pass 3: Low confidence with validation...');
-        }
-
-        const unmatchedAfterPass2 = validCells.filter(cell => !matchedCells.has(cell));
-        const pass3Detections: Array<{ item: Item; similarity: number; cell: ROI }> = [];
-
-        for (let i = 0; i < unmatchedAfterPass2.length; i++) {
-            const cell = unmatchedAfterPass2[i];
-
-            if (progressCallback && i % 2 === 0) {
-                const progress = 75 + Math.floor((i / unmatchedAfterPass2.length) * 15);
-                progressCallback(progress, `Pass 3: ${i + 1}/${unmatchedAfterPass2.length}...`);
-            }
-
-            const match = matchCell(cell);
-            if (match && match.similarity > 0.7) {
-                // Context validation: boost common items
-                const isCommonItem = match.item.rarity === 'common' || match.item.rarity === 'uncommon';
-                const boostedSimilarity = isCommonItem ? match.similarity + 0.05 : match.similarity;
-
-                if (boostedSimilarity > 0.72) {
-                    pass3Detections.push({ item: match.item, similarity: boostedSimilarity, cell });
-                    matchedCells.add(cell);
-                }
-            }
-        }
-
-        // Combine all passes
-        const allMatches = [...pass1Detections, ...pass2Detections, ...pass3Detections];
-
-        allMatches.forEach(match => {
-            detections.push({
-                type: 'item',
-                entity: match.item,
-                confidence: match.similarity,
-                position: match.cell,
-                method: 'template_match',
-            });
+        const hotbarDetections = await detectIconsWithSlidingWindow(ctx, width, height, items, {
+            stepSize: 10,
+            minConfidence: 0.72,
+            regionOfInterest: hotbarROI,
+            progressCallback,
         });
+
+        // Scan equipment region (top-left for weapons/tomes)
+        const equipmentDetections = await detectEquipmentRegion(ctx, width, height, items, progressCallback);
+
+        // Combine all detections
+        const allDetections = [...hotbarDetections, ...equipmentDetections];
 
         if (progressCallback) {
             progressCallback(92, 'Applying context boosting...');
         }
 
         // Apply confidence boosting with game context
-        let boostedDetections = boostConfidenceWithContext(detections);
+        let boostedDetections = boostConfidenceWithContext(allDetections);
 
         if (progressCallback) {
             progressCallback(96, 'Validating with border rarity...');
@@ -1010,35 +1150,27 @@ export async function detectItemsWithCV(
         boostedDetections = boostedDetections.map(detection => validateWithBorderRarity(detection, ctx));
 
         if (progressCallback) {
-            progressCallback(100, 'Multi-pass matching complete');
+            progressCallback(100, 'Smart detection complete');
         }
 
-        // Log detailed results, with extra debug info if nothing found
+        // Log detailed results
         const logData: Record<string, unknown> = {
             detectionsCount: boostedDetections.length,
-            pass1: pass1Detections.length,
-            pass2: pass2Detections.length,
-            pass3: pass3Detections.length,
-            gridPositions: gridPositions.length,
-            emptyCells,
-            validCells: validCells.length,
-            matchRate:
-                validCells.length > 0 ? ((boostedDetections.length / validCells.length) * 100).toFixed(1) + '%' : '0%',
+            hotbarDetections: hotbarDetections.length,
+            equipmentDetections: equipmentDetections.length,
+            mode: 'sliding_window',
         };
 
         // If nothing detected, add debug hints
         if (boostedDetections.length === 0) {
-            logData.debugHint =
-                validCells.length === 0
-                    ? 'No valid cells found - image may not show inventory/hotbar'
-                    : 'Valid cells found but no template matches - icons may not match database';
-            logData.suggestion = 'Try Hybrid mode or ensure screenshot shows item icons clearly';
+            logData.debugHint = 'No icons detected - ensure screenshot shows game UI with item icons';
+            logData.suggestion = 'Try taking screenshot during gameplay with hotbar visible';
         } else {
             logData.detectedItems = boostedDetections.slice(0, 5).map(d => d.entity.name);
         }
 
         logger.info({
-            operation: 'cv.detect_items_multipass',
+            operation: 'cv.detect_items_smart',
             data: logData,
         });
 
@@ -1670,15 +1802,15 @@ function detectGameplayRegions(
 }
 
 /**
- * Render debug overlay showing detection grid and results
+ * Render debug overlay showing scan regions and detections
  * Draws colored boxes around detections with confidence scores
  */
 export async function renderDebugOverlay(
     canvas: HTMLCanvasElement,
     imageDataUrl: string,
-    gridPositions: ROI[],
+    scanRegions: ROI[],
     detections: CVDetectionResult[],
-    emptyCells: Set<number>
+    _emptyCells?: Set<number> // Deprecated, kept for compatibility
 ): Promise<void> {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
@@ -1695,29 +1827,27 @@ export async function renderDebugOverlay(
     canvas.height = img.height;
     ctx.drawImage(img, 0, 0);
 
-    // Draw grid positions (yellow boxes)
+    // Draw scan regions (dashed cyan boxes)
     ctx.lineWidth = 2;
-    ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Yellow, semi-transparent
-    ctx.font = '12px monospace';
+    ctx.setLineDash([10, 5]);
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.6)'; // Cyan, semi-transparent
+    ctx.font = '14px monospace';
 
-    gridPositions.forEach((cell, index) => {
-        // Draw cell border
-        if (emptyCells.has(index)) {
-            // Empty cells in gray
-            ctx.strokeStyle = 'rgba(128, 128, 128, 0.3)';
-            ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
+    scanRegions.forEach(region => {
+        ctx.strokeRect(region.x, region.y, region.width, region.height);
 
-            // Label as empty
-            ctx.fillStyle = 'rgba(128, 128, 128, 0.7)';
-            ctx.fillRect(cell.x, cell.y - 18, 60, 18);
-            ctx.fillStyle = 'white';
-            ctx.fillText('EMPTY', cell.x + 5, cell.y - 5);
-        } else {
-            // Valid cells in yellow
-            ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
-            ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
+        // Label the region
+        if (region.label) {
+            ctx.fillStyle = 'rgba(0, 255, 255, 0.8)';
+            const labelText = region.label.replace('_', ' ').toUpperCase();
+            ctx.fillRect(region.x, region.y - 20, ctx.measureText(labelText).width + 10, 20);
+            ctx.fillStyle = 'black';
+            ctx.fillText(labelText, region.x + 5, region.y - 5);
         }
     });
+
+    // Reset line dash for detections
+    ctx.setLineDash([]);
 
     // Draw detections with confidence-based colors
     detections.forEach(detection => {
@@ -1759,14 +1889,14 @@ export async function renderDebugOverlay(
     // Draw legend
     const legendX = 10;
     const legendY = 10;
-    const legendHeight = 120;
+    const legendHeight = 140;
 
     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.fillRect(legendX, legendY, 200, legendHeight);
+    ctx.fillRect(legendX, legendY, 220, legendHeight);
 
     ctx.fillStyle = 'white';
     ctx.font = 'bold 14px monospace';
-    ctx.fillText('Debug Overlay Legend', legendX + 10, legendY + 20);
+    ctx.fillText('Smart Detection Overlay', legendX + 10, legendY + 20);
 
     ctx.font = '12px monospace';
     ctx.fillStyle = 'rgba(0, 255, 0, 1)';
@@ -1776,32 +1906,47 @@ export async function renderDebugOverlay(
     ctx.fillText('■ Medium (70-85%)', legendX + 10, legendY + 65);
 
     ctx.fillStyle = 'rgba(255, 0, 0, 1)';
-    ctx.fillText('■ Low (60-70%)', legendX + 10, legendY + 85);
+    ctx.fillText('■ Low (<70%)', legendX + 10, legendY + 85);
 
-    ctx.fillStyle = 'rgba(255, 255, 0, 1)';
-    ctx.fillText('□ Grid cells', legendX + 10, legendY + 105);
+    ctx.fillStyle = 'rgba(0, 255, 255, 1)';
+    ctx.fillText('┄ Scan regions', legendX + 10, legendY + 105);
+
+    ctx.fillStyle = 'rgba(200, 200, 200, 1)';
+    ctx.fillText(`Detections: ${detections.length}`, legendX + 10, legendY + 125);
 }
 
 /**
  * Create debug overlay canvas and return as data URL
- * Useful for downloading or displaying debug visualization
+ * Shows scan regions and detected icons with confidence scores
  */
 export async function createDebugOverlay(imageDataUrl: string, detections: CVDetectionResult[]): Promise<string> {
     const { width, height } = await loadImageToCanvas(imageDataUrl);
 
-    // Re-detect grid to get positions
-    const gridPositions = detectGridPositions(width, height);
+    // Define scan regions (same as used in detectItemsWithCV)
+    const scanRegions: ROI[] = [
+        {
+            x: 0,
+            y: Math.floor(height * 0.8),
+            width: width,
+            height: Math.floor(height * 0.2),
+            label: 'hotbar_region',
+        },
+        {
+            x: 0,
+            y: 0,
+            width: Math.floor(width * 0.25),
+            height: Math.floor(height * 0.4),
+            label: 'equipment_region',
+        },
+    ];
 
     // Create canvas for debug overlay
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
 
-    // Determine which cells are empty (simplified - no actual check)
-    const emptyCells = new Set<number>();
-
-    // Wait for debug overlay to fully render (no more race condition)
-    await renderDebugOverlay(canvas, imageDataUrl, gridPositions, detections, emptyCells);
+    // Wait for debug overlay to fully render
+    await renderDebugOverlay(canvas, imageDataUrl, scanRegions, detections);
 
     return canvas.toDataURL('image/png');
 }
