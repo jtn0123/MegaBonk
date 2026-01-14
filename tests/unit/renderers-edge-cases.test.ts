@@ -180,10 +180,7 @@ describe('renderers.ts - Error Handling Edge Cases', () => {
             expect(container?.innerHTML).toContain(longName);
         });
 
-        // TODO: This test reveals an XSS vulnerability - the renderer doesn't escape HTML in item names.
-        // This should be fixed in renderers.ts by using textContent or a proper HTML escaping function.
-        // Skipping for now to focus on memory issues, but this is a known security issue.
-        it.skip('should handle special characters in item names', () => {
+        it('should handle special characters in item names', () => {
             const items = [
                 {
                     id: 'special-item',

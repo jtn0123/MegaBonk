@@ -4,7 +4,7 @@
 // ========================================
 
 import { ToastManager } from './toast.ts';
-import { safeGetElementById, debounce } from './utils.ts';
+import { safeGetElementById, debounce, escapeHtml } from './utils.ts';
 import { logger } from './logger.ts';
 import { loadAllData } from './data-service.ts';
 import { closeModal, openDetailModal } from './modal.ts';
@@ -469,12 +469,13 @@ export function showErrorMessage(message: string, isRetryable: boolean = true): 
     }
 
     // First time or structure missing - create full HTML
+    // Security: Use escapeHtml to prevent XSS from error messages
     errorContainer.innerHTML = `
         <div class="error-message">
             <span class="error-icon">⚠️</span>
             <div class="error-content">
                 <strong>Error Loading Data</strong>
-                <p>${message}</p>
+                <p>${escapeHtml(message)}</p>
             </div>
             ${isRetryable ? '<button class="btn-primary error-retry-btn">Retry</button>' : ''}
             <button class="error-close">&times;</button>

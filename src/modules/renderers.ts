@@ -216,7 +216,7 @@ export function renderItems(items: Item[]): void {
             <div class="item-header">
                 ${imageHtml}
                 <div class="item-title">
-                    <div class="item-name">${item.name}</div>
+                    <div class="item-name">${escapeHtml(item.name)}</div>
                     ${generateTierLabel(item.tier)}
                 </div>
                 <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="items" data-id="${item.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
@@ -227,7 +227,7 @@ export function renderItems(items: Item[]): void {
                     <span>+</span>
                 </label>
             </div>
-            <div class="item-effect">${item.base_effect}</div>
+            <div class="item-effect">${escapeHtml(item.base_effect)}</div>
             <div class="item-description ${needsExpand ? 'expandable-text' : ''}"
                  ${needsExpand ? `data-full-text="${escapeHtml(fullText)}" data-truncated="true"` : ''}>
                 ${descHtml}
@@ -288,15 +288,15 @@ export function renderWeapons(weapons: Weapon[]): void {
             <div class="item-header">
                 ${imageHtml}
                 <div class="item-title">
-                    <div class="item-name">${weapon.name}</div>
+                    <div class="item-name">${escapeHtml(weapon.name)}</div>
                     ${generateTierLabel(weapon.tier)}
                 </div>
                 <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="weapons" data-id="${weapon.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
                     ${isFav ? '⭐' : '☆'}
                 </button>
             </div>
-            <div class="item-effect">${weapon.attack_pattern}</div>
-            <div class="item-description">${weapon.description}</div>
+            <div class="item-effect">${escapeHtml(weapon.attack_pattern)}</div>
+            <div class="item-description">${escapeHtml(weapon.description)}</div>
             <div class="item-meta">
                 ${generateMetaTags(weapon.upgradeable_stats, 4)}
             </div>
@@ -349,15 +349,15 @@ export function renderTomes(tomes: Tome[]): void {
             <div class="item-header">
                 ${imageHtml}
                 <div class="item-title">
-                    <div class="item-name">${tome.name}</div>
+                    <div class="item-name">${escapeHtml(tome.name)}</div>
                     <span class="tier-label">${tome.tier} Tier · Priority ${tome.priority}</span>
                 </div>
                 <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="tomes" data-id="${tome.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
                     ${isFav ? '⭐' : '☆'}
                 </button>
             </div>
-            <div class="item-effect">${tome.stat_affected}: ${tome.value_per_level}</div>
-            <div class="item-description">${tome.description}</div>
+            <div class="item-effect">${escapeHtml(tome.stat_affected)}: ${escapeHtml(String(tome.value_per_level))}</div>
+            <div class="item-description">${escapeHtml(tome.description)}</div>
             ${graphHtml}
             <button class="view-details-btn" data-type="tomes" data-id="${tome.id}">View Details</button>
         `;
@@ -409,18 +409,18 @@ export function renderCharacters(characters: Character[]): void {
             <div class="item-header">
                 ${imageHtml}
                 <div class="item-title">
-                    <div class="item-name">${char.name}</div>
+                    <div class="item-name">${escapeHtml(char.name)}</div>
                     ${generateTierLabel(char.tier)}
                 </div>
                 <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="characters" data-id="${char.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
                     ${isFav ? '⭐' : '☆'}
                 </button>
             </div>
-            <div class="item-effect">${char.passive_ability}</div>
-            <div class="item-description">${char.passive_description}</div>
+            <div class="item-effect">${escapeHtml(char.passive_ability)}</div>
+            <div class="item-description">${escapeHtml(char.passive_description)}</div>
             <div class="item-meta">
-                <span class="meta-tag">${char.starting_weapon}</span>
-                <span class="meta-tag">${char.playstyle}</span>
+                <span class="meta-tag">${escapeHtml(char.starting_weapon)}</span>
+                <span class="meta-tag">${escapeHtml(char.playstyle)}</span>
             </div>
             <button class="view-details-btn" data-type="characters" data-id="${char.id}">View Details</button>
         `;
@@ -456,15 +456,15 @@ export function renderShrines(shrines: Shrine[]): void {
             <div class="item-header">
                 <span class="shrine-icon-large">${shrine.icon}</span>
                 <div class="item-title">
-                    <div class="item-name">${shrine.name}</div>
-                    <span class="tier-label">${shrine.type.replace('_', ' ')}</span>
+                    <div class="item-name">${escapeHtml(shrine.name)}</div>
+                    <span class="tier-label">${escapeHtml(shrine.type.replace('_', ' '))}</span>
                 </div>
                 <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="shrines" data-id="${shrine.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
                     ${isFav ? '⭐' : '☆'}
                 </button>
             </div>
-            <div class="item-effect">${shrine.description}</div>
-            <div class="item-description">${shrine.reward}</div>
+            <div class="item-effect">${escapeHtml(shrine.description)}</div>
+            <div class="item-description">${escapeHtml(shrine.reward)}</div>
             <div class="item-meta">
                 ${shrine.reusable ? '<span class="meta-tag">Reusable</span>' : '<span class="meta-tag">One-time</span>'}
             </div>
