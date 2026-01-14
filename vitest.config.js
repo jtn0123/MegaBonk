@@ -10,14 +10,19 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
       include: [
-        'src/modules/**/*.js',
-        'src/script.js'
+        'src/modules/**/*.ts',
+        'src/script.ts'
       ],
       exclude: [
         'src/libs/**',
         'src/sw.js',
         '**/*.test.js',
-        '**/*.config.js'
+        '**/*.test.ts',
+        '**/*.config.js',
+        '**/*.config.ts',
+        // Exclude old .js files (migrated to .ts)
+        'src/modules/**/*.js',
+        'src/script.js'
       ],
       // Updated thresholds for ES modules with direct imports
       thresholds: {
