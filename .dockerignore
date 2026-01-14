@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+coverage
+playwright-report
+test-results
+android
+ios
+*.md
+.husky
+tests
+test-images
+scripts

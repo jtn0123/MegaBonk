@@ -1,0 +1,9 @@
+version: "3.8"
+
+services:
+  megabonk:
+    build: .
+    container_name: megabonk
+    ports:
+      - "8888:80"
+    restart: unless-stopped
