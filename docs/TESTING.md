@@ -85,25 +85,57 @@ npm install --ignore-scripts
 
 ## Test Coverage
 
-Current coverage: ~29%
-Target coverage: 45%
+**Current coverage:** ~29% (as of 2026-01-14)
+**Threshold:** 28-30% (enforced by vitest.config.js)
+**Long-term goal:** 40%+
 
-Well-covered modules:
+### Well-Covered Modules ✅
 - `dom-cache.ts`: 100%
 - `charts.ts`: 99%
 - `renderers.ts`: 93%
 - `theme-manager.ts`: 92%
 - `logger.ts`: 89%
+- `favorites.ts`: 88%
+- `error-boundary.ts`: 88%
+- `utils.ts`: 91%
+- `ocr.ts`: 78%
 
-Needs coverage:
-- `advisor.ts`: 0%
-- `changelog.ts`: 0%
-- `cv-enhanced.ts`: 0%
-- `scan-build.ts`: 0%
-- `recommendation.ts`: 0%
-- `modal.ts`: 3%
-- `computer-vision.ts`: 8%
-- `build-planner.ts`: 13%
+### Priority for Coverage Improvements 🎯
+
+**High Priority** (user-facing features):
+1. `modal.ts`: 3% → 40% - Modal interactions, item details
+2. `build-planner.ts`: 13% → 40% - Build creation, tome selection
+3. `calculator.ts`: 25% → 50% - Breakpoint calculations (expand existing tests)
+
+**Medium Priority** (supporting features):
+4. `advisor.ts`: 0% → 30% - Build recommendations
+5. `data-service.ts`: 17% → 40% - Data loading and validation
+6. `compare.ts`: 43% → 60% - Item comparison
+
+**Lower Priority** (complex/specialized):
+7. `scan-build.ts`: 0% → 20% - Screenshot build detection (requires canvas)
+8. `computer-vision.ts`: 8% → 20% - CV algorithms (partially covered)
+9. `changelog.ts`: 0% → 30% - Changelog rendering
+
+### Coverage Strategy
+
+1. **Quick Wins**: Improve calculator.ts and compare.ts (already have tests, just expand)
+2. **User Impact**: Add modal.ts tests (high user interaction)
+3. **Business Logic**: Cover build-planner.ts core functions
+4. **Incremental**: Add 2-3 tests per module per sprint
+
+### Running Coverage
+
+```bash
+# Full coverage report (may hit memory limits)
+bun run test:unit
+
+# Per-file coverage (recommended)
+bunx vitest run tests/unit/calculator.test.js --coverage
+
+# Check coverage without running full suite
+bunx vitest run tests/unit/modal.test.js --coverage
+```
 
 ## Test Structure
 
