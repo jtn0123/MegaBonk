@@ -183,27 +183,28 @@ describe('Dynamic Grid Detection', () => {
     });
 
     it('should adapt grid size to 720p', () => {
-        // 720p should use 48px grid
+        // 720p should use 40px grid (MegaBonk icons are smaller)
         const grid720 = detectGridPositions(1280, 720);
         expect(grid720.length).toBeGreaterThan(0);
-        expect(grid720[0].width).toBeGreaterThan(40);
-        expect(grid720[0].width).toBeLessThan(60);
+        expect(grid720[0].width).toBeGreaterThanOrEqual(40);
+        expect(grid720[0].width).toBeLessThan(55);
     });
 
     it('should adapt grid size to 4K', () => {
-        // 4K should use 96px grid
+        // 4K should use 80px grid (MegaBonk icons are smaller)
         const grid4K = detectGridPositions(3840, 2160);
         expect(grid4K.length).toBeGreaterThan(0);
-        expect(grid4K[0].width).toBeGreaterThan(80);
-        expect(grid4K[0].width).toBeLessThan(110);
+        expect(grid4K[0].width).toBeGreaterThanOrEqual(80);
+        expect(grid4K[0].width).toBeLessThan(100);
     });
 
-    it('should focus on bottom inventory bar', () => {
+    it('should focus on hotbar area', () => {
         const grid = detectGridPositions(1920, 1080);
 
-        // All cells should be in bottom 20% of screen
+        // All cells should be at approximately 70% down the screen (MegaBonk hotbar position)
         grid.forEach(cell => {
-            expect(cell.y).toBeGreaterThan(1080 * 0.75);
+            expect(cell.y).toBeGreaterThanOrEqual(1080 * 0.65);
+            expect(cell.y).toBeLessThan(1080 * 0.85);
         });
     });
 
@@ -227,10 +228,11 @@ describe('Dynamic Grid Detection', () => {
     });
 
     it('should handle Steam Deck resolution', () => {
+        // Steam Deck should use 44px grid (MegaBonk icons are smaller)
         const grid = detectGridPositions(1280, 800);
         expect(grid.length).toBeGreaterThan(0);
-        expect(grid[0].width).toBeGreaterThan(45);
-        expect(grid[0].width).toBeLessThan(65);
+        expect(grid[0].width).toBeGreaterThanOrEqual(40);
+        expect(grid[0].width).toBeLessThan(55);
     });
 });
 

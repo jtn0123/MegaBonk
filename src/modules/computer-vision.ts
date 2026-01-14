@@ -417,31 +417,29 @@ export function detectGridPositions(width: number, height: number, gridSize: num
     // Use resolution-appropriate grid size
     const resolution = detectResolution(width, height);
 
+    // MegaBonk icons are smaller than typical inventory icons
     const gridSizes: Record<string, number> = {
-        '720p': 48,
-        '1080p': 64,
-        '1440p': 80,
-        '4K': 96,
-        steam_deck: 52,
+        '720p': 40,
+        '1080p': 52,
+        '1440p': 70,
+        '4K': 80,
+        steam_deck: 44,
     };
 
     const adaptiveGridSize = gridSizes[resolution.category] || gridSize;
 
-    // Focus on bottom inventory bar (where items actually are)
-    const inventoryHeight = Math.floor(height * 0.15);
-    const inventoryY = height - inventoryHeight;
-
     const positions: ROI[] = [];
     const margin = 10; // Small margin from screen edges
-    const spacing = Math.floor(adaptiveGridSize * 0.15); // 15% spacing between cells
+    const spacing = Math.floor(adaptiveGridSize * 0.08); // 8% spacing between cells
 
-    // Single row at the bottom (where inventory actually is)
-    const y = inventoryY + Math.floor((inventoryHeight - adaptiveGridSize) / 2);
+    // MegaBonk hotbar is positioned at approximately 70% down the screen
+    // For 1080p: hotbar is around y=756, not at the very bottom
+    const hotbarY = Math.floor(height * 0.70);
 
     for (let x = margin; x < width - margin - adaptiveGridSize; x += adaptiveGridSize + spacing) {
         positions.push({
             x,
-            y,
+            y: hotbarY,
             width: adaptiveGridSize,
             height: adaptiveGridSize,
             label: `cell_${positions.length}`,
@@ -945,12 +943,12 @@ export async function detectItemsWithCV(
             }
 
             const match = matchCell(cell);
-            if (match && match.similarity > 0.6) {
+            if (match && match.similarity > 0.70) {
                 // Context validation: boost common items
                 const isCommonItem = match.item.rarity === 'common' || match.item.rarity === 'uncommon';
                 const boostedSimilarity = isCommonItem ? match.similarity + 0.05 : match.similarity;
 
-                if (boostedSimilarity > 0.62) {
+                if (boostedSimilarity > 0.72) {
                     pass3Detections.push({ item: match.item, similarity: boostedSimilarity, cell });
                     matchedCells.add(cell);
                 }
