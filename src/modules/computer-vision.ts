@@ -50,12 +50,13 @@ const CACHE_TTL = 1000 * 60 * 15; // 15 minutes
  * Initialize computer vision module
  */
 export function initCV(gameData: AllGameData): void {
-    allData = gameData;
+    // Bug fix #4: Handle null/undefined gameData
+    allData = gameData || {};
 
     logger.info({
         operation: 'cv.init',
         data: {
-            itemsCount: gameData.items?.items.length || 0,
+            itemsCount: gameData?.items?.items?.length || 0,
         },
     });
 }
