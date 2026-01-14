@@ -163,7 +163,7 @@ export function saveFilterState(tabName: string): void {
             search: searchInput?.value || '',
             favoritesOnly: favoritesOnly?.checked || false,
             tierFilter: tierFilter?.value || 'all',
-            sortBy: sortBy?.value || 'name',
+            sortBy: sortBy?.value || 'rarity',
         };
 
         // Add items-specific filters
