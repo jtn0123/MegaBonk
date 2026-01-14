@@ -20,7 +20,7 @@ import {
   generateMetaTags,
   debounce,
   isValidExternalUrl
-} from '../../src/modules/utils.js';
+} from '../../src/modules/utils.ts';
 
 // ✅ All standalone function implementations removed - using direct imports instead
 

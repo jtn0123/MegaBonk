@@ -3,65 +3,8 @@ import { createMinimalDOM, createItemsFilterUI, createTierFilterUI } from '../he
 import { createMockItem, createExtendedMockData } from '../helpers/mock-data.js';
 import { simulateInput, simulateSelect } from '../helpers/test-utils.js';
 
-/**
- * Standalone filterData implementation for testing
- * This mirrors the logic from script.js for isolated unit testing
- */
-function filterData(data, tabName) {
-  let filtered = [...data];
-  const searchTerm = document.getElementById('searchInput')?.value.toLowerCase() || '';
-
-  // Search filter
-  filtered = filtered.filter(item => {
-    const searchable = `${item.name} ${item.description || ''} ${item.base_effect || ''}`.toLowerCase();
-    return searchable.includes(searchTerm);
-  });
-
-  // Tier filter (for items, weapons, tomes, characters)
-  const tierFilter = document.getElementById('tierFilter')?.value;
-  if (tierFilter && tierFilter !== 'all') {
-    filtered = filtered.filter(item => item.tier === tierFilter);
-  }
-
-  // Rarity filter (items only)
-  if (tabName === 'items') {
-    const rarityFilter = document.getElementById('rarityFilter')?.value;
-    if (rarityFilter && rarityFilter !== 'all') {
-      filtered = filtered.filter(item => item.rarity === rarityFilter);
-    }
-
-    const stackingFilter = document.getElementById('stackingFilter')?.value;
-    if (stackingFilter === 'stacks_well') {
-      filtered = filtered.filter(item => item.stacks_well === true);
-    } else if (stackingFilter === 'one_and_done') {
-      filtered = filtered.filter(item => item.one_and_done === true);
-    }
-  }
-
-  // Type filter (shrines only)
-  if (tabName === 'shrines') {
-    const typeFilter = document.getElementById('typeFilter')?.value;
-    if (typeFilter && typeFilter !== 'all') {
-      filtered = filtered.filter(shrine => shrine.type === typeFilter);
-    }
-  }
-
-  // Sorting
-  const sortBy = document.getElementById('sortBy')?.value;
-  if (sortBy === 'name') {
-    filtered.sort((a, b) => a.name.localeCompare(b.name));
-  } else if (sortBy === 'tier') {
-    const tierOrder = { 'SS': 0, 'S': 1, 'A': 2, 'B': 3, 'C': 4 };
-    // Use ?? instead of || because 0 is a valid value (SS tier)
-    filtered.sort((a, b) => (tierOrder[a.tier] ?? 99) - (tierOrder[b.tier] ?? 99));
-  } else if (sortBy === 'rarity') {
-    const rarityOrder = { 'legendary': 0, 'epic': 1, 'rare': 2, 'uncommon': 3, 'common': 4 };
-    // Use ?? instead of || because 0 is a valid value (legendary rarity)
-    filtered.sort((a, b) => (rarityOrder[a.rarity] ?? 99) - (rarityOrder[b.rarity] ?? 99));
-  }
-
-  return filtered;
-}
+// ✅ REFACTORED: Import filterData from the actual filters module
+import { filterData } from '../../src/modules/filters.ts';
 
 describe('filterData()', () => {
   let testItems;
@@ -481,8 +424,8 @@ describe('filterData() edge cases', () => {
       simulateInput(document.getElementById('searchInput'), '  test  ');
       const result = filterData(items, 'items');
 
-      // Should still match since includes() is used
-      expect(result).toHaveLength(0); // Won't match with extra spaces
+      // Should still match since search query is trimmed
+      expect(result).toHaveLength(1); // Matches after trimming whitespace
     });
 
     it('should handle multiple spaces in item names', () => {

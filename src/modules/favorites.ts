@@ -2,7 +2,7 @@
 // MegaBonk Favorites Module
 // ========================================
 
-import type { EntityType } from '../types/index.js';
+import type { EntityType } from '../types/index.ts';
 
 // ========================================
 // Type Definitions

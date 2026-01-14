@@ -2,9 +2,9 @@
 // MegaBonk Data Service Module
 // ========================================
 
-import { ToastManager } from './toast.js';
-import { validateAllData, logValidationResults, validateWithZod } from './data-validation.js';
-import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.js';
+import { ToastManager } from './toast.ts';
+import { validateAllData, logValidationResults, validateWithZod } from './data-validation.ts';
+import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.ts';
 
 // ========================================
 // Type Definitions

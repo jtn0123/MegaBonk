@@ -2,8 +2,8 @@
 // MegaBonk Breakpoint Calculator Module
 // ========================================
 
-import type { Item } from '../types/index.js';
-import { safeSetValue } from './utils.js';
+import type { Item } from '../types/index.ts';
+import { safeSetValue } from './utils.ts';
 
 // ========================================
 // Type Definitions

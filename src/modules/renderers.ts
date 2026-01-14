@@ -10,21 +10,21 @@ import {
     truncateText,
     generateMetaTags,
     generateEmptyState,
-} from './utils.js';
-import { isFavorite } from './favorites.js';
-import { getDataForTab } from './data-service.js';
-import { filterData } from './filters.js';
-import { calculateBreakpoint, populateCalculatorItems } from './calculator.js';
-import { getCompareItems } from './compare.js';
-import { updateChangelogStats, renderChangelog } from './changelog.js';
-import { renderBuildPlanner } from './build-planner.js';
+} from './utils.ts';
+import { isFavorite } from './favorites.ts';
+import { getDataForTab } from './data-service.ts';
+import { filterData } from './filters.ts';
+import { calculateBreakpoint, populateCalculatorItems } from './calculator.ts';
+import { getCompareItems } from './compare.ts';
+import { updateChangelogStats, renderChangelog } from './changelog.ts';
+import { renderBuildPlanner } from './build-planner.ts';
 import type {
     Item as BaseItem,
     Weapon as BaseWeapon,
     Tome as BaseTome,
     Character as BaseCharacter,
     Shrine as BaseShrine,
-} from '../types/index.js';
+} from '../types/index.ts';
 
 // ========================================
 // Extended Type Definitions for Actual Data

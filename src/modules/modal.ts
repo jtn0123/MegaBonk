@@ -2,10 +2,10 @@
 // MegaBonk Modal Module
 // ========================================
 
-import { allData } from './data-service.js';
-import { ToastManager } from './toast.js';
-import { safeGetElementById, generateModalImage } from './utils.js';
-import type { Tier, Rarity, EntityType } from '../types/index.js';
+import { allData } from './data-service.ts';
+import { ToastManager } from './toast.ts';
+import { safeGetElementById, generateModalImage } from './utils.ts';
+import type { Tier, Rarity, EntityType } from '../types/index.ts';
 
 // ========================================
 // Extended Type Definitions for Modal Data

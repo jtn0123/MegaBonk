@@ -10,9 +10,9 @@ import {
     validateCharacters,
     validateShrines,
     validateStats,
-} from './schema-validator.js';
-import { VALID_RARITIES, VALID_TIERS } from './constants.js';
-import type { ValidationResult, AllGameData, EntityType, Rarity, Tier } from '../types/index.js';
+} from './schema-validator.ts';
+import { VALID_RARITIES, VALID_TIERS } from './constants.ts';
+import type { ValidationResult, AllGameData, EntityType, Rarity, Tier } from '../types/index.ts';
 
 // ========================================
 // Type Definitions

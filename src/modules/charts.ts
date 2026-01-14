@@ -2,8 +2,8 @@
 // MegaBonk Charts Module
 // ========================================
 
-import { Chart } from './chart-loader.js';
-import type { Tome } from '../types/index.js';
+import { Chart } from './chart-loader.ts';
+import type { Tome } from '../types/index.ts';
 
 // ========================================
 // Type Definitions

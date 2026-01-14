@@ -3,18 +3,18 @@
 // Event delegation to replace inline handlers
 // ========================================
 
-import { ToastManager } from './toast.js';
-import { safeGetElementById } from './utils.js';
-import { loadAllData } from './data-service.js';
-import { closeModal, openDetailModal } from './modal.js';
-import { closeCompareModal, toggleCompareItem, updateCompareDisplay } from './compare.js';
-import { quickCalc } from './calculator.js';
-import { toggleFavorite } from './favorites.js';
-import { clearFilters, handleSearch, updateFilters, restoreFilterState, saveFilterState } from './filters.js';
-import { renderTabContent } from './renderers.js';
-import { toggleChangelogExpand } from './changelog.js';
+import { ToastManager } from './toast.ts';
+import { safeGetElementById } from './utils.ts';
+import { loadAllData } from './data-service.ts';
+import { closeModal, openDetailModal } from './modal.ts';
+import { closeCompareModal, toggleCompareItem, updateCompareDisplay } from './compare.ts';
+import { quickCalc } from './calculator.ts';
+import { toggleFavorite } from './favorites.ts';
+import { clearFilters, handleSearch, updateFilters, restoreFilterState, saveFilterState } from './filters.ts';
+import { renderTabContent } from './renderers.ts';
+import { toggleChangelogExpand } from './changelog.ts';
 
-import type { EntityType } from '../types/index.js';
+import type { EntityType } from '../types/index.ts';
 
 // Type definitions for tab names
 type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator';

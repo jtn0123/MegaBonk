@@ -4,7 +4,7 @@
 // Handles dark/light theme switching with localStorage persistence
 // ========================================
 
-import type { Theme } from '../types/index.js';
+import type { Theme } from '../types/index.ts';
 
 // ========================================
 // Type Definitions

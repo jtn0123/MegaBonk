@@ -2,11 +2,11 @@
 // MegaBonk Compare Mode Module
 // ========================================
 
-import type { Item } from '../types/index.js';
-import { ToastManager } from './toast.js';
-import { allData } from './data-service.js';
-import { safeGetElementById, safeQuerySelector, safeQuerySelectorAll } from './utils.js';
-import { MAX_COMPARE_ITEMS } from './constants.js';
+import type { Item } from '../types/index.ts';
+import { ToastManager } from './toast.ts';
+import { allData } from './data-service.ts';
+import { safeGetElementById, safeQuerySelector, safeQuerySelectorAll } from './utils.ts';
+import { MAX_COMPARE_ITEMS } from './constants.ts';
 
 // ========================================
 // State

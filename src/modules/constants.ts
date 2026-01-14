@@ -2,7 +2,7 @@
 // MegaBonk Constants Module
 // ========================================
 
-import type { Tier, Rarity } from '../types/index.js';
+import type { Tier, Rarity } from '../types/index.ts';
 
 /**
  * Item stat effect definition
