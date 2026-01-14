@@ -11,11 +11,34 @@ export default defineConfig({
             'tests/integration/**/*.test.js',
             'tests/performance/**/*.test.ts',
         ],
+        // Pool configuration to prevent memory overflow
+        // Use single fork to run all tests in one worker sequentially
+        // This is slower but prevents memory accumulation from multiple workers
+        pool: 'forks',
+        poolOptions: {
+            forks: {
+                singleFork: true, // Run all tests in one worker to prevent memory accumulation
+            },
+        },
+        // Single worker only to conserve memory
+        maxWorkers: 1,
+        minWorkers: 1,
+        // Don't isolate - keep tests in same context to reduce overhead
+        isolate: false,
+        // Sequence tests serially to reduce memory pressure
+        sequence: {
+            concurrent: false,
+            shuffle: false,
+        },
         coverage: {
             provider: 'v8',
             reporter: ['text', 'json', 'html', 'lcov'],
             include: ['src/modules/**/*.ts', 'src/script.ts'],
             exclude: ['src/libs/**', 'src/sw.js', '**/*.test.js', '**/*.test.ts', '**/*.config.js'],
+            // Reduce memory usage during coverage collection
+            reportsDirectory: './coverage',
+            clean: true,
+            all: false, // Only collect coverage for files that are tested (reduces memory)
             // Thresholds updated 2026-01-10 after adding comprehensive unit tests:
             // New test files added:
             //   - filters-advanced.test.js (72 tests) - search history, filter state, fuzzy search
