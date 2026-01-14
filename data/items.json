@@ -38,7 +38,11 @@
       "notes": "ONE-AND-DONE: Do not pick up multiple copies. The effect does not stack.",
       "graph_type": "flat",
       "one_and_done": true,
-      "image": "images/items/anvil.png"
+      "image": "images/items/anvil.png",
+      "tags": [
+        "weapon-upgrade",
+        "one-and-done"
+      ]
     },
     {
       "id": "beefy_ring",
@@ -53,7 +57,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Multiplier = 1 + ((Max HP / 100) \u00d7 0.20 \u00d7 Stack Count)",
+      "formula": "Damage Multiplier = 1 + ((Max HP / 100) × 0.20 × Stack Count)",
       "scaling_per_stack": [
         20,
         40,
@@ -80,7 +84,12 @@
       "notes": "STACKS WELL: Each copy adds another 20% damage per 100 HP. Essential for tank builds.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/beefy_ring.png"
+      "image": "images/items/beefy_ring.png",
+      "tags": [
+        "damage",
+        "hp",
+        "scaling"
+      ]
     },
     {
       "id": "big_bonk",
@@ -95,7 +104,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Total Proc Chance = 0.02 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Total Proc Chance = 0.02 × Stack Count (capped at 100%)",
       "scaling_per_stack": [
         2,
         4,
@@ -118,7 +127,12 @@
       "notes": "SCALES ABSURDLY: Each copy adds 2% more chance. Becomes guaranteed at 50 copies.",
       "graph_type": "chance_scaling",
       "one_and_done": false,
-      "image": "images/items/big_bonk.png"
+      "image": "images/items/big_bonk.png",
+      "tags": [
+        "damage",
+        "crit",
+        "proc"
+      ]
     },
     {
       "id": "spicy_meatball",
@@ -133,7 +147,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Explosion Chance = 0.25 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Explosion Chance = 0.25 × Stack Count (capped at 100%)",
       "scaling_per_stack": [
         25,
         50,
@@ -157,7 +171,12 @@
       "notes": "SCALES ABSURDLY: Reaches 100% proc rate at 4 copies. After that, consider other items.",
       "graph_type": "capped_chance",
       "one_and_done": false,
-      "image": "images/items/spicy_meatball.png"
+      "image": "images/items/spicy_meatball.png",
+      "tags": [
+        "damage",
+        "aoe",
+        "proc"
+      ]
     },
     {
       "id": "gym_sauce",
@@ -172,7 +191,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Multiplier = 1 + (0.10 \u00d7 Stack Count)",
+      "formula": "Damage Multiplier = 1 + (0.10 × Stack Count)",
       "scaling_per_stack": [
         10,
         20,
@@ -194,7 +213,10 @@
       "notes": "STACKS WELL: Simple and effective. Always a good pick.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/gym_sauce.png"
+      "image": "images/items/gym_sauce.png",
+      "tags": [
+        "damage"
+      ]
     },
     {
       "id": "forbidden_juice",
@@ -209,7 +231,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Crit Chance = Base + (0.10 \u00d7 Stack Count). Over 100% enables Overcrits!",
+      "formula": "Crit Chance = Base + (0.10 × Stack Count). Over 100% enables Overcrits!",
       "scaling_per_stack": [
         10,
         20,
@@ -232,7 +254,10 @@
       "notes": "STACKS VERY WELL: Stack to 100%+ for Overcrit scaling. Game-changing mechanic.",
       "graph_type": "threshold_scaling",
       "one_and_done": false,
-      "image": "images/items/forbidden_juice.png"
+      "image": "images/items/forbidden_juice.png",
+      "tags": [
+        "crit"
+      ]
     },
     {
       "id": "oats",
@@ -247,7 +272,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Max HP = Base HP + (25 \u00d7 Stack Count)",
+      "formula": "Max HP = Base HP + (25 × Stack Count)",
       "scaling_per_stack": [
         25,
         50,
@@ -273,7 +298,11 @@
       "notes": "STACKS WELL: More HP = more survivability and Beefy Ring damage.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/oats.png"
+      "image": "images/items/oats.png",
+      "tags": [
+        "hp",
+        "defense"
+      ]
     },
     {
       "id": "sucky_magnet",
@@ -310,7 +339,12 @@
       "notes": "ONE-AND-DONE: Do not pick up multiple copies. One is perfect.",
       "graph_type": "flat",
       "one_and_done": true,
-      "image": "images/items/sucky_magnet.png"
+      "image": "images/items/sucky_magnet.png",
+      "tags": [
+        "utility",
+        "xp",
+        "one-and-done"
+      ]
     },
     {
       "id": "za_warudo",
@@ -347,7 +381,11 @@
       "notes": "STACKS MODERATELY: Each copy = one more life. Useful but has diminishing returns.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/za_warudo.png"
+      "image": "images/items/za_warudo.png",
+      "tags": [
+        "survival",
+        "defense"
+      ]
     },
     {
       "id": "holy_book",
@@ -470,6 +508,12 @@
         "Damage dealt every 1.5 seconds based on healing done",
         "Damage formula scales with level and total healing in time window",
         "Overheal creates yellow bar beyond max HP"
+      ],
+      "tags": [
+        "hp",
+        "regen",
+        "damage",
+        "proc"
       ]
     },
     {
@@ -485,7 +529,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Overheal = Max HP \u00d7 0.75 \u00d7 Stack Count, Lifesteal = 0.20 \u00d7 Stack Count",
+      "formula": "Overheal = Max HP × 0.75 × Stack Count, Lifesteal = 0.20 × Stack Count",
       "scaling_per_stack": [
         75,
         150,
@@ -523,7 +567,12 @@
       "notes": "STACKS VERY WELL: Each copy effectively doubles your HP pool.",
       "graph_type": "percentage_scaling",
       "one_and_done": false,
-      "image": "images/items/chonkplate.png"
+      "image": "images/items/chonkplate.png",
+      "tags": [
+        "hp",
+        "lifesteal",
+        "defense"
+      ]
     },
     {
       "id": "demonic_soul",
@@ -538,7 +587,7 @@
       "stacking_behavior": "additive_with_kill_counter",
       "stacks_well": true,
       "stack_cap": 1000,
-      "formula": "Damage = 1 + (Kills \u00d7 0.001 \u00d7 Stack Count), max 1000 kills per copy",
+      "formula": "Damage = 1 + (Kills × 0.001 × Stack Count), max 1000 kills per copy",
       "scaling_per_stack": [
         100,
         200,
@@ -560,7 +609,11 @@
       "notes": "STACKS WELL: Each copy adds another 100% potential damage. Strong in extended runs.",
       "graph_type": "capped_stacking",
       "one_and_done": false,
-      "image": "images/items/demonic_soul.png"
+      "image": "images/items/demonic_soul.png",
+      "tags": [
+        "damage",
+        "scaling"
+      ]
     },
     {
       "id": "overpowered_lamp",
@@ -600,7 +653,11 @@
       "notes": "STACKS EXTREMELY WELL: Each copy adds another proc roll. Game-breaking with proc items.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/overpowered_lamp.png"
+      "image": "images/items/overpowered_lamp.png",
+      "tags": [
+        "proc",
+        "damage"
+      ]
     },
     {
       "id": "cursed_doll",
@@ -662,7 +719,11 @@
         "Non-bosses die in ~4 seconds regardless of HP",
         "30% max HP/second only applies at full strength to normal enemies"
       ],
-      "boss_formula": "Boss damage scales with level (significantly reduced). See damage table."
+      "boss_formula": "Boss damage scales with level (significantly reduced). See damage table.",
+      "tags": [
+        "damage",
+        "elite"
+      ]
     },
     {
       "id": "lightning_orb",
@@ -677,7 +738,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Lightning Chance = 0.25 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Lightning Chance = 0.25 × Stack Count (capped at 100%)",
       "scaling_per_stack": [
         25,
         50,
@@ -700,7 +761,12 @@
       "notes": "STACKS WELL: Reaches 100% at 4 copies. Consider stopping there.",
       "graph_type": "capped_chance",
       "one_and_done": false,
-      "image": "images/items/lightning_orb.png"
+      "image": "images/items/lightning_orb.png",
+      "tags": [
+        "lightning",
+        "proc",
+        "cc"
+      ]
     },
     {
       "id": "turbo_skates",
@@ -715,7 +781,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Attack Speed Bonus = min(Movement Speed \u00d7 Stack Count, 40% \u00d7 Stack Count)",
+      "formula": "Attack Speed Bonus = min(Movement Speed × Stack Count, 40% × Stack Count)",
       "scaling_per_stack": [
         40,
         80,
@@ -738,7 +804,12 @@
       "notes": "STACKS VERY WELL: Each copy adds another +40% potential attack speed.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/turbo_skates.png"
+      "image": "images/items/turbo_skates.png",
+      "tags": [
+        "attack-speed",
+        "speed",
+        "scaling"
+      ]
     },
     {
       "id": "grandmas_secret_tonic",
@@ -815,6 +886,10 @@
         "First copy ONLY gives +2% crit chance bonus - additional copies do NOT add more crit",
         "Radius caps at 8m (5 copies) - 6th+ copies do NOTHING",
         "Explosion deals 50% of your crit damage to nearby enemies"
+      ],
+      "tags": [
+        "crit",
+        "aoe"
       ]
     },
     {
@@ -830,7 +905,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Freeze Chance = 0.20 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Freeze Chance = 0.20 × Stack Count (capped at 100%)",
       "scaling_per_stack": [
         20,
         40,
@@ -853,7 +928,12 @@
       "notes": "STACKS WELL: Reaches 100% at 5 copies for perma-freeze.",
       "graph_type": "capped_chance",
       "one_and_done": false,
-      "image": "images/items/ice_cube.png"
+      "image": "images/items/ice_cube.png",
+      "tags": [
+        "ice",
+        "proc",
+        "cc"
+      ]
     },
     {
       "id": "dragonfire",
@@ -868,7 +948,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Dragonfire Chance = 0.15 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Dragonfire Chance = 0.15 × Stack Count (capped at 100%)",
       "scaling_per_stack": [
         15,
         30,
@@ -891,7 +971,12 @@
       "notes": "STACKS WELL: Reaches 100% at 7 copies. Good for burn builds.",
       "graph_type": "capped_chance",
       "one_and_done": false,
-      "image": "images/items/dragonfire.png"
+      "image": "images/items/dragonfire.png",
+      "tags": [
+        "fire",
+        "proc",
+        "dot"
+      ]
     },
     {
       "id": "beer",
@@ -906,7 +991,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": false,
       "stack_cap": null,
-      "formula": "Damage = 1 + (0.20 \u00d7 Stacks), Max HP = Base \u00d7 (1 - 0.05 \u00d7 Stacks)",
+      "formula": "Damage = 1 + (0.20 × Stacks), Max HP = Base × (1 - 0.05 × Stacks)",
       "scaling_per_stack": [
         20,
         40,
@@ -947,7 +1032,11 @@
       "notes": "RISKY STACKING: More copies = more damage but significantly less HP. Balance carefully.",
       "graph_type": "tradeoff_scaling",
       "one_and_done": false,
-      "image": "images/items/beer.png"
+      "image": "images/items/beer.png",
+      "tags": [
+        "damage",
+        "risk-reward"
+      ]
     },
     {
       "id": "demonic_blood",
@@ -962,7 +1051,7 @@
       "stacking_behavior": "additive_with_kill_counter",
       "stacks_well": true,
       "stack_cap": 200,
-      "formula": "HP Gain = min(Kills \u00d7 0.5 \u00d7 Stack Count, 100 \u00d7 Stack Count)",
+      "formula": "HP Gain = min(Kills × 0.5 × Stack Count, 100 × Stack Count)",
       "scaling_per_stack": [
         100,
         200,
@@ -987,7 +1076,11 @@
       "notes": "STACKS WELL: Each copy adds another 100 HP potential. Great for scaling builds.",
       "graph_type": "capped_stacking",
       "one_and_done": false,
-      "image": "images/items/demonic_blood.png"
+      "image": "images/items/demonic_blood.png",
+      "tags": [
+        "hp",
+        "scaling"
+      ]
     },
     {
       "id": "turbo_socks",
@@ -1002,7 +1095,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Movement Speed = Base \u00d7 (1 + 0.15 \u00d7 Stack Count)",
+      "formula": "Movement Speed = Base × (1 + 0.15 × Stack Count)",
       "scaling_per_stack": [
         15,
         30,
@@ -1025,7 +1118,10 @@
       "notes": "STACKS WELL: More speed = better positioning and Turbo Skates value.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/turbo_socks.png"
+      "image": "images/items/turbo_socks.png",
+      "tags": [
+        "speed"
+      ]
     },
     {
       "id": "battery",
@@ -1040,7 +1136,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Attack Speed = Base \u00d7 (1 + 0.08 \u00d7 Stack Count)",
+      "formula": "Attack Speed = Base × (1 + 0.08 × Stack Count)",
       "scaling_per_stack": [
         8,
         16,
@@ -1063,7 +1159,10 @@
       "notes": "STACKS WELL: More attacks = more damage and more procs.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/battery.png"
+      "image": "images/items/battery.png",
+      "tags": [
+        "attack-speed"
+      ]
     },
     {
       "id": "medkit",
@@ -1078,7 +1177,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "HP Regen = Base + (35 \u00d7 Stack Count)",
+      "formula": "HP Regen = Base + (35 × Stack Count)",
       "scaling_per_stack": [
         35,
         70,
@@ -1103,7 +1202,11 @@
       "notes": "STACKS MODERATELY: Useful for sustain but not game-changing.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/medkit.png"
+      "image": "images/items/medkit.png",
+      "tags": [
+        "regen",
+        "defense"
+      ]
     },
     {
       "id": "clover",
@@ -1118,7 +1221,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Luck = Base + (0.075 \u00d7 Stack Count)",
+      "formula": "Luck = Base + (0.075 × Stack Count)",
       "scaling_per_stack": [
         7.5,
         15,
@@ -1140,7 +1243,11 @@
       "notes": "STACKS MODERATELY: Useful but not essential for combat power.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/clover.png"
+      "image": "images/items/clover.png",
+      "tags": [
+        "luck",
+        "utility"
+      ]
     },
     {
       "id": "moldy_cheese",
@@ -1155,7 +1262,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Poison Chance = 0.40 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Poison Chance = 0.40 × Stack Count (capped at 100%)",
       "scaling_per_stack": [
         40,
         80,
@@ -1179,7 +1286,12 @@
       "notes": "STACKS WELL: Reaches 100% at 3 copies. Excellent for poison builds.",
       "graph_type": "capped_chance",
       "one_and_done": false,
-      "image": "images/items/moldy_cheese.png"
+      "image": "images/items/moldy_cheese.png",
+      "tags": [
+        "poison",
+        "proc",
+        "dot"
+      ]
     },
     {
       "id": "borgar",
@@ -1194,7 +1306,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": false,
       "stack_cap": null,
-      "formula": "Borgar Spawn Chance = 0.02 \u00d7 Stack Count",
+      "formula": "Borgar Spawn Chance = 0.02 × Stack Count",
       "scaling_per_stack": [
         2,
         4,
@@ -1213,7 +1325,10 @@
       "notes": "AVOID STACKING: Purely cosmetic, wastes item slots.",
       "graph_type": "flat",
       "one_and_done": false,
-      "image": "images/items/borgar.png"
+      "image": "images/items/borgar.png",
+      "tags": [
+        "cosmetic"
+      ]
     },
     {
       "id": "boss_buster",
@@ -1228,7 +1343,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Elite Damage Multiplier = 1 + (0.15 \u00d7 Stack Count)",
+      "formula": "Elite Damage Multiplier = 1 + (0.15 × Stack Count)",
       "scaling_per_stack": [
         15,
         30,
@@ -1250,7 +1365,11 @@
       "notes": "STACKS WELL: Great for boss-focused builds.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/boss_buster.png"
+      "image": "images/items/boss_buster.png",
+      "tags": [
+        "damage",
+        "elite"
+      ]
     },
     {
       "id": "spiky_shield",
@@ -1265,7 +1384,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Armor = Base + (0.10 \u00d7 Stacks), Thorns = (Armor% \u00d7 2 \u00d7 Stacks)",
+      "formula": "Armor = Base + (0.10 × Stacks), Thorns = (Armor% × 2 × Stacks)",
       "scaling_per_stack": [
         10,
         20,
@@ -1288,7 +1407,12 @@
       "notes": "STACKS WELL: Each copy doubles thorns potential.",
       "graph_type": "conversion_scaling",
       "one_and_done": false,
-      "image": "images/items/spiky_shield.png"
+      "image": "images/items/spiky_shield.png",
+      "tags": [
+        "armor",
+        "thorns",
+        "defense"
+      ]
     },
     {
       "id": "joes_dagger",
@@ -1303,7 +1427,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": 200,
-      "formula": "Execute Chance = 0.01 \u00d7 Stacks, Damage = 1 + (Executes \u00d7 0.01 \u00d7 Stacks)",
+      "formula": "Execute Chance = 0.01 × Stacks, Damage = 1 + (Executes × 0.01 × Stacks)",
       "scaling_per_stack": [
         1,
         2,
@@ -1325,7 +1449,12 @@
       "notes": "STACKS MODERATELY: More copies = more execute chance and higher damage cap. Slow ramp.",
       "graph_type": "ramping_capped",
       "one_and_done": false,
-      "image": "images/items/joes_dagger.png"
+      "image": "images/items/joes_dagger.png",
+      "tags": [
+        "damage",
+        "scaling",
+        "execute"
+      ]
     },
     {
       "id": "bloody_cleaver",
@@ -1402,6 +1531,11 @@
         "Bloodmark timer (4-5 sec) RESETS when new stacks are applied",
         "Bloodmark explosion damage = damage_modifier x level x stacks",
         "Visible as dark red section on boss HP bars"
+      ],
+      "tags": [
+        "lifesteal",
+        "bloodmark",
+        "proc"
       ]
     },
     {
@@ -1417,7 +1551,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Souls per Kill = 2 \u00d7 Stack Count",
+      "formula": "Souls per Kill = 2 × Stack Count",
       "scaling_per_stack": [
         2,
         4,
@@ -1439,7 +1573,11 @@
       "notes": "STACKS VERY WELL: Each copy doubles soul generation. Creates satisfying soul storms.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/soul_harvester.png"
+      "image": "images/items/soul_harvester.png",
+      "tags": [
+        "summon",
+        "damage"
+      ]
     },
     {
       "id": "energy_core",
@@ -1476,7 +1614,11 @@
       "notes": "STACKS WELL: More copies = more orbs = more damage.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/energy_core.png"
+      "image": "images/items/energy_core.png",
+      "tags": [
+        "summon",
+        "damage"
+      ]
     },
     {
       "id": "speed_boi",
@@ -1491,7 +1633,7 @@
       "stacking_behavior": "additive_damage",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Multiplier when <50% HP = 1 + (1.0 \u00d7 Stack Count)",
+      "formula": "Damage Multiplier when <50% HP = 1 + (1.0 × Stack Count)",
       "scaling_per_stack": [
         100,
         200,
@@ -1516,7 +1658,12 @@
       "notes": "STACKS WELL: Massive damage when low HP. Requires careful play.",
       "graph_type": "conditional_scaling",
       "one_and_done": false,
-      "image": "images/items/speed_boi.png"
+      "image": "images/items/speed_boi.png",
+      "tags": [
+        "damage",
+        "conditional",
+        "risk-reward"
+      ]
     },
     {
       "id": "giant_fork",
@@ -1557,13 +1704,17 @@
       "one_and_done": false,
       "image": "images/items/giant_fork.png",
       "scaling_formula_type": "hyperbolic",
-      "hyperbolic_constant": 1.0,
+      "hyperbolic_constant": 1,
       "hidden_mechanics": [
         "Uses hyperbolic formula: Actual = Internal / (1 + Internal)",
         "1 stack (8% internal) = ~7.4% actual megacrit chance",
         "5 stacks (40% internal) = ~28.6% actual megacrit chance",
         "10 stacks (80% internal) = ~44.4% actual megacrit chance",
         "Can never reach 100% megacrit chance regardless of stacks"
+      ],
+      "tags": [
+        "crit",
+        "damage"
       ]
     },
     {
@@ -1579,7 +1730,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Blast Chance = 0.08 \u00d7 Stack Count",
+      "formula": "Blast Chance = 0.08 × Stack Count",
       "scaling_per_stack": [
         8,
         16,
@@ -1601,7 +1752,12 @@
       "notes": "STACKS MODERATELY: Needs many copies to reach high proc rate.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/power_gloves.png"
+      "image": "images/items/power_gloves.png",
+      "tags": [
+        "knockback",
+        "proc",
+        "cc"
+      ]
     },
     {
       "id": "backpack",
@@ -1639,7 +1795,11 @@
       "notes": "STACKS VERY WELL: Each projectile is a full damage instance. Excellent scaling.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/backpack.png"
+      "image": "images/items/backpack.png",
+      "tags": [
+        "projectile",
+        "damage"
+      ]
     },
     {
       "id": "tactical_glasses",
@@ -1654,7 +1814,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Bonus vs Full HP = 0.20 \u00d7 Stack Count",
+      "formula": "Damage Bonus vs Full HP = 0.20 × Stack Count",
       "scaling_per_stack": [
         20,
         40,
@@ -1678,7 +1838,12 @@
       "notes": "SITUATIONAL STACKING: Only affects opening damage. Limited use.",
       "graph_type": "conditional_scaling",
       "one_and_done": false,
-      "image": "images/items/tactical_glasses.png"
+      "image": "images/items/tactical_glasses.png",
+      "tags": [
+        "damage",
+        "conditional",
+        "elite"
+      ]
     },
     {
       "id": "wrench",
@@ -1693,7 +1858,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Charge Speed = 1 + (0.04 \u00d7 Stacks), Rewards = 1 + (0.075 \u00d7 Stacks)",
+      "formula": "Charge Speed = 1 + (0.04 × Stacks), Rewards = 1 + (0.075 × Stacks)",
       "scaling_per_stack": [
         4,
         8,
@@ -1715,7 +1880,11 @@
       "notes": "STACKS MODERATELY: Useful but not combat-focused.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/wrench.png"
+      "image": "images/items/wrench.png",
+      "tags": [
+        "shrine",
+        "utility"
+      ]
     },
     {
       "id": "slippery_ring",
@@ -1730,7 +1899,7 @@
       "stacking_behavior": "hyperbolic",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Evasion = Internal / (1 + Internal), where Internal = 0.15 \u00d7 Stacks",
+      "formula": "Evasion = Internal / (1 + Internal), where Internal = 0.15 × Stacks",
       "scaling_per_stack": [
         15,
         30,
@@ -1755,12 +1924,16 @@
       "one_and_done": false,
       "image": "images/items/slippery_ring.png",
       "scaling_formula_type": "hyperbolic",
-      "hyperbolic_constant": 1.0,
+      "hyperbolic_constant": 1,
       "hidden_mechanics": [
         "Uses hyperbolic formula: Actual = Internal / (1 + Internal)",
         "1 stack (15% internal) = ~13% actual evasion",
         "7 stacks (105% internal) = ~51% actual evasion",
         "Can never reach 100% evasion regardless of stacks"
+      ],
+      "tags": [
+        "evasion",
+        "defense"
       ]
     },
     {
@@ -1776,7 +1949,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Gold Multiplier = 1 + (0.15 \u00d7 Stack Count)",
+      "formula": "Gold Multiplier = 1 + (0.15 × Stack Count)",
       "scaling_per_stack": [
         15,
         30,
@@ -1798,7 +1971,11 @@
       "notes": "STACKS MODERATELY: Good for gold farming but doesn't improve combat.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/golden_glove.png"
+      "image": "images/items/golden_glove.png",
+      "tags": [
+        "gold",
+        "utility"
+      ]
     },
     {
       "id": "time_bracelet",
@@ -1813,7 +1990,7 @@
       "stacking_behavior": "additive_capped",
       "stacks_well": true,
       "stack_cap": 1000,
-      "formula": "XP Multiplier = min(1 + (0.08 \u00d7 Stacks), 10.0)",
+      "formula": "XP Multiplier = min(1 + (0.08 × Stacks), 10.0)",
       "scaling_per_stack": [
         8,
         16,
@@ -1836,7 +2013,11 @@
       "notes": "STACKS WELL UP TO CAP: After 12 copies (1000% XP), stop taking this item.",
       "graph_type": "hard_capped",
       "one_and_done": false,
-      "image": "images/items/time_bracelet.png"
+      "image": "images/items/time_bracelet.png",
+      "tags": [
+        "xp",
+        "utility"
+      ]
     },
     {
       "id": "eagle_claw",
@@ -1851,7 +2032,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Airborne Damage = 1 + (0.66 \u00d7 Stacks), Launch Chance = 0.08 \u00d7 Stacks",
+      "formula": "Airborne Damage = 1 + (0.66 × Stacks), Launch Chance = 0.08 × Stacks",
       "scaling_per_stack": [
         66,
         132,
@@ -1875,7 +2056,12 @@
       "notes": "STACKS VERY WELL: More copies = more airborne damage and higher launch chance for self-sustaining combo.",
       "graph_type": "combo_scaling",
       "one_and_done": false,
-      "image": "images/items/eagle_claw.png"
+      "image": "images/items/eagle_claw.png",
+      "tags": [
+        "airborne",
+        "damage",
+        "proc"
+      ]
     },
     {
       "id": "gamer_goggles",
@@ -1890,7 +2076,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Bonus = (1 - Current HP% / Max HP%) \u00d7 1.0 \u00d7 Stacks",
+      "formula": "Damage Bonus = (1 - Current HP% / Max HP%) × 1.0 × Stacks",
       "scaling_per_stack": [
         100,
         200,
@@ -1918,7 +2104,12 @@
       "notes": "STACKS WELL: Massive damage scaling when low HP. Requires careful play.",
       "graph_type": "inverse_scaling",
       "one_and_done": false,
-      "image": "images/items/gamer_goggles.png"
+      "image": "images/items/gamer_goggles.png",
+      "tags": [
+        "damage",
+        "conditional",
+        "risk-reward"
+      ]
     },
     {
       "id": "gas_mask",
@@ -1933,7 +2124,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Armor = 10 \u00d7 Poisoned Enemies \u00d7 Stacks, Overheal = 10 \u00d7 Poisoned Enemies \u00d7 Stacks",
+      "formula": "Armor = 10 × Poisoned Enemies × Stacks, Overheal = 10 × Poisoned Enemies × Stacks",
       "scaling_per_stack": [
         10,
         20,
@@ -1958,7 +2149,12 @@
       "notes": "STACKS EXTREMELY WELL: Essential for Kevin poison builds. Creates invincible AFK playstyle.",
       "graph_type": "exponential_scaling",
       "one_and_done": false,
-      "image": "images/items/gas_mask.png"
+      "image": "images/items/gas_mask.png",
+      "tags": [
+        "poison",
+        "armor",
+        "defense"
+      ]
     },
     {
       "id": "cursed_grabbies",
@@ -2001,13 +2197,17 @@
       "one_and_done": false,
       "image": "images/items/cursed_grabbies.png",
       "scaling_formula_type": "hyperbolic",
-      "hyperbolic_constant": 1.0,
+      "hyperbolic_constant": 1,
       "hidden_mechanics": [
         "Displayed 5% per stack uses hyperbolic formula - actual chance is lower",
         "1 stack = ~4.8% actual (not 5% displayed)",
         "Theoretical max 50% proc chance (can never reach)",
         "Damage scales linearly with stack count",
         "HP reduction (0.8x) conflicts with Holy Book builds"
+      ],
+      "tags": [
+        "curse",
+        "risk-reward"
       ]
     },
     {
@@ -2023,7 +2223,7 @@
       "stacking_behavior": "additive_damage",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "XP Shard Damage = Base Damage \u00d7 Stack Count",
+      "formula": "XP Shard Damage = Base Damage × Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2047,7 +2247,12 @@
       "notes": "STACKS VERY WELL: More copies = more XP shard damage. Great passive DPS.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/shattered_knowledge.png"
+      "image": "images/items/shattered_knowledge.png",
+      "tags": [
+        "xp",
+        "damage",
+        "passive"
+      ]
     },
     {
       "id": "slutty_cannon",
@@ -2062,7 +2267,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Rocket Chance = 0.20 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Rocket Chance = 0.20 × Stack Count (capped at 100%)",
       "scaling_per_stack": [
         20,
         40,
@@ -2085,7 +2290,12 @@
       "notes": "STACKS WELL: Reaches 100% at 5 copies for guaranteed rockets on every kill.",
       "graph_type": "capped_chance",
       "one_and_done": false,
-      "image": "images/items/slutty_cannon.png"
+      "image": "images/items/slutty_cannon.png",
+      "tags": [
+        "aoe",
+        "proc",
+        "damage"
+      ]
     },
     {
       "id": "toxic_barrel",
@@ -2100,7 +2310,7 @@
       "stacking_behavior": "additive_size",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Poison Cloud Size/Damage = Base \u00d7 Stack Count",
+      "formula": "Poison Cloud Size/Damage = Base × Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2125,7 +2335,12 @@
       "notes": "STACKS EXTREMELY WELL: With Kevin, becomes most broken combo in the game. Creates AFK poison build.",
       "graph_type": "exponential_scaling",
       "one_and_done": false,
-      "image": "images/items/toxic_barrel.png"
+      "image": "images/items/toxic_barrel.png",
+      "tags": [
+        "poison",
+        "on-damage",
+        "aoe"
+      ]
     },
     {
       "id": "beacon",
@@ -2140,7 +2355,7 @@
       "stacking_behavior": "additive_shrines",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Extra Shrines = 2 \u00d7 Stack Count, Healing Rate = Base \u00d7 Stack Count",
+      "formula": "Extra Shrines = 2 × Stack Count, Healing Rate = Base × Stack Count",
       "scaling_per_stack": [
         2,
         4,
@@ -2163,7 +2378,12 @@
       "notes": "STACKS MODERATELY: More shrines = more upgrades, but diminishing returns on healing.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/beacon.png"
+      "image": "images/items/beacon.png",
+      "tags": [
+        "shrine",
+        "regen",
+        "utility"
+      ]
     },
     {
       "id": "cowards_cloak",
@@ -2178,7 +2398,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Base Speed = 1 + (0.05 \u00d7 Stacks), Damage Speed Boost = 0.10 \u00d7 Stacks",
+      "formula": "Base Speed = 1 + (0.05 × Stacks), Damage Speed Boost = 0.10 × Stacks",
       "scaling_per_stack": [
         5,
         10,
@@ -2202,7 +2422,11 @@
       "notes": "STACKS WELL: More speed = better survivability and Turbo Skates synergy.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/cowards_cloak.png"
+      "image": "images/items/cowards_cloak.png",
+      "tags": [
+        "speed",
+        "defense"
+      ]
     },
     {
       "id": "demonic_blade",
@@ -2217,7 +2441,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Heal on Crit Chance = 0.25 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Heal on Crit Chance = 0.25 × Stack Count (capped at 100%)",
       "scaling_per_stack": [
         25,
         50,
@@ -2241,7 +2465,11 @@
       "notes": "STACKS WELL: Reaches 100% at 4 copies. Perfect for crit sustain builds.",
       "graph_type": "capped_chance",
       "one_and_done": false,
-      "image": "images/items/demonic_blade.png"
+      "image": "images/items/demonic_blade.png",
+      "tags": [
+        "crit",
+        "lifesteal"
+      ]
     },
     {
       "id": "echo_shard",
@@ -2256,7 +2484,7 @@
       "stacking_behavior": "multiplicative",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Projectile Instances = Base \u00d7 (1 + Stack Count), XP = 1 + (0.12 \u00d7 Stacks)",
+      "formula": "Projectile Instances = Base × (1 + Stack Count), XP = 1 + (0.12 × Stacks)",
       "scaling_per_stack": [
         12,
         24,
@@ -2280,7 +2508,12 @@
       "notes": "STACKS EXTREMELY WELL: Each copy multiplies projectile output. Game-breaking with projectile builds.",
       "graph_type": "exponential_scaling",
       "one_and_done": false,
-      "image": "images/items/echo_shard.png"
+      "image": "images/items/echo_shard.png",
+      "tags": [
+        "projectile",
+        "xp",
+        "damage"
+      ]
     },
     {
       "id": "golden_shield",
@@ -2295,7 +2528,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Gold per Hit = Base \u00d7 Stack Count",
+      "formula": "Gold per Hit = Base × Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2322,7 +2555,11 @@
       "notes": "STACKS WELL: More copies = more gold. Note: Kevin/Leeching Crystal reduce effectiveness.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/golden_shield.png"
+      "image": "images/items/golden_shield.png",
+      "tags": [
+        "gold",
+        "on-damage"
+      ]
     },
     {
       "id": "golden_sneakers",
@@ -2337,7 +2574,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Gold per Meter = 0.1 \u00d7 Stack Count",
+      "formula": "Gold per Meter = 0.1 × Stack Count",
       "scaling_per_stack": [
         10,
         20,
@@ -2363,7 +2600,11 @@
       "notes": "STACKS WELL: More copies + more movement = more gold. Great for mobile playstyles.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/golden_sneakers.png"
+      "image": "images/items/golden_sneakers.png",
+      "tags": [
+        "gold",
+        "speed"
+      ]
     },
     {
       "id": "idle_juice",
@@ -2378,7 +2619,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Bonus = min(Time Stationary \u00d7 0.20, 1.0) \u00d7 Stack Count",
+      "formula": "Damage Bonus = min(Time Stationary × 0.20, 1.0) × Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2405,7 +2646,11 @@
       "notes": "STACKS VERY WELL: Each copy adds another 100% potential damage. Requires standing still.",
       "graph_type": "ramping_capped",
       "one_and_done": false,
-      "image": "images/items/idle_juice.png"
+      "image": "images/items/idle_juice.png",
+      "tags": [
+        "damage",
+        "conditional"
+      ]
     },
     {
       "id": "kevin",
@@ -2420,7 +2665,7 @@
       "stacking_behavior": "additive_damage_and_aoe",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Self Damage Rate = Base \u00d7 Stack Count, Poison AoE Size = Base \u00d7 Stack Count",
+      "formula": "Self Damage Rate = Base × Stack Count, Poison AoE Size = Base × Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2447,7 +2692,12 @@
       "notes": "STACKS EXTREMELY WELL: THE most broken item combo with Toxic Barrel + Gas Mask. Creates AFK builds.",
       "graph_type": "exponential_scaling",
       "one_and_done": false,
-      "image": "images/items/kevin.png"
+      "image": "images/items/kevin.png",
+      "tags": [
+        "on-damage",
+        "poison",
+        "proc"
+      ]
     },
     {
       "id": "leeching_crystal",
@@ -2462,7 +2712,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Max HP = Base \u00d7 (1 + 0.50 \u00d7 Stacks), Regen = Base / (2 ^ Stacks)",
+      "formula": "Max HP = Base × (1 + 0.50 × Stacks), Regen = Base / (2 ^ Stacks)",
       "scaling_per_stack": [
         50,
         100,
@@ -2491,7 +2741,11 @@
       "notes": "STACKS WITH CAUTION: More HP but kills your regen. Only stack with lifesteal/overheal builds.",
       "graph_type": "tradeoff_scaling",
       "one_and_done": false,
-      "image": "images/items/leeching_crystal.png"
+      "image": "images/items/leeching_crystal.png",
+      "tags": [
+        "hp",
+        "risk-reward"
+      ]
     },
     {
       "id": "mirror",
@@ -2506,7 +2760,7 @@
       "stacking_behavior": "additive_reflection",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Reflected Damage = Incoming Damage \u00d7 (1.0 \u00d7 Stack Count)",
+      "formula": "Reflected Damage = Incoming Damage × (1.0 × Stack Count)",
       "scaling_per_stack": [
         100,
         200,
@@ -2529,7 +2783,12 @@
       "notes": "STACKS VERY WELL: Each copy multiplies reflected damage. Strong defensive + offensive tool.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/mirror.png"
+      "image": "images/items/mirror.png",
+      "tags": [
+        "defense",
+        "damage",
+        "on-damage"
+      ]
     },
     {
       "id": "moldy_gloves",
@@ -2544,7 +2803,7 @@
       "stacking_behavior": "additive_size",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Poison Cloud Size/Damage = Base \u00d7 Stack Count",
+      "formula": "Poison Cloud Size/Damage = Base × Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2569,7 +2828,12 @@
       "notes": "STACKS VERY WELL: Each copy creates larger, deadlier poison zones. Essential for poison builds.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/moldy_gloves.png"
+      "image": "images/items/moldy_gloves.png",
+      "tags": [
+        "poison",
+        "aoe",
+        "proc"
+      ]
     },
     {
       "id": "phantom_shroud",
@@ -2584,7 +2848,7 @@
       "stacking_behavior": "hyperbolic_evasion_additive_speed",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Evasion = Internal / (1 + Internal) where Internal = 0.20 \u00d7 Stacks, Speed = 1 + (0.10 \u00d7 Stacks)",
+      "formula": "Evasion = Internal / (1 + Internal) where Internal = 0.20 × Stacks, Speed = 1 + (0.10 × Stacks)",
       "scaling_per_stack": [
         20,
         40,
@@ -2610,10 +2874,21 @@
       "one_and_done": false,
       "image": "images/items/phantom_shroud.png",
       "scaling_formula_type": "hyperbolic",
-      "hyperbolic_constant": 1.0,
+      "hyperbolic_constant": 1,
       "secondary_scaling": {
         "stat": "Move Speed %",
-        "values": [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+        "values": [
+          10,
+          20,
+          30,
+          40,
+          50,
+          60,
+          70,
+          80,
+          90,
+          100
+        ]
       },
       "hidden_mechanics": [
         "Evasion uses hyperbolic formula: Actual = Internal / (1 + Internal)",
@@ -2621,6 +2896,11 @@
         "5 stacks (100% internal) = 50% actual evasion",
         "Movement speed scales linearly (+10% per stack)",
         "Graph shows hyperbolic evasion curve, speed is separate"
+      ],
+      "tags": [
+        "evasion",
+        "speed",
+        "defense"
       ]
     },
     {
@@ -2636,7 +2916,7 @@
       "stacking_behavior": "additive_heal",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Heal Per Proc = 0.075 \u00d7 Stack Count, Cooldown = 9s / Stack Count",
+      "formula": "Heal Per Proc = 0.075 × Stack Count, Cooldown = 9s / Stack Count",
       "scaling_per_stack": [
         7.5,
         15,
@@ -2659,7 +2939,12 @@
       "notes": "STACKS WELL: More copies = more healing and faster cooldown. Steady sustain.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/slurp_gloves.png"
+      "image": "images/items/slurp_gloves.png",
+      "tags": [
+        "lifesteal",
+        "aoe",
+        "bloodmark"
+      ]
     },
     {
       "id": "thunder_mitts",
@@ -2697,7 +2982,11 @@
       "notes": "STACKS VERY WELL: More copies = more lightning strikes per proc. Excellent passive DPS.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/thunder_mitts.png"
+      "image": "images/items/thunder_mitts.png",
+      "tags": [
+        "lightning",
+        "damage"
+      ]
     },
     {
       "id": "unstable_transfusion",
@@ -2712,7 +3001,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Bloodmark Chance = 0.27 \u00d7 Stack Count (capped at 100%)",
+      "formula": "Bloodmark Chance = 0.27 × Stack Count (capped at 100%)",
       "scaling_per_stack": [
         27,
         54,
@@ -2736,7 +3025,11 @@
       "notes": "STACKS WELL: Reaches 100% at 4 copies. Essential for bloodmark builds.",
       "graph_type": "capped_chance",
       "one_and_done": false,
-      "image": "images/items/unstable_transfusion.png"
+      "image": "images/items/unstable_transfusion.png",
+      "tags": [
+        "bloodmark",
+        "proc"
+      ]
     },
     {
       "id": "brass_knuckles",
@@ -2751,7 +3044,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Enemy Damage Taken = 1 + (0.20 \u00d7 Stack Count)",
+      "formula": "Enemy Damage Taken = 1 + (0.20 × Stack Count)",
       "scaling_per_stack": [
         20,
         40,
@@ -2774,7 +3067,11 @@
       "notes": "STACKS VERY WELL: Multiplies ALL damage to nearby enemies. Universal damage boost.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/brass_knuckles.png"
+      "image": "images/items/brass_knuckles.png",
+      "tags": [
+        "damage",
+        "aura"
+      ]
     },
     {
       "id": "bob_dead",
@@ -2815,7 +3112,11 @@
       "notes": "STACKS WELL: More copies = more Bobs = more passive damage. Great with movement.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/bob_dead.png"
+      "image": "images/items/bob_dead.png",
+      "tags": [
+        "summon",
+        "speed"
+      ]
     },
     {
       "id": "cactus",
@@ -2830,7 +3131,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Needle Damage = (Thorns Stat \u00d7 Stack Count) + Base Damage",
+      "formula": "Needle Damage = (Thorns Stat × Stack Count) + Base Damage",
       "scaling_per_stack": [
         100,
         200,
@@ -2854,7 +3155,11 @@
       "notes": "STACKS WELL: More copies = more needles. Strong with Kevin and Thorns builds.",
       "graph_type": "scaling_with_stat",
       "one_and_done": false,
-      "image": "images/items/cactus.png"
+      "image": "images/items/cactus.png",
+      "tags": [
+        "thorns",
+        "on-damage"
+      ]
     },
     {
       "id": "campfire",
@@ -2869,7 +3174,7 @@
       "stacking_behavior": "additive_heal_rate",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Heal per Second = Base \u00d7 Stack Count",
+      "formula": "Heal per Second = Base × Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2896,7 +3201,11 @@
       "notes": "STACKS WELL: More copies = faster healing. Requires standing still.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/campfire.png"
+      "image": "images/items/campfire.png",
+      "tags": [
+        "regen",
+        "conditional"
+      ]
     },
     {
       "id": "credit_card_green",
@@ -2911,7 +3220,7 @@
       "stacking_behavior": "additive_per_chest",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Luck = Base + (Chests Opened \u00d7 0.02 \u00d7 Stack Count)",
+      "formula": "Luck = Base + (Chests Opened × 0.02 × Stack Count)",
       "scaling_per_stack": [
         2,
         4,
@@ -2935,7 +3244,11 @@
       "notes": "STACKS WELL: More copies = faster luck scaling. Strong in long runs.",
       "graph_type": "ramping_scaling",
       "one_and_done": false,
-      "image": "images/items/credit_card_green.png"
+      "image": "images/items/credit_card_green.png",
+      "tags": [
+        "luck",
+        "scaling"
+      ]
     },
     {
       "id": "credit_card_red",
@@ -2950,7 +3263,7 @@
       "stacking_behavior": "additive_per_chest",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage = 1 + (Chests Opened \u00d7 0.025 \u00d7 Stack Count)",
+      "formula": "Damage = 1 + (Chests Opened × 0.025 × Stack Count)",
       "scaling_per_stack": [
         2.5,
         5,
@@ -2973,7 +3286,11 @@
       "notes": "STACKS VERY WELL: More copies = exponential damage scaling. Extremely strong in long runs.",
       "graph_type": "ramping_scaling",
       "one_and_done": false,
-      "image": "images/items/credit_card_red.png"
+      "image": "images/items/credit_card_red.png",
+      "tags": [
+        "damage",
+        "scaling"
+      ]
     },
     {
       "id": "electric_plug",
@@ -2988,7 +3305,7 @@
       "stacking_behavior": "additive_damage",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Pulse Damage = Base \u00d7 Stack Count",
+      "formula": "Pulse Damage = Base × Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -3012,7 +3329,11 @@
       "notes": "STACKS WELL: More copies = stronger pulses. Excellent with Kevin.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/electric_plug.png"
+      "image": "images/items/electric_plug.png",
+      "tags": [
+        "lightning",
+        "on-damage"
+      ]
     },
     {
       "id": "feathers",
@@ -3027,7 +3348,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Jump Height/Duration = Base \u00d7 (1 + 0.20 \u00d7 Stack Count)",
+      "formula": "Jump Height/Duration = Base × (1 + 0.20 × Stack Count)",
       "scaling_per_stack": [
         20,
         40,
@@ -3050,7 +3371,11 @@
       "notes": "STACKS MODERATELY: More airtime = more Eagle Claw/Scarf damage. Niche but powerful.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/feathers.png"
+      "image": "images/items/feathers.png",
+      "tags": [
+        "airborne",
+        "mobility"
+      ]
     },
     {
       "id": "ghost",
@@ -3088,7 +3413,11 @@
       "notes": "STACKS WELL: More copies = more ghosts. Good passive damage and utility.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/ghost.png"
+      "image": "images/items/ghost.png",
+      "tags": [
+        "summon",
+        "utility"
+      ]
     },
     {
       "id": "ice_crystal",
@@ -3103,7 +3432,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Freeze Chance = 0.075 \u00d7 Stack Count",
+      "formula": "Freeze Chance = 0.075 × Stack Count",
       "scaling_per_stack": [
         7.5,
         15,
@@ -3126,7 +3455,12 @@
       "notes": "STACKS VERY WELL: Higher freeze chance + built-in execute. Strong crowd control + cleanup.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
-      "image": "images/items/ice_crystal.png"
+      "image": "images/items/ice_crystal.png",
+      "tags": [
+        "ice",
+        "execute",
+        "cc"
+      ]
     },
     {
       "id": "key",
@@ -3165,12 +3499,16 @@
       "one_and_done": false,
       "image": "images/items/key.png",
       "scaling_formula_type": "hyperbolic",
-      "hyperbolic_constant": 1.0,
+      "hyperbolic_constant": 1,
       "hidden_mechanics": [
         "Uses hyperbolic formula - displayed 10% is actually ~9.1%",
         "Diminishing returns: more keys = less benefit per key",
         "10 keys shows 100% but actual is only ~50%",
         "Theoretical max is 50% (can never reach 100%)"
+      ],
+      "tags": [
+        "utility",
+        "gold"
       ]
     },
     {
@@ -3186,7 +3524,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Airborne Damage = 1 + (0.33 \u00d7 Stack Count)",
+      "formula": "Airborne Damage = 1 + (0.33 × Stack Count)",
       "scaling_per_stack": [
         33,
         66,
@@ -3209,7 +3547,12 @@
       "notes": "STACKS VERY WELL: Massive damage boost while airborne. Build around it.",
       "graph_type": "conditional_scaling",
       "one_and_done": false,
-      "image": "images/items/scarf.png"
+      "image": "images/items/scarf.png",
+      "tags": [
+        "airborne",
+        "damage",
+        "conditional"
+      ]
     },
     {
       "id": "skuleg",
@@ -3224,7 +3567,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Difficulty = 1 + (0.07 \u00d7 Stacks), Minions = Stack Count",
+      "formula": "Difficulty = 1 + (0.07 × Stacks), Minions = Stack Count",
       "scaling_per_stack": [
         7,
         14,
@@ -3248,7 +3591,11 @@
       "notes": "STACKS MODERATELY: More minions but higher difficulty. Balance risk carefully.",
       "graph_type": "tradeoff_scaling",
       "one_and_done": false,
-      "image": "images/items/skuleg.png"
+      "image": "images/items/skuleg.png",
+      "tags": [
+        "summon",
+        "risk-reward"
+      ]
     },
     {
       "id": "quins_mask",
@@ -3287,7 +3634,12 @@
       "notes": "STACKS WELL UP TO 2: First copy gives 50% chance, second guarantees explosions. Additional copies provide no benefit.",
       "graph_type": "proc_capped",
       "one_and_done": false,
-      "image": "images/items/quins_mask.png"
+      "image": "images/items/quins_mask.png",
+      "tags": [
+        "thorns",
+        "aoe",
+        "proc"
+      ]
     }
   ]
 }

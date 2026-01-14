@@ -33,7 +33,11 @@
         "All damage dealers"
       ],
       "notes": "ALWAYS valuable. Core stat for any build.",
-      "image": "images/tomes/damage.png"
+      "image": "images/tomes/damage.png",
+      "tags": [
+        "damage",
+        "offense"
+      ]
     },
     {
       "id": "precision",
@@ -69,7 +73,11 @@
         "Bush"
       ],
       "notes": "Get to 100%+ for Overcrit mechanic. Game-changing with crit damage.",
-      "image": "images/tomes/precision.png"
+      "image": "images/tomes/precision.png",
+      "tags": [
+        "crit",
+        "offense"
+      ]
     },
     {
       "id": "cooldown",
@@ -104,7 +112,12 @@
         "All characters"
       ],
       "notes": "More attacks = more damage and more procs. Universal value.",
-      "image": "images/tomes/cooldown.png"
+      "image": "images/tomes/cooldown.png",
+      "tags": [
+        "attack-speed",
+        "offense",
+        "proc"
+      ]
     },
     {
       "id": "hp",
@@ -139,7 +152,12 @@
         "Athena"
       ],
       "notes": "More HP = survivability + Beefy Ring damage scaling.",
-      "image": "images/tomes/hp.png"
+      "image": "images/tomes/hp.png",
+      "tags": [
+        "hp",
+        "defense",
+        "survival"
+      ]
     },
     {
       "id": "agility",
@@ -172,7 +190,11 @@
         "Tony McZoom"
       ],
       "notes": "Better positioning = better survival. Turbo Skates converts to attack speed.",
-      "image": "images/tomes/agility.png"
+      "image": "images/tomes/agility.png",
+      "tags": [
+        "speed",
+        "mobility"
+      ]
     },
     {
       "id": "size",
@@ -206,7 +228,11 @@
         "Noelle"
       ],
       "notes": "Bigger = more enemies hit. Game-changing for certain weapons.",
-      "image": "images/tomes/size.png"
+      "image": "images/tomes/size.png",
+      "tags": [
+        "aoe",
+        "offense"
+      ]
     },
     {
       "id": "shield",
@@ -235,7 +261,11 @@
         "All characters"
       ],
       "notes": "Recharges after not taking damage. Prevents burst deaths.",
-      "image": "images/tomes/shield.png"
+      "image": "images/tomes/shield.png",
+      "tags": [
+        "defense",
+        "survival"
+      ]
     },
     {
       "id": "regen",
@@ -265,7 +295,12 @@
         "All characters"
       ],
       "notes": "Passive healing. Better in longer fights.",
-      "image": "images/tomes/regen.png"
+      "image": "images/tomes/regen.png",
+      "tags": [
+        "regen",
+        "defense",
+        "survival"
+      ]
     },
     {
       "id": "evasion",
@@ -295,7 +330,11 @@
         "Ninja"
       ],
       "notes": "Diminishing returns. Can't reach 100%. Ninja gets bonus value.",
-      "image": "images/tomes/evasion.png"
+      "image": "images/tomes/evasion.png",
+      "tags": [
+        "evasion",
+        "defense"
+      ]
     },
     {
       "id": "knockback",
@@ -327,7 +366,12 @@
         "All ranged characters"
       ],
       "notes": "Creates space. Can push enemies away from objectives.",
-      "image": "images/tomes/knockback.png"
+      "image": "images/tomes/knockback.png",
+      "tags": [
+        "knockback",
+        "cc",
+        "utility"
+      ]
     },
     {
       "id": "projectile_speed",
@@ -359,7 +403,11 @@
         "All characters"
       ],
       "notes": "Quality of life. Faster projectiles = better hit rate on fast enemies.",
-      "image": "images/tomes/projectile_speed.png"
+      "image": "images/tomes/projectile_speed.png",
+      "tags": [
+        "projectile",
+        "utility"
+      ]
     },
     {
       "id": "quantity",
@@ -390,7 +438,12 @@
         "All characters"
       ],
       "notes": "Each projectile = full damage. Multiplicative value.",
-      "image": "images/tomes/quantity.png"
+      "image": "images/tomes/quantity.png",
+      "tags": [
+        "projectile",
+        "offense",
+        "damage"
+      ]
     },
     {
       "id": "duration",
@@ -422,7 +475,12 @@
         "All characters"
       ],
       "notes": "Essential for Axe. Extends DoT and status effects.",
-      "image": "images/tomes/duration.png"
+      "image": "images/tomes/duration.png",
+      "tags": [
+        "duration",
+        "dot",
+        "cc"
+      ]
     },
     {
       "id": "armor",
@@ -454,7 +512,11 @@
         "Athena"
       ],
       "notes": "Diminishing returns. Pairs with HP for tankiness.",
-      "image": "images/tomes/armor.png"
+      "image": "images/tomes/armor.png",
+      "tags": [
+        "armor",
+        "defense"
+      ]
     },
     {
       "id": "bloody",
@@ -486,7 +548,11 @@
         "Vlad"
       ],
       "notes": "Great with high attack speed. Over 100% = 2 HP per proc.",
-      "image": "images/tomes/bloody.png"
+      "image": "images/tomes/bloody.png",
+      "tags": [
+        "lifesteal",
+        "survival"
+      ]
     },
     {
       "id": "thorns",
@@ -519,7 +585,12 @@
         "Athena"
       ],
       "notes": "Requires taking hits. Best with armor and HP.",
-      "image": "images/tomes/thorns.png"
+      "image": "images/tomes/thorns.png",
+      "tags": [
+        "thorns",
+        "defense",
+        "damage"
+      ]
     },
     {
       "id": "xp",
@@ -551,7 +622,12 @@
         "All characters"
       ],
       "notes": "HARD CAP at 1000% (10x). Priority early game for snowball.",
-      "image": "images/tomes/xp.png"
+      "image": "images/tomes/xp.png",
+      "tags": [
+        "xp",
+        "utility",
+        "scaling"
+      ]
     },
     {
       "id": "luck",
@@ -581,7 +657,11 @@
         "All characters"
       ],
       "notes": "Better items = better runs. Does NOT affect procs/crits.",
-      "image": "images/tomes/luck.png"
+      "image": "images/tomes/luck.png",
+      "tags": [
+        "luck",
+        "utility"
+      ]
     },
     {
       "id": "gold",
@@ -610,7 +690,11 @@
         "Robinette"
       ],
       "notes": "More gold = more shop items. Robinette gets bonus.",
-      "image": "images/tomes/gold.png"
+      "image": "images/tomes/gold.png",
+      "tags": [
+        "gold",
+        "utility"
+      ]
     },
     {
       "id": "silver",
@@ -636,7 +720,12 @@
         "All characters"
       ],
       "notes": "No combat value. Only for meta progression.",
-      "image": "images/tomes/silver.png"
+      "image": "images/tomes/silver.png",
+      "tags": [
+        "silver",
+        "utility",
+        "meta"
+      ]
     },
     {
       "id": "attraction",
@@ -665,7 +754,11 @@
         "All characters"
       ],
       "notes": "QoL. Sucky Magnet makes this less important.",
-      "image": "images/tomes/attraction.png"
+      "image": "images/tomes/attraction.png",
+      "tags": [
+        "utility",
+        "xp"
+      ]
     },
     {
       "id": "cursed",
@@ -695,7 +788,11 @@
         "Sir Chadwell"
       ],
       "notes": "Risk/reward. More danger but better rewards.",
-      "image": "images/tomes/cursed.png"
+      "image": "images/tomes/cursed.png",
+      "tags": [
+        "difficulty",
+        "risk-reward"
+      ]
     },
     {
       "id": "chaos",
@@ -725,7 +822,11 @@
         "Dicehead"
       ],
       "notes": "Hardest unlock. Pure RNG. High variance, high reward.",
-      "image": "images/tomes/chaos.png"
+      "image": "images/tomes/chaos.png",
+      "tags": [
+        "rng",
+        "random"
+      ]
     }
   ]
 }

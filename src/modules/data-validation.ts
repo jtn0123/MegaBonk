@@ -340,6 +340,17 @@ export function validateAllData(allData: AllGameData | null | undefined): Compre
         });
     }
 
+    if (allData.tomes?.tomes) {
+        allData.tomes.tomes.forEach((tome, index) => {
+            if (!tome.image) {
+                warnings.push(`tomes[${index}] (${tome.name}): Missing recommended 'image' field`);
+            }
+            if (!tome.tags || tome.tags.length === 0) {
+                warnings.push(`tomes[${index}] (${tome.name}): Missing recommended 'tags' field`);
+            }
+        });
+    }
+
     return {
         valid: errors.length === 0,
         errors,
