@@ -61,6 +61,21 @@ export function initCV(gameData: AllGameData): void {
 }
 
 /**
+ * Check if all templates are fully loaded (not just priority)
+ * Use this to prevent detection with incomplete template set
+ */
+export function isFullyLoaded(): boolean {
+    return templatesLoaded;
+}
+
+/**
+ * Check if priority templates are loaded (enough for basic detection)
+ */
+export function isPriorityLoaded(): boolean {
+    return priorityTemplatesLoaded;
+}
+
+/**
  * Categorize items by priority (common items first)
  */
 function prioritizeItems(items: Item[]): { priority: Item[]; standard: Item[] } {
@@ -219,22 +234,34 @@ export async function loadItemTemplates(): Promise<void> {
 
     // Load remaining items in background (non-blocking)
     setTimeout(async () => {
-        const standardLoaded = await loadTemplatesBatch(standard);
-        groupTemplatesByColor(standard);
-        templatesLoaded = true;
+        try {
+            const standardLoaded = await loadTemplatesBatch(standard);
+            groupTemplatesByColor(standard);
+            templatesLoaded = true;
 
-        logger.info({
-            operation: 'cv.load_templates',
-            data: {
-                phase: 'complete',
-                priorityLoaded,
-                standardLoaded,
-                total: items.length,
-                colorGroups: Object.fromEntries(
-                    Array.from(templatesByColor.entries()).map(([color, items]) => [color, items.length])
-                ),
-            },
-        });
+            logger.info({
+                operation: 'cv.load_templates',
+                data: {
+                    phase: 'complete',
+                    priorityLoaded,
+                    standardLoaded,
+                    total: items.length,
+                    colorGroups: Object.fromEntries(
+                        Array.from(templatesByColor.entries()).map(([color, items]) => [color, items.length])
+                    ),
+                },
+            });
+        } catch (error) {
+            logger.error({
+                operation: 'cv.load_templates',
+                data: {
+                    phase: 'error',
+                    error: error instanceof Error ? error.message : String(error),
+                },
+            });
+            // Still mark as loaded to prevent infinite retries
+            templatesLoaded = true;
+        }
     }, 100); // Small delay to allow UI to update
 }
 
@@ -943,7 +970,7 @@ export async function detectItemsWithCV(
             }
 
             const match = matchCell(cell);
-            if (match && match.similarity > 0.70) {
+            if (match && match.similarity > 0.7) {
                 // Context validation: boost common items
                 const isCommonItem = match.item.rarity === 'common' || match.item.rarity === 'uncommon';
                 const boostedSimilarity = isCommonItem ? match.similarity + 0.05 : match.similarity;
@@ -995,16 +1022,16 @@ export async function detectItemsWithCV(
             gridPositions: gridPositions.length,
             emptyCells,
             validCells: validCells.length,
-            matchRate: validCells.length > 0
-                ? ((boostedDetections.length / validCells.length) * 100).toFixed(1) + '%'
-                : '0%',
+            matchRate:
+                validCells.length > 0 ? ((boostedDetections.length / validCells.length) * 100).toFixed(1) + '%' : '0%',
         };
 
         // If nothing detected, add debug hints
         if (boostedDetections.length === 0) {
-            logData.debugHint = validCells.length === 0
-                ? 'No valid cells found - image may not show inventory/hotbar'
-                : 'Valid cells found but no template matches - icons may not match database';
+            logData.debugHint =
+                validCells.length === 0
+                    ? 'No valid cells found - image may not show inventory/hotbar'
+                    : 'Valid cells found but no template matches - icons may not match database';
             logData.suggestion = 'Try Hybrid mode or ensure screenshot shows item icons clearly';
         } else {
             logData.detectedItems = boostedDetections.slice(0, 5).map(d => d.entity.name);
@@ -1646,111 +1673,113 @@ function detectGameplayRegions(
  * Render debug overlay showing detection grid and results
  * Draws colored boxes around detections with confidence scores
  */
-export function renderDebugOverlay(
+export async function renderDebugOverlay(
     canvas: HTMLCanvasElement,
     imageDataUrl: string,
     gridPositions: ROI[],
     detections: CVDetectionResult[],
     emptyCells: Set<number>
-): void {
+): Promise<void> {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    // Load and draw original image first
-    const img = new Image();
-    img.onload = () => {
-        canvas.width = img.width;
-        canvas.height = img.height;
-        ctx.drawImage(img, 0, 0);
+    // Wait for image to load properly (fixes race condition)
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Failed to load image for debug overlay'));
+        image.src = imageDataUrl;
+    });
 
-        // Draw grid positions (yellow boxes)
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Yellow, semi-transparent
-        ctx.font = '12px monospace';
+    canvas.width = img.width;
+    canvas.height = img.height;
+    ctx.drawImage(img, 0, 0);
 
-        gridPositions.forEach((cell, index) => {
-            // Draw cell border
-            if (emptyCells.has(index)) {
-                // Empty cells in gray
-                ctx.strokeStyle = 'rgba(128, 128, 128, 0.3)';
-                ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
+    // Draw grid positions (yellow boxes)
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)'; // Yellow, semi-transparent
+    ctx.font = '12px monospace';
 
-                // Label as empty
-                ctx.fillStyle = 'rgba(128, 128, 128, 0.7)';
-                ctx.fillRect(cell.x, cell.y - 18, 60, 18);
-                ctx.fillStyle = 'white';
-                ctx.fillText('EMPTY', cell.x + 5, cell.y - 5);
-            } else {
-                // Valid cells in yellow
-                ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
-                ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
-            }
-        });
+    gridPositions.forEach((cell, index) => {
+        // Draw cell border
+        if (emptyCells.has(index)) {
+            // Empty cells in gray
+            ctx.strokeStyle = 'rgba(128, 128, 128, 0.3)';
+            ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
 
-        // Draw detections with confidence-based colors
-        detections.forEach(detection => {
-            if (!detection.position) return;
+            // Label as empty
+            ctx.fillStyle = 'rgba(128, 128, 128, 0.7)';
+            ctx.fillRect(cell.x, cell.y - 18, 60, 18);
+            ctx.fillStyle = 'white';
+            ctx.fillText('EMPTY', cell.x + 5, cell.y - 5);
+        } else {
+            // Valid cells in yellow
+            ctx.strokeStyle = 'rgba(255, 255, 0, 0.5)';
+            ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
+        }
+    });
 
-            const pos = detection.position;
-            const confidence = detection.confidence;
+    // Draw detections with confidence-based colors
+    detections.forEach(detection => {
+        if (!detection.position) return;
 
-            // Color based on confidence
-            let color: string;
-            if (confidence >= 0.85) {
-                color = 'rgba(0, 255, 0, 0.8)'; // Green = high confidence
-            } else if (confidence >= 0.7) {
-                color = 'rgba(255, 165, 0, 0.8)'; // Orange = medium confidence
-            } else {
-                color = 'rgba(255, 0, 0, 0.8)'; // Red = low confidence
-            }
+        const pos = detection.position;
+        const confidence = detection.confidence;
 
-            // Draw detection border (thicker)
-            ctx.lineWidth = 3;
-            ctx.strokeStyle = color;
-            ctx.strokeRect(pos.x, pos.y, pos.width, pos.height);
+        // Color based on confidence
+        let color: string;
+        if (confidence >= 0.85) {
+            color = 'rgba(0, 255, 0, 0.8)'; // Green = high confidence
+        } else if (confidence >= 0.7) {
+            color = 'rgba(255, 165, 0, 0.8)'; // Orange = medium confidence
+        } else {
+            color = 'rgba(255, 0, 0, 0.8)'; // Red = low confidence
+        }
 
-            // Draw label background
-            const label = `${detection.entity.name}`;
-            const confidenceText = `${(confidence * 100).toFixed(0)}%`;
-            const labelWidth = Math.max(ctx.measureText(label).width, ctx.measureText(confidenceText).width) + 10;
+        // Draw detection border (thicker)
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = color;
+        ctx.strokeRect(pos.x, pos.y, pos.width, pos.height);
 
-            ctx.fillStyle = color;
-            ctx.fillRect(pos.x, pos.y + pos.height, labelWidth, 36);
+        // Draw label background
+        const label = `${detection.entity.name}`;
+        const confidenceText = `${(confidence * 100).toFixed(0)}%`;
+        const labelWidth = Math.max(ctx.measureText(label).width, ctx.measureText(confidenceText).width) + 10;
 
-            // Draw label text
-            ctx.fillStyle = 'black';
-            ctx.font = 'bold 12px monospace';
-            ctx.fillText(label, pos.x + 5, pos.y + pos.height + 14);
-            ctx.fillText(confidenceText, pos.x + 5, pos.y + pos.height + 30);
-        });
+        ctx.fillStyle = color;
+        ctx.fillRect(pos.x, pos.y + pos.height, labelWidth, 36);
 
-        // Draw legend
-        const legendX = 10;
-        const legendY = 10;
-        const legendHeight = 120;
+        // Draw label text
+        ctx.fillStyle = 'black';
+        ctx.font = 'bold 12px monospace';
+        ctx.fillText(label, pos.x + 5, pos.y + pos.height + 14);
+        ctx.fillText(confidenceText, pos.x + 5, pos.y + pos.height + 30);
+    });
 
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-        ctx.fillRect(legendX, legendY, 200, legendHeight);
+    // Draw legend
+    const legendX = 10;
+    const legendY = 10;
+    const legendHeight = 120;
 
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 14px monospace';
-        ctx.fillText('Debug Overlay Legend', legendX + 10, legendY + 20);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.fillRect(legendX, legendY, 200, legendHeight);
 
-        ctx.font = '12px monospace';
-        ctx.fillStyle = 'rgba(0, 255, 0, 1)';
-        ctx.fillText('■ High (≥85%)', legendX + 10, legendY + 45);
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('Debug Overlay Legend', legendX + 10, legendY + 20);
 
-        ctx.fillStyle = 'rgba(255, 165, 0, 1)';
-        ctx.fillText('■ Medium (70-85%)', legendX + 10, legendY + 65);
+    ctx.font = '12px monospace';
+    ctx.fillStyle = 'rgba(0, 255, 0, 1)';
+    ctx.fillText('■ High (≥85%)', legendX + 10, legendY + 45);
 
-        ctx.fillStyle = 'rgba(255, 0, 0, 1)';
-        ctx.fillText('■ Low (60-70%)', legendX + 10, legendY + 85);
+    ctx.fillStyle = 'rgba(255, 165, 0, 1)';
+    ctx.fillText('■ Medium (70-85%)', legendX + 10, legendY + 65);
 
-        ctx.fillStyle = 'rgba(255, 255, 0, 1)';
-        ctx.fillText('□ Grid cells', legendX + 10, legendY + 105);
-    };
+    ctx.fillStyle = 'rgba(255, 0, 0, 1)';
+    ctx.fillText('■ Low (60-70%)', legendX + 10, legendY + 85);
 
-    img.src = imageDataUrl;
+    ctx.fillStyle = 'rgba(255, 255, 0, 1)';
+    ctx.fillText('□ Grid cells', legendX + 10, legendY + 105);
 }
 
 /**
@@ -1771,14 +1800,10 @@ export async function createDebugOverlay(imageDataUrl: string, detections: CVDet
     // Determine which cells are empty (simplified - no actual check)
     const emptyCells = new Set<number>();
 
-    renderDebugOverlay(canvas, imageDataUrl, gridPositions, detections, emptyCells);
+    // Wait for debug overlay to fully render (no more race condition)
+    await renderDebugOverlay(canvas, imageDataUrl, gridPositions, detections, emptyCells);
 
-    return new Promise(resolve => {
-        // Wait for image to load and render
-        setTimeout(() => {
-            resolve(canvas.toDataURL('image/png'));
-        }, 100);
-    });
+    return canvas.toDataURL('image/png');
 }
 
 // ========================================
