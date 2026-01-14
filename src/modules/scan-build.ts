@@ -280,7 +280,7 @@ async function handleAutoDetect(): Promise<void> {
                 message: (error as Error).message,
             },
         });
-        ToastManager.error('Auto-detection failed. Please try manual selection.');
+        ToastManager.error(`Auto-detection failed: ${(error as Error).message}`);
     }
 }
 
@@ -422,7 +422,7 @@ async function handleHybridDetect(): Promise<void> {
                 message: (error as Error).message,
             },
         });
-        ToastManager.error('Hybrid detection failed. Please try manual selection.');
+        ToastManager.error(`Hybrid detection failed: ${(error as Error).message}`);
     }
 }
 
