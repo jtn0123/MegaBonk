@@ -364,6 +364,11 @@ export function matchesAdvancedFilters(item: Record<string, unknown>, filters: R
             return false; // Item doesn't have this property, so it doesn't match
         }
 
+        // Bug fix: Handle undefined/null filter value
+        if (value === undefined || value === null) {
+            continue; // Skip invalid filter
+        }
+
         // Handle comparison operators
         if (value.startsWith('>=')) {
             // Check >= before > since > would match >=
