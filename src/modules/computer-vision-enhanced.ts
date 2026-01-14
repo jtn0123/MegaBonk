@@ -869,5 +869,7 @@ function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight
 }
 
 // Export for window
-(window as any).initEnhancedCV = initEnhancedCV;
-(window as any).detectItemsWithEnhancedCV = detectItemsWithEnhancedCV;
+if (typeof window !== 'undefined') {
+    (window as any).initEnhancedCV = initEnhancedCV;
+    (window as any).detectItemsWithEnhancedCV = detectItemsWithEnhancedCV;
+}

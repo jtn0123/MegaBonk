@@ -450,6 +450,8 @@ function showStrategyComparison(results: any[]): void {
 }
 
 // Export for window access
-(window as any).initEnhancedScanBuild = initEnhancedScanBuild;
-(window as any).handleEnhancedHybridDetect = handleEnhancedHybridDetect;
-(window as any).compareStrategiesOnImage = compareStrategiesOnImage;
+if (typeof window !== 'undefined') {
+    (window as any).initEnhancedScanBuild = initEnhancedScanBuild;
+    (window as any).handleEnhancedHybridDetect = handleEnhancedHybridDetect;
+    (window as any).compareStrategiesOnImage = compareStrategiesOnImage;
+}

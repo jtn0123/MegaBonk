@@ -1759,4 +1759,6 @@ export async function createDebugOverlay(imageDataUrl: string, detections: CVDet
 // ========================================
 // Global Assignments
 // ========================================
-(window as any).initCV = initCV;
+if (typeof window !== 'undefined') {
+    (window as any).initCV = initCV;
+}
