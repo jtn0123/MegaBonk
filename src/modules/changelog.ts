@@ -318,7 +318,8 @@ export function updateChangelogStats(patches: ExtendedPatch[]): void {
     if (!itemCount) return;
 
     const totalPatches = allData.changelog?.patches?.length || 0;
-    const showingPatches = patches.length;
+    // Bug fix #3: Handle null/undefined patches array
+    const showingPatches = patches?.length || 0;
 
     // Show "X patches" or "X/Y patches" if filtered
     if (showingPatches === totalPatches) {
