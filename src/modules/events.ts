@@ -42,14 +42,62 @@ const VALID_TABS: TabName[] = ['items', 'weapons', 'tomes', 'characters', 'shrin
 let eventAbortController: AbortController | null = null;
 
 /**
- * Get or create the AbortController for event listeners
- * This allows all event listeners to be cleaned up at once
+ * Check if AbortSignal is properly supported in addEventListener
+ * jsdom has incomplete AbortSignal support that causes TypeErrors
  */
-function getEventAbortSignal(): AbortSignal {
+function isAbortSignalSupported(): boolean {
+    if (typeof AbortController === 'undefined') return false;
+
+    try {
+        // Create a test to see if signal works in addEventListener
+        const controller = new AbortController();
+        const testHandler = (): void => {};
+
+        // Try adding and immediately removing a listener with signal
+        // In jsdom, this throws: "parameter 3 dictionary has member 'signal' that is not of type 'AbortSignal'"
+        const testDiv = document.createElement('div');
+        testDiv.addEventListener('test', testHandler, { signal: controller.signal });
+        testDiv.removeEventListener('test', testHandler);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+// Cache the result - check once at module load
+let _abortSignalSupported: boolean | null = null;
+function getAbortSignalSupported(): boolean {
+    if (_abortSignalSupported === null) {
+        _abortSignalSupported = isAbortSignalSupported();
+    }
+    return _abortSignalSupported;
+}
+
+/**
+ * Get or create the AbortController for event listeners
+ * Returns undefined if AbortSignal isn't properly supported (e.g., jsdom)
+ */
+function getEventAbortSignal(): AbortSignal | undefined {
+    if (!getAbortSignalSupported()) {
+        return undefined;
+    }
+
     if (!eventAbortController) {
         eventAbortController = new AbortController();
     }
     return eventAbortController.signal;
+}
+
+/**
+ * Get event listener options with optional signal
+ * Returns options that work in both browser and jsdom environments
+ */
+function getListenerOptions(options?: { passive?: boolean }): AddEventListenerOptions | undefined {
+    const signal = getEventAbortSignal();
+    if (signal) {
+        return options ? { ...options, signal } : { signal };
+    }
+    return options;
 }
 
 /**
@@ -114,8 +162,6 @@ export function toggleTextExpand(element: HTMLElement): void {
  * Setup all event delegation handlers
  */
 export function setupEventDelegation(): void {
-    const signal = getEventAbortSignal();
-
     // Bug fix: Add keyboard event handler for breakpoint cards and Escape key for modals
     document.addEventListener(
         'keydown',
@@ -183,7 +229,7 @@ export function setupEventDelegation(): void {
                 }
             }
         },
-        { signal }
+        getListenerOptions()
     );
 
     // Main click delegation
@@ -321,7 +367,7 @@ export function setupEventDelegation(): void {
                 return;
             }
         },
-        { signal }
+        getListenerOptions()
     );
 
     // Change event delegation for checkboxes in build planner
@@ -366,7 +412,7 @@ export function setupEventDelegation(): void {
                 return;
             }
         },
-        { signal }
+        getListenerOptions()
     );
 }
 
@@ -374,8 +420,6 @@ export function setupEventDelegation(): void {
  * Setup all event listeners
  */
 export function setupEventListeners(): void {
-    const signal = getEventAbortSignal();
-
     // Tab buttons
     document.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(btn => {
         btn.addEventListener(
@@ -386,7 +430,7 @@ export function setupEventListeners(): void {
                     switchTab(tabName);
                 }
             },
-            { signal }
+            getListenerOptions()
         );
     });
 
@@ -403,17 +447,17 @@ export function setupEventListeners(): void {
             tabContainer.classList.toggle('can-scroll-right', canScrollRight);
         };
 
-        tabButtons.addEventListener('scroll', updateTabScrollIndicators, { passive: true, signal });
+        tabButtons.addEventListener('scroll', updateTabScrollIndicators, getListenerOptions({ passive: true }));
         // Initial check after a short delay to ensure layout is complete
         setTimeout(updateTabScrollIndicators, 100);
         // Recheck on resize
-        window.addEventListener('resize', debounce(updateTabScrollIndicators, 100), { signal });
+        window.addEventListener('resize', debounce(updateTabScrollIndicators, 100), getListenerOptions());
     }
 
     // Search input - Bug fix: Add debounce to prevent excessive re-renders
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
     if (searchInput) {
-        searchInput.addEventListener('input', debounce(handleSearch, 300), { signal });
+        searchInput.addEventListener('input', debounce(handleSearch, 300), getListenerOptions());
 
         // Show search history on focus
         searchInput.addEventListener(
@@ -423,13 +467,13 @@ export function setupEventListeners(): void {
                     showSearchHistoryDropdown(searchInput);
                 }
             },
-            { signal }
+            getListenerOptions()
         );
     }
 
     // Modal close buttons
     document.querySelectorAll<HTMLElement>('.close').forEach(closeBtn => {
-        closeBtn.addEventListener('click', closeModal, { signal });
+        closeBtn.addEventListener('click', closeModal, getListenerOptions());
     });
 
     // Close compare modal button
@@ -440,7 +484,7 @@ export function setupEventListeners(): void {
             () => {
                 closeCompareModal(); // Use proper cleanup function
             },
-            { signal }
+            getListenerOptions()
         );
     }
 
@@ -469,13 +513,13 @@ export function setupEventListeners(): void {
     };
 
     // Handle both click and touch events for desktop/mobile compatibility
-    window.addEventListener('click', handleModalBackdropInteraction, { signal });
-    window.addEventListener('touchend', handleModalBackdropInteraction, { signal });
+    window.addEventListener('click', handleModalBackdropInteraction, getListenerOptions());
+    window.addEventListener('touchend', handleModalBackdropInteraction, getListenerOptions());
 
     // Compare button
     const compareBtn = safeGetElementById('compare-btn') as HTMLButtonElement | null;
     if (compareBtn) {
-        compareBtn.addEventListener('click', openCompareModal, { signal });
+        compareBtn.addEventListener('click', openCompareModal, getListenerOptions());
     }
 
     // Build planner events
