@@ -1,5 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderFormula, renderFormulaDisplay } from '../../src/modules/formula-renderer.ts';
+import katex from 'katex';
 
 describe('Formula Renderer Module', () => {
     describe('renderFormula()', () => {
@@ -98,6 +99,26 @@ describe('Formula Renderer Module', () => {
                 const result = renderFormula('HP = +100/stack, Regen = +50/stack, Overheal = +25%/stack');
                 expect(result).toBeDefined();
             });
+
+            it('should fall back to formula-text when KaTeX throws an error', () => {
+                const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+                const katexSpy = vi.spyOn(katex, 'renderToString').mockImplementation(() => {
+                    throw new Error('KaTeX rendering error');
+                });
+
+                const result = renderFormula('Damage = 1 + 2');
+
+                expect(result).toContain('formula-text');
+                expect(result).toContain('Damage = 1 + 2');
+                expect(console.warn).toHaveBeenCalledWith(
+                    'KaTeX rendering failed for formula:',
+                    'Damage = 1 + 2',
+                    expect.any(Error)
+                );
+
+                katexSpy.mockRestore();
+                spy.mockRestore();
+            });
         });
 
         describe('LaTeX passthrough', () => {
@@ -129,6 +150,26 @@ describe('Formula Renderer Module', () => {
         it('should render descriptive text as formula-text', () => {
             const result = renderFormulaDisplay('Each upgrade adds stats');
             expect(result).toContain('formula-text');
+        });
+
+        it('should fall back to formula-text when KaTeX throws an error', () => {
+            const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const katexSpy = vi.spyOn(katex, 'renderToString').mockImplementation(() => {
+                throw new Error('KaTeX rendering error');
+            });
+
+            const result = renderFormulaDisplay('Damage = 1 + 2');
+
+            expect(result).toContain('formula-text');
+            expect(result).toContain('Damage = 1 + 2');
+            expect(console.warn).toHaveBeenCalledWith(
+                'KaTeX rendering failed for formula:',
+                'Damage = 1 + 2',
+                expect.any(Error)
+            );
+
+            katexSpy.mockRestore();
+            spy.mockRestore();
         });
     });
 
