@@ -45,6 +45,88 @@ let priorityTemplatesLoaded = false;
 // Detection result cache (key = image hash, value = results)
 const detectionCache = new Map<string, { results: CVDetectionResult[]; timestamp: number }>();
 const CACHE_TTL = 1000 * 60 * 15; // 15 minutes
+const MAX_CACHE_SIZE = 50; // Maximum number of cache entries
+const MAX_TEMPLATES = 200; // Maximum number of item templates to keep loaded
+
+// Timer for periodic cache cleanup
+let cacheCleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Start periodic cache cleanup to prevent memory leaks
+ * Runs every 5 minutes to evict expired entries
+ */
+function startCacheCleanup(): void {
+    if (cacheCleanupTimer) return; // Already running
+
+    cacheCleanupTimer = setInterval(
+        () => {
+            const now = Date.now();
+            let evicted = 0;
+
+            // Evict expired cache entries
+            for (const [key, entry] of detectionCache.entries()) {
+                if (now - entry.timestamp > CACHE_TTL) {
+                    detectionCache.delete(key);
+                    evicted++;
+                }
+            }
+
+            // If still over max size, evict oldest entries
+            if (detectionCache.size > MAX_CACHE_SIZE) {
+                const entries = Array.from(detectionCache.entries());
+                entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
+
+                const toEvict = detectionCache.size - MAX_CACHE_SIZE + 10; // Evict 10 extra
+                for (let i = 0; i < toEvict && i < entries.length; i++) {
+                    detectionCache.delete(entries[i][0]);
+                    evicted++;
+                }
+            }
+
+            if (evicted > 0) {
+                logger.info({
+                    operation: 'cv.cache_cleanup',
+                    data: { evicted, remaining: detectionCache.size },
+                });
+            }
+        },
+        5 * 60 * 1000
+    ); // Run every 5 minutes
+}
+
+/**
+ * Stop periodic cache cleanup
+ */
+function stopCacheCleanup(): void {
+    if (cacheCleanupTimer) {
+        clearInterval(cacheCleanupTimer);
+        cacheCleanupTimer = null;
+    }
+}
+
+/**
+ * Cleanup all CV module resources (templates, caches, timers)
+ * Call this when the app is being unloaded or CV is no longer needed
+ */
+export function cleanupCV(): void {
+    // Stop periodic cleanup
+    stopCacheCleanup();
+
+    // Clear all caches
+    detectionCache.clear();
+    itemTemplates.clear();
+    templatesByColor.clear();
+
+    // Reset state
+    templatesLoaded = false;
+    priorityTemplatesLoaded = false;
+    allData = {};
+
+    logger.info({
+        operation: 'cv.cleanup',
+        data: { message: 'CV module cleaned up' },
+    });
+}
 
 /**
  * Initialize computer vision module
@@ -52,6 +134,9 @@ const CACHE_TTL = 1000 * 60 * 15; // 15 minutes
 export function initCV(gameData: AllGameData): void {
     // Bug fix #4: Handle null/undefined gameData
     allData = gameData || {};
+
+    // Start periodic cache cleanup to prevent memory leaks
+    startCacheCleanup();
 
     logger.info({
         operation: 'cv.init',
@@ -208,6 +293,18 @@ function groupTemplatesByColor(items: Item[]): void {
  */
 export async function loadItemTemplates(): Promise<void> {
     if (templatesLoaded) return;
+
+    // Clear old templates before loading new ones to prevent memory leaks
+    // This handles cases where loadItemTemplates is called after a data refresh
+    if (itemTemplates.size > 0) {
+        itemTemplates.clear();
+        templatesByColor.clear();
+        priorityTemplatesLoaded = false;
+        logger.info({
+            operation: 'cv.load_templates',
+            data: { phase: 'clearing_old_templates' },
+        });
+    }
 
     const items = allData.items?.items || [];
 
