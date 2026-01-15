@@ -77,6 +77,22 @@ jobs:
           path: test-results/
           retention-days: 30
 
+  test-cleanup-check:
+    name: Test Cleanup Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Check test cleanup patterns
+        run: node scripts/check-test-cleanup.js
+
   lint:
     name: Lint
     runs-on: ubuntu-latest
