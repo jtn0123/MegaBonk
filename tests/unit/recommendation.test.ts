@@ -2,7 +2,7 @@
 // Recommendation Engine Tests
 // ========================================
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     recommendBestChoice,
     formatRecommendation,
@@ -95,6 +95,11 @@ function createEmptyBuildState(): BuildState {
 }
 
 describe('Recommendation Engine', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     describe('recommendBestChoice', () => {
         it('should return empty array when no choices provided', () => {
             const build = createEmptyBuildState();

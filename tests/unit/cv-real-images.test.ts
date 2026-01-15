@@ -6,7 +6,7 @@
  * These tests validate grid detection, resolution handling, and image loading.
  */
 
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
 import { detectGridPositions } from '../../src/modules/computer-vision';
@@ -34,6 +34,11 @@ try {
 }
 
 describe('CV Real Image Detection', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     describe('Grid Detection', () => {
         it('should detect grid positions for 1080p', () => {
             const grid = detectGridPositions(1920, 1080);

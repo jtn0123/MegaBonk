@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     safeGetElementById,
     safeQuerySelector,
@@ -23,6 +23,12 @@ describe('utils - DOM helpers', () => {
             <div class="test-class">Class Element</div>
             <input id="test-input" value="initial" />
         `;
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+        document.body.innerHTML = '';
     });
 
     describe('safeGetElementById', () => {

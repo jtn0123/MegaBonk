@@ -158,6 +158,7 @@ describe('scan-build - initScanBuild', () => {
     });
 
     afterEach(() => {
+        vi.restoreAllMocks();
         document.body.innerHTML = '';
     });
 
@@ -1514,6 +1515,7 @@ describe('scan-build - Apply to Advisor', () => {
     });
 
     afterEach(() => {
+        vi.restoreAllMocks();
         document.body.innerHTML = '';
         delete (window as any).applyScannedBuild;
     });

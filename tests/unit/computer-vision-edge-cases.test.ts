@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { AllGameData, CVDetectionResult, ROI } from '../../src/types/index.ts';
 
 // Mock dependencies BEFORE imports
@@ -76,6 +76,10 @@ describe('computer-vision.ts - Edge Cases', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         clearDetectionCache();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
     });
 
     describe('initCV', () => {

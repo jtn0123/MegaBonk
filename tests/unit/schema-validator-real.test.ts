@@ -3,7 +3,7 @@
  * No mocking - tests actual Zod schema validation
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     validateItems,
     validateWeapons,
@@ -20,6 +20,11 @@ import {
 beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
+});
+
+afterEach(() => {
+    vi.restoreAllMocks();
+    vi.clearAllMocks();
 });
 
 // ========================================

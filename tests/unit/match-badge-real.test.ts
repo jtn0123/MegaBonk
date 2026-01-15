@@ -3,7 +3,7 @@
  * No mocking - tests actual match badge generation
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { generateMatchBadge } from '../../src/modules/match-badge.ts';
 
 // ========================================
@@ -24,6 +24,11 @@ interface MatchContext {
 // ========================================
 
 describe('generateMatchBadge - Real Integration Tests', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     // ========================================
     // Null/Undefined Input Tests
     // ========================================

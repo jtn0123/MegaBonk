@@ -3,7 +3,7 @@
  * Tests schema validation, cross-references, and data integrity
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     validateWithZod,
     validateDataStructure,
@@ -112,6 +112,11 @@ const createValidAllData = () => ({
 // ========================================
 
 describe('validateWithZod', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     describe('items validation', () => {
         it('should validate valid items data', () => {
             const data = {

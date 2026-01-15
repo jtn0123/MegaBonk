@@ -120,6 +120,7 @@ describe('Tesseract.js Integration', () => {
     });
 
     afterEach(() => {
+        vi.restoreAllMocks();
         vi.clearAllMocks();
     });
 

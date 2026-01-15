@@ -3,7 +3,7 @@
  * Tests handling of edge cases, boundary conditions, and failure modes
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     initCV,
     detectGridPositions,
@@ -53,6 +53,11 @@ const mockGameData: AllGameData = {
 describe('CV Edge Cases - Grid Boundary Conditions', () => {
     beforeEach(() => {
         initCV(mockGameData);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
     });
 
     it('should not place grid cells outside canvas bounds for 1080p', () => {

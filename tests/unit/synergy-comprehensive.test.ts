@@ -1,7 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import { detectSynergies, detectAntiSynergies, type BuildState } from '../../src/modules/synergy.ts';
 
 describe('synergy module', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     describe('detectSynergies', () => {
         it('should detect character-weapon synergy', () => {
             const build: BuildState = {

@@ -3,7 +3,7 @@
  * No mocking - tests actual synergy detection implementations
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
     detectSynergies,
     detectAntiSynergies,
@@ -86,6 +86,11 @@ const testItem3 = {
 // ========================================
 
 describe('detectSynergies - Real Integration Tests', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     it('should return empty array for empty build', () => {
         const build: BuildState = {
             character: null,

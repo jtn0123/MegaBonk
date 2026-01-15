@@ -133,6 +133,11 @@ describe('changelog.ts - Edge Cases', () => {
         document.body.innerHTML = '';
     });
 
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     describe('findEntityInData', () => {
         it('should find item by ID', () => {
             const entity = findEntityInData('item', 'test-item');

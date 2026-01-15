@@ -3,7 +3,7 @@
  * No mocking - tests actual recommendation engine implementations
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, afterEach, vi } from 'vitest';
 import {
     recommendBestChoice,
     formatRecommendation,
@@ -109,6 +109,11 @@ const testItemWithAntiSynergy = {
 // ========================================
 
 describe('recommendBestChoice - Real Integration Tests', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     it('should return recommendations for all choices', () => {
         const build: BuildState = {
             character: null,

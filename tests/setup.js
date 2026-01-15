@@ -11,30 +11,31 @@ const __dirname = path.dirname(__filename);
 // Load the HTML template once (shared across tests)
 const html = fs.readFileSync(path.resolve(__dirname, '../src/index.html'), 'utf8');
 
-// Store original globals for cleanup
-let originalDocument;
-let originalWindow;
-let currentDom = null;
+// Parse out just the body content for fast reset
+const bodyMatch = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+const initialBodyContent = bodyMatch ? bodyMatch[1] : '';
+
+// Create a SINGLE JSDOM instance per test file (reused across tests)
+// This prevents memory accumulation from creating thousands of JSDOM instances
+let sharedDom = null;
+let localStorageStore = {};
+
+function getOrCreateDom() {
+    if (!sharedDom) {
+        sharedDom = new JSDOM(html, {
+            url: 'http://localhost:3000',
+            pretendToBeVisual: true,
+            runScripts: 'outside-only',
+        });
+    }
+    return sharedDom;
+}
 
 beforeEach(() => {
-    // Clean up previous DOM if it exists to prevent memory leaks
-    if (currentDom && currentDom.window) {
-        currentDom.window.close();
-        currentDom = null;
-    }
+    const dom = getOrCreateDom();
 
-    // Create a fresh DOM for each test
-    currentDom = new JSDOM(html, {
-        url: 'http://localhost:3000',
-        pretendToBeVisual: true,
-        runScripts: 'outside-only',
-    });
-
-    const dom = currentDom;
-
-    // Store originals
-    originalDocument = global.document;
-    originalWindow = global.window;
+    // Reset body content to initial state (fast, no new JSDOM creation)
+    dom.window.document.body.innerHTML = initialBodyContent;
 
     // Set up globals
     global.document = dom.window.document;
@@ -59,26 +60,24 @@ beforeEach(() => {
     // Mock alert
     global.alert = vi.fn();
 
-    // Mock localStorage
-    const localStorageMock = (() => {
-        let store = {};
-        return {
-            getItem: vi.fn(key => store[key] || null),
-            setItem: vi.fn((key, value) => {
-                store[key] = value.toString();
-            }),
-            removeItem: vi.fn(key => {
-                delete store[key];
-            }),
-            clear: vi.fn(() => {
-                store = {};
-            }),
-            get length() {
-                return Object.keys(store).length;
-            },
-            key: vi.fn(index => Object.keys(store)[index] || null),
-        };
-    })();
+    // Reset localStorage store and create mock
+    localStorageStore = {};
+    const localStorageMock = {
+        getItem: vi.fn(key => localStorageStore[key] || null),
+        setItem: vi.fn((key, value) => {
+            localStorageStore[key] = value.toString();
+        }),
+        removeItem: vi.fn(key => {
+            delete localStorageStore[key];
+        }),
+        clear: vi.fn(() => {
+            localStorageStore = {};
+        }),
+        get length() {
+            return Object.keys(localStorageStore).length;
+        },
+        key: vi.fn(index => Object.keys(localStorageStore)[index] || null),
+    };
 
     // Define localStorage on both global and window using Object.defineProperty
     Object.defineProperty(global, 'localStorage', {
@@ -104,56 +103,38 @@ beforeEach(() => {
         }),
     };
 
+    // Mock scrollIntoView - not available in jsdom
+    dom.window.Element.prototype.scrollIntoView = vi.fn();
+    dom.window.HTMLElement.prototype.scrollIntoView = vi.fn();
+
     // Mock console methods for cleaner test output
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-afterEach(async () => {
+afterEach(() => {
     // Clear all timers to prevent memory leaks
     vi.clearAllTimers();
     vi.clearAllMocks();
     vi.restoreAllMocks(); // CRITICAL: Restore console spies and other mocks to prevent memory leaks
 
-    // Reset module-level state to prevent memory accumulation
-    // These are wrapped in try-catch since modules may not be loaded in all tests
-    try {
-        const { __resetForTesting: resetOCR } = await import('../src/modules/ocr.ts');
-        resetOCR?.();
-    } catch {
-        // Module not loaded in this test, skip
-    }
-    try {
-        const { destroyAllCharts } = await import('../src/modules/charts.ts');
-        destroyAllCharts?.();
-    } catch {
-        // Module not loaded in this test, skip
-    }
-    try {
-        const { clearDetectionCache } = await import('../src/modules/computer-vision.ts');
-        clearDetectionCache?.();
-    } catch {
-        // Module not loaded in this test, skip
+    // Force garbage collection if available (run with --expose-gc)
+    if (global.gc) {
+        global.gc();
     }
 
-    vi.resetModules();
+    // NOTE: vi.resetModules() was removed because it causes memory accumulation
+    // Module isolation between files is handled by vitest's isolate: true setting
 
-    // Close the current DOM window to free memory
-    if (currentDom && currentDom.window) {
-        currentDom.window.close();
-        currentDom = null;
-    }
-
-    // Restore originals
-    if (originalDocument) global.document = originalDocument;
-    if (originalWindow) global.window = originalWindow;
+    // Clear localStorage store
+    localStorageStore = {};
 });
 
-// Final cleanup after all tests in a file
+// Final cleanup after all tests in a file - close the shared DOM
 afterAll(() => {
-    if (currentDom && currentDom.window) {
-        currentDom.window.close();
-        currentDom = null;
+    if (sharedDom && sharedDom.window) {
+        sharedDom.window.close();
+        sharedDom = null;
     }
 });
 

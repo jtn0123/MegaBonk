@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
 import { renderItems, renderTomes } from '../../src/modules/renderers.ts';
 import * as logger from '../../src/modules/logger.ts';
@@ -47,6 +47,11 @@ describe('renderers.ts - Error Handling Edge Cases', () => {
     beforeEach(() => {
         createMinimalDOM();
         vi.clearAllMocks();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        document.body.innerHTML = '';
     });
 
     describe('renderItems - chart initialization error handling', () => {

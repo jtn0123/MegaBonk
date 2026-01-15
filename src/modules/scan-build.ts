@@ -1018,6 +1018,19 @@ export function getScanState() {
     };
 }
 
+/**
+ * Reset module state for testing
+ */
+export function __resetForTesting(): void {
+    allData = {};
+    uploadedImage = null;
+    selectedItems = new Map();
+    selectedTomes = new Map();
+    selectedCharacter = null;
+    selectedWeapon = null;
+    onBuildStateChange = null;
+}
+
 // ========================================
 // Global Assignments
 // ========================================

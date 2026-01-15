@@ -3,7 +3,7 @@
  * Tests: Empty cell detection, duplicate aggregation, adaptive threshold, dynamic grid
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { aggregateDuplicates, detectGridPositions } from '../../src/modules/computer-vision';
 
 // Mock ImageData for jsdom environment
@@ -23,6 +23,11 @@ class MockImageData {
 const ImageDataClass = typeof ImageData !== 'undefined' ? ImageData : MockImageData;
 
 describe('Empty Cell Detection', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     it('should detect uniform background as empty', () => {
         // Create imageData with uniform color (empty cell)
         const imageData = new ImageDataClass(64, 64);

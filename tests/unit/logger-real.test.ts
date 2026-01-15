@@ -3,7 +3,7 @@
  * No mocking - tests actual logger implementations
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     logger,
     Logger,
@@ -16,6 +16,11 @@ import {
 // ========================================
 
 describe('Logger Singleton - Real Integration Tests', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     it('should return same instance', () => {
         const instance1 = Logger.getInstance();
         const instance2 = Logger.getInstance();

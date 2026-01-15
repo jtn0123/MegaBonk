@@ -11,10 +11,17 @@ export default defineConfig({
             'tests/integration/**/*.test.js',
             'tests/performance/**/*.test.ts',
         ],
-        // Vitest 4: pool options are now top-level
+        // Memory-optimized configuration
         pool: 'forks',
-        isolate: false, // Disable isolation to reduce memory overhead
-        fileParallelism: false, // Run files sequentially to reduce memory
+        isolate: true, // Each test file gets its own fresh context
+        fileParallelism: false, // Run files sequentially
+        // Forks pool options (Vitest 4+ uses top-level)
+        forks: {
+            singleFork: false, // Use multiple forks to allow memory reclamation
+            maxForks: 1, // But only 1 at a time
+            minForks: 1,
+            execArgv: ['--max-old-space-size=4096'],
+        },
         // Sequence tests serially to reduce memory pressure
         sequence: {
             concurrent: false,

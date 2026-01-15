@@ -3,7 +3,7 @@
  * Tests for combining OCR and CV results, confidence boosting, and aggregation
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     initCV,
     aggregateDuplicates,
@@ -91,6 +91,11 @@ describe('Hybrid Detection - Result Combining', () => {
     beforeEach(() => {
         initCV(mockGameData);
         initOCR(mockGameData);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
     });
 
     it('should combine OCR and CV results', () => {

@@ -3,7 +3,7 @@
  * Tests text extraction, fuzzy matching, and item detection
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     initOCR,
     detectItemsFromText,
@@ -126,6 +126,11 @@ const mockGameData: AllGameData = {
 };
 
 describe('OCR Module - Initialization', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     it('should initialize with game data', () => {
         expect(() => initOCR(mockGameData)).not.toThrow();
     });

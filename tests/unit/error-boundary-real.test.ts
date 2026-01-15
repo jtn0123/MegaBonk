@@ -3,7 +3,7 @@
  * No mocking - tests actual error boundary implementations
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     registerErrorBoundary,
     withErrorBoundary,
@@ -26,6 +26,11 @@ describe('registerErrorBoundary - Real Integration Tests', () => {
         boundaries.forEach((_, key) => {
             resetErrorStats(key);
         });
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
     });
 
     it('should register a new error boundary', () => {

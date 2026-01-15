@@ -41,6 +41,12 @@ describe('events.ts - Edge Cases', () => {
         localStorage.clear();
     });
 
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+        document.body.innerHTML = '';
+    });
+
     describe('toggleTextExpand', () => {
         it('should expand collapsed text', () => {
             const element = document.createElement('div');

@@ -3,7 +3,7 @@
  * Tests handling of edge cases in text extraction and fuzzy matching
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     initOCR,
     detectItemsFromText,
@@ -118,6 +118,11 @@ const mockGameData: AllGameData = {
 describe('OCR Edge Cases - Text Input Handling', () => {
     beforeEach(() => {
         initOCR(mockGameData);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
     });
 
     it('should handle empty string', () => {

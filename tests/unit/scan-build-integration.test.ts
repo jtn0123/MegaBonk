@@ -3,7 +3,7 @@
  * Tests end-to-end detection workflow with OCR + CV
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { AllGameData } from '../../src/types';
 
 // Mock game data for integration tests
@@ -100,6 +100,11 @@ const mockGameData: AllGameData = {
 describe('Scan Build Integration - Full Pipeline', () => {
     beforeEach(() => {
         // Reset any global state
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
     });
 
     it('should combine OCR and CV results in hybrid mode', () => {

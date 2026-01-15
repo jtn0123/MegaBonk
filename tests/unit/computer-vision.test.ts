@@ -3,7 +3,7 @@
  * Tests color analysis, region detection, and pattern matching
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
     initCV,
     detectItemsWithCV,
@@ -63,6 +63,11 @@ const createMockImageDataUrl = (width = 1920, height = 1080) => {
 };
 
 describe('Computer Vision - Initialization', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.clearAllMocks();
+    });
+
     it('should initialize with game data', () => {
         expect(() => initCV(mockGameData)).not.toThrow();
     });
