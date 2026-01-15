@@ -45,6 +45,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,css,html,json}\"",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
+    "test:check-cleanup": "node scripts/check-test-cleanup.js",
     "prepare": "husky"
   },
   "keywords": [],
@@ -97,6 +98,12 @@
     ],
     "src/**/*.{css,html,json}": [
       "prettier --write"
+    ],
+    "tests/**/*.(test|spec).(js|ts)": [
+      "node scripts/check-test-cleanup.js"
+    ],
+    "tests/setup.js": [
+      "node scripts/check-test-cleanup.js"
     ]
   }
 }
