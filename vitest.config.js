@@ -72,14 +72,16 @@ export default defineConfig({
             //   - calculator.ts (25% -> 50%)
             //   - advisor.ts (0% -> 30%)
             //   - scan-build.ts (0% -> 30%)
-            // Thresholds lowered to match actual coverage after fixing test memory issues
-            // Coverage dropped from 28% to ~20% due to sharding which doesn't combine coverage
-            // TODO: Use a coverage merge strategy to get accurate combined coverage
+            // Thresholds updated after comprehensive test additions
+            // New comprehensive test files added (2026-01-15):
+            //   - test-utils-comprehensive.test.ts - 100+ tests for test utilities
+            //   - recommendation-enhanced.test.ts - 80+ tests for recommendation engine
+            // Coverage targets raised to 90% overall
             thresholds: {
-                statements: 20,
-                branches: 22,
-                functions: 17,
-                lines: 20,
+                statements: 90,
+                branches: 85,
+                functions: 90,
+                lines: 90,
             },
         },
     },

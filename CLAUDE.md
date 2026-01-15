@@ -10,29 +10,29 @@ MegaBonk Complete Guide is a web-based reference app for the roguelike game Mega
 
 ### Development Server
 ```bash
-bun run dev               # Starts Vite dev server with hot reload (handles TypeScript)
-bun run preview           # Preview production build locally
+npm run dev               # Starts Vite dev server with hot reload (handles TypeScript)
+npm run preview           # Preview production build locally
 ```
 
 ### Testing
 ```bash
-bun test                  # Run unit tests with vitest (watch mode)
-bun run test:unit         # Run unit tests once with coverage
-bun run test:e2e          # Run Playwright e2e tests
-bun run test:all          # Run both unit and e2e tests
-bunx vitest run tests/unit/filtering.test.js  # Run single test file
+npm test                  # Run unit tests with vitest (watch mode)
+npm run test:unit         # Run unit tests once with coverage
+npm run test:e2e          # Run Playwright e2e tests
+npm run test:all          # Run both unit and e2e tests
+npx vitest run tests/unit/filtering.test.js  # Run single test file
 ```
 
 ### Mobile App Build
 ```bash
-bun run sync              # Sync Capacitor plugins
-bun run android           # Sync and open Android Studio
-bun run ios               # Sync and open Xcode
+npm run sync              # Sync Capacitor plugins
+npm run android           # Sync and open Android Studio
+npm run ios               # Sync and open Xcode
 ```
 
 ### Image Optimization
 ```bash
-bun run optimize:images   # Convert PNG/JPG to WebP format (requires sharp)
+npm run optimize:images   # Convert PNG/JPG to WebP format (requires sharp)
 ```
 
 ## Architecture
@@ -75,16 +75,12 @@ Coverage thresholds: 70% statements/functions/lines, 60% branches.
 
 ### CV/OCR Testing
 ```bash
-bun run test:cv:real      # Run real image CV tests (requires canvas)
-bun run test:cv:offline   # Run offline CV runner
-bun run test:recognition  # Run all OCR/CV related tests
+npm run test:cv:real      # Run real image CV tests (requires canvas)
+npm run test:cv:offline   # Run offline CV runner
+npm run test:recognition  # Run all OCR/CV related tests
 ```
 
-**Important:** The `canvas` module requires native bindings. On Windows, use bun to install:
-```bash
-bun install canvas        # Bun handles native bindings automatically
-```
-Do NOT use `npm install canvas` on Windows - it requires Visual Studio Build Tools and often fails. Bun downloads pre-built binaries.
+**Important:** The `canvas` module requires native bindings and may need additional setup on some platforms.
 
 ## Content Updates
 
