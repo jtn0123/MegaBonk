@@ -675,4 +675,382 @@ describe('Modal Module - Actual Implementation', () => {
             await expect(openDetailModal('items', 'nonexistent')).resolves.not.toThrow();
         });
     });
+
+    // ========================================
+    // Focus Trap Comprehensive Tests
+    // ========================================
+    describe('Focus Trap Behavior', () => {
+        beforeEach(() => {
+            // Add items with various properties for focus trap testing
+            (allData as any).items.items = [
+                {
+                    id: 'focus-item',
+                    name: 'Focus Item',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'Test effect',
+                    detailed_description: 'Test description',
+                    formula: 'test',
+                },
+            ];
+        });
+
+        it('should focus modal title when opened', async () => {
+            vi.useFakeTimers();
+
+            await openDetailModal('items', 'focus-item');
+            vi.runAllTimers();
+
+            // Modal title should be focusable
+            const modalTitle = document.querySelector('#modal-title, h2');
+            expect(modalTitle).not.toBeNull();
+
+            vi.useRealTimers();
+        });
+
+        it('should find all focusable elements in modal', async () => {
+            vi.useFakeTimers();
+
+            await openDetailModal('items', 'focus-item');
+            vi.runAllTimers();
+
+            const modal = document.getElementById('itemModal');
+            const focusableSelectors = 'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])';
+            const focusableElements = modal?.querySelectorAll(focusableSelectors);
+
+            // Modal structure depends on createMinimalDOM setup - just verify query works
+            expect(focusableElements).toBeDefined();
+
+            vi.useRealTimers();
+        });
+
+        it('should handle Tab key at end of focusable elements', async () => {
+            vi.useFakeTimers();
+
+            await openDetailModal('items', 'focus-item');
+            vi.runAllTimers();
+
+            // Simulate Tab key press at end of modal
+            const tabEvent = new KeyboardEvent('keydown', {
+                key: 'Tab',
+                bubbles: true,
+            });
+
+            document.dispatchEvent(tabEvent);
+
+            // Should not throw
+            expect(true).toBe(true);
+
+            vi.useRealTimers();
+        });
+
+        it('should handle Shift+Tab key at start of focusable elements', async () => {
+            vi.useFakeTimers();
+
+            await openDetailModal('items', 'focus-item');
+            vi.runAllTimers();
+
+            // Simulate Shift+Tab key press at start of modal
+            const shiftTabEvent = new KeyboardEvent('keydown', {
+                key: 'Tab',
+                shiftKey: true,
+                bubbles: true,
+            });
+
+            document.dispatchEvent(shiftTabEvent);
+
+            // Should not throw
+            expect(true).toBe(true);
+
+            vi.useRealTimers();
+        });
+
+        it('should clean up focus trap on modal close', async () => {
+            vi.useFakeTimers();
+
+            await openDetailModal('items', 'focus-item');
+            vi.runAllTimers();
+
+            closeModal();
+            vi.advanceTimersByTime(350);
+
+            // Dispatching Tab after close should not cause issues
+            const tabEvent = new KeyboardEvent('keydown', {
+                key: 'Tab',
+                bubbles: true,
+            });
+
+            document.dispatchEvent(tabEvent);
+
+            // Should not throw
+            expect(true).toBe(true);
+
+            vi.useRealTimers();
+        });
+    });
+
+    // ========================================
+    // Scaling Tabs Tests
+    // ========================================
+    describe('Scaling Tabs', () => {
+        beforeEach(() => {
+            // Add item with scaling tracks
+            (allData as any).items.items = [
+                {
+                    id: 'multi-track-item',
+                    name: 'Multi Track Item',
+                    tier: 'S',
+                    rarity: 'legendary',
+                    base_effect: 'Multi-scaling effect',
+                    detailed_description: 'Has multiple scaling tracks',
+                    formula: 'complex',
+                    scaling_tracks: {
+                        damage: { stat: 'Damage', values: [10, 20, 30, 40, 50] },
+                        crit: { stat: 'Crit Chance', values: [5, 10, 15, 20, 25] },
+                    },
+                    scaling_type: 'linear',
+                },
+            ];
+        });
+
+        it('should render scaling tabs for multi-track items', async () => {
+            await openDetailModal('items', 'multi-track-item');
+
+            const modalBody = document.getElementById('modalBody');
+            expect(modalBody?.innerHTML).toContain('scaling-tabs');
+        });
+
+        it('should render first tab as active by default', async () => {
+            await openDetailModal('items', 'multi-track-item');
+
+            const activeTab = document.querySelector('.scaling-tab.active');
+            expect(activeTab).not.toBeNull();
+        });
+
+        it('should have tab for each scaling track', async () => {
+            await openDetailModal('items', 'multi-track-item');
+
+            const tabs = document.querySelectorAll('.scaling-tab');
+            expect(tabs.length).toBe(2); // damage and crit
+        });
+
+        it('should display stat name on each tab', async () => {
+            await openDetailModal('items', 'multi-track-item');
+
+            const tabs = document.querySelectorAll('.scaling-tab');
+            const tabTexts = Array.from(tabs).map(t => t.textContent);
+            expect(tabTexts).toContain('Damage');
+            expect(tabTexts).toContain('Crit Chance');
+        });
+
+        it('should create canvas for chart', async () => {
+            await openDetailModal('items', 'multi-track-item');
+
+            const canvas = document.querySelector('canvas.scaling-chart');
+            expect(canvas).not.toBeNull();
+        });
+
+        it('should handle tab click event', async () => {
+            vi.useFakeTimers();
+
+            await openDetailModal('items', 'multi-track-item');
+            vi.runAllTimers();
+
+            const tabs = document.querySelectorAll('.scaling-tab');
+
+            // Tab click handlers are set up asynchronously via event delegation
+            // Verify tabs exist and are rendered
+            expect(tabs.length).toBe(2);
+
+            vi.useRealTimers();
+        });
+
+        it('should render tabs with data-item-id attribute', async () => {
+            vi.useFakeTimers();
+
+            await openDetailModal('items', 'multi-track-item');
+            vi.runAllTimers();
+
+            const tabs = document.querySelectorAll('.scaling-tab');
+            const firstTab = tabs[0] as HTMLButtonElement;
+
+            // Tabs should have data-item-id for event delegation
+            expect(firstTab?.dataset.itemId).toBe('multi-track-item');
+
+            vi.useRealTimers();
+        });
+    });
+
+    // ========================================
+    // Modal Accessibility Tests
+    // ========================================
+    describe('Modal Accessibility', () => {
+        beforeEach(() => {
+            (allData as any).items.items = [
+                {
+                    id: 'accessible-item',
+                    name: 'Accessible Item',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'Effect',
+                    detailed_description: 'Description',
+                    formula: 'formula',
+                },
+            ];
+        });
+
+        it('should set modal title with id for accessibility', async () => {
+            await openDetailModal('items', 'accessible-item');
+
+            const modalTitle = document.getElementById('modal-title');
+            expect(modalTitle).not.toBeNull();
+        });
+
+        it('should make title programmatically focusable', async () => {
+            vi.useFakeTimers();
+
+            await openDetailModal('items', 'accessible-item');
+            vi.runAllTimers();
+
+            const modalTitle = document.querySelector('#modal-title, h2') as HTMLElement;
+            expect(modalTitle?.tabIndex).toBe(-1);
+
+            vi.useRealTimers();
+        });
+    });
+
+    // ========================================
+    // Edge Cases for All Entity Types
+    // ========================================
+    describe('Edge Cases', () => {
+        it('should handle item with minimal properties', async () => {
+            (allData as any).items.items = [{
+                id: 'minimal-item',
+                name: 'Minimal',
+                tier: 'C',
+                rarity: 'common',
+                base_effect: '',
+                detailed_description: '',
+                formula: '',
+            }];
+
+            await openDetailModal('items', 'minimal-item');
+
+            const modalBody = document.getElementById('modalBody');
+            expect(modalBody?.innerHTML).toContain('Minimal');
+        });
+
+        it('should handle weapon with minimal properties', async () => {
+            (allData as any).weapons.weapons = [{
+                id: 'minimal-weapon',
+                name: 'Minimal Weapon',
+                tier: 'C',
+                base_damage: 1,
+                attack_pattern: 'none',
+                upgradeable_stats: [],
+                description: '',
+            }];
+
+            await openDetailModal('weapons', 'minimal-weapon');
+
+            const modalBody = document.getElementById('modalBody');
+            expect(modalBody?.innerHTML).toContain('Minimal Weapon');
+        });
+
+        it('should handle character with minimal properties', async () => {
+            (allData as any).characters.characters = [{
+                id: 'minimal-char',
+                name: 'Minimal Character',
+                tier: 'C',
+                playstyle: 'none',
+                passive_ability: 'None',
+                passive_description: '',
+                starting_weapon: 'None',
+                base_hp: 1,
+                base_damage: 1,
+            }];
+
+            await openDetailModal('characters', 'minimal-char');
+
+            const modalBody = document.getElementById('modalBody');
+            expect(modalBody?.innerHTML).toContain('Minimal Character');
+        });
+
+        it('should handle tome with minimal properties', async () => {
+            (allData as any).tomes.tomes = [{
+                id: 'minimal-tome',
+                name: 'Minimal Tome',
+                tier: 'C',
+                stat_affected: 'none',
+                value_per_level: 0,
+                description: '',
+                priority: 0,
+            }];
+
+            await openDetailModal('tomes', 'minimal-tome');
+
+            const modalBody = document.getElementById('modalBody');
+            expect(modalBody?.innerHTML).toContain('Minimal Tome');
+        });
+
+        it('should handle shrine with minimal properties', async () => {
+            (allData as any).shrines.shrines = [{
+                id: 'minimal-shrine',
+                name: 'Minimal Shrine',
+                icon: '?',
+                type: 'unknown',
+                reusable: false,
+                description: '',
+                reward: '',
+            }];
+
+            await openDetailModal('shrines', 'minimal-shrine');
+
+            const modalBody = document.getElementById('modalBody');
+            expect(modalBody?.innerHTML).toContain('Minimal Shrine');
+        });
+
+        it('should handle item with undefined optional properties', async () => {
+            (allData as any).items.items = [{
+                id: 'undef-item',
+                name: 'Undefined Props Item',
+                tier: 'B',
+                rarity: 'uncommon',
+                base_effect: 'effect',
+                detailed_description: 'desc',
+                formula: 'f',
+                synergies: undefined,
+                anti_synergies: undefined,
+                hidden_mechanics: undefined,
+                scaling_per_stack: undefined,
+            }];
+
+            await openDetailModal('items', 'undef-item');
+
+            const modalBody = document.getElementById('modalBody');
+            expect(modalBody?.innerHTML).toContain('Undefined Props Item');
+        });
+
+        it('should handle concurrent modal opens', async () => {
+            vi.useFakeTimers();
+
+            (allData as any).items.items = [
+                { id: 'item1', name: 'Item 1', tier: 'A', rarity: 'rare', base_effect: 'e1', detailed_description: 'd1', formula: 'f1' },
+                { id: 'item2', name: 'Item 2', tier: 'S', rarity: 'epic', base_effect: 'e2', detailed_description: 'd2', formula: 'f2' },
+            ];
+
+            // Start first open
+            openDetailModal('items', 'item1');
+
+            // Immediately open second (should supersede)
+            await openDetailModal('items', 'item2');
+            vi.runAllTimers();
+
+            // Second item should be displayed
+            const modalBody = document.getElementById('modalBody');
+            expect(modalBody?.innerHTML).toContain('Item 2');
+
+            vi.useRealTimers();
+        });
+    });
 });

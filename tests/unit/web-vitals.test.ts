@@ -334,5 +334,281 @@ describe('Web Vitals Module', () => {
                 expect.stringContaining('[Web Vitals]')
             );
         });
+
+        it('should store metrics after callback', () => {
+            initWebVitals();
+
+            // Simulate all metrics being reported
+            const callbacks = {
+                CLS: vi.mocked(onCLS).mock.calls[0][0],
+                FCP: vi.mocked(onFCP).mock.calls[0][0],
+                LCP: vi.mocked(onLCP).mock.calls[0][0],
+                TTFB: vi.mocked(onTTFB).mock.calls[0][0],
+                INP: vi.mocked(onINP).mock.calls[0][0],
+            };
+
+            callbacks.LCP({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
+            callbacks.CLS({ name: 'CLS', value: 0.05, rating: 'good', delta: 0.05, id: 'cls-1' } as any);
+            callbacks.FCP({ name: 'FCP', value: 1500, rating: 'good', delta: 1500, id: 'fcp-1' } as any);
+
+            const metrics = getMetrics();
+            expect(metrics.LCP).not.toBeNull();
+            expect(metrics.LCP?.value).toBe(2000);
+            expect(metrics.CLS).not.toBeNull();
+            expect(metrics.CLS?.value).toBe(0.05);
+            expect(metrics.FCP).not.toBeNull();
+        });
+
+        it('should format CLS values with 3 decimal places', () => {
+            initWebVitals();
+
+            const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
+            clsCallback({ name: 'CLS', value: 0.05678, rating: 'good', delta: 0.05678, id: 'cls-1' } as any);
+
+            const metrics = getMetrics();
+            expect(metrics.CLS?.formattedValue).toBe('0.057');
+        });
+
+        it('should format non-CLS values with ms suffix', () => {
+            initWebVitals();
+
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            lcpCallback({ name: 'LCP', value: 2345.67, rating: 'good', delta: 2345.67, id: 'lcp-1' } as any);
+
+            const metrics = getMetrics();
+            expect(metrics.LCP?.formattedValue).toBe('2346ms');
+        });
+
+        it('should log with correct emoji for good rating', () => {
+            initWebVitals();
+
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
+
+            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('✅'));
+        });
+
+        it('should log with correct emoji for needs-improvement rating', () => {
+            initWebVitals();
+
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            lcpCallback({ name: 'LCP', value: 3000, rating: 'needs-improvement', delta: 3000, id: 'lcp-1' } as any);
+
+            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('⚠️'));
+        });
+
+        it('should log with correct emoji for poor rating', () => {
+            initWebVitals();
+
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            lcpCallback({ name: 'LCP', value: 5000, rating: 'poor', delta: 5000, id: 'lcp-1' } as any);
+
+            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('❌'));
+        });
     });
+
+    describe('logSummary with collected metrics', () => {
+        it('should log metrics summary when metrics are collected', () => {
+            initWebVitals();
+
+            // Simulate metrics
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
+
+            lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
+            clsCallback({ name: 'CLS', value: 0.05, rating: 'good', delta: 0.05, id: 'cls-1' } as any);
+
+            vi.clearAllMocks(); // Clear previous log calls
+            logSummary();
+
+            expect(console.groupCollapsed).toHaveBeenCalledWith('[Web Vitals] Performance Summary');
+            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('LCP'));
+            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('CLS'));
+            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Overall Score'));
+            expect(console.groupEnd).toHaveBeenCalled();
+        });
+
+        it('should calculate overall score and display it', () => {
+            initWebVitals();
+
+            // Add a good metric
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
+
+            vi.clearAllMocks();
+            logSummary();
+
+            // Should log an overall score line (format varies based on accumulated metrics)
+            expect(console.log).toHaveBeenCalledWith(expect.stringMatching(/Overall Score: \d+%/));
+        });
+
+        it('should include metrics fraction in score', () => {
+            initWebVitals();
+
+            // Add metrics
+            const fcpCallback = vi.mocked(onFCP).mock.calls[0][0];
+            fcpCallback({ name: 'FCP', value: 1500, rating: 'good', delta: 1500, id: 'fcp-1' } as any);
+
+            vi.clearAllMocks();
+            logSummary();
+
+            // Should log a fraction like "(N/M metrics good)"
+            expect(console.log).toHaveBeenCalledWith(expect.stringMatching(/\d+\/\d+ metrics good/));
+        });
+
+        it('should log each metric with correct emoji', () => {
+            initWebVitals();
+
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            const fcpCallback = vi.mocked(onFCP).mock.calls[0][0];
+
+            lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
+            fcpCallback({ name: 'FCP', value: 2500, rating: 'needs-improvement', delta: 2500, id: 'fcp-1' } as any);
+
+            vi.clearAllMocks();
+            logSummary();
+
+            // Should have both good (✅) and needs-improvement (⚠️) emojis
+            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('✅'));
+            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('⚠️'));
+        });
+    });
+
+    describe('Performance badge score emojis', () => {
+        beforeEach(() => {
+            vi.useFakeTimers();
+        });
+
+        afterEach(() => {
+            vi.useRealTimers();
+            const badge = document.getElementById('perf-badge');
+            if (badge) badge.remove();
+        });
+
+        it('should show rocket emoji for score >= 80%', () => {
+            initWebVitals();
+
+            // All good metrics = 100%
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            const fcpCallback = vi.mocked(onFCP).mock.calls[0][0];
+            const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
+            const ttfbCallback = vi.mocked(onTTFB).mock.calls[0][0];
+            const inpCallback = vi.mocked(onINP).mock.calls[0][0];
+
+            lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
+            fcpCallback({ name: 'FCP', value: 1500, rating: 'good', delta: 1500, id: 'fcp-1' } as any);
+            clsCallback({ name: 'CLS', value: 0.05, rating: 'good', delta: 0.05, id: 'cls-1' } as any);
+            ttfbCallback({ name: 'TTFB', value: 500, rating: 'good', delta: 500, id: 'ttfb-1' } as any);
+            inpCallback({ name: 'INP', value: 100, rating: 'good', delta: 100, id: 'inp-1' } as any);
+
+            createPerformanceBadge();
+            vi.advanceTimersByTime(3500);
+
+            const badge = document.getElementById('perf-badge');
+            expect(badge?.textContent).toContain('🚀');
+            expect(badge?.textContent).toContain('100%');
+        });
+
+        it('should show lightning emoji for score between 60-79%', () => {
+            initWebVitals();
+
+            // 3 good, 2 not = 60%
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            const fcpCallback = vi.mocked(onFCP).mock.calls[0][0];
+            const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
+            const ttfbCallback = vi.mocked(onTTFB).mock.calls[0][0];
+            const inpCallback = vi.mocked(onINP).mock.calls[0][0];
+
+            lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
+            fcpCallback({ name: 'FCP', value: 1500, rating: 'good', delta: 1500, id: 'fcp-1' } as any);
+            clsCallback({ name: 'CLS', value: 0.05, rating: 'good', delta: 0.05, id: 'cls-1' } as any);
+            ttfbCallback({ name: 'TTFB', value: 2000, rating: 'poor', delta: 2000, id: 'ttfb-1' } as any);
+            inpCallback({ name: 'INP', value: 600, rating: 'poor', delta: 600, id: 'inp-1' } as any);
+
+            createPerformanceBadge();
+            vi.advanceTimersByTime(3500);
+
+            const badge = document.getElementById('perf-badge');
+            expect(badge?.textContent).toContain('⚡');
+            expect(badge?.textContent).toContain('60%');
+        });
+
+        it('should show snail emoji for low scores', () => {
+            initWebVitals();
+
+            // Add many poor metrics to push score below 60%
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            const fcpCallback = vi.mocked(onFCP).mock.calls[0][0];
+            const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
+            const ttfbCallback = vi.mocked(onTTFB).mock.calls[0][0];
+            const inpCallback = vi.mocked(onINP).mock.calls[0][0];
+
+            // All poor metrics = 0%
+            lcpCallback({ name: 'LCP', value: 5000, rating: 'poor', delta: 5000, id: 'lcp-1' } as any);
+            fcpCallback({ name: 'FCP', value: 5000, rating: 'poor', delta: 5000, id: 'fcp-1' } as any);
+            clsCallback({ name: 'CLS', value: 0.5, rating: 'poor', delta: 0.5, id: 'cls-1' } as any);
+            ttfbCallback({ name: 'TTFB', value: 3000, rating: 'poor', delta: 3000, id: 'ttfb-1' } as any);
+            inpCallback({ name: 'INP', value: 600, rating: 'poor', delta: 600, id: 'inp-1' } as any);
+
+            createPerformanceBadge();
+            vi.advanceTimersByTime(3500);
+
+            const badge = document.getElementById('perf-badge');
+            expect(badge?.textContent).toContain('🐌');
+        });
+    });
+
+    describe('Analytics integration', () => {
+        it('should send to gtag when available', () => {
+            const mockGtag = vi.fn();
+            (globalThis as any).gtag = mockGtag;
+
+            initWebVitals();
+
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+            lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
+
+            expect(mockGtag).toHaveBeenCalledWith('event', 'LCP', expect.objectContaining({
+                value: 2000,
+                metric_id: 'lcp-1',
+                metric_value: 2000,
+                metric_delta: 2000,
+                metric_rating: 'good',
+            }));
+
+            delete (globalThis as any).gtag;
+        });
+
+        it('should multiply CLS value by 1000 when sending to gtag', () => {
+            const mockGtag = vi.fn();
+            (globalThis as any).gtag = mockGtag;
+
+            initWebVitals();
+
+            const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
+            clsCallback({ name: 'CLS', value: 0.1, rating: 'good', delta: 0.1, id: 'cls-1' } as any);
+
+            expect(mockGtag).toHaveBeenCalledWith('event', 'CLS', expect.objectContaining({
+                value: 100, // 0.1 * 1000
+            }));
+
+            delete (globalThis as any).gtag;
+        });
+
+        it('should not throw when gtag is undefined', () => {
+            delete (globalThis as any).gtag;
+
+            initWebVitals();
+
+            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
+
+            expect(() => {
+                lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
+            }).not.toThrow();
+        });
+    });
+
+    // Note: Badge hostname check tests skipped because jsdom doesn't allow
+    // redefining window.location. The badge creation on localhost is tested
+    // indirectly by the other badge tests since jsdom defaults to localhost.
 });

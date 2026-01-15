@@ -11,12 +11,10 @@ export default defineConfig({
             'tests/integration/**/*.test.js',
             'tests/performance/**/*.test.ts',
         ],
-        // Vitest 4: Use 'forks' pool with restart to prevent memory accumulation
+        // Vitest 4: pool options are now top-level
         pool: 'forks',
-        // Run test files sequentially to reduce memory pressure
-        fileParallelism: false,
-        // Isolate each test file to prevent memory leaks from accumulating
-        isolate: true,
+        isolate: false, // Disable isolation to reduce memory overhead
+        fileParallelism: false, // Run files sequentially to reduce memory
         // Sequence tests serially to reduce memory pressure
         sequence: {
             concurrent: false,
@@ -30,14 +28,14 @@ export default defineConfig({
         testTimeout: 30000,
         hookTimeout: 30000,
         coverage: {
-            provider: 'v8',
+            provider: 'istanbul', // Changed from v8 - lower memory footprint
             reporter: ['text', 'json', 'html', 'lcov'],
-            include: ['src/modules/**/*.ts', 'src/script.ts'],
-            exclude: ['src/libs/**', 'src/sw.js', '**/*.test.js', '**/*.test.ts', '**/*.config.js'],
+            include: ['src/**/*.ts'],
+            exclude: ['src/libs/**', 'src/sw.js', 'src/types/**', '**/*.test.js', '**/*.test.ts', '**/*.config.js'],
             // Reduce memory usage during coverage collection
             reportsDirectory: './coverage',
             clean: true,
-            all: false, // Only collect coverage for files that are tested (reduces memory)
+            all: false, // Only include tested files
             // Thresholds updated 2026-01-10 after adding comprehensive unit tests:
             // New test files added:
             //   - filters-advanced.test.js (72 tests) - search history, filter state, fuzzy search

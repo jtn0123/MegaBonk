@@ -428,6 +428,17 @@ export function extractItemCounts(text: string): Map<string, number> {
     return counts;
 }
 
+/**
+ * Reset OCR module state (for testing)
+ */
+export function __resetForTesting(): void {
+    allData = {};
+    itemFuse = null;
+    tomeFuse = null;
+    characterFuse = null;
+    weaponFuse = null;
+}
+
 // ========================================
 // Global Assignments
 // ========================================

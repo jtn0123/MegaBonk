@@ -43,6 +43,9 @@ beforeEach(() => {
     global.HTMLElement = dom.window.HTMLElement;
     global.Event = dom.window.Event;
     global.CustomEvent = dom.window.CustomEvent;
+    global.KeyboardEvent = dom.window.KeyboardEvent;
+    global.MouseEvent = dom.window.MouseEvent;
+    global.InputEvent = dom.window.InputEvent;
 
     // Mock fetch
     global.fetch = vi.fn();
@@ -106,11 +109,33 @@ beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-afterEach(() => {
+afterEach(async () => {
     // Clear all timers to prevent memory leaks
     vi.clearAllTimers();
     vi.clearAllMocks();
     vi.restoreAllMocks(); // CRITICAL: Restore console spies and other mocks to prevent memory leaks
+
+    // Reset module-level state to prevent memory accumulation
+    // These are wrapped in try-catch since modules may not be loaded in all tests
+    try {
+        const { __resetForTesting: resetOCR } = await import('../src/modules/ocr.ts');
+        resetOCR?.();
+    } catch {
+        // Module not loaded in this test, skip
+    }
+    try {
+        const { destroyAllCharts } = await import('../src/modules/charts.ts');
+        destroyAllCharts?.();
+    } catch {
+        // Module not loaded in this test, skip
+    }
+    try {
+        const { clearDetectionCache } = await import('../src/modules/computer-vision.ts');
+        clearDetectionCache?.();
+    } catch {
+        // Module not loaded in this test, skip
+    }
+
     vi.resetModules();
 
     // Close the current DOM window to free memory
