@@ -298,3 +298,59 @@ export function resetErrorStats(moduleName: string): void {
 export function getAllErrorBoundaries(): Map<string, ErrorBoundary> {
     return new Map(errorBoundaries);
 }
+
+// ========================================
+// Global Error Handlers
+// ========================================
+
+/**
+ * Initialize global error handlers for uncaught exceptions and rejections
+ * Call this once during app initialization
+ */
+export function initGlobalErrorHandlers(): void {
+    // Handle uncaught promise rejections
+    if (typeof window !== 'undefined') {
+        window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
+            const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
+
+            logger.error({
+                operation: 'error.unhandled_rejection',
+                error: {
+                    name: error.name,
+                    message: error.message,
+                    stack: error.stack,
+                },
+                data: {
+                    type: 'unhandledrejection',
+                    prevented: false,
+                },
+            });
+
+            // Prevent default browser console error (optional - remove if you want both)
+            // event.preventDefault();
+        });
+
+        // Handle uncaught errors
+        window.addEventListener('error', (event: ErrorEvent) => {
+            logger.error({
+                operation: 'error.uncaught',
+                error: {
+                    name: event.error?.name || 'Error',
+                    message: event.message,
+                    stack: event.error?.stack,
+                },
+                data: {
+                    type: 'error',
+                    filename: event.filename,
+                    lineno: event.lineno,
+                    colno: event.colno,
+                },
+            });
+        });
+
+        logger.info({
+            operation: 'error.handlers_initialized',
+            data: { handlers: ['unhandledrejection', 'error'] },
+        });
+    }
+}
