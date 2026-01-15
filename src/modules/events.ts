@@ -35,6 +35,38 @@ const TAB_STORAGE_KEY = 'megabonk-current-tab';
 // Valid tab names for validation
 const VALID_TABS: TabName[] = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator'];
 
+// ========================================
+// Memory Management: AbortController for event cleanup
+// ========================================
+// This prevents memory leaks from accumulated event listeners
+let eventAbortController: AbortController | null = null;
+
+/**
+ * Get or create the AbortController for event listeners
+ * This allows all event listeners to be cleaned up at once
+ */
+function getEventAbortSignal(): AbortSignal {
+    if (!eventAbortController) {
+        eventAbortController = new AbortController();
+    }
+    return eventAbortController.signal;
+}
+
+/**
+ * Cleanup all event listeners registered via getEventAbortSignal()
+ * Call this when reinitializing the app or cleaning up
+ */
+export function cleanupEventListeners(): void {
+    if (eventAbortController) {
+        eventAbortController.abort();
+        eventAbortController = null;
+        logger.info({
+            operation: 'events.cleanup',
+            data: { message: 'All event listeners cleaned up' },
+        });
+    }
+}
+
 // Declare global state that may exist on window
 declare global {
     // Note: Window.currentTab is declared in filters.ts to avoid duplicate declarations
@@ -82,256 +114,280 @@ export function toggleTextExpand(element: HTMLElement): void {
  * Setup all event delegation handlers
  */
 export function setupEventDelegation(): void {
+    const signal = getEventAbortSignal();
+
     // Bug fix: Add keyboard event handler for breakpoint cards and Escape key for modals
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
-        // Escape key closes modals
-        if (e.key === 'Escape') {
-            closeModal();
-            closeCompareModal();
-            return;
-        }
-
-        // Ctrl+K or / to focus search (unless in input)
-        if ((e.ctrlKey && e.key === 'k') || e.key === '/') {
-            // Don't trigger if already in an input or textarea
-            const target = e.target as HTMLElement;
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+    document.addEventListener(
+        'keydown',
+        (e: KeyboardEvent) => {
+            // Escape key closes modals
+            if (e.key === 'Escape') {
+                closeModal();
+                closeCompareModal();
                 return;
             }
-            e.preventDefault();
-            const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-            if (searchInput) {
-                searchInput.focus();
-                searchInput.select();
-            }
-            return;
-        }
 
-        // Number keys (1-7) to switch tabs
-        if (e.key >= '1' && e.key <= '7' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-            // Don't trigger if in an input or textarea
-            const target = e.target as HTMLElement;
-            if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+            // Ctrl+K or / to focus search (unless in input)
+            if ((e.ctrlKey && e.key === 'k') || e.key === '/') {
+                // Don't trigger if already in an input or textarea
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                e.preventDefault();
+                const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                }
                 return;
             }
-            const tabMap: Record<string, TabName> = {
-                1: 'items',
-                2: 'weapons',
-                3: 'tomes',
-                4: 'characters',
-                5: 'shrines',
-                6: 'build-planner',
-                7: 'calculator',
-            };
-            const tabName = tabMap[e.key];
-            if (tabName && typeof switchTab === 'function') {
-                e.preventDefault();
-                switchTab(tabName);
-            }
-            return;
-        }
 
-        // Enter or Space on breakpoint cards triggers quickCalc
-        if (e.key === 'Enter' || e.key === ' ') {
+            // Number keys (1-7) to switch tabs
+            if (e.key >= '1' && e.key <= '7' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+                // Don't trigger if in an input or textarea
+                const target = e.target as HTMLElement;
+                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                const tabMap: Record<string, TabName> = {
+                    1: 'items',
+                    2: 'weapons',
+                    3: 'tomes',
+                    4: 'characters',
+                    5: 'shrines',
+                    6: 'build-planner',
+                    7: 'calculator',
+                };
+                const tabName = tabMap[e.key];
+                if (tabName && typeof switchTab === 'function') {
+                    e.preventDefault();
+                    switchTab(tabName);
+                }
+                return;
+            }
+
+            // Enter or Space on breakpoint cards triggers quickCalc
+            if (e.key === 'Enter' || e.key === ' ') {
+                const target = e.target as HTMLElement;
+                if (target.classList.contains('breakpoint-card')) {
+                    e.preventDefault();
+                    const itemId = target.dataset.item;
+                    const targetVal = target.dataset.target;
+                    if (itemId && targetVal) {
+                        const parsedTarget = parseInt(targetVal, 10);
+                        if (!isNaN(parsedTarget)) {
+                            quickCalc(itemId, parsedTarget);
+                        }
+                    }
+                }
+            }
+        },
+        { signal }
+    );
+
+    // Main click delegation
+    document.addEventListener(
+        'click',
+        (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            if (target.classList.contains('breakpoint-card')) {
+
+            // View Details button
+            if (target.classList.contains('view-details-btn')) {
+                const type = target.dataset.type as EntityType | undefined;
+                const id = target.dataset.id;
+                if (type && id) {
+                    openDetailModal(type, id);
+                }
+                return;
+            }
+
+            // Compare checkbox or its label
+            // Only handle clicks on the label element itself, not the hidden checkbox
+            // Use a timestamp to prevent rapid double-toggling from event bubbling
+            if (target.closest('.compare-checkbox-label') && !target.classList.contains('compare-checkbox')) {
+                const label = target.closest('.compare-checkbox-label') as HTMLElement;
+                const checkbox = label?.querySelector('.compare-checkbox') as HTMLInputElement | null;
+                if (checkbox) {
+                    // Prevent double-toggling by checking last toggle time
+                    const now = Date.now();
+                    const lastToggle = parseInt(checkbox.dataset.lastToggle || '0', 10);
+                    if (now - lastToggle < 100) {
+                        return; // Ignore rapid repeated clicks
+                    }
+                    checkbox.dataset.lastToggle = now.toString();
+
+                    const id = checkbox.dataset.id || checkbox.value;
+                    if (id) {
+                        e.preventDefault();
+                        // Toggle the checkbox state manually since it may be hidden
+                        checkbox.checked = !checkbox.checked;
+                        toggleCompareItem(id);
+                    }
+                }
+                return;
+            }
+
+            // Expandable text
+            if (target.classList.contains('expandable-text') || target.closest('.expandable-text')) {
+                const expandable = target.classList.contains('expandable-text')
+                    ? target
+                    : (target.closest('.expandable-text') as HTMLElement | null);
+                if (expandable) {
+                    toggleTextExpand(expandable);
+                }
+                return;
+            }
+
+            // Remove from comparison button
+            if (target.classList.contains('remove-compare-btn') || target.closest('.remove-compare-btn')) {
+                const btn = target.classList.contains('remove-compare-btn')
+                    ? target
+                    : (target.closest('.remove-compare-btn') as HTMLElement | null);
+                const id = btn?.dataset.removeId;
+                if (id) {
+                    toggleCompareItem(id);
+                    updateCompareDisplay();
+                }
+                return;
+            }
+
+            // Clear filters button (in empty state)
+            if (target.classList.contains('btn-secondary') && target.textContent?.includes('Clear Filters')) {
+                clearFilters();
+                return;
+            }
+
+            // Changelog expand button
+            if (target.classList.contains('changelog-expand-btn')) {
+                toggleChangelogExpand(target as HTMLButtonElement);
+                return;
+            }
+
+            // Entity link in changelog (deep linking)
+            if (target.classList.contains('entity-link')) {
                 e.preventDefault();
-                const itemId = target.dataset.item;
-                const targetVal = target.dataset.target;
+                const type = target.dataset.entityType as EntityType | undefined;
+                const id = target.dataset.entityId;
+                if (type && id) {
+                    openDetailModal(type, id);
+                }
+                return;
+            }
+
+            // Breakpoint card click (calculator quick calc)
+            if (target.closest('.breakpoint-card')) {
+                const card = target.closest('.breakpoint-card') as HTMLElement | null;
+                const itemId = card?.dataset.item;
+                const targetVal = card?.dataset.target;
                 if (itemId && targetVal) {
                     const parsedTarget = parseInt(targetVal, 10);
                     if (!isNaN(parsedTarget)) {
                         quickCalc(itemId, parsedTarget);
                     }
                 }
+                return;
             }
-        }
-    });
 
-    // Main click delegation
-    document.addEventListener('click', (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-
-        // View Details button
-        if (target.classList.contains('view-details-btn')) {
-            const type = target.dataset.type as EntityType | undefined;
-            const id = target.dataset.id;
-            if (type && id) {
-                openDetailModal(type, id);
-            }
-            return;
-        }
-
-        // Compare checkbox or its label
-        // Only handle clicks on the label element itself, not the hidden checkbox
-        // Use a timestamp to prevent rapid double-toggling from event bubbling
-        if (target.closest('.compare-checkbox-label') && !target.classList.contains('compare-checkbox')) {
-            const label = target.closest('.compare-checkbox-label') as HTMLElement;
-            const checkbox = label?.querySelector('.compare-checkbox') as HTMLInputElement | null;
-            if (checkbox) {
-                // Prevent double-toggling by checking last toggle time
-                const now = Date.now();
-                const lastToggle = parseInt(checkbox.dataset.lastToggle || '0', 10);
-                if (now - lastToggle < 100) {
-                    return; // Ignore rapid repeated clicks
+            // Favorite button click
+            if (target.classList.contains('favorite-btn') || target.closest('.favorite-btn')) {
+                const btn = (
+                    target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')
+                ) as HTMLButtonElement | null;
+                const tabName = btn?.dataset.tab as TabName | undefined;
+                const itemId = btn?.dataset.id;
+                // Type guard: favorites only work for entity tabs, not build-planner or calculator
+                const isEntityTab = (tab: TabName | undefined): tab is EntityType => {
+                    return (
+                        tab === 'items' ||
+                        tab === 'weapons' ||
+                        tab === 'tomes' ||
+                        tab === 'characters' ||
+                        tab === 'shrines'
+                    );
+                };
+                if (btn && tabName && isEntityTab(tabName) && itemId && typeof toggleFavorite === 'function') {
+                    const nowFavorited = toggleFavorite(tabName, itemId);
+                    // Update button appearance
+                    btn.classList.toggle('favorited', nowFavorited);
+                    btn.textContent = nowFavorited ? '⭐' : '☆';
+                    btn.title = nowFavorited ? 'Remove from favorites' : 'Add to favorites';
+                    btn.setAttribute('aria-label', nowFavorited ? 'Remove from favorites' : 'Add to favorites');
+                    // Show toast
+                    if (typeof ToastManager !== 'undefined') {
+                        ToastManager.success(nowFavorited ? 'Added to favorites' : 'Removed from favorites');
+                    }
                 }
-                checkbox.dataset.lastToggle = now.toString();
-
-                const id = checkbox.dataset.id || checkbox.value;
-                if (id) {
-                    e.preventDefault();
-                    // Toggle the checkbox state manually since it may be hidden
-                    checkbox.checked = !checkbox.checked;
-                    toggleCompareItem(id);
-                }
+                return;
             }
-            return;
-        }
-
-        // Expandable text
-        if (target.classList.contains('expandable-text') || target.closest('.expandable-text')) {
-            const expandable = target.classList.contains('expandable-text')
-                ? target
-                : (target.closest('.expandable-text') as HTMLElement | null);
-            if (expandable) {
-                toggleTextExpand(expandable);
-            }
-            return;
-        }
-
-        // Remove from comparison button
-        if (target.classList.contains('remove-compare-btn') || target.closest('.remove-compare-btn')) {
-            const btn = target.classList.contains('remove-compare-btn')
-                ? target
-                : (target.closest('.remove-compare-btn') as HTMLElement | null);
-            const id = btn?.dataset.removeId;
-            if (id) {
-                toggleCompareItem(id);
-                updateCompareDisplay();
-            }
-            return;
-        }
-
-        // Clear filters button (in empty state)
-        if (target.classList.contains('btn-secondary') && target.textContent?.includes('Clear Filters')) {
-            clearFilters();
-            return;
-        }
-
-        // Changelog expand button
-        if (target.classList.contains('changelog-expand-btn')) {
-            toggleChangelogExpand(target as HTMLButtonElement);
-            return;
-        }
-
-        // Entity link in changelog (deep linking)
-        if (target.classList.contains('entity-link')) {
-            e.preventDefault();
-            const type = target.dataset.entityType as EntityType | undefined;
-            const id = target.dataset.entityId;
-            if (type && id) {
-                openDetailModal(type, id);
-            }
-            return;
-        }
-
-        // Breakpoint card click (calculator quick calc)
-        if (target.closest('.breakpoint-card')) {
-            const card = target.closest('.breakpoint-card') as HTMLElement | null;
-            const itemId = card?.dataset.item;
-            const targetVal = card?.dataset.target;
-            if (itemId && targetVal) {
-                const parsedTarget = parseInt(targetVal, 10);
-                if (!isNaN(parsedTarget)) {
-                    quickCalc(itemId, parsedTarget);
-                }
-            }
-            return;
-        }
-
-        // Favorite button click
-        if (target.classList.contains('favorite-btn') || target.closest('.favorite-btn')) {
-            const btn = (
-                target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')
-            ) as HTMLButtonElement | null;
-            const tabName = btn?.dataset.tab as TabName | undefined;
-            const itemId = btn?.dataset.id;
-            // Type guard: favorites only work for entity tabs, not build-planner or calculator
-            const isEntityTab = (tab: TabName | undefined): tab is EntityType => {
-                return (
-                    tab === 'items' || tab === 'weapons' || tab === 'tomes' || tab === 'characters' || tab === 'shrines'
-                );
-            };
-            if (btn && tabName && isEntityTab(tabName) && itemId && typeof toggleFavorite === 'function') {
-                const nowFavorited = toggleFavorite(tabName, itemId);
-                // Update button appearance
-                btn.classList.toggle('favorited', nowFavorited);
-                btn.textContent = nowFavorited ? '⭐' : '☆';
-                btn.title = nowFavorited ? 'Remove from favorites' : 'Add to favorites';
-                btn.setAttribute('aria-label', nowFavorited ? 'Remove from favorites' : 'Add to favorites');
-                // Show toast
-                if (typeof ToastManager !== 'undefined') {
-                    ToastManager.success(nowFavorited ? 'Added to favorites' : 'Removed from favorites');
-                }
-            }
-            return;
-        }
-    });
+        },
+        { signal }
+    );
 
     // Change event delegation for checkboxes in build planner
-    document.addEventListener('change', (e: Event) => {
-        const target = e.target as HTMLElement;
+    document.addEventListener(
+        'change',
+        (e: Event) => {
+            const target = e.target as HTMLElement;
 
-        // Tome checkbox in build planner
-        if (target.classList.contains('tome-checkbox')) {
-            updateBuildAnalysis();
-            return;
-        }
-
-        // Item checkbox in build planner
-        if (target.classList.contains('item-checkbox')) {
-            updateBuildAnalysis();
-            return;
-        }
-
-        // Filter select changes - guard against uninitialized currentTab
-        if (target.closest('#filters') && target.tagName === 'SELECT') {
-            if (currentTab) {
-                renderTabContent(currentTab as TabName);
-                // Save filter state when filters change
-                if (typeof saveFilterState === 'function') {
-                    saveFilterState(currentTab as TabName);
-                }
+            // Tome checkbox in build planner
+            if (target.classList.contains('tome-checkbox')) {
+                updateBuildAnalysis();
+                return;
             }
-            return;
-        }
 
-        // Favorites filter checkbox - guard against uninitialized currentTab
-        if ((target as HTMLInputElement).id === 'favoritesOnly') {
-            if (currentTab) {
-                renderTabContent(currentTab as TabName);
-                // Save filter state when favorites checkbox changes
-                if (typeof saveFilterState === 'function') {
-                    saveFilterState(currentTab as TabName);
-                }
+            // Item checkbox in build planner
+            if (target.classList.contains('item-checkbox')) {
+                updateBuildAnalysis();
+                return;
             }
-            return;
-        }
-    });
+
+            // Filter select changes - guard against uninitialized currentTab
+            if (target.closest('#filters') && target.tagName === 'SELECT') {
+                if (currentTab) {
+                    renderTabContent(currentTab as TabName);
+                    // Save filter state when filters change
+                    if (typeof saveFilterState === 'function') {
+                        saveFilterState(currentTab as TabName);
+                    }
+                }
+                return;
+            }
+
+            // Favorites filter checkbox - guard against uninitialized currentTab
+            if ((target as HTMLInputElement).id === 'favoritesOnly') {
+                if (currentTab) {
+                    renderTabContent(currentTab as TabName);
+                    // Save filter state when favorites checkbox changes
+                    if (typeof saveFilterState === 'function') {
+                        saveFilterState(currentTab as TabName);
+                    }
+                }
+                return;
+            }
+        },
+        { signal }
+    );
 }
 
 /**
  * Setup all event listeners
  */
 export function setupEventListeners(): void {
+    const signal = getEventAbortSignal();
+
     // Tab buttons
     document.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const tabName = btn.getAttribute('data-tab') as TabName | null;
-            if (tabName) {
-                switchTab(tabName);
-            }
-        });
+        btn.addEventListener(
+            'click',
+            () => {
+                const tabName = btn.getAttribute('data-tab') as TabName | null;
+                if (tabName) {
+                    switchTab(tabName);
+                }
+            },
+            { signal }
+        );
     });
 
     // Tab scroll indicators (mobile)
@@ -347,37 +403,45 @@ export function setupEventListeners(): void {
             tabContainer.classList.toggle('can-scroll-right', canScrollRight);
         };
 
-        tabButtons.addEventListener('scroll', updateTabScrollIndicators, { passive: true });
+        tabButtons.addEventListener('scroll', updateTabScrollIndicators, { passive: true, signal });
         // Initial check after a short delay to ensure layout is complete
         setTimeout(updateTabScrollIndicators, 100);
         // Recheck on resize
-        window.addEventListener('resize', debounce(updateTabScrollIndicators, 100));
+        window.addEventListener('resize', debounce(updateTabScrollIndicators, 100), { signal });
     }
 
     // Search input - Bug fix: Add debounce to prevent excessive re-renders
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
     if (searchInput) {
-        searchInput.addEventListener('input', debounce(handleSearch, 300));
+        searchInput.addEventListener('input', debounce(handleSearch, 300), { signal });
 
         // Show search history on focus
-        searchInput.addEventListener('focus', () => {
-            if (typeof showSearchHistoryDropdown === 'function') {
-                showSearchHistoryDropdown(searchInput);
-            }
-        });
+        searchInput.addEventListener(
+            'focus',
+            () => {
+                if (typeof showSearchHistoryDropdown === 'function') {
+                    showSearchHistoryDropdown(searchInput);
+                }
+            },
+            { signal }
+        );
     }
 
     // Modal close buttons
     document.querySelectorAll<HTMLElement>('.close').forEach(closeBtn => {
-        closeBtn.addEventListener('click', closeModal);
+        closeBtn.addEventListener('click', closeModal, { signal });
     });
 
     // Close compare modal button
     const closeCompare = safeGetElementById('closeCompare') as HTMLButtonElement | null;
     if (closeCompare) {
-        closeCompare.addEventListener('click', () => {
-            closeCompareModal(); // Use proper cleanup function
-        });
+        closeCompare.addEventListener(
+            'click',
+            () => {
+                closeCompareModal(); // Use proper cleanup function
+            },
+            { signal }
+        );
     }
 
     // Click/touch outside modal to close - handle backdrop clicks
@@ -405,13 +469,13 @@ export function setupEventListeners(): void {
     };
 
     // Handle both click and touch events for desktop/mobile compatibility
-    window.addEventListener('click', handleModalBackdropInteraction);
-    window.addEventListener('touchend', handleModalBackdropInteraction);
+    window.addEventListener('click', handleModalBackdropInteraction, { signal });
+    window.addEventListener('touchend', handleModalBackdropInteraction, { signal });
 
     // Compare button
     const compareBtn = safeGetElementById('compare-btn') as HTMLButtonElement | null;
     if (compareBtn) {
-        compareBtn.addEventListener('click', openCompareModal);
+        compareBtn.addEventListener('click', openCompareModal, { signal });
     }
 
     // Build planner events
