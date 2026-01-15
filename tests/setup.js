@@ -110,6 +110,7 @@ afterEach(() => {
     // Clear all timers to prevent memory leaks
     vi.clearAllTimers();
     vi.clearAllMocks();
+    vi.restoreAllMocks(); // CRITICAL: Restore console spies and other mocks to prevent memory leaks
     vi.resetModules();
 
     // Close the current DOM window to free memory
