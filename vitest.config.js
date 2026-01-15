@@ -11,6 +11,8 @@ export default defineConfig({
             'tests/integration/**/*.test.js',
             'tests/performance/**/*.test.ts',
         ],
+        // Note: tests/archived/ contains old .js files replaced by TypeScript versions
+        // Note: tests/desktop-only/ contains heavy -real.test.ts files for local execution
         // Memory-optimized configuration
         pool: 'forks',
         isolate: true, // Each test file gets its own fresh context
