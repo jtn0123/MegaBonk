@@ -22,6 +22,7 @@ build/
 
 # Test coverage
 coverage/
+coverage-shard-*/
 
 # Logs
 *.log
@@ -46,6 +47,7 @@ test-results/
 # Misc
 *.bak
 *.tmp
+nul
 
 # Claude Code
 .claude/
