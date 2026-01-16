@@ -667,7 +667,7 @@
       "unlocked_by_default": false,
       "unlock_requirement": "Die 10 times",
       "unlock_cost_silver": 5,
-      "base_effect": "Curse an enemy, dealing 30% of their Max HP every second",
+      "base_effect": "Curse enemies (2-6 base), dealing 30% of their Max HP every second. Stacks: +2 enemies per copy.",
       "scaling_type": "enemy_count_scaling",
       "stacking_behavior": "additive_targets",
       "stacks_well": true,
