@@ -713,13 +713,13 @@ function showItemSelectionGrid(): void {
 /**
  * Create entity selection (character/weapon)
  */
-function createEntitySelection(type: 'character' | 'weapon', entities: any[]): void {
+function createEntitySelection(type: 'character' | 'weapon', entities: (Character | Weapon)[]): void {
     const container = document.getElementById(`scan-${type}-grid`);
     if (!container) return;
 
     container.innerHTML = '';
 
-    entities.forEach(entity => {
+    entities.forEach((entity: Character | Weapon) => {
         const card = document.createElement('button');
         card.className = 'scan-entity-card';
         card.dataset.id = entity.id;
@@ -735,9 +735,9 @@ function createEntitySelection(type: 'character' | 'weapon', entities: any[]): v
             card.classList.add('selected');
 
             if (type === 'character') {
-                selectedCharacter = entity;
+                selectedCharacter = entity as Character;
             } else {
-                selectedWeapon = entity;
+                selectedWeapon = entity as Weapon;
             }
 
             updateSelectionSummary();

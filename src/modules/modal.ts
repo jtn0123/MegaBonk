@@ -7,19 +7,11 @@ import { ToastManager } from './toast.ts';
 import { safeGetElementById, generateModalImage } from './utils.ts';
 import { logger } from './logger.ts';
 import { renderFormulaDisplay } from './formula-renderer.ts';
-import type { Tier, Rarity, EntityType } from '../types/index.ts';
+import type { EntityType, Item, Weapon, Tome, Character, Shrine } from '../types/index.ts';
 
 // ========================================
-// Extended Type Definitions for Modal Data
+// Type Definitions
 // ========================================
-
-/**
- * Scaling track definition for items with multiple scaling paths
- */
-interface ScalingTrack {
-    stat: string;
-    values: number[];
-}
 
 /**
  * Chart options for scaling visualization
@@ -31,122 +23,9 @@ interface ChartOptions {
 }
 
 /**
- * Extended Item interface with all properties used in modal
- */
-interface ModalItem {
-    id: string;
-    name: string;
-    rarity: Rarity;
-    tier: Tier;
-    image?: string;
-    description?: string; // Added for compatibility with ChartableItem
-    base_effect: string;
-    detailed_description: string;
-    formula: string;
-    scaling_per_stack?: number[];
-    one_and_done?: boolean;
-    graph_type?: string;
-    scaling_tracks?: Record<string, ScalingTrack>;
-    hidden_mechanics?: string[];
-    scaling_formula_type?: string;
-    hyperbolic_constant?: number;
-    max_stacks?: number;
-    stack_cap?: number;
-    scaling_type?: string;
-    secondary_scaling?: number[];
-    synergies?: string[];
-    anti_synergies?: string[];
-}
-
-/**
- * Extended Weapon interface with modal-specific properties
- */
-interface ModalWeapon {
-    id: string;
-    name: string;
-    tier: Tier;
-    base_damage: number;
-    base_projectile_count?: number;
-    attack_pattern: string;
-    upgradeable_stats: string[] | string;
-    unlock_requirement?: string;
-    unlocked_by_default?: boolean;
-    description: string;
-    best_for?: string[];
-    synergies_items?: string[];
-    synergies_tomes?: string[];
-    synergies_characters?: string[];
-    playstyle?: string;
-    pros?: string[];
-    cons?: string[];
-    build_tips?: string;
-    image?: string;
-}
-
-/**
- * Extended Tome interface with modal-specific properties
- */
-interface ModalTome {
-    id: string;
-    name: string;
-    tier: Tier;
-    rarity?: Rarity; // Added for compatibility with ChartableTome/Tome
-    stat_affected: string;
-    value_per_level: string | number;
-    description: string;
-    effect?: string; // Added for compatibility with Tome
-    notes?: string;
-    recommended_for?: string[];
-    priority: number;
-}
-
-/**
- * Extended Character interface with modal-specific properties
- */
-interface ModalCharacter {
-    id: string;
-    name: string;
-    image?: string;
-    tier: Tier;
-    playstyle: string;
-    passive_ability: string;
-    passive_description: string;
-    starting_weapon: string;
-    base_hp: number;
-    base_damage: number;
-    unlock_requirement?: string;
-    best_for?: string[];
-    strengths?: string[];
-    weaknesses?: string[];
-    synergies_weapons?: string[];
-    synergies_items?: string[];
-    synergies_tomes?: string[];
-    build_tips?: string;
-}
-
-/**
- * Extended Shrine interface with modal-specific properties
- */
-interface ModalShrine {
-    id: string;
-    name: string;
-    icon: string;
-    type: string;
-    reusable: boolean;
-    description: string;
-    reward: string;
-    activation?: string;
-    spawn_count?: string;
-    best_for?: string[];
-    synergies_items?: string[];
-    strategy?: string;
-    notes?: string;
-}
-
-/**
  * Union type of all modal entity types
  */
-type ModalEntity = ModalItem | ModalWeapon | ModalTome | ModalCharacter | ModalShrine;
+type ModalEntity = Item | Weapon | Tome | Character | Shrine;
 
 // ========================================
 // Focus Trap State
@@ -237,19 +116,19 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
     let data: ModalEntity | undefined;
     switch (type) {
         case 'items':
-            data = allData.items?.items.find(i => i.id === id) as ModalItem | undefined;
+            data = allData.items?.items.find(i => i.id === id) as Item | undefined;
             break;
         case 'weapons':
-            data = allData.weapons?.weapons.find(w => w.id === id) as ModalWeapon | undefined;
+            data = allData.weapons?.weapons.find(w => w.id === id) as Weapon | undefined;
             break;
         case 'tomes':
-            data = allData.tomes?.tomes.find(t => t.id === id) as ModalTome | undefined;
+            data = allData.tomes?.tomes.find(t => t.id === id) as Tome | undefined;
             break;
         case 'characters':
-            data = allData.characters?.characters.find(c => c.id === id) as ModalCharacter | undefined;
+            data = allData.characters?.characters.find(c => c.id === id) as Character | undefined;
             break;
         case 'shrines':
-            data = allData.shrines?.shrines.find(s => s.id === id) as ModalShrine | undefined;
+            data = allData.shrines?.shrines.find(s => s.id === id) as Shrine | undefined;
             break;
     }
 
@@ -266,15 +145,15 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
     let content = `<h2 id="modal-title">${data.name}</h2>`;
 
     if (type === 'items') {
-        content += renderItemModal(data as ModalItem);
+        content += renderItemModal(data as Item);
     } else if (type === 'weapons') {
-        content += renderWeaponModal(data as ModalWeapon);
+        content += renderWeaponModal(data as Weapon);
     } else if (type === 'tomes') {
-        content += await renderTomeModal(data as ModalTome);
+        content += await renderTomeModal(data as Tome);
     } else if (type === 'characters') {
-        content += renderCharacterModal(data as ModalCharacter);
+        content += renderCharacterModal(data as Character);
     } else if (type === 'shrines') {
-        content += renderShrineModal(data as ModalShrine);
+        content += renderShrineModal(data as Shrine);
     }
 
     modalBody.innerHTML = content;
@@ -293,7 +172,7 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
  * @param data - Item data
  * @returns HTML content
  */
-function renderItemModal(data: ModalItem): string {
+function renderItemModal(data: Item): string {
     const showGraph = data.scaling_per_stack && !data.one_and_done && data.graph_type !== 'flat';
     const hasScalingTracks = data.scaling_tracks && Object.keys(data.scaling_tracks).length > 0;
 
@@ -379,7 +258,7 @@ function renderItemModal(data: ModalItem): string {
         <p>${data.detailed_description}</p>
         ${hiddenMechanicsHtml}
         ${graphHtml}
-        <div class="item-formula"><strong>Formula:</strong> ${renderFormulaDisplay(data.formula)}</div>
+        ${data.formula ? `<div class="item-formula"><strong>Formula:</strong> ${renderFormulaDisplay(data.formula)}</div>` : ''}
         ${data.synergies?.length ? `<div class="synergies-section"><h3>Synergies</h3><div class="synergy-list">${data.synergies.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div></div>` : ''}
         ${data.anti_synergies?.length ? `<div class="anti-synergies-section"><h3>Anti-Synergies</h3><div class="antisynergy-list">${data.anti_synergies.map(s => `<span class="antisynergy-tag">${s}</span>`).join('')}</div></div>` : ''}
     `;
@@ -488,7 +367,7 @@ function renderItemModal(data: ModalItem): string {
  * Bug fix #7: Use event delegation instead of adding listeners to each tab
  * @param data - Item data with scaling_tracks
  */
-function setupScalingTabHandlers(data: ModalItem): void {
+function setupScalingTabHandlers(data: Item): void {
     // Use event delegation on the container to avoid memory leaks
     const container = document.querySelector('.scaling-tabs') as HTMLElement | null;
     if (!container) return;
@@ -562,7 +441,7 @@ function setupScalingTabHandlers(data: ModalItem): void {
  * @param data - Weapon data
  * @returns HTML content
  */
-function renderWeaponModal(data: ModalWeapon): string {
+function renderWeaponModal(data: Weapon): string {
     const imageHtml = generateModalImage(data, data.name, 'weapon');
 
     // Build upgradeable stats as tags
@@ -683,7 +562,7 @@ function renderWeaponModal(data: ModalWeapon): string {
  * @param data - Tome data
  * @returns HTML content
  */
-async function renderTomeModal(data: ModalTome): Promise<string> {
+async function renderTomeModal(data: Tome): Promise<string> {
     // Capture session ID for stale check after async operations
     const sessionId = currentModalSessionId;
 
@@ -765,7 +644,7 @@ async function renderTomeModal(data: ModalTome): Promise<string> {
  * @param data - Character data
  * @returns HTML content
  */
-function renderCharacterModal(data: ModalCharacter): string {
+function renderCharacterModal(data: Character): string {
     const imageHtml = generateModalImage(data, data.name, 'character');
 
     return `
@@ -854,22 +733,26 @@ function renderCharacterModal(data: ModalCharacter): string {
  * @param data - Shrine data
  * @returns HTML content
  */
-function renderShrineModal(data: ModalShrine): string {
+function renderShrineModal(data: Shrine): string {
     return `
         <div class="shrine-modal-header">
-            <span class="shrine-icon-modal">${data.icon}</span>
+            <span class="shrine-icon-modal">${data.icon || ''}</span>
             <div class="item-badges">
-                <span class="badge">${data.type.replace('_', ' ')}</span>
-                ${data.reusable ? '<span class="badge">Reusable</span>' : '<span class="badge">One-time</span>'}
+                ${data.type ? `<span class="badge">${data.type.replace('_', ' ')}</span>` : ''}
+                ${data.reusable !== undefined ? (data.reusable ? '<span class="badge">Reusable</span>' : '<span class="badge">One-time</span>') : ''}
             </div>
         </div>
         <div class="shrine-description-full">
             <p>${data.description}</p>
         </div>
-        <div class="shrine-detail-section">
+        ${
+            data.reward
+                ? `<div class="shrine-detail-section">
             <strong>Reward</strong>
             <p>${data.reward}</p>
-        </div>
+        </div>`
+                : ''
+        }
         ${
             data.activation
                 ? `

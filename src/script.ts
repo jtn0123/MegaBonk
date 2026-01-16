@@ -20,7 +20,6 @@ import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.ts';
 import { themeManager } from './modules/theme-manager.ts';
 import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
 import { setupImageFallbackHandler } from './modules/utils.ts';
-import type { Entity } from './types/index.ts';
 import { logger } from './modules/logger.ts';
 // Import advisor, scan-build, ocr, computer-vision, and test-utils to ensure they're initialized
 import './modules/advisor.ts';
@@ -29,14 +28,8 @@ import './modules/ocr.ts';
 import './modules/computer-vision.ts';
 import './modules/test-utils.ts';
 
-// ========================================
-// Global State (to be refactored into state module)
-// ========================================
-
-let filteredData: Entity[] = [];
-
-// Export filteredData for module access
-export { filteredData };
+// Note: filteredData is now managed by the centralized store (store.ts)
+// Use getState('filteredData') and setState('filteredData', data) for access
 
 /**
  * Setup global error tracking

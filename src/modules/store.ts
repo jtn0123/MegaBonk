@@ -12,7 +12,16 @@ import type { AllGameData, Entity, Character, Weapon, Tome, Item } from '../type
 /**
  * Tab name type - includes all tabs (entity tabs + special tabs)
  */
-export type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator';
+export type TabName =
+    | 'items'
+    | 'weapons'
+    | 'tomes'
+    | 'characters'
+    | 'shrines'
+    | 'build-planner'
+    | 'calculator'
+    | 'advisor'
+    | 'changelog';
 
 /**
  * Favorites state structure - maps entity type to array of item IDs

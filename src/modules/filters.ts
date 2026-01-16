@@ -7,7 +7,7 @@ import { isItem, isShrine } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 import { logger } from './logger.ts';
 import { isFavorite } from './favorites.ts';
-import { getState } from './store.ts';
+import { getState, type TabName } from './store.ts';
 
 // ========================================
 // Type Definitions
@@ -61,9 +61,8 @@ const FILTER_STATE_KEY = 'megabonk_filter_state';
 // Global Function Types (from window object)
 // ========================================
 
-// Note: TabName type includes all tabs (items, weapons, tomes, characters, shrines, build-planner, calculator)
-// while EntityType only includes entity tabs. Window.currentTab uses TabName to support all tabs.
-type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator';
+// Note: TabName is imported from store.ts and includes all tabs.
+// EntityType only includes entity tabs. Window.currentTab uses TabName to support all tabs.
 
 declare global {
     interface Window {

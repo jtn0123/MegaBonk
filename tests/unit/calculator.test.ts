@@ -13,7 +13,19 @@ vi.mock('../../src/modules/logger.ts', () => ({
         error: vi.fn(),
         warn: vi.fn(),
         debug: vi.fn(),
+        setContext: vi.fn(),
     },
+}));
+
+// Mock registry to prevent actual cross-module calls during tests
+vi.mock('../../src/modules/registry.ts', () => ({
+    callFunction: vi.fn(),
+    registerFunction: vi.fn(),
+    getFunction: vi.fn(),
+    isRegistered: vi.fn(),
+    unregisterFunction: vi.fn(),
+    clearRegistry: vi.fn(),
+    getRegisteredFunctions: vi.fn(() => []),
 }));
 
 vi.mock('../../src/modules/utils.ts', () => ({

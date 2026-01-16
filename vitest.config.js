@@ -66,24 +66,21 @@ export default defineConfig({
             //   - charts.ts: 96.52%
             //   - renderers.ts: 93.10%
             //   - match-badge.ts: 100%
-            // Overall coverage: ~29% (as of 2026-01-14)
-            // Adjusted from unrealistic 45% target to current actual coverage
-            // TODO: Incrementally improve to 40%+ by adding tests for:
+            // Overall coverage: ~32% (as of 2026-01-15)
+            // Coverage improved after architecture refactor and test additions:
+            //   - advisor.ts: 88%
+            //   - recommendation.ts: 93%
+            //   - scan-build.ts: comprehensive tests exist
+            // TODO: Continue improving coverage for:
             //   - modal.ts (3% -> 40%)
             //   - build-planner.ts (13% -> 40%)
             //   - calculator.ts (25% -> 50%)
-            //   - advisor.ts (0% -> 30%)
-            //   - scan-build.ts (0% -> 30%)
-            // Thresholds updated after comprehensive test additions
-            // New comprehensive test files added (2026-01-15):
-            //   - test-utils-comprehensive.test.ts - 100+ tests for test utilities
-            //   - recommendation-enhanced.test.ts - 80+ tests for recommendation engine
-            // Coverage targets raised to 90% overall
+            // Thresholds increased from 30/25/30/30 to 32/27/32/32
             thresholds: {
-                statements: 30,
-                branches: 25,
-                functions: 30,
-                lines: 30,
+                statements: 32,
+                branches: 27,
+                functions: 32,
+                lines: 32,
             },
         },
     },

@@ -108,6 +108,23 @@ export interface ChartableTome {
     value_per_level?: string | number;
 }
 
+/**
+ * Chart.js dataset configuration for line charts
+ */
+interface ChartDataset {
+    label: string;
+    data: number[];
+    borderColor: string;
+    backgroundColor: string;
+    fill: boolean;
+    tension: number;
+    pointRadius: number;
+    pointHoverRadius: number;
+    pointBackgroundColor: string;
+    borderWidth: number;
+    yAxisID?: string;
+}
+
 // ========================================
 // State
 // ========================================
@@ -231,7 +248,7 @@ export function createScalingChart(
         scalingType.includes('crit');
 
     // Build datasets array
-    const datasets: any[] = [
+    const datasets: ChartDataset[] = [
         {
             label: label,
             data: displayData,

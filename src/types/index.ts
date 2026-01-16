@@ -2,12 +2,22 @@
 // MegaBonk Type Definitions
 // ========================================
 // Central type definitions for the entire application
+// NOTE: Properties use snake_case to match JSON data structure.
+// This is intentional for 1:1 JSON mapping without transformation.
 // ========================================
 
 /**
  * Rarity types
  */
 export type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+
+/**
+ * Scaling track definition for items with multiple scaling paths
+ */
+export interface ScalingTrack {
+    stat: string;
+    values: number[];
+}
 
 /**
  * Tier types
@@ -56,6 +66,14 @@ export interface Item {
     anti_synergies?: string[];
     // Build planner properties
     synergies_weapons?: string[];
+    // Modal/chart properties
+    detailed_description?: string;
+    hidden_mechanics?: string[];
+    scaling_tracks?: Record<string, ScalingTrack>;
+    scaling_formula_type?: string;
+    hyperbolic_constant?: number;
+    max_stacks?: number;
+    secondary_scaling?: number[] | { stat: string; values: number[] };
 }
 
 /**
@@ -85,6 +103,19 @@ export interface Weapon {
     tags?: string[];
     // Build planner properties (snake_case from JSON)
     base_damage?: number;
+    base_projectile_count?: number;
+    attack_pattern?: string;
+    upgradeable_stats?: string[] | string;
+    unlock_requirement?: string;
+    unlocked_by_default?: boolean;
+    best_for?: string[];
+    synergies_items?: string[];
+    synergies_tomes?: string[];
+    synergies_characters?: string[];
+    playstyle?: string;
+    pros?: string[];
+    cons?: string[];
+    build_tips?: string;
 }
 
 /**
@@ -104,6 +135,9 @@ export interface Tome {
     // Build planner properties
     stat_affected?: string;
     value_per_level?: string | number;
+    // Modal properties
+    notes?: string;
+    recommended_for?: string[];
 }
 
 /**
@@ -134,6 +168,18 @@ export interface Character {
     passive_ability?: string;
     synergies_weapons?: string[];
     synergies_items?: string[];
+    // Modal properties
+    passive_description?: string;
+    starting_weapon?: string;
+    playstyle?: string;
+    base_hp?: number;
+    base_damage?: number;
+    unlock_requirement?: string;
+    best_for?: string[];
+    strengths?: string[];
+    weaknesses?: string[];
+    synergies_tomes?: string[];
+    build_tips?: string;
 }
 
 /**
@@ -149,6 +195,16 @@ export interface Shrine {
     cost?: number | string;
     tags?: string[];
     type?: 'stat_upgrade' | 'combat' | 'utility' | 'risk_reward';
+    // Modal properties
+    icon?: string;
+    reusable?: boolean;
+    reward?: string;
+    activation?: string;
+    spawn_count?: string;
+    best_for?: string[];
+    synergies_items?: string[];
+    strategy?: string;
+    notes?: string;
 }
 
 /**

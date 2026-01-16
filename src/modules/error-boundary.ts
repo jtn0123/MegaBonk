@@ -83,14 +83,14 @@ export function registerErrorBoundary(moduleName: string, fallbackFn: (error: Er
  * @param options - Configuration options
  * @returns Wrapped function with error handling
  */
-export function withErrorBoundary<T extends (...args: any[]) => any>(
+export function withErrorBoundary<TArgs extends unknown[], TReturn>(
     moduleName: string,
-    fn: T,
+    fn: (...args: TArgs) => TReturn,
     options: ErrorBoundaryOptions = {}
-): (...args: Parameters<T>) => Promise<Awaited<ReturnType<T>> | undefined> {
+): (...args: TArgs) => Promise<Awaited<TReturn> | undefined> {
     const { fallback = null, silent = false, maxRetries = 0, onError = null } = options;
 
-    return async function (...args: Parameters<T>): Promise<Awaited<ReturnType<T>> | undefined> {
+    return async function (...args: TArgs): Promise<Awaited<TReturn> | undefined> {
         const boundary = errorBoundaries.get(moduleName);
         let retries = 0;
 
@@ -157,7 +157,7 @@ export function withErrorBoundary<T extends (...args: any[]) => any>(
                 // Execute fallback
                 if (fallback) {
                     try {
-                        return (await fallback(err)) as Awaited<ReturnType<T>>;
+                        return (await fallback(err)) as Awaited<TReturn>;
                     } catch (fallbackError) {
                         const fErr = fallbackError as Error;
                         logger.error({
@@ -176,7 +176,7 @@ export function withErrorBoundary<T extends (...args: any[]) => any>(
                 // Execute registered boundary fallback
                 if (boundary && boundary.fallback) {
                     try {
-                        return (await boundary.fallback(err)) as Awaited<ReturnType<T>>;
+                        return (await boundary.fallback(err)) as Awaited<TReturn>;
                     } catch (boundaryError) {
                         const bErr = boundaryError as Error;
                         logger.error({

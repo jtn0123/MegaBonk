@@ -6,9 +6,7 @@ import type { Item } from '../types/index.ts';
 import { safeSetValue } from './utils.ts';
 import { logger } from './logger.ts';
 import { allData } from './data-service.ts';
-
-// Declare switchTab as a global (defined in events.ts, exposed on window to avoid circular deps)
-declare function switchTab(tabName: string): void;
+import { callFunction } from './registry.ts';
 
 // ========================================
 // Type Definitions
@@ -312,10 +310,8 @@ function renderResults(result: CalculatorResult): void {
  * @param target - Target value (optional)
  */
 export function quickCalc(itemId: string, target?: number): void {
-    // Switch to calculator tab
-    if (typeof switchTab === 'function') {
-        switchTab('calculator');
-    }
+    // Switch to calculator tab using registry (avoids circular dependency)
+    callFunction('switchTab', 'calculator');
 
     // Set item
     safeSetValue('calc-item-select', itemId);

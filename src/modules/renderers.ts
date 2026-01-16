@@ -20,68 +20,8 @@ import { updateChangelogStats, renderChangelog } from './changelog.ts';
 import { renderBuildPlanner } from './build-planner.ts';
 import { logger } from './logger.ts';
 import { setState } from './store.ts';
-import type {
-    Item as BaseItem,
-    Weapon as BaseWeapon,
-    Tome as BaseTome,
-    Character as BaseCharacter,
-    Shrine as BaseShrine,
-    Entity,
-    ChangelogPatch,
-} from '../types/index.ts';
-
-// ========================================
-// Extended Type Definitions for Actual Data
-// ========================================
-
-/**
- * Extended Item interface matching actual data structure
- */
-export interface Item extends BaseItem {
-    base_effect: string;
-    detailed_description: string;
-    one_and_done?: boolean;
-    stacks_well?: boolean;
-    scaling_per_stack?: number[];
-    graph_type?: string;
-}
-
-/**
- * Extended Weapon interface matching actual data structure
- */
-export interface Weapon extends BaseWeapon {
-    attack_pattern: string;
-    upgradeable_stats?: string[];
-}
-
-/**
- * Extended Tome interface matching actual data structure
- */
-export interface Tome extends BaseTome {
-    stat_affected: string;
-    value_per_level: string;
-    priority: number;
-}
-
-/**
- * Extended Character interface matching actual data structure
- */
-export interface Character extends BaseCharacter {
-    passive_ability: string;
-    passive_description: string;
-    starting_weapon: string;
-    playstyle: string;
-}
-
-/**
- * Extended Shrine interface matching actual data structure
- */
-export interface Shrine extends BaseShrine {
-    icon: string;
-    type: 'stat_upgrade' | 'combat' | 'utility' | 'risk_reward';
-    reward: string;
-    reusable: boolean;
-}
+import { registerFunction } from './registry.ts';
+import type { Item, Weapon, Tome, Character, Shrine, Entity, ChangelogPatch } from '../types/index.ts';
 
 // NOTE: Calculator button listener tracking moved to data attribute on element
 // to properly handle DOM recreation scenarios
@@ -299,7 +239,7 @@ export function renderWeapons(weapons: Weapon[]): void {
             <div class="item-effect">${escapeHtml(weapon.attack_pattern)}</div>
             <div class="item-description">${escapeHtml(weapon.description)}</div>
             <div class="item-meta">
-                ${generateMetaTags(weapon.upgradeable_stats, 4)}
+                ${generateMetaTags(Array.isArray(weapon.upgradeable_stats) ? weapon.upgradeable_stats : weapon.upgradeable_stats ? [weapon.upgradeable_stats] : null, 4)}
             </div>
             <button class="view-details-btn" data-type="weapons" data-id="${weapon.id}">View Details</button>
         `;
@@ -333,7 +273,8 @@ export function renderTomes(tomes: Tome[]): void {
         const isFav = typeof isFavorite === 'function' ? isFavorite('tomes', tome.id) : false;
 
         // Check if tome has valid progression data (numeric value in value_per_level)
-        const hasProgression = tome.value_per_level && /[+-]?[\d.]+/.test(tome.value_per_level);
+        const valueStr = typeof tome.value_per_level === 'number' ? String(tome.value_per_level) : tome.value_per_level;
+        const hasProgression = valueStr && /[+-]?[\d.]+/.test(valueStr);
         const graphHtml = hasProgression
             ? `
             <div class="tome-graph-container">
@@ -455,19 +396,19 @@ export function renderShrines(shrines: Shrine[]): void {
 
         card.innerHTML = `
             <div class="item-header">
-                <span class="shrine-icon-large">${shrine.icon}</span>
+                <span class="shrine-icon-large">${shrine.icon || ''}</span>
                 <div class="item-title">
                     <div class="item-name">${escapeHtml(shrine.name)}</div>
-                    <span class="tier-label">${escapeHtml(shrine.type.replace('_', ' '))}</span>
+                    ${shrine.type ? `<span class="tier-label">${escapeHtml(shrine.type.replace('_', ' '))}</span>` : ''}
                 </div>
                 <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="shrines" data-id="${shrine.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
                     ${isFav ? '⭐' : '☆'}
                 </button>
             </div>
             <div class="item-effect">${escapeHtml(shrine.description)}</div>
-            <div class="item-description">${escapeHtml(shrine.reward)}</div>
+            <div class="item-description">${shrine.reward ? escapeHtml(shrine.reward) : ''}</div>
             <div class="item-meta">
-                ${shrine.reusable ? '<span class="meta-tag">Reusable</span>' : '<span class="meta-tag">One-time</span>'}
+                ${shrine.reusable !== undefined ? (shrine.reusable ? '<span class="meta-tag">Reusable</span>' : '<span class="meta-tag">One-time</span>') : ''}
             </div>
             <button class="view-details-btn" data-type="shrines" data-id="${shrine.id}">View Details</button>
         `;
@@ -477,6 +418,9 @@ export function renderShrines(shrines: Shrine[]): void {
 }
 
 // ========================================
-// Expose to global scope
+// Registry & Global Assignments
 // ========================================
+// Register renderTabContent for type-safe cross-module access
+registerFunction('renderTabContent', renderTabContent);
+// Keep window assignment for backwards compatibility during migration
 (window as any).renderTabContent = renderTabContent;

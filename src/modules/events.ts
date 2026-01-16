@@ -24,6 +24,7 @@ import { setupBuildPlannerEvents, updateBuildAnalysis } from './build-planner.ts
 import { renderTabContent } from './renderers.ts';
 import { toggleChangelogExpand } from './changelog.ts';
 import { getState, setState, type TabName } from './store.ts';
+import { registerFunction } from './registry.ts';
 
 import type { EntityType } from '../types/index.ts';
 
@@ -718,9 +719,11 @@ export function getSavedTab(): TabName {
 }
 
 // ========================================
-// Global Assignments
+// Registry & Global Assignments
 // ========================================
-// Expose switchTab globally for cross-module access (avoids circular dependencies)
+// Register switchTab for type-safe cross-module access
+registerFunction('switchTab', switchTab);
+// Keep window assignment for backwards compatibility during migration
 (window as any).switchTab = switchTab;
 
 // ========================================
