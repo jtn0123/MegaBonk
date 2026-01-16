@@ -3,21 +3,10 @@
 // ========================================
 
 import type { EntityType } from '../types/index.ts';
+import { getState, setState, type FavoritesState } from './store.ts';
 
-// ========================================
-// Type Definitions
-// ========================================
-
-/**
- * Favorites state structure
- */
-interface FavoritesState {
-    items: string[];
-    weapons: string[];
-    tomes: string[];
-    characters: string[];
-    shrines: string[];
-}
+// Re-export type for backwards compatibility
+export type { FavoritesState } from './store.ts';
 
 // Note: Global declarations (ToastManager) are in types/index.ts
 
@@ -31,14 +20,8 @@ const FAVORITES_KEY = 'megabonk_favorites';
 // State
 // ========================================
 
-// Favorites state - maps tab name to array of item IDs
-let favorites: FavoritesState = {
-    items: [],
-    weapons: [],
-    tomes: [],
-    characters: [],
-    shrines: [],
-};
+// Favorites state - uses centralized store
+// No local copy - always read from store for proper test isolation
 
 // ========================================
 // Exported Functions
@@ -51,7 +34,7 @@ export function loadFavorites(): void {
     try {
         const stored = localStorage.getItem(FAVORITES_KEY);
         if (stored) {
-            favorites = JSON.parse(stored) as FavoritesState;
+            setState('favorites', JSON.parse(stored) as FavoritesState);
         }
     } catch (error) {
         // localStorage may be unavailable
@@ -63,6 +46,7 @@ export function loadFavorites(): void {
  */
 function saveFavorites(): void {
     try {
+        const favorites = getState('favorites');
         localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     } catch (error) {
         // localStorage may be unavailable
@@ -79,7 +63,8 @@ function saveFavorites(): void {
  * @returns True if favorited
  */
 export function isFavorite(tabName: EntityType, itemId: string): boolean {
-    return favorites[tabName]?.includes(itemId) || false;
+    const favs = getState('favorites');
+    return favs[tabName]?.includes(itemId) || false;
 }
 
 /**
@@ -89,19 +74,25 @@ export function isFavorite(tabName: EntityType, itemId: string): boolean {
  * @returns New favorite status
  */
 export function toggleFavorite(tabName: EntityType, itemId: string): boolean {
-    if (!favorites[tabName]) {
-        favorites[tabName] = [];
+    const favorites = getState('favorites');
+    const newFavorites = { ...favorites };
+    if (!newFavorites[tabName]) {
+        newFavorites[tabName] = [];
+    } else {
+        newFavorites[tabName] = [...newFavorites[tabName]];
     }
 
-    const index = favorites[tabName].indexOf(itemId);
+    const index = newFavorites[tabName].indexOf(itemId);
     if (index > -1) {
         // Remove from favorites
-        favorites[tabName].splice(index, 1);
+        newFavorites[tabName].splice(index, 1);
+        setState('favorites', newFavorites);
         saveFavorites();
         return false;
     } else {
         // Add to favorites
-        favorites[tabName].push(itemId);
+        newFavorites[tabName].push(itemId);
+        setState('favorites', newFavorites);
         saveFavorites();
         return true;
     }
@@ -113,20 +104,21 @@ export function toggleFavorite(tabName: EntityType, itemId: string): boolean {
  * @returns Array of favorited item IDs
  */
 export function getFavorites(tabName: EntityType): string[] {
-    return favorites[tabName] || [];
+    const favs = getState('favorites');
+    return favs[tabName] || [];
 }
 
 /**
  * Clear all favorites
  */
 export function clearAllFavorites(): void {
-    favorites = {
+    setState('favorites', {
         items: [],
         weapons: [],
         tomes: [],
         characters: [],
         shrines: [],
-    };
+    });
     saveFavorites();
     if (typeof ToastManager !== 'undefined') {
         ToastManager.success('All favorites cleared');

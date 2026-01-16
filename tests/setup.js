@@ -31,8 +31,19 @@ function getOrCreateDom() {
     return sharedDom;
 }
 
-beforeEach(() => {
+beforeEach(async () => {
     const dom = getOrCreateDom();
+
+    // Reset centralized state store for test isolation
+    try {
+        const { resetStore } = await import('../src/modules/store.ts');
+        resetStore();
+        // Note: Window sync is kept enabled because filters.ts uses window.isFavorite
+        // and window.renderTabContent due to circular dependency constraints.
+        // Test isolation is still achieved via resetStore().
+    } catch {
+        // Module may not exist or import may fail - ignore
+    }
 
     // Reset body content to initial state (fast, no new JSDOM creation)
     dom.window.document.body.innerHTML = initialBodyContent;

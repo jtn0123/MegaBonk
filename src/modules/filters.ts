@@ -6,6 +6,8 @@ import type { Entity, EntityType, Item, ChangelogPatch, SortBy } from '../types/
 import { isItem, isShrine } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 import { logger } from './logger.ts';
+import { isFavorite } from './favorites.ts';
+import { getState } from './store.ts';
 
 // ========================================
 // Type Definitions
@@ -65,12 +67,9 @@ type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build
 
 declare global {
     interface Window {
-        isFavorite?: (tabName: EntityType, id: string) => boolean;
         renderTabContent?: (tabName: TabName) => void;
-        currentTab?: TabName;
         clearFilters?: () => void;
         toggleTextExpand?: (element: HTMLElement) => void;
-        filteredData?: Entity[];
     }
 }
 
@@ -572,8 +571,8 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
     // Favorites filter
     const favoritesOnlyEl = safeGetElementById('favoritesOnly') as HTMLInputElement | null;
     const favoritesOnly = favoritesOnlyEl?.checked;
-    if (favoritesOnly && typeof window.isFavorite === 'function') {
-        filtered = filtered.filter(item => window.isFavorite!(tabName as EntityType, item.id));
+    if (favoritesOnly) {
+        filtered = filtered.filter(item => isFavorite(tabName as EntityType, item.id));
     }
 
     // Tier filter (for items, weapons, tomes, characters)
@@ -712,13 +711,14 @@ export function handleSearch(): void {
         addToSearchHistory(searchQuery.trim());
     }
 
-    if (window.renderTabContent && window.currentTab) {
-        window.renderTabContent(window.currentTab);
+    const currentTab = getState('currentTab');
+    if (window.renderTabContent && currentTab) {
+        window.renderTabContent(currentTab);
     }
 
     // Save filter state when search changes
-    if (window.currentTab) {
-        saveFilterState(window.currentTab);
+    if (currentTab) {
+        saveFilterState(currentTab);
     }
 }
 
@@ -734,8 +734,9 @@ export function clearFilters(): void {
         select.value = 'all';
     });
 
-    if (window.renderTabContent && window.currentTab) {
-        window.renderTabContent(window.currentTab);
+    const currentTab = getState('currentTab');
+    if (window.renderTabContent && currentTab) {
+        window.renderTabContent(currentTab);
     }
 }
 

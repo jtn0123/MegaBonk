@@ -6,6 +6,7 @@ import { ToastManager } from './toast.ts';
 import { validateAllData, logValidationResults, validateWithZod } from './data-validation.ts';
 import { logger } from './logger.ts';
 import { getSavedTab } from './events.ts';
+import { getState, setState } from './store.ts';
 import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.ts';
 
 // ========================================
@@ -48,16 +49,9 @@ function safeGetElementById(id: string): HTMLElement | null {
     return document.getElementById(id);
 }
 
-// Global data storage
-let allData: AllGameData = {
-    items: undefined,
-    weapons: undefined,
-    tomes: undefined,
-    characters: undefined,
-    shrines: undefined,
-    stats: undefined,
-    changelog: undefined,
-};
+// Global data storage - now uses centralized store
+// Keep local reference for backwards compatibility with modules that import allData
+let allData: AllGameData = getState('allData');
 
 // ========================================
 // Data Validation
@@ -243,7 +237,10 @@ export async function loadAllData(): Promise<void> {
             }
         }
 
-        allData = { items, weapons, tomes, characters, shrines, stats, changelog };
+        // Update both store and local reference for backwards compatibility
+        const newData = { items, weapons, tomes, characters, shrines, stats, changelog };
+        setState('allData', newData);
+        allData = newData;
 
         // Run comprehensive validation
         const validationResult = validateAllData(allData);
@@ -371,7 +368,7 @@ export function getDataForTabFromData(data: AllGameData, tabName: string): Entit
  * Get all data object
  */
 export function getAllData(): AllGameData {
-    return allData;
+    return getState('allData');
 }
 
 // Export allData object for direct access if needed

@@ -8,6 +8,7 @@ import { allData } from './data-service.ts';
 import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue } from './utils.ts';
 import { BUILD_ITEMS_LIMIT, DEFAULT_BUILD_STATS, ITEM_EFFECTS, type BuildStats, type ItemEffect } from './constants.ts';
 import { logger } from './logger.ts';
+import { getState, setState, type Build } from './store.ts';
 
 // ========================================
 // Type Definitions
@@ -21,17 +22,9 @@ interface CalculatedBuildStats extends BuildStats {
     overcrit: boolean;
 }
 
-/**
- * Build state structure
- */
-export interface Build {
-    character: Character | null;
-    weapon: Weapon | null;
-    tomes: Tome[];
-    items: Item[];
-    name?: string;
-    notes?: string;
-}
+// Build interface is now imported from store.ts
+// Re-export for backwards compatibility
+export type { Build } from './store.ts';
 
 /**
  * Build data for serialization (with IDs only)
@@ -81,15 +74,15 @@ declare global {
 // State
 // ========================================
 
-// Build planner state
-let currentBuild: Build = {
-    character: null,
-    weapon: null,
-    tomes: [],
-    items: [],
-    name: '',
-    notes: '',
-};
+// Build planner state - now uses centralized store
+// Keep local reference for backwards compatibility
+let currentBuild: Build = getState('currentBuild');
+
+// Helper to update build in store and local reference
+function updateCurrentBuild(build: Build): void {
+    currentBuild = build;
+    setState('currentBuild', build);
+}
 
 // Build history management
 const BUILD_HISTORY_KEY = 'megabonk_build_history';
@@ -609,6 +602,9 @@ export function updateBuildAnalysis(): void {
         currentBuild.items = [];
     }
 
+    // Sync to store after updating tomes and items
+    setState('currentBuild', { ...currentBuild });
+
     const synergiesDisplay = safeGetElementById('build-synergies');
     const statsDisplay = safeGetElementById('build-stats');
     if (!synergiesDisplay || !statsDisplay) return;
@@ -854,7 +850,7 @@ export function clearBuild(): void {
         },
     });
 
-    currentBuild = { character: null, weapon: null, tomes: [], items: [] };
+    updateCurrentBuild({ character: null, weapon: null, tomes: [], items: [] });
     safeSetValue('build-character', '');
     safeSetValue('build-weapon', '');
     safeQuerySelectorAll('.tome-checkbox').forEach((cb: Element) => ((cb as HTMLInputElement).checked = false));
@@ -871,9 +867,10 @@ export function clearBuild(): void {
  * @returns Current build state
  */
 export function getCurrentBuild(): Build {
+    const build = getState('currentBuild');
     return {
-        ...currentBuild,
-        tomes: [...currentBuild.tomes],
-        items: [...currentBuild.items],
+        ...build,
+        tomes: [...build.tomes],
+        items: [...build.items],
     };
 }

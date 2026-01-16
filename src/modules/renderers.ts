@@ -19,6 +19,7 @@ import { getCompareItems } from './compare.ts';
 import { updateChangelogStats, renderChangelog } from './changelog.ts';
 import { renderBuildPlanner } from './build-planner.ts';
 import { logger } from './logger.ts';
+import { setState } from './store.ts';
 import type {
     Item as BaseItem,
     Weapon as BaseWeapon,
@@ -111,7 +112,7 @@ export function renderTabContent(tabName: string): void {
         const data = getDataForTab(tabName) as ChangelogPatch[];
         // filterData works with any array having name/description fields
         const filtered = filterData(data as unknown as Entity[], tabName) as unknown as ChangelogPatch[];
-        window.filteredData = filtered as unknown as Entity[];
+        setState('filteredData', filtered as unknown as Entity[]);
         updateChangelogStats(filtered);
         renderChangelog(filtered);
         return;
@@ -121,7 +122,7 @@ export function renderTabContent(tabName: string): void {
     if (!data) return;
 
     const filtered = filterData(data, tabName);
-    window.filteredData = filtered;
+    setState('filteredData', filtered);
 
     updateStats(filtered, tabName);
 

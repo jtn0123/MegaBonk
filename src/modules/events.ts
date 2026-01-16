@@ -23,11 +23,9 @@ import { destroyAllCharts } from './charts.ts';
 import { setupBuildPlannerEvents, updateBuildAnalysis } from './build-planner.ts';
 import { renderTabContent } from './renderers.ts';
 import { toggleChangelogExpand } from './changelog.ts';
+import { getState, setState, type TabName } from './store.ts';
 
 import type { EntityType } from '../types/index.ts';
-
-// Type definitions for tab names
-type TabName = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator';
 
 // LocalStorage key for persisting tab selection
 const TAB_STORAGE_KEY = 'megabonk-current-tab';
@@ -113,11 +111,6 @@ export function cleanupEventListeners(): void {
             data: { message: 'All event listeners cleaned up' },
         });
     }
-}
-
-// Declare global state that may exist on window
-declare global {
-    // Note: Window.currentTab is declared in filters.ts to avoid duplicate declarations
 }
 
 /**
@@ -390,11 +383,12 @@ export function setupEventDelegation(): void {
 
             // Filter select changes - guard against uninitialized currentTab
             if (target.closest('#filters') && target.tagName === 'SELECT') {
-                if (currentTab) {
-                    renderTabContent(currentTab as TabName);
+                const tab = getState('currentTab');
+                if (tab) {
+                    renderTabContent(tab);
                     // Save filter state when filters change
                     if (typeof saveFilterState === 'function') {
-                        saveFilterState(currentTab as TabName);
+                        saveFilterState(tab);
                     }
                 }
                 return;
@@ -402,11 +396,12 @@ export function setupEventDelegation(): void {
 
             // Favorites filter checkbox - guard against uninitialized currentTab
             if ((target as HTMLInputElement).id === 'favoritesOnly') {
-                if (currentTab) {
-                    renderTabContent(currentTab as TabName);
+                const tab = getState('currentTab');
+                if (tab) {
+                    renderTabContent(tab);
                     // Save filter state when favorites checkbox changes
                     if (typeof saveFilterState === 'function') {
-                        saveFilterState(currentTab as TabName);
+                        saveFilterState(tab);
                     }
                 }
                 return;
@@ -618,25 +613,33 @@ export function dismissError(): void {
 // Tab Switching
 // ========================================
 
-// Current tab state
-export let currentTab: TabName = 'items';
+// Current tab state - now uses centralized store
+// Export getter for backwards compatibility
+export function getCurrentTab(): TabName {
+    return getState('currentTab');
+}
+
+// Keep exported variable for backwards compat (updated via switchTab)
+export let currentTab: TabName = getState('currentTab');
 
 /**
  * Switch to a different tab
  * @param {string} tabName - Tab name to switch to
  */
 export function switchTab(tabName: TabName): void {
-    const previousTab = currentTab;
+    const previousTab = getState('currentTab');
 
     // Save current tab's filter state before switching
-    if (currentTab && typeof saveFilterState === 'function') {
-        saveFilterState(currentTab);
+    if (previousTab && typeof saveFilterState === 'function') {
+        saveFilterState(previousTab);
     }
 
     // Destroy existing charts before switching tabs
     destroyAllCharts();
 
-    currentTab = tabName;
+    // Update store (also syncs to window.currentTab automatically)
+    setState('currentTab', tabName);
+    currentTab = tabName; // Keep local export in sync
 
     // Persist tab selection to localStorage
     localStorage.setItem(TAB_STORAGE_KEY, tabName);
@@ -669,8 +672,7 @@ export function switchTab(tabName: TabName): void {
             itemCount,
         },
     });
-    // Bug fix: Keep window.currentTab in sync for external code
-    window.currentTab = tabName;
+    // Note: window.currentTab is synced automatically by the store
 
     // Update tab buttons
     document.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(btn => {

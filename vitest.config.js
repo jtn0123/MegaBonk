@@ -24,9 +24,9 @@ export default defineConfig({
             minForks: 1,
             // Note: execArgv heap size removed - memory leaks fixed via cleanup functions
         },
-        // Allow concurrent test execution
+        // Test execution order - sequential within files to maintain state isolation
         sequence: {
-            concurrent: true, // Tests within a file can run concurrently
+            concurrent: false, // Tests within a file run sequentially (prevents state race conditions)
             shuffle: false,
         },
         // Teardown timeout - give time for cleanup
