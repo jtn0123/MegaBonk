@@ -300,3 +300,193 @@ describe('Bug Validation - Critical Issues', () => {
         });
     });
 });
+
+describe('Bug Validation - Second Pass (Removing Unnecessary Non-null Assertions)', () => {
+    describe('Bug #8: Unnecessary non-null assertions after null checks', () => {
+        it('should access property directly after checking it exists', () => {
+            interface TestObj {
+                data?: {
+                    items: string[];
+                };
+            }
+
+            const obj1: TestObj = {
+                data: { items: ['a', 'b', 'c'] },
+            };
+
+            const obj2: TestObj = {};
+
+            // Anti-pattern: check with ?. then use !
+            // if (obj.data?.items) {
+            //     const items = obj.data!.items;  // Unnecessary !
+            // }
+
+            // Better: store the reference
+            if (obj1.data?.items) {
+                const items = obj1.data.items; // No need for !
+                expect(items).toHaveLength(3);
+                expect(items[0]).toBe('a');
+            }
+
+            if (obj2.data?.items) {
+                const items = obj2.data.items;
+                expect(items).toBeDefined();
+            } else {
+                // This is the expected path for obj2
+                expect(obj2.data).toBeUndefined();
+            }
+        });
+
+        it('should use local variable to avoid repeated assertions', () => {
+            interface Build {
+                weapon?: {
+                    name: string;
+                    damage: number;
+                };
+            }
+
+            const buildWithWeapon: Build = {
+                weapon: { name: 'Sword', damage: 50 },
+            };
+
+            const buildWithoutWeapon: Build = {};
+
+            // Anti-pattern: repeated weapon! assertions
+            // if (build.weapon) {
+            //     console.log(build.weapon!.name);
+            //     console.log(build.weapon!.damage);
+            // }
+
+            // Better: store reference once
+            if (buildWithWeapon.weapon) {
+                const weapon = buildWithWeapon.weapon;
+                expect(weapon.name).toBe('Sword');
+                expect(weapon.damage).toBe(50);
+            }
+
+            if (buildWithoutWeapon.weapon) {
+                expect(buildWithoutWeapon.weapon).toBeDefined();
+            } else {
+                expect(buildWithoutWeapon.weapon).toBeUndefined();
+            }
+        });
+
+        it('should handle arrays without non-null assertions after filter', () => {
+            const allData = {
+                items: {
+                    items: [
+                        { id: 'item1', name: 'Item 1' },
+                        { id: 'item2', name: 'Item 2' },
+                        { id: 'item3', name: 'Item 3' },
+                    ],
+                },
+            };
+
+            const selectedIds = ['item1', 'item3', 'nonexistent'];
+
+            // Check data exists before accessing
+            if (allData.items?.items) {
+                const items = allData.items.items;
+                const selectedItems = selectedIds
+                    .map(id => items.find(item => item.id === id))
+                    .filter((item): item is { id: string; name: string } => item !== undefined);
+
+                expect(selectedItems).toHaveLength(2);
+                expect(selectedItems[0].id).toBe('item1');
+                expect(selectedItems[1].id).toBe('item3');
+            }
+        });
+    });
+
+    describe('Bug #9: Race conditions with setTimeout', () => {
+        it('should prefer requestAnimationFrame over setTimeout for DOM operations', async () => {
+            // Simulate creating a DOM element
+            const container = document.createElement('div');
+            container.id = 'test-container';
+            document.body.appendChild(container);
+
+            // Anti-pattern: arbitrary timeout
+            // setTimeout(() => {
+            //     const elem = document.getElementById('test-container');
+            //     // What if it's not ready in 100ms?
+            // }, 100);
+
+            // Better: requestAnimationFrame ensures next paint cycle
+            await new Promise<void>(resolve => {
+                requestAnimationFrame(() => {
+                    const elem = document.getElementById('test-container');
+                    expect(elem).toBeDefined();
+                    expect(elem?.id).toBe('test-container');
+                    container.remove();
+                    resolve();
+                });
+            });
+        });
+
+        it('should validate element state before performing operations', async () => {
+            // Create element with class
+            const modal = document.createElement('div');
+            modal.id = 'test-modal';
+            modal.classList.add('active');
+            document.body.appendChild(modal);
+
+            await new Promise<void>(resolve => {
+                requestAnimationFrame(() => {
+                    const elem = document.getElementById('test-modal');
+
+                    // Validate both existence AND state
+                    if (elem && elem.classList.contains('active')) {
+                        expect(elem).toBeDefined();
+                        expect(elem.classList.contains('active')).toBe(true);
+                    } else {
+                        // Element not ready or not in correct state
+                        expect(elem).toBeNull();
+                    }
+
+                    modal.remove();
+                    resolve();
+                });
+            });
+        });
+    });
+
+    describe('Bug #10: Refactoring safety with non-null assertions', () => {
+        it('should demonstrate why non-null assertions are dangerous during refactoring', () => {
+            interface Build {
+                weapon?: { name: string };
+            }
+
+            // Safe version: stores reference, no ! needed
+            const formatWeaponSafe = (build: Build): string => {
+                if (build.weapon) {
+                    const weapon = build.weapon;
+                    return `Using ${weapon.name}`;
+                }
+                return 'No weapon';
+            };
+
+            // Unsafe version: uses ! assertions
+            const formatWeaponUnsafe = (build: Build): string => {
+                if (build.weapon) {
+                    // If someone refactors and removes the check, these ! hide the error
+                    return `Using ${build.weapon!.name}`;
+                }
+                return 'No weapon';
+            };
+
+            const buildWith: Build = { weapon: { name: 'Sword' } };
+            const buildWithout: Build = {};
+
+            // Both work correctly when check is present
+            expect(formatWeaponSafe(buildWith)).toBe('Using Sword');
+            expect(formatWeaponSafe(buildWithout)).toBe('No weapon');
+
+            expect(formatWeaponUnsafe(buildWith)).toBe('Using Sword');
+            expect(formatWeaponUnsafe(buildWithout)).toBe('No weapon');
+
+            // But if check is removed, ! hides the error:
+            // const formatBuggy = (build: Build) => `Using ${build.weapon!.name}`;
+            // This compiles but crashes at runtime!
+        });
+    });
+});
