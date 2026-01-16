@@ -4,7 +4,7 @@
 // Adds enhanced CV strategies to the scan-build module
 // ========================================
 
-import type { AllGameData, Character, Weapon } from '../types/index.ts';
+import type { AllGameData } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
 import { setActiveStrategy, STRATEGY_PRESETS } from './cv-strategy.ts';
@@ -35,8 +35,8 @@ interface StrategyResult {
 interface EnhancedHybridResult {
     items: EnhancedDetectionItem[];
     tomes: EnhancedDetectionItem[];
-    character: Character | null;
-    weapon: Weapon | null;
+    character: DetectionResult | null;
+    weapon: DetectionResult | null;
     metrics?: DetectionMetrics;
 }
 
@@ -277,7 +277,7 @@ export async function handleEnhancedHybridDetect(imageDataUrl: string): Promise<
             })),
             character: ocrResults.character,
             weapon: ocrResults.weapon,
-            metrics: latestMetrics,
+            metrics: latestMetrics ?? undefined,
         };
     } catch (error) {
         logger.error({
@@ -294,7 +294,7 @@ export async function handleEnhancedHybridDetect(imageDataUrl: string): Promise<
 /**
  * Show metrics in UI
  */
-function showMetrics(metrics: any): void {
+function showMetrics(metrics: DetectionMetrics): void {
     const metricsDiv = document.getElementById('scan-detection-metrics');
     if (!metricsDiv) return;
 
@@ -382,7 +382,7 @@ export async function compareStrategiesOnImage(imageDataUrl: string): Promise<vo
 
     ToastManager.info('Running comparison on all 5 strategies...');
 
-    const results: any[] = [];
+    const results: StrategyResult[] = [];
 
     for (const strategy of strategies) {
         try {
@@ -417,7 +417,7 @@ export async function compareStrategiesOnImage(imageDataUrl: string): Promise<vo
 /**
  * Show strategy comparison results
  */
-function showStrategyComparison(results: any[]): void {
+function showStrategyComparison(results: StrategyResult[]): void {
     const comparisonDiv = document.getElementById('scan-strategy-comparison');
     if (!comparisonDiv) return;
 

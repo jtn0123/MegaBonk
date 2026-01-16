@@ -4,6 +4,15 @@
 
 import type { CVDetectionResult } from './types.ts';
 
+/** Base detection result for combining OCR and CV results */
+interface BaseDetectionResult {
+    type: string;
+    entity: { id: string; name: string };
+    confidence: number;
+    position?: { x: number; y: number; width: number; height: number };
+    method?: string;
+}
+
 /**
  * Aggregate duplicate detections into single entries with counts
  * Converts [Wrench, Wrench, Wrench] → [Wrench x3]
@@ -51,7 +60,10 @@ export function aggregateDuplicates(detections: CVDetectionResult[]): Array<CVDe
 /**
  * Combine OCR and CV results for hybrid detection
  */
-export function combineDetections(ocrResults: any[], cvResults: CVDetectionResult[]): CVDetectionResult[] {
+export function combineDetections(
+    ocrResults: BaseDetectionResult[],
+    cvResults: CVDetectionResult[]
+): CVDetectionResult[] {
     const combined: CVDetectionResult[] = [];
     const seen = new Set<string>();
 
@@ -70,11 +82,11 @@ export function combineDetections(ocrResults: any[], cvResults: CVDetectionResul
         } else {
             seen.add(key);
             combined.push({
-                type: result.type,
-                entity: result.entity,
+                type: result.type as CVDetectionResult['type'],
+                entity: result.entity as CVDetectionResult['entity'],
                 confidence: result.confidence,
                 position: result.position,
-                method: result.method || 'template_match',
+                method: (result.method || 'template_match') as CVDetectionResult['method'],
             });
         }
     });

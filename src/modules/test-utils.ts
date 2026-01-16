@@ -6,7 +6,22 @@
 
 import type { DetectionResult } from './ocr.ts';
 import type { CVDetectionResult } from './computer-vision.ts';
+import type { Character, Weapon } from '../types/index.ts';
 import { logger } from './logger.ts';
+
+/** Detection function result type for automated testing */
+export interface DetectionFnResult {
+    items: DetectionResult[] | CVDetectionResult[];
+    tomes: DetectionResult[] | CVDetectionResult[];
+    character: Character | null;
+    weapon: Weapon | null;
+}
+
+/** Detection result for comparison (with name identifier) */
+interface ComparisonDetectionResult {
+    items: (DetectionResult | CVDetectionResult)[];
+    name: string;
+}
 
 // Test result structure
 export interface TestResult {
@@ -285,7 +300,7 @@ export function getTestImageURLs(): {
 export async function runAutomatedTest(
     imageDataUrl: string,
     groundTruth: GroundTruth,
-    detectionFn: (imageUrl: string) => Promise<{ items: any[]; tomes: any[]; character: any; weapon: any }>,
+    detectionFn: (imageUrl: string) => Promise<DetectionFnResult>,
     detectionMode: 'ocr' | 'hybrid'
 ): Promise<TestResult> {
     const startTime = performance.now();
@@ -362,8 +377,8 @@ export async function runAutomatedTest(
  * Compare two detection results
  */
 export function compareDetectionResults(
-    result1: { items: any[]; name: string },
-    result2: { items: any[]; name: string }
+    result1: ComparisonDetectionResult,
+    result2: ComparisonDetectionResult
 ): {
     onlyIn1: string[];
     onlyIn2: string[];

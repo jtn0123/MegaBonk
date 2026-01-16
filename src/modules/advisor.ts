@@ -4,10 +4,13 @@
 // Handles the UI and logic for the build recommendation feature
 // ========================================
 
-import type { Item, Tome, AllGameData } from '../types/index.ts';
-import { recommendBestChoice, type BuildState, type ChoiceOption } from './recommendation.ts';
+import type { Item, Tome, Weapon, Shrine, AllGameData } from '../types/index.ts';
+import { recommendBestChoice, type BuildState, type ChoiceOption, type Recommendation } from './recommendation.ts';
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
+
+/** Union type for entities that can be selected in the advisor */
+type AdvisorEntity = Item | Weapon | Tome | Shrine;
 
 // State
 let allData: AllGameData = {};
@@ -344,7 +347,7 @@ function handleChoiceTypeChange(choiceNumber: number, type: string): void {
     if (!type) return;
 
     // Populate based on type
-    let entities: any[] = [];
+    let entities: AdvisorEntity[] = [];
     switch (type) {
         case 'item':
             entities = allData.items?.items || [];
@@ -392,7 +395,7 @@ function handleGetRecommendation(): void {
             }
 
             // Find the entity
-            let entity: any = null;
+            let entity: AdvisorEntity | undefined;
             switch (type) {
                 case 'item':
                     entity = allData.items?.items.find(e => e.id === entityId);
@@ -450,7 +453,7 @@ function handleGetRecommendation(): void {
 /**
  * Display recommendations
  */
-function displayRecommendations(recommendations: any[]): void {
+function displayRecommendations(recommendations: Recommendation[]): void {
     const resultsDiv = document.getElementById('advisor-results');
     const resultsContent = document.getElementById('advisor-results-content');
 
