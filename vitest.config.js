@@ -13,20 +13,20 @@ export default defineConfig({
         ],
         // Note: tests/archived/ contains old .js files replaced by TypeScript versions
         // Note: tests/desktop-only/ contains heavy -real.test.ts files for local execution
-        // Memory-optimized configuration
+        // Parallelized configuration - memory leaks fixed in tests/setup.js
         pool: 'forks',
         isolate: true, // Each test file gets its own fresh context
-        fileParallelism: false, // Run files sequentially
+        fileParallelism: true, // Run files in parallel (memory leaks fixed)
         // Forks pool options (Vitest 4+ uses top-level)
         forks: {
-            singleFork: false, // Use multiple forks to allow memory reclamation
-            maxForks: 1, // But only 1 at a time
+            singleFork: false, // Use multiple forks for parallelization
+            maxForks: 4, // Run up to 4 test files in parallel
             minForks: 1,
-            execArgv: ['--max-old-space-size=4096'],
+            // Note: execArgv heap size removed - memory leaks fixed via cleanup functions
         },
-        // Sequence tests serially to reduce memory pressure
+        // Allow concurrent test execution
         sequence: {
-            concurrent: false,
+            concurrent: true, // Tests within a file can run concurrently
             shuffle: false,
         },
         // Teardown timeout - give time for cleanup

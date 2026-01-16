@@ -36,7 +36,7 @@ function runCommand(command, args) {
             shell,
             env: {
                 ...process.env,
-                NODE_OPTIONS: '--max-old-space-size=8192',
+                // Note: NODE_OPTIONS heap size removed - memory leaks fixed via cleanup functions in tests/setup.js
             },
         });
 
