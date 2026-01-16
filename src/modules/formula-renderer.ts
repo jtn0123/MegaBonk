@@ -65,14 +65,32 @@ function renderFraction(numerator: string, denominator: string): string {
 
 /**
  * Highlight known variables in the formula
+ * Variables are sorted by length (descending) to avoid partial replacements
+ * Uses placeholders to prevent nested replacements
  */
 function highlightVariables(text: string): string {
     let result = text;
-    for (const variable of FORMULA_VARIABLES) {
+    const placeholders: string[] = [];
+
+    // Sort by length descending to match longer phrases first (e.g., "Max HP" before "HP")
+    const sortedVariables = [...FORMULA_VARIABLES].sort((a, b) => b.length - a.length);
+
+    for (const variable of sortedVariables) {
         const escaped = escapeHtml(variable);
         const regex = new RegExp(`\\b${escaped}\\b`, 'g');
-        result = result.replace(regex, `<span class="formula-var">${escaped}</span>`);
+        // Replace with a placeholder to prevent subsequent matches inside this text
+        result = result.replace(regex, () => {
+            const placeholder = `__VAR_${placeholders.length}__`;
+            placeholders.push(`<span class="formula-var">${escaped}</span>`);
+            return placeholder;
+        });
     }
+
+    // Replace all placeholders with actual HTML
+    for (let i = 0; i < placeholders.length; i++) {
+        result = result.replace(`__VAR_${i}__`, placeholders[i]);
+    }
+
     return result;
 }
 
@@ -136,12 +154,17 @@ export function renderFormula(formula: string): string {
     // Actually, let's rebuild: escape first, then add styling
     let processed = escapeHtml(formula);
 
-    // Highlight variables
-    processed = highlightVariables(processed);
+    // Style standalone equals signs (surrounded by whitespace, indicating math equals not HTML attribute)
+    // This must be done BEFORE adding HTML with class= attributes
+    processed = processed.replace(/(\s)=(\s)/g, '$1<span class="formula-eq">=</span>$2');
+    // Also handle = at start of string or after certain chars
+    processed = processed.replace(/^=(\s)/, '<span class="formula-eq">=</span>$1');
 
-    // Style multiplication and equals signs
+    // Style multiplication symbol
     processed = processed.replace(/×/g, '<span class="formula-op">×</span>');
-    processed = processed.replace(/=/g, '<span class="formula-eq">=</span>');
+
+    // Highlight variables (this adds HTML with class= attributes)
+    processed = highlightVariables(processed);
 
     // Now handle fractions (need original for fraction detection)
     // Re-parse with fraction handling
@@ -162,15 +185,12 @@ export function renderFormula(formula: string): string {
         // Apply other styling to the fraction version
         let finalHtml = withFractions;
 
-        // Escape HTML in non-span parts (this is tricky - just style what we have)
-        // For now, trust that formulas are safe (they come from our JSON)
-
-        // Highlight variables in non-span sections
-        finalHtml = highlightVariables(finalHtml);
-
-        // Style operators
+        // Style operators FIRST (before adding HTML with class= attributes)
+        finalHtml = finalHtml.replace(/(\s)=(\s)/g, '$1<span class="formula-eq">=</span>$2');
         finalHtml = finalHtml.replace(/×/g, '<span class="formula-op">×</span>');
-        finalHtml = finalHtml.replace(/(?<![<>])=/g, '<span class="formula-eq">=</span>');
+
+        // Then highlight variables (this adds HTML with class= attributes)
+        finalHtml = highlightVariables(finalHtml);
 
         return `<span class="formula-container">${finalHtml}</span>`;
     }

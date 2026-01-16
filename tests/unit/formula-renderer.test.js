@@ -1,6 +1,5 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { renderFormula, renderFormulaDisplay } from '../../src/modules/formula-renderer.ts';
-import katex from 'katex';
 
 describe('Formula Renderer Module', () => {
     describe('renderFormula()', () => {
@@ -28,68 +27,72 @@ describe('Formula Renderer Module', () => {
                 expect(result).toContain('Each weapon upgrade adds extra stats');
             });
 
-            it('should not apply KaTeX to non-math formulas', () => {
+            it('should not apply math styling to non-math formulas', () => {
                 const result = renderFormula('Automatic XP collection on cooldown');
                 expect(result).toContain('formula-text');
-                expect(result).not.toContain('katex');
+                expect(result).not.toContain('formula-container');
             });
         });
 
         describe('mathematical formulas', () => {
-            it('should render formulas with = sign using KaTeX', () => {
+            it('should render formulas with = sign using CSS styling', () => {
                 const result = renderFormula('Damage = 1 + 0.10');
-                expect(result).toContain('katex');
+                expect(result).toContain('formula-container');
             });
 
             it('should render formulas with multiplication symbol', () => {
                 const result = renderFormula('Damage × Stack Count');
-                expect(result).toContain('katex');
+                expect(result).toContain('formula-container');
+                expect(result).toContain('formula-op');
             });
 
             it('should render formulas with + operator', () => {
                 const result = renderFormula('Base + 10');
-                expect(result).toContain('katex');
+                expect(result).toContain('formula-container');
             });
 
             it('should render formulas with - operator', () => {
                 const result = renderFormula('HP - 50');
-                expect(result).toContain('katex');
+                expect(result).toContain('formula-container');
             });
         });
 
         describe('variable highlighting', () => {
-            it('should wrap Stack Count in text command', () => {
+            it('should wrap Stack Count in formula-var class', () => {
                 const result = renderFormula('Damage = 1 + Stack Count');
-                // KaTeX renders \text{} with specific class
-                expect(result).toContain('katex');
+                expect(result).toContain('formula-var');
+                expect(result).toContain('Stack Count');
             });
 
-            it('should wrap Max HP in text command', () => {
+            it('should wrap Max HP in formula-var class', () => {
                 const result = renderFormula('Damage = Max HP × 0.20');
-                expect(result).toContain('katex');
+                expect(result).toContain('formula-var');
+                expect(result).toContain('Max HP');
             });
 
             it('should handle multiple variables', () => {
                 const result = renderFormula('Damage = Base + (Max HP × Stack Count)');
-                expect(result).toContain('katex');
+                expect(result).toContain('formula-var');
+                // Should contain both variables highlighted
+                expect(result.match(/formula-var/g)?.length).toBeGreaterThanOrEqual(2);
             });
         });
 
         describe('symbol conversion', () => {
-            it('should convert × to times symbol', () => {
+            it('should style × with formula-op class', () => {
                 const result = renderFormula('Damage = 2 × 5');
-                // KaTeX renders \times as a specific element
-                expect(result).toContain('katex');
+                expect(result).toContain('formula-op');
+                expect(result).toContain('×');
             });
 
-            it('should convert percentages', () => {
-                const result = renderFormula('Bonus = 20%');
-                expect(result).toContain('katex');
+            it('should style = with formula-eq class', () => {
+                const result = renderFormula('Bonus = 20');
+                expect(result).toContain('formula-eq');
             });
         });
 
         describe('error handling', () => {
-            it('should fall back gracefully on invalid LaTeX', () => {
+            it('should handle invalid input gracefully', () => {
                 // This shouldn't throw
                 const result = renderFormula('Invalid \\invalid command');
                 expect(result).toBeDefined();
@@ -100,36 +103,21 @@ describe('Formula Renderer Module', () => {
                 expect(result).toBeDefined();
             });
 
-            it('should fall back to formula-text when KaTeX throws an error', () => {
-                const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-                const katexSpy = vi.spyOn(katex, 'renderToString').mockImplementation(() => {
-                    throw new Error('KaTeX rendering error');
-                });
-
-                const result = renderFormula('Damage = 1 + 2');
-
+            it('should return formula-text for formulas without math operators', () => {
+                const result = renderFormula('Just some text without operators');
                 expect(result).toContain('formula-text');
-                expect(result).toContain('Damage = 1 + 2');
-                expect(console.warn).toHaveBeenCalledWith(
-                    'KaTeX rendering failed for formula:',
-                    'Damage = 1 + 2',
-                    expect.any(Error)
-                );
-
-                katexSpy.mockRestore();
-                spy.mockRestore();
             });
         });
 
-        describe('LaTeX passthrough', () => {
-            it('should detect and pass through existing LaTeX', () => {
-                const result = renderFormula('\\frac{1}{2}');
-                expect(result).toContain('katex');
+        describe('fraction rendering', () => {
+            it('should render simple numeric fractions', () => {
+                const result = renderFormula('Value = 1/2');
+                expect(result).toContain('formula-fraction');
             });
 
-            it('should handle LaTeX with text commands', () => {
-                const result = renderFormula('\\text{Damage} = 1 + n');
-                expect(result).toContain('katex');
+            it('should render fractions with parenthesized denominators', () => {
+                const result = renderFormula('HP / (1 + Internal)');
+                expect(result).toContain('formula-fraction');
             });
         });
     });
@@ -142,9 +130,8 @@ describe('Formula Renderer Module', () => {
 
         it('should render math formulas in display mode', () => {
             const result = renderFormulaDisplay('Damage = 1 + 0.10');
-            expect(result).toContain('katex');
-            // Display mode adds katex-display class
-            expect(result).toContain('katex-display');
+            expect(result).toContain('formula-display');
+            expect(result).toContain('formula-container');
         });
 
         it('should render descriptive text as formula-text', () => {
@@ -152,24 +139,10 @@ describe('Formula Renderer Module', () => {
             expect(result).toContain('formula-text');
         });
 
-        it('should fall back to formula-text when KaTeX throws an error', () => {
-            const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-            const katexSpy = vi.spyOn(katex, 'renderToString').mockImplementation(() => {
-                throw new Error('KaTeX rendering error');
-            });
-
+        it('should wrap content in formula-display div', () => {
             const result = renderFormulaDisplay('Damage = 1 + 2');
-
-            expect(result).toContain('formula-text');
-            expect(result).toContain('Damage = 1 + 2');
-            expect(console.warn).toHaveBeenCalledWith(
-                'KaTeX rendering failed for formula:',
-                'Damage = 1 + 2',
-                expect.any(Error)
-            );
-
-            katexSpy.mockRestore();
-            spy.mockRestore();
+            expect(result).toMatch(/^<div class="formula-display">/);
+            expect(result).toMatch(/<\/div>$/);
         });
     });
 
@@ -188,8 +161,22 @@ describe('Formula Renderer Module', () => {
             it(`should render: "${formula.substring(0, 40)}..."`, () => {
                 const result = renderFormula(formula);
                 expect(result).toBeDefined();
-                expect(result).toContain('katex');
+                expect(result).toContain('formula-container');
             });
+        });
+    });
+
+    describe('XSS prevention', () => {
+        it('should escape HTML in formula input', () => {
+            const result = renderFormula('<script>alert("xss")</script> = 1 + 2');
+            expect(result).not.toContain('<script>');
+            expect(result).toContain('&lt;script&gt;');
+        });
+
+        it('should escape HTML in descriptive text', () => {
+            const result = renderFormula('<img onerror="alert(1)" src=x>');
+            expect(result).not.toContain('<img');
+            expect(result).toContain('&lt;img');
         });
     });
 });
