@@ -4,15 +4,41 @@
 // Adds enhanced CV strategies to the scan-build module
 // ========================================
 
-import type { AllGameData } from '../types/index.ts';
+import type { AllGameData, Character, Weapon } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
 import { setActiveStrategy, STRATEGY_PRESETS } from './cv-strategy.ts';
 import { detectItemsWithEnhancedCV, initEnhancedCV, loadEnhancedTemplates } from './computer-vision-enhanced.ts';
-import { metricsTracker } from './cv-metrics.ts';
+import { metricsTracker, type DetectionMetrics } from './cv-metrics.ts';
 import { autoDetectFromImage } from './ocr.ts';
 import { combineDetections, aggregateDuplicates } from './computer-vision.ts';
 import type { DetectionResult } from './ocr.ts';
+import type { CVDetectionResult } from './cv/types.ts';
+
+/** Enhanced detection result with count */
+interface EnhancedDetectionItem {
+    type: 'item' | 'tome' | 'character' | 'weapon';
+    entity: CVDetectionResult['entity'];
+    confidence: number;
+    count?: number;
+}
+
+/** Strategy comparison result */
+interface StrategyResult {
+    strategy: string;
+    detections: number;
+    timeMs: number;
+    avgConfidence: number;
+}
+
+/** Enhanced hybrid detection result */
+interface EnhancedHybridResult {
+    items: EnhancedDetectionItem[];
+    tomes: EnhancedDetectionItem[];
+    character: Character | null;
+    weapon: Weapon | null;
+    metrics?: DetectionMetrics;
+}
 
 let currentStrategy = 'optimized'; // Default to optimized
 
@@ -161,13 +187,7 @@ function updateStrategyInfo(strategy: string): void {
 /**
  * Enhanced hybrid detect with strategy support
  */
-export async function handleEnhancedHybridDetect(imageDataUrl: string): Promise<{
-    items: any[];
-    tomes: any[];
-    character: any;
-    weapon: any;
-    metrics?: any;
-}> {
+export async function handleEnhancedHybridDetect(imageDataUrl: string): Promise<EnhancedHybridResult> {
     if (!imageDataUrl) {
         throw new Error('No image provided');
     }
