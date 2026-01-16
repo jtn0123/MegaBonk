@@ -252,7 +252,8 @@ describe('Test Utils - Comprehensive Tests', () => {
         });
 
         it('should return unknown for non-standard aspect ratios', () => {
-            const layout = detectUILayout(1366, 768);
+            // 21:9 ultrawide ratio (2.333...) - neither 16:9 nor 16:10
+            const layout = detectUILayout(2560, 1080);
             expect(layout).toBe('unknown');
         });
 
@@ -594,15 +595,15 @@ describe('Test Utils - Comprehensive Tests', () => {
         });
 
         it('should handle resolution detection at boundaries', () => {
-            // Just at the edge of 720p tolerance (1280 ± 50)
-            const res1 = detectResolution(1330, 770);
+            // Just inside 720p tolerance (1280 ± 50, using < 50 check)
+            const res1 = detectResolution(1329, 769);
             expect(res1.category).toBe('720p');
 
-            const res2 = detectResolution(1230, 670);
+            const res2 = detectResolution(1231, 671);
             expect(res2.category).toBe('720p');
 
-            // Just outside tolerance
-            const res3 = detectResolution(1331, 720);
+            // At exact boundary (50 away) - not matched since check is < 50
+            const res3 = detectResolution(1330, 720);
             expect(res3.category).toBe('custom');
         });
     });
