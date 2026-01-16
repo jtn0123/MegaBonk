@@ -38,7 +38,7 @@ async function runShard(shardIndex, totalShards) {
             shell: process.platform === 'win32',
             env: {
                 ...process.env,
-                NODE_OPTIONS: '--max-old-space-size=4096',
+                // Note: NODE_OPTIONS heap size removed - memory leaks fixed via cleanup functions in tests/setup.js
             },
         });
 

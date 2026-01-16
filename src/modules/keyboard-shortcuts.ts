@@ -25,6 +25,16 @@ interface ShortcutCategory {
 }
 
 // ========================================
+// Module State
+// ========================================
+
+/**
+ * Reference to the keydown handler for cleanup
+ * We store the handler function so we can remove it later
+ */
+let keydownHandler: ((e: KeyboardEvent) => void) | null = null;
+
+// ========================================
 // Constants
 // ========================================
 
@@ -187,10 +197,24 @@ export function showShortcutsModal(): void {
 }
 
 /**
+ * Clean up keyboard shortcut event listeners
+ * Call this in test teardown or when unmounting
+ */
+export function cleanupKeyboardShortcuts(): void {
+    if (keydownHandler) {
+        document.removeEventListener('keydown', keydownHandler);
+        keydownHandler = null;
+    }
+}
+
+/**
  * Setup keyboard shortcut handlers
  */
 export function setupKeyboardShortcuts(): void {
-    document.addEventListener('keydown', (e: KeyboardEvent) => {
+    // Clean up existing listener first to prevent stacking
+    cleanupKeyboardShortcuts();
+
+    keydownHandler = (e: KeyboardEvent) => {
         // Ignore shortcuts when typing in inputs
         const target = e.target as HTMLElement;
         if (target && target.matches && target.matches('input, textarea, select')) {
@@ -295,7 +319,9 @@ export function setupKeyboardShortcuts(): void {
             }
             return;
         }
-    });
+    };
+
+    document.addEventListener('keydown', keydownHandler);
 }
 
 /**

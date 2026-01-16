@@ -112,19 +112,82 @@ beforeEach(() => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
 });
 
-afterEach(() => {
+afterEach(async () => {
     // Clear all timers to prevent memory leaks
     vi.clearAllTimers();
     vi.clearAllMocks();
     vi.restoreAllMocks(); // CRITICAL: Restore console spies and other mocks to prevent memory leaks
 
-    // Force garbage collection if available (run with --expose-gc)
-    if (global.gc) {
-        global.gc();
+    // ========================================
+    // Module Cleanup - Prevent Memory Leaks
+    // ========================================
+    // Lazy import modules to handle cases where they may not exist or fail to load.
+    // Each cleanup function removes event listeners, clears caches, and resets state.
+
+    try {
+        const { cleanupEventListeners } = await import('../src/modules/events.ts');
+        cleanupEventListeners();
+    } catch {
+        // Module may not exist or import may fail - ignore
+    }
+
+    try {
+        const { destroyAllCharts } = await import('../src/modules/charts.ts');
+        destroyAllCharts();
+    } catch {
+        // Module may not exist or import may fail - ignore
+    }
+
+    try {
+        const { invalidateDOMCache } = await import('../src/modules/dom-cache.ts');
+        invalidateDOMCache();
+    } catch {
+        // Module may not exist or import may fail - ignore
+    }
+
+    try {
+        const { ToastManager } = await import('../src/modules/toast.ts');
+        ToastManager.reset();
+    } catch {
+        // Module may not exist or import may fail - ignore
+    }
+
+    try {
+        const { cleanupKeyboardShortcuts } = await import('../src/modules/keyboard-shortcuts.ts');
+        cleanupKeyboardShortcuts();
+    } catch {
+        // Module may not exist or import may fail - ignore
+    }
+
+    try {
+        const { resetStore, clearSubscribers } = await import('../src/modules/store.ts');
+        resetStore();
+        clearSubscribers();
+    } catch {
+        // Module may not exist or import may fail - ignore
+    }
+
+    try {
+        const { resetState } = await import('../src/modules/cv/state.ts');
+        resetState();
+    } catch {
+        // Module may not exist or import may fail - ignore
+    }
+
+    try {
+        const { cleanupCV } = await import('../src/modules/cv/core.ts');
+        cleanupCV();
+    } catch {
+        // Module may not exist or import may fail - ignore
     }
 
     // NOTE: vi.resetModules() was removed because it causes memory accumulation
     // Module isolation between files is handled by vitest's isolate: true setting
+
+    // Force garbage collection if available (run with --expose-gc)
+    if (global.gc) {
+        global.gc();
+    }
 
     // Clear localStorage store
     localStorageStore = {};
