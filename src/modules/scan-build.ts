@@ -132,10 +132,15 @@ async function handleFileSelect(e: Event): Promise<void> {
         // Read file as data URL
         const reader = new FileReader();
         reader.onload = event => {
-            uploadedImage = event.target?.result as string;
-            displayUploadedImage();
-            showItemSelectionGrid();
-            ToastManager.success('Image uploaded! Now select the items you see');
+            const result = event.target?.result;
+            if (typeof result === 'string') {
+                uploadedImage = result;
+                displayUploadedImage();
+                showItemSelectionGrid();
+                ToastManager.success('Image uploaded! Now select the items you see');
+            } else {
+                ToastManager.error('Failed to read image as data URL');
+            }
         };
         reader.onerror = () => {
             ToastManager.error('Failed to read image file');
@@ -403,26 +408,32 @@ async function handleHybridDetect(): Promise<void> {
                 rawText: `hybrid_${r.method}`,
                 count: r.count,
             })),
-            character:
-                ocrResults.character ||
-                (cvResults.find(r => r.type === 'character')
-                    ? {
-                          type: 'character' as const,
-                          entity: cvResults.find(r => r.type === 'character')!.entity,
-                          confidence: cvResults.find(r => r.type === 'character')!.confidence,
-                          rawText: 'hybrid_cv',
-                      }
-                    : null),
-            weapon:
-                ocrResults.weapon ||
-                (cvResults.find(r => r.type === 'weapon')
-                    ? {
-                          type: 'weapon' as const,
-                          entity: cvResults.find(r => r.type === 'weapon')!.entity,
-                          confidence: cvResults.find(r => r.type === 'weapon')!.confidence,
-                          rawText: 'hybrid_cv',
-                      }
-                    : null),
+            character: (() => {
+                if (ocrResults.character) return ocrResults.character;
+                const charResult = cvResults.find(r => r.type === 'character');
+                if (charResult) {
+                    return {
+                        type: 'character' as const,
+                        entity: charResult.entity,
+                        confidence: charResult.confidence,
+                        rawText: 'hybrid_cv',
+                    };
+                }
+                return null;
+            })(),
+            weapon: (() => {
+                if (ocrResults.weapon) return ocrResults.weapon;
+                const weaponResult = cvResults.find(r => r.type === 'weapon');
+                if (weaponResult) {
+                    return {
+                        type: 'weapon' as const,
+                        entity: weaponResult.entity,
+                        confidence: weaponResult.confidence,
+                        rawText: 'hybrid_cv',
+                    };
+                }
+                return null;
+            })(),
             rawText: 'hybrid_detection',
         };
 

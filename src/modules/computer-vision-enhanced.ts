@@ -132,16 +132,20 @@ export async function loadEnhancedTemplates(): Promise<void> {
                     });
 
                     // Group by rarity
-                    if (!templatesByRarity.has(item.rarity)) {
-                        templatesByRarity.set(item.rarity, []);
+                    let rarityArray = templatesByRarity.get(item.rarity);
+                    if (!rarityArray) {
+                        rarityArray = [];
+                        templatesByRarity.set(item.rarity, rarityArray);
                     }
-                    templatesByRarity.get(item.rarity)!.push(item);
+                    rarityArray.push(item);
 
                     // Group by dominant color
-                    if (!templatesByColor.has(colorProfile.dominant)) {
-                        templatesByColor.set(colorProfile.dominant, []);
+                    let colorArray = templatesByColor.get(colorProfile.dominant);
+                    if (!colorArray) {
+                        colorArray = [];
+                        templatesByColor.set(colorProfile.dominant, colorArray);
                     }
-                    templatesByColor.get(colorProfile.dominant)!.push(item);
+                    colorArray.push(item);
 
                     resolve();
                 };
