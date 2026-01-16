@@ -113,7 +113,7 @@ export const STRATEGY_PRESETS: Record<string, CVStrategy> = {
 /**
  * Default strategy (current production)
  */
-export const DEFAULT_STRATEGY: CVStrategy = STRATEGY_PRESETS.current;
+export const DEFAULT_STRATEGY: CVStrategy = STRATEGY_PRESETS.current!;
 
 /**
  * Active strategy (can be changed at runtime)
@@ -132,10 +132,11 @@ export function getActiveStrategy(): CVStrategy {
  */
 export function setActiveStrategy(strategy: CVStrategy | string): void {
     if (typeof strategy === 'string') {
-        if (!(strategy in STRATEGY_PRESETS)) {
+        const preset = STRATEGY_PRESETS[strategy];
+        if (!preset) {
             throw new Error(`Unknown strategy preset: ${strategy}`);
         }
-        activeStrategy = { ...STRATEGY_PRESETS[strategy] };
+        activeStrategy = { ...preset };
     } else {
         activeStrategy = { ...strategy };
     }
@@ -144,29 +145,32 @@ export function setActiveStrategy(strategy: CVStrategy | string): void {
 /**
  * Get confidence thresholds based on strategy
  */
-export function getConfidenceThresholds(strategy: CVStrategy, rarity?: string): {
+export function getConfidenceThresholds(
+    strategy: CVStrategy,
+    rarity?: string
+): {
     pass1: number;
     pass2: number;
     pass3: number;
 } {
     if (strategy.confidenceThresholds === 'fixed') {
-        return { pass1: 0.85, pass2: 0.70, pass3: 0.60 };
+        return { pass1: 0.85, pass2: 0.7, pass3: 0.6 };
     }
 
     if (strategy.confidenceThresholds === 'adaptive-rarity' && rarity) {
         const thresholdMap: Record<string, { pass1: number; pass2: number; pass3: number }> = {
-            legendary: { pass1: 0.90, pass2: 0.75, pass3: 0.65 },
+            legendary: { pass1: 0.9, pass2: 0.75, pass3: 0.65 },
             epic: { pass1: 0.88, pass2: 0.73, pass3: 0.63 },
-            rare: { pass1: 0.85, pass2: 0.70, pass3: 0.60 },
+            rare: { pass1: 0.85, pass2: 0.7, pass3: 0.6 },
             uncommon: { pass1: 0.83, pass2: 0.68, pass3: 0.58 },
-            common: { pass1: 0.80, pass2: 0.65, pass3: 0.55 },
+            common: { pass1: 0.8, pass2: 0.65, pass3: 0.55 },
         };
 
-        return thresholdMap[rarity] || { pass1: 0.85, pass2: 0.70, pass3: 0.60 };
+        return thresholdMap[rarity] || { pass1: 0.85, pass2: 0.7, pass3: 0.6 };
     }
 
     // adaptive-gap is calculated dynamically, return defaults here
-    return { pass1: 0.85, pass2: 0.70, pass3: 0.60 };
+    return { pass1: 0.85, pass2: 0.7, pass3: 0.6 };
 }
 
 /**
@@ -259,19 +263,32 @@ export function extractColorProfile(imageData: ImageData): ColorProfile {
         topLeft: { x: 0, y: 0, w: Math.floor(width / 2), h: Math.floor(height / 2) },
         topRight: { x: Math.floor(width / 2), y: 0, w: Math.floor(width / 2), h: Math.floor(height / 2) },
         bottomLeft: { x: 0, y: Math.floor(height / 2), w: Math.floor(width / 2), h: Math.floor(height / 2) },
-        bottomRight: { x: Math.floor(width / 2), y: Math.floor(height / 2), w: Math.floor(width / 2), h: Math.floor(height / 2) },
-        center: { x: Math.floor(width / 4), y: Math.floor(height / 4), w: Math.floor(width / 2), h: Math.floor(height / 2) },
+        bottomRight: {
+            x: Math.floor(width / 2),
+            y: Math.floor(height / 2),
+            w: Math.floor(width / 2),
+            h: Math.floor(height / 2),
+        },
+        center: {
+            x: Math.floor(width / 4),
+            y: Math.floor(height / 4),
+            w: Math.floor(width / 2),
+            h: Math.floor(height / 2),
+        },
     };
 
     const getDominantColorInRegion = (region: { x: number; y: number; w: number; h: number }): string => {
-        let sumR = 0, sumG = 0, sumB = 0, count = 0;
+        let sumR = 0,
+            sumG = 0,
+            sumB = 0,
+            count = 0;
 
         for (let y = region.y; y < region.y + region.h && y < height; y++) {
             for (let x = region.x; x < region.x + region.w && x < width; x++) {
                 const idx = (y * width + x) * 4;
-                sumR += data[idx];
-                sumG += data[idx + 1];
-                sumB += data[idx + 2];
+                sumR += data[idx] ?? 0;
+                sumG += data[idx + 1] ?? 0;
+                sumB += data[idx + 2] ?? 0;
                 count++;
             }
         }
@@ -306,23 +323,26 @@ function extractBorderDominantColor(imageData: ImageData): string {
     const { width, height, data } = imageData;
     const borderWidth = 3;
 
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
 
     // Top and bottom borders
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < borderWidth; y++) {
             // Top
             const topIdx = (y * width + x) * 4;
-            sumR += data[topIdx];
-            sumG += data[topIdx + 1];
-            sumB += data[topIdx + 2];
+            sumR += data[topIdx] ?? 0;
+            sumG += data[topIdx + 1] ?? 0;
+            sumB += data[topIdx + 2] ?? 0;
             count++;
 
             // Bottom
             const bottomIdx = ((height - 1 - y) * width + x) * 4;
-            sumR += data[bottomIdx];
-            sumG += data[bottomIdx + 1];
-            sumB += data[bottomIdx + 2];
+            sumR += data[bottomIdx] ?? 0;
+            sumG += data[bottomIdx + 1] ?? 0;
+            sumB += data[bottomIdx + 2] ?? 0;
             count++;
         }
     }
@@ -332,16 +352,16 @@ function extractBorderDominantColor(imageData: ImageData): string {
         for (let x = 0; x < borderWidth; x++) {
             // Left
             const leftIdx = (y * width + x) * 4;
-            sumR += data[leftIdx];
-            sumG += data[leftIdx + 1];
-            sumB += data[leftIdx + 2];
+            sumR += data[leftIdx] ?? 0;
+            sumG += data[leftIdx + 1] ?? 0;
+            sumB += data[leftIdx + 2] ?? 0;
             count++;
 
             // Right
             const rightIdx = (y * width + (width - 1 - x)) * 4;
-            sumR += data[rightIdx];
-            sumG += data[rightIdx + 1];
-            sumB += data[rightIdx + 2];
+            sumR += data[rightIdx] ?? 0;
+            sumG += data[rightIdx + 1] ?? 0;
+            sumB += data[rightIdx + 2] ?? 0;
             count++;
         }
     }
@@ -397,7 +417,15 @@ function getDominantColorRGB(avgR: number, avgG: number, avgB: number): string {
  */
 export function compareColorProfiles(profile1: ColorProfile, profile2: ColorProfile): number {
     let matches = 0;
-    const keys: (keyof ColorProfile)[] = ['topLeft', 'topRight', 'bottomLeft', 'bottomRight', 'center', 'border', 'dominant'];
+    const keys: (keyof ColorProfile)[] = [
+        'topLeft',
+        'topRight',
+        'bottomLeft',
+        'bottomRight',
+        'center',
+        'border',
+        'dominant',
+    ];
 
     for (const key of keys) {
         if (profile1[key] === profile2[key]) {
@@ -428,12 +456,7 @@ const itemSimilarityPenalties = new Map<string, number>();
 /**
  * Record a user correction
  */
-export function recordCorrection(
-    detectedItem: Item,
-    actualItem: Item,
-    confidence: number,
-    imageHash: string
-): void {
+export function recordCorrection(detectedItem: Item, actualItem: Item, confidence: number, imageHash: string): void {
     feedbackCorrections.push({
         detected: detectedItem.id,
         actual: actualItem.id,

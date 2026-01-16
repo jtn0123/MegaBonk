@@ -7,17 +7,12 @@
 
 import type { AllGameData, Item } from '../types/index.ts';
 import type { CVDetectionResult, ROI } from './computer-vision.ts';
-import {
-    detectGridPositions,
-    aggregateDuplicates,
-    combineDetections,
-} from './computer-vision.ts';
+import { detectGridPositions, aggregateDuplicates } from './computer-vision.ts';
 import type { CVStrategy, ColorProfile, HSVColor } from './cv-strategy.ts';
 import {
     getActiveStrategy,
     getConfidenceThresholds,
     rgbToHSV,
-    getColorCategoryHSV,
     extractColorProfile,
     compareColorProfiles,
     getSimilarityPenalty,
@@ -46,7 +41,6 @@ interface EnhancedTemplateData {
 const enhancedTemplates = new Map<string, EnhancedTemplateData>();
 const templatesByRarity = new Map<string, Item[]>();
 const templatesByColor = new Map<string, Item[]>();
-const templatesByColorProfile = new Map<string, Item[]>();
 
 let allData: AllGameData = {};
 let templatesLoaded = false;
@@ -81,6 +75,7 @@ export async function loadEnhancedTemplates(): Promise<void> {
     // Load all items with enhanced analysis
     const loadPromises = items.map(async item => {
         try {
+            if (!item.image) return;
             const imagePath = item.image.replace('.png', '.webp');
             const img = new Image();
 
@@ -103,12 +98,15 @@ export async function loadEnhancedTemplates(): Promise<void> {
                     const colorProfile = extractColorProfile(imageData);
 
                     // Calculate average HSV
-                    let sumH = 0, sumS = 0, sumV = 0, count = 0;
+                    let sumH = 0,
+                        sumS = 0,
+                        sumV = 0,
+                        count = 0;
                     for (let i = 0; i < imageData.data.length; i += 16) {
                         const hsv = rgbToHSV(
-                            imageData.data[i],
-                            imageData.data[i + 1],
-                            imageData.data[i + 2]
+                            imageData.data[i] ?? 0,
+                            imageData.data[i + 1] ?? 0,
+                            imageData.data[i + 2] ?? 0
                         );
                         sumH += hsv.h;
                         sumS += hsv.s;
@@ -166,12 +164,15 @@ export async function loadEnhancedTemplates(): Promise<void> {
                         const imageData = ctx.getImageData(0, 0, pngImg.width, pngImg.height);
                         const colorProfile = extractColorProfile(imageData);
 
-                        let sumH = 0, sumS = 0, sumV = 0, count = 0;
+                        let sumH = 0,
+                            sumS = 0,
+                            sumV = 0,
+                            count = 0;
                         for (let i = 0; i < imageData.data.length; i += 16) {
                             const hsv = rgbToHSV(
-                                imageData.data[i],
-                                imageData.data[i + 1],
-                                imageData.data[i + 2]
+                                imageData.data[i] ?? 0,
+                                imageData.data[i + 1] ?? 0,
+                                imageData.data[i + 2] ?? 0
                             );
                             sumH += hsv.h;
                             sumS += hsv.s;
@@ -208,8 +209,8 @@ export async function loadEnhancedTemplates(): Promise<void> {
 
                         resolve();
                     };
-                    pngImg.onerror = () => reject(new Error(`Failed to load: ${item.image}`));
-                    pngImg.src = item.image;
+                    pngImg.onerror = () => reject(new Error(`Failed to load: ${item.image ?? 'unknown'}`));
+                    pngImg.src = item.image ?? '';
                 };
 
                 img.src = imagePath;
@@ -219,8 +220,7 @@ export async function loadEnhancedTemplates(): Promise<void> {
                 operation: 'cv_enhanced.load_template',
                 error: {
                     name: (error as Error).name,
-                    message: (error as Error).message,
-                    itemId: item.id,
+                    message: `${(error as Error).message} (item: ${item.id})`,
                 },
             });
         }
@@ -235,8 +235,12 @@ export async function loadEnhancedTemplates(): Promise<void> {
         data: {
             phase: 'complete',
             total: enhancedTemplates.size,
-            byRarity: Object.fromEntries(templatesByRarity.entries().map(([k, v]) => [k, v.length])),
-            byColor: Object.fromEntries(templatesByColor.entries().map(([k, v]) => [k, v.length])),
+            byRarity: Object.fromEntries(
+                Array.from(templatesByRarity.entries()).map(([k, v]: [string, Item[]]) => [k, v.length])
+            ),
+            byColor: Object.fromEntries(
+                Array.from(templatesByColor.entries()).map(([k, v]: [string, Item[]]) => [k, v.length])
+            ),
         },
     });
 }
@@ -248,21 +252,24 @@ function detectBorderRarity(imageData: ImageData): string | null {
     const { width, height, data } = imageData;
     const borderWidth = 3;
 
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
 
     // Extract border pixels
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < borderWidth; y++) {
             const topIdx = (y * width + x) * 4;
-            sumR += data[topIdx];
-            sumG += data[topIdx + 1];
-            sumB += data[topIdx + 2];
+            sumR += data[topIdx] ?? 0;
+            sumG += data[topIdx + 1] ?? 0;
+            sumB += data[topIdx + 2] ?? 0;
             count++;
 
             const bottomIdx = ((height - 1 - y) * width + x) * 4;
-            sumR += data[bottomIdx];
-            sumG += data[bottomIdx + 1];
-            sumB += data[bottomIdx + 2];
+            sumR += data[bottomIdx] ?? 0;
+            sumG += data[bottomIdx + 1] ?? 0;
+            sumB += data[bottomIdx + 2] ?? 0;
             count++;
         }
     }
@@ -270,15 +277,15 @@ function detectBorderRarity(imageData: ImageData): string | null {
     for (let y = borderWidth; y < height - borderWidth; y++) {
         for (let x = 0; x < borderWidth; x++) {
             const leftIdx = (y * width + x) * 4;
-            sumR += data[leftIdx];
-            sumG += data[leftIdx + 1];
-            sumB += data[leftIdx + 2];
+            sumR += data[leftIdx] ?? 0;
+            sumG += data[leftIdx + 1] ?? 0;
+            sumB += data[leftIdx + 2] ?? 0;
             count++;
 
             const rightIdx = (y * width + (width - 1 - x)) * 4;
-            sumR += data[rightIdx];
-            sumG += data[rightIdx + 1];
-            sumB += data[rightIdx + 2];
+            sumR += data[rightIdx] ?? 0;
+            sumG += data[rightIdx + 1] ?? 0;
+            sumB += data[rightIdx + 2] ?? 0;
             count++;
         }
     }
@@ -303,9 +310,7 @@ function detectBorderRarity(imageData: ImageData): string | null {
 
     for (const [rarity, color] of Object.entries(rarityColors)) {
         const distance = Math.sqrt(
-            Math.pow(avgR - color.r, 2) +
-            Math.pow(avgG - color.g, 2) +
-            Math.pow(avgB - color.b, 2)
+            Math.pow(avgR - color.r, 2) + Math.pow(avgG - color.g, 2) + Math.pow(avgB - color.b, 2)
         );
 
         if (distance < color.tolerance && distance < bestDistance) {
@@ -320,11 +325,7 @@ function detectBorderRarity(imageData: ImageData): string | null {
 /**
  * Calculate similarity using specified algorithm
  */
-function calculateSimilarity(
-    imageData1: ImageData,
-    imageData2: ImageData,
-    algorithm: 'ncc' | 'ssd' | 'ssim'
-): number {
+function calculateSimilarity(imageData1: ImageData, imageData2: ImageData, algorithm: 'ncc' | 'ssd' | 'ssim'): number {
     switch (algorithm) {
         case 'ssd':
             return calculateSSD(imageData1, imageData2);
@@ -340,14 +341,19 @@ function calculateSimilarity(
  * Normalized Cross-Correlation (current method)
  */
 function calculateNCC(imageData1: ImageData, imageData2: ImageData): number {
-    let sum1 = 0, sum2 = 0, sumProduct = 0, sumSquare1 = 0, sumSquare2 = 0, count = 0;
+    let sum1 = 0,
+        sum2 = 0,
+        sumProduct = 0,
+        sumSquare1 = 0,
+        sumSquare2 = 0,
+        count = 0;
 
     const pixels1 = imageData1.data;
     const pixels2 = imageData2.data;
 
     for (let i = 0; i < Math.min(pixels1.length, pixels2.length); i += 4) {
-        const gray1 = (pixels1[i] + pixels1[i + 1] + pixels1[i + 2]) / 3;
-        const gray2 = (pixels2[i] + pixels2[i + 1] + pixels2[i + 2]) / 3;
+        const gray1 = ((pixels1[i] ?? 0) + (pixels1[i + 1] ?? 0) + (pixels1[i + 2] ?? 0)) / 3;
+        const gray2 = ((pixels2[i] ?? 0) + (pixels2[i + 1] ?? 0) + (pixels2[i + 2] ?? 0)) / 3;
 
         sum1 += gray1;
         sum2 += gray2;
@@ -379,8 +385,8 @@ function calculateSSD(imageData1: ImageData, imageData2: ImageData): number {
     const pixels2 = imageData2.data;
 
     for (let i = 0; i < Math.min(pixels1.length, pixels2.length); i += 4) {
-        const gray1 = (pixels1[i] + pixels1[i + 1] + pixels1[i + 2]) / 3;
-        const gray2 = (pixels2[i] + pixels2[i + 1] + pixels2[i + 2]) / 3;
+        const gray1 = ((pixels1[i] ?? 0) + (pixels1[i + 1] ?? 0) + (pixels1[i + 2] ?? 0)) / 3;
+        const gray2 = ((pixels2[i] ?? 0) + (pixels2[i + 1] ?? 0) + (pixels2[i + 2] ?? 0)) / 3;
 
         const diff = gray1 - gray2;
         sum += diff * diff;
@@ -399,14 +405,19 @@ function calculateSSIM(imageData1: ImageData, imageData2: ImageData): number {
     const C1 = (0.01 * 255) ** 2;
     const C2 = (0.03 * 255) ** 2;
 
-    let sum1 = 0, sum2 = 0, sumSquare1 = 0, sumSquare2 = 0, sumProduct = 0, count = 0;
+    let sum1 = 0,
+        sum2 = 0,
+        sumSquare1 = 0,
+        sumSquare2 = 0,
+        sumProduct = 0,
+        count = 0;
 
     const pixels1 = imageData1.data;
     const pixels2 = imageData2.data;
 
     for (let i = 0; i < Math.min(pixels1.length, pixels2.length); i += 4) {
-        const gray1 = (pixels1[i] + pixels1[i + 1] + pixels1[i + 2]) / 3;
-        const gray2 = (pixels2[i] + pixels2[i + 1] + pixels2[i + 2]) / 3;
+        const gray1 = ((pixels1[i] ?? 0) + (pixels1[i + 1] ?? 0) + (pixels1[i + 2] ?? 0)) / 3;
+        const gray2 = ((pixels2[i] ?? 0) + (pixels2[i + 1] ?? 0) + (pixels2[i + 2] ?? 0)) / 3;
 
         sum1 += gray1;
         sum2 += gray2;
@@ -484,12 +495,7 @@ export async function detectItemsWithEnhancedCV(
         }
 
         // Detect items using strategy
-        const detections = await detectWithStrategy(
-            ctx,
-            gridPositions,
-            strategy,
-            progressCallback
-        );
+        const detections = await detectWithStrategy(ctx, gridPositions, strategy, progressCallback);
 
         metrics.endMatching();
         metrics.startPostprocess();
@@ -515,7 +521,10 @@ export async function detectItemsWithEnhancedCV(
         const finalMetrics = metrics.complete();
 
         if (progressCallback) {
-            progressCallback(100, `Complete! Detected ${aggregated.length} items in ${finalMetrics.totalTime.toFixed(0)}ms`);
+            progressCallback(
+                100,
+                `Complete! Detected ${aggregated.length} items in ${finalMetrics.totalTime.toFixed(0)}ms`
+            );
         }
 
         logger.info({
@@ -529,7 +538,6 @@ export async function detectItemsWithEnhancedCV(
         });
 
         return aggregated;
-
     } catch (error) {
         logger.error({
             operation: 'cv_enhanced.detect_error',
@@ -552,7 +560,6 @@ async function detectWithStrategy(
     progressCallback?: (progress: number, status: string) => void
 ): Promise<CVDetectionResult[]> {
     const items = allData.items?.items || [];
-    const detections: CVDetectionResult[] = [];
 
     // Filter empty cells first
     const validCells: Array<{ cell: ROI; imageData: ImageData; rarity?: string; colorProfile?: ColorProfile }> = [];
@@ -686,7 +693,9 @@ async function singlePassMatching(
     const thresholds = getConfidenceThresholds(strategy);
 
     for (let i = 0; i < validCells.length; i++) {
-        const { cell, imageData, rarity, colorProfile } = validCells[i];
+        const validCell = validCells[i];
+        if (!validCell) continue;
+        const { cell, imageData, rarity, colorProfile } = validCell;
 
         if (progressCallback && i % 5 === 0) {
             const progress = 40 + Math.floor((i / validCells.length) * 50);
@@ -718,7 +727,7 @@ function filterCandidates(
     strategy: CVStrategy,
     cellRarity?: string,
     cellColorProfile?: ColorProfile,
-    cellImageData?: ImageData
+    _cellImageData?: ImageData
 ): Item[] {
     let candidates = items;
 
@@ -740,7 +749,6 @@ function filterCandidates(
 
         // Fallback to all items if no matches
         if (candidates.length === 0) candidates = items;
-
     } else if (strategy.colorFiltering === 'color-first') {
         // Color-first: Filter by dominant color
         if (cellColorProfile) {
@@ -756,8 +764,8 @@ function filterCandidates(
  * Match a cell against candidate items
  */
 function matchCell(
-    ctx: CanvasRenderingContext2D,
-    cell: ROI,
+    _ctx: CanvasRenderingContext2D,
+    _cell: ROI,
     cellImageData: ImageData,
     candidates: Item[],
     strategy: CVStrategy
@@ -816,14 +824,18 @@ function matchCell(
  */
 function isEmptyCell(imageData: ImageData): boolean {
     const pixels = imageData.data;
-    let sumR = 0, sumG = 0, sumB = 0;
-    let sumSquareR = 0, sumSquareG = 0, sumSquareB = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
+    let sumSquareR = 0,
+        sumSquareG = 0,
+        sumSquareB = 0;
     let count = 0;
 
     for (let i = 0; i < pixels.length; i += 16) {
-        const r = pixels[i];
-        const g = pixels[i + 1];
-        const b = pixels[i + 2];
+        const r = pixels[i] ?? 0;
+        const g = pixels[i + 1] ?? 0;
+        const b = pixels[i + 2] ?? 0;
 
         sumR += r;
         sumG += g;
