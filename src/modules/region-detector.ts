@@ -48,7 +48,7 @@ const HOTBAR_Y_PERCENT_MAX = 0.95;
 
 /** Top-left region bounds as percentage */
 const TOP_LEFT_X_PERCENT = 0.15;
-const TOP_LEFT_Y_PERCENT = 0.20;
+const TOP_LEFT_Y_PERCENT = 0.2;
 
 /** Max slots for each region */
 const MAX_ITEMS_SLOTS = 12;
@@ -324,7 +324,8 @@ export function calculateRegionVariance(
         for (let px = startX; px < endX; px++) {
             const idx = (py * imageData.width + px) * 4;
             // Convert to grayscale
-            const gray = (imageData.data[idx] + imageData.data[idx + 1] + imageData.data[idx + 2]) / 3;
+            const gray =
+                ((imageData.data[idx] ?? 0) + (imageData.data[idx + 1] ?? 0) + (imageData.data[idx + 2] ?? 0)) / 3;
             sum += gray;
             sumSq += gray * gray;
             count++;
@@ -346,7 +347,7 @@ export function detectOccupiedSlots(
     slots: SlotInfo[],
     varianceThreshold: number = config.emptySlotVarianceThreshold
 ): SlotInfo[] {
-    return slots.map((slot) => {
+    return slots.map(slot => {
         const variance = calculateRegionVariance(imageData, slot.x, slot.y, slot.width, slot.height);
 
         const occupied = variance > varianceThreshold;
@@ -365,7 +366,7 @@ export function detectOccupiedSlots(
  * Count occupied slots in a region
  */
 export function countOccupiedSlots(slots: SlotInfo[]): number {
-    return slots.filter((slot) => slot.occupied).length;
+    return slots.filter(slot => slot.occupied).length;
 }
 
 // ========================================
@@ -381,7 +382,9 @@ export function getRegionsOfInterest(regions: ScreenRegions): RegionOfInterest[]
     // Items hotbar
     const hotbarSlots = generateHotbarSlots(regions);
     const totalHotbarWidth =
-        hotbarSlots.length > 0 ? hotbarSlots[hotbarSlots.length - 1].x + hotbarSlots[0].width - hotbarSlots[0].x : 0;
+        hotbarSlots.length > 0
+            ? (hotbarSlots[hotbarSlots.length - 1]?.x ?? 0) + (hotbarSlots[0]?.width ?? 0) - (hotbarSlots[0]?.x ?? 0)
+            : 0;
 
     rois.push({
         type: 'items_hotbar',
@@ -495,10 +498,14 @@ export function validateRegions(regions: ScreenRegions): {
 
     // Check hotbar is in bottom portion
     if (regions.itemsHotbar.baseY < height * HOTBAR_Y_PERCENT_MIN) {
-        issues.push(`Hotbar Y (${regions.itemsHotbar.baseY}) is above expected minimum (${height * HOTBAR_Y_PERCENT_MIN})`);
+        issues.push(
+            `Hotbar Y (${regions.itemsHotbar.baseY}) is above expected minimum (${height * HOTBAR_Y_PERCENT_MIN})`
+        );
     }
     if (regions.itemsHotbar.baseY > height * HOTBAR_Y_PERCENT_MAX) {
-        issues.push(`Hotbar Y (${regions.itemsHotbar.baseY}) is below expected maximum (${height * HOTBAR_Y_PERCENT_MAX})`);
+        issues.push(
+            `Hotbar Y (${regions.itemsHotbar.baseY}) is below expected maximum (${height * HOTBAR_Y_PERCENT_MAX})`
+        );
     }
 
     // Check weapons/tomes are in top-left

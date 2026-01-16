@@ -144,13 +144,13 @@ class MetricsTracker {
      * Compare multiple strategies
      */
     compareStrategies(strategyNames: string[]): StrategyComparison {
-        const metrics = strategyNames.map(name => {
+        const metrics: DetectionMetrics[] = strategyNames.map(name => {
             const strategyMetrics = this.getMetricsForStrategy(name);
             if (strategyMetrics.length === 0) {
                 throw new Error(`No metrics found for strategy: ${name}`);
             }
             // Return most recent run
-            return strategyMetrics[strategyMetrics.length - 1];
+            return strategyMetrics[strategyMetrics.length - 1]!;
         });
 
         // Find fastest
@@ -159,7 +159,7 @@ class MetricsTracker {
         metrics.forEach((m, i) => {
             if (m.totalTime < fastestTime) {
                 fastestTime = m.totalTime;
-                fastestStrategy = strategyNames[i];
+                fastestStrategy = strategyNames[i] ?? '';
             }
         });
 
@@ -173,14 +173,14 @@ class MetricsTracker {
             if (m.accuracy !== undefined) {
                 if (bestAccuracy === undefined || m.accuracy > bestAccuracy) {
                     bestAccuracy = m.accuracy;
-                    mostAccurateStrategy = strategyNames[i];
+                    mostAccurateStrategy = strategyNames[i] ?? '';
                 }
             }
 
             if (m.f1Score !== undefined) {
                 if (bestF1Score === undefined || m.f1Score > bestF1Score) {
                     bestF1Score = m.f1Score;
-                    bestF1Strategy = strategyNames[i];
+                    bestF1Strategy = strategyNames[i] ?? '';
                 }
             }
         });
@@ -212,11 +212,11 @@ class MetricsTracker {
      */
     private findBalancedStrategy(metrics: DetectionMetrics[], strategyNames: string[]): string {
         let bestScore = -Infinity;
-        let bestStrategy = strategyNames[0];
+        let bestStrategy = strategyNames[0] ?? '';
 
         metrics.forEach((m, i) => {
             // Normalize speed (inverse) and accuracy to 0-1 scale
-            const speedScore = 1 - (m.totalTime / 10000); // Assume max 10s
+            const speedScore = 1 - m.totalTime / 10000; // Assume max 10s
             const accuracyScore = m.f1Score || m.accuracy || m.matchRate;
 
             // Balanced score (equal weight)
@@ -224,7 +224,7 @@ class MetricsTracker {
 
             if (balancedScore > bestScore) {
                 bestScore = balancedScore;
-                bestStrategy = strategyNames[i];
+                bestStrategy = strategyNames[i] ?? '';
             }
         });
 
@@ -296,9 +296,9 @@ class MetricsTracker {
                 report += `  - False Positives: ${m.falsePositives}\n`;
                 report += `  - False Negatives: ${m.falseNegatives}\n`;
                 report += `  - Precision: ${(m.precision * 100).toFixed(1)}%\n`;
-                report += `  - Recall: ${(m.recall * 100).toFixed(1)}%\n`;
-                report += `  - F1 Score: ${(m.f1Score! * 100).toFixed(1)}%\n`;
-                report += `  - Accuracy: ${(m.accuracy! * 100).toFixed(1)}%\n`;
+                report += `  - Recall: ${((m.recall ?? 0) * 100).toFixed(1)}%\n`;
+                report += `  - F1 Score: ${((m.f1Score ?? 0) * 100).toFixed(1)}%\n`;
+                report += `  - Accuracy: ${((m.accuracy ?? 0) * 100).toFixed(1)}%\n`;
             }
 
             report += '\n';
@@ -447,22 +447,18 @@ class MetricsSession {
 
         // Calculate confidence statistics
         const confidences = this.detections.map(d => d.confidence);
-        const averageConfidence = confidences.length > 0
-            ? confidences.reduce((a, b) => a + b, 0) / confidences.length
-            : 0;
+        const averageConfidence =
+            confidences.length > 0 ? confidences.reduce((a, b) => a + b, 0) / confidences.length : 0;
 
         const sortedConfidences = [...confidences].sort((a, b) => a - b);
-        const medianConfidence = sortedConfidences.length > 0
-            ? sortedConfidences[Math.floor(sortedConfidences.length / 2)]
-            : 0;
+        const medianConfidence =
+            sortedConfidences.length > 0 ? (sortedConfidences[Math.floor(sortedConfidences.length / 2)] ?? 0) : 0;
 
         const highConfidenceDetections = confidences.filter(c => c >= 0.85).length;
-        const mediumConfidenceDetections = confidences.filter(c => c >= 0.70 && c < 0.85).length;
-        const lowConfidenceDetections = confidences.filter(c => c < 0.70).length;
+        const mediumConfidenceDetections = confidences.filter(c => c >= 0.7 && c < 0.85).length;
+        const lowConfidenceDetections = confidences.filter(c => c < 0.7).length;
 
-        const matchRate = this.cellStats.valid > 0
-            ? this.cellStats.matched / this.cellStats.valid
-            : 0;
+        const matchRate = this.cellStats.valid > 0 ? this.cellStats.matched / this.cellStats.valid : 0;
 
         // Calculate accuracy metrics if ground truth available
         let accuracyMetrics: Partial<DetectionMetrics> = {};
@@ -511,7 +507,10 @@ class MetricsSession {
     /**
      * Calculate accuracy metrics against ground truth
      */
-    private calculateAccuracyMetrics(detections: CVDetectionResult[], groundTruth: GroundTruth): Partial<DetectionMetrics> {
+    private calculateAccuracyMetrics(
+        detections: CVDetectionResult[],
+        groundTruth: GroundTruth
+    ): Partial<DetectionMetrics> {
         // Convert detections to item counts
         const detectedItems = new Map<string, number>();
         detections.forEach(d => {
@@ -548,21 +547,16 @@ class MetricsSession {
         });
 
         // Calculate metrics
-        const precision = truePositives + falsePositives > 0
-            ? truePositives / (truePositives + falsePositives)
-            : 0;
+        const precision = truePositives + falsePositives > 0 ? truePositives / (truePositives + falsePositives) : 0;
 
-        const recall = truePositives + falseNegatives > 0
-            ? truePositives / (truePositives + falseNegatives)
-            : 0;
+        const recall = truePositives + falseNegatives > 0 ? truePositives / (truePositives + falseNegatives) : 0;
 
-        const f1Score = precision + recall > 0
-            ? 2 * (precision * recall) / (precision + recall)
-            : 0;
+        const f1Score = precision + recall > 0 ? (2 * (precision * recall)) / (precision + recall) : 0;
 
-        const accuracy = truePositives + falsePositives + falseNegatives > 0
-            ? truePositives / (truePositives + falsePositives + falseNegatives)
-            : 0;
+        const accuracy =
+            truePositives + falsePositives + falseNegatives > 0
+                ? truePositives / (truePositives + falsePositives + falseNegatives)
+                : 0;
 
         return {
             truePositives,

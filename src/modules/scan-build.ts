@@ -15,8 +15,6 @@ import {
     combineDetections,
     aggregateDuplicates,
     createDebugOverlay,
-    detectGridPositions,
-    type CVDetectionResult,
 } from './computer-vision.ts';
 
 // State
@@ -297,7 +295,7 @@ async function handleAutoDetect(): Promise<void> {
             } catch (cvError) {
                 logger.warn({
                     operation: 'scan_build.cv_fallback_failed',
-                    error: { message: (cvError as Error).message },
+                    error: { name: (cvError as Error).name, message: (cvError as Error).message },
                 });
             }
         }

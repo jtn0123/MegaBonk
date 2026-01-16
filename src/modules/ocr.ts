@@ -20,7 +20,6 @@ export interface DetectionResult {
 // OCR status callback
 export type OCRProgressCallback = (progress: number, status: string) => void;
 
-let allData: AllGameData = {};
 let itemFuse: Fuse<Item> | null = null;
 let tomeFuse: Fuse<Tome> | null = null;
 let characterFuse: Fuse<Character> | null = null;
@@ -30,8 +29,6 @@ let weaponFuse: Fuse<Weapon> | null = null;
  * Initialize OCR module with game data
  */
 export function initOCR(gameData: AllGameData): void {
-    allData = gameData;
-
     // Initialize Fuse.js for fuzzy matching
     const fuseOptions = {
         includeScore: true,
@@ -160,23 +157,23 @@ export function detectItemsFromText(text: string): DetectionResult[] {
 
     for (const segment of segments) {
         const results = itemFuse.search(segment);
+        const match = results[0];
+        const score = match?.score;
 
-        if (results.length > 0 && results[0].score !== undefined) {
-            const match = results[0];
-
+        if (match && score !== undefined) {
             // Track best unmatched score for debugging
-            if (match.score >= 0.5 && match.score < bestUnmatchedScore) {
-                bestUnmatchedScore = match.score;
+            if (score >= 0.5 && score < bestUnmatchedScore) {
+                bestUnmatchedScore = score;
                 bestUnmatchedName = match.item.name;
             }
 
             // Only include matches with confidence > 50% (score < 0.5)
-            if (match.score < 0.5 && !seenEntities.has(match.item.id)) {
+            if (score < 0.5 && !seenEntities.has(match.item.id)) {
                 seenEntities.add(match.item.id);
                 detections.push({
                     type: 'item',
                     entity: match.item,
-                    confidence: 1 - match.score, // Fuse score is 0 (best) to 1 (worst), invert it
+                    confidence: 1 - score, // Fuse score is 0 (best) to 1 (worst), invert it
                     rawText: segment,
                 });
 
@@ -185,7 +182,7 @@ export function detectItemsFromText(text: string): DetectionResult[] {
                     data: {
                         segment: segment.substring(0, 30),
                         matchedItem: match.item.name,
-                        score: match.score.toFixed(3),
+                        score: score.toFixed(3),
                     },
                 });
             }
@@ -220,18 +217,17 @@ export function detectTomesFromText(text: string): DetectionResult[] {
 
     for (const segment of segments) {
         const results = tomeFuse.search(segment);
+        const match = results[0];
+        const score = match?.score;
 
-        if (results.length > 0 && results[0].score !== undefined) {
-            const match = results[0];
-            if (match.score < 0.5 && !seenEntities.has(match.item.id)) {
-                seenEntities.add(match.item.id);
-                detections.push({
-                    type: 'tome',
-                    entity: match.item,
-                    confidence: 1 - match.score,
-                    rawText: segment,
-                });
-            }
+        if (match && score !== undefined && score < 0.5 && !seenEntities.has(match.item.id)) {
+            seenEntities.add(match.item.id);
+            detections.push({
+                type: 'tome',
+                entity: match.item,
+                confidence: 1 - score,
+                rawText: segment,
+            });
         }
     }
 
@@ -245,17 +241,16 @@ export function detectCharacterFromText(text: string): DetectionResult | null {
     if (!characterFuse) return null;
 
     const results = characterFuse.search(text);
+    const match = results[0];
+    const score = match?.score;
 
-    if (results.length > 0 && results[0].score !== undefined) {
-        const match = results[0];
-        if (match.score < 0.5) {
-            return {
-                type: 'character',
-                entity: match.item,
-                confidence: 1 - match.score,
-                rawText: text,
-            };
-        }
+    if (match && score !== undefined && score < 0.5) {
+        return {
+            type: 'character',
+            entity: match.item,
+            confidence: 1 - score,
+            rawText: text,
+        };
     }
 
     return null;
@@ -273,18 +268,17 @@ export function detectCharactersFromText(text: string): DetectionResult[] {
 
     for (const segment of segments) {
         const results = characterFuse.search(segment);
+        const match = results[0];
+        const score = match?.score;
 
-        if (results.length > 0 && results[0].score !== undefined) {
-            const match = results[0];
-            if (match.score < 0.5 && !seenEntities.has(match.item.id)) {
-                seenEntities.add(match.item.id);
-                detections.push({
-                    type: 'character',
-                    entity: match.item,
-                    confidence: 1 - match.score,
-                    rawText: segment,
-                });
-            }
+        if (match && score !== undefined && score < 0.5 && !seenEntities.has(match.item.id)) {
+            seenEntities.add(match.item.id);
+            detections.push({
+                type: 'character',
+                entity: match.item,
+                confidence: 1 - score,
+                rawText: segment,
+            });
         }
     }
 
@@ -298,17 +292,16 @@ export function detectWeaponFromText(text: string): DetectionResult | null {
     if (!weaponFuse) return null;
 
     const results = weaponFuse.search(text);
+    const match = results[0];
+    const score = match?.score;
 
-    if (results.length > 0 && results[0].score !== undefined) {
-        const match = results[0];
-        if (match.score < 0.5) {
-            return {
-                type: 'weapon',
-                entity: match.item,
-                confidence: 1 - match.score,
-                rawText: text,
-            };
-        }
+    if (match && score !== undefined && score < 0.5) {
+        return {
+            type: 'weapon',
+            entity: match.item,
+            confidence: 1 - score,
+            rawText: text,
+        };
     }
 
     return null;
@@ -326,18 +319,17 @@ export function detectWeaponsFromText(text: string): DetectionResult[] {
 
     for (const segment of segments) {
         const results = weaponFuse.search(segment);
+        const match = results[0];
+        const score = match?.score;
 
-        if (results.length > 0 && results[0].score !== undefined) {
-            const match = results[0];
-            if (match.score < 0.5 && !seenEntities.has(match.item.id)) {
-                seenEntities.add(match.item.id);
-                detections.push({
-                    type: 'weapon',
-                    entity: match.item,
-                    confidence: 1 - match.score,
-                    rawText: segment,
-                });
-            }
+        if (match && score !== undefined && score < 0.5 && !seenEntities.has(match.item.id)) {
+            seenEntities.add(match.item.id);
+            detections.push({
+                type: 'weapon',
+                entity: match.item,
+                confidence: 1 - score,
+                rawText: segment,
+            });
         }
     }
 
@@ -417,10 +409,13 @@ export function extractItemCounts(text: string): Map<string, number> {
     for (const pattern of patterns) {
         const matches = text.matchAll(pattern);
         for (const match of matches) {
-            const name = match[1].trim();
-            const count = parseInt(match[2], 10);
-            if (!isNaN(count) && count > 0) {
-                counts.set(name.toLowerCase(), count);
+            const name = match[1]?.trim();
+            const countStr = match[2];
+            if (name && countStr) {
+                const count = parseInt(countStr, 10);
+                if (!isNaN(count) && count > 0) {
+                    counts.set(name.toLowerCase(), count);
+                }
             }
         }
     }
@@ -432,7 +427,6 @@ export function extractItemCounts(text: string): Map<string, number> {
  * Reset OCR module state (for testing)
  */
 export function __resetForTesting(): void {
-    allData = {};
     itemFuse = null;
     tomeFuse = null;
     characterFuse = null;

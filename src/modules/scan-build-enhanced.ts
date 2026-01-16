@@ -7,28 +7,19 @@
 import type { AllGameData } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
-import { setActiveStrategy, getActiveStrategy, STRATEGY_PRESETS } from './cv-strategy.ts';
-import {
-    detectItemsWithEnhancedCV,
-    initEnhancedCV,
-    loadEnhancedTemplates,
-} from './computer-vision-enhanced.ts';
+import { setActiveStrategy, STRATEGY_PRESETS } from './cv-strategy.ts';
+import { detectItemsWithEnhancedCV, initEnhancedCV, loadEnhancedTemplates } from './computer-vision-enhanced.ts';
 import { metricsTracker } from './cv-metrics.ts';
 import { autoDetectFromImage } from './ocr.ts';
 import { combineDetections, aggregateDuplicates } from './computer-vision.ts';
-import type { CVDetectionResult } from './computer-vision.ts';
 import type { DetectionResult } from './ocr.ts';
 
-let allData: AllGameData = {};
-let uploadedImage: string | null = null;
 let currentStrategy = 'optimized'; // Default to optimized
 
 /**
  * Initialize enhanced scan build with strategy support
  */
 export async function initEnhancedScanBuild(gameData: AllGameData): Promise<void> {
-    allData = gameData;
-
     // Initialize enhanced CV
     initEnhancedCV(gameData);
 
@@ -194,13 +185,9 @@ export async function handleEnhancedHybridDetect(imageDataUrl: string): Promise<
 
         // Run enhanced CV (40-90%)
         updateProgressIndicator(progressDiv, 40, `Running ${currentStrategy} CV...`);
-        const cvResults = await detectItemsWithEnhancedCV(
-            imageDataUrl,
-            currentStrategy,
-            (progress, status) => {
-                updateProgressIndicator(progressDiv, 40 + progress * 0.5, status);
-            }
-        );
+        const cvResults = await detectItemsWithEnhancedCV(imageDataUrl, currentStrategy, (progress, status) => {
+            updateProgressIndicator(progressDiv, 40 + progress * 0.5, status);
+        });
 
         // Combine results (90-95%)
         updateProgressIndicator(progressDiv, 90, 'Combining detections...');
@@ -390,13 +377,12 @@ export async function compareStrategiesOnImage(imageDataUrl: string): Promise<vo
                 strategy,
                 detections: cvResults.length,
                 timeMs: endTime - startTime,
-                avgConfidence:
-                    cvResults.reduce((sum, r) => sum + r.confidence, 0) / (cvResults.length || 1),
+                avgConfidence: cvResults.reduce((sum, r) => sum + r.confidence, 0) / (cvResults.length || 1),
             });
         } catch (error) {
             logger.error({
                 operation: 'scan_build_enhanced.compare_error',
-                error: { strategy, message: (error as Error).message },
+                error: { name: (error as Error).name, message: (error as Error).message },
             });
         }
     }

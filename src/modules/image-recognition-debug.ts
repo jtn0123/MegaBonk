@@ -10,7 +10,6 @@ import type {
     DebugOverlayOptions,
     DebugLogEntry,
     DebugStats,
-    RegionOfInterest,
     CVDetectionResult,
     DetectionResults,
     BoundingBox,
@@ -114,12 +113,7 @@ export function getDebugOptions(): DebugOverlayOptions {
 /**
  * Log a debug message
  */
-export function log(
-    category: string,
-    message: string,
-    data?: unknown,
-    level: DebugLogEntry['level'] = 'debug'
-): void {
+export function log(category: string, message: string, data?: unknown, level: DebugLogEntry['level'] = 'debug'): void {
     const entry: DebugLogEntry = {
         timestamp: Date.now(),
         category,
@@ -169,14 +163,14 @@ export function getLogs(): DebugLogEntry[] {
  * Get logs filtered by category
  */
 export function getLogsByCategory(category: string): DebugLogEntry[] {
-    return debugLogs.filter((entry) => entry.category === category);
+    return debugLogs.filter(entry => entry.category === category);
 }
 
 /**
  * Get logs filtered by level
  */
 export function getLogsByLevel(level: DebugLogEntry['level']): DebugLogEntry[] {
-    return debugLogs.filter((entry) => entry.level === level);
+    return debugLogs.filter(entry => entry.level === level);
 }
 
 /**
@@ -204,15 +198,14 @@ export function exportLogs(): string {
 export function recordDetection(result: DetectionResults): void {
     debugStats.totalDetections++;
 
-    const totalItems =
-        result.items.length + result.weapons.length + result.tomes.length + (result.character ? 1 : 0);
+    const totalItems = result.items.length + result.weapons.length + result.tomes.length + (result.character ? 1 : 0);
     debugStats.successfulMatches += totalItems;
 
     // Update confidence average
     const confidences = [
-        ...result.items.map((d) => d.confidence),
-        ...result.weapons.map((d) => d.confidence),
-        ...result.tomes.map((d) => d.confidence),
+        ...result.items.map(d => d.confidence),
+        ...result.weapons.map(d => d.confidence),
+        ...result.tomes.map(d => d.confidence),
         ...(result.character ? [result.character.confidence] : []),
     ];
 
@@ -226,8 +219,7 @@ export function recordDetection(result: DetectionResults): void {
     // Update processing time average
     processingTimeHistory.push(result.processingTime);
     if (processingTimeHistory.length > 100) processingTimeHistory.shift();
-    debugStats.averageProcessingTime =
-        processingTimeHistory.reduce((a, b) => a + b, 0) / processingTimeHistory.length;
+    debugStats.averageProcessingTime = processingTimeHistory.reduce((a, b) => a + b, 0) / processingTimeHistory.length;
 
     log('stats', 'Detection recorded', {
         totalItems,
@@ -309,7 +301,7 @@ export function drawDebugRegions(
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    regions.forEach((region) => {
+    regions.forEach(region => {
         // Draw region box
         ctx.strokeStyle = region.color;
         ctx.lineWidth = opts.lineWidth;
@@ -338,9 +330,10 @@ export function drawDebugRegions(
             ctx.font = `${opts.fontSize}px monospace`;
             ctx.fillStyle = region.color;
 
-            const labelText = region.confidence !== undefined
-                ? `${region.label} (${(region.confidence * 100).toFixed(1)}%)`
-                : region.label;
+            const labelText =
+                region.confidence !== undefined
+                    ? `${region.label} (${(region.confidence * 100).toFixed(1)}%)`
+                    : region.label;
 
             // Draw label background
             const textMetrics = ctx.measureText(labelText);
@@ -365,7 +358,7 @@ export function drawDebugRegions(
 export function drawSlotGrid(
     canvas: HTMLCanvasElement,
     slots: SlotInfo[],
-    color: string = '#ffffff',
+    _color: string = '#ffffff',
     options: Partial<DebugOverlayOptions> = {}
 ): void {
     const opts = { ...debugOptions, ...options };
@@ -374,7 +367,7 @@ export function drawSlotGrid(
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    slots.forEach((slot) => {
+    slots.forEach(slot => {
         // Draw slot border
         ctx.strokeStyle = slot.occupied ? '#00ff88' : '#666666';
         ctx.lineWidth = slot.occupied ? 2 : 1;
@@ -385,11 +378,7 @@ export function drawSlotGrid(
         if (opts.showConfidenceLabels) {
             ctx.font = `${opts.fontSize - 2}px monospace`;
             ctx.fillStyle = slot.occupied ? '#00ff88' : '#666666';
-            ctx.fillText(
-                String(slot.index),
-                slot.x + slot.width / 2 - 4,
-                slot.y + slot.height / 2 + 4
-            );
+            ctx.fillText(String(slot.index), slot.x + slot.width / 2 - 4, slot.y + slot.height / 2 + 4);
         }
 
         // Draw variance info if available
@@ -418,7 +407,7 @@ export function drawDetectionBoxes(
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    detections.forEach((detection) => {
+    detections.forEach(detection => {
         if (!detection.position) return;
 
         const pos = detection.position;
@@ -437,12 +426,7 @@ export function drawDetectionBoxes(
 
             // Background
             ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-            ctx.fillRect(
-                pos.x,
-                pos.y + pos.height + 2,
-                textMetrics.width + 8,
-                opts.fontSize + 6
-            );
+            ctx.fillRect(pos.x, pos.y + pos.height + 2, textMetrics.width + 8, opts.fontSize + 6);
 
             // Text
             ctx.fillStyle = color;
@@ -467,7 +451,7 @@ export function createDebugOverlay(
 
             // Draw region bounds
             if (opts.showRegionBounds) {
-                const debugRegions: DebugRegion[] = results.regions.map((region) => ({
+                const debugRegions: DebugRegion[] = results.regions.map(region => ({
                     ...region,
                     label: region.label ?? region.type,
                     color: getRegionColor(region.type, opts),
@@ -479,7 +463,7 @@ export function createDebugOverlay(
 
             // Draw slot grids
             if (opts.showSlotGrid) {
-                results.regions.forEach((region) => {
+                results.regions.forEach(region => {
                     if (region.slots) {
                         drawSlotGrid(canvas, region.slots, getRegionColor(region.type, opts), opts);
                     }
@@ -527,11 +511,7 @@ function getRegionColor(type: string, options: DebugOverlayOptions): string {
 /**
  * Draw statistics overlay on canvas
  */
-function drawStatsOverlay(
-    canvas: HTMLCanvasElement,
-    results: DetectionResults,
-    options: DebugOverlayOptions
-): void {
+function drawStatsOverlay(canvas: HTMLCanvasElement, results: DetectionResults, options: DebugOverlayOptions): void {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
@@ -563,11 +543,7 @@ function drawStatsOverlay(
     ctx.fillStyle = '#ffffff';
 
     lines.forEach((line, i) => {
-        ctx.fillText(
-            line,
-            canvas.width - boxWidth - padding + 8,
-            padding + lineHeight * (i + 1)
-        );
+        ctx.fillText(line, canvas.width - boxWidth - padding + 8, padding + lineHeight * (i + 1));
     });
 }
 
@@ -578,44 +554,34 @@ function drawStatsOverlay(
 /**
  * Validate detection results against expected values
  */
-export function validateDetectionResults(
-    results: DetectionResults,
-    testCase: ValidationTestCase
-): ValidationResult {
+export function validateDetectionResults(results: DetectionResults, testCase: ValidationTestCase): ValidationResult {
     const startTime = Date.now();
 
-    const detectedItems = results.items.map((d) => d.entity.name);
-    const detectedWeapons = results.weapons.map((d) => d.entity.name);
-    const detectedTomes = results.tomes.map((d) => d.entity.name);
+    const detectedItems = results.items.map(d => d.entity.name);
+    const detectedWeapons = results.weapons.map(d => d.entity.name);
+    const detectedTomes = results.tomes.map(d => d.entity.name);
     const detectedCharacter = results.character?.entity.name;
 
     // Calculate matches, misses, and false positives
-    const matchedItems = testCase.expectedItems.filter((e) => detectedItems.includes(e));
-    const missedItems = testCase.expectedItems.filter((e) => !detectedItems.includes(e));
-    const falsePositiveItems = detectedItems.filter((d) => !testCase.expectedItems.includes(d));
+    const matchedItems = testCase.expectedItems.filter(e => detectedItems.includes(e));
+    const missedItems = testCase.expectedItems.filter(e => !detectedItems.includes(e));
+    const falsePositiveItems = detectedItems.filter(d => !testCase.expectedItems.includes(d));
 
-    const matchedWeapons = testCase.expectedWeapons.filter((e) => detectedWeapons.includes(e));
-    const missedWeapons = testCase.expectedWeapons.filter((e) => !detectedWeapons.includes(e));
-    const falsePositiveWeapons = detectedWeapons.filter((d) => !testCase.expectedWeapons.includes(d));
+    const matchedWeapons = testCase.expectedWeapons.filter(e => detectedWeapons.includes(e));
+    const missedWeapons = testCase.expectedWeapons.filter(e => !detectedWeapons.includes(e));
+    const falsePositiveWeapons = detectedWeapons.filter(d => !testCase.expectedWeapons.includes(d));
 
-    const matchedTomes = testCase.expectedTomes.filter((e) => detectedTomes.includes(e));
-    const missedTomes = testCase.expectedTomes.filter((e) => !detectedTomes.includes(e));
-    const falsePositiveTomes = detectedTomes.filter((d) => !testCase.expectedTomes.includes(d));
+    const matchedTomes = testCase.expectedTomes.filter(e => detectedTomes.includes(e));
+    const missedTomes = testCase.expectedTomes.filter(e => !detectedTomes.includes(e));
+    const falsePositiveTomes = detectedTomes.filter(d => !testCase.expectedTomes.includes(d));
 
-    const characterMatch = testCase.expectedCharacter
-        ? detectedCharacter === testCase.expectedCharacter
-        : true;
+    const characterMatch = testCase.expectedCharacter ? detectedCharacter === testCase.expectedCharacter : true;
 
     // Calculate accuracy
-    const itemAccuracy = testCase.expectedItems.length > 0
-        ? matchedItems.length / testCase.expectedItems.length
-        : 1;
-    const weaponAccuracy = testCase.expectedWeapons.length > 0
-        ? matchedWeapons.length / testCase.expectedWeapons.length
-        : 1;
-    const tomeAccuracy = testCase.expectedTomes.length > 0
-        ? matchedTomes.length / testCase.expectedTomes.length
-        : 1;
+    const itemAccuracy = testCase.expectedItems.length > 0 ? matchedItems.length / testCase.expectedItems.length : 1;
+    const weaponAccuracy =
+        testCase.expectedWeapons.length > 0 ? matchedWeapons.length / testCase.expectedWeapons.length : 1;
+    const tomeAccuracy = testCase.expectedTomes.length > 0 ? matchedTomes.length / testCase.expectedTomes.length : 1;
 
     const totalExpected =
         testCase.expectedItems.length +
@@ -633,9 +599,9 @@ export function validateDetectionResults(
     let regionAccuracy = 1;
     if (testCase.annotatedRegions && testCase.annotatedRegions.length > 0) {
         let regionMatches = 0;
-        testCase.annotatedRegions.forEach((expected) => {
+        testCase.annotatedRegions.forEach(expected => {
             const found = results.regions.find(
-                (detected) =>
+                detected =>
                     detected.type === expected.type &&
                     Math.abs(detected.x - expected.x) < 50 &&
                     Math.abs(detected.y - expected.y) < 50
@@ -679,11 +645,16 @@ export function validateDetectionResults(
         processingTime: Date.now() - startTime,
     };
 
-    log('validation', `Validation ${result.passed ? 'PASSED' : 'FAILED'}: ${testCase.name}`, {
-        accuracy: result.accuracy,
-        missed: result.missed,
-        falsePositives: result.falsePositives,
-    }, result.passed ? 'info' : 'warn');
+    log(
+        'validation',
+        `Validation ${result.passed ? 'PASSED' : 'FAILED'}: ${testCase.name}`,
+        {
+            accuracy: result.accuracy,
+            missed: result.missed,
+            falsePositives: result.falsePositives,
+        },
+        result.passed ? 'info' : 'warn'
+    );
 
     return result;
 }
@@ -695,12 +666,11 @@ export function validateDetectionResults(
 /**
  * Analyze colors in a region for debugging
  */
-export function analyzeRegionColors(
-    imageData: ImageData,
-    region: BoundingBox
-): ColorAnalysis {
+export function analyzeRegionColors(imageData: ImageData, region: BoundingBox): ColorAnalysis {
     const colors: Map<string, number> = new Map();
-    let totalR = 0, totalG = 0, totalB = 0;
+    let totalR = 0,
+        totalG = 0,
+        totalB = 0;
     let totalBrightness = 0;
     let count = 0;
 
@@ -712,9 +682,9 @@ export function analyzeRegionColors(
     for (let y = startY; y < endY; y++) {
         for (let x = startX; x < endX; x++) {
             const idx = (y * imageData.width + x) * 4;
-            const r = imageData.data[idx];
-            const g = imageData.data[idx + 1];
-            const b = imageData.data[idx + 2];
+            const r = imageData.data[idx] ?? 0;
+            const g = imageData.data[idx + 1] ?? 0;
+            const b = imageData.data[idx + 2] ?? 0;
 
             totalR += r;
             totalG += g;
@@ -734,7 +704,10 @@ export function analyzeRegionColors(
     // Find dominant colors
     const sortedColors = [...colors.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
     const dominantColors = sortedColors.map(([color, freq]) => {
-        const [r, g, b] = color.split(',').map(Number);
+        const parts = color.split(',').map(Number);
+        const r = parts[0] ?? 0;
+        const g = parts[1] ?? 0;
+        const b = parts[2] ?? 0;
         return {
             color: `rgb(${r}, ${g}, ${b})`,
             percentage: (freq / count) * 100,
