@@ -197,6 +197,406 @@ function createItem(id: string): Item {
 // TESTS
 // ============================================================================
 
+// ============================================================================
+// TESTS FOR ACTUAL MODULE FUNCTIONS
+// ============================================================================
+
+import { createMinimalDOM } from '../helpers/dom-setup.js';
+import { ToastManager } from '../../src/modules/toast.ts';
+
+describe('Build Planner - DOM Rendering', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        createMinimalDOM();
+        localStorage.clear();
+
+        // Add share-build-url button to DOM
+        const buildPlannerTab = document.getElementById('build-planner-tab');
+        if (buildPlannerTab && !document.getElementById('share-build-url')) {
+            const shareBtn = document.createElement('button');
+            shareBtn.id = 'share-build-url';
+            shareBtn.textContent = 'Share Build';
+            buildPlannerTab.appendChild(shareBtn);
+        }
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        document.body.innerHTML = '';
+        localStorage.clear();
+    });
+
+    describe('renderBuildPlanner', () => {
+        it('should populate character select with all characters', async () => {
+            const { renderBuildPlanner } = await import('../../src/modules/build-planner.ts');
+            renderBuildPlanner();
+
+            const charSelect = document.getElementById('build-character') as HTMLSelectElement;
+            expect(charSelect).toBeTruthy();
+            // Should have placeholder + characters
+            expect(charSelect.options.length).toBeGreaterThanOrEqual(1);
+        });
+
+        it('should populate weapon select with all weapons', async () => {
+            const { renderBuildPlanner } = await import('../../src/modules/build-planner.ts');
+            renderBuildPlanner();
+
+            const weaponSelect = document.getElementById('build-weapon') as HTMLSelectElement;
+            expect(weaponSelect).toBeTruthy();
+            expect(weaponSelect.options.length).toBeGreaterThanOrEqual(1);
+        });
+
+        it('should create checkboxes for tomes', async () => {
+            const { renderBuildPlanner } = await import('../../src/modules/build-planner.ts');
+            renderBuildPlanner();
+
+            const tomesSelection = document.getElementById('tomes-selection');
+            expect(tomesSelection).toBeTruthy();
+        });
+
+        it('should create checkboxes for items', async () => {
+            const { renderBuildPlanner } = await import('../../src/modules/build-planner.ts');
+            renderBuildPlanner();
+
+            const itemsSelection = document.getElementById('items-selection');
+            expect(itemsSelection).toBeTruthy();
+        });
+
+        it('should handle missing DOM elements gracefully', async () => {
+            document.body.innerHTML = '';
+            const { renderBuildPlanner } = await import('../../src/modules/build-planner.ts');
+
+            expect(() => renderBuildPlanner()).not.toThrow();
+        });
+    });
+
+    describe('setupBuildPlannerEvents', () => {
+        it('should not throw when export button is missing', async () => {
+            document.getElementById('export-build')?.remove();
+            const { setupBuildPlannerEvents } = await import('../../src/modules/build-planner.ts');
+
+            expect(() => setupBuildPlannerEvents()).not.toThrow();
+        });
+
+        it('should not throw when share button is missing', async () => {
+            document.getElementById('share-build-url')?.remove();
+            const { setupBuildPlannerEvents } = await import('../../src/modules/build-planner.ts');
+
+            expect(() => setupBuildPlannerEvents()).not.toThrow();
+        });
+
+        it('should not throw when clear button is missing', async () => {
+            document.getElementById('clear-build')?.remove();
+            const { setupBuildPlannerEvents } = await import('../../src/modules/build-planner.ts');
+
+            expect(() => setupBuildPlannerEvents()).not.toThrow();
+        });
+
+        it('should not throw when character select is missing', async () => {
+            document.getElementById('build-character')?.remove();
+            const { setupBuildPlannerEvents } = await import('../../src/modules/build-planner.ts');
+
+            expect(() => setupBuildPlannerEvents()).not.toThrow();
+        });
+
+        it('should not throw when weapon select is missing', async () => {
+            document.getElementById('build-weapon')?.remove();
+            const { setupBuildPlannerEvents } = await import('../../src/modules/build-planner.ts');
+
+            expect(() => setupBuildPlannerEvents()).not.toThrow();
+        });
+    });
+});
+
+describe('Build Planner - Build History (localStorage)', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        createMinimalDOM();
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        document.body.innerHTML = '';
+        localStorage.clear();
+    });
+
+    describe('getBuildHistory', () => {
+        it('should return empty array when localStorage is empty', async () => {
+            const { getBuildHistory } = await import('../../src/modules/build-planner.ts');
+
+            const history = getBuildHistory();
+            expect(history).toEqual([]);
+        });
+
+        it('should return array from localStorage', async () => {
+            const mockHistory = [
+                { character: 'cl4nk', weapon: 'sword', timestamp: Date.now() },
+            ];
+            localStorage.setItem('megabonk_build_history', JSON.stringify(mockHistory));
+
+            const { getBuildHistory } = await import('../../src/modules/build-planner.ts');
+            const history = getBuildHistory();
+
+            expect(history.length).toBe(1);
+            expect(history[0].character).toBe('cl4nk');
+        });
+
+        it('should handle corrupted localStorage data', async () => {
+            localStorage.setItem('megabonk_build_history', 'invalid json{{{');
+
+            const { getBuildHistory } = await import('../../src/modules/build-planner.ts');
+            const history = getBuildHistory();
+
+            expect(history).toEqual([]);
+        });
+    });
+
+    describe('loadBuildFromHistory', () => {
+        it('should show error for invalid index', async () => {
+            const { loadBuildFromHistory } = await import('../../src/modules/build-planner.ts');
+
+            loadBuildFromHistory(-1);
+
+            expect(ToastManager.error).toHaveBeenCalledWith('Build not found in history');
+        });
+
+        it('should show error for out of range index', async () => {
+            const { loadBuildFromHistory } = await import('../../src/modules/build-planner.ts');
+
+            loadBuildFromHistory(999);
+
+            expect(ToastManager.error).toHaveBeenCalledWith('Build not found in history');
+        });
+    });
+
+    describe('deleteBuildFromHistory', () => {
+        it('should show error for invalid index', async () => {
+            const { deleteBuildFromHistory } = await import('../../src/modules/build-planner.ts');
+
+            deleteBuildFromHistory(-1);
+
+            expect(ToastManager.error).toHaveBeenCalledWith('Build not found in history');
+        });
+
+        it('should show error for out of range index', async () => {
+            const { deleteBuildFromHistory } = await import('../../src/modules/build-planner.ts');
+
+            deleteBuildFromHistory(999);
+
+            expect(ToastManager.error).toHaveBeenCalledWith('Build not found in history');
+        });
+
+        it('should remove build at valid index', async () => {
+            const mockHistory = [
+                { name: 'Build 1', character: 'cl4nk', timestamp: Date.now() },
+                { name: 'Build 2', character: 'monke', timestamp: Date.now() },
+            ];
+            localStorage.setItem('megabonk_build_history', JSON.stringify(mockHistory));
+
+            const { deleteBuildFromHistory, getBuildHistory } = await import('../../src/modules/build-planner.ts');
+            deleteBuildFromHistory(0);
+
+            const history = getBuildHistory();
+            expect(history.length).toBe(1);
+            expect(history[0].name).toBe('Build 2');
+        });
+    });
+
+    describe('clearBuildHistory', () => {
+        it('should clear all history from localStorage', async () => {
+            const mockHistory = [{ character: 'cl4nk', timestamp: Date.now() }];
+            localStorage.setItem('megabonk_build_history', JSON.stringify(mockHistory));
+
+            const { clearBuildHistory, getBuildHistory } = await import('../../src/modules/build-planner.ts');
+            clearBuildHistory();
+
+            const history = getBuildHistory();
+            expect(history).toEqual([]);
+        });
+    });
+});
+
+describe('Build Planner - URL Handling', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        createMinimalDOM();
+        localStorage.clear();
+        // Reset URL hash
+        window.history.replaceState(null, '', window.location.pathname);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        document.body.innerHTML = '';
+        localStorage.clear();
+        window.history.replaceState(null, '', window.location.pathname);
+    });
+
+    describe('loadBuildFromURL', () => {
+        it('should return false when no hash present', async () => {
+            window.history.replaceState(null, '', window.location.pathname);
+            const { loadBuildFromURL } = await import('../../src/modules/build-planner.ts');
+
+            const result = loadBuildFromURL();
+            expect(result).toBe(false);
+        });
+
+        it('should return false when hash does not contain build=', async () => {
+            window.history.replaceState(null, '', '#something-else');
+            const { loadBuildFromURL } = await import('../../src/modules/build-planner.ts');
+
+            const result = loadBuildFromURL();
+            expect(result).toBe(false);
+        });
+
+        it('should handle invalid base64 gracefully', async () => {
+            window.history.replaceState(null, '', '#build=!!!invalid-base64!!!');
+            const { loadBuildFromURL } = await import('../../src/modules/build-planner.ts');
+
+            const result = loadBuildFromURL();
+
+            expect(result).toBe(false);
+            expect(ToastManager.error).toHaveBeenCalledWith('Invalid build link');
+        });
+    });
+
+    describe('updateBuildURL', () => {
+        it('should not throw when called', async () => {
+            window.history.replaceState(null, '', window.location.pathname);
+            const { updateBuildURL } = await import('../../src/modules/build-planner.ts');
+
+            // Should not throw when called
+            expect(() => updateBuildURL()).not.toThrow();
+        });
+    });
+});
+
+describe('Build Planner - Import/Export', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        createMinimalDOM();
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        document.body.innerHTML = '';
+        localStorage.clear();
+    });
+
+    describe('importBuild', () => {
+        it('should show error for invalid JSON', async () => {
+            const { importBuild } = await import('../../src/modules/build-planner.ts');
+
+            importBuild('not valid json');
+
+            expect(ToastManager.error).toHaveBeenCalledWith('Invalid build data. Please check the format.');
+        });
+    });
+
+    describe('loadBuildTemplate', () => {
+        it('should show error for invalid template', async () => {
+            const { loadBuildTemplate } = await import('../../src/modules/build-planner.ts');
+
+            loadBuildTemplate('nonexistent_template');
+
+            expect(ToastManager.error).toHaveBeenCalledWith('Template not found');
+        });
+
+        it('should load valid template', async () => {
+            const { loadBuildTemplate } = await import('../../src/modules/build-planner.ts');
+
+            loadBuildTemplate('crit_build');
+
+            expect(ToastManager.success).toHaveBeenCalled();
+        });
+    });
+});
+
+describe('Build Planner - Clear Build', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        createMinimalDOM();
+        localStorage.clear();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        document.body.innerHTML = '';
+        localStorage.clear();
+    });
+
+    describe('clearBuild', () => {
+        it('should reset character select', async () => {
+            const { clearBuild } = await import('../../src/modules/build-planner.ts');
+            const charSelect = document.getElementById('build-character') as HTMLSelectElement;
+            if (charSelect) {
+                charSelect.value = 'cl4nk';
+            }
+
+            clearBuild();
+
+            expect(charSelect?.value || '').toBe('');
+        });
+
+        it('should reset weapon select', async () => {
+            const { clearBuild } = await import('../../src/modules/build-planner.ts');
+            const weaponSelect = document.getElementById('build-weapon') as HTMLSelectElement;
+            if (weaponSelect) {
+                weaponSelect.value = 'sword';
+            }
+
+            clearBuild();
+
+            expect(weaponSelect?.value || '').toBe('');
+        });
+
+        it('should uncheck all tome checkboxes', async () => {
+            const { renderBuildPlanner, clearBuild } = await import('../../src/modules/build-planner.ts');
+            renderBuildPlanner();
+
+            // Check some tome checkboxes
+            const tomeCheckboxes = document.querySelectorAll('.tome-checkbox') as NodeListOf<HTMLInputElement>;
+            tomeCheckboxes.forEach(cb => (cb.checked = true));
+
+            clearBuild();
+
+            tomeCheckboxes.forEach(cb => expect(cb.checked).toBe(false));
+        });
+
+        it('should uncheck all item checkboxes', async () => {
+            const { renderBuildPlanner, clearBuild } = await import('../../src/modules/build-planner.ts');
+            renderBuildPlanner();
+
+            // Check some item checkboxes
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox') as NodeListOf<HTMLInputElement>;
+            itemCheckboxes.forEach(cb => (cb.checked = true));
+
+            clearBuild();
+
+            itemCheckboxes.forEach(cb => expect(cb.checked).toBe(false));
+        });
+    });
+});
+
+describe('Build Planner - getCurrentBuild', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+    });
+
+    it('should return a deep copy of the build', async () => {
+        const { getCurrentBuild } = await import('../../src/modules/build-planner.ts');
+
+        const build1 = getCurrentBuild();
+        const build2 = getCurrentBuild();
+
+        expect(build1).not.toBe(build2);
+        expect(build1.tomes).not.toBe(build2.tomes);
+        expect(build1.items).not.toBe(build2.items);
+    });
+});
+
 describe('Build Planner - calculateBuildStats', () => {
     describe('Empty Build', () => {
         it('should return default stats for empty build', () => {

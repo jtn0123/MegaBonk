@@ -652,4 +652,255 @@ describe('Calculator Module - DOM Functions', () => {
             expect(globalThis.ToastManager.error).toHaveBeenCalled();
         });
     });
+
+    // ========================================
+    // Edge Case Tests
+    // ========================================
+    describe('Edge Cases', () => {
+        beforeEach(() => {
+            populateCalculatorItems();
+        });
+
+        it('should handle target exactly at stack cap', () => {
+            const select = document.getElementById('calc-item-select') as HTMLSelectElement;
+            const input = document.getElementById('calc-target') as HTMLInputElement;
+            const result = document.getElementById('calc-result');
+
+            // Add capped-item to select (has cap of 5)
+            select.value = 'capped-item';
+            // Target of 40: 8 per stack * 5 (cap) = 40
+            input.value = '40';
+
+            calculateBreakpoint();
+
+            // Should show result with cap warning
+            expect(result?.style.display).toBe('block');
+            expect(result?.innerHTML).toContain('caps at');
+            expect(result?.innerHTML).toContain('5');
+        });
+
+        it('should handle decimal/non-integer target values', () => {
+            const select = document.getElementById('calc-item-select') as HTMLSelectElement;
+            const input = document.getElementById('calc-target') as HTMLInputElement;
+            const result = document.getElementById('calc-result');
+
+            select.value = 'test-item';
+            input.value = '15.5'; // Non-integer target
+
+            calculateBreakpoint();
+
+            // Should round up to 2 stacks (10 + 10 = 20 >= 15.5)
+            expect(result?.style.display).toBe('block');
+            expect(result?.innerHTML).toContain('2'); // 2 stacks needed
+        });
+
+        it('should handle very large target values', () => {
+            const select = document.getElementById('calc-item-select') as HTMLSelectElement;
+            const input = document.getElementById('calc-target') as HTMLInputElement;
+            const result = document.getElementById('calc-result');
+
+            select.value = 'test-item';
+            input.value = '10000'; // Very large target
+
+            calculateBreakpoint();
+
+            // Should calculate correctly: 10000 / 10 = 1000 stacks
+            expect(result?.style.display).toBe('block');
+            expect(result?.innerHTML).toContain('1000');
+        });
+
+        it('should handle single-value scaling array', () => {
+            const select = document.getElementById('calc-item-select') as HTMLSelectElement;
+            const input = document.getElementById('calc-target') as HTMLInputElement;
+            const result = document.getElementById('calc-result');
+
+            // one-and-done item has scaling_per_stack: [100]
+            select.value = 'one-and-done';
+            input.value = '50';
+
+            calculateBreakpoint();
+
+            // Should still calculate and render
+            expect(result?.style.display).toBe('block');
+            expect(result?.innerHTML).toContain('one-and-done');
+        });
+
+        it('should normalize bar heights when values vary significantly', () => {
+            const select = document.getElementById('calc-item-select') as HTMLSelectElement;
+            const input = document.getElementById('calc-target') as HTMLInputElement;
+            const result = document.getElementById('calc-result');
+
+            // test-item has scaling [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+            select.value = 'test-item';
+            input.value = '50';
+
+            calculateBreakpoint();
+
+            // Check that bars are rendered with varying heights
+            const bars = result?.querySelectorAll('.bar');
+            expect(bars?.length).toBe(10);
+
+            // Last bar should be 100% (max value)
+            const lastBar = bars?.[9] as HTMLElement;
+            expect(lastBar?.style.height).toBe('100%');
+
+            // First bar should be 10% (10/100 = 10%)
+            const firstBar = bars?.[0] as HTMLElement;
+            expect(firstBar?.style.height).toBe('10%');
+        });
+
+        it('should handle target value of 1', () => {
+            const select = document.getElementById('calc-item-select') as HTMLSelectElement;
+            const input = document.getElementById('calc-target') as HTMLInputElement;
+            const result = document.getElementById('calc-result');
+
+            select.value = 'test-item';
+            input.value = '1';
+
+            calculateBreakpoint();
+
+            // Should need 1 stack (10 >= 1)
+            expect(result?.style.display).toBe('block');
+            expect(result?.innerHTML).toContain('1');
+        });
+
+        it('should handle exact multiple of perStack', () => {
+            const select = document.getElementById('calc-item-select') as HTMLSelectElement;
+            const input = document.getElementById('calc-target') as HTMLInputElement;
+            const result = document.getElementById('calc-result');
+
+            select.value = 'test-item';
+            input.value = '30'; // Exact multiple: 3 * 10 = 30
+
+            calculateBreakpoint();
+
+            // Should need exactly 3 stacks
+            expect(result?.style.display).toBe('block');
+            expect(result?.innerHTML).toContain('3');
+        });
+    });
+});
+
+// ========================================
+// computeBreakpoint Pure Function Tests
+// ========================================
+import { computeBreakpoint, type BreakpointData } from '../../src/modules/calculator.ts';
+
+describe('computeBreakpoint - Pure Function', () => {
+    const mockData: BreakpointData = {
+        items: {
+            items: [
+                {
+                    id: 'test-item',
+                    name: 'Test Item',
+                    scaling_per_stack: [10, 20, 30, 40, 50],
+                    scaling_type: 'damage',
+                    formula: 'damage * 10',
+                } as any,
+                {
+                    id: 'capped-item',
+                    name: 'Capped Item',
+                    scaling_per_stack: [8, 16, 24],
+                    scaling_type: 'flat',
+                    formula: '8 per stack',
+                    stack_cap: 5,
+                } as any,
+                {
+                    id: 'zero-scaling',
+                    name: 'Zero Scaling',
+                    scaling_per_stack: [0],
+                    scaling_type: 'none',
+                } as any,
+                {
+                    id: 'one-and-done',
+                    name: 'One And Done',
+                    scaling_per_stack: [100],
+                    one_and_done: true,
+                } as any,
+                {
+                    id: 'bad-stacker',
+                    name: 'Bad Stacker',
+                    scaling_per_stack: [10, 15, 18],
+                    stacks_well: false,
+                } as any,
+            ],
+        },
+    };
+
+    it('should return error when no item ID provided', () => {
+        const result = computeBreakpoint(mockData, '', 100);
+        expect(result.error).toBeDefined();
+    });
+
+    it('should return error when no target provided', () => {
+        const result = computeBreakpoint(mockData, 'test-item', 0);
+        expect(result.error).toBeDefined();
+    });
+
+    it('should return error when target is negative', () => {
+        const result = computeBreakpoint(mockData, 'test-item', -10);
+        expect(result.error).toBeDefined();
+    });
+
+    it('should return error when item not found', () => {
+        const result = computeBreakpoint(mockData, 'nonexistent', 100);
+        expect(result.error).toBe('Item not found');
+    });
+
+    it('should return error for item with zero scaling', () => {
+        const result = computeBreakpoint(mockData, 'zero-scaling', 100);
+        expect(result.error).toBe('Invalid scaling value');
+    });
+
+    it('should calculate correct stacks needed', () => {
+        const result = computeBreakpoint(mockData, 'test-item', 50);
+        expect(result.stacksNeeded).toBe(5); // 50 / 10 = 5
+    });
+
+    it('should round up stacks needed', () => {
+        const result = computeBreakpoint(mockData, 'test-item', 55);
+        expect(result.stacksNeeded).toBe(6); // ceil(55 / 10) = 6
+    });
+
+    it('should cap stacks at stack_cap', () => {
+        const result = computeBreakpoint(mockData, 'capped-item', 100);
+        expect(result.stacksNeeded).toBe(5); // Capped at 5
+        expect(result.isCapped).toBe(true);
+    });
+
+    it('should not be capped when target exactly matches cap value', () => {
+        const result = computeBreakpoint(mockData, 'capped-item', 40);
+        // 40 / 8 = 5 stacks, which equals the cap but isn't exceeding it
+        expect(result.stacksNeeded).toBe(5);
+        // isCapped is only true when stacksNeeded > stack_cap (exceeded cap)
+        expect(result.isCapped).toBe(false);
+    });
+
+    it('should flag one-and-done items', () => {
+        const result = computeBreakpoint(mockData, 'one-and-done', 50);
+        expect(result.isOneAndDone).toBe(true);
+        expect(result.hasWarning).toBe(true);
+    });
+
+    it('should flag items that do not stack well', () => {
+        const result = computeBreakpoint(mockData, 'bad-stacker', 50);
+        expect(result.hasWarning).toBe(true);
+    });
+
+    it('should calculate correct actualValue', () => {
+        const result = computeBreakpoint(mockData, 'test-item', 55);
+        expect(result.actualValue).toBe(60); // 6 stacks * 10 = 60
+    });
+
+    it('should handle empty data gracefully', () => {
+        const emptyData: BreakpointData = { items: { items: [] } };
+        const result = computeBreakpoint(emptyData, 'test-item', 100);
+        expect(result.error).toBe('Item not found');
+    });
+
+    it('should handle undefined items gracefully', () => {
+        const undefinedData: BreakpointData = {};
+        const result = computeBreakpoint(undefinedData, 'test-item', 100);
+        expect(result.error).toBe('Item not found');
+    });
 });
