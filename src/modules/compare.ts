@@ -211,14 +211,15 @@ export async function openCompareModal(): Promise<void> {
         // Dynamically import chart function only when needed
         const { createCompareChart } = await import('./charts.ts');
 
-        setTimeout(() => {
+        // Use requestAnimationFrame for more reliable DOM readiness
+        requestAnimationFrame(() => {
             // Check if modal is still active and canvas exists before creating chart
             const modal = safeGetElementById('compareModal');
             const canvas = document.getElementById('compare-scaling-chart');
             if (modal && modal.classList.contains('active') && canvas) {
                 createCompareChart('compare-scaling-chart', chartableItems);
             }
-        }, 100);
+        });
     }
 }
 

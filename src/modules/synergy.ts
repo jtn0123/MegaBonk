@@ -67,13 +67,14 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
 
     // Item-Weapon synergies
     if (currentBuild.weapon) {
+        const weapon = currentBuild.weapon;
         currentBuild.items.forEach((item: Item) => {
-            if (item.synergies_weapons?.includes(currentBuild.weapon!.name)) {
+            if (item.synergies_weapons?.includes(weapon.name)) {
                 synergies.push({
                     type: 'item-weapon',
-                    message: `${item.name} works great with ${currentBuild.weapon!.name}`,
+                    message: `${item.name} works great with ${weapon.name}`,
                     source: item.name,
-                    target: currentBuild.weapon!.name,
+                    target: weapon.name,
                 });
             }
         });
@@ -81,13 +82,14 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
 
     // Item-Character synergies
     if (currentBuild.character) {
+        const character = currentBuild.character;
         currentBuild.items.forEach((item: Item) => {
-            if (currentBuild.character!.synergies_items?.includes(item.id)) {
+            if (character.synergies_items?.includes(item.id)) {
                 synergies.push({
                     type: 'item-character',
-                    message: `${item.name} synergizes with ${currentBuild.character!.name}`,
+                    message: `${item.name} synergizes with ${character.name}`,
                     source: item.name,
-                    target: currentBuild.character!.name,
+                    target: character.name,
                 });
             }
         });
@@ -120,9 +122,10 @@ export function detectAntiSynergies(currentBuild: BuildState): AntiSynergy[] {
 
     currentBuild.items.forEach((item: Item) => {
         if (item.anti_synergies && item.anti_synergies.length > 0) {
+            const antiSynergyList = item.anti_synergies;
             currentBuild.items.forEach((otherItem: Item) => {
                 if (item.id !== otherItem.id) {
-                    if (item.anti_synergies!.includes(otherItem.name) || item.anti_synergies!.includes(otherItem.id)) {
+                    if (antiSynergyList.includes(otherItem.name) || antiSynergyList.includes(otherItem.id)) {
                         antiSynergies.push({
                             type: 'item-item',
                             message: `${item.name} conflicts with ${otherItem.name}`,

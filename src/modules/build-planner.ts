@@ -584,8 +584,9 @@ export function updateBuildAnalysis(): void {
         (cb: Element) => (cb as HTMLInputElement).value
     );
     if (allData.tomes?.tomes) {
+        const tomes = allData.tomes.tomes;
         currentBuild.tomes = selectedTomes
-            .map((id: string) => allData.tomes!.tomes.find((t: Tome) => t.id === id))
+            .map((id: string) => tomes.find((t: Tome) => t.id === id))
             .filter((t): t is Tome => t !== undefined);
     } else {
         currentBuild.tomes = [];
@@ -595,8 +596,9 @@ export function updateBuildAnalysis(): void {
         (cb: Element) => (cb as HTMLInputElement).value
     );
     if (allData.items?.items) {
+        const items = allData.items.items;
         currentBuild.items = selectedItems
-            .map((id: string) => allData.items!.items.find((i: Item) => i.id === id))
+            .map((id: string) => items.find((i: Item) => i.id === id))
             .filter((i): i is Item => i !== undefined);
     } else {
         currentBuild.items = [];
@@ -752,8 +754,9 @@ export function loadBuildFromURL(): boolean {
 
         // Load tomes
         if (decoded.t && Array.isArray(decoded.t) && allData.tomes?.tomes) {
+            const tomes = allData.tomes.tomes;
             currentBuild.tomes = decoded.t
-                .map((id: string) => allData.tomes!.tomes.find((t: Tome) => t.id === id))
+                .map((id: string) => tomes.find((t: Tome) => t.id === id))
                 .filter((t): t is Tome => t !== undefined);
             currentBuild.tomes.forEach((tome: Tome) => {
                 const checkbox = document.querySelector(
@@ -765,8 +768,9 @@ export function loadBuildFromURL(): boolean {
 
         // Load items
         if (decoded.i && Array.isArray(decoded.i) && allData.items?.items) {
+            const items = allData.items.items;
             currentBuild.items = decoded.i
-                .map((id: string) => allData.items!.items.find((item: Item) => item.id === id))
+                .map((id: string) => items.find((item: Item) => item.id === id))
                 .filter((i): i is Item => i !== undefined);
             currentBuild.items.forEach((item: Item) => {
                 const checkbox = document.querySelector(
