@@ -5,6 +5,34 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// ========================================
+// Auto-Mock Common Modules
+// ========================================
+// These mocks are applied globally to all tests to reduce boilerplate.
+// Tests can override these with vi.mock() if needed.
+
+// Logger mock - prevents console noise and allows spy assertions
+vi.mock('../src/modules/logger.ts', () => ({
+    logger: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+        setContext: vi.fn(),
+    },
+}));
+
+// Toast mock - prevents UI side effects
+vi.mock('../src/modules/toast.ts', () => ({
+    ToastManager: {
+        success: vi.fn(),
+        error: vi.fn(),
+        warning: vi.fn(),
+        info: vi.fn(),
+        reset: vi.fn(),
+    },
+}));
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
