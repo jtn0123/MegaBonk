@@ -31,9 +31,18 @@ describe('Template Quality Validation', () => {
             const missingTemplates: string[] = [];
 
             for (const item of items) {
-                const templatePath = path.join(process.cwd(), 'public', item.image || '');
+                // Templates are stored in src/images/, not public/images/
+                // item.image = "images/items/anvil.png"
+                // Actual path: src/images/items/anvil.png
+                const imagePath = item.image || '';
+                const templatePath = path.join(process.cwd(), 'src', imagePath);
 
-                if (!fs.existsSync(templatePath)) {
+                // Check both PNG and WebP versions (either is acceptable)
+                const pngExists = fs.existsSync(templatePath);
+                const webpPath = templatePath.replace('.png', '.webp');
+                const webpExists = fs.existsSync(webpPath);
+
+                if (!pngExists && !webpExists) {
                     missingTemplates.push(`${item.name} -> ${item.image}`);
                 }
             }
@@ -43,14 +52,8 @@ describe('Template Quality Validation', () => {
                 console.warn(missingTemplates.slice(0, 10).join('\n'));
             }
 
-            // In production, this would fail. For testing, we accept that templates may not exist yet
-            if (missingTemplates.length > 50) {
-                // If most templates are missing, this is likely a test environment
-                console.warn('Many templates missing - likely test environment');
-            } else {
-                // In production with templates, this should pass
-                expect(missingTemplates.length).toBe(0);
-            }
+            // All templates should exist
+            expect(missingTemplates.length).toBe(0);
         });
 
         it('should have valid image file extensions', async () => {
@@ -88,7 +91,8 @@ describe('Template Quality Validation', () => {
 
             for (const item of items.slice(0, 10)) {
                 // Sample 10 items
-                const templatePath = path.join(process.cwd(), 'public', item.image || '');
+                const imagePath = item.image || '';
+                const templatePath = path.join(process.cwd(), 'src', imagePath);
 
                 if (fs.existsSync(templatePath)) {
                     try {
@@ -104,7 +108,7 @@ describe('Template Quality Validation', () => {
                 }
             }
 
-            // Check that sizes are reasonably consistent (within 3x range)
+            // Check that sizes are reasonably consistent (within 10x range)
             const sizes = Array.from(dimensions.values());
             if (sizes.length > 0) {
                 const minSize = Math.min(...sizes);
