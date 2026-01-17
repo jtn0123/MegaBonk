@@ -1,5 +1,9 @@
 # 🎮 MegaBonk Complete Guide
 
+[![CI](https://github.com/jtn0123/MegaBonk/actions/workflows/test.yml/badge.svg)](https://github.com/jtn0123/MegaBonk/actions/workflows/test.yml)
+[![codecov](https://codecov.io/gh/jtn0123/MegaBonk/branch/main/graph/badge.svg)](https://codecov.io/gh/jtn0123/MegaBonk)
+[![Lighthouse](https://github.com/jtn0123/MegaBonk/actions/workflows/lighthouse.yml/badge.svg)](https://github.com/jtn0123/MegaBonk/actions/workflows/lighthouse.yml)
+
 **The ultimate reference system for MegaBonk** - Items, Weapons, Tomes, Characters, Shrines, Build Planner, and Breakpoint Calculator all in one beautiful, interactive web app.
 
 ## ✨ Core Features
