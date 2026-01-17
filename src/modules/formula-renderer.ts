@@ -88,7 +88,7 @@ function highlightVariables(text: string): string {
 
     // Replace all placeholders with actual HTML
     for (let i = 0; i < placeholders.length; i++) {
-        result = result.replace(`__VAR_${i}__`, placeholders[i]);
+        result = result.replace(`__VAR_${i}__`, placeholders[i] ?? '');
     }
 
     return result;

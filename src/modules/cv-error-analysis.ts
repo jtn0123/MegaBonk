@@ -119,7 +119,7 @@ export function analyzeDetectionErrors(
                 expectedCount,
                 detectedCount,
                 difference,
-                confidence: detectedEntry.confidences[0],
+                confidence: detectedEntry?.confidences[0],
                 possibleReasons: reasons,
             });
         }
@@ -178,7 +178,7 @@ function diagnoseError(
             reasons.push('Some items may be partially occluded');
         }
 
-        if (confidences.length > 0 && confidences[0] < 0.7) {
+        if (confidences.length > 0 && confidences[0] !== undefined && confidences[0] < 0.7) {
             reasons.push(`Low confidence (${confidences[0].toFixed(2)}) - template match may be weak`);
         }
     } else if (errorType === 'over-detected') {
@@ -195,7 +195,7 @@ function diagnoseError(
             reasons.push('Common items may be over-detected due to visual similarity');
         }
 
-        if (confidences.length > 0 && confidences[0] < 0.6) {
+        if (confidences.length > 0 && confidences[0] !== undefined && confidences[0] < 0.6) {
             reasons.push(`Very low confidence (${confidences[0].toFixed(2)}) suggests false positive`);
         }
     }
@@ -209,7 +209,7 @@ function diagnoseError(
 function generateSummary(
     falsePositives: DetectionError[],
     falseNegatives: DetectionError[],
-    totalDetected: number,
+    _totalDetected: number,
     totalExpected: number
 ): ErrorSummary {
     const totalErrors = falsePositives.length + falseNegatives.length;

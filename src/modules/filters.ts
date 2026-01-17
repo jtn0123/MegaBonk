@@ -376,7 +376,7 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
             let bestScore = 0;
 
             for (const field of searchFields) {
-                const value = (item as Record<string, unknown>)[field];
+                const value = (item as unknown as Record<string, unknown>)[field];
                 if (typeof value === 'string' && value) {
                     const match = fuzzyMatchScore(searchTerm, value, field);
                     if (match.score > bestScore) {

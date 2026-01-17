@@ -135,15 +135,34 @@ jobs:
         run: |
           MAIN_SIZE=$(stat -c%s dist/assets/main-*.js 2>/dev/null)
           MAIN_SIZE_KB=$((MAIN_SIZE / 1024))
-          echo "Main bundle size: ${MAIN_SIZE_KB}KB"
+          CSS_SIZE=$(stat -c%s dist/assets/main-*.css 2>/dev/null || echo 0)
+          CSS_SIZE_KB=$((CSS_SIZE / 1024))
+          TOTAL_SIZE_KB=$((MAIN_SIZE_KB + CSS_SIZE_KB))
+
+          echo "## Bundle Size Report" >> $GITHUB_STEP_SUMMARY
+          echo "| Asset | Size |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Main JS | ${MAIN_SIZE_KB}KB |" >> $GITHUB_STEP_SUMMARY
+          echo "| Main CSS | ${CSS_SIZE_KB}KB |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Total** | **${TOTAL_SIZE_KB}KB** |" >> $GITHUB_STEP_SUMMARY
+
+          # Save bundle size for trending
+          echo "${MAIN_SIZE_KB}" > bundle-size.txt
 
           # Chart.js adds ~200KB, so 400KB limit accounts for app + charts
           if [ $MAIN_SIZE_KB -gt 400 ]; then
-            echo "❌ Main bundle too large: ${MAIN_SIZE_KB}KB (max: 400KB)"
+            echo "❌ Main bundle too large: ${MAIN_SIZE_KB}KB (max: 400KB)" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
-          echo "✅ Bundle size within limits"
+          echo "✅ Bundle size within limits" >> $GITHUB_STEP_SUMMARY
+
+      - name: Upload bundle size artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: bundle-size
+          path: bundle-size.txt
+          retention-days: 90
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -151,3 +170,55 @@ jobs:
           name: dist
           path: dist/
           retention-days: 7
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: |
+          echo "## Security Audit Report" >> $GITHUB_STEP_SUMMARY
+
+          # Run audit and capture output
+          AUDIT_OUTPUT=$(npm audit --json 2>/dev/null || true)
+
+          # Parse vulnerabilities
+          CRITICAL=$(echo "$AUDIT_OUTPUT" | jq '.metadata.vulnerabilities.critical // 0')
+          HIGH=$(echo "$AUDIT_OUTPUT" | jq '.metadata.vulnerabilities.high // 0')
+          MODERATE=$(echo "$AUDIT_OUTPUT" | jq '.metadata.vulnerabilities.moderate // 0')
+          LOW=$(echo "$AUDIT_OUTPUT" | jq '.metadata.vulnerabilities.low // 0')
+
+          echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔴 Critical | $CRITICAL |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟠 High | $HIGH |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟡 Moderate | $MODERATE |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🟢 Low | $LOW |" >> $GITHUB_STEP_SUMMARY
+
+          # Fail on critical vulnerabilities only
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Critical vulnerabilities found!** Please run \`npm audit fix\` or review manually." >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+
+          # Warn on high vulnerabilities
+          if [ "$HIGH" -gt 0 ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **High severity vulnerabilities found.** Consider running \`npm audit fix\`." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ No critical vulnerabilities" >> $GITHUB_STEP_SUMMARY
