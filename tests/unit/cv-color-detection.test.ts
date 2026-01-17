@@ -13,54 +13,12 @@ import {
     extractBorderPixels,
     detectBorderRarity,
 } from '../../src/modules/cv/color.ts';
-
-// Helper: Create ImageData from RGB values
-function createImageData(width: number, height: number, fillFn: (x: number, y: number) => [number, number, number]): ImageData {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d')!;
-    const imageData = ctx.createImageData(width, height);
-    const data = imageData.data;
-
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const [r, g, b] = fillFn(x, y);
-            const idx = (y * width + x) * 4;
-            data[idx] = r;
-            data[idx + 1] = g;
-            data[idx + 2] = b;
-            data[idx + 3] = 255; // Alpha
-        }
-    }
-
-    return imageData;
-}
-
-// Helper: Create solid color ImageData
-function createSolidColor(width: number, height: number, r: number, g: number, b: number): ImageData {
-    return createImageData(width, height, () => [r, g, b]);
-}
-
-// Helper: Create gradient ImageData
-function createGradient(width: number, height: number, from: [number, number, number], to: [number, number, number]): ImageData {
-    return createImageData(width, height, (x) => {
-        const t = x / (width - 1);
-        return [
-            Math.floor(from[0] + (to[0] - from[0]) * t),
-            Math.floor(from[1] + (to[1] - from[1]) * t),
-            Math.floor(from[2] + (to[2] - from[2]) * t),
-        ];
-    });
-}
-
-// Helper: Create border ImageData (border color different from interior)
-function createBorderedImage(width: number, height: number, borderColor: [number, number, number], innerColor: [number, number, number], borderWidth: number = 3): ImageData {
-    return createImageData(width, height, (x, y) => {
-        const isBorder = x < borderWidth || x >= width - borderWidth || y < borderWidth || y >= height - borderWidth;
-        return isBorder ? borderColor : innerColor;
-    });
-}
+import {
+    createImageData,
+    createSolidColor,
+    createGradient,
+    createBorderedImage,
+} from '../helpers/image-test-utils.ts';
 
 describe('Color Analysis - extractDominantColors', () => {
     it('should extract single dominant color from solid image', () => {

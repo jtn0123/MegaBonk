@@ -6,32 +6,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { detectUIRegions, detectScreenType } from '../../src/modules/cv/regions.ts';
-
-// Helper: Create mock canvas context
-function createMockContext(width: number, height: number, fillFn: (x: number, y: number) => [number, number, number, number]): CanvasRenderingContext2D {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d')!;
-
-    // Fill canvas with test pattern
-    const imageData = ctx.createImageData(width, height);
-    const data = imageData.data;
-
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const [r, g, b, a] = fillFn(x, y);
-            const idx = (y * width + x) * 4;
-            data[idx] = r;
-            data[idx + 1] = g;
-            data[idx + 2] = b;
-            data[idx + 3] = a;
-        }
-    }
-
-    ctx.putImageData(imageData, 0, 0);
-    return ctx;
-}
+import { createMockContext } from '../helpers/image-test-utils.ts';
 
 describe('Screen Type Detection', () => {
     it('should detect pause menu (dark bottom)', () => {

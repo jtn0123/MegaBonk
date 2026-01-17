@@ -7,44 +7,7 @@
 import { describe, it, expect } from 'vitest';
 import { calculateSimilarity } from '../../src/modules/cv/detection.ts';
 import type { CVDetectionResult } from '../../src/modules/cv/types.ts';
-
-// Helper: Create ImageData with specific pattern
-function createImageData(width: number, height: number, fillFn: (x: number, y: number) => [number, number, number]): ImageData {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d')!;
-    const imageData = ctx.createImageData(width, height);
-    const data = imageData.data;
-
-    for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-            const [r, g, b] = fillFn(x, y);
-            const idx = (y * width + x) * 4;
-            data[idx] = r;
-            data[idx + 1] = g;
-            data[idx + 2] = b;
-            data[idx + 3] = 255;
-        }
-    }
-
-    return imageData;
-}
-
-// Helper: Add noise to ImageData
-function addNoise(imageData: ImageData, strength: number): ImageData {
-    const noisy = new ImageData(imageData.width, imageData.height);
-
-    for (let i = 0; i < imageData.data.length; i += 4) {
-        const noise = (Math.random() - 0.5) * strength;
-        noisy.data[i] = Math.max(0, Math.min(255, imageData.data[i] + noise));
-        noisy.data[i + 1] = Math.max(0, Math.min(255, imageData.data[i + 1] + noise));
-        noisy.data[i + 2] = Math.max(0, Math.min(255, imageData.data[i + 2] + noise));
-        noisy.data[i + 3] = 255;
-    }
-
-    return noisy;
-}
+import { createImageData, addNoise } from '../helpers/image-test-utils.ts';
 
 // Helper: Apply visual effect overlay
 function applyVisualEffect(imageData: ImageData, effectType: 'lightning' | 'fire' | 'ice' | 'poison'): ImageData {
