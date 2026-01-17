@@ -1,0 +1,86 @@
+name: Lighthouse CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  lighthouse:
+    name: Lighthouse Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.13.x
+
+      - name: Run Lighthouse CI
+        run: |
+          lhci autorun --collect.staticDistDir=./dist --collect.numberOfRuns=3
+        env:
+          LHCI_GITHUB_APP_TOKEN: ${{ secrets.LHCI_GITHUB_APP_TOKEN }}
+
+      - name: Generate Lighthouse Report Summary
+        if: always()
+        run: |
+          echo "## Lighthouse Report" >> $GITHUB_STEP_SUMMARY
+
+          # Check if results exist
+          if [ -d ".lighthouseci" ]; then
+            # Get the latest manifest
+            MANIFEST=$(ls -t .lighthouseci/lhr-*.json 2>/dev/null | head -1)
+
+            if [ -n "$MANIFEST" ]; then
+              # Extract scores using jq
+              PERF=$(jq '.categories.performance.score * 100 | floor' "$MANIFEST")
+              A11Y=$(jq '.categories.accessibility.score * 100 | floor' "$MANIFEST")
+              BP=$(jq '.categories["best-practices"].score * 100 | floor' "$MANIFEST")
+              SEO=$(jq '.categories.seo.score * 100 | floor' "$MANIFEST")
+
+              echo "| Category | Score |" >> $GITHUB_STEP_SUMMARY
+              echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+              echo "| 🚀 Performance | ${PERF}% |" >> $GITHUB_STEP_SUMMARY
+              echo "| ♿ Accessibility | ${A11Y}% |" >> $GITHUB_STEP_SUMMARY
+              echo "| ✅ Best Practices | ${BP}% |" >> $GITHUB_STEP_SUMMARY
+              echo "| 🔍 SEO | ${SEO}% |" >> $GITHUB_STEP_SUMMARY
+
+              # Warn if any score is below threshold
+              if [ "$PERF" -lt 80 ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "⚠️ Performance score is below 80%. Consider optimizing." >> $GITHUB_STEP_SUMMARY
+              fi
+
+              if [ "$A11Y" -lt 90 ]; then
+                echo "" >> $GITHUB_STEP_SUMMARY
+                echo "⚠️ Accessibility score is below 90%. Please review." >> $GITHUB_STEP_SUMMARY
+              fi
+            else
+              echo "No Lighthouse results found." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "Lighthouse CI directory not found." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Lighthouse results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-results
+          path: .lighthouseci/
+          retention-days: 30
