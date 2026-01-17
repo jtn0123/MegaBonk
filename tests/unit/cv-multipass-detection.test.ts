@@ -6,32 +6,11 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import type { CVDetectionResult, ROI } from '../../src/modules/cv/types.ts';
+import { createMockContext, createSolidColor } from '../helpers/image-test-utils.ts';
 
-// Mock helpers
-function createMockContext(width: number, height: number): CanvasRenderingContext2D {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    return canvas.getContext('2d')!;
-}
-
-function createMockImageData(width: number, height: number, fillColor: [number, number, number]): ImageData {
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d')!;
-    const imageData = ctx.createImageData(width, height);
-    const [r, g, b] = fillColor;
-
-    for (let i = 0; i < imageData.data.length; i += 4) {
-        imageData.data[i] = r;
-        imageData.data[i + 1] = g;
-        imageData.data[i + 2] = b;
-        imageData.data[i + 3] = 255;
-    }
-
-    return imageData;
-}
+// Alias for consistency with test code
+const createMockImageData = (width: number, height: number, fillColor: [number, number, number]) =>
+    createSolidColor(width, height, fillColor[0], fillColor[1], fillColor[2]);
 
 describe('Multi-Region Detection Strategy', () => {
     describe('Hotbar Region (Bottom 20%)', () => {
