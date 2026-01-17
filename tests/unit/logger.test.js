@@ -1,5 +1,9 @@
 /* global setTimeout, Response */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+
+// Unmock logger to test real implementation (setup.js mocks it globally)
+vi.unmock('../../src/modules/logger.ts');
+
 import { logger, Logger, LogLevel, EventBuilder } from '../../src/modules/logger.ts';
 
 describe('Logger Module', () => {

@@ -1,6 +1,8 @@
-/* global setTimeout, requestAnimationFrame */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
+
+// Unmock ToastManager to test real implementation (setup.js mocks it globally)
+vi.unmock('../../src/modules/toast.ts');
 import { ToastManager } from '../../src/modules/toast.ts';
 
 describe('ToastManager', () => {
