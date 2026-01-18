@@ -35,23 +35,22 @@ npm run test:recognition      # OCR/CV specific tests
 
 Contains annotated data for 9 gameplay screenshots across difficulty levels:
 
-| Screenshot | Level | Items | Language | Difficulty | Resolution |
-|------------|-------|-------|----------|------------|------------|
-| level_33_english_forest_early.jpg | 33 | 19 | English | ⭐ Easy | 1280x720 |
-| level_21_english_desert_scorpion.jpg | 21 | 14 | English | ⭐ Easy | 1280x800 |
-| level_52_spanish_ocean.jpg | 52 | 20 | Spanish | ⭐⭐ Medium | 1280x720 |
-| level_66_russian_desert.jpg | 66 | 24 | Russian | ⭐⭐ Medium | 1280x720 |
-| level_75_portuguese_hell_final.jpg | 75 | 33 | Portuguese | ⭐⭐⭐ Hard | 1280x720 |
-| level_108_english_snow_boss.jpg | 108 | 19 | English | ⭐⭐ Medium | 1280x720 |
-| level_112_russian_crypt_boss.jpg | 112 | 29 | Russian | ⭐⭐⭐ Hard | 1280x800 |
-| level_281_turkish_hell.jpg | 281 | 20 | Turkish | ⭐⭐⭐⭐ Very Hard | 1280x800 |
-| level_803_russian_stress_test.jpg | 803 | 49 | Russian | ⭐⭐⭐⭐⭐ Extreme | 1280x800 |
+| Screenshot | Level | Items | Difficulty | Resolution |
+|------------|-------|-------|------------|------------|
+| level_33_english_forest_early.jpg | 33 | 19 | ⭐ Easy | 1280x720 |
+| level_21_english_desert_scorpion.jpg | 21 | 14 | ⭐ Easy | 1280x800 |
+| level_52_spanish_ocean.jpg | 52 | 20 | ⭐⭐ Medium | 1280x720 |
+| level_66_russian_desert.jpg | 66 | 24 | ⭐⭐ Medium | 1280x720 |
+| level_75_portuguese_hell_final.jpg | 75 | 33 | ⭐⭐⭐ Hard | 1280x720 |
+| level_108_english_snow_boss.jpg | 108 | 19 | ⭐⭐ Medium | 1280x720 |
+| level_112_russian_crypt_boss.jpg | 112 | 29 | ⭐⭐⭐ Hard | 1280x800 |
+| level_281_turkish_hell.jpg | 281 | 20 | ⭐⭐⭐⭐ Very Hard | 1280x800 |
+| level_803_russian_stress_test.jpg | 803 | 49 | ⭐⭐⭐⭐⭐ Extreme | 1280x800 |
 
 Each entry includes:
 - Character name (if identifiable)
 - Level number
 - Resolution
-- Language
 - Complete list of items in inventory
 - Equipped weapons with levels
 - Testing notes and difficulty rating
@@ -281,16 +280,15 @@ npm run test:cv:full
 1. **Capture Screenshot**:
    - Take a gameplay screenshot at a supported resolution
    - Save to `test-images/gameplay/pc-1080p/`
-   - Naming convention: `level_<LVL>_<LANG>_<BIOME>.jpg`
+   - Naming convention: `level_<LVL>_<BIOME>.jpg`
 
 2. **Create Ground Truth Entry**:
    Edit `test-images/gameplay/ground-truth.json`:
    ```json
-   "pc-1080p/level_123_english_forest.jpg": {
+   "pc-1080p/level_123_forest.jpg": {
      "character": "Unknown",
      "level": 123,
      "resolution": "1920x1080",
-     "language": "English",
      "items": [
        "Wrench",
        "Medkit",
@@ -309,10 +307,10 @@ npm run test:cv:full
    Update `tests/e2e/cv-accuracy.spec.js`:
    ```javascript
    {
-     filename: 'level_123_english_forest.jpg',
+     filename: 'level_123_forest.jpg',
      expectedAccuracy: 75,
      difficulty: 'Medium',
-     key: 'pc-1080p/level_123_english_forest.jpg'
+     key: 'pc-1080p/level_123_forest.jpg'
    }
    ```
 
