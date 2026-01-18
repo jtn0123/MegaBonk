@@ -20,7 +20,6 @@
     "character": "Unknown",
     "level": 21,
     "resolution": "1280x800",
-    "language": "English",
     "items": [
       "Wrench",
       "Wrench",
@@ -54,7 +53,6 @@
     "character": "Unknown",
     "level": 33,
     "resolution": "1280x720",
-    "language": "English",
     "items": [
       "Forbidden Juice",
       "Oats",
@@ -76,7 +74,6 @@
     "character": "Unknown",
     "level": 52,
     "resolution": "1280x720",
-    "language": "Spanish",
     "items": [
       "Ice Cube",
       "Ice Cube",
@@ -114,7 +111,6 @@
     "character": "Unknown",
     "level": 66,
     "resolution": "1280x720",
-    "language": "Russian",
     "items": [
       "Ice Crystal",
       "Forbidden Juice",
@@ -155,7 +151,6 @@
     "character": "Unknown",
     "level": 75,
     "resolution": "1280x720",
-    "language": "Portuguese",
     "items": [
       "Wrench",
       "Beer",
@@ -206,7 +201,6 @@
     "character": "Unknown",
     "level": 108,
     "resolution": "1280x720",
-    "language": "English",
     "items": [
       "Medkit",
       "Wrench",
@@ -244,7 +238,6 @@
     "character": "Unknown",
     "level": 112,
     "resolution": "1280x800",
-    "language": "Russian",
     "items": [
       "Cursed Doll",
       "Wrench",
@@ -291,7 +284,6 @@
     "character": "Unknown",
     "level": 281,
     "resolution": "1280x800",
-    "language": "Turkish",
     "items": [
       "Forbidden Juice",
       "Moldy Cheese",
@@ -329,7 +321,6 @@
     "character": "Unknown",
     "level": 803,
     "resolution": "1280x800",
-    "language": "Russian",
     "items": [
       "Feathers",
       "Forbidden Juice",
@@ -393,7 +384,6 @@
     "character": "Unknown",
     "level": 60,
     "resolution": "1456x816",
-    "language": "Russian",
     "biome": "ocean",
     "items": [
       "Medkit",
@@ -439,7 +429,6 @@
     "character": "Unknown",
     "level": 38,
     "resolution": "1456x816",
-    "language": "English",
     "biome": "forest",
     "items": [
       "Medkit",
@@ -482,7 +471,6 @@
     "character": "Unknown",
     "level": 112,
     "resolution": "1456x816",
-    "language": "Russian",
     "biome": "crypt",
     "items": [
       "Time Bracelet",
@@ -537,7 +525,6 @@
     "character": "Unknown",
     "level": 5,
     "resolution": "1456x816",
-    "language": "Russian",
     "biome": "forest",
     "ui_state": "inventory_chest",
     "items": [
@@ -566,7 +553,6 @@
     "character": "Unknown",
     "level": 281,
     "resolution": "1456x816",
-    "language": "Turkish",
     "biome": "hell",
     "items": [
       "Forbidden Juice",
@@ -616,7 +602,6 @@
     "character": "Sir Chadwell",
     "level": 1458,
     "resolution": "1280x720",
-    "language": "English",
     "ui_state": "end_game_summary",
     "kills": 500877,
     "time_alive": "75:11",
@@ -667,7 +652,6 @@
     "character": "Unknown",
     "level": 108,
     "resolution": "1280x720",
-    "language": "English",
     "biome": "snow",
     "items": [
       "Forbidden Juice", "Forbidden Juice", "Forbidden Juice",
@@ -705,7 +689,6 @@
     "character": "Unknown",
     "level": 69,
     "resolution": "1280x720",
-    "language": "Portuguese",
     "ui_state": "inventory_panel",
     "biome": "crypt",
     "items": [
@@ -746,7 +729,6 @@
     "character": "Unknown",
     "level": 38,
     "resolution": "1280x720",
-    "language": "English",
     "biome": "forest",
     "items": [
       "Oats", "Oats", "Oats",
@@ -780,7 +762,6 @@
     "character": "Fox",
     "level": 1588,
     "resolution": "1280x720",
-    "language": "English",
     "ui_state": "end_game_summary",
     "kills": 480647,
     "time_alive": "70:29",
@@ -804,7 +785,6 @@
     "character": "Cubehead",
     "level": 217,
     "resolution": "1280x720",
-    "language": "Russian",
     "ui_state": "end_game_summary",
     "kills": 82191,
     "time_alive": "45:09",
@@ -816,7 +796,6 @@
     "character": "Unknown",
     "level": 22,
     "resolution": "1280x720",
-    "language": "English",
     "biome": "forest",
     "items": [
       "Oats"
@@ -841,7 +820,6 @@
     "character": "Fox",
     "level": 1164,
     "resolution": "1280x720",
-    "language": "Russian",
     "ui_state": "end_game_summary",
     "kills": 362861,
     "time_alive": "63:57",
@@ -853,7 +831,6 @@
     "character": "Fox",
     "level": 1281,
     "resolution": "1280x720",
-    "language": "Russian",
     "ui_state": "end_game_summary",
     "kills": 407408,
     "time_alive": "65:23",
