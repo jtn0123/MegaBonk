@@ -117,3 +117,26 @@ const OPTIMAL_PARAMS = {
 3. **Precision vs Recall tradeoff**
    - For high precision (40%+): use thresh=0.60
    - For balanced F1: use combined optimal params
+
+## Template Set Comparison
+
+Testing with expanded dataset (16 gameplay screenshots):
+
+| Template Set | Templates | TP | FP | FN | Precision | Recall | F1 |
+|--------------|-----------|----|----|-----|-----------|--------|-----|
+| **V1 (curated)** | 7 | 46 | 98 | 185 | 31.9% | 19.9% | **24.5%** |
+| Summary screen | 40 | 18 | 100 | 213 | 15.3% | 7.8% | 10.3% |
+| Combined | 42 | 19 | 128 | 212 | 12.9% | 8.2% | 10.1% |
+
+**Key Finding:** Quality > Quantity. The 7 curated V1 templates outperform
+40 summary screen templates because:
+- Summary screen uses different UI rendering than gameplay
+- Misaligned extraction captured partial/wrong icons
+- Different backgrounds affect NCC matching
+
+## Next Steps for Improvement
+
+1. **Expand V1 templates** - Manually extract more items from gameplay screenshots
+2. **Multi-resolution templates** - Store templates at multiple sizes
+3. **Background normalization** - Remove/normalize item backgrounds
+4. **Feature-based matching** - Use ORB/SIFT instead of NCC
