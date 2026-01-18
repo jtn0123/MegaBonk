@@ -69,6 +69,7 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
+    "@tensorflow/tfjs-node": "^4.22.0",
     "@testing-library/dom": "^10.4.1",
     "@types/chart.js": "^4.0.1",
     "@types/node": "^25.0.3",
