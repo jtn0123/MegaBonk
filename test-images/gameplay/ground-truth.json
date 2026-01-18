@@ -610,5 +610,94 @@
     ],
     "notes": "Hell biome, Turkish UI (difficulty 'Yandı' x8), level 281. FPS counter visible (79 FPS, 721MB RAM). Heavy particle effects with purple enemies. 2 rows, 26 items. Different moment from level_281_turkish_hell.jpg.",
     "difficulty": "hard"
+  },
+
+  "steam-community/steam_05.jpg": {
+    "character": "Sir Chadwell",
+    "level": 1458,
+    "resolution": "1280x720",
+    "language": "English",
+    "ui_state": "end_game_summary",
+    "kills": 500877,
+    "time_alive": "75:11",
+    "items": [
+      "Feathers", "Feathers", "Feathers", "Feathers", "Feathers",
+      "Milk", "Milk", "Milk", "Milk", "Milk",
+      "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube",
+      "Wrench", "Wrench", "Wrench", "Wrench",
+      "Honeycomb",
+      "Backpack", "Backpack",
+      "Borgar", "Borgar", "Borgar", "Borgar", "Borgar",
+      "Ice Crystal", "Ice Crystal", "Ice Crystal", "Ice Crystal",
+      "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese",
+      "Golden Sneakers", "Golden Sneakers", "Golden Sneakers",
+      "Demonic Soul", "Demonic Soul", "Demonic Soul",
+      "Sucky Magnet", "Sucky Magnet", "Sucky Magnet", "Sucky Magnet",
+      "Time Bracelet", "Time Bracelet", "Time Bracelet", "Time Bracelet", "Time Bracelet",
+      "Forbidden Juice", "Forbidden Juice", "Forbidden Juice", "Forbidden Juice",
+      "Medkit", "Medkit", "Medkit", "Medkit",
+      "Spiky Shield", "Spiky Shield", "Spiky Shield", "Spiky Shield",
+      "Cursed Doll", "Cursed Doll", "Cursed Doll", "Cursed Doll",
+      "Campfire", "Campfire",
+      "Ghost", "Ghost", "Ghost", "Ghost", "Ghost",
+      "Turbo Skates", "Turbo Skates",
+      "Credit Card (Red)"
+    ],
+    "damage_sources": [
+      "Big Bonk LVL 3",
+      "Ice Cube LVL 5",
+      "Snek LVL 7",
+      "Dexecutioner LVL 74",
+      "Spicy Meatball LVL 2",
+      "Cursed Grabbies LVL 5",
+      "Grandma's Secret Tonic LVL 8",
+      "Katana LVL 74",
+      "Lightning Orb LVL 1",
+      "Dragonfire LVL 3",
+      "Soul Harvester LVL 5",
+      "Joe's Dagger LVL 4",
+      "Corrupted Sword LVL 74",
+      "Dragon's Breath LVL 74"
+    ],
+    "notes": "END GAME SUMMARY SCREEN - Full inventory visible with stack counts (x2-x5). 70+ items total. Large clear icons - EXCELLENT for template extraction. Quest: Kevin (Obtain 3 Leeching Crystal). Unlocks: 1, Silver: +632.",
+    "difficulty": "template_source"
+  },
+
+  "steam-community/steam_06.jpg": {
+    "character": "Unknown",
+    "level": 108,
+    "resolution": "1280x720",
+    "language": "English",
+    "biome": "snow",
+    "items": [
+      "Forbidden Juice", "Forbidden Juice", "Forbidden Juice",
+      "Key", "Key", "Key", "Key", "Key", "Key", "Key",
+      "Oats", "Oats",
+      "Dragonfire", "Dragonfire",
+      "Campfire", "Campfire",
+      "Medkit", "Medkit", "Medkit", "Medkit",
+      "Spicy Meatball", "Spicy Meatball",
+      "Borgar", "Borgar", "Borgar", "Borgar",
+      "Demonic Soul", "Demonic Soul",
+      "Golden Sneakers", "Golden Sneakers",
+      "Backpack", "Backpack",
+      "Battery",
+      "Ghost", "Ghost",
+      "Wrench"
+    ],
+    "equipped_weapons": [
+      "Fire Staff LVL 14",
+      "Axe LVL 20",
+      "Boomerang LVL 11",
+      "Sword LVL 12"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 16",
+      "Combat Tome LVL 15",
+      "Ice Tome LVL 15",
+      "Lightning Tome LVL 21"
+    ],
+    "notes": "Snow biome, boss 'Cooked' visible (x1.69 difficulty). Timer 3:50. English UI. Item bar shows ~16 unique items with stack counts. Similar to level_108_english_snow_boss.jpg but different moment. 36 items total.",
+    "difficulty": "medium"
   }
 }
