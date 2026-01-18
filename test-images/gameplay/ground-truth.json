@@ -699,5 +699,165 @@
     ],
     "notes": "Snow biome, boss 'Cooked' visible (x1.69 difficulty). Timer 3:50. English UI. Item bar shows ~16 unique items with stack counts. Similar to level_108_english_snow_boss.jpg but different moment. 36 items total.",
     "difficulty": "medium"
+  },
+
+  "steam-community/steam_14.jpg": {
+    "character": "Unknown",
+    "level": 69,
+    "resolution": "1280x720",
+    "language": "Portuguese",
+    "ui_state": "inventory_panel",
+    "biome": "crypt",
+    "items": [
+      "Feathers", "Feathers", "Feathers",
+      "Beer", "Beer", "Beer",
+      "Forbidden Juice", "Forbidden Juice", "Forbidden Juice",
+      "Ice Crystal", "Ice Crystal",
+      "Honeycomb", "Honeycomb",
+      "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar",
+      "Dragonfire",
+      "Moldy Cheese",
+      "Spiky Shield",
+      "Credit Card (Red)",
+      "Medkit",
+      "Ghost",
+      "Ice Cube", "Ice Cube",
+      "Wrench", "Wrench",
+      "Cursed Doll",
+      "Demonic Soul"
+    ],
+    "equipped_weapons": [
+      "Dice LVL 5",
+      "Sword LVL 1",
+      "Axe LVL 8",
+      "Boomerang LVL 3"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 10",
+      "Combat Tome LVL 8",
+      "Ice Tome LVL 19",
+      "Lightning Tome LVL 15"
+    ],
+    "notes": "INVENTORY PANEL UI - Portuguese 'Inventário' screen showing full item grid. Crypt biome. Chest visible in center. Stats panel on right. 40+ items. USEFUL for testing inventory panel detection.",
+    "difficulty": "medium"
+  },
+
+  "steam-community/steam_15.jpg": {
+    "character": "Unknown",
+    "level": 38,
+    "resolution": "1280x720",
+    "language": "English",
+    "biome": "forest",
+    "items": [
+      "Oats", "Oats", "Oats",
+      "Moldy Cheese",
+      "Dragonfire",
+      "Borgar",
+      "Feathers",
+      "Ice Cube",
+      "Forbidden Juice",
+      "Key",
+      "Medkit",
+      "Wrench"
+    ],
+    "equipped_weapons": [
+      "Fire Staff LVL 13",
+      "Axe LVL 4",
+      "Boomerang LVL 4",
+      "Sword LVL 3"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 6",
+      "Combat Tome LVL 7",
+      "Ice Tome LVL 7",
+      "Lightning Tome LVL 1"
+    ],
+    "notes": "Forest biome, English UI. Stats panel visible. Boss quests completed. 12 items visible at bottom.",
+    "difficulty": "easy"
+  },
+
+  "steam-community/steam_19.jpg": {
+    "character": "Fox",
+    "level": 1588,
+    "resolution": "1280x720",
+    "language": "English",
+    "ui_state": "end_game_summary",
+    "kills": 480647,
+    "time_alive": "70:29",
+    "items": [
+      "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers", "Feathers",
+      "Milk", "Milk", "Milk", "Milk", "Milk", "Milk",
+      "Ice Cube", "Ice Cube", "Ice Cube",
+      "Wrench", "Wrench",
+      "Honeycomb", "Honeycomb", "Honeycomb", "Honeycomb", "Honeycomb",
+      "Backpack", "Backpack", "Backpack",
+      "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar",
+      "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers",
+      "Ice Crystal", "Ice Crystal", "Ice Crystal", "Ice Crystal",
+      "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese"
+    ],
+    "notes": "END GAME SUMMARY - Fox character, Level 1588. 60+ items with high stack counts. +612 Silver. Different loadout from steam_05.",
+    "difficulty": "template_source"
+  },
+
+  "steam-community/steam_21.jpg": {
+    "character": "Cubehead",
+    "level": 217,
+    "resolution": "1280x720",
+    "language": "Russian",
+    "ui_state": "end_game_summary",
+    "kills": 82191,
+    "time_alive": "45:09",
+    "notes": "END GAME SUMMARY - Russian UI (ИТОГ). Cubehead character. 50+ items visible with stack counts. +203 Silver.",
+    "difficulty": "template_source"
+  },
+
+  "steam-community/steam_22.jpg": {
+    "character": "Unknown",
+    "level": 22,
+    "resolution": "1280x720",
+    "language": "English",
+    "biome": "forest",
+    "items": [
+      "Oats"
+    ],
+    "equipped_weapons": [
+      "Fire Staff LVL 5",
+      "Axe LVL 4",
+      "Boomerang LVL 4",
+      "Sword LVL 7"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 1",
+      "Combat Tome LVL 2",
+      "Ice Tome LVL 1",
+      "Lightning Tome LVL 2"
+    ],
+    "notes": "EARLY GAME - Forest biome, Level 22, 'AFK Gaming' challenge. FINAL SWARM INCOMING. Very few items - good for early game testing. Stats panel visible.",
+    "difficulty": "easy"
+  },
+
+  "steam-community/steam_23.jpg": {
+    "character": "Fox",
+    "level": 1164,
+    "resolution": "1280x720",
+    "language": "Russian",
+    "ui_state": "end_game_summary",
+    "kills": 362861,
+    "time_alive": "63:57",
+    "notes": "END GAME SUMMARY - Russian UI. Fox character. 2 Unlocks, +427 Silver. Quests: Тёмный Лис, Золотой Лис.",
+    "difficulty": "template_source"
+  },
+
+  "steam-community/steam_24.jpg": {
+    "character": "Fox",
+    "level": 1281,
+    "resolution": "1280x720",
+    "language": "Russian",
+    "ui_state": "end_game_summary",
+    "kills": 407408,
+    "time_alive": "65:23",
+    "notes": "END GAME SUMMARY - Russian UI. Fox character. +505 Silver. 50+ items visible.",
+    "difficulty": "template_source"
   }
 }
