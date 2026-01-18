@@ -51,4 +51,5 @@ nul
 
 # Claude Code
 .claude/
-fix_claude.shtraining-data/
+fix_claude.sh
+training-data/
