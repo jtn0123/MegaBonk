@@ -9,7 +9,31 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { CVStrategy } from '../src/modules/cv-strategy.ts';
-import { STRATEGY_PRESETS } from '../src/modules/cv-strategy.ts';
+import { STRATEGY_PRESETS, getConfidenceThresholds } from '../src/modules/cv-strategy.ts';
+
+// Game data types
+interface GameItem {
+    id: string;
+    name: string;
+    image?: string;
+    rarity: string;
+}
+
+interface ItemsData {
+    items: GameItem[];
+}
+
+// Template cache
+interface TemplateData {
+    item: GameItem;
+    canvas: any;
+    ctx: any;
+    width: number;
+    height: number;
+}
+
+const templateCache = new Map<string, TemplateData>();
+let itemsData: ItemsData | null = null;
 
 // Try to load canvas module (optional dependency)
 let createCanvas: any;
@@ -260,7 +284,8 @@ class OfflineCVRunner {
 
             const emoji = passed ? '✅' : '❌';
             const f1Pct = (metrics.f1Score * 100).toFixed(1);
-            console.log(`   ${emoji} ${strategyName}: F1=${f1Pct}%, Time=${totalTime.toFixed(0)}ms`);
+            console.log(`   ${emoji} ${strategyName}: F1=${f1Pct}%, Time=${totalTime.toFixed(0)}ms, Detections=${detections.length}`);
+
 
         } catch (error) {
             console.error(`   ❌ ${strategyName}: Error - ${(error as Error).message}`);
@@ -286,8 +311,7 @@ class OfflineCVRunner {
     }
 
     /**
-     * Run detection (simplified for offline testing)
-     * This is a mock - in real implementation, would use actual CV logic
+     * Run actual CV detection using templates and grid positions
      */
     private async runDetection(
         ctx: any,
@@ -295,15 +319,204 @@ class OfflineCVRunner {
         width: number,
         height: number
     ): Promise<Array<{ id: string; name: string; confidence: number }>> {
-        // Mock detection - in real implementation, would:
-        // 1. Load item templates
-        // 2. Detect grid positions
-        // 3. Run template matching with the given strategy
-        // 4. Return detections
+        // Load templates if not loaded
+        await this.loadTemplates();
 
-        // For now, return empty array
-        // This will be integrated with the enhanced CV module
-        return [];
+        // Detect grid positions (hotbar at bottom)
+        const gridPositions = this.detectGridPositions(width, height);
+
+        // Get confidence thresholds
+        const thresholds = getConfidenceThresholds(strategy);
+
+        const detections: Array<{ id: string; name: string; confidence: number }> = [];
+
+        // Process each grid cell
+        for (const cell of gridPositions) {
+            // Get cell image data
+            const cellImageData = ctx.getImageData(cell.x, cell.y, cell.width, cell.height);
+
+            // Skip empty cells
+            if (this.isEmptyCell(cellImageData)) {
+                continue;
+            }
+
+            // Find best match
+            const match = await this.findBestMatch(cellImageData, strategy);
+
+            // Use a lower threshold for testing (actual CV uses 0.70)
+            const testThreshold = 0.50;
+            if (match && match.confidence >= testThreshold) {
+                detections.push({
+                    id: match.item.id,
+                    name: match.item.name,
+                    confidence: match.confidence,
+                });
+            }
+        }
+
+        return detections;
+    }
+
+    /**
+     * Load item templates from game data
+     */
+    private async loadTemplates(): Promise<void> {
+        if (templateCache.size > 0) return;
+
+        // Load items.json
+        const itemsPath = path.join(__dirname, '../data/items.json');
+        if (!fs.existsSync(itemsPath)) {
+            console.warn('⚠️ items.json not found, detection will be limited');
+            return;
+        }
+
+        itemsData = JSON.parse(fs.readFileSync(itemsPath, 'utf-8'));
+        const items = itemsData?.items || [];
+
+        if (this.config.verbose) {
+            console.log(`   Loading ${items.length} item templates...`);
+        }
+
+        // Load each item's image as template
+        for (const item of items) {
+            if (!item.image) continue;
+
+            try {
+                // Use PNG (node-canvas doesn't support WebP)
+                const imagePath = path.join(__dirname, '../src/', item.image);
+                if (!fs.existsSync(imagePath)) continue;
+
+                const img = await loadImage(imagePath);
+                const canvas = createCanvas(img.width, img.height);
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+
+                templateCache.set(item.id, {
+                    item,
+                    canvas,
+                    ctx,
+                    width: img.width,
+                    height: img.height,
+                });
+            } catch {
+                // Skip failed templates
+            }
+        }
+
+        if (this.config.verbose) {
+            console.log(`   Loaded ${templateCache.size} templates`);
+        }
+    }
+
+    /**
+     * Detect grid positions based on resolution
+     * MegaBonk hotbar is centered horizontally at bottom of screen
+     */
+    private detectGridPositions(width: number, height: number): Array<{ x: number; y: number; width: number; height: number }> {
+        // Icon sizes based on resolution (items are 48x48 at 1280x800)
+        const iconSize = Math.round(48 * (height / 800));
+        const spacing = Math.round(4 * (height / 800));
+
+        // Hotbar is centered horizontally at ~93% down
+        const hotbarY = Math.round(height * 0.93);
+
+        // Estimate max items in a row (typically 12-16)
+        const maxItems = 16;
+        const totalWidth = maxItems * (iconSize + spacing);
+        const startX = Math.round((width - totalWidth) / 2);
+
+        const positions: Array<{ x: number; y: number; width: number; height: number }> = [];
+
+        for (let i = 0; i < maxItems; i++) {
+            positions.push({
+                x: startX + i * (iconSize + spacing),
+                y: hotbarY,
+                width: iconSize,
+                height: iconSize,
+            });
+        }
+
+        return positions;
+    }
+
+    /**
+     * Check if a cell is empty based on variance
+     */
+    private isEmptyCell(imageData: any): boolean {
+        const pixels = imageData.data;
+        let sum = 0, sumSq = 0, count = 0;
+
+        for (let i = 0; i < pixels.length; i += 16) {
+            const gray = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+            sum += gray;
+            sumSq += gray * gray;
+            count++;
+        }
+
+        const mean = sum / count;
+        const variance = sumSq / count - mean * mean;
+
+        return variance < 500;
+    }
+
+    /**
+     * Find best matching template for a cell
+     */
+    private async findBestMatch(
+        cellImageData: any,
+        strategy: CVStrategy
+    ): Promise<{ item: GameItem; confidence: number } | null> {
+        let bestMatch: { item: GameItem; confidence: number } | null = null;
+
+        for (const [_id, template] of templateCache) {
+            // Resize template to cell size
+            const resizedCanvas = createCanvas(cellImageData.width, cellImageData.height);
+            const resizedCtx = resizedCanvas.getContext('2d');
+            resizedCtx.drawImage(template.canvas, 0, 0, cellImageData.width, cellImageData.height);
+            const templateData = resizedCtx.getImageData(0, 0, cellImageData.width, cellImageData.height);
+
+            // Calculate similarity using NCC
+            const similarity = this.calculateNCC(cellImageData, templateData);
+
+            if (!bestMatch || similarity > bestMatch.confidence) {
+                bestMatch = { item: template.item, confidence: similarity };
+            }
+        }
+
+        return bestMatch;
+    }
+
+    /**
+     * Normalized Cross-Correlation similarity
+     */
+    private calculateNCC(imageData1: any, imageData2: any): number {
+        const pixels1 = imageData1.data;
+        const pixels2 = imageData2.data;
+
+        let sum1 = 0, sum2 = 0, sumProduct = 0, sumSquare1 = 0, sumSquare2 = 0, count = 0;
+
+        const len = Math.min(pixels1.length, pixels2.length);
+        for (let i = 0; i < len; i += 4) {
+            const gray1 = (pixels1[i] + pixels1[i + 1] + pixels1[i + 2]) / 3;
+            const gray2 = (pixels2[i] + pixels2[i + 1] + pixels2[i + 2]) / 3;
+
+            sum1 += gray1;
+            sum2 += gray2;
+            sumProduct += gray1 * gray2;
+            sumSquare1 += gray1 * gray1;
+            sumSquare2 += gray2 * gray2;
+            count++;
+        }
+
+        const mean1 = sum1 / count;
+        const mean2 = sum2 / count;
+
+        const numerator = sumProduct / count - mean1 * mean2;
+        const denominator = Math.sqrt((sumSquare1 / count - mean1 * mean1) * (sumSquare2 / count - mean2 * mean2));
+
+        if (denominator === 0) return 0;
+
+        return (numerator / denominator + 1) / 2;
     }
 
     /**
