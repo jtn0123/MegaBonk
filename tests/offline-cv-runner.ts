@@ -59,6 +59,25 @@ interface TestCase {
     };
     resolution: string;
     language: string;
+    difficulty?: string;
+}
+
+/**
+ * Convert simple item name array to structured format with counts
+ * e.g., ["Wrench", "Wrench", "Ice Crystal"] -> [{id: "wrench", name: "Wrench", count: 2}, ...]
+ */
+function convertItemsArray(items: string[]): Array<{ id: string; name: string; count: number }> {
+    const itemCounts = new Map<string, number>();
+
+    for (const item of items) {
+        itemCounts.set(item, (itemCounts.get(item) || 0) + 1);
+    }
+
+    return Array.from(itemCounts.entries()).map(([name, count]) => ({
+        id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        name,
+        count,
+    }));
 }
 
 /**
@@ -136,17 +155,24 @@ class OfflineCVRunner {
             .map(([imageName, data]: [string, any]) => {
                 const imagePath = path.join(this.config.testCasesPath, imageName);
 
+                // Convert simple string array to structured format
+                const rawItems = data.items || [];
+                const structuredItems = Array.isArray(rawItems) && rawItems.length > 0 && typeof rawItems[0] === 'string'
+                    ? convertItemsArray(rawItems)
+                    : rawItems;
+
                 return {
                     name: imageName,
                     imagePath,
                     groundTruth: {
-                        items: data.items || [],
+                        items: structuredItems,
                         tomes: data.tomes,
                         character: data.character,
                         weapon: data.weapon,
                     },
                     resolution: data.resolution || 'unknown',
                     language: data.language || 'english',
+                    difficulty: data.difficulty || 'unknown',
                 };
             });
 
@@ -167,8 +193,10 @@ class OfflineCVRunner {
         const startTime = Date.now();
 
         for (const testCase of this.testCases) {
+            const itemCount = testCase.groundTruth.items.reduce((sum, item) => sum + item.count, 0);
             console.log(`\n📋 Test Case: ${testCase.name}`);
-            console.log(`   Resolution: ${testCase.resolution}, Language: ${testCase.language}`);
+            console.log(`   Resolution: ${testCase.resolution}, Language: ${testCase.language}, Difficulty: ${testCase.difficulty}`);
+            console.log(`   Ground truth: ${itemCount} items (${testCase.groundTruth.items.length} unique)`);
 
             for (const strategyName of this.config.strategies) {
                 await this.runTest(testCase, strategyName);
