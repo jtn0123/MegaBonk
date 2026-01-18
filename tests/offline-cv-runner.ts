@@ -353,8 +353,8 @@ class OfflineCVRunner {
             // Find best match
             const match = await this.findBestMatch(cellImageData, strategy);
 
-            // Use a lower threshold for testing (actual CV uses 0.70)
-            const testThreshold = 0.50;
+            // Use threshold appropriate for max-based combined scoring
+            const testThreshold = 0.45;
             if (match && match.confidence >= testThreshold) {
                 detections.push({
                     id: match.item.id,
@@ -628,19 +628,49 @@ class OfflineCVRunner {
 
         let bestMatch: { item: GameItem; confidence: number; rarity?: string } | null = null;
 
-        for (const template of candidates) {
-            // Resize template to cell size
-            const resizedCanvas = createCanvas(cellImageData.width, cellImageData.height);
-            const resizedCtx = resizedCanvas.getContext('2d');
-            resizedCtx.drawImage(template.canvas, 0, 0, cellImageData.width, cellImageData.height);
-            const templateData = resizedCtx.getImageData(0, 0, cellImageData.width, cellImageData.height);
+        // Extract center region of cell (ignore edges that might have background)
+        const margin = Math.round(cellImageData.width * 0.15); // 15% margin
+        const centerWidth = cellImageData.width - margin * 2;
+        const centerHeight = cellImageData.height - margin * 2;
 
-            // Calculate similarity using NCC
-            let similarity = this.calculateNCC(cellImageData, templateData);
+        // Create center-cropped version of cell
+        const centerCanvas = createCanvas(centerWidth, centerHeight);
+        const centerCtx = centerCanvas.getContext('2d');
+
+        // Copy center region (need to manually copy pixels since we have ImageData)
+        const centerData = centerCtx.createImageData(centerWidth, centerHeight);
+        for (let y = 0; y < centerHeight; y++) {
+            for (let x = 0; x < centerWidth; x++) {
+                const srcIdx = ((y + margin) * cellImageData.width + (x + margin)) * 4;
+                const dstIdx = (y * centerWidth + x) * 4;
+                centerData.data[dstIdx] = cellImageData.data[srcIdx];
+                centerData.data[dstIdx + 1] = cellImageData.data[srcIdx + 1];
+                centerData.data[dstIdx + 2] = cellImageData.data[srcIdx + 2];
+                centerData.data[dstIdx + 3] = cellImageData.data[srcIdx + 3];
+            }
+        }
+
+        for (const template of candidates) {
+            // Resize template to center region size
+            const resizedCanvas = createCanvas(centerWidth, centerHeight);
+            const resizedCtx = resizedCanvas.getContext('2d');
+            // Draw template center region (also cropped)
+            const tMargin = Math.round(template.width * 0.15);
+            resizedCtx.drawImage(
+                template.canvas,
+                tMargin, tMargin,  // Source x, y
+                template.width - tMargin * 2, template.height - tMargin * 2,  // Source w, h
+                0, 0,  // Dest x, y
+                centerWidth, centerHeight  // Dest w, h
+            );
+            const templateData = resizedCtx.getImageData(0, 0, centerWidth, centerHeight);
+
+            // Calculate similarity using combined methods on center regions
+            let similarity = this.calculateCombinedSimilarity(centerData, templateData);
 
             // Boost confidence if rarity matches
             if (detectedRarity && template.item.rarity === detectedRarity) {
-                similarity *= 1.1; // 10% boost for rarity match
+                similarity *= 1.15; // 15% boost for rarity match
             }
 
             // Clamp to max 0.99
@@ -689,6 +719,129 @@ class OfflineCVRunner {
         if (denominator === 0) return 0;
 
         return (numerator / denominator + 1) / 2;
+    }
+
+    /**
+     * Color histogram comparison
+     * Compares color distribution - robust to position shifts and small variations
+     */
+    private calculateHistogramSimilarity(imageData1: any, imageData2: any): number {
+        const bins = 16; // 16 bins per channel = 4096 total combinations
+        const binSize = 256 / bins;
+
+        // Build histograms for both images
+        const hist1 = new Array(bins * bins * bins).fill(0);
+        const hist2 = new Array(bins * bins * bins).fill(0);
+
+        const pixels1 = imageData1.data;
+        const pixels2 = imageData2.data;
+
+        let count1 = 0, count2 = 0;
+
+        // Build histogram 1
+        for (let i = 0; i < pixels1.length; i += 4) {
+            const rBin = Math.min(bins - 1, Math.floor(pixels1[i] / binSize));
+            const gBin = Math.min(bins - 1, Math.floor(pixels1[i + 1] / binSize));
+            const bBin = Math.min(bins - 1, Math.floor(pixels1[i + 2] / binSize));
+            const idx = rBin * bins * bins + gBin * bins + bBin;
+            hist1[idx]++;
+            count1++;
+        }
+
+        // Build histogram 2
+        for (let i = 0; i < pixels2.length; i += 4) {
+            const rBin = Math.min(bins - 1, Math.floor(pixels2[i] / binSize));
+            const gBin = Math.min(bins - 1, Math.floor(pixels2[i + 1] / binSize));
+            const bBin = Math.min(bins - 1, Math.floor(pixels2[i + 2] / binSize));
+            const idx = rBin * bins * bins + gBin * bins + bBin;
+            hist2[idx]++;
+            count2++;
+        }
+
+        // Normalize histograms
+        for (let i = 0; i < hist1.length; i++) {
+            hist1[i] /= count1;
+            hist2[i] /= count2;
+        }
+
+        // Calculate intersection (similarity)
+        let intersection = 0;
+        for (let i = 0; i < hist1.length; i++) {
+            intersection += Math.min(hist1[i], hist2[i]);
+        }
+
+        return intersection;
+    }
+
+    /**
+     * Edge-based similarity using Sobel-like edge detection
+     * Compares edge patterns - robust to color/lighting variations
+     */
+    private calculateEdgeSimilarity(imageData1: any, imageData2: any): number {
+        const { width: w1, height: h1 } = imageData1;
+        const { width: w2, height: h2 } = imageData2;
+
+        if (w1 !== w2 || h1 !== h2) return 0;
+
+        const pixels1 = imageData1.data;
+        const pixels2 = imageData2.data;
+
+        // Convert to grayscale and detect edges
+        const getGray = (pixels: any, x: number, y: number, width: number): number => {
+            const idx = (y * width + x) * 4;
+            return (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
+        };
+
+        // Simple edge detection (gradient magnitude)
+        const getEdge = (pixels: any, x: number, y: number, width: number, height: number): number => {
+            if (x <= 0 || x >= width - 1 || y <= 0 || y >= height - 1) return 0;
+
+            const gx = getGray(pixels, x + 1, y, width) - getGray(pixels, x - 1, y, width);
+            const gy = getGray(pixels, x, y + 1, width) - getGray(pixels, x, y - 1, width);
+
+            return Math.sqrt(gx * gx + gy * gy);
+        };
+
+        // Compare edge patterns
+        let sumProduct = 0, sumSq1 = 0, sumSq2 = 0;
+
+        for (let y = 1; y < h1 - 1; y += 2) { // Sample every other pixel for speed
+            for (let x = 1; x < w1 - 1; x += 2) {
+                const e1 = getEdge(pixels1, x, y, w1, h1);
+                const e2 = getEdge(pixels2, x, y, w2, h2);
+
+                sumProduct += e1 * e2;
+                sumSq1 += e1 * e1;
+                sumSq2 += e2 * e2;
+            }
+        }
+
+        const denominator = Math.sqrt(sumSq1 * sumSq2);
+        if (denominator === 0) return 0;
+
+        return sumProduct / denominator;
+    }
+
+    /**
+     * Combined similarity score using multiple methods
+     * Uses weighted max - best method wins with bonus for agreement
+     */
+    private calculateCombinedSimilarity(imageData1: any, imageData2: any): number {
+        const ncc = this.calculateNCC(imageData1, imageData2);
+        const histogram = this.calculateHistogramSimilarity(imageData1, imageData2);
+        const edges = this.calculateEdgeSimilarity(imageData1, imageData2);
+
+        // Use the best method as base
+        const maxScore = Math.max(ncc, histogram, edges);
+
+        // Bonus if multiple methods agree (within 0.1 of max)
+        let agreementBonus = 0;
+        const threshold = 0.1;
+        if (Math.abs(ncc - maxScore) < threshold) agreementBonus += 0.03;
+        if (Math.abs(histogram - maxScore) < threshold) agreementBonus += 0.03;
+        if (Math.abs(edges - maxScore) < threshold) agreementBonus += 0.03;
+
+        return Math.min(0.99, maxScore + agreementBonus);
     }
 
     /**
