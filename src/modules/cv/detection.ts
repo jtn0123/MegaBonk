@@ -22,10 +22,17 @@ import { getDominantColor, isEmptyCell, calculateColorVariance, detectBorderRari
 // Image Loading
 // ========================================
 
+/** Default timeout for image loading (30 seconds) */
+const IMAGE_LOAD_TIMEOUT_MS = 30000;
+
 /**
  * Load image to canvas for processing
+ * Includes timeout protection to prevent indefinite waiting
  */
-export async function loadImageToCanvas(imageDataUrl: string): Promise<{
+export async function loadImageToCanvas(
+    imageDataUrl: string,
+    timeoutMs: number = IMAGE_LOAD_TIMEOUT_MS
+): Promise<{
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     width: number;
@@ -33,7 +40,34 @@ export async function loadImageToCanvas(imageDataUrl: string): Promise<{
 }> {
     return new Promise((resolve, reject) => {
         const img = new Image();
+        let timeoutId: ReturnType<typeof setTimeout> | null = null;
+        let resolved = false;
+
+        const cleanup = () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+                timeoutId = null;
+            }
+        };
+
+        // Set up timeout to prevent indefinite waiting
+        timeoutId = setTimeout(() => {
+            if (!resolved) {
+                resolved = true;
+                img.src = ''; // Cancel image loading
+                logger.warn({
+                    operation: 'cv.load_image_timeout',
+                    error: { message: `Image loading timed out after ${timeoutMs}ms` },
+                });
+                reject(new Error(`Image loading timed out after ${timeoutMs}ms`));
+            }
+        }, timeoutMs);
+
         img.onload = () => {
+            if (resolved) return;
+            resolved = true;
+            cleanup();
+
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
             canvas.height = img.height;
@@ -47,7 +81,19 @@ export async function loadImageToCanvas(imageDataUrl: string): Promise<{
             ctx.drawImage(img, 0, 0);
             resolve({ canvas, ctx, width: img.width, height: img.height });
         };
-        img.onerror = () => reject(new Error('Failed to load image'));
+
+        img.onerror = event => {
+            if (resolved) return;
+            resolved = true;
+            cleanup();
+            const errorMessage = event instanceof ErrorEvent ? event.message : 'Failed to load image';
+            logger.warn({
+                operation: 'cv.load_image_error',
+                error: { message: errorMessage },
+            });
+            reject(new Error(errorMessage));
+        };
+
         img.src = imageDataUrl;
     });
 }
@@ -57,25 +103,35 @@ export async function loadImageToCanvas(imageDataUrl: string): Promise<{
 // ========================================
 
 /**
- * Generate simple hash from image data URL
- * Used for caching detection results
+ * Generate hash from image data URL for caching
+ * Uses DJB2 hash algorithm with higher sample count for better collision resistance
  */
 function hashImageDataUrl(dataUrl: string): string {
-    // Simple hash based on data URL length and sample characters
     const len = dataUrl.length;
-    let hash = 0;
+    let hash1 = 5381; // DJB2 initial value
+    let hash2 = 0;
 
-    // Sample characters at regular intervals
-    const sampleCount = Math.min(100, len);
-    const step = Math.floor(len / sampleCount);
+    // Sample more characters for better collision resistance
+    // Use 500 samples instead of 100, and include start/middle/end regions
+    const sampleCount = Math.min(500, len);
+    const step = Math.max(1, Math.floor(len / sampleCount));
 
+    // DJB2 hash on sampled characters
     for (let i = 0; i < len; i += step) {
         const char = dataUrl.charCodeAt(i);
-        hash = (hash << 5) - hash + char;
-        hash = hash & hash; // Convert to 32bit integer
+        hash1 = ((hash1 << 5) + hash1) ^ char; // hash * 33 ^ char
     }
 
-    return `img_${hash}_${len}`;
+    // Secondary hash from end of string for additional uniqueness
+    const endSampleStart = Math.max(0, len - 1000);
+    for (let i = endSampleStart; i < len; i += 10) {
+        const char = dataUrl.charCodeAt(i);
+        hash2 = (hash2 << 5) + hash2 + char;
+    }
+
+    // Combine both hashes with length for final key
+    // Use >>> 0 to ensure unsigned 32-bit integer
+    return `img_${(hash1 >>> 0).toString(16)}_${(hash2 >>> 0).toString(16)}_${len}`;
 }
 
 /**
@@ -309,13 +365,21 @@ function extractIconRegion(ctx: CanvasRenderingContext2D, cell: ROI): ImageData 
 
 /**
  * Resize ImageData to target dimensions
+ * Returns null if canvas context cannot be obtained
  */
-function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight: number): ImageData {
+function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight: number): ImageData | null {
     const canvas = document.createElement('canvas');
     canvas.width = imageData.width;
     canvas.height = imageData.height;
 
-    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) {
+        logger.warn({
+            operation: 'cv.resize_image_data',
+            error: { message: 'Failed to get source canvas 2D context' },
+        });
+        return null;
+    }
     ctx.putImageData(imageData, 0, 0);
 
     // Create output canvas
@@ -323,7 +387,14 @@ function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight
     outputCanvas.width = targetWidth;
     outputCanvas.height = targetHeight;
 
-    const outputCtx = outputCanvas.getContext('2d', { willReadFrequently: true })!;
+    const outputCtx = outputCanvas.getContext('2d', { willReadFrequently: true });
+    if (!outputCtx) {
+        logger.warn({
+            operation: 'cv.resize_image_data',
+            error: { message: 'Failed to get output canvas 2D context' },
+        });
+        return null;
+    }
     outputCtx.drawImage(canvas, 0, 0, imageData.width, imageData.height, 0, 0, targetWidth, targetHeight);
 
     return outputCtx.getImageData(0, 0, targetWidth, targetHeight);
@@ -332,6 +403,7 @@ function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight
 /**
  * Match a screenshot cell against an item template
  * Returns similarity score (0-1, higher is better)
+ * Returns 0 if template resizing fails
  */
 function matchTemplate(screenshotCtx: CanvasRenderingContext2D, cell: ROI, template: TemplateData): number {
     // Extract icon region from screenshot (exclude count area)
@@ -342,6 +414,11 @@ function matchTemplate(screenshotCtx: CanvasRenderingContext2D, cell: ROI, templ
 
     // Resize template to match icon region size
     const resizedTemplate = resizeImageData(templateImageData, iconRegion.width, iconRegion.height);
+
+    // Handle resize failure gracefully
+    if (!resizedTemplate) {
+        return 0;
+    }
 
     // Calculate similarity
     return calculateSimilarity(iconRegion, resizedTemplate);

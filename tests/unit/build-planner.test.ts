@@ -457,7 +457,8 @@ describe('Build Planner - URL Handling', () => {
             const result = loadBuildFromURL();
 
             expect(result).toBe(false);
-            expect(ToastManager.error).toHaveBeenCalledWith('Invalid build link');
+            // Error message now more specific about invalid base64 format
+            expect(ToastManager.error).toHaveBeenCalledWith('Invalid build link format');
         });
     });
 

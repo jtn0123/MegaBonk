@@ -143,6 +143,31 @@ export async function loadDataFromUrls(urls: {
 }
 
 /**
+ * Categorize fetch errors for better error handling
+ */
+function categorizeFetchError(error: Error, url: string): { type: string; retriable: boolean; message: string } {
+    const errorMessage = error.message.toLowerCase();
+
+    if (error.name === 'AbortError' || errorMessage.includes('timeout')) {
+        return { type: 'timeout', retriable: true, message: `Request timed out: ${url}` };
+    }
+
+    if (errorMessage.includes('network') || errorMessage.includes('failed to fetch')) {
+        return { type: 'network', retriable: true, message: `Network error: ${url}` };
+    }
+
+    if (errorMessage.includes('cors')) {
+        return { type: 'cors', retriable: false, message: `CORS error: ${url}` };
+    }
+
+    if (errorMessage.includes('json')) {
+        return { type: 'parse', retriable: false, message: `JSON parse error: ${url}` };
+    }
+
+    return { type: 'unknown', retriable: true, message: error.message };
+}
+
+/**
  * Fetch with timeout to prevent indefinite waiting
  */
 async function fetchWithTimeout(url: string, timeout: number = 30000): Promise<Response> {
@@ -155,18 +180,20 @@ async function fetchWithTimeout(url: string, timeout: number = 30000): Promise<R
         return response;
     } catch (error) {
         clearTimeout(timeoutId);
-        if ((error as Error).name === 'AbortError') {
-            throw new Error(`Request timeout: ${url}`);
-        }
-        throw error;
+        const categorized = categorizeFetchError(error as Error, url);
+        const enhancedError = new Error(categorized.message);
+        (enhancedError as Error & { type?: string; retriable?: boolean }).type = categorized.type;
+        (enhancedError as Error & { type?: string; retriable?: boolean }).retriable = categorized.retriable;
+        throw enhancedError;
     }
 }
 
 /**
  * Fetch with retry and exponential backoff
+ * Only retries on retriable errors (network, timeout)
  */
 async function fetchWithRetry(url: string, maxRetries: number = 4, initialDelay: number = 2000): Promise<Response> {
-    let lastError: Error | undefined;
+    let lastError: (Error & { type?: string; retriable?: boolean }) | undefined;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -176,15 +203,42 @@ async function fetchWithRetry(url: string, maxRetries: number = 4, initialDelay:
                 return response;
             }
 
-            // HTTP error
-            lastError = new Error(`HTTP ${response.status}: ${response.statusText}`);
+            // HTTP error - categorize by status code
+            const status = response.status;
+            const retriable = status >= 500 || status === 429; // Server errors and rate limiting are retriable
+            lastError = new Error(`HTTP ${status}: ${response.statusText}`) as Error & {
+                type?: string;
+                retriable?: boolean;
+            };
+            lastError.type = 'http';
+            lastError.retriable = retriable;
+
+            // Don't retry non-retriable HTTP errors (4xx except 429)
+            if (!retriable) {
+                break;
+            }
         } catch (error) {
-            lastError = error as Error;
+            lastError = error as Error & { type?: string; retriable?: boolean };
+
+            // Don't retry non-retriable errors
+            if (lastError.retriable === false) {
+                break;
+            }
         }
 
         // Don't wait after the last attempt
         if (attempt < maxRetries) {
             const delay = initialDelay * Math.pow(2, attempt); // Exponential backoff
+            logger.debug({
+                operation: 'data.fetch_retry',
+                data: {
+                    url,
+                    attempt: attempt + 1,
+                    maxRetries,
+                    delayMs: delay,
+                    errorType: lastError?.type,
+                },
+            });
             await new Promise(resolve => setTimeout(resolve, delay));
         }
     }

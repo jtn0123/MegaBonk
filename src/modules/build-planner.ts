@@ -63,12 +63,8 @@ interface BuildTemplate {
  */
 type BuildTemplatesMap = Record<string, BuildTemplate>;
 
-/**
- * Global function declarations
- */
-declare global {
-    function showBuildHistoryModal(): void;
-}
+// Note: showBuildHistoryModal is accessed via window object lookup
+// to avoid global declaration issues
 
 // ========================================
 // State
@@ -266,8 +262,10 @@ export function deleteBuildFromHistory(index: number): void {
         ToastManager.success(`Deleted "${buildName}" from history`);
 
         // Refresh history display if it's open
-        if (typeof showBuildHistoryModal === 'function') {
-            showBuildHistoryModal();
+        // Use window lookup to safely check for global function
+        const windowWithModal = window as Window & { showBuildHistoryModal?: () => void };
+        if (typeof windowWithModal.showBuildHistoryModal === 'function') {
+            windowWithModal.showBuildHistoryModal();
         }
     } catch (error) {
         // Toast handles user feedback
@@ -535,10 +533,13 @@ export function calculateBuildStats(build?: Build): CalculatedBuildStats {
 
     buildToUse.tomes.forEach((tome: Tome) => {
         const tomeLevel = 5;
-        // Use proper regex that won't match invalid numbers like "1.2.3"
-        // Add safety check for value_per_level before calling match()
+        // Safely extract numeric value from value_per_level
+        // Handles formats like "0.5%", "1.5", "+2", etc.
         const valueStr = tome.value_per_level || '';
-        const value = parseFloat(String(valueStr).match(/\d+(?:\.\d+)?/)?.[0] || '0') || 0;
+        const match = String(valueStr).match(/[+-]?\d+(?:\.\d+)?/);
+        const rawValue = match ? parseFloat(match[0]) : 0;
+        // Ensure we have a valid number, default to 0 if NaN
+        const value = Number.isFinite(rawValue) ? rawValue : 0;
         if (tome.stat_affected === 'Damage') stats.damage += value * tomeLevel * 100;
         else if (tome.stat_affected === 'Crit Chance' || tome.id === 'precision')
             stats.crit_chance += value * tomeLevel * 100;
@@ -721,6 +722,7 @@ export function shareBuildURL(): void {
 
 /**
  * Load build from URL hash
+ * Includes validation for malformed or malicious URLs
  */
 export function loadBuildFromURL(): boolean {
     const hash = window.location.hash;
@@ -732,7 +734,43 @@ export function loadBuildFromURL(): boolean {
             ToastManager.error('Invalid build link');
             return false;
         }
-        const decoded = JSON.parse(atob(encoded)) as URLBuildData;
+
+        // Validate base64 string format before decoding
+        // Base64 should only contain alphanumeric, +, /, and = characters
+        if (!/^[A-Za-z0-9+/=]+$/.test(encoded)) {
+            logger.warn({
+                operation: 'build.load',
+                error: { message: 'Invalid base64 characters in build URL' },
+            });
+            ToastManager.error('Invalid build link format');
+            return false;
+        }
+
+        // Limit encoded string length to prevent DoS from massive URLs
+        if (encoded.length > 10000) {
+            logger.warn({
+                operation: 'build.load',
+                error: { message: 'Build URL exceeds maximum length' },
+            });
+            ToastManager.error('Build link is too long');
+            return false;
+        }
+
+        let decodedString: string;
+        try {
+            decodedString = atob(encoded);
+        } catch {
+            ToastManager.error('Invalid build link encoding');
+            return false;
+        }
+
+        const decoded = JSON.parse(decodedString) as URLBuildData;
+
+        // Validate decoded object structure
+        if (typeof decoded !== 'object' || decoded === null) {
+            ToastManager.error('Invalid build data format');
+            return false;
+        }
 
         // Load character
         if (decoded.c && allData.characters) {

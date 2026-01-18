@@ -286,10 +286,19 @@ export function clearAllFilterStates(): void {
  * @returns {FuzzyMatchResult} Match result with context
  */
 export function fuzzyMatchScore(searchTerm: string, text: string, fieldName: string = 'text'): FuzzyMatchResult {
-    if (!searchTerm || !text) return { score: 0, matchType: 'none', field: fieldName };
+    // Handle null/undefined/empty inputs
+    if (!searchTerm || !text || typeof searchTerm !== 'string' || typeof text !== 'string') {
+        return { score: 0, matchType: 'none', field: fieldName };
+    }
 
-    searchTerm = searchTerm.toLowerCase();
-    text = text.toLowerCase();
+    // Trim and normalize whitespace
+    searchTerm = searchTerm.trim().toLowerCase();
+    text = text.trim().toLowerCase();
+
+    // Return early if either is empty after trimming
+    if (searchTerm.length === 0 || text.length === 0) {
+        return { score: 0, matchType: 'none', field: fieldName };
+    }
 
     // Exact match gets highest score
     if (text === searchTerm) {
@@ -425,26 +434,45 @@ export function parseAdvancedSearch(query: string): AdvancedSearchCriteria {
         filters: {},
     };
 
-    if (!query) return criteria;
+    // Handle null/undefined/non-string inputs
+    if (!query || typeof query !== 'string') return criteria;
+
+    // Trim and check for empty string
+    const trimmedQuery = query.trim();
+    if (trimmedQuery.length === 0) return criteria;
+
+    // Limit query length to prevent ReDoS attacks
+    const safeQuery = trimmedQuery.slice(0, 1000);
 
     // Split by spaces but preserve quoted strings
-    const tokens = query.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+    // This regex is safe because it's bounded by the input length limit
+    const tokens = safeQuery.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
 
     tokens.forEach(token => {
-        // Remove quotes if present
-        token = token.replace(/^"(.*)"$/, '$1');
+        // Skip empty tokens
+        if (!token || token.length === 0) return;
+
+        // Remove quotes if present (handle both single and double quotes)
+        token = token.replace(/^["'](.*)["']$/, '$1');
+
+        // Skip if token becomes empty after quote removal
+        if (token.length === 0) return;
 
         // Check if it's a filter syntax (key:value)
-        const filterMatch = token.match(/^(\w+):([\w><=!]+)$/);
+        // Extended to support decimal values and quoted values
+        const filterMatch = token.match(/^(\w+):([\w><=!.+-]+)$/);
 
         if (filterMatch) {
             const [, key, value] = filterMatch;
-            if (key && value) {
+            if (key && value && key.length <= 50 && value.length <= 100) {
+                // Sanitize key and value to prevent injection
                 criteria.filters[key] = value;
             }
         } else {
-            // Regular search term
-            criteria.text.push(token);
+            // Regular search term - limit individual term length
+            if (token.length <= 200) {
+                criteria.text.push(token);
+            }
         }
     });
 

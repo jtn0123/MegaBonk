@@ -9,6 +9,16 @@ import type { AllGameData, Item, Tome, Character, Weapon } from '../types/index.
 import Fuse from 'fuse.js';
 import { logger } from './logger.ts';
 
+// ========================================
+// Constants
+// ========================================
+
+/** Default timeout for OCR operations (60 seconds) */
+const OCR_TIMEOUT_MS = 60000;
+
+/** Maximum retries for OCR operations */
+const OCR_MAX_RETRIES = 2;
+
 // OCR detection result
 export interface DetectionResult {
     type: 'item' | 'tome' | 'character' | 'weapon';
@@ -65,51 +75,122 @@ export function initOCR(gameData: AllGameData): void {
 }
 
 /**
+ * Wrap a promise with a timeout
+ * Rejects with TimeoutError if the promise doesn't resolve within the timeout
+ */
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, operationName: string): Promise<T> {
+    return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+            reject(new Error(`${operationName} timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+
+        promise
+            .then(result => {
+                clearTimeout(timeoutId);
+                resolve(result);
+            })
+            .catch(error => {
+                clearTimeout(timeoutId);
+                reject(error);
+            });
+    });
+}
+
+/**
+ * Sleep for a given number of milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
  * Extract text from image using Tesseract OCR
+ * Includes timeout protection and retry logic
  */
 export async function extractTextFromImage(
     imageDataUrl: string,
-    progressCallback?: OCRProgressCallback
+    progressCallback?: OCRProgressCallback,
+    timeoutMs: number = OCR_TIMEOUT_MS,
+    maxRetries: number = OCR_MAX_RETRIES
 ): Promise<string> {
-    try {
-        logger.info({
-            operation: 'ocr.extract_text',
-            data: { phase: 'start' },
-        });
+    let lastError: Error | null = null;
 
-        const result = await Tesseract.recognize(imageDataUrl, 'eng', {
-            logger: info => {
-                if (progressCallback && info.status === 'recognizing text') {
-                    const progress = Math.round(info.progress * 100);
-                    progressCallback(progress, `Recognizing text... ${progress}%`);
-                }
-            },
-        });
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            logger.info({
+                operation: 'ocr.extract_text',
+                data: { phase: 'start', attempt: attempt + 1, maxRetries: maxRetries + 1 },
+            });
 
-        const extractedText = result.data.text;
+            if (attempt > 0 && progressCallback) {
+                progressCallback(0, `Retrying OCR (attempt ${attempt + 1}/${maxRetries + 1})...`);
+            }
 
-        logger.info({
-            operation: 'ocr.extract_text',
-            data: {
-                phase: 'complete',
-                textLength: extractedText.length,
-                confidence: result.data.confidence,
-                textPreview: extractedText.substring(0, 500).replace(/\n/g, ' | '),
-            },
-        });
+            const recognizePromise = Tesseract.recognize(imageDataUrl, 'eng', {
+                logger: info => {
+                    if (progressCallback && info.status === 'recognizing text') {
+                        const progress = Math.round(info.progress * 100);
+                        progressCallback(progress, `Recognizing text... ${progress}%`);
+                    }
+                },
+            });
 
-        return extractedText;
-    } catch (error) {
-        logger.error({
-            operation: 'ocr.extract_text',
-            error: {
-                name: (error as Error).name,
-                message: (error as Error).message,
-                module: 'ocr',
-            },
-        });
-        throw error;
+            // Wrap with timeout to prevent indefinite waiting
+            const result = await withTimeout(recognizePromise, timeoutMs, 'OCR recognition');
+
+            const extractedText = result.data.text;
+
+            logger.info({
+                operation: 'ocr.extract_text',
+                data: {
+                    phase: 'complete',
+                    attempt: attempt + 1,
+                    textLength: extractedText.length,
+                    confidence: result.data.confidence,
+                    textPreview: extractedText.substring(0, 500).replace(/\n/g, ' | '),
+                },
+            });
+
+            return extractedText;
+        } catch (error) {
+            lastError = error as Error;
+
+            logger.warn({
+                operation: 'ocr.extract_text',
+                data: {
+                    phase: 'retry',
+                    attempt: attempt + 1,
+                    maxRetries: maxRetries + 1,
+                    willRetry: attempt < maxRetries,
+                },
+                error: {
+                    name: lastError.name,
+                    message: lastError.message,
+                    module: 'ocr',
+                },
+            });
+
+            // Don't sleep after the last attempt
+            if (attempt < maxRetries) {
+                // Exponential backoff: 1s, 2s, 4s...
+                const backoffMs = Math.min(1000 * Math.pow(2, attempt), 8000);
+                await sleep(backoffMs);
+            }
+        }
     }
+
+    // All retries exhausted
+    logger.error({
+        operation: 'ocr.extract_text',
+        error: {
+            name: lastError?.name || 'UnknownError',
+            message: lastError?.message || 'OCR failed after all retries',
+            module: 'ocr',
+            retriesExhausted: true,
+        },
+    });
+
+    throw lastError || new Error('OCR failed after all retries');
 }
 
 /**
