@@ -114,23 +114,41 @@ class OfflineCVRunner {
 
         const groundTruthData = JSON.parse(fs.readFileSync(groundTruthPath, 'utf-8'));
 
-        // Convert ground truth to test cases
-        this.testCases = Object.entries(groundTruthData).map(([imageName, data]: [string, any]) => {
-            const imagePath = path.join(this.config.testCasesPath, imageName);
+        // Convert ground truth to test cases, skipping metadata entries and non-existent files
+        this.testCases = Object.entries(groundTruthData)
+            .filter(([imageName]) => {
+                // Skip metadata entries (starting with _)
+                if (imageName.startsWith('_')) {
+                    return false;
+                }
 
-            return {
-                name: imageName,
-                imagePath,
-                groundTruth: {
-                    items: data.items || [],
-                    tomes: data.tomes,
-                    character: data.character,
-                    weapon: data.weapon,
-                },
-                resolution: data.resolution || 'unknown',
-                language: data.language || 'english',
-            };
-        });
+                // Check if file exists
+                const imagePath = path.join(this.config.testCasesPath, imageName);
+                if (!fs.existsSync(imagePath)) {
+                    if (this.config.verbose) {
+                        console.log(`Skipping non-existent file: ${imageName}`);
+                    }
+                    return false;
+                }
+
+                return true;
+            })
+            .map(([imageName, data]: [string, any]) => {
+                const imagePath = path.join(this.config.testCasesPath, imageName);
+
+                return {
+                    name: imageName,
+                    imagePath,
+                    groundTruth: {
+                        items: data.items || [],
+                        tomes: data.tomes,
+                        character: data.character,
+                        weapon: data.weapon,
+                    },
+                    resolution: data.resolution || 'unknown',
+                    language: data.language || 'english',
+                };
+            });
 
         if (this.config.verbose) {
             console.log(`Loaded ${this.testCases.length} test cases`);
