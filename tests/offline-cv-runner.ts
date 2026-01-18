@@ -435,18 +435,14 @@ class OfflineCVRunner {
      * Supports multiple rows and varying resolutions
      */
     private detectGridPositions(width: number, height: number, ctx?: any): Array<{ x: number; y: number; width: number; height: number }> {
-        // Icon size scales with height (items are ~40px at 720p, ~48px at 800p)
+        // Grid parameters - tuned for game's UI layout
         const iconSize = Math.round(40 * (height / 720));
-        const spacing = Math.round(4 * (height / 720)); // ~4px gap at 720p
+        const spacing = Math.round(4 * (height / 720));
 
         const positions: Array<{ x: number; y: number; width: number; height: number }> = [];
 
-        // Row Y positions from bottom (in pixels from bottom edge)
-        // Row 1: ~25px from bottom
-        // Row 2: ~25px + iconSize + 4px spacing above row 1
-        // Row 3: above row 2
         const rowHeight = iconSize + spacing;
-        const bottomMargin = Math.round(20 * (height / 720)); // ~20px from bottom at 720p
+        const bottomMargin = Math.round(20 * (height / 720));
 
         const rowYPositions = [
             height - bottomMargin - iconSize,                    // Row 1 (bottom)
@@ -454,13 +450,11 @@ class OfflineCVRunner {
             height - bottomMargin - iconSize - rowHeight * 2,    // Row 3
         ];
 
-        // Max items per row based on width (items span ~60% of screen width)
-        const sideMargin = Math.round(width * 0.20); // 20% margin on each side
+        const sideMargin = Math.round(width * 0.20);
         const usableWidth = width - sideMargin * 2;
         const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
 
         for (const rowY of rowYPositions) {
-            // Skip if row would be in gameplay area (above 75% of screen)
             if (rowY < height * 0.75) break;
 
             // Calculate centered start position
@@ -889,7 +883,7 @@ class OfflineCVRunner {
      * Scientific testing showed +41.8% F1 improvement with this approach
      */
     private calculateCombinedSimilarity(imageData1: any, imageData2: any): number {
-        // Apply preprocessing (scientifically validated improvements)
+        // Apply preprocessing (scientifically validated: +41.8% F1 improvement)
         let processed1 = this.enhanceContrast(imageData1);
         processed1 = this.normalizeColors(processed1);
 
@@ -905,7 +899,7 @@ class OfflineCVRunner {
         // Use the best method as base
         const maxScore = Math.max(ncc, histogram, ssim, edges);
 
-        // Bonus if multiple methods agree (within 0.1 of max)
+        // Bonus if multiple methods agree
         let agreementBonus = 0;
         const threshold = 0.1;
         if (Math.abs(ncc - maxScore) < threshold) agreementBonus += 0.02;
