@@ -353,7 +353,7 @@ class OfflineCVRunner {
             // Find best match
             const match = await this.findBestMatch(cellImageData, strategy);
 
-            // Use threshold appropriate for max-based combined scoring
+            // Threshold for max-based combined scoring (tested range: 0.40-0.50)
             const testThreshold = 0.45;
             if (match && match.confidence >= testThreshold) {
                 detections.push({
@@ -629,7 +629,7 @@ class OfflineCVRunner {
         let bestMatch: { item: GameItem; confidence: number; rarity?: string } | null = null;
 
         // Extract center region of cell (ignore edges that might have background)
-        const margin = Math.round(cellImageData.width * 0.15); // 15% margin
+        const margin = Math.round(cellImageData.width * 0.15); // 15% margin to ignore backgrounds
         const centerWidth = cellImageData.width - margin * 2;
         const centerHeight = cellImageData.height - margin * 2;
 
@@ -726,7 +726,7 @@ class OfflineCVRunner {
      * Compares color distribution - robust to position shifts and small variations
      */
     private calculateHistogramSimilarity(imageData1: any, imageData2: any): number {
-        const bins = 16; // 16 bins per channel = 4096 total combinations
+        const bins = 8; // 8 bins per channel = 512 combinations (optimized from 16 for speed)
         const binSize = 256 / bins;
 
         // Build histograms for both images
