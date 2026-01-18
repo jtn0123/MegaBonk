@@ -103,7 +103,7 @@
       "Shield LVL 14",
       "Ice Staff LVL 2"
     ],
-    "notes": "Ocean biome, Spanish localization, mid-game with moderate item count. Removed: Tent, Shovel (don't exist as items).",
+    "notes": "Ocean biome, mid-game with moderate item count. Removed: Tent, Shovel (don't exist as items).",
     "difficulty": "medium"
   },
 
@@ -143,7 +143,7 @@
       "Axe LVL 13",
       "Gun LVL 10"
     ],
-    "notes": "Desert biome, Russian localization, red lighting, 20 items total. Removed: Tent, Banana (weapon), Shovel x2 (don't exist as items).",
+    "notes": "Desert biome, red lighting, 20 items total. Removed: Tent, Banana (weapon), Shovel x2 (don't exist as items).",
     "difficulty": "medium"
   },
 
@@ -193,7 +193,7 @@
       "Ice Staff LVL 18",
       "Gun LVL 3"
     ],
-    "notes": "Hell biome, Portuguese localization, 2 inventory rows, 30 items total. Removed: Tent x2, Shovel (don't exist as items).",
+    "notes": "Hell biome, 2 inventory rows, 30 items total. Removed: Tent x2, Shovel (don't exist as items).",
     "difficulty": "hard"
   },
 
@@ -230,7 +230,7 @@
       "Shield LVL 15",
       "Axe LVL 21"
     ],
-    "notes": "Snow/desert hybrid biome, boss 'Cooked', English UI, 18 items. Removed: Shovel (doesn't exist as item).",
+    "notes": "Snow/desert hybrid biome, boss 'Cooked', 18 items. Removed: Shovel (doesn't exist as item).",
     "difficulty": "medium"
   },
 
@@ -276,7 +276,7 @@
       "Shield LVL 8",
       "Boomerang LVL 13"
     ],
-    "notes": "Crypt biome, Russian localization, boss 'Spooky Steve', 27 items. Removed: Tent x2 (doesn't exist as item).",
+    "notes": "Crypt biome, boss 'Spooky Steve', 27 items. Removed: Tent x2 (doesn't exist as item).",
     "difficulty": "hard"
   },
 
@@ -313,7 +313,7 @@
       "Portal LVL 39",
       "Ice Staff LVL 39"
     ],
-    "notes": "Hell biome, Turkish localization, heavy particle effects, 17 items. Removed: Tent x3 (doesn't exist as item). DIFFICULT TEST.",
+    "notes": "Hell biome, heavy particle effects, 17 items. Removed: Tent x3 (doesn't exist as item). DIFFICULT TEST.",
     "difficulty": "hard"
   },
 
@@ -421,7 +421,7 @@
       "Fire Tome LVL 5",
       "Ice Tome LVL 5"
     ],
-    "notes": "Ocean biome (purple), boss Chadbark 419.6K/695.6K HP, Russian UI. Timer 3:04. 22 items visible.",
+    "notes": "Ocean biome (purple), boss Chadbark 419.6K/695.6K HP, Timer 3:04. 22 items visible.",
     "difficulty": "medium"
   },
 
@@ -463,7 +463,7 @@
       "Ice Tome LVL 7",
       "Lightning Tome LVL 1"
     ],
-    "notes": "Forest biome, English UI, stats panel visible on right showing Boss Curses 0/2, Challenges 2/4, Charge Shrines 14/15, Chests 10/46, etc. Quests completed: Find Boss Portal, Defeat Boss. 19 items.",
+    "notes": "Forest biome, stats panel visible on right showing Boss Curses 0/2, Challenges 2/4, Charge Shrines 14/15, Chests 10/46, etc. Quests completed: Find Boss Portal, Defeat Boss. 19 items.",
     "difficulty": "medium"
   },
 
@@ -517,7 +517,7 @@
       "Ice Tome LVL 19",
       "Lightning Tome LVL 21"
     ],
-    "notes": "Crypt biome, Russian UI, boss 'Жуткий Стив' (Spooky Steve) 13.6Ud/340.3Ud HP. Timer 0:00. 2 rows of items, 31 total. Different loadout from level_112_russian_crypt_boss.",
+    "notes": "Crypt biome, boss 'Жуткий Стив' (Spooky Steve) 13.6Ud/340.3Ud HP. Timer 0:00. 2 rows of items, 31 total. Different loadout from level_112_russian_crypt_boss.",
     "difficulty": "hard"
   },
 
@@ -545,7 +545,7 @@
       "Fire Tome LVL 1",
       "Combat Tome LVL 2"
     ],
-    "notes": "INVENTORY/CHEST UI: Shows item pickup screen for legendary Giant Fork. Russian UI. Early game with only 3 items in inventory. Stats panel visible on right. New UI type for testing inventory detection.",
+    "notes": "INVENTORY/CHEST UI: Shows item pickup screen for legendary Giant Fork. Early game with only 3 items in inventory. Stats panel visible on right. New UI type for testing inventory detection.",
     "difficulty": "easy"
   },
 
@@ -594,7 +594,7 @@
       "Ice Tome LVL 16",
       "Lightning Tome LVL 39"
     ],
-    "notes": "Hell biome, Turkish UI (difficulty 'Yandı' x8), level 281. FPS counter visible (79 FPS, 721MB RAM). Heavy particle effects with purple enemies. 2 rows, 26 items. Different moment from level_281_turkish_hell.jpg.",
+    "notes": "Hell biome, (difficulty 'Yandı' x8), level 281. FPS counter visible (79 FPS, 721MB RAM). Heavy particle effects with purple enemies. 2 rows, 26 items. Different moment from level_281_turkish_hell.jpg.",
     "difficulty": "hard"
   },
 
@@ -681,7 +681,7 @@
       "Ice Tome LVL 15",
       "Lightning Tome LVL 21"
     ],
-    "notes": "Snow biome, boss 'Cooked' visible (x1.69 difficulty). Timer 3:50. English UI. Item bar shows ~16 unique items with stack counts. Similar to level_108_english_snow_boss.jpg but different moment. 36 items total.",
+    "notes": "Snow biome, boss 'Cooked' visible (x1.69 difficulty). Timer 3:50. Item bar shows ~16 unique items with stack counts. Similar to level_108_english_snow_boss.jpg but different moment. 36 items total.",
     "difficulty": "medium"
   },
 
@@ -721,7 +721,7 @@
       "Ice Tome LVL 19",
       "Lightning Tome LVL 15"
     ],
-    "notes": "INVENTORY PANEL UI - Portuguese 'Inventário' screen showing full item grid. Crypt biome. Chest visible in center. Stats panel on right. 40+ items. USEFUL for testing inventory panel detection.",
+    "notes": "INVENTORY PANEL UI - Inventory screen showing full item grid. Crypt biome. Chest visible in center. Stats panel on right. 40+ items. USEFUL for testing inventory panel detection.",
     "difficulty": "medium"
   },
 
@@ -754,7 +754,7 @@
       "Ice Tome LVL 7",
       "Lightning Tome LVL 1"
     ],
-    "notes": "Forest biome, English UI. Stats panel visible. Boss quests completed. 12 items visible at bottom.",
+    "notes": "Forest biome, Stats panel visible. Boss quests completed. 12 items visible at bottom.",
     "difficulty": "easy"
   },
 
@@ -788,7 +788,7 @@
     "ui_state": "end_game_summary",
     "kills": 82191,
     "time_alive": "45:09",
-    "notes": "END GAME SUMMARY - Russian UI (ИТОГ). Cubehead character. 50+ items visible with stack counts. +203 Silver.",
+    "notes": "END GAME SUMMARY - (ИТОГ). Cubehead character. 50+ items visible with stack counts. +203 Silver.",
     "difficulty": "template_source"
   },
 
@@ -823,7 +823,7 @@
     "ui_state": "end_game_summary",
     "kills": 362861,
     "time_alive": "63:57",
-    "notes": "END GAME SUMMARY - Russian UI. Fox character. 2 Unlocks, +427 Silver. Quests: Тёмный Лис, Золотой Лис.",
+    "notes": "END GAME SUMMARY - Fox character. 2 Unlocks, +427 Silver. Quests: Тёмный Лис, Золотой Лис.",
     "difficulty": "template_source"
   },
 
@@ -834,7 +834,7 @@
     "ui_state": "end_game_summary",
     "kills": 407408,
     "time_alive": "65:23",
-    "notes": "END GAME SUMMARY - Russian UI. Fox character. +505 Silver. 50+ items visible.",
+    "notes": "END GAME SUMMARY - Fox character. +505 Silver. 50+ items visible.",
     "difficulty": "template_source"
   }
 }
