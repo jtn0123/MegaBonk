@@ -24,6 +24,8 @@ let selectedItems: Map<string, { item: Item; count: number }> = new Map();
 let selectedTomes: Map<string, Tome> = new Map();
 let selectedCharacter: Character | null = null;
 let selectedWeapon: Weapon | null = null;
+let templatesLoaded: boolean = false;
+let templatesLoadError: Error | null = null;
 
 // Callbacks for when build state is updated
 type BuildStateCallback = (state: {
@@ -49,16 +51,29 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
     initCV(gameData);
 
     // Preload item templates for template matching
-    loadItemTemplates().catch(error => {
-        logger.error({
-            operation: 'scan_build.load_templates',
-            error: {
-                name: error.name,
-                message: error.message,
-            },
+    // Track loading status for better error handling during detection
+    templatesLoaded = false;
+    templatesLoadError = null;
+
+    loadItemTemplates()
+        .then(() => {
+            templatesLoaded = true;
+            logger.info({
+                operation: 'scan_build.templates_loaded',
+                data: { success: true },
+            });
+        })
+        .catch(error => {
+            templatesLoadError = error as Error;
+            logger.error({
+                operation: 'scan_build.load_templates',
+                error: {
+                    name: error.name,
+                    message: error.message,
+                },
+            });
+            ToastManager.error('Failed to load item templates for recognition');
         });
-        ToastManager.error('Failed to load item templates for recognition');
-    });
 
     setupEventListeners();
 
@@ -349,6 +364,24 @@ async function handleHybridDetect(): Promise<void> {
     if (!uploadedImage) {
         ToastManager.error('Please upload an image first');
         return;
+    }
+
+    // Check if templates are still loading
+    if (!templatesLoaded && !templatesLoadError) {
+        ToastManager.info('Item templates are still loading. Please wait a moment and try again.');
+        return;
+    }
+
+    // Warn if templates failed to load (CV will have reduced accuracy)
+    if (templatesLoadError) {
+        ToastManager.warning('Item templates failed to load. Detection accuracy may be reduced.');
+        logger.warn({
+            operation: 'scan_build.hybrid_detect_degraded',
+            error: {
+                name: templatesLoadError.name,
+                message: templatesLoadError.message,
+            },
+        });
     }
 
     try {
@@ -987,9 +1020,12 @@ function applyToAdvisor(): void {
     }
 
     // Also call the global applyScannedBuild function if available
-    const applyScannedBuild = (window as any).applyScannedBuild;
-    if (typeof applyScannedBuild === 'function') {
-        applyScannedBuild(buildState);
+    // Use typed window lookup for better type safety
+    const windowWithApply = window as Window & {
+        applyScannedBuild?: (state: typeof buildState) => void;
+    };
+    if (typeof windowWithApply.applyScannedBuild === 'function') {
+        windowWithApply.applyScannedBuild(buildState);
     }
 
     ToastManager.success('Build state applied to advisor!');
@@ -1038,6 +1074,8 @@ export function __resetForTesting(): void {
     selectedCharacter = null;
     selectedWeapon = null;
     onBuildStateChange = null;
+    templatesLoaded = false;
+    templatesLoadError = null;
 }
 
 // ========================================
