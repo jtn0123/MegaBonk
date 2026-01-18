@@ -11,31 +11,37 @@ globalThis.ImageData = ImageData;
 const CROP_SIZE = 48;
 const GT_PATH = './test-images/gameplay/ground-truth.json';
 
-// Grid detection (matches CV runner)
+// Grid detection - CALIBRATED parameters based on UI measurements
+// Reference: 720p height, inventory icons ~34px, positioned above weapon bar
 function detectGridPositions(width, height) {
     const scale = height / 720;
-    const iconSize = Math.round(40 * scale);
+    const iconSize = Math.round(34 * scale);
     const spacing = Math.round(4 * scale);
-    const bottomMargin = Math.round(20 * scale);
+    const bottomMargin = Math.round(42 * scale);  // Skip weapon bar (~42px at 720p)
+    const rowHeight = Math.round(40 * scale);
     const positions = [];
-    const rowHeight = iconSize + spacing;
 
-    const rowYPositions = [
-        height - bottomMargin - iconSize,
-        height - bottomMargin - iconSize - rowHeight,
-        height - bottomMargin - iconSize - rowHeight * 2,
-    ];
+    // Calculate row Y positions (from bottom up)
+    const rowYPositions = [];
+    for (let row = 0; row < 3; row++) {
+        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        if (y >= height * 0.70) {  // Allow up to 30% from top
+            rowYPositions.push(y);
+        }
+    }
 
-    const sideMargin = Math.round(width * 0.20);
+    // Centered layout with 15% side margins
+    const sideMargin = Math.round(width * 0.15);
     const usableWidth = width - sideMargin * 2;
-    const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
+    const cellWidth = iconSize + spacing;
+    const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / cellWidth));
+
+    const totalWidth = maxItemsPerRow * cellWidth;
+    const startX = Math.round((width - totalWidth) / 2);
 
     for (const rowY of rowYPositions) {
-        if (rowY < height * 0.75) break;
-        const totalWidth = maxItemsPerRow * (iconSize + spacing);
-        const startX = Math.round((width - totalWidth) / 2);
         for (let i = 0; i < maxItemsPerRow; i++) {
-            positions.push({ x: startX + i * (iconSize + spacing), y: rowY, width: iconSize, height: iconSize });
+            positions.push({ x: startX + i * cellWidth, y: rowY, width: iconSize, height: iconSize });
         }
     }
     return positions;
@@ -49,7 +55,8 @@ function isEmptyCell(imageData) {
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
-    return variance < 300 || mean < 40;
+    // Calibrated threshold: items have texture (high variance), empty is flat
+    return variance < 350 || mean < 30;
 }
 
 // Template matching functions
