@@ -33,9 +33,7 @@
       "Spiky Shield",
       "Moldy Gloves",
       "Medkit",
-      "Credit Card (Green)",
-      "Tent",
-      "Shovel"
+      "Credit Card (Green)"
     ],
     "equipped_weapons": [
       "Boomerang LVL 4",
@@ -61,25 +59,16 @@
       "Forbidden Juice",
       "Oats",
       "Oats",
-      "Boomerang",
       "Moldy Cheese",
       "Moldy Cheese",
       "Time Bracelet",
       "Borgar",
       "Borgar",
-      "Ring of Haste",
-      "Chicken",
-      "Chicken",
-      "Chicken",
-      "Chicken",
       "Wrench",
-      "Wrench",
-      "Shovel",
-      "Shovel",
-      "Tent"
+      "Wrench"
     ],
     "equipped_weapons": [],
-    "notes": "Forest biome, early game, clean UI. Good baseline test.",
+    "notes": "Forest biome, early game, clean UI. Good baseline test. Removed: Boomerang (weapon), Ring of Haste, Chicken, Shovel, Tent (don't exist as items).",
     "difficulty": "easy"
   },
 
@@ -106,9 +95,7 @@
       "Battery",
       "Spiky Shield",
       "Moldy Cheese",
-      "Turbo Skates",
-      "Tent",
-      "Shovel"
+      "Turbo Skates"
     ],
     "equipped_weapons": [
       "Boomerang LVL 11",
@@ -119,7 +106,7 @@
       "Shield LVL 14",
       "Ice Staff LVL 2"
     ],
-    "notes": "Ocean biome, Spanish localization, mid-game with moderate item count.",
+    "notes": "Ocean biome, Spanish localization, mid-game with moderate item count. Removed: Tent, Shovel (don't exist as items).",
     "difficulty": "medium"
   },
 
@@ -140,19 +127,15 @@
       "Moldy Cheese",
       "Moldy Cheese",
       "Wrench",
-      "Tent",
       "Turbo Skates",
       "Spiky Shield",
-      "Banana",
       "Ice Crystal",
       "Cursed Doll",
       "Demonic Soul",
       "Backpack",
-      "Shovel",
       "Backpack",
       "Turbo Skates",
-      "Credit Card (Green)",
-      "Shovel"
+      "Credit Card (Green)"
     ],
     "equipped_weapons": [
       "Portal LVL 6",
@@ -164,7 +147,7 @@
       "Axe LVL 13",
       "Gun LVL 10"
     ],
-    "notes": "Desert biome, Russian localization, red lighting, 24 items total.",
+    "notes": "Desert biome, Russian localization, red lighting, 20 items total. Removed: Tent, Banana (weapon), Shovel x2 (don't exist as items).",
     "difficulty": "medium"
   },
 
@@ -186,7 +169,6 @@
       "Ice Cube",
       "Cursed Doll",
       "Demonic Soul",
-      "Tent",
       "Dragonfire",
       "Forbidden Juice",
       "Feathers",
@@ -197,7 +179,6 @@
       "Battery",
       "Borgar",
       "Moldy Cheese",
-      "Tent",
       "Turbo Skates",
       "Wrench",
       "Wrench",
@@ -205,8 +186,7 @@
       "Backpack",
       "Borgar",
       "Beer",
-      "Credit Card (Green)",
-      "Shovel"
+      "Credit Card (Green)"
     ],
     "equipped_weapons": [
       "Boomerang LVL 9",
@@ -218,7 +198,7 @@
       "Ice Staff LVL 18",
       "Gun LVL 3"
     ],
-    "notes": "Hell biome, Portuguese localization, 2 inventory rows, 33 items total.",
+    "notes": "Hell biome, Portuguese localization, 2 inventory rows, 30 items total. Removed: Tent x2, Shovel (don't exist as items).",
     "difficulty": "hard"
   },
 
@@ -235,7 +215,6 @@
       "Forbidden Juice",
       "Credit Card (Green)",
       "Moldy Gloves",
-      "Shovel",
       "Moldy Cheese",
       "Beer",
       "Ice Cube",
@@ -257,7 +236,7 @@
       "Shield LVL 15",
       "Axe LVL 21"
     ],
-    "notes": "Snow/desert hybrid biome, boss 'Cooked', English UI, 19 items.",
+    "notes": "Snow/desert hybrid biome, boss 'Cooked', English UI, 18 items. Removed: Shovel (doesn't exist as item).",
     "difficulty": "medium"
   },
 
@@ -270,7 +249,6 @@
       "Cursed Doll",
       "Wrench",
       "Time Bracelet",
-      "Tent",
       "Ghost",
       "Wrench",
       "Demonic Soul",
@@ -283,7 +261,6 @@
       "Turbo Skates",
       "Turbo Skates",
       "Slippery Ring",
-      "Tent",
       "Golden Sneakers",
       "Turbo Skates",
       "Ice Cube",
@@ -306,7 +283,7 @@
       "Shield LVL 8",
       "Boomerang LVL 13"
     ],
-    "notes": "Crypt biome, Russian localization, boss 'Spooky Steve', 29 items.",
+    "notes": "Crypt biome, Russian localization, boss 'Spooky Steve', 27 items. Removed: Tent x2 (doesn't exist as item).",
     "difficulty": "hard"
   },
 
@@ -332,10 +309,7 @@
       "Spiky Shield",
       "Ice Crystal",
       "Ice Crystal",
-      "Ice Crystal",
-      "Tent",
-      "Tent",
-      "Tent"
+      "Ice Crystal"
     ],
     "equipped_weapons": [
       "Sword LVL 48",
@@ -347,7 +321,7 @@
       "Portal LVL 39",
       "Ice Staff LVL 39"
     ],
-    "notes": "Hell biome, Turkish localization, heavy particle effects, 20 items. DIFFICULT TEST.",
+    "notes": "Hell biome, Turkish localization, heavy particle effects, 17 items. Removed: Tent x3 (doesn't exist as item). DIFFICULT TEST.",
     "difficulty": "hard"
   },
 
@@ -364,13 +338,10 @@
       "Dragonfire",
       "Ice Crystal",
       "Time Bracelet",
-      "Tent",
       "Wrench",
       "Cursed Doll",
-      "Tent",
       "Demonic Soul",
       "Ghost",
-      "Tent",
       "Wrench",
       "Turbo Skates",
       "Turbo Skates",
@@ -384,7 +355,6 @@
       "Sucky Magnet",
       "Golden Sneakers",
       "Moldy Cheese",
-      "Tent",
       "Spiky Shield",
       "Cursed Doll",
       "Moldy Cheese",
@@ -393,8 +363,6 @@
       "Cursed Doll",
       "Cursed Doll",
       "Demonic Blood",
-      "Shovel",
-      "Shovel",
       "Credit Card (Red)",
       "Turbo Skates",
       "Turbo Skates",
@@ -417,7 +385,7 @@
       "Portal LVL 99",
       "Ice Staff LVL 99"
     ],
-    "notes": "STRESS TEST: 49 items, 3 inventory rows, Russian, level 803. Tests absolute detection limits.",
+    "notes": "STRESS TEST: 43 items, 3 inventory rows, Russian, level 803. Removed: Tent x4, Shovel x2 (don't exist as items). Tests absolute detection limits.",
     "difficulty": "extreme"
   }
 }
