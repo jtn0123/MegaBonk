@@ -32,7 +32,17 @@ interface TemplateData {
     height: number;
 }
 
+// Rarity color ranges (HSV-like for border detection)
+const RARITY_COLORS: Record<string, { r: [number, number]; g: [number, number]; b: [number, number] }> = {
+    common: { r: [100, 180], g: [100, 180], b: [100, 180] },      // Gray
+    uncommon: { r: [0, 100], g: [150, 255], b: [0, 100] },        // Green
+    rare: { r: [0, 100], g: [100, 200], b: [200, 255] },          // Blue
+    epic: { r: [150, 255], g: [0, 100], b: [200, 255] },          // Purple
+    legendary: { r: [200, 255], g: [100, 200], b: [0, 100] },     // Orange/Gold
+};
+
 const templateCache = new Map<string, TemplateData>();
+const templatesByRarity = new Map<string, TemplateData[]>();
 let itemsData: ItemsData | null = null;
 
 // Try to load canvas module (optional dependency)
@@ -391,13 +401,21 @@ class OfflineCVRunner {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0);
 
-                templateCache.set(item.id, {
+                const templateData = {
                     item,
                     canvas,
                     ctx,
                     width: img.width,
                     height: img.height,
-                });
+                };
+
+                templateCache.set(item.id, templateData);
+
+                // Group by rarity for faster filtering
+                if (!templatesByRarity.has(item.rarity)) {
+                    templatesByRarity.set(item.rarity, []);
+                }
+                templatesByRarity.get(item.rarity)!.push(templateData);
             } catch {
                 // Skip failed templates
             }
@@ -405,70 +423,212 @@ class OfflineCVRunner {
 
         if (this.config.verbose) {
             console.log(`   Loaded ${templateCache.size} templates`);
+            const rarityBreakdown = Array.from(templatesByRarity.entries())
+                .map(([r, t]) => `${r}:${t.length}`)
+                .join(', ');
+            console.log(`   By rarity: ${rarityBreakdown}`);
         }
     }
 
     /**
-     * Detect grid positions based on resolution
-     * MegaBonk hotbar is centered horizontally at bottom of screen
+     * Detect grid positions adaptively based on image content
+     * Supports multiple rows and varying resolutions
      */
-    private detectGridPositions(width: number, height: number): Array<{ x: number; y: number; width: number; height: number }> {
-        // Icon sizes based on resolution (items are 48x48 at 1280x800)
-        const iconSize = Math.round(48 * (height / 800));
-        const spacing = Math.round(4 * (height / 800));
-
-        // Hotbar is centered horizontally at ~93% down
-        const hotbarY = Math.round(height * 0.93);
-
-        // Estimate max items in a row (typically 12-16)
-        const maxItems = 16;
-        const totalWidth = maxItems * (iconSize + spacing);
-        const startX = Math.round((width - totalWidth) / 2);
+    private detectGridPositions(width: number, height: number, ctx?: any): Array<{ x: number; y: number; width: number; height: number }> {
+        // Icon size scales with height (items are ~40px at 720p, ~48px at 800p)
+        const iconSize = Math.round(40 * (height / 720));
+        const spacing = Math.round(4 * (height / 720)); // ~4px gap at 720p
 
         const positions: Array<{ x: number; y: number; width: number; height: number }> = [];
 
-        for (let i = 0; i < maxItems; i++) {
-            positions.push({
-                x: startX + i * (iconSize + spacing),
-                y: hotbarY,
-                width: iconSize,
-                height: iconSize,
-            });
+        // Row Y positions from bottom (in pixels from bottom edge)
+        // Row 1: ~25px from bottom
+        // Row 2: ~25px + iconSize + 4px spacing above row 1
+        // Row 3: above row 2
+        const rowHeight = iconSize + spacing;
+        const bottomMargin = Math.round(20 * (height / 720)); // ~20px from bottom at 720p
+
+        const rowYPositions = [
+            height - bottomMargin - iconSize,                    // Row 1 (bottom)
+            height - bottomMargin - iconSize - rowHeight,        // Row 2
+            height - bottomMargin - iconSize - rowHeight * 2,    // Row 3
+        ];
+
+        // Max items per row based on width (items span ~60% of screen width)
+        const sideMargin = Math.round(width * 0.20); // 20% margin on each side
+        const usableWidth = width - sideMargin * 2;
+        const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
+
+        for (const rowY of rowYPositions) {
+            // Skip if row would be in gameplay area (above 75% of screen)
+            if (rowY < height * 0.75) break;
+
+            // Calculate centered start position
+            const totalWidth = maxItemsPerRow * (iconSize + spacing);
+            const startX = Math.round((width - totalWidth) / 2);
+
+            // Add positions for this row
+            for (let i = 0; i < maxItemsPerRow; i++) {
+                positions.push({
+                    x: startX + i * (iconSize + spacing),
+                    y: rowY,
+                    width: iconSize,
+                    height: iconSize,
+                });
+            }
         }
 
         return positions;
     }
 
     /**
-     * Check if a cell is empty based on variance
+     * Check if a cell is empty or not an item slot
+     * Uses variance, color distribution, and edge detection
      */
     private isEmptyCell(imageData: any): boolean {
         const pixels = imageData.data;
-        let sum = 0, sumSq = 0, count = 0;
+        const { width, height } = imageData;
 
-        for (let i = 0; i < pixels.length; i += 16) {
-            const gray = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
+        let sum = 0, sumSq = 0, count = 0;
+        let sumR = 0, sumG = 0, sumB = 0;
+        let edgeCount = 0;
+
+        // Sample pixels and track color/variance
+        for (let i = 0; i < pixels.length; i += 4) {
+            const r = pixels[i];
+            const g = pixels[i + 1];
+            const b = pixels[i + 2];
+            const gray = (r + g + b) / 3;
+
             sum += gray;
             sumSq += gray * gray;
+            sumR += r;
+            sumG += g;
+            sumB += b;
             count++;
         }
 
         const mean = sum / count;
         const variance = sumSq / count - mean * mean;
+        const avgR = sumR / count;
+        const avgG = sumG / count;
+        const avgB = sumB / count;
 
-        return variance < 500;
+        // Check 1: Low variance = empty/uniform
+        if (variance < 300) return true;
+
+        // Check 2: Very dark cells (background) - avg < 40
+        if (mean < 40) return true;
+
+        // Check 3: Sky/terrain colors (high saturation single channel)
+        const maxChannel = Math.max(avgR, avgG, avgB);
+        const minChannel = Math.min(avgR, avgG, avgB);
+        const saturation = maxChannel > 0 ? (maxChannel - minChannel) / maxChannel : 0;
+
+        // If very saturated but low variance, likely terrain/sky
+        if (saturation > 0.5 && variance < 800) return true;
+
+        // Check 4: Check for item-like edges (items have distinct borders)
+        // Sample a few pixels along edges to detect item border
+        let borderVariance = 0;
+        const borderSamples = Math.min(width, 10);
+        for (let x = 0; x < borderSamples; x++) {
+            const topIdx = x * 4;
+            const bottomIdx = ((height - 1) * width + x) * 4;
+            const diff = Math.abs(pixels[topIdx] - pixels[bottomIdx]);
+            borderVariance += diff;
+        }
+        borderVariance /= borderSamples;
+
+        // Items typically have consistent borders, terrain doesn't
+        // If border variance is too high or too low, likely not an item
+        if (borderVariance > 100) return true; // Jagged edges = terrain
+
+        return false;
+    }
+
+    /**
+     * Detect rarity from item border color
+     * Returns the most likely rarity based on border pixel colors
+     */
+    private detectRarityFromBorder(imageData: any): string | null {
+        const { width, height, data } = imageData;
+        const borderPixels = 3; // Sample 3 pixels from border
+
+        // Collect border pixel colors (top and left edges)
+        let sumR = 0, sumG = 0, sumB = 0, count = 0;
+
+        // Top edge
+        for (let x = 0; x < width; x++) {
+            for (let y = 0; y < borderPixels; y++) {
+                const idx = (y * width + x) * 4;
+                sumR += data[idx];
+                sumG += data[idx + 1];
+                sumB += data[idx + 2];
+                count++;
+            }
+        }
+
+        // Left edge
+        for (let y = borderPixels; y < height; y++) {
+            for (let x = 0; x < borderPixels; x++) {
+                const idx = (y * width + x) * 4;
+                sumR += data[idx];
+                sumG += data[idx + 1];
+                sumB += data[idx + 2];
+                count++;
+            }
+        }
+
+        const avgR = sumR / count;
+        const avgG = sumG / count;
+        const avgB = sumB / count;
+
+        // Match against rarity colors
+        let bestRarity: string | null = null;
+        let bestScore = 0;
+
+        for (const [rarity, ranges] of Object.entries(RARITY_COLORS)) {
+            const rInRange = avgR >= ranges.r[0] && avgR <= ranges.r[1];
+            const gInRange = avgG >= ranges.g[0] && avgG <= ranges.g[1];
+            const bInRange = avgB >= ranges.b[0] && avgB <= ranges.b[1];
+
+            // Score based on how many channels match
+            const score = (rInRange ? 1 : 0) + (gInRange ? 1 : 0) + (bInRange ? 1 : 0);
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestRarity = rarity;
+            }
+        }
+
+        // Only return if we have a confident match (at least 2 channels)
+        return bestScore >= 2 ? bestRarity : null;
     }
 
     /**
      * Find best matching template for a cell
+     * Uses rarity-based filtering when possible for speed
      */
     private async findBestMatch(
         cellImageData: any,
         strategy: CVStrategy
-    ): Promise<{ item: GameItem; confidence: number } | null> {
-        let bestMatch: { item: GameItem; confidence: number } | null = null;
+    ): Promise<{ item: GameItem; confidence: number; rarity?: string } | null> {
+        // Try to detect rarity from border
+        const detectedRarity = this.detectRarityFromBorder(cellImageData);
 
-        for (const [_id, template] of templateCache) {
+        // Get candidate templates - filter by rarity if detected
+        let candidates: TemplateData[];
+        if (detectedRarity && templatesByRarity.has(detectedRarity)) {
+            candidates = templatesByRarity.get(detectedRarity)!;
+        } else {
+            // Fall back to all templates
+            candidates = Array.from(templateCache.values());
+        }
+
+        let bestMatch: { item: GameItem; confidence: number; rarity?: string } | null = null;
+
+        for (const template of candidates) {
             // Resize template to cell size
             const resizedCanvas = createCanvas(cellImageData.width, cellImageData.height);
             const resizedCtx = resizedCanvas.getContext('2d');
@@ -476,10 +636,22 @@ class OfflineCVRunner {
             const templateData = resizedCtx.getImageData(0, 0, cellImageData.width, cellImageData.height);
 
             // Calculate similarity using NCC
-            const similarity = this.calculateNCC(cellImageData, templateData);
+            let similarity = this.calculateNCC(cellImageData, templateData);
+
+            // Boost confidence if rarity matches
+            if (detectedRarity && template.item.rarity === detectedRarity) {
+                similarity *= 1.1; // 10% boost for rarity match
+            }
+
+            // Clamp to max 0.99
+            similarity = Math.min(0.99, similarity);
 
             if (!bestMatch || similarity > bestMatch.confidence) {
-                bestMatch = { item: template.item, confidence: similarity };
+                bestMatch = {
+                    item: template.item,
+                    confidence: similarity,
+                    rarity: detectedRarity || undefined
+                };
             }
         }
 
