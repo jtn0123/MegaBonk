@@ -17,14 +17,15 @@ import {
     updateFilters,
     restoreFilterState,
     saveFilterState,
-    showSearchHistoryDropdown,
 } from './filters.ts';
+import { showSearchHistoryDropdown } from './search-history.ts';
 import { destroyAllCharts } from './charts.ts';
 import { setupBuildPlannerEvents, updateBuildAnalysis } from './build-planner.ts';
 import { renderTabContent } from './renderers.ts';
 import { toggleChangelogExpand } from './changelog.ts';
 import { getState, setState, type TabName } from './store.ts';
 import { registerFunction } from './registry.ts';
+import { showTabSkeleton } from './skeleton-loader.ts';
 
 import type { EntityType } from '../types/index.ts';
 
@@ -204,8 +205,36 @@ export function setupEventDelegation(): void {
                 return;
             }
 
-            // Number keys (1-7) to switch tabs
-            if (e.key >= '1' && e.key <= '7' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            // Arrow key navigation for tabs (W3C WAI-ARIA recommendation)
+            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+                const target = e.target as HTMLElement;
+                // Only handle when focus is on a tab button
+                if (target.classList.contains('tab-btn')) {
+                    e.preventDefault();
+                    const tabButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.tab-btn'));
+                    const currentIndex = tabButtons.indexOf(target as HTMLButtonElement);
+
+                    let nextIndex: number;
+                    if (e.key === 'ArrowRight') {
+                        nextIndex = (currentIndex + 1) % tabButtons.length;
+                    } else {
+                        nextIndex = (currentIndex - 1 + tabButtons.length) % tabButtons.length;
+                    }
+
+                    const nextTab = tabButtons[nextIndex];
+                    if (nextTab) {
+                        nextTab.focus();
+                        const tabName = nextTab.getAttribute('data-tab') as TabName | null;
+                        if (tabName && typeof switchTab === 'function') {
+                            switchTab(tabName);
+                        }
+                    }
+                    return;
+                }
+            }
+
+            // Number keys (1-9) to switch tabs
+            if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey && !e.metaKey) {
                 // Don't trigger if in an input or textarea
                 const target = e.target as HTMLElement;
                 if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
@@ -219,6 +248,8 @@ export function setupEventDelegation(): void {
                     5: 'shrines',
                     6: 'build-planner',
                     7: 'calculator',
+                    8: 'advisor',
+                    9: 'changelog',
                 };
                 const tabName = tabMap[e.key];
                 if (tabName && typeof switchTab === 'function') {
@@ -551,7 +582,7 @@ export function setupEventListeners(): void {
             'focus',
             () => {
                 if (typeof showSearchHistoryDropdown === 'function') {
-                    showSearchHistoryDropdown(searchInput);
+                    showSearchHistoryDropdown(searchInput, handleSearch);
                 }
             },
             getListenerOptions()
@@ -816,7 +847,10 @@ export function switchTab(tabName: TabName): void {
     // Restore filter state for new tab
     restoreFilterState(tabName);
 
-    // Render content for the tab
+    // Show skeleton loading state before rendering (improves perceived performance)
+    showTabSkeleton(tabName);
+
+    // Render content for the tab (will replace skeleton with actual content)
     renderTabContent(tabName);
 }
 

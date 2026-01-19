@@ -4,7 +4,7 @@
 
 import { allData } from './data-service.ts';
 import { ToastManager } from './toast.ts';
-import { safeGetElementById, generateModalImage } from './utils.ts';
+import { safeGetElementById, generateModalImage, escapeHtml } from './utils.ts';
 import { logger } from './logger.ts';
 import { renderFormulaDisplay } from './formula-renderer.ts';
 import type { EntityType, Item, Weapon, Tome, Character, Shrine } from '../types/index.ts';
@@ -240,7 +240,7 @@ function renderItemModal(data: Item): string {
         <div class="hidden-mechanics">
             <h4><span class="hidden-mechanics-icon">⚡</span> Hidden Mechanics</h4>
             <ul>
-                ${data.hidden_mechanics.map(m => `<li>${m}</li>`).join('')}
+                ${data.hidden_mechanics.map(m => `<li>${escapeHtml(m)}</li>`).join('')}
             </ul>
         </div>
     `
@@ -262,8 +262,8 @@ function renderItemModal(data: Item): string {
     const content = `
         ${imageHtml}
         <div class="item-badges">
-            <span class="badge rarity-${data.rarity}">${data.rarity}</span>
-            <span class="badge tier-${data.tier}">${data.tier} Tier</span>
+            <span class="badge rarity-${escapeHtml(data.rarity || '')}">${escapeHtml(data.rarity || '')}</span>
+            <span class="badge tier-${escapeHtml(data.tier || '')}">${escapeHtml(data.tier || '')} Tier</span>
         </div>
         ${
             data.one_and_done
@@ -285,13 +285,13 @@ function renderItemModal(data: Item): string {
         `
                 : ''
         }
-        <div class="item-effect" style="margin-top: 1rem;">${data.base_effect}</div>
-        <p>${data.detailed_description}</p>
+        <div class="item-effect" style="margin-top: 1rem;">${escapeHtml(data.base_effect || '')}</div>
+        <p>${escapeHtml(data.detailed_description || '')}</p>
         ${hiddenMechanicsHtml}
         ${graphHtml}
         ${data.formula ? `<div class="item-formula"><strong>Formula:</strong> ${renderFormulaDisplay(data.formula)}</div>` : ''}
-        ${data.synergies?.length ? `<div class="synergies-section"><h3>Synergies</h3><div class="synergy-list">${data.synergies.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div></div>` : ''}
-        ${data.anti_synergies?.length ? `<div class="anti-synergies-section"><h3>Anti-Synergies</h3><div class="antisynergy-list">${data.anti_synergies.map(s => `<span class="antisynergy-tag">${s}</span>`).join('')}</div></div>` : ''}
+        ${data.synergies?.length ? `<div class="synergies-section"><h3>Synergies</h3><div class="synergy-list">${data.synergies.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div></div>` : ''}
+        ${data.anti_synergies?.length ? `<div class="anti-synergies-section"><h3>Anti-Synergies</h3><div class="antisynergy-list">${data.anti_synergies.map(s => `<span class="antisynergy-tag">${escapeHtml(s)}</span>`).join('')}</div></div>` : ''}
     `;
 
     // Bug fix #10: Use requestAnimationFrame for more reliable chart initialization
