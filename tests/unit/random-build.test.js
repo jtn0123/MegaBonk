@@ -40,11 +40,7 @@ vi.mock('../../src/modules/data-service.ts', () => ({
     },
 }));
 
-import {
-    generateRandomBuild,
-    renderRandomBuildSection,
-    renderBuildPreview,
-} from '../../src/modules/random-build.ts';
+import { generateRandomBuild, renderRandomBuildSection, renderBuildPreview } from '../../src/modules/random-build.ts';
 
 describe('Random Build Generator Module', () => {
     beforeEach(() => {
@@ -225,11 +221,16 @@ describe('Random Build Generator Module', () => {
             });
         });
 
-        it('should use slot-image class for images', () => {
+        it('should render build slots with proper structure', () => {
             const build = generateRandomBuild();
             const html = renderBuildPreview(build);
 
-            expect(html).toContain('slot-image');
+            // Should have slot containers
+            expect(html).toContain('random-build-slot');
+            // Should have slot labels
+            expect(html).toContain('slot-label');
+            // Should have slot names
+            expect(html).toContain('slot-name');
         });
     });
 });

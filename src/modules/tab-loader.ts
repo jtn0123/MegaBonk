@@ -5,7 +5,6 @@
 // This reduces initial bundle size by deferring heavy modules
 
 import { logger } from './logger.ts';
-import { showTabSkeleton, hideTabSkeleton } from './skeleton-loader.ts';
 import type { TabName } from './store.ts';
 
 // ========================================
