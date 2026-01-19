@@ -157,66 +157,66 @@ describe('Renderers Module', () => {
     });
 
     describe('renderTabContent()', () => {
-        it('should call renderBuildPlanner for build-planner tab', () => {
-            renderTabContent('build-planner');
+        it('should call renderBuildPlanner for build-planner tab', async () => {
+            await renderTabContent('build-planner');
             expect(renderBuildPlanner).toHaveBeenCalled();
         });
 
-        it('should call populateCalculatorItems for calculator tab', () => {
+        it('should call populateCalculatorItems for calculator tab', async () => {
             // Add calculator button
             const calcBtn = document.createElement('button');
             calcBtn.id = 'calc-button';
             document.body.appendChild(calcBtn);
 
-            renderTabContent('calculator');
+            await renderTabContent('calculator');
             expect(populateCalculatorItems).toHaveBeenCalled();
 
             calcBtn.remove();
         });
 
-        it('should call changelog functions for changelog tab', () => {
-            renderTabContent('changelog');
+        it('should call changelog functions for changelog tab', async () => {
+            await renderTabContent('changelog');
             expect(updateChangelogStats).toHaveBeenCalled();
             expect(renderChangelog).toHaveBeenCalled();
         });
 
-        it('should render items for items tab', () => {
-            renderTabContent('items');
+        it('should render items for items tab', async () => {
+            await renderTabContent('items');
 
             const container = document.getElementById('itemsContainer');
             expect(container.children.length).toBeGreaterThan(0);
         });
 
-        it('should render weapons for weapons tab', () => {
-            renderTabContent('weapons');
+        it('should render weapons for weapons tab', async () => {
+            await renderTabContent('weapons');
 
             const container = document.getElementById('weaponsContainer');
             expect(container.children.length).toBeGreaterThan(0);
         });
 
-        it('should render tomes for tomes tab', () => {
-            renderTabContent('tomes');
+        it('should render tomes for tomes tab', async () => {
+            await renderTabContent('tomes');
 
             const container = document.getElementById('tomesContainer');
             expect(container.children.length).toBeGreaterThan(0);
         });
 
-        it('should render characters for characters tab', () => {
-            renderTabContent('characters');
+        it('should render characters for characters tab', async () => {
+            await renderTabContent('characters');
 
             const container = document.getElementById('charactersContainer');
             expect(container.children.length).toBeGreaterThan(0);
         });
 
-        it('should render shrines for shrines tab', () => {
-            renderTabContent('shrines');
+        it('should render shrines for shrines tab', async () => {
+            await renderTabContent('shrines');
 
             const container = document.getElementById('shrinesContainer');
             expect(container.children.length).toBeGreaterThan(0);
         });
 
-        it('should update window.filteredData', () => {
-            renderTabContent('items');
+        it('should update window.filteredData', async () => {
+            await renderTabContent('items');
             expect(window.filteredData).toBeDefined();
             expect(Array.isArray(window.filteredData)).toBe(true);
         });

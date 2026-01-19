@@ -84,6 +84,9 @@ function updateCurrentBuild(build: Build): void {
 const BUILD_HISTORY_KEY = 'megabonk_build_history';
 const MAX_BUILD_HISTORY = 20;
 
+// Track if events have been set up (for lazy initialization)
+let eventsInitialized = false;
+
 // ========================================
 // Build Templates
 // ========================================
@@ -407,6 +410,12 @@ export function importBuild(jsonString: string): void {
  * Uses DocumentFragment to batch DOM operations and prevent layout thrashing
  */
 export function renderBuildPlanner(): void {
+    // Initialize events on first render (lazy initialization for code splitting)
+    if (!eventsInitialized) {
+        setupBuildPlannerEvents();
+        eventsInitialized = true;
+    }
+
     const charSelect = safeGetElementById('build-character') as HTMLSelectElement | null;
     if (charSelect) {
         charSelect.innerHTML = '<option value="">Select Character...</option>';

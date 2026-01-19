@@ -22,9 +22,10 @@ import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
 import { setupImageFallbackHandler } from './modules/utils.ts';
 import { logger } from './modules/logger.ts';
 import { setupOfflineListeners } from './modules/offline-ui.ts';
-// Import advisor, scan-build, ocr, computer-vision, and test-utils to ensure they're initialized
-import './modules/advisor.ts';
-import './modules/scan-build.ts';
+import { scheduleModulePreload } from './modules/events.ts';
+// Note: Tab-specific modules (advisor, build-planner, calculator, changelog) are now lazy-loaded
+// via the tab-loader module when their tabs are first accessed
+// Core modules that may be needed across multiple contexts are still eagerly loaded:
 import './modules/ocr.ts';
 import './modules/computer-vision.ts';
 import './modules/test-utils.ts';
@@ -342,6 +343,10 @@ async function init(): Promise<void> {
         },
         { required: false }
     );
+
+    // Schedule preloading of common modules after initial render
+    // This warms the module cache for frequently-used tabs
+    scheduleModulePreload();
 
     // Log app initialization complete
     const initDuration = Math.round(performance.now() - initStartTime);

@@ -25,7 +25,7 @@ import { getState, setState } from './store.ts';
  * @param itemId - Item ID to toggle
  */
 export function toggleCompareItem(itemId: string): void {
-    const compareItems = getState('compareItems');
+    const compareItems = getState('compareItems') || [];
     const index = compareItems.indexOf(itemId);
     if (index > -1) {
         const newItems = [...compareItems];
