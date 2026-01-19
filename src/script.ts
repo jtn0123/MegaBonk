@@ -21,6 +21,7 @@ import { themeManager } from './modules/theme-manager.ts';
 import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
 import { setupImageFallbackHandler } from './modules/utils.ts';
 import { logger } from './modules/logger.ts';
+import { setupOfflineListeners } from './modules/offline-ui.ts';
 // Import advisor, scan-build, ocr, computer-vision, and test-utils to ensure they're initialized
 import './modules/advisor.ts';
 import './modules/scan-build.ts';
@@ -83,54 +84,6 @@ function setupErrorTracking(): void {
         // Prevent default browser error handling
         event.preventDefault();
     });
-}
-
-/**
- * Setup offline/online indicator
- */
-function setupOfflineIndicator(): void {
-    // Create offline indicator
-    const indicator = document.createElement('div');
-    indicator.id = 'offline-indicator';
-    indicator.className = 'offline-indicator';
-    indicator.innerHTML = "📡 You're offline - using cached data";
-    indicator.style.display = 'none';
-    document.body.prepend(indicator);
-
-    // Update indicator based on connection status
-    const updateConnectionStatus = () => {
-        if (!navigator.onLine) {
-            indicator.style.display = 'block';
-        } else {
-            indicator.style.display = 'none';
-        }
-    };
-
-    // Listen for online/offline events
-    window.addEventListener('online', () => {
-        indicator.style.display = 'none';
-        logger.info({
-            operation: 'app.online',
-            data: { previousState: 'offline' },
-        });
-        if (typeof ToastManager !== 'undefined') {
-            ToastManager.success('Back online!');
-        }
-    });
-
-    window.addEventListener('offline', () => {
-        indicator.style.display = 'block';
-        logger.info({
-            operation: 'app.offline',
-            data: { previousState: 'online' },
-        });
-        if (typeof ToastManager !== 'undefined') {
-            ToastManager.info("You're offline - using cached data");
-        }
-    });
-
-    // Initial check
-    updateConnectionStatus();
 }
 
 // Track update interval ID for cleanup
@@ -302,7 +255,7 @@ async function init(): Promise<void> {
     await safeModuleInit(
         'offline-indicator',
         async () => {
-            setupOfflineIndicator();
+            setupOfflineListeners();
         },
         { required: false }
     );

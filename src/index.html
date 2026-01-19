@@ -10,6 +10,12 @@
         />
         <meta name="theme-color" content="#00ff88" />
 
+        <!-- Resource hints for faster loading -->
+        <link rel="preconnect" href="https://megabonk.guide" />
+        <link rel="dns-prefetch" href="https://megabonk.guide" />
+        <link rel="preload" href="styles.css" as="style" />
+        <link rel="preload" href="manifest.json" as="fetch" crossorigin />
+
         <!-- Security headers are set via Caddy HTTP headers (Caddyfile) -->
         <meta name="referrer" content="strict-origin-when-cross-origin" />
 

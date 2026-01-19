@@ -511,6 +511,20 @@ declare global {
         toggleTextExpand?: (element: HTMLElement) => void;
         globalSearch?: (query: string, allData: AllGameData) => unknown[];
 
+        // Offline UI functions (from offline-ui.ts)
+        recordDataSync?: () => void;
+        getLastSyncTime?: () => number | null;
+        updateOfflineIndicator?: (isOffline: boolean) => void;
+
+        // Skeleton loader functions (from skeleton-loader.ts)
+        showSkeletonLoading?: (containerId: string, count?: number, includeGraphs?: boolean) => void;
+        hideSkeletonLoading?: (containerId: string) => void;
+        showTabSkeleton?: (tabName: string) => void;
+        hideTabSkeleton?: (tabName: string) => void;
+
+        // Data service functions (from data-service.ts)
+        loadAllData?: () => Promise<void>;
+
         // Test utilities (from test-utils.ts)
         testUtils?: {
             calculateAccuracyMetrics?: (...args: unknown[]) => unknown;

@@ -7,6 +7,7 @@ import { validateAllData, logValidationResults, validateWithZod } from './data-v
 import { logger } from './logger.ts';
 import { getSavedTab } from './events.ts';
 import { getState, setState } from './store.ts';
+import { recordDataSync } from './offline-ui.ts';
 import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.ts';
 
 // ========================================
@@ -341,6 +342,9 @@ export async function loadAllData(): Promise<void> {
         if (updatedEl) updatedEl.textContent = `Last Updated: ${items.last_updated || 'Unknown'}`;
 
         hideLoading();
+
+        // Record successful data sync for offline indicator
+        recordDataSync();
 
         // Initialize UI - restore saved tab or default to 'items'
         // Note: switchTab is a global function from script.js

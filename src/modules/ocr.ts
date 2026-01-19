@@ -2,12 +2,48 @@
 // MegaBonk OCR Module
 // ========================================
 // Handles text extraction from screenshots using Tesseract.js
+// Tesseract is lazy-loaded to reduce initial bundle size
 // ========================================
 
-import Tesseract from 'tesseract.js';
 import type { AllGameData, Item, Tome, Character, Weapon } from '../types/index.ts';
 import Fuse from 'fuse.js';
 import { logger } from './logger.ts';
+
+// Lazy-loaded Tesseract module reference
+let tesseractModule: typeof import('tesseract.js') | null = null;
+
+/**
+ * Lazy load Tesseract.js only when needed
+ * This reduces initial bundle size since OCR may not be used in every session
+ */
+async function getTesseract(): Promise<typeof import('tesseract.js')> {
+    if (!tesseractModule) {
+        logger.info({
+            operation: 'ocr.lazy_load',
+            data: { module: 'tesseract.js', phase: 'start' },
+        });
+        tesseractModule = await import('tesseract.js');
+        logger.info({
+            operation: 'ocr.lazy_load',
+            data: { module: 'tesseract.js', phase: 'complete' },
+        });
+    }
+    return tesseractModule;
+}
+
+// ========================================
+// Type Definitions for Tesseract
+// ========================================
+
+/**
+ * Tesseract recognition result (simplified type for our use case)
+ */
+interface TesseractResult {
+    data: {
+        text: string;
+        confidence: number;
+    };
+}
 
 // ========================================
 // Constants
@@ -106,6 +142,7 @@ function sleep(ms: number): Promise<void> {
 /**
  * Extract text from image using Tesseract OCR
  * Includes timeout protection and retry logic
+ * Tesseract is lazy-loaded on first use
  */
 export async function extractTextFromImage(
     imageDataUrl: string,
@@ -114,6 +151,12 @@ export async function extractTextFromImage(
     maxRetries: number = OCR_MAX_RETRIES
 ): Promise<string> {
     let lastError: Error | null = null;
+
+    // Lazy load Tesseract on first use
+    if (progressCallback) {
+        progressCallback(0, 'Loading OCR engine...');
+    }
+    const Tesseract = await getTesseract();
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -127,7 +170,7 @@ export async function extractTextFromImage(
             }
 
             const recognizePromise = Tesseract.recognize(imageDataUrl, 'eng', {
-                logger: info => {
+                logger: (info: { status: string; progress: number }) => {
                     if (progressCallback && info.status === 'recognizing text') {
                         const progress = Math.round(info.progress * 100);
                         progressCallback(progress, `Recognizing text... ${progress}%`);
@@ -136,7 +179,7 @@ export async function extractTextFromImage(
             });
 
             // Wrap with timeout to prevent indefinite waiting
-            const result = await withTimeout(recognizePromise, timeoutMs, 'OCR recognition');
+            const result = await withTimeout(recognizePromise, timeoutMs, 'OCR recognition') as TesseractResult;
 
             const extractedText = result.data.text;
 
