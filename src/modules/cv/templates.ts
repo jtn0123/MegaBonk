@@ -47,8 +47,11 @@ export function prioritizeItems(items: Item[]): { priority: Item[]; standard: It
 /**
  * Load item templates progressively (priority items first)
  */
-export async function loadTemplatesBatch(items: Item[]): Promise<number> {
+export async function loadTemplatesBatch(
+    items: Item[]
+): Promise<{ loaded: number; failed: number; failedIds: string[] }> {
     let loaded = 0;
+    const failedIds: string[] = [];
     const itemTemplates = getItemTemplates();
 
     const loadPromises = items.map(async item => {
@@ -119,19 +122,34 @@ export async function loadTemplatesBatch(items: Item[]): Promise<number> {
                 img.src = imagePath;
             });
         } catch (error) {
+            failedIds.push(item.id);
             logger.error({
                 operation: 'cv.load_template',
                 error: {
                     name: (error as Error).name,
                     message: (error as Error).message,
                 },
+                data: { itemId: item.id, itemName: item.name },
             });
         }
     });
 
     await Promise.all(loadPromises);
 
-    return loaded;
+    // Log summary if there were failures
+    if (failedIds.length > 0) {
+        logger.warn({
+            operation: 'cv.load_template_batch',
+            data: {
+                totalAttempted: items.length,
+                loaded,
+                failed: failedIds.length,
+                failedIds: failedIds.slice(0, 10), // Limit to first 10 for brevity
+            },
+        });
+    }
+
+    return { loaded, failed: failedIds.length, failedIds };
 }
 
 /**
@@ -187,7 +205,7 @@ export async function loadItemTemplates(): Promise<void> {
     const { priority, standard } = prioritizeItems(items);
 
     // Load priority items first
-    const priorityLoaded = await loadTemplatesBatch(priority);
+    const priorityResult = await loadTemplatesBatch(priority);
     groupTemplatesByColor(priority);
     setPriorityTemplatesLoaded(true);
 
@@ -195,15 +213,17 @@ export async function loadItemTemplates(): Promise<void> {
         operation: 'cv.load_templates',
         data: {
             phase: 'priority_complete',
-            priorityLoaded,
+            priorityLoaded: priorityResult.loaded,
+            priorityFailed: priorityResult.failed,
             priorityTotal: priority.length,
         },
     });
 
     // Load remaining items in background (non-blocking)
+    // Use setTimeout(0) to yield to the event loop without arbitrary delay
     setTimeout(async () => {
         try {
-            const standardLoaded = await loadTemplatesBatch(standard);
+            const standardResult = await loadTemplatesBatch(standard);
             groupTemplatesByColor(standard);
             setTemplatesLoaded(true);
 
@@ -211,8 +231,10 @@ export async function loadItemTemplates(): Promise<void> {
                 operation: 'cv.load_templates',
                 data: {
                     phase: 'complete',
-                    priorityLoaded,
-                    standardLoaded,
+                    priorityLoaded: priorityResult.loaded,
+                    priorityFailed: priorityResult.failed,
+                    standardLoaded: standardResult.loaded,
+                    standardFailed: standardResult.failed,
                     total: items.length,
                     colorGroups: Object.fromEntries(
                         Array.from(templatesByColor.entries()).map(([color, items]) => [color, items.length])
@@ -230,7 +252,7 @@ export async function loadItemTemplates(): Promise<void> {
             // Still mark as loaded to prevent infinite retries
             setTemplatesLoaded(true);
         }
-    }, 100); // Small delay to allow UI to update
+    }, 0);
 }
 
 // ========================================

@@ -186,7 +186,7 @@ export async function extractTextFromImage(
             name: lastError?.name || 'UnknownError',
             message: lastError?.message || 'OCR failed after all retries',
             module: 'ocr',
-            retriesExhausted: true,
+            retriable: false, // All retries have been exhausted
         },
     });
 

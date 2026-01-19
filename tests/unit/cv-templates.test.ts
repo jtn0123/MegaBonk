@@ -198,16 +198,18 @@ describe('CV Templates Module', () => {
         it('should skip items without images', async () => {
             const items = [createMockItem('no_image', 'common')]; // No image property
 
-            const loaded = await loadTemplatesBatch(items as any);
+            const result = await loadTemplatesBatch(items as any);
 
-            expect(loaded).toBe(0);
+            expect(result.loaded).toBe(0);
+            expect(result.failed).toBe(0);
             expect(getItemTemplates().size).toBe(0);
         });
 
         it('should handle empty items array', async () => {
-            const loaded = await loadTemplatesBatch([]);
+            const result = await loadTemplatesBatch([]);
 
-            expect(loaded).toBe(0);
+            expect(result.loaded).toBe(0);
+            expect(result.failed).toBe(0);
         });
 
         // Note: Image loading tests are skipped because mocking global.Image

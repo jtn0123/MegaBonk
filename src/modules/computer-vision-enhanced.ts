@@ -19,6 +19,8 @@ import {
 } from './cv-strategy.ts';
 import { startMetricsTracking } from './cv-metrics.ts';
 import { logger } from './logger.ts';
+import { getAllData, setAllData, isTemplatesLoaded as isBaseTemplatesLoaded, setTemplatesLoaded } from './cv/state.ts';
+import { isEmptyCell, detectBorderRarity } from './cv/color.ts';
 
 // Re-export types
 export type { CVDetectionResult, ROI, CVStrategy, ColorProfile };
@@ -37,19 +39,19 @@ interface EnhancedTemplateData {
     rarity: string;
 }
 
-// Template storage
+// Enhanced template storage (extends base with color analysis)
 const enhancedTemplates = new Map<string, EnhancedTemplateData>();
 const templatesByRarity = new Map<string, Item[]>();
-const templatesByColor = new Map<string, Item[]>();
+const enhancedTemplatesByColor = new Map<string, Item[]>();
 
-let allData: AllGameData = {};
-let templatesLoaded = false;
+// Track enhanced-specific loading state (separate from base templates)
+let enhancedTemplatesLoaded = false;
 
 /**
  * Initialize enhanced CV module
  */
 export function initEnhancedCV(gameData: AllGameData): void {
-    allData = gameData;
+    setAllData(gameData);
 
     logger.info({
         operation: 'cv_enhanced.init',
@@ -63,9 +65,10 @@ export function initEnhancedCV(gameData: AllGameData): void {
  * Load templates with enhanced color analysis
  */
 export async function loadEnhancedTemplates(): Promise<void> {
-    if (templatesLoaded) return;
+    if (enhancedTemplatesLoaded) return;
 
-    const items = allData.items?.items || [];
+    const gameData = getAllData();
+    const items = gameData.items?.items || [];
 
     logger.info({
         operation: 'cv_enhanced.load_templates',
@@ -84,7 +87,7 @@ export async function loadEnhancedTemplates(): Promise<void> {
                     const canvas = document.createElement('canvas');
                     canvas.width = img.width;
                     canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
+                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
                     if (!ctx) {
                         reject(new Error('Failed to get canvas context'));
@@ -140,10 +143,10 @@ export async function loadEnhancedTemplates(): Promise<void> {
                     rarityArray.push(item);
 
                     // Group by dominant color
-                    let colorArray = templatesByColor.get(colorProfile.dominant);
+                    let colorArray = enhancedTemplatesByColor.get(colorProfile.dominant);
                     if (!colorArray) {
                         colorArray = [];
-                        templatesByColor.set(colorProfile.dominant, colorArray);
+                        enhancedTemplatesByColor.set(colorProfile.dominant, colorArray);
                     }
                     colorArray.push(item);
 
@@ -157,7 +160,7 @@ export async function loadEnhancedTemplates(): Promise<void> {
                         const canvas = document.createElement('canvas');
                         canvas.width = pngImg.width;
                         canvas.height = pngImg.height;
-                        const ctx = canvas.getContext('2d');
+                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
                         if (!ctx) {
                             reject(new Error('Failed to get canvas context'));
@@ -206,10 +209,10 @@ export async function loadEnhancedTemplates(): Promise<void> {
                         }
                         templatesByRarity.get(item.rarity)!.push(item);
 
-                        if (!templatesByColor.has(colorProfile.dominant)) {
-                            templatesByColor.set(colorProfile.dominant, []);
+                        if (!enhancedTemplatesByColor.has(colorProfile.dominant)) {
+                            enhancedTemplatesByColor.set(colorProfile.dominant, []);
                         }
-                        templatesByColor.get(colorProfile.dominant)!.push(item);
+                        enhancedTemplatesByColor.get(colorProfile.dominant)!.push(item);
 
                         resolve();
                     };
@@ -232,7 +235,7 @@ export async function loadEnhancedTemplates(): Promise<void> {
 
     await Promise.all(loadPromises);
 
-    templatesLoaded = true;
+    enhancedTemplatesLoaded = true;
 
     logger.info({
         operation: 'cv_enhanced.load_templates',
@@ -243,87 +246,10 @@ export async function loadEnhancedTemplates(): Promise<void> {
                 Array.from(templatesByRarity.entries()).map(([k, v]: [string, Item[]]) => [k, v.length])
             ),
             byColor: Object.fromEntries(
-                Array.from(templatesByColor.entries()).map(([k, v]: [string, Item[]]) => [k, v.length])
+                Array.from(enhancedTemplatesByColor.entries()).map(([k, v]: [string, Item[]]) => [k, v.length])
             ),
         },
     });
-}
-
-/**
- * Detect border rarity from cell image data
- */
-function detectBorderRarity(imageData: ImageData): string | null {
-    const { width, height, data } = imageData;
-    const borderWidth = 3;
-
-    let sumR = 0,
-        sumG = 0,
-        sumB = 0,
-        count = 0;
-
-    // Extract border pixels
-    for (let x = 0; x < width; x++) {
-        for (let y = 0; y < borderWidth; y++) {
-            const topIdx = (y * width + x) * 4;
-            sumR += data[topIdx] ?? 0;
-            sumG += data[topIdx + 1] ?? 0;
-            sumB += data[topIdx + 2] ?? 0;
-            count++;
-
-            const bottomIdx = ((height - 1 - y) * width + x) * 4;
-            sumR += data[bottomIdx] ?? 0;
-            sumG += data[bottomIdx + 1] ?? 0;
-            sumB += data[bottomIdx + 2] ?? 0;
-            count++;
-        }
-    }
-
-    for (let y = borderWidth; y < height - borderWidth; y++) {
-        for (let x = 0; x < borderWidth; x++) {
-            const leftIdx = (y * width + x) * 4;
-            sumR += data[leftIdx] ?? 0;
-            sumG += data[leftIdx + 1] ?? 0;
-            sumB += data[leftIdx + 2] ?? 0;
-            count++;
-
-            const rightIdx = (y * width + (width - 1 - x)) * 4;
-            sumR += data[rightIdx] ?? 0;
-            sumG += data[rightIdx + 1] ?? 0;
-            sumB += data[rightIdx + 2] ?? 0;
-            count++;
-        }
-    }
-
-    if (count === 0) return null;
-
-    const avgR = sumR / count;
-    const avgG = sumG / count;
-    const avgB = sumB / count;
-
-    // Rarity color mapping
-    const rarityColors: Record<string, { r: number; g: number; b: number; tolerance: number }> = {
-        common: { r: 128, g: 128, b: 128, tolerance: 40 },
-        uncommon: { r: 0, g: 255, b: 0, tolerance: 60 },
-        rare: { r: 0, g: 128, b: 255, tolerance: 60 },
-        epic: { r: 128, g: 0, b: 255, tolerance: 60 },
-        legendary: { r: 255, g: 165, b: 0, tolerance: 60 },
-    };
-
-    let bestMatch: string | null = null;
-    let bestDistance = Infinity;
-
-    for (const [rarity, color] of Object.entries(rarityColors)) {
-        const distance = Math.sqrt(
-            Math.pow(avgR - color.r, 2) + Math.pow(avgG - color.g, 2) + Math.pow(avgB - color.b, 2)
-        );
-
-        if (distance < color.tolerance && distance < bestDistance) {
-            bestMatch = rarity;
-            bestDistance = distance;
-        }
-    }
-
-    return bestMatch;
 }
 
 /**
@@ -460,7 +386,7 @@ export async function detectItemsWithEnhancedCV(
 
     try {
         // Ensure templates loaded
-        if (!templatesLoaded) {
+        if (!enhancedTemplatesLoaded) {
             if (progressCallback) {
                 progressCallback(5, 'Loading enhanced templates...');
             }
@@ -481,7 +407,7 @@ export async function detectItemsWithEnhancedCV(
         const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
-        const ctx = canvas.getContext('2d')!;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
         ctx.drawImage(img, 0, 0);
 
         if (progressCallback) {
@@ -563,7 +489,8 @@ async function detectWithStrategy(
     strategy: CVStrategy,
     progressCallback?: (progress: number, status: string) => void
 ): Promise<CVDetectionResult[]> {
-    const items = allData.items?.items || [];
+    const gameData = getAllData();
+    const items = gameData.items?.items || [];
 
     // Filter empty cells first
     const validCells: Array<{ cell: ROI; imageData: ImageData; rarity?: string; colorProfile?: ColorProfile }> = [];
@@ -757,7 +684,7 @@ function filterCandidates(
     } else if (strategy.colorFiltering === 'color-first') {
         // Color-first: Filter by dominant color
         if (cellColorProfile) {
-            const colorItems = templatesByColor.get(cellColorProfile.dominant) || [];
+            const colorItems = enhancedTemplatesByColor.get(cellColorProfile.dominant) || [];
             candidates = colorItems.length > 0 ? colorItems : items;
         }
     }
@@ -825,46 +752,6 @@ function matchCell(
 }
 
 /**
- * Check if cell is empty
- */
-function isEmptyCell(imageData: ImageData): boolean {
-    const pixels = imageData.data;
-    let sumR = 0,
-        sumG = 0,
-        sumB = 0;
-    let sumSquareR = 0,
-        sumSquareG = 0,
-        sumSquareB = 0;
-    let count = 0;
-
-    for (let i = 0; i < pixels.length; i += 16) {
-        const r = pixels[i] ?? 0;
-        const g = pixels[i + 1] ?? 0;
-        const b = pixels[i + 2] ?? 0;
-
-        sumR += r;
-        sumG += g;
-        sumB += b;
-        sumSquareR += r * r;
-        sumSquareG += g * g;
-        sumSquareB += b * b;
-        count++;
-    }
-
-    const meanR = sumR / count;
-    const meanG = sumG / count;
-    const meanB = sumB / count;
-
-    const varianceR = sumSquareR / count - meanR * meanR;
-    const varianceG = sumSquareG / count - meanG * meanG;
-    const varianceB = sumSquareB / count - meanB * meanB;
-
-    const totalVariance = varianceR + varianceG + varianceB;
-
-    return totalVariance < 500;
-}
-
-/**
  * Resize ImageData
  */
 function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight: number): ImageData {
@@ -872,21 +759,38 @@ function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight
     canvas.width = imageData.width;
     canvas.height = imageData.height;
 
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
     ctx.putImageData(imageData, 0, 0);
 
     const outputCanvas = document.createElement('canvas');
     outputCanvas.width = targetWidth;
     outputCanvas.height = targetHeight;
 
-    const outputCtx = outputCanvas.getContext('2d')!;
+    const outputCtx = outputCanvas.getContext('2d', { willReadFrequently: true })!;
     outputCtx.drawImage(canvas, 0, 0, imageData.width, imageData.height, 0, 0, targetWidth, targetHeight);
 
     return outputCtx.getImageData(0, 0, targetWidth, targetHeight);
+}
+
+/**
+ * Reset enhanced CV state (for data refresh)
+ * Clears all loaded templates and resets loading state
+ */
+export function resetEnhancedCVState(): void {
+    enhancedTemplates.clear();
+    templatesByRarity.clear();
+    enhancedTemplatesByColor.clear();
+    enhancedTemplatesLoaded = false;
+
+    logger.info({
+        operation: 'cv_enhanced.reset',
+        data: { message: 'Enhanced CV state cleared' },
+    });
 }
 
 // Export for window
 if (typeof window !== 'undefined') {
     (window as any).initEnhancedCV = initEnhancedCV;
     (window as any).detectItemsWithEnhancedCV = detectItemsWithEnhancedCV;
+    (window as any).resetEnhancedCVState = resetEnhancedCVState;
 }
