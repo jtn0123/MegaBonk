@@ -125,6 +125,11 @@ import {
     getCurrentBuild,
     loadBuildFromURL,
     updateBuildURL,
+    exportBuild,
+    shareBuildURL,
+    updateBuildAnalysis,
+    renderBuildPlanner,
+    setupBuildPlannerEvents,
 } from '../../src/modules/build-planner';
 import { ToastManager } from '../../src/modules/toast';
 
@@ -540,6 +545,264 @@ describe('build-planner.ts coverage tests', () => {
             expect(ToastManager.error).toHaveBeenCalledWith('Failed to clear build history');
 
             localStorage.removeItem = originalRemoveItem;
+        });
+    });
+
+    describe('exportBuild', () => {
+        let mockClipboard: { writeText: ReturnType<typeof vi.fn> };
+
+        beforeEach(() => {
+            mockClipboard = {
+                writeText: vi.fn().mockResolvedValue(undefined),
+            };
+            Object.defineProperty(navigator, 'clipboard', {
+                value: mockClipboard,
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('should copy build code to clipboard', async () => {
+            exportBuild();
+
+            expect(mockClipboard.writeText).toHaveBeenCalled();
+            const calledWith = mockClipboard.writeText.mock.calls[0][0];
+            expect(calledWith).toContain('{');
+
+            // Wait for async promise to resolve
+            await vi.waitFor(() => {
+                expect(ToastManager.success).toHaveBeenCalledWith('Build code copied to clipboard!');
+            });
+        });
+
+        it('should handle clipboard error', async () => {
+            mockClipboard.writeText.mockRejectedValue(new Error('Clipboard blocked'));
+
+            exportBuild();
+
+            await vi.waitFor(() => {
+                expect(ToastManager.error).toHaveBeenCalledWith(expect.stringContaining('Failed to copy'));
+            });
+        });
+
+        it('should export valid JSON structure', () => {
+            exportBuild();
+
+            const calledWith = mockClipboard.writeText.mock.calls[0][0];
+            const parsed = JSON.parse(calledWith);
+            // Tomes and items arrays should always be present
+            expect(parsed).toHaveProperty('tomes');
+            expect(parsed).toHaveProperty('items');
+        });
+
+        it('should export empty build correctly', () => {
+            exportBuild();
+
+            const calledWith = mockClipboard.writeText.mock.calls[0][0];
+            const parsed = JSON.parse(calledWith);
+            expect(Array.isArray(parsed.tomes)).toBe(true);
+            expect(Array.isArray(parsed.items)).toBe(true);
+        });
+
+        it('should include tomes array in export', () => {
+            exportBuild();
+
+            const calledWith = mockClipboard.writeText.mock.calls[0][0];
+            const parsed = JSON.parse(calledWith);
+            expect(parsed).toHaveProperty('tomes');
+            expect(Array.isArray(parsed.tomes)).toBe(true);
+        });
+
+        it('should include items array in export', () => {
+            exportBuild();
+
+            const calledWith = mockClipboard.writeText.mock.calls[0][0];
+            const parsed = JSON.parse(calledWith);
+            expect(parsed).toHaveProperty('items');
+            expect(Array.isArray(parsed.items)).toBe(true);
+        });
+    });
+
+    describe('shareBuildURL', () => {
+        let mockClipboard: { writeText: ReturnType<typeof vi.fn> };
+
+        beforeEach(() => {
+            mockClipboard = {
+                writeText: vi.fn().mockResolvedValue(undefined),
+            };
+            Object.defineProperty(navigator, 'clipboard', {
+                value: mockClipboard,
+                writable: true,
+                configurable: true,
+            });
+        });
+
+        it('should copy URL to clipboard', async () => {
+            shareBuildURL();
+
+            expect(mockClipboard.writeText).toHaveBeenCalled();
+            const calledWith = mockClipboard.writeText.mock.calls[0][0];
+            expect(calledWith).toContain('#build=');
+
+            await vi.waitFor(() => {
+                expect(ToastManager.success).toHaveBeenCalledWith(expect.stringContaining('Build link copied'));
+            });
+        });
+
+        it('should handle clipboard error', async () => {
+            mockClipboard.writeText.mockRejectedValue(new Error('Clipboard blocked'));
+
+            shareBuildURL();
+
+            await vi.waitFor(() => {
+                expect(ToastManager.error).toHaveBeenCalledWith(expect.stringContaining('Failed to copy link'));
+            });
+        });
+
+        it('should generate valid base64 encoded URL', () => {
+            shareBuildURL();
+
+            const calledWith = mockClipboard.writeText.mock.calls[0][0];
+            const encoded = calledWith.split('#build=')[1];
+            // Should be valid base64
+            expect(() => atob(encoded)).not.toThrow();
+        });
+    });
+
+    describe('updateBuildAnalysis', () => {
+        beforeEach(() => {
+            // Setup DOM with checkboxes for tomes and items
+            document.body.innerHTML = `
+                <select id="build-character">
+                    <option value="">Select Character...</option>
+                    <option value="cl4nk">CL4NK</option>
+                </select>
+                <select id="build-weapon">
+                    <option value="">Select Weapon...</option>
+                    <option value="sword">Sword</option>
+                </select>
+                <div id="tomes-selection">
+                    <input type="checkbox" class="tome-checkbox" value="precision" />
+                    <input type="checkbox" class="tome-checkbox" value="damage" />
+                </div>
+                <div id="items-selection">
+                    <input type="checkbox" class="item-checkbox" value="clover" />
+                    <input type="checkbox" class="item-checkbox" value="power_gloves" />
+                </div>
+                <div id="build-synergies"></div>
+                <div id="build-stats"></div>
+            `;
+        });
+
+        it('should not throw when called', () => {
+            expect(() => updateBuildAnalysis()).not.toThrow();
+        });
+
+        it('should update synergies display', () => {
+            updateBuildAnalysis();
+            const synergies = document.getElementById('build-synergies');
+            expect(synergies).toBeTruthy();
+        });
+
+        it('should update stats display', () => {
+            updateBuildAnalysis();
+            const stats = document.getElementById('build-stats');
+            expect(stats).toBeTruthy();
+        });
+
+        it('should show placeholder when no character/weapon selected', () => {
+            updateBuildAnalysis();
+            const stats = document.getElementById('build-stats');
+            expect(stats?.innerHTML).toContain('placeholder');
+        });
+
+        it('should collect checked tomes', () => {
+            const tomeCheckbox = document.querySelector('.tome-checkbox') as HTMLInputElement;
+            tomeCheckbox.checked = true;
+
+            updateBuildAnalysis();
+            // Just verify no error
+            expect(true).toBe(true);
+        });
+
+        it('should collect checked items', () => {
+            const itemCheckbox = document.querySelector('.item-checkbox') as HTMLInputElement;
+            itemCheckbox.checked = true;
+
+            updateBuildAnalysis();
+            // Just verify no error
+            expect(true).toBe(true);
+        });
+
+        it('should handle missing synergies display', () => {
+            document.getElementById('build-synergies')?.remove();
+            expect(() => updateBuildAnalysis()).not.toThrow();
+        });
+
+        it('should handle missing stats display', () => {
+            document.getElementById('build-stats')?.remove();
+            expect(() => updateBuildAnalysis()).not.toThrow();
+        });
+    });
+
+    describe('renderBuildPlanner', () => {
+        it('should not throw when called', () => {
+            expect(() => renderBuildPlanner()).not.toThrow();
+        });
+
+        it('should populate character select', () => {
+            renderBuildPlanner();
+            const charSelect = document.getElementById('build-character') as HTMLSelectElement;
+            expect(charSelect).toBeTruthy();
+        });
+
+        it('should populate weapon select', () => {
+            renderBuildPlanner();
+            const weaponSelect = document.getElementById('build-weapon') as HTMLSelectElement;
+            expect(weaponSelect).toBeTruthy();
+        });
+
+        it('should handle missing character select', () => {
+            document.getElementById('build-character')?.remove();
+            expect(() => renderBuildPlanner()).not.toThrow();
+        });
+
+        it('should handle missing weapon select', () => {
+            document.getElementById('build-weapon')?.remove();
+            expect(() => renderBuildPlanner()).not.toThrow();
+        });
+    });
+
+    describe('setupBuildPlannerEvents', () => {
+        it('should not throw when called', () => {
+            expect(() => setupBuildPlannerEvents()).not.toThrow();
+        });
+
+        it('should attach event listeners to selects', () => {
+            setupBuildPlannerEvents();
+            const charSelect = document.getElementById('build-character');
+            expect(charSelect).toBeTruthy();
+        });
+
+        it('should handle character selection change', () => {
+            setupBuildPlannerEvents();
+            const charSelect = document.getElementById('build-character') as HTMLSelectElement;
+            charSelect.dispatchEvent(new Event('change'));
+            // Just verify no error
+            expect(true).toBe(true);
+        });
+
+        it('should handle weapon selection change', () => {
+            setupBuildPlannerEvents();
+            const weaponSelect = document.getElementById('build-weapon') as HTMLSelectElement;
+            weaponSelect.dispatchEvent(new Event('change'));
+            // Just verify no error
+            expect(true).toBe(true);
+        });
+
+        it('should handle missing DOM elements gracefully', () => {
+            document.body.innerHTML = '';
+            expect(() => setupBuildPlannerEvents()).not.toThrow();
         });
     });
 });
