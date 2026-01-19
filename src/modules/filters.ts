@@ -360,7 +360,7 @@ export function handleSearch(): void {
     }
 
     if (searchQuery.trim()) {
-        const allData = window.allData;
+        const allData = getState('allData');
         if (allData && window.renderGlobalSearchResults) {
             const results = globalSearch(searchQuery.trim(), allData);
             window.renderGlobalSearchResults(results);

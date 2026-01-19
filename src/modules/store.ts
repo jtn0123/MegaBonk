@@ -118,8 +118,9 @@ const deepCloneInitialState = (): AppState => ({
 // Subscribers map: key -> Set of callbacks
 const subscribers = new Map<keyof AppState, Set<Subscriber<any>>>();
 
-// Window sync enabled flag
-let windowSyncEnabled = true;
+// Window sync enabled flag - disabled by default for performance
+// Enable with enableWindowSync() if backwards compatibility is needed
+let windowSyncEnabled = false;
 
 /**
  * Sync a state key to the window object for backwards compatibility
@@ -341,10 +342,8 @@ export function batchUpdate(updates: Partial<AppState>): void {
 }
 
 // ========================================
-// Initialize window sync on load
+// Window sync is disabled by default for performance
 // ========================================
-
-// Enable window sync by default when module loads in browser
-if (typeof window !== 'undefined') {
-    enableWindowSync();
-}
+// Call enableWindowSync() explicitly if backwards compatibility with
+// window.allData, window.currentTab, etc. is needed.
+// All new code should use getState() and setState() instead.
