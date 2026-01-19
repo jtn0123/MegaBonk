@@ -409,7 +409,7 @@ export function compareDetectionResults(
 // Global Assignments
 // ========================================
 if (typeof window !== 'undefined') {
-    (window as any).testUtils = {
+    window.testUtils = {
         calculateAccuracyMetrics,
         calculateF1Score,
         detectResolution,

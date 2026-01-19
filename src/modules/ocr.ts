@@ -223,27 +223,43 @@ function splitIntoSegments(text: string): string[] {
     return segments;
 }
 
+/** Entity type for generic detection */
+type EntityWithId = { id: string; name: string };
+
+/** Options for the generic entity detection helper */
+interface DetectEntitiesOptions {
+    /** The entity type name (e.g., 'item', 'tome') */
+    type: DetectionResult['type'];
+    /** Whether to enable debug logging */
+    debug?: boolean;
+}
+
 /**
- * Detect items from extracted text
+ * Generic helper to detect entities from text using a Fuse index
+ * Reduces code duplication across detectItemsFromText, detectTomesFromText, etc.
  */
-export function detectItemsFromText(text: string): DetectionResult[] {
-    if (!itemFuse) return [];
+function detectEntitiesFromText<T extends EntityWithId>(
+    text: string,
+    fuseInstance: Fuse<T> | null,
+    options: DetectEntitiesOptions
+): DetectionResult[] {
+    if (!fuseInstance) return [];
 
     const segments = splitIntoSegments(text);
     const detections: DetectionResult[] = [];
-    const seenEntities = new Set<string>(); // Avoid duplicates
+    const seenEntities = new Set<string>();
 
     let bestUnmatchedScore = 1;
     let bestUnmatchedName = '';
 
     for (const segment of segments) {
-        const results = itemFuse.search(segment);
+        const results = fuseInstance.search(segment);
         const match = results[0];
         const score = match?.score;
 
         if (match && score !== undefined) {
             // Track best unmatched score for debugging
-            if (score >= 0.5 && score < bestUnmatchedScore) {
+            if (options.debug && score >= 0.5 && score < bestUnmatchedScore) {
                 bestUnmatchedScore = score;
                 bestUnmatchedName = match.item.name;
             }
@@ -252,28 +268,30 @@ export function detectItemsFromText(text: string): DetectionResult[] {
             if (score < 0.5 && !seenEntities.has(match.item.id)) {
                 seenEntities.add(match.item.id);
                 detections.push({
-                    type: 'item',
-                    entity: match.item,
+                    type: options.type,
+                    entity: match.item as Item | Tome | Character | Weapon,
                     confidence: 1 - score, // Fuse score is 0 (best) to 1 (worst), invert it
                     rawText: segment,
                 });
 
-                logger.debug({
-                    operation: 'ocr.item_matched',
-                    data: {
-                        segment: segment.substring(0, 30),
-                        matchedItem: match.item.name,
-                        score: score.toFixed(3),
-                    },
-                });
+                if (options.debug) {
+                    logger.debug({
+                        operation: `ocr.${options.type}_matched`,
+                        data: {
+                            segment: segment.substring(0, 30),
+                            matchedEntity: match.item.name,
+                            score: score.toFixed(3),
+                        },
+                    });
+                }
             }
         }
     }
 
     // Log summary for debugging when nothing matched
-    if (detections.length === 0 && segments.length > 0) {
+    if (options.debug && detections.length === 0 && segments.length > 0) {
         logger.debug({
-            operation: 'ocr.no_items_matched',
+            operation: `ocr.no_${options.type}s_matched`,
             data: {
                 segmentsChecked: segments.length,
                 bestScore: bestUnmatchedScore < 1 ? bestUnmatchedScore.toFixed(3) : 'none',
@@ -287,32 +305,17 @@ export function detectItemsFromText(text: string): DetectionResult[] {
 }
 
 /**
+ * Detect items from extracted text
+ */
+export function detectItemsFromText(text: string): DetectionResult[] {
+    return detectEntitiesFromText(text, itemFuse, { type: 'item', debug: true });
+}
+
+/**
  * Detect tomes from extracted text
  */
 export function detectTomesFromText(text: string): DetectionResult[] {
-    if (!tomeFuse) return [];
-
-    const segments = splitIntoSegments(text);
-    const detections: DetectionResult[] = [];
-    const seenEntities = new Set<string>();
-
-    for (const segment of segments) {
-        const results = tomeFuse.search(segment);
-        const match = results[0];
-        const score = match?.score;
-
-        if (match && score !== undefined && score < 0.5 && !seenEntities.has(match.item.id)) {
-            seenEntities.add(match.item.id);
-            detections.push({
-                type: 'tome',
-                entity: match.item,
-                confidence: 1 - score,
-                rawText: segment,
-            });
-        }
-    }
-
-    return detections;
+    return detectEntitiesFromText(text, tomeFuse, { type: 'tome' });
 }
 
 /**
@@ -341,29 +344,7 @@ export function detectCharacterFromText(text: string): DetectionResult | null {
  * Detect characters from extracted text (multiple lines)
  */
 export function detectCharactersFromText(text: string): DetectionResult[] {
-    if (!characterFuse) return [];
-
-    const segments = splitIntoSegments(text);
-    const detections: DetectionResult[] = [];
-    const seenEntities = new Set<string>();
-
-    for (const segment of segments) {
-        const results = characterFuse.search(segment);
-        const match = results[0];
-        const score = match?.score;
-
-        if (match && score !== undefined && score < 0.5 && !seenEntities.has(match.item.id)) {
-            seenEntities.add(match.item.id);
-            detections.push({
-                type: 'character',
-                entity: match.item,
-                confidence: 1 - score,
-                rawText: segment,
-            });
-        }
-    }
-
-    return detections;
+    return detectEntitiesFromText(text, characterFuse, { type: 'character' });
 }
 
 /**
@@ -392,29 +373,7 @@ export function detectWeaponFromText(text: string): DetectionResult | null {
  * Detect weapons from extracted text (multiple lines)
  */
 export function detectWeaponsFromText(text: string): DetectionResult[] {
-    if (!weaponFuse) return [];
-
-    const segments = splitIntoSegments(text);
-    const detections: DetectionResult[] = [];
-    const seenEntities = new Set<string>();
-
-    for (const segment of segments) {
-        const results = weaponFuse.search(segment);
-        const match = results[0];
-        const score = match?.score;
-
-        if (match && score !== undefined && score < 0.5 && !seenEntities.has(match.item.id)) {
-            seenEntities.add(match.item.id);
-            detections.push({
-                type: 'weapon',
-                entity: match.item,
-                confidence: 1 - score,
-                rawText: segment,
-            });
-        }
-    }
-
-    return detections;
+    return detectEntitiesFromText(text, weaponFuse, { type: 'weapon' });
 }
 
 /**
@@ -517,4 +476,4 @@ export function __resetForTesting(): void {
 // ========================================
 // Global Assignments
 // ========================================
-(window as any).initOCR = initOCR;
+window.initOCR = initOCR;

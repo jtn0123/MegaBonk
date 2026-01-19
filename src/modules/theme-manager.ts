@@ -155,7 +155,9 @@ class ThemeManager {
                 return stored as Theme;
             }
             return null;
-        } catch {
+        } catch (error) {
+            // localStorage may be unavailable in some contexts (private browsing, etc.)
+            console.debug('[theme-manager] localStorage unavailable for reading theme:', (error as Error).message);
             return null;
         }
     }

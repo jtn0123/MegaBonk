@@ -37,7 +37,8 @@ export function loadFavorites(): void {
             setState('favorites', JSON.parse(stored) as FavoritesState);
         }
     } catch (error) {
-        // localStorage may be unavailable
+        // localStorage may be unavailable in some contexts (private browsing, etc.)
+        console.debug('[favorites] localStorage unavailable for loading favorites:', (error as Error).message);
     }
 }
 
@@ -49,7 +50,8 @@ function saveFavorites(): void {
         const favorites = getState('favorites');
         localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     } catch (error) {
-        // localStorage may be unavailable
+        // localStorage may be unavailable in some contexts (private browsing, etc.)
+        console.debug('[favorites] localStorage unavailable for saving favorites:', (error as Error).message);
         if (typeof ToastManager !== 'undefined') {
             ToastManager.error('Failed to save favorite');
         }

@@ -141,6 +141,33 @@ const subscribers = new Map<keyof AppState, Set<Subscriber<any>>>();
 // Window sync enabled flag
 let windowSyncEnabled = true;
 
+/**
+ * Sync a state key to the window object for backwards compatibility
+ * This helper avoids 'as any' casts by using explicit property assignments
+ */
+function syncStateKeyToWindow<K extends keyof AppState>(key: K, value: AppState[K] | undefined): void {
+    switch (key) {
+        case 'currentTab':
+            window.currentTab = value as string;
+            break;
+        case 'filteredData':
+            window.filteredData = value as Entity[];
+            break;
+        case 'allData':
+            window.allData = value as AllGameData;
+            break;
+        case 'currentBuild':
+            window.currentBuild = value as Build;
+            break;
+        case 'compareItems':
+            window.compareItems = value as Entity[];
+            break;
+        case 'favorites':
+            window.favorites = value as Set<string>;
+            break;
+    }
+}
+
 // ========================================
 // Core Store API
 // ========================================
@@ -164,7 +191,7 @@ export function setState<K extends keyof AppState>(key: K, value: AppState[K]): 
 
     // Sync to window for backwards compatibility
     if (windowSyncEnabled && typeof window !== 'undefined') {
-        (window as any)[key] = value;
+        syncStateKeyToWindow(key, value);
     }
 
     // Notify subscribers
@@ -211,12 +238,12 @@ export function resetStore(): void {
 
     // Clear window properties if sync is enabled
     if (windowSyncEnabled && typeof window !== 'undefined') {
-        (window as any).currentTab = state.currentTab;
-        (window as any).filteredData = state.filteredData;
-        (window as any).allData = state.allData;
-        (window as any).currentBuild = state.currentBuild;
-        (window as any).compareItems = state.compareItems;
-        (window as any).favorites = state.favorites;
+        window.currentTab = state.currentTab;
+        window.filteredData = state.filteredData;
+        window.allData = state.allData;
+        window.currentBuild = state.currentBuild;
+        window.compareItems = state.compareItems;
+        window.favorites = state.favorites;
     }
 
     // Note: We don't clear subscribers here - use clearSubscribers() for full cleanup
@@ -238,12 +265,12 @@ export function enableWindowSync(): void {
 
     // Sync current state to window
     if (typeof window !== 'undefined') {
-        (window as any).currentTab = state.currentTab;
-        (window as any).filteredData = state.filteredData;
-        (window as any).allData = state.allData;
-        (window as any).currentBuild = state.currentBuild;
-        (window as any).compareItems = state.compareItems;
-        (window as any).favorites = state.favorites;
+        window.currentTab = state.currentTab;
+        window.filteredData = state.filteredData;
+        window.allData = state.allData;
+        window.currentBuild = state.currentBuild;
+        window.compareItems = state.compareItems;
+        window.favorites = state.favorites;
     }
 }
 
@@ -285,7 +312,7 @@ export function batchUpdate(updates: Partial<AppState>): void {
 
             // Sync to window
             if (windowSyncEnabled && typeof window !== 'undefined') {
-                (window as any)[key] = updates[key];
+                syncStateKeyToWindow(key, updates[key]);
             }
         }
     }

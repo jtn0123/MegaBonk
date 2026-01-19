@@ -790,7 +790,7 @@ export function resetEnhancedCVState(): void {
 
 // Export for window
 if (typeof window !== 'undefined') {
-    (window as any).initEnhancedCV = initEnhancedCV;
-    (window as any).detectItemsWithEnhancedCV = detectItemsWithEnhancedCV;
-    (window as any).resetEnhancedCVState = resetEnhancedCVState;
+    window.initEnhancedCV = initEnhancedCV;
+    window.detectItemsWithEnhancedCV = detectItemsWithEnhancedCV;
+    window.resetEnhancedCVState = resetEnhancedCVState;
 }

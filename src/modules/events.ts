@@ -761,7 +761,7 @@ export function getSavedTab(): TabName {
 registerFunction('switchTab', switchTab);
 // Keep window assignment for backwards compatibility during migration
 if (typeof window !== 'undefined') {
-    (window as any).switchTab = switchTab;
+    window.switchTab = switchTab;
 }
 
 // ========================================
