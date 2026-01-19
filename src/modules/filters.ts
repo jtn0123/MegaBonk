@@ -7,11 +7,10 @@
 import type {
     Entity,
     EntityType,
-    Item,
     ChangelogPatch,
     SortBy,
 } from '../types/index.ts';
-import { isItem, isShrine } from '../types/index.ts';
+import { isItem, isShrine, isInputElement, isSelectElement } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 import { logger } from './logger.ts';
 import { isFavorite } from './favorites.ts';
@@ -233,29 +232,29 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
     }
 
     // Favorites filter
-    const favoritesOnlyEl = safeGetElementById('favoritesOnly') as HTMLInputElement | null;
-    const favoritesOnly = favoritesOnlyEl?.checked;
+    const favoritesOnlyEl = safeGetElementById('favoritesOnly');
+    const favoritesOnly = isInputElement(favoritesOnlyEl) ? favoritesOnlyEl.checked : false;
     if (favoritesOnly) {
         filtered = filtered.filter(item => isFavorite(tabName as EntityType, item.id));
     }
 
     // Tier filter
-    const tierFilterEl = safeGetElementById('tierFilter') as HTMLSelectElement | null;
-    const tierFilter = tierFilterEl?.value;
+    const tierFilterEl = safeGetElementById('tierFilter');
+    const tierFilter = isSelectElement(tierFilterEl) ? tierFilterEl.value : 'all';
     if (tierFilter && tierFilter !== 'all') {
         filtered = filtered.filter(item => item.tier === tierFilter);
     }
 
     // Rarity filter (items only)
     if (tabName === 'items') {
-        const rarityFilterEl = safeGetElementById('rarityFilter') as HTMLSelectElement | null;
-        const rarityFilter = rarityFilterEl?.value;
+        const rarityFilterEl = safeGetElementById('rarityFilter');
+        const rarityFilter = isSelectElement(rarityFilterEl) ? rarityFilterEl.value : 'all';
         if (rarityFilter && rarityFilter !== 'all') {
-            filtered = filtered.filter(item => (item as Item).rarity === rarityFilter);
+            filtered = filtered.filter(item => isItem(item) && item.rarity === rarityFilter);
         }
 
-        const stackingFilterEl = safeGetElementById('stackingFilter') as HTMLSelectElement | null;
-        const stackingFilter = stackingFilterEl?.value;
+        const stackingFilterEl = safeGetElementById('stackingFilter');
+        const stackingFilter = isSelectElement(stackingFilterEl) ? stackingFilterEl.value : 'all';
         if (stackingFilter === 'stacks_well') {
             filtered = filtered.filter(item => isItem(item) && item.stacks_well === true);
         } else if (stackingFilter === 'one_and_done') {
@@ -265,8 +264,8 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
 
     // Type filter (shrines only)
     if (tabName === 'shrines') {
-        const typeFilterEl = safeGetElementById('typeFilter') as HTMLSelectElement | null;
-        const typeFilter = typeFilterEl?.value;
+        const typeFilterEl = safeGetElementById('typeFilter');
+        const typeFilter = isSelectElement(typeFilterEl) ? typeFilterEl.value : 'all';
         if (typeFilter && typeFilter !== 'all') {
             filtered = filtered.filter(shrine => isShrine(shrine) && shrine.type === typeFilter);
         }
@@ -278,8 +277,8 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
             categories?: Record<string, unknown[]>;
         };
         const patches = filtered as unknown as PatchWithCategories[];
-        const categoryFilterEl = safeGetElementById('categoryFilter') as HTMLSelectElement | null;
-        const categoryFilter = categoryFilterEl?.value;
+        const categoryFilterEl = safeGetElementById('categoryFilter');
+        const categoryFilter = isSelectElement(categoryFilterEl) ? categoryFilterEl.value : 'all';
         if (categoryFilter && categoryFilter !== 'all') {
             const filteredPatches = patches.filter(patch => {
                 if (patch.categories && categoryFilter in patch.categories) {
@@ -292,8 +291,8 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
         }
 
         // Date sorting
-        const sortByEl = safeGetElementById('sortBy') as HTMLSelectElement | null;
-        const sortBy = sortByEl?.value;
+        const sortByEl = safeGetElementById('sortBy');
+        const sortBy = isSelectElement(sortByEl) ? sortByEl.value : 'date_desc';
         const getDateValue = (dateStr: string): number => {
             const d = new Date(dateStr);
             return isNaN(d.getTime()) ? (sortBy === 'date_asc' ? Infinity : -Infinity) : d.getTime();
@@ -310,10 +309,10 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
     }
 
     // Standard sorting
-    const sortByEl = safeGetElementById('sortBy') as HTMLSelectElement | null;
-    const sortBy = sortByEl?.value;
-    if (sortBy) {
-        sortData(filtered, sortBy as SortBy);
+    const standardSortByEl = safeGetElementById('sortBy');
+    const standardSortBy = isSelectElement(standardSortByEl) ? standardSortByEl.value : null;
+    if (standardSortBy) {
+        sortData(filtered, standardSortBy as SortBy);
     }
 
     logFilterEvent(filterStartTime, tabName, searchQuery, originalCount, filtered.length);

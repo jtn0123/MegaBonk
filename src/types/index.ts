@@ -446,6 +446,66 @@ export function isChangelogPatch(entity: Entity | ChangelogPatch): entity is Cha
 }
 
 // ========================================
+// DOM Element Type Guards
+// ========================================
+
+/**
+ * Type guard to check if element is an HTMLInputElement
+ */
+export function isInputElement(element: Element | null): element is HTMLInputElement {
+    return element !== null && element.tagName === 'INPUT';
+}
+
+/**
+ * Type guard to check if element is an HTMLSelectElement
+ */
+export function isSelectElement(element: Element | null): element is HTMLSelectElement {
+    return element !== null && element.tagName === 'SELECT';
+}
+
+/**
+ * Type guard to check if element is an HTMLButtonElement
+ */
+export function isButtonElement(element: Element | null): element is HTMLButtonElement {
+    return element !== null && element.tagName === 'BUTTON';
+}
+
+/**
+ * Type guard to check if element is an HTMLCanvasElement
+ */
+export function isCanvasElement(element: Element | null): element is HTMLCanvasElement {
+    return element !== null && element.tagName === 'CANVAS';
+}
+
+/**
+ * Type guard to check if value is a non-null object
+ */
+export function isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Type guard to check if value is an array
+ */
+export function isArray<T>(value: unknown): value is T[] {
+    return Array.isArray(value);
+}
+
+/**
+ * Type guard to check if value is a string
+ */
+export function isString(value: unknown): value is string {
+    return typeof value === 'string';
+}
+
+/**
+ * Type guard to check if value is a number
+ */
+export function isNumber(value: unknown): value is number {
+    return typeof value === 'number' && !isNaN(value);
+}
+
+// ========================================
 // Global Declarations
 // ========================================
 

@@ -4,6 +4,7 @@
 // Manages filter state persistence per tab
 
 import { safeGetElementById } from './utils.ts';
+import { isInputElement, isSelectElement } from '../types/index.ts';
 
 // ========================================
 // Constants
@@ -58,24 +59,24 @@ export function saveFilterState(tabName: string): void {
     }
 
     try {
-        const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-        const favoritesOnly = safeGetElementById('favoritesOnly') as HTMLInputElement | null;
-        const tierFilter = safeGetElementById('tierFilter') as HTMLSelectElement | null;
-        const sortBy = safeGetElementById('sortBy') as HTMLSelectElement | null;
+        const searchInputEl = safeGetElementById('searchInput');
+        const favoritesOnlyEl = safeGetElementById('favoritesOnly');
+        const tierFilterEl = safeGetElementById('tierFilter');
+        const sortByEl = safeGetElementById('sortBy');
 
         const state: FilterState = {
-            search: searchInput?.value || '',
-            favoritesOnly: favoritesOnly?.checked || false,
-            tierFilter: tierFilter?.value || 'all',
-            sortBy: sortBy?.value || 'rarity',
+            search: isInputElement(searchInputEl) ? searchInputEl.value : '',
+            favoritesOnly: isInputElement(favoritesOnlyEl) ? favoritesOnlyEl.checked : false,
+            tierFilter: isSelectElement(tierFilterEl) ? tierFilterEl.value : 'all',
+            sortBy: isSelectElement(sortByEl) ? sortByEl.value : 'rarity',
         };
 
         // Add items-specific filters
         if (tabName === 'items') {
-            const rarityFilter = safeGetElementById('rarityFilter') as HTMLSelectElement | null;
-            const stackingFilter = safeGetElementById('stackingFilter') as HTMLSelectElement | null;
-            state.rarityFilter = rarityFilter?.value || 'all';
-            state.stackingFilter = stackingFilter?.value || 'all';
+            const rarityFilterEl = safeGetElementById('rarityFilter');
+            const stackingFilterEl = safeGetElementById('stackingFilter');
+            state.rarityFilter = isSelectElement(rarityFilterEl) ? rarityFilterEl.value : 'all';
+            state.stackingFilter = isSelectElement(stackingFilterEl) ? stackingFilterEl.value : 'all';
         }
 
         const allStates = getAllFilterStates();
@@ -103,39 +104,39 @@ export function restoreFilterState(tabName: string): void {
         if (!state) return;
 
         // Restore search input
-        const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-        if (searchInput && state.search !== undefined) {
-            searchInput.value = state.search;
+        const searchInputEl = safeGetElementById('searchInput');
+        if (isInputElement(searchInputEl) && state.search !== undefined) {
+            searchInputEl.value = state.search;
         }
 
         // Restore favorites checkbox
-        const favoritesOnly = safeGetElementById('favoritesOnly') as HTMLInputElement | null;
-        if (favoritesOnly && state.favoritesOnly !== undefined) {
-            favoritesOnly.checked = state.favoritesOnly;
+        const favoritesOnlyEl = safeGetElementById('favoritesOnly');
+        if (isInputElement(favoritesOnlyEl) && state.favoritesOnly !== undefined) {
+            favoritesOnlyEl.checked = state.favoritesOnly;
         }
 
         // Restore tier filter
-        const tierFilter = safeGetElementById('tierFilter') as HTMLSelectElement | null;
-        if (tierFilter && state.tierFilter) {
-            tierFilter.value = state.tierFilter;
+        const tierFilterEl = safeGetElementById('tierFilter');
+        if (isSelectElement(tierFilterEl) && state.tierFilter) {
+            tierFilterEl.value = state.tierFilter;
         }
 
         // Restore sort order
-        const sortBy = safeGetElementById('sortBy') as HTMLSelectElement | null;
-        if (sortBy && state.sortBy) {
-            sortBy.value = state.sortBy;
+        const sortByEl = safeGetElementById('sortBy');
+        if (isSelectElement(sortByEl) && state.sortBy) {
+            sortByEl.value = state.sortBy;
         }
 
         // Restore items-specific filters
         if (tabName === 'items') {
-            const rarityFilter = safeGetElementById('rarityFilter') as HTMLSelectElement | null;
-            if (rarityFilter && state.rarityFilter) {
-                rarityFilter.value = state.rarityFilter;
+            const rarityFilterEl = safeGetElementById('rarityFilter');
+            if (isSelectElement(rarityFilterEl) && state.rarityFilter) {
+                rarityFilterEl.value = state.rarityFilter;
             }
 
-            const stackingFilter = safeGetElementById('stackingFilter') as HTMLSelectElement | null;
-            if (stackingFilter && state.stackingFilter) {
-                stackingFilter.value = state.stackingFilter;
+            const stackingFilterEl = safeGetElementById('stackingFilter');
+            if (isSelectElement(stackingFilterEl) && state.stackingFilter) {
+                stackingFilterEl.value = state.stackingFilter;
             }
         }
     } catch (error) {
