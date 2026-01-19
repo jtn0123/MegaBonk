@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Parameter Optimization Visualizer</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #0f3460;
+            --text-primary: #e6e6e6;
+            --text-secondary: #a0a0a0;
+            --accent: #e94560;
+            --success: #4ade80;
+            --warning: #fbbf24;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .file-input {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        input[type="file"] {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            padding: 12px;
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            width: 100%;
+            cursor: pointer;
+        }
+
+        select, button {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            padding: 12px 20px;
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        button:hover {
+            background: var(--accent);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            max-height: 400px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--bg-card);
+        }
+
+        th {
+            background: var(--bg-card);
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: rgba(233, 69, 96, 0.1);
+        }
+
+        .positive { color: var(--success); }
+        .negative { color: var(--accent); }
+        .neutral { color: var(--text-secondary); }
+
+        .heatmap-grid {
+            display: grid;
+            gap: 2px;
+            font-size: 10px;
+        }
+
+        .heatmap-cell {
+            padding: 8px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 10px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>CV Parameter Optimization Visualizer</h1>
+            <p class="subtitle">Analyze and visualize computer vision parameter optimization results</p>
+        </header>
+
+        <div class="controls">
+            <div class="file-input">
+                <input type="file" id="chartDataFile" accept=".json" placeholder="Load chart-data JSON">
+            </div>
+            <div class="file-input">
+                <input type="file" id="sensitivityFile" accept=".csv" placeholder="Load sensitivity CSV">
+            </div>
+            <select id="paramSelect">
+                <option value="">Select Parameter</option>
+            </select>
+            <button onclick="loadSampleData()">Load Sample Data</button>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalParams">-</div>
+                <div class="stat-label">Parameters Tested</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="bestF1">-</div>
+                <div class="stat-label">Best F1 Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgImprovement">-</div>
+                <div class="stat-label">Avg Improvement</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="topImpactParam">-</div>
+                <div class="stat-label">Top Impact Param</div>
+            </div>
+        </div>
+
+        <div class="dashboard">
+            <!-- Parameter Sensitivity Chart -->
+            <div class="card">
+                <div class="card-title">📊 Parameter Sensitivity (Impact Scores)</div>
+                <div class="chart-container">
+                    <canvas id="sensitivityChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Parameter Values vs F1 -->
+            <div class="card">
+                <div class="card-title">📈 F1 Score by Parameter Value</div>
+                <div class="chart-container">
+                    <canvas id="paramValueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Category Breakdown -->
+            <div class="card">
+                <div class="card-title">🎯 Impact by Category</div>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Optimal vs Baseline -->
+            <div class="card">
+                <div class="card-title">⚡ Optimal vs Baseline</div>
+                <div class="chart-container">
+                    <canvas id="comparisonChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Detailed Results Table -->
+            <div class="card full-width">
+                <div class="card-title">📋 Sensitivity Analysis Results</div>
+                <div class="table-container">
+                    <table id="resultsTable">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Parameter</th>
+                                <th>Category</th>
+                                <th>Impact Score</th>
+                                <th>Baseline</th>
+                                <th>Optimal</th>
+                                <th>F1 Range</th>
+                                <th>Recommendation</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsBody">
+                            <tr><td colspan="8" class="no-data">Load data files to view results</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let chartData = null;
+        let sensitivityData = null;
+        let charts = {};
+
+        // Color palette
+        const colors = {
+            threshold: 'rgba(233, 69, 96, 0.8)',
+            color: 'rgba(74, 222, 128, 0.8)',
+            detection: 'rgba(251, 191, 36, 0.8)',
+            preprocessing: 'rgba(96, 165, 250, 0.8)',
+            matching: 'rgba(192, 132, 252, 0.8)',
+        };
+
+        const categoryColors = {
+            threshold: '#e94560',
+            color: '#4ade80',
+            detection: '#fbbf24',
+            preprocessing: '#60a5fa',
+            matching: '#c084fc',
+        };
+
+        // Initialize charts
+        function initCharts() {
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        labels: { color: '#e6e6e6' }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#a0a0a0' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    },
+                    y: {
+                        ticks: { color: '#a0a0a0' },
+                        grid: { color: 'rgba(255,255,255,0.1)' }
+                    }
+                }
+            };
+
+            // Sensitivity Bar Chart
+            charts.sensitivity = new Chart(document.getElementById('sensitivityChart'), {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    ...commonOptions,
+                    indexAxis: 'y',
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: { display: false }
+                    }
+                }
+            });
+
+            // Parameter Value Line Chart
+            charts.paramValue = new Chart(document.getElementById('paramValueChart'), {
+                type: 'line',
+                data: { labels: [], datasets: [] },
+                options: {
+                    ...commonOptions,
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: { display: false }
+                    }
+                }
+            });
+
+            // Category Pie Chart
+            charts.category = new Chart(document.getElementById('categoryChart'), {
+                type: 'doughnut',
+                data: { labels: [], datasets: [] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: '#e6e6e6' }
+                        }
+                    }
+                }
+            });
+
+            // Comparison Chart
+            charts.comparison = new Chart(document.getElementById('comparisonChart'), {
+                type: 'bar',
+                data: { labels: [], datasets: [] },
+                options: {
+                    ...commonOptions,
+                    plugins: {
+                        ...commonOptions.plugins,
+                        title: { display: false }
+                    }
+                }
+            });
+        }
+
+        // Load chart data JSON
+        document.getElementById('chartDataFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const text = await file.text();
+            chartData = JSON.parse(text);
+            updateCharts();
+            updateParamSelect();
+        });
+
+        // Load sensitivity CSV
+        document.getElementById('sensitivityFile').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const text = await file.text();
+            sensitivityData = parseCSV(text);
+            updateCharts();
+            updateTable();
+        });
+
+        // Parse CSV
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            const data = [];
+
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                const row = {};
+                headers.forEach((h, j) => {
+                    let val = values[j]?.trim().replace(/^"|"$/g, '');
+                    if (!isNaN(parseFloat(val))) val = parseFloat(val);
+                    row[h] = val;
+                });
+                data.push(row);
+            }
+
+            return data;
+        }
+
+        // Update parameter select
+        function updateParamSelect() {
+            const select = document.getElementById('paramSelect');
+            select.innerHTML = '<option value="">Select Parameter</option>';
+
+            if (chartData?.results) {
+                Object.keys(chartData.results).forEach(param => {
+                    const opt = document.createElement('option');
+                    opt.value = param;
+                    opt.textContent = param;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        // Update charts with data
+        function updateCharts() {
+            if (sensitivityData) {
+                updateSensitivityChart();
+                updateCategoryChart();
+                updateComparisonChart();
+                updateStats();
+            }
+
+            if (chartData) {
+                updateParamValueChart();
+            }
+        }
+
+        function updateSensitivityChart() {
+            const sorted = [...sensitivityData].sort((a, b) => b.impact_score - a.impact_score).slice(0, 15);
+
+            charts.sensitivity.data = {
+                labels: sorted.map(d => d.parameter),
+                datasets: [{
+                    label: 'Impact Score',
+                    data: sorted.map(d => (d.impact_score * 100).toFixed(2)),
+                    backgroundColor: sorted.map(d => categoryColors[d.category] || '#888'),
+                    borderWidth: 0
+                }]
+            };
+            charts.sensitivity.update();
+        }
+
+        function updateCategoryChart() {
+            const byCategory = {};
+            sensitivityData.forEach(d => {
+                if (!byCategory[d.category]) byCategory[d.category] = [];
+                byCategory[d.category].push(d.impact_score);
+            });
+
+            const labels = Object.keys(byCategory);
+            const avgImpact = labels.map(c =>
+                byCategory[c].reduce((a, b) => a + b, 0) / byCategory[c].length * 100
+            );
+
+            charts.category.data = {
+                labels: labels.map(l => l.charAt(0).toUpperCase() + l.slice(1)),
+                datasets: [{
+                    data: avgImpact,
+                    backgroundColor: labels.map(l => categoryColors[l] || '#888'),
+                    borderWidth: 0
+                }]
+            };
+            charts.category.update();
+        }
+
+        function updateComparisonChart() {
+            const top5 = [...sensitivityData]
+                .filter(d => d.optimal_value !== d.baseline_value)
+                .sort((a, b) => b.impact_score - a.impact_score)
+                .slice(0, 8);
+
+            charts.comparison.data = {
+                labels: top5.map(d => d.parameter),
+                datasets: [
+                    {
+                        label: 'Baseline Value',
+                        data: top5.map(d => d.baseline_value),
+                        backgroundColor: 'rgba(160, 160, 160, 0.6)',
+                        borderWidth: 0
+                    },
+                    {
+                        label: 'Optimal Value',
+                        data: top5.map(d => d.optimal_value),
+                        backgroundColor: 'rgba(74, 222, 128, 0.8)',
+                        borderWidth: 0
+                    }
+                ]
+            };
+            charts.comparison.update();
+        }
+
+        function updateParamValueChart() {
+            const param = document.getElementById('paramSelect').value;
+            if (!param || !chartData?.results?.[param]) return;
+
+            const result = chartData.results[param];
+
+            charts.paramValue.data = {
+                labels: result.values.map(v => v.toString()),
+                datasets: [{
+                    label: 'F1 Score',
+                    data: result.f1Scores.map(f => (f * 100).toFixed(2)),
+                    borderColor: '#e94560',
+                    backgroundColor: 'rgba(233, 69, 96, 0.2)',
+                    fill: true,
+                    tension: 0.3,
+                    pointBackgroundColor: result.values.map(v =>
+                        v === result.baseline ? '#4ade80' : '#e94560'
+                    ),
+                    pointRadius: result.values.map(v =>
+                        v === result.baseline ? 8 : 4
+                    )
+                }]
+            };
+            charts.paramValue.update();
+        }
+
+        function updateStats() {
+            const totalParams = sensitivityData.length;
+            const bestF1 = Math.max(...sensitivityData.map(d => d.max_f1));
+            const improvements = sensitivityData
+                .filter(d => d.optimal_value !== d.baseline_value)
+                .map(d => d.max_f1 - d.min_f1);
+            const avgImprovement = improvements.length > 0
+                ? improvements.reduce((a, b) => a + b, 0) / improvements.length
+                : 0;
+            const topImpact = sensitivityData.sort((a, b) => b.impact_score - a.impact_score)[0];
+
+            document.getElementById('totalParams').textContent = totalParams;
+            document.getElementById('bestF1').textContent = (bestF1 * 100).toFixed(1) + '%';
+            document.getElementById('avgImprovement').textContent = '+' + (avgImprovement * 100).toFixed(1) + '%';
+            document.getElementById('topImpactParam').textContent = topImpact?.parameter?.slice(0, 12) || '-';
+        }
+
+        function updateTable() {
+            const tbody = document.getElementById('resultsBody');
+            tbody.innerHTML = '';
+
+            if (!sensitivityData || sensitivityData.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="no-data">No data loaded</td></tr>';
+                return;
+            }
+
+            sensitivityData.forEach(d => {
+                const tr = document.createElement('tr');
+                const improvement = d.optimal_value !== d.baseline_value;
+
+                tr.innerHTML = `
+                    <td>${d.rank}</td>
+                    <td><strong>${d.parameter}</strong></td>
+                    <td><span style="color: ${categoryColors[d.category] || '#888'}">${d.category}</span></td>
+                    <td>${(d.impact_score * 100).toFixed(2)}%</td>
+                    <td>${d.baseline_value}</td>
+                    <td class="${improvement ? 'positive' : 'neutral'}">${d.optimal_value}</td>
+                    <td>${(d.f1_range * 100).toFixed(2)}%</td>
+                    <td style="font-size: 12px">${d.recommendation}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Parameter select change
+        document.getElementById('paramSelect').addEventListener('change', updateParamValueChart);
+
+        // Load sample data for demonstration
+        function loadSampleData() {
+            // Generate sample sensitivity data
+            sensitivityData = [
+                { rank: 1, parameter: 'minConfidence', category: 'threshold', impact_score: 0.082, baseline_value: 0.72, optimal_value: 0.68, max_f1: 0.78, min_f1: 0.62, f1_range: 0.16, recommendation: 'Change to 0.68 for +5.2% improvement' },
+                { rank: 2, parameter: 'nmsIouThreshold', category: 'threshold', impact_score: 0.065, baseline_value: 0.30, optimal_value: 0.25, max_f1: 0.76, min_f1: 0.65, f1_range: 0.11, recommendation: 'Change to 0.25 for +3.8% improvement' },
+                { rank: 3, parameter: 'contrastFactor', category: 'preprocessing', impact_score: 0.058, baseline_value: 1.0, optimal_value: 1.2, max_f1: 0.75, min_f1: 0.64, f1_range: 0.11, recommendation: 'Change to 1.2 for +4.1% improvement' },
+                { rank: 4, parameter: 'emptyVarianceThreshold', category: 'detection', impact_score: 0.045, baseline_value: 500, optimal_value: 450, max_f1: 0.74, min_f1: 0.67, f1_range: 0.07, recommendation: 'Minor improvement with 450' },
+                { rank: 5, parameter: 'slidingWindowStep', category: 'detection', impact_score: 0.041, baseline_value: 12, optimal_value: 10, max_f1: 0.73, min_f1: 0.68, f1_range: 0.05, recommendation: 'Change to 10 for better coverage' },
+                { rank: 6, parameter: 'colorSaturationThreshold', category: 'color', impact_score: 0.038, baseline_value: 30, optimal_value: 30, max_f1: 0.72, min_f1: 0.68, f1_range: 0.04, recommendation: 'Baseline is optimal' },
+                { rank: 7, parameter: 'pass1Threshold', category: 'threshold', impact_score: 0.035, baseline_value: 0.85, optimal_value: 0.82, max_f1: 0.73, min_f1: 0.69, f1_range: 0.04, recommendation: 'Minor improvement with 0.82' },
+                { rank: 8, parameter: 'borderMatchBoost', category: 'matching', impact_score: 0.028, baseline_value: 1.05, optimal_value: 1.08, max_f1: 0.72, min_f1: 0.70, f1_range: 0.02, recommendation: 'Minor improvement with 1.08' },
+                { rank: 9, parameter: 'histogramBins', category: 'matching', impact_score: 0.022, baseline_value: 8, optimal_value: 8, max_f1: 0.71, min_f1: 0.69, f1_range: 0.02, recommendation: 'Baseline is optimal' },
+                { rank: 10, parameter: 'templateMarginPercent', category: 'preprocessing', impact_score: 0.018, baseline_value: 15, optimal_value: 15, max_f1: 0.71, min_f1: 0.70, f1_range: 0.01, recommendation: 'Baseline is optimal' },
+            ];
+
+            // Generate sample chart data
+            chartData = {
+                metadata: { totalParameters: 10, totalTests: 150 },
+                results: {
+                    minConfidence: {
+                        values: [0.50, 0.55, 0.60, 0.65, 0.68, 0.70, 0.72, 0.75, 0.80, 0.85],
+                        f1Scores: [0.62, 0.65, 0.70, 0.74, 0.78, 0.76, 0.73, 0.70, 0.67, 0.64],
+                        baseline: 0.72
+                    },
+                    nmsIouThreshold: {
+                        values: [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.50],
+                        f1Scores: [0.65, 0.68, 0.72, 0.76, 0.73, 0.71, 0.69, 0.66],
+                        baseline: 0.30
+                    },
+                    contrastFactor: {
+                        values: [0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5],
+                        f1Scores: [0.64, 0.68, 0.71, 0.73, 0.75, 0.73, 0.70, 0.67],
+                        baseline: 1.0
+                    }
+                }
+            };
+
+            updateCharts();
+            updateParamSelect();
+            updateTable();
+        }
+
+        // Initialize
+        initCharts();
+    </script>
+</body>
+</html>
