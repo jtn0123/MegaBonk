@@ -1,10 +1,19 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import pkg from './package.json' with { type: 'json' };
+
+// Use package version for cache versioning
+const cacheVersion = `megabonk-v${pkg.version}`;
 
 export default defineConfig({
     root: 'src',
     publicDir: false, // No separate public dir, static assets handled separately
+    // Define global constants available at build time
+    define: {
+        __APP_VERSION__: JSON.stringify(pkg.version),
+        __CACHE_VERSION__: JSON.stringify(cacheVersion),
+    },
     build: {
         outDir: '../dist',
         emptyOutDir: true,
@@ -101,8 +110,8 @@ export default defineConfig({
                 ],
                 // Clear old caches on activation
                 cleanupOutdatedCaches: true,
-                // Cache versioning
-                cacheId: 'megabonk-v2',
+                // Cache versioning - uses package.json version for automatic cache busting
+                cacheId: cacheVersion,
             },
         }),
     ],

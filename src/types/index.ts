@@ -450,6 +450,12 @@ export function isChangelogPatch(entity: Entity | ChangelogPatch): entity is Cha
 // ========================================
 
 /**
+ * Build-time constants defined in vite.build.config.js
+ */
+declare const __APP_VERSION__: string;
+declare const __CACHE_VERSION__: string;
+
+/**
  * Global objects and functions available throughout the application
  */
 declare global {
