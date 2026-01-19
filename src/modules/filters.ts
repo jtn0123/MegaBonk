@@ -332,6 +332,7 @@ export function fuzzyMatchScore(searchTerm: string, text: string, fieldName: str
 /**
  * Search across all data types (items, weapons, tomes, characters, shrines)
  * Returns results sorted by match score
+ * Optimized with early termination and result limits to prevent slowness
  * @param {string} query - Search query
  * @param {AllGameData} allData - All game data
  * @returns {GlobalSearchResult[]} Sorted array of search results
@@ -343,16 +344,23 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
 
     const results: GlobalSearchResult[] = [];
     const searchTerm = query.trim().toLowerCase();
+
+    // Prioritize fields by importance - check most important first for early termination
     const searchFields = [
-        'name',
-        'description',
-        'base_effect',
+        'name', // Most important - exact name matches
+        'base_effect', // Key for items
+        'attack_pattern', // Key for weapons
+        'passive_ability', // Key for characters
+        'reward', // Key for shrines
+        'description', // General fallback
         'effect',
         'passive',
-        'passive_ability',
-        'reward',
-        'attack_pattern',
     ];
+
+    // Score thresholds for early termination
+    const EXACT_MATCH_SCORE = 2000;
+    const STARTS_WITH_SCORE = 1500;
+    const MAX_TOTAL_RESULTS = 100; // Limit total results to prevent slowness
 
     // Define data sources with their types
     const dataSources: Array<{ type: EntityType; data: Entity[] | undefined }> = [
@@ -368,26 +376,36 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
         if (!data) continue;
 
         for (const item of data) {
-            // Calculate match score across all relevant fields
+            // Calculate match score across relevant fields with early termination
             let bestScore = 0;
 
+            // Check fields in priority order, stop early if we get a high-quality match
             for (const field of searchFields) {
                 const value = (item as unknown as Record<string, unknown>)[field];
                 if (typeof value === 'string' && value) {
                     const match = fuzzyMatchScore(searchTerm, value, field);
                     if (match.score > bestScore) {
                         bestScore = match.score;
+                        // Early termination: exact match or starts_with on name is good enough
+                        if (bestScore >= STARTS_WITH_SCORE && field === 'name') {
+                            break;
+                        }
+                        if (bestScore >= EXACT_MATCH_SCORE) {
+                            break;
+                        }
                     }
                 }
             }
 
-            // Also check tags array
-            const tags = item.tags;
-            if (Array.isArray(tags)) {
-                const tagsString = tags.join(' ');
-                const match = fuzzyMatchScore(searchTerm, tagsString, 'tags');
-                if (match.score > bestScore) {
-                    bestScore = match.score;
+            // Only check tags if we don't have a strong match yet
+            if (bestScore < STARTS_WITH_SCORE) {
+                const tags = item.tags;
+                if (Array.isArray(tags)) {
+                    const tagsString = tags.join(' ');
+                    const match = fuzzyMatchScore(searchTerm, tagsString, 'tags');
+                    if (match.score > bestScore) {
+                        bestScore = match.score;
+                    }
                 }
             }
 
@@ -398,6 +416,11 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
                     score: bestScore,
                 });
             }
+        }
+
+        // Early termination: if we have enough high-quality results, stop searching
+        if (results.length >= MAX_TOTAL_RESULTS) {
+            break;
         }
     }
 

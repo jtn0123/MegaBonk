@@ -319,49 +319,62 @@ export function loadBuildTemplate(templateId: string): void {
 
 /**
  * Load build from data object
+ * Uses Map lookups for O(1) ID resolution instead of O(n) .find() calls
  * @param buildData - Build data with character, weapon, tomes, items IDs
  */
 export function loadBuildFromData(buildData: BuildData): void {
     // Clear current build first
     clearBuild();
 
-    // Load character
+    // Load character - use Map for O(1) lookup
     if (buildData.character && allData.characters) {
-        const char = allData.characters.characters.find((c: Character) => c.id === buildData.character);
+        const charMap = new Map(allData.characters.characters.map((c: Character) => [c.id, c]));
+        const char = charMap.get(buildData.character);
         if (char) {
             currentBuild.character = char;
             safeSetValue('build-character', char.id);
         }
     }
 
-    // Load weapon
+    // Load weapon - use Map for O(1) lookup
     if (buildData.weapon && allData.weapons) {
-        const weapon = allData.weapons.weapons.find((w: Weapon) => w.id === buildData.weapon);
+        const weaponMap = new Map(allData.weapons.weapons.map((w: Weapon) => [w.id, w]));
+        const weapon = weaponMap.get(buildData.weapon);
         if (weapon) {
             currentBuild.weapon = weapon;
             safeSetValue('build-weapon', weapon.id);
         }
     }
 
-    // Load tomes - use local variable to avoid null assertion issues
+    // Load tomes - use Map for O(1) lookups and batch checkbox updates
     const tomes = allData.tomes?.tomes;
     if (buildData.tomes && Array.isArray(buildData.tomes) && tomes) {
+        const tomeMap = new Map(tomes.map((t: Tome) => [t.id, t]));
+        // Batch DOM queries: get all checkboxes once
+        const tomeCheckboxes = document.querySelectorAll('.tome-checkbox') as NodeListOf<HTMLInputElement>;
+        const checkboxMap = new Map<string, HTMLInputElement>();
+        tomeCheckboxes.forEach(cb => checkboxMap.set(cb.value, cb));
+
         buildData.tomes.forEach((tomeId: string) => {
-            const tome = tomes.find((t: Tome) => t.id === tomeId);
-            if (tome) {
-                const checkbox = document.querySelector(`.tome-checkbox[value="${tomeId}"]`) as HTMLInputElement | null;
+            if (tomeMap.has(tomeId)) {
+                const checkbox = checkboxMap.get(tomeId);
                 if (checkbox) checkbox.checked = true;
             }
         });
     }
 
-    // Load items - use local variable to avoid null assertion issues
+    // Load items - use Map for O(1) lookups and batch checkbox updates
     const items = allData.items?.items;
     if (buildData.items && Array.isArray(buildData.items) && items) {
+        const itemMap = new Map(items.map((i: Item) => [i.id, i]));
+        // Batch DOM queries: get all checkboxes once
+        const itemCheckboxes = document.querySelectorAll('.item-checkbox') as NodeListOf<HTMLInputElement>;
+        const checkboxMap = new Map<string, HTMLInputElement>();
+        itemCheckboxes.forEach(cb => checkboxMap.set(cb.value, cb));
+
         buildData.items.forEach((itemId: string) => {
-            const item = items.find((i: Item) => i.id === itemId);
-            if (item) {
-                const checkbox = document.querySelector(`.item-checkbox[value="${itemId}"]`) as HTMLInputElement | null;
+            if (itemMap.has(itemId)) {
+                const checkbox = checkboxMap.get(itemId);
                 if (checkbox) checkbox.checked = true;
             }
         });
@@ -391,18 +404,21 @@ export function importBuild(jsonString: string): void {
 
 /**
  * Render the build planner UI
+ * Uses DocumentFragment to batch DOM operations and prevent layout thrashing
  */
 export function renderBuildPlanner(): void {
     const charSelect = safeGetElementById('build-character') as HTMLSelectElement | null;
     if (charSelect) {
         charSelect.innerHTML = '<option value="">Select Character...</option>';
         if (allData.characters) {
+            const fragment = document.createDocumentFragment();
             allData.characters.characters.forEach((char: Character) => {
                 const option = document.createElement('option');
                 option.value = char.id;
                 option.textContent = `${char.name} (${char.tier} Tier)`;
-                charSelect.appendChild(option);
+                fragment.appendChild(option);
             });
+            charSelect.appendChild(fragment);
         }
     }
 
@@ -410,12 +426,14 @@ export function renderBuildPlanner(): void {
     if (weaponSelect) {
         weaponSelect.innerHTML = '<option value="">Select Weapon...</option>';
         if (allData.weapons) {
+            const fragment = document.createDocumentFragment();
             allData.weapons.weapons.forEach((weapon: Weapon) => {
                 const option = document.createElement('option');
                 option.value = weapon.id;
                 option.textContent = `${weapon.name} (${weapon.tier} Tier)`;
-                weaponSelect.appendChild(option);
+                fragment.appendChild(option);
             });
+            weaponSelect.appendChild(fragment);
         }
     }
 
@@ -423,12 +441,14 @@ export function renderBuildPlanner(): void {
     if (tomesSelection) {
         tomesSelection.innerHTML = '';
         if (allData.tomes?.tomes) {
+            const fragment = document.createDocumentFragment();
             allData.tomes.tomes.forEach((tome: Tome) => {
                 const label = document.createElement('label');
                 // Security: Use escapeHtml to prevent XSS from compromised JSON data
                 label.innerHTML = `<input type="checkbox" value="${escapeHtml(tome.id)}" class="tome-checkbox"> ${escapeHtml(tome.name)}`;
-                tomesSelection.appendChild(label);
+                fragment.appendChild(label);
             });
+            tomesSelection.appendChild(fragment);
         }
     }
 
@@ -436,12 +456,14 @@ export function renderBuildPlanner(): void {
     if (itemsSelection) {
         itemsSelection.innerHTML = '';
         if (allData.items?.items) {
+            const fragment = document.createDocumentFragment();
             allData.items.items.slice(0, BUILD_ITEMS_LIMIT).forEach((item: Item) => {
                 const label = document.createElement('label');
                 // Security: Use escapeHtml to prevent XSS from compromised JSON data
                 label.innerHTML = `<input type="checkbox" value="${escapeHtml(item.id)}" class="item-checkbox"> ${escapeHtml(item.name)} (${escapeHtml(item.tier)})`;
-                itemsSelection.appendChild(label);
+                fragment.appendChild(label);
             });
+            itemsSelection.appendChild(fragment);
         }
     }
 }
@@ -486,13 +508,51 @@ export function setupBuildPlannerEvents(): void {
     }
 }
 
+// ========================================
+// Build Stats Memoization Cache
+// ========================================
+// Cache calculated stats to avoid repeated calculations when build hasn't changed
+let lastBuildCacheKey = '';
+let cachedBuildStats: CalculatedBuildStats | null = null;
+
 /**
- * Calculate build statistics
+ * Generate a cache key from build state
+ * @param build - Build to generate key for
+ * @returns Cache key string
+ */
+function getBuildCacheKey(build: Build): string {
+    return [
+        build.character?.id || '',
+        build.weapon?.id || '',
+        build.tomes
+            .map((t: Tome) => t.id)
+            .sort()
+            .join(','),
+        build.items
+            .map((i: Item) => i.id)
+            .sort()
+            .join(','),
+    ].join('|');
+}
+
+/**
+ * Calculate build statistics with memoization
+ * Results are cached until the build changes to avoid recalculation
  * @param build - Optional build to calculate stats for (uses currentBuild if not provided)
  * @returns Calculated stats
  */
 export function calculateBuildStats(build?: Build): CalculatedBuildStats {
     const buildToUse = build || currentBuild;
+
+    // Check memoization cache - only use cache if no explicit build was passed
+    if (!build) {
+        const cacheKey = getBuildCacheKey(buildToUse);
+        if (cacheKey === lastBuildCacheKey && cachedBuildStats) {
+            return cachedBuildStats;
+        }
+        lastBuildCacheKey = cacheKey;
+    }
+
     const stats: CalculatedBuildStats = { ...DEFAULT_BUILD_STATS, evasion: 0, overcrit: false };
 
     // Apply character passive bonuses based on passive_ability text
@@ -574,20 +634,28 @@ export function calculateBuildStats(build?: Build): CalculatedBuildStats {
     const clampedEvasionInternal = Math.max(stats.evasion_internal, -99);
     stats.evasion = Math.round((clampedEvasionInternal / (1 + clampedEvasionInternal / 100)) * 100) / 100;
     stats.overcrit = stats.crit_chance > 100;
+
+    // Cache the result for memoization (only if using currentBuild)
+    if (!build) {
+        cachedBuildStats = stats;
+    }
+
     return stats;
 }
 
 /**
  * Update build analysis display
+ * Uses Map for O(1) lookups instead of O(n) .find() calls
  */
 export function updateBuildAnalysis(): void {
     const selectedTomes = Array.from(safeQuerySelectorAll('.tome-checkbox:checked')).map(
         (cb: Element) => (cb as HTMLInputElement).value
     );
     if (allData.tomes?.tomes) {
-        const tomes = allData.tomes.tomes;
+        // Build Map once for O(1) lookups - reduces O(n*m) to O(n+m)
+        const tomeMap = new Map(allData.tomes.tomes.map((t: Tome) => [t.id, t]));
         currentBuild.tomes = selectedTomes
-            .map((id: string) => tomes.find((t: Tome) => t.id === id))
+            .map((id: string) => tomeMap.get(id))
             .filter((t): t is Tome => t !== undefined);
     } else {
         currentBuild.tomes = [];
@@ -597,9 +665,10 @@ export function updateBuildAnalysis(): void {
         (cb: Element) => (cb as HTMLInputElement).value
     );
     if (allData.items?.items) {
-        const items = allData.items.items;
+        // Build Map once for O(1) lookups - reduces O(n*m) to O(n+m)
+        const itemMap = new Map(allData.items.items.map((i: Item) => [i.id, i]));
         currentBuild.items = selectedItems
-            .map((id: string) => items.find((i: Item) => i.id === id))
+            .map((id: string) => itemMap.get(id))
             .filter((i): i is Item => i !== undefined);
     } else {
         currentBuild.items = [];
@@ -788,48 +857,54 @@ export function loadBuildFromURL(): boolean {
             return false;
         }
 
-        // Load character
+        // Load character - use Map for O(1) lookup
         if (decoded.c && allData.characters) {
-            const char = allData.characters.characters.find((c: Character) => c.id === decoded.c);
+            const charMap = new Map(allData.characters.characters.map((c: Character) => [c.id, c]));
+            const char = charMap.get(decoded.c);
             if (char) {
                 currentBuild.character = char;
                 safeSetValue('build-character', char.id);
             }
         }
 
-        // Load weapon
+        // Load weapon - use Map for O(1) lookup
         if (decoded.w && allData.weapons) {
-            const weapon = allData.weapons.weapons.find((w: Weapon) => w.id === decoded.w);
+            const weaponMap = new Map(allData.weapons.weapons.map((w: Weapon) => [w.id, w]));
+            const weapon = weaponMap.get(decoded.w);
             if (weapon) {
                 currentBuild.weapon = weapon;
                 safeSetValue('build-weapon', weapon.id);
             }
         }
 
-        // Load tomes
+        // Load tomes - use Map for O(1) lookups
         if (decoded.t && Array.isArray(decoded.t) && allData.tomes?.tomes) {
-            const tomes = allData.tomes.tomes;
+            const tomeMap = new Map(allData.tomes.tomes.map((t: Tome) => [t.id, t]));
             currentBuild.tomes = decoded.t
-                .map((id: string) => tomes.find((t: Tome) => t.id === id))
+                .map((id: string) => tomeMap.get(id))
                 .filter((t): t is Tome => t !== undefined);
+            // Batch DOM queries for checkboxes
+            const tomeCheckboxes = document.querySelectorAll('.tome-checkbox') as NodeListOf<HTMLInputElement>;
+            const checkboxMap = new Map<string, HTMLInputElement>();
+            tomeCheckboxes.forEach(cb => checkboxMap.set(cb.value, cb));
             currentBuild.tomes.forEach((tome: Tome) => {
-                const checkbox = document.querySelector(
-                    `.tome-checkbox[value="${tome.id}"]`
-                ) as HTMLInputElement | null;
+                const checkbox = checkboxMap.get(tome.id);
                 if (checkbox) checkbox.checked = true;
             });
         }
 
-        // Load items
+        // Load items - use Map for O(1) lookups
         if (decoded.i && Array.isArray(decoded.i) && allData.items?.items) {
-            const items = allData.items.items;
+            const itemMap = new Map(allData.items.items.map((i: Item) => [i.id, i]));
             currentBuild.items = decoded.i
-                .map((id: string) => items.find((item: Item) => item.id === id))
+                .map((id: string) => itemMap.get(id))
                 .filter((i): i is Item => i !== undefined);
+            // Batch DOM queries for checkboxes
+            const itemCheckboxes = document.querySelectorAll('.item-checkbox') as NodeListOf<HTMLInputElement>;
+            const checkboxMap = new Map<string, HTMLInputElement>();
+            itemCheckboxes.forEach(cb => checkboxMap.set(cb.value, cb));
             currentBuild.items.forEach((item: Item) => {
-                const checkbox = document.querySelector(
-                    `.item-checkbox[value="${item.id}"]`
-                ) as HTMLInputElement | null;
+                const checkbox = checkboxMap.get(item.id);
                 if (checkbox) checkbox.checked = true;
             });
         }
@@ -907,6 +982,10 @@ export function clearBuild(): void {
             itemsCleared: currentBuild.items.length,
         },
     });
+
+    // Invalidate memoization cache when build is cleared
+    lastBuildCacheKey = '';
+    cachedBuildStats = null;
 
     updateCurrentBuild({ character: null, weapon: null, tomes: [], items: [] });
     safeSetValue('build-character', '');

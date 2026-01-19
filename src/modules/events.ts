@@ -522,7 +522,19 @@ export function setupEventListeners(): void {
             tabContainer.classList.toggle('can-scroll-right', canScrollRight);
         };
 
-        tabButtons.addEventListener('scroll', updateTabScrollIndicators, getListenerOptions({ passive: true }));
+        // Use requestAnimationFrame throttling for scroll events to prevent jank
+        // This ensures we only update once per frame, not on every scroll pixel
+        let scrollRAFPending = false;
+        const throttledScrollHandler = (): void => {
+            if (scrollRAFPending) return;
+            scrollRAFPending = true;
+            requestAnimationFrame(() => {
+                updateTabScrollIndicators();
+                scrollRAFPending = false;
+            });
+        };
+
+        tabButtons.addEventListener('scroll', throttledScrollHandler, getListenerOptions({ passive: true }));
         // Initial check after a short delay to ensure layout is complete
         setTimeout(updateTabScrollIndicators, 100);
         // Recheck on resize
