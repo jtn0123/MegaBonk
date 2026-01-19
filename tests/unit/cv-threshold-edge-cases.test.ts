@@ -10,6 +10,7 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { cvTestKit } from '../helpers/cv-test-kit.ts';
+import { getConfidenceThresholds, CVStrategy, STRATEGY_PRESETS } from '../../src/modules/cv-strategy.ts';
 
 // ========================================
 // Test Helpers
@@ -177,6 +178,171 @@ describe('CV Confidence Threshold Boundaries', () => {
 
             // Large gap (>0.20) indicates confident detection
             expect(gap).toBeGreaterThan(0.20);
+        });
+    });
+});
+
+// ========================================
+// Adaptive Rarity-Based Threshold Tests
+// ========================================
+
+describe('CV Adaptive Rarity Threshold System', () => {
+    // Create test strategies
+    const fixedStrategy: CVStrategy = {
+        ...STRATEGY_PRESETS.fast!,
+        confidenceThresholds: 'fixed',
+    };
+
+    const adaptiveRarityStrategy: CVStrategy = {
+        ...STRATEGY_PRESETS.fast!,
+        confidenceThresholds: 'adaptive-rarity',
+    };
+
+    const adaptiveGapStrategy: CVStrategy = {
+        ...STRATEGY_PRESETS.fast!,
+        confidenceThresholds: 'adaptive-gap',
+    };
+
+    describe('Fixed Threshold Strategy', () => {
+        it('should return fixed thresholds regardless of rarity', () => {
+            const noRarity = getConfidenceThresholds(fixedStrategy);
+            const commonThresholds = getConfidenceThresholds(fixedStrategy, 'common');
+            const legendaryThresholds = getConfidenceThresholds(fixedStrategy, 'legendary');
+
+            // All should be the same
+            expect(noRarity).toEqual(commonThresholds);
+            expect(commonThresholds).toEqual(legendaryThresholds);
+        });
+
+        it('should use expected fixed values', () => {
+            const thresholds = getConfidenceThresholds(fixedStrategy);
+            expect(thresholds.pass1).toBe(0.85);
+            expect(thresholds.pass2).toBe(0.7);
+            expect(thresholds.pass3).toBe(0.6);
+        });
+    });
+
+    describe('Adaptive-Rarity Strategy', () => {
+        it('should return stricter thresholds for common items', () => {
+            const commonThresholds = getConfidenceThresholds(adaptiveRarityStrategy, 'common');
+            const legendaryThresholds = getConfidenceThresholds(adaptiveRarityStrategy, 'legendary');
+
+            // Common items should have higher (stricter) thresholds
+            expect(commonThresholds.pass1).toBeGreaterThan(legendaryThresholds.pass1);
+            expect(commonThresholds.pass2).toBeGreaterThan(legendaryThresholds.pass2);
+            expect(commonThresholds.pass3).toBeGreaterThan(legendaryThresholds.pass3);
+        });
+
+        it('should have monotonically decreasing thresholds by rarity', () => {
+            const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+            const thresholdsByRarity = rarities.map(r => getConfidenceThresholds(adaptiveRarityStrategy, r));
+
+            // Each rarity should have lower thresholds than the previous
+            for (let i = 1; i < thresholdsByRarity.length; i++) {
+                expect(thresholdsByRarity[i]!.pass1).toBeLessThan(thresholdsByRarity[i - 1]!.pass1);
+                expect(thresholdsByRarity[i]!.pass2).toBeLessThan(thresholdsByRarity[i - 1]!.pass2);
+                expect(thresholdsByRarity[i]!.pass3).toBeLessThan(thresholdsByRarity[i - 1]!.pass3);
+            }
+        });
+
+        it('should have reasonable threshold ranges for each pass', () => {
+            const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+
+            for (const rarity of rarities) {
+                const thresholds = getConfidenceThresholds(adaptiveRarityStrategy, rarity);
+
+                // Pass 1 should be highest confidence (>= 0.70)
+                expect(thresholds.pass1).toBeGreaterThanOrEqual(0.70);
+                expect(thresholds.pass1).toBeLessThanOrEqual(1.0);
+
+                // Pass 2 should be medium confidence (>= 0.55)
+                expect(thresholds.pass2).toBeGreaterThanOrEqual(0.55);
+                expect(thresholds.pass2).toBeLessThan(thresholds.pass1);
+
+                // Pass 3 should be lowest (>= 0.45)
+                expect(thresholds.pass3).toBeGreaterThanOrEqual(0.45);
+                expect(thresholds.pass3).toBeLessThan(thresholds.pass2);
+            }
+        });
+
+        it('should fallback to fixed thresholds when rarity is undefined', () => {
+            const thresholdsNoRarity = getConfidenceThresholds(adaptiveRarityStrategy, undefined);
+            const fixedThresholds = getConfidenceThresholds(fixedStrategy);
+
+            expect(thresholdsNoRarity).toEqual(fixedThresholds);
+        });
+
+        it('should fallback to fixed thresholds for unknown rarity', () => {
+            const thresholds = getConfidenceThresholds(adaptiveRarityStrategy, 'mythical');
+            const fixedThresholds = getConfidenceThresholds(fixedStrategy);
+
+            expect(thresholds).toEqual(fixedThresholds);
+        });
+    });
+
+    describe('Adaptive-Gap Strategy', () => {
+        it('should return same thresholds regardless of rarity', () => {
+            // Gap-based strategy doesn't use rarity, it uses match quality gap
+            const commonThresholds = getConfidenceThresholds(adaptiveGapStrategy, 'common');
+            const legendaryThresholds = getConfidenceThresholds(adaptiveGapStrategy, 'legendary');
+
+            // Both should be the same (gap strategy ignores rarity)
+            expect(commonThresholds).toEqual(legendaryThresholds);
+        });
+    });
+
+    describe('Threshold Value Consistency', () => {
+        it('should maintain pass order: pass1 > pass2 > pass3 for all strategies', () => {
+            const strategies = [fixedStrategy, adaptiveRarityStrategy, adaptiveGapStrategy];
+            const rarities = [undefined, 'common', 'uncommon', 'rare', 'epic', 'legendary'];
+
+            for (const strategy of strategies) {
+                for (const rarity of rarities) {
+                    const thresholds = getConfidenceThresholds(strategy, rarity);
+                    expect(thresholds.pass1).toBeGreaterThan(thresholds.pass2);
+                    expect(thresholds.pass2).toBeGreaterThan(thresholds.pass3);
+                }
+            }
+        });
+
+        it('should have all thresholds in valid range [0, 1]', () => {
+            const strategies = [fixedStrategy, adaptiveRarityStrategy, adaptiveGapStrategy];
+            const rarities = [undefined, 'common', 'uncommon', 'rare', 'epic', 'legendary'];
+
+            for (const strategy of strategies) {
+                for (const rarity of rarities) {
+                    const thresholds = getConfidenceThresholds(strategy, rarity);
+                    expect(thresholds.pass1).toBeGreaterThanOrEqual(0);
+                    expect(thresholds.pass1).toBeLessThanOrEqual(1);
+                    expect(thresholds.pass2).toBeGreaterThanOrEqual(0);
+                    expect(thresholds.pass2).toBeLessThanOrEqual(1);
+                    expect(thresholds.pass3).toBeGreaterThanOrEqual(0);
+                    expect(thresholds.pass3).toBeLessThanOrEqual(1);
+                }
+            }
+        });
+    });
+
+    describe('Default Strategy Configuration', () => {
+        it('should use adaptive-rarity as default in current strategy', () => {
+            const currentStrategy = STRATEGY_PRESETS.current!;
+            expect(currentStrategy.confidenceThresholds).toBe('adaptive-rarity');
+        });
+
+        it('should have appropriate default thresholds for common items', () => {
+            const currentStrategy = STRATEGY_PRESETS.current!;
+            const commonThresholds = getConfidenceThresholds(currentStrategy, 'common');
+
+            // Common items should require high confidence
+            expect(commonThresholds.pass1).toBeGreaterThanOrEqual(0.85);
+        });
+
+        it('should have more lenient thresholds for legendary items', () => {
+            const currentStrategy = STRATEGY_PRESETS.current!;
+            const legendaryThresholds = getConfidenceThresholds(currentStrategy, 'legendary');
+
+            // Legendary items can have lower confidence due to unique visuals
+            expect(legendaryThresholds.pass1).toBeLessThan(0.80);
         });
     });
 });
