@@ -151,8 +151,9 @@ describe('Confidence Thresholds', () => {
         const legendaryThresholds = getConfidenceThresholds(strategy, 'legendary');
         const commonThresholds = getConfidenceThresholds(strategy, 'common');
 
-        // Legendary should have higher thresholds than common
-        expect(legendaryThresholds.pass1).toBeGreaterThan(commonThresholds.pass1);
+        // Common items should have stricter (higher) thresholds - they look similar to each other
+        // Legendary items can have lower thresholds - unique visuals make them easier to identify
+        expect(commonThresholds.pass1).toBeGreaterThan(legendaryThresholds.pass1);
     });
 
     it('should handle undefined rarity with fallback', () => {

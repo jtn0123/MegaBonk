@@ -694,7 +694,6 @@ async function singlePassMatching(
     progressCallback?: (progress: number, status: string) => void
 ): Promise<CVDetectionResult[]> {
     const detections: CVDetectionResult[] = [];
-    const thresholds = getConfidenceThresholds(strategy);
 
     for (let i = 0; i < validCells.length; i++) {
         const validCell = validCells[i];
@@ -709,6 +708,8 @@ async function singlePassMatching(
         const candidates = filterCandidates(items, strategy, rarity, colorProfile, imageData);
         const match = matchCell(ctx, cell, imageData, candidates, strategy);
 
+        // Use rarity-based thresholds per cell for adaptive detection
+        const thresholds = getConfidenceThresholds(strategy, rarity);
         if (match && match.similarity >= thresholds.pass2) {
             detections.push({
                 type: 'item',
