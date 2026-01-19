@@ -1,3 +1,4 @@
+/* global global, setTimeout, ImageData */
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
 
@@ -46,20 +47,40 @@ const mockRevokeObjectURL = vi.fn();
 let originalWorker;
 let originalURL;
 
+// Mock ImageData if not available
+class MockImageData {
+    constructor(width, height) {
+        this.width = width;
+        this.height = height;
+        this.data = new Uint8ClampedArray(width * height * 4);
+    }
+}
+
+let originalImageData;
+
 beforeEach(() => {
     originalWorker = global.Worker;
     originalURL = global.URL;
+    originalImageData = global.ImageData;
 
     global.Worker = MockWorker;
     global.URL = {
         createObjectURL: mockCreateObjectURL,
         revokeObjectURL: mockRevokeObjectURL,
     };
+
+    // Mock ImageData if not defined (Node.js environment)
+    if (typeof global.ImageData === 'undefined') {
+        global.ImageData = MockImageData;
+    }
 });
 
 afterEach(() => {
     global.Worker = originalWorker;
     global.URL = originalURL;
+    if (originalImageData !== undefined) {
+        global.ImageData = originalImageData;
+    }
     vi.clearAllMocks();
 });
 
@@ -72,11 +93,7 @@ vi.mock('../../src/modules/logger.ts', () => ({
     },
 }));
 
-import {
-    cvWorker,
-    isWorkerSupported,
-    runCVDetection,
-} from '../../src/modules/cv-worker.ts';
+import { cvWorker, isWorkerSupported, runCVDetection } from '../../src/modules/cv-worker.ts';
 
 describe('CV Worker Module', () => {
     beforeEach(() => {
@@ -125,9 +142,7 @@ describe('CV Worker Module', () => {
 
         describe('detect()', () => {
             it('should throw error if worker not initialized', async () => {
-                await expect(cvWorker.detect(new ImageData(10, 10))).rejects.toThrow(
-                    'CV Worker not initialized'
-                );
+                await expect(cvWorker.detect(new ImageData(10, 10))).rejects.toThrow('CV Worker not initialized');
             });
 
             it('should return detection results', async () => {
