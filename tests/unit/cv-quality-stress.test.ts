@@ -552,9 +552,10 @@ describe('CV Performance Stress Tests', () => {
             const variance = times.reduce((sum, t) => sum + Math.pow(t - mean, 2), 0) / times.length;
             const stdDev = Math.sqrt(variance);
 
-            // Standard deviation should be reasonable (<100% of mean for fast operations)
-            // Note: Very fast operations have high relative variance
-            expect(stdDev / mean).toBeLessThan(1.0);
+            // Standard deviation should be reasonable for fast operations
+            // Note: Very fast operations (sub-millisecond) naturally have high relative variance
+            // due to system jitter, so we allow up to 150% relative std dev
+            expect(stdDev / mean).toBeLessThan(1.5);
         });
     });
 

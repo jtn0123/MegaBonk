@@ -12,6 +12,8 @@ import {
     getTemplatesByColor,
     getDetectionCache,
     isPriorityTemplatesLoaded,
+    getResizedTemplate,
+    setResizedTemplate,
     CACHE_TTL,
     MAX_CACHE_SIZE,
 } from './state.ts';
@@ -404,20 +406,37 @@ function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight
  * Match a screenshot cell against an item template
  * Returns similarity score (0-1, higher is better)
  * Returns 0 if template resizing fails
+ * Uses cache to avoid redundant template resizing
  */
-function matchTemplate(screenshotCtx: CanvasRenderingContext2D, cell: ROI, template: TemplateData): number {
+function matchTemplate(
+    screenshotCtx: CanvasRenderingContext2D,
+    cell: ROI,
+    template: TemplateData,
+    itemId?: string
+): number {
     // Extract icon region from screenshot (exclude count area)
     const iconRegion = extractIconRegion(screenshotCtx, cell);
 
-    // Get template image data
-    const templateImageData = template.ctx.getImageData(0, 0, template.width, template.height);
+    // Check cache for resized template
+    let resizedTemplate: ImageData | undefined;
+    if (itemId) {
+        resizedTemplate = getResizedTemplate(itemId, iconRegion.width, iconRegion.height);
+    }
 
-    // Resize template to match icon region size
-    const resizedTemplate = resizeImageData(templateImageData, iconRegion.width, iconRegion.height);
-
-    // Handle resize failure gracefully
+    // Resize template if not cached
     if (!resizedTemplate) {
-        return 0;
+        const templateImageData = template.ctx.getImageData(0, 0, template.width, template.height);
+        resizedTemplate = resizeImageData(templateImageData, iconRegion.width, iconRegion.height);
+
+        // Handle resize failure gracefully
+        if (!resizedTemplate) {
+            return 0;
+        }
+
+        // Cache the resized template for reuse
+        if (itemId) {
+            setResizedTemplate(itemId, iconRegion.width, iconRegion.height, resizedTemplate);
+        }
     }
 
     // Calculate similarity
@@ -539,6 +558,7 @@ function validateWithBorderRarity(detection: CVDetectionResult, ctx: CanvasRende
 /**
  * Sliding window detection to find icons anywhere on screen
  * Returns detected icons with their positions
+ * Supports multi-scale matching for better accuracy across resolutions
  */
 async function detectIconsWithSlidingWindow(
     ctx: CanvasRenderingContext2D,
@@ -550,13 +570,16 @@ async function detectIconsWithSlidingWindow(
         minConfidence?: number;
         regionOfInterest?: ROI;
         progressCallback?: (progress: number, status: string) => void;
+        multiScale?: boolean; // Enable multi-scale matching
     } = {}
 ): Promise<CVDetectionResult[]> {
-    const { stepSize = 12, minConfidence = 0.72, regionOfInterest, progressCallback } = options;
+    const { stepSize = 12, minConfidence = 0.72, regionOfInterest, progressCallback, multiScale = true } = options;
 
     const detections: CVDetectionResult[] = [];
     const iconSizes = getAdaptiveIconSizes(width, height);
-    const primarySize = iconSizes[1] || 48; // Use middle size as primary
+    // Use all scales if multiScale is enabled, otherwise just the primary
+    const sizesToUse = multiScale ? iconSizes : [iconSizes[1] || 48];
+    const primarySize = iconSizes[1] || 48; // Primary size for window extraction
     const itemTemplates = getItemTemplates();
     const templatesByColor = getTemplatesByColor();
 
@@ -576,7 +599,8 @@ async function detectIconsWithSlidingWindow(
         operation: 'cv.sliding_window_start',
         data: {
             scanRegion: { x: scanX, y: scanY, w: scanWidth, h: scanHeight },
-            iconSize: primarySize,
+            iconSizes: sizesToUse,
+            multiScale,
             stepSize,
             totalSteps,
             templatesLoaded: itemTemplates.size,
@@ -622,17 +646,33 @@ async function detectIconsWithSlidingWindow(
             const candidateItems = [...colorCandidates, ...mixedCandidates];
             const itemsToCheck = candidateItems.length > 0 ? candidateItems : items.slice(0, 30);
 
-            // Match against candidate templates
-            let bestMatch: { item: Item; similarity: number } | null = null;
+            // Match against candidate templates at multiple scales
+            let bestMatch: { item: Item; similarity: number; scale: number } | null = null;
 
             for (const item of itemsToCheck) {
                 const template = itemTemplates.get(item.id);
                 if (!template) continue;
 
-                const similarity = matchTemplate(ctx, windowROI, template);
+                // Try each scale and find the best match
+                for (const scaleSize of sizesToUse) {
+                    // Create ROI at this scale
+                    const scaleROI: ROI = {
+                        x,
+                        y,
+                        width: scaleSize,
+                        height: scaleSize,
+                    };
 
-                if (similarity > minConfidence && (!bestMatch || similarity > bestMatch.similarity)) {
-                    bestMatch = { item, similarity };
+                    const similarity = matchTemplate(ctx, scaleROI, template, item.id);
+
+                    // Apply scale-aware confidence adjustment
+                    // Smaller icons naturally have lower similarity due to pixelation
+                    const scaleAdjustment = scaleSize < 40 ? -0.02 : scaleSize > 60 ? 0.01 : 0;
+                    const adjustedThreshold = minConfidence + scaleAdjustment;
+
+                    if (similarity > adjustedThreshold && (!bestMatch || similarity > bestMatch.similarity)) {
+                        bestMatch = { item, similarity, scale: scaleSize };
+                    }
                 }
             }
 
@@ -641,7 +681,7 @@ async function detectIconsWithSlidingWindow(
                     type: 'item',
                     entity: bestMatch.item,
                     confidence: bestMatch.similarity,
-                    position: { ...windowROI },
+                    position: { x, y, width: bestMatch.scale, height: bestMatch.scale },
                     method: 'template_match',
                 });
             }
