@@ -79,7 +79,9 @@ body {
     background: var(--bg-primary);
     color: var(--text-primary);
     line-height: 1.6;
+    /* Use dvh for mobile Safari, with vh fallback for older browsers */
     min-height: 100vh;
+    min-height: 100dvh;
     overflow-x: hidden;
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
@@ -88,6 +90,8 @@ body {
     padding-right: env(safe-area-inset-right);
     /* Smooth scrolling */
     scroll-behavior: smooth;
+    /* Prevent overscroll/pull-to-refresh interfering with app on mobile */
+    overscroll-behavior-y: contain;
 }
 
 /* Better scrollbar styling for all containers */
@@ -838,6 +842,7 @@ picture img {
     top: 0;
     width: 100%;
     height: 100%;
+    height: 100dvh;
     overflow: auto;
     background-color: rgba(0, 0, 0, 0);
     backdrop-filter: blur(0px);
@@ -847,6 +852,8 @@ picture img {
     /* Smooth scrolling on mobile */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
+    /* Prevent body scroll when modal is open */
+    touch-action: pan-y;
 }
 
 .modal.active {
@@ -1196,6 +1203,15 @@ footer a:hover {
 
 .hidden {
     display: none !important;
+}
+
+/* Prevent body scroll when modal is open (mobile) */
+body.modal-open {
+    overflow: hidden !important;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
 }
 
 /* Screen reader only - visually hidden but accessible to assistive technology */

@@ -74,6 +74,21 @@ vi.mock('../../src/modules/toast', () => ({
     },
 }));
 
+// Create a hoisted mutable store state for testing
+const mockStoreState = vi.hoisted(() => ({
+    currentTab: 'items' as string,
+}));
+
+vi.mock('../../src/modules/store', () => ({
+    getState: vi.fn((key: string) => {
+        if (key === 'currentTab') return mockStoreState.currentTab;
+        return undefined;
+    }),
+    setState: vi.fn((key: string, value: any) => {
+        if (key === 'currentTab') mockStoreState.currentTab = value;
+    }),
+}));
+
 // Import functions after mocks
 import {
     getSavedTab,
@@ -85,6 +100,7 @@ import {
     toggleTextExpand,
     cleanupEventListeners,
     setupEventDelegation,
+    __resetTimersForTesting,
 } from '../../src/modules/events';
 
 describe('events.ts additional coverage tests', () => {
@@ -106,8 +122,14 @@ describe('events.ts additional coverage tests', () => {
         localStorage.clear();
         vi.clearAllMocks();
 
+        // Reset internal timers to avoid debounce issues between tests
+        __resetTimersForTesting();
+
+        // Reset mock store state to a non-items tab so switchTab tests work
+        mockStoreState.currentTab = 'shrines';
+
         // Setup global state
-        (window as any).currentTab = 'items';
+        (window as any).currentTab = 'shrines';
         (window as any).allData = {
             items: { items: [{ id: 'item1', name: 'Test' }] },
             weapons: { weapons: [] },
