@@ -7,6 +7,8 @@ import { ToastManager } from './toast.ts';
 import { safeGetElementById, generateModalImage, escapeHtml } from './utils.ts';
 import { logger } from './logger.ts';
 import { renderFormulaDisplay } from './formula-renderer.ts';
+import { onModalOpened } from './recently-viewed.ts';
+import { renderSimilarItemsSection, setupSimilarItemsHandlers } from './similar-items.ts';
 import type { EntityType, Item, Weapon, Tome, Character, Shrine } from '../types/index.ts';
 
 // ========================================
@@ -185,8 +187,17 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
         content += renderShrineModal(data as Shrine);
     }
 
+    // Add similar items section (for items, weapons, tomes, characters)
+    if (type !== 'shrines') {
+        content += renderSimilarItemsSection(type, id);
+    }
+
     modalBody.innerHTML = content;
     modal.style.display = 'block';
+
+    // Track this view in recently viewed
+    onModalOpened(type, id);
+
     // Trigger animation after display is set
     requestAnimationFrame(() => {
         modal.classList.add('active');
@@ -195,6 +206,9 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
 
         // Activate focus trap for accessibility
         activateFocusTrap(modal);
+
+        // Setup handlers for similar items
+        setupSimilarItemsHandlers(modalBody);
     });
 }
 

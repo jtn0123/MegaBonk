@@ -23,6 +23,8 @@ import { setupImageFallbackHandler } from './modules/utils.ts';
 import { logger } from './modules/logger.ts';
 import { setupOfflineListeners } from './modules/offline-ui.ts';
 import { scheduleModulePreload } from './modules/events.ts';
+import { initMobileNav, injectMoreMenuStyles } from './modules/mobile-nav.ts';
+import { initRecentlyViewed } from './modules/recently-viewed.ts';
 // Note: Tab-specific modules (advisor, build-planner, calculator, changelog) are now lazy-loaded
 // via the tab-loader module when their tabs are first accessed
 // Core modules that may be needed across multiple contexts are still eagerly loaded:
@@ -340,6 +342,25 @@ async function init(): Promise<void> {
         async () => {
             initWebVitals();
             createPerformanceBadge();
+        },
+        { required: false }
+    );
+
+    // Initialize mobile navigation (non-critical)
+    await safeModuleInit(
+        'mobile-nav',
+        async () => {
+            injectMoreMenuStyles();
+            initMobileNav();
+        },
+        { required: false }
+    );
+
+    // Initialize recently viewed tracking (non-critical)
+    await safeModuleInit(
+        'recently-viewed',
+        async () => {
+            initRecentlyViewed();
         },
         { required: false }
     );
