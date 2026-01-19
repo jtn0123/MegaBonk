@@ -40,6 +40,21 @@ const VALID_TABS: TabName[] = ['items', 'weapons', 'tomes', 'characters', 'shrin
 // This prevents memory leaks from accumulated event listeners
 let eventAbortController: AbortController | null = null;
 
+// Track active highlight timeouts for cleanup
+let activeHighlightTimeout: ReturnType<typeof setTimeout> | null = null;
+
+// Track tab switch timing to prevent rapid switching issues
+let lastTabSwitchTime = 0;
+const TAB_SWITCH_DEBOUNCE_MS = 100; // Minimum time between tab switches
+
+/**
+ * Reset internal timers for testing purposes
+ * @internal
+ */
+export function __resetTimersForTesting(): void {
+    lastTabSwitchTime = 0;
+}
+
 /**
  * Check if AbortSignal is properly supported in addEventListener
  * jsdom has incomplete AbortSignal support that causes TypeErrors
@@ -104,6 +119,12 @@ function getListenerOptions(options?: { passive?: boolean }): AddEventListenerOp
  * Call this when reinitializing the app or cleaning up
  */
 export function cleanupEventListeners(): void {
+    // Clean up any pending highlight timeouts
+    if (activeHighlightTimeout !== null) {
+        clearTimeout(activeHighlightTimeout);
+        activeHighlightTimeout = null;
+    }
+
     if (eventAbortController) {
         eventAbortController.abort();
         eventAbortController = null;
@@ -379,6 +400,17 @@ export function setupEventDelegation(): void {
                         switchTab(tabType);
                     }
 
+                    // Clear any existing highlight timeout to prevent accumulation
+                    if (activeHighlightTimeout !== null) {
+                        clearTimeout(activeHighlightTimeout);
+                        activeHighlightTimeout = null;
+                        // Remove highlight from any previously highlighted card
+                        const prevHighlighted = document.querySelector('.search-highlight');
+                        if (prevHighlighted) {
+                            prevHighlighted.classList.remove('search-highlight');
+                        }
+                    }
+
                     // After tab switch, scroll to and highlight the item
                     requestAnimationFrame(() => {
                         const itemCard = document.querySelector(`[data-entity-id="${entityId}"]`) as HTMLElement | null;
@@ -386,10 +418,11 @@ export function setupEventDelegation(): void {
                             // Scroll into view with smooth behavior
                             itemCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-                            // Add highlight animation
+                            // Add highlight animation with tracked timeout
                             itemCard.classList.add('search-highlight');
-                            setTimeout(() => {
+                            activeHighlightTimeout = setTimeout(() => {
                                 itemCard.classList.remove('search-highlight');
+                                activeHighlightTimeout = null;
                             }, 2000);
                         }
                     });
@@ -532,7 +565,17 @@ export function setupEventListeners(): void {
 
     // Click/touch outside modal to close - handle backdrop clicks
     // Check if click is inside modal but outside modal-content (the backdrop area)
+    // Use a timestamp to prevent double-handling from both click and touchend events
+    let lastModalCloseTime = 0;
+    const MODAL_CLOSE_DEBOUNCE_MS = 300;
+
     const handleModalBackdropInteraction = (e: MouseEvent | TouchEvent): void => {
+        // Prevent double-handling: on mobile, both touchend and click can fire for same tap
+        const now = Date.now();
+        if (now - lastModalCloseTime < MODAL_CLOSE_DEBOUNCE_MS) {
+            return;
+        }
+
         const target = e.target as HTMLElement;
         const itemModal = safeGetElementById('itemModal') as HTMLElement | null;
         const compareModal = safeGetElementById('compareModal') as HTMLElement | null;
@@ -541,7 +584,9 @@ export function setupEventListeners(): void {
         if (itemModal && itemModal.classList.contains('active')) {
             const modalContent = itemModal.querySelector('.modal-content');
             if (target === itemModal || (itemModal.contains(target) && !modalContent?.contains(target))) {
+                lastModalCloseTime = now;
                 closeModal();
+                return; // Don't check compare modal if we just closed item modal
             }
         }
 
@@ -549,6 +594,7 @@ export function setupEventListeners(): void {
         if (compareModal && compareModal.classList.contains('active')) {
             const modalContent = compareModal.querySelector('.modal-content');
             if (target === compareModal || (compareModal.contains(target) && !modalContent?.contains(target))) {
+                lastModalCloseTime = now;
                 closeCompareModal();
             }
         }
@@ -634,8 +680,10 @@ export function showErrorMessage(message: string, isRetryable: boolean = true): 
     errorContainer.style.display = 'block';
 
     // Attach listeners only when creating new structure
+    // Use data attribute to prevent double-attachment of listeners
     const retryBtn = errorContainer.querySelector<HTMLButtonElement>('.error-retry-btn');
-    if (retryBtn) {
+    if (retryBtn && !retryBtn.dataset.listenerAttached) {
+        retryBtn.dataset.listenerAttached = 'true';
         retryBtn.addEventListener('click', () => {
             dismissError();
             loadAllData();
@@ -643,7 +691,8 @@ export function showErrorMessage(message: string, isRetryable: boolean = true): 
     }
 
     const closeBtn = errorContainer.querySelector<HTMLButtonElement>('.error-close');
-    if (closeBtn) {
+    if (closeBtn && !closeBtn.dataset.listenerAttached) {
+        closeBtn.dataset.listenerAttached = 'true';
         closeBtn.addEventListener('click', dismissError);
     }
 }
@@ -674,7 +723,19 @@ export let currentTab: TabName = getState('currentTab');
  * @param {string} tabName - Tab name to switch to
  */
 export function switchTab(tabName: TabName): void {
+    // Debounce rapid tab switching to prevent performance issues
+    const now = Date.now();
+    if (now - lastTabSwitchTime < TAB_SWITCH_DEBOUNCE_MS) {
+        return; // Ignore rapid successive tab switches
+    }
+    lastTabSwitchTime = now;
+
     const previousTab = getState('currentTab');
+
+    // Don't switch if already on the same tab
+    if (previousTab === tabName) {
+        return;
+    }
 
     // Save current tab's filter state before switching
     if (previousTab && typeof saveFilterState === 'function') {

@@ -9,6 +9,7 @@ import {
     setupEventDelegation,
     setupEventListeners,
     switchTab,
+    __resetTimersForTesting,
 } from '../../src/modules/events.ts';
 
 // Mock all dependencies
@@ -81,14 +82,35 @@ vi.mock('../../src/modules/toast.ts', () => ({
     },
 }));
 
+// Create a hoisted mutable store state for testing
+const mockStoreState = vi.hoisted(() => ({
+    currentTab: 'items' as string,
+}));
+
+vi.mock('../../src/modules/store.ts', () => ({
+    getState: vi.fn((key: string) => {
+        if (key === 'currentTab') return mockStoreState.currentTab;
+        return undefined;
+    }),
+    setState: vi.fn((key: string, value: any) => {
+        if (key === 'currentTab') mockStoreState.currentTab = value;
+    }),
+}));
+
 describe('events-comprehensive', () => {
     beforeEach(() => {
         createMinimalDOM();
         vi.clearAllMocks();
         localStorage.clear();
 
+        // Reset internal timers to avoid debounce issues between tests
+        __resetTimersForTesting();
+
+        // Reset mock store state to a non-items tab so switchTab tests work
+        mockStoreState.currentTab = 'shrines';
+
         // Setup global state
-        (window as any).currentTab = 'items';
+        (window as any).currentTab = 'shrines';
         (window as any).allData = {
             items: { items: [{ id: 'item1', name: 'Test Item' }] },
             weapons: { weapons: [{ id: 'weapon1', name: 'Test Weapon' }] },
@@ -255,12 +277,12 @@ describe('events-comprehensive', () => {
             const event = new Event('change', { bubbles: true });
             select.dispatchEvent(event);
 
-            expect(renderTabContent).toHaveBeenCalledWith('items');
+            expect(renderTabContent).toHaveBeenCalledWith('shrines');
         });
 
         it('should call saveFilterState when filter changes', async () => {
             const { saveFilterState } = await import('../../src/modules/filters.ts');
-            // currentTab is 'items' from beforeEach
+            // currentTab is 'shrines' from beforeEach (via mockStoreState)
 
             const filtersDiv = document.getElementById('filters');
             const select = document.createElement('select');
@@ -271,12 +293,12 @@ describe('events-comprehensive', () => {
             select.dispatchEvent(event);
 
             // Should be called with current tab value
-            expect(saveFilterState).toHaveBeenCalledWith('items');
+            expect(saveFilterState).toHaveBeenCalledWith('shrines');
         });
 
         it('should handle favoritesOnly checkbox change', async () => {
             const { renderTabContent } = await import('../../src/modules/renderers.ts');
-            // currentTab is 'items' from beforeEach
+            // currentTab is 'shrines' from beforeEach (via mockStoreState)
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -286,7 +308,7 @@ describe('events-comprehensive', () => {
             const event = new Event('change', { bubbles: true });
             checkbox.dispatchEvent(event);
 
-            expect(renderTabContent).toHaveBeenCalledWith('items');
+            expect(renderTabContent).toHaveBeenCalledWith('shrines');
         });
     });
 
@@ -421,29 +443,34 @@ describe('events-comprehensive', () => {
         it('should handle number keys 1-7 for tab switching', async () => {
             const { updateFilters } = await import('../../src/modules/filters.ts');
 
-            // Test key 1 for items
+            // Test key 1 for items (initial tab is 'shrines')
             document.dispatchEvent(new KeyboardEvent('keydown', { key: '1' }));
             expect(updateFilters).toHaveBeenCalledWith('items');
 
+            // Reset timers and mocks between each key press to avoid debounce
             vi.clearAllMocks();
+            __resetTimersForTesting();
 
             // Test key 3 for tomes
             document.dispatchEvent(new KeyboardEvent('keydown', { key: '3' }));
             expect(updateFilters).toHaveBeenCalledWith('tomes');
 
             vi.clearAllMocks();
+            __resetTimersForTesting();
 
             // Test key 5 for shrines
             document.dispatchEvent(new KeyboardEvent('keydown', { key: '5' }));
             expect(updateFilters).toHaveBeenCalledWith('shrines');
 
             vi.clearAllMocks();
+            __resetTimersForTesting();
 
             // Test key 6 for build-planner
             document.dispatchEvent(new KeyboardEvent('keydown', { key: '6' }));
             expect(updateFilters).toHaveBeenCalledWith('build-planner');
 
             vi.clearAllMocks();
+            __resetTimersForTesting();
 
             // Test key 7 for calculator
             document.dispatchEvent(new KeyboardEvent('keydown', { key: '7' }));

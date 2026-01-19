@@ -161,6 +161,8 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
     // Trigger animation after display is set
     requestAnimationFrame(() => {
         modal.classList.add('active');
+        // Prevent body scroll on mobile when modal is open
+        document.body.classList.add('modal-open');
 
         // Activate focus trap for accessibility
         activateFocusTrap(modal);
@@ -825,6 +827,8 @@ export function closeModal(): void {
         deactivateFocusTrap();
 
         modal.classList.remove('active');
+        // Re-enable body scroll on mobile
+        document.body.classList.remove('modal-open');
         // Wait for animation to complete before hiding
         setTimeout(() => {
             modal.style.display = 'none';
