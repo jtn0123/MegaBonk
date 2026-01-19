@@ -10,6 +10,10 @@ import {
     detectTomesFromText,
     detectCharactersFromText,
     detectWeaponsFromText,
+    detectCharacterFromText,
+    detectWeaponFromText,
+    extractItemCounts,
+    __resetForTesting,
 } from '../../src/modules/ocr';
 import type { AllGameData } from '../../src/types';
 
@@ -417,5 +421,305 @@ describe('OCR Module - Integration with All Entity Types', () => {
         expect(tomes.length).toBeGreaterThanOrEqual(1);
         expect(characters.length).toBeGreaterThanOrEqual(1);
         expect(weapons.length).toBeGreaterThanOrEqual(1);
+    });
+});
+
+describe('OCR Module - Single Entity Detection', () => {
+    beforeEach(() => {
+        initOCR(mockGameData);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    describe('detectCharacterFromText', () => {
+        it('should detect a single character from exact text', () => {
+            const result = detectCharacterFromText('CL4NK');
+
+            expect(result).not.toBeNull();
+            expect(result?.entity.name).toBe('CL4NK');
+            expect(result?.type).toBe('character');
+            expect(result?.confidence).toBeGreaterThan(0.9);
+        });
+
+        it('should detect character with fuzzy matching', () => {
+            const result = detectCharacterFromText('CLANK');
+
+            expect(result).not.toBeNull();
+            expect(result?.entity.name).toBe('CL4NK');
+            expect(result?.confidence).toBeGreaterThan(0.5);
+        });
+
+        it('should return null for unrecognized text', () => {
+            const result = detectCharacterFromText('Unknown Character Name');
+
+            expect(result).toBeNull();
+        });
+
+        it('should return null when not initialized', () => {
+            __resetForTesting();
+            const result = detectCharacterFromText('CL4NK');
+
+            expect(result).toBeNull();
+        });
+
+        it('should include raw text in result', () => {
+            initOCR(mockGameData);
+            const result = detectCharacterFromText('D4SH');
+
+            expect(result).not.toBeNull();
+            expect(result?.rawText).toBe('D4SH');
+        });
+    });
+
+    describe('detectWeaponFromText', () => {
+        it('should detect a single weapon from exact text', () => {
+            const result = detectWeaponFromText('Hammer');
+
+            expect(result).not.toBeNull();
+            expect(result?.entity.name).toBe('Hammer');
+            expect(result?.type).toBe('weapon');
+            expect(result?.confidence).toBeGreaterThan(0.9);
+        });
+
+        it('should detect weapon with fuzzy matching', () => {
+            const result = detectWeaponFromText('Hammr');
+
+            expect(result).not.toBeNull();
+            expect(result?.entity.name).toBe('Hammer');
+            expect(result?.confidence).toBeGreaterThan(0.5);
+        });
+
+        it('should return null for unrecognized text', () => {
+            const result = detectWeaponFromText('Unknown Weapon XYZ');
+
+            expect(result).toBeNull();
+        });
+
+        it('should return null when not initialized', () => {
+            __resetForTesting();
+            const result = detectWeaponFromText('Sword');
+
+            expect(result).toBeNull();
+        });
+
+        it('should detect Sword weapon', () => {
+            initOCR(mockGameData);
+            const result = detectWeaponFromText('Sword');
+
+            expect(result).not.toBeNull();
+            expect(result?.entity.name).toBe('Sword');
+        });
+    });
+});
+
+describe('OCR Module - Item Count Extraction', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('should extract item counts with x notation', () => {
+        const text = 'First Aid Kit x3\nWrench x5';
+        const counts = extractItemCounts(text);
+
+        expect(counts.get('first aid kit')).toBe(3);
+        expect(counts.get('wrench')).toBe(5);
+    });
+
+    it('should extract item counts with × notation', () => {
+        const text = 'Battery ×2';
+        const counts = extractItemCounts(text);
+
+        expect(counts.get('battery')).toBe(2);
+    });
+
+    it('should extract item counts with parentheses notation', () => {
+        const text = 'Hammer (4)\nSword (7)';
+        const counts = extractItemCounts(text);
+
+        expect(counts.get('hammer')).toBe(4);
+        expect(counts.get('sword')).toBe(7);
+    });
+
+    it('should extract item counts with colon notation', () => {
+        const text = 'Wrench: 3\nBattery: 10';
+        const counts = extractItemCounts(text);
+
+        expect(counts.get('wrench')).toBe(3);
+        expect(counts.get('battery')).toBe(10);
+    });
+
+    it('should handle mixed notations', () => {
+        const text = 'First Aid Kit x2\nBattery (5)\nWrench: 3';
+        const counts = extractItemCounts(text);
+
+        expect(counts.get('first aid kit')).toBe(2);
+        expect(counts.get('battery')).toBe(5);
+        expect(counts.get('wrench')).toBe(3);
+    });
+
+    it('should return empty map for text without counts', () => {
+        const text = 'Just some text without any item counts';
+        const counts = extractItemCounts(text);
+
+        expect(counts.size).toBe(0);
+    });
+
+    it('should ignore invalid counts', () => {
+        const text = 'Item x0\nAnother xNaN';
+        const counts = extractItemCounts(text);
+
+        expect(counts.has('item')).toBe(false);
+    });
+
+    it('should handle whitespace around notation', () => {
+        const text = 'First Aid Kit   x   3';
+        const counts = extractItemCounts(text);
+
+        expect(counts.get('first aid kit')).toBe(3);
+    });
+
+    it('should normalize item names to lowercase', () => {
+        const text = 'BATTERY X5';
+        const counts = extractItemCounts(text);
+
+        expect(counts.get('battery')).toBe(5);
+        expect(counts.has('BATTERY')).toBe(false);
+    });
+});
+
+describe('OCR Module - Reset For Testing', () => {
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('should reset all Fuse instances', () => {
+        initOCR(mockGameData);
+
+        // Verify detection works before reset
+        expect(detectItemsFromText('Battery').length).toBeGreaterThan(0);
+        expect(detectCharacterFromText('CL4NK')).not.toBeNull();
+
+        // Reset
+        __resetForTesting();
+
+        // Verify detection returns empty/null after reset
+        expect(detectItemsFromText('Battery')).toHaveLength(0);
+        expect(detectTomesFromText('Damage Tome')).toHaveLength(0);
+        expect(detectCharactersFromText('CL4NK')).toHaveLength(0);
+        expect(detectWeaponsFromText('Hammer')).toHaveLength(0);
+        expect(detectCharacterFromText('CL4NK')).toBeNull();
+        expect(detectWeaponFromText('Hammer')).toBeNull();
+    });
+
+    it('should allow re-initialization after reset', () => {
+        initOCR(mockGameData);
+        __resetForTesting();
+        initOCR(mockGameData);
+
+        expect(detectItemsFromText('Battery').length).toBeGreaterThan(0);
+    });
+});
+
+describe('OCR Module - Text Segmentation', () => {
+    beforeEach(() => {
+        initOCR(mockGameData);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('should split text by newlines', () => {
+        const text = 'Battery\nWrench\nFirst Aid Kit';
+        const results = detectItemsFromText(text);
+
+        expect(results.length).toBe(3);
+    });
+
+    it('should split long lines by delimiters (comma)', () => {
+        // Line longer than 50 chars with comma delimiter
+        const text =
+            'This is a very long line with items: Battery, Wrench, First Aid Kit and more text here';
+        const results = detectItemsFromText(text);
+
+        // Should detect at least Battery and Wrench from the comma-split segments
+        expect(results.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should split long lines by semicolon', () => {
+        const text =
+            'Items collected during the run: Battery; Wrench; First Aid Kit; and many other items';
+        const results = detectItemsFromText(text);
+
+        expect(results.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should split long lines by pipe delimiter', () => {
+        const text = 'Item list showing Battery | Wrench | First Aid Kit | etc';
+        const results = detectItemsFromText(text);
+
+        expect(results.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('should ignore segments with 2 or fewer characters', () => {
+        const text = 'a\nb\nc\nBattery\nd\ne';
+        const results = detectItemsFromText(text);
+
+        // Should only detect Battery, not single characters
+        expect(results.length).toBe(1);
+        expect(results[0].entity.name).toBe('Battery');
+    });
+
+    it('should handle empty lines between items', () => {
+        const text = 'Battery\n\n\nWrench\n\n';
+        const results = detectItemsFromText(text);
+
+        expect(results.length).toBe(2);
+    });
+
+    it('should trim whitespace from segments', () => {
+        const text = '   Battery   \n  Wrench  ';
+        const results = detectItemsFromText(text);
+
+        expect(results.length).toBe(2);
+    });
+});
+
+describe('OCR Module - Deduplication', () => {
+    beforeEach(() => {
+        initOCR(mockGameData);
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it('should not return duplicate items', () => {
+        const text = 'Battery\nBattery\nBattery';
+        const results = detectItemsFromText(text);
+
+        expect(results.length).toBe(1);
+        expect(results[0].entity.name).toBe('Battery');
+    });
+
+    it('should not return duplicates for fuzzy matches of same item', () => {
+        const text = 'Battery\nBattry\nBatery';
+        const results = detectItemsFromText(text);
+
+        // All should match to Battery, but only one result should be returned
+        expect(results.length).toBe(1);
+        expect(results[0].entity.name).toBe('Battery');
+    });
+
+    it('should return different items only once each', () => {
+        const text = 'Battery\nWrench\nBattery\nWrench';
+        const results = detectItemsFromText(text);
+
+        expect(results.length).toBe(2);
+        const names = results.map(r => r.entity.name);
+        expect(names).toContain('Battery');
+        expect(names).toContain('Wrench');
     });
 });
