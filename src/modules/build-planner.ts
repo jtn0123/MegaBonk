@@ -695,7 +695,23 @@ export function shareBuildURL(): void {
     if (!buildData.t || buildData.t.length === 0) delete buildData.t;
     if (!buildData.i || buildData.i.length === 0) delete buildData.i;
 
-    const encoded = btoa(JSON.stringify(buildData));
+    let encoded: string;
+    try {
+        encoded = btoa(JSON.stringify(buildData));
+    } catch (error) {
+        // btoa can throw on very large strings or encoding issues
+        logger.error({
+            operation: 'build.share',
+            error: {
+                name: (error as Error).name,
+                message: (error as Error).message,
+                module: 'build-planner',
+            },
+        });
+        ToastManager.error('Build is too large to share. Try removing some items.');
+        return;
+    }
+
     const url = `${window.location.origin}${window.location.pathname}#build=${encoded}`;
 
     // Log build share event

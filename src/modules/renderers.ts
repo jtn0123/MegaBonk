@@ -89,6 +89,27 @@ export interface Shrine extends BaseShrine {
 // to properly handle DOM recreation scenarios
 
 /**
+ * Helper to initialize charts with requestAnimationFrame and error handling
+ * Reduces code duplication across render functions
+ * @param chartInitFn - The name of the chart init function to import and call
+ * @param context - Context string for logging (e.g., 'item_tab_render')
+ */
+function initChartsAsync(chartInitFn: 'initializeItemCharts' | 'initializeTomeCharts', context: string): void {
+    requestAnimationFrame(async () => {
+        try {
+            const charts = await import('./charts.ts');
+            charts[chartInitFn]();
+        } catch (err) {
+            logger.warn({
+                operation: 'chart.init',
+                error: { name: 'ImportError', message: `Failed to initialize ${chartInitFn}`, module: 'renderers' },
+                data: { context },
+            });
+        }
+    });
+}
+
+/**
  * Render content for the current tab
  * @param {string} tabName - Tab to render
  */
@@ -246,21 +267,8 @@ export function renderItems(items: Item[]): void {
         container.appendChild(card);
     });
 
-    // Bug fix #9: Use requestAnimationFrame for more reliable chart initialization
-    // This ensures DOM is painted before chart initialization
-    requestAnimationFrame(async () => {
-        try {
-            // Dynamically import chart functions to enable code splitting
-            const { initializeItemCharts } = await import('./charts.ts');
-            initializeItemCharts();
-        } catch (err) {
-            logger.warn({
-                operation: 'chart.init',
-                error: { name: 'ImportError', message: 'Failed to initialize item charts', module: 'renderers' },
-                data: { context: 'item_tab_render' },
-            });
-        }
-    });
+    // Initialize charts after DOM is painted
+    initChartsAsync('initializeItemCharts', 'item_tab_render');
 }
 
 /**
@@ -369,20 +377,8 @@ export function renderTomes(tomes: Tome[]): void {
         container.appendChild(card);
     });
 
-    // Bug fix: Use requestAnimationFrame instead of setTimeout for more reliable chart initialization
-    requestAnimationFrame(async () => {
-        try {
-            // Dynamically import chart functions to enable code splitting
-            const { initializeTomeCharts } = await import('./charts.ts');
-            initializeTomeCharts();
-        } catch (err) {
-            logger.warn({
-                operation: 'chart.init',
-                error: { name: 'ImportError', message: 'Failed to initialize tome charts', module: 'renderers' },
-                data: { context: 'tome_tab_render' },
-            });
-        }
-    });
+    // Initialize charts after DOM is painted
+    initChartsAsync('initializeTomeCharts', 'tome_tab_render');
 }
 
 /**

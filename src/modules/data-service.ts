@@ -18,6 +18,14 @@ import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } f
  */
 type DataType = EntityType | 'stats' | 'changelog';
 
+/**
+ * Enhanced error with fetch metadata for retry logic
+ */
+interface FetchError extends Error {
+    type?: 'timeout' | 'network' | 'cors' | 'parse' | 'http' | 'unknown';
+    retriable?: boolean;
+}
+
 // ========================================
 // UI Helper Functions
 // ========================================
@@ -181,9 +189,9 @@ async function fetchWithTimeout(url: string, timeout: number = 30000): Promise<R
     } catch (error) {
         clearTimeout(timeoutId);
         const categorized = categorizeFetchError(error as Error, url);
-        const enhancedError = new Error(categorized.message);
-        (enhancedError as Error & { type?: string; retriable?: boolean }).type = categorized.type;
-        (enhancedError as Error & { type?: string; retriable?: boolean }).retriable = categorized.retriable;
+        const enhancedError = new Error(categorized.message) as FetchError;
+        enhancedError.type = categorized.type as FetchError['type'];
+        enhancedError.retriable = categorized.retriable;
         throw enhancedError;
     }
 }
@@ -193,7 +201,7 @@ async function fetchWithTimeout(url: string, timeout: number = 30000): Promise<R
  * Only retries on retriable errors (network, timeout)
  */
 async function fetchWithRetry(url: string, maxRetries: number = 4, initialDelay: number = 2000): Promise<Response> {
-    let lastError: (Error & { type?: string; retriable?: boolean }) | undefined;
+    let lastError: FetchError | undefined;
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -206,10 +214,7 @@ async function fetchWithRetry(url: string, maxRetries: number = 4, initialDelay:
             // HTTP error - categorize by status code
             const status = response.status;
             const retriable = status >= 500 || status === 429; // Server errors and rate limiting are retriable
-            lastError = new Error(`HTTP ${status}: ${response.statusText}`) as Error & {
-                type?: string;
-                retriable?: boolean;
-            };
+            lastError = new Error(`HTTP ${status}: ${response.statusText}`) as FetchError;
             lastError.type = 'http';
             lastError.retriable = retriable;
 
@@ -218,7 +223,7 @@ async function fetchWithRetry(url: string, maxRetries: number = 4, initialDelay:
                 break;
             }
         } catch (error) {
-            lastError = error as Error & { type?: string; retriable?: boolean };
+            lastError = error as FetchError;
 
             // Don't retry non-retriable errors
             if (lastError.retriable === false) {

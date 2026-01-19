@@ -446,6 +446,16 @@ export function setupEventDelegation(): void {
         },
         getListenerOptions()
     );
+
+    // Cleanup event listeners on page unload to prevent memory leaks
+    // Using 'pagehide' instead of 'beforeunload' for better compatibility with bfcache
+    window.addEventListener(
+        'pagehide',
+        () => {
+            cleanupEventListeners();
+        },
+        getListenerOptions()
+    );
 }
 
 /**
