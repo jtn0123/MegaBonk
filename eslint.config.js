@@ -7,7 +7,7 @@ module.exports = [
     {
         files: ['**/*.js'],
         languageOptions: {
-            ecmaVersion: 2022,
+            ecmaVersion: 'latest',
             sourceType: 'module',
             globals: {
                 // Node.js globals for config files
