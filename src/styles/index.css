@@ -1,0 +1,36 @@
+/* ========================================
+   MegaBonk CSS Module Index
+   ========================================
+   This file serves as the entry point for all CSS modules.
+   Each module is responsible for a specific aspect of the UI.
+
+   Import order matters - base styles should come first,
+   followed by layout, components, and finally themes/overrides.
+   ======================================== */
+
+/* Base styles - CSS reset, variables, typography */
+@import './base.css';
+
+/* Layout - Container, header, footer, main structure */
+@import './layout.css';
+
+/* Navigation - Tabs, mobile nav, scroll indicators */
+@import './navigation.css';
+
+/* Cards - Item cards, grids, card variations */
+@import './cards.css';
+
+/* Forms - Inputs, buttons, selects, filters */
+@import './forms.css';
+
+/* Modal - Modal dialogs, overlays, focus trap */
+@import './modal.css';
+
+/* Features - Build planner, calculator, advisor specific */
+@import './features.css';
+
+/* Animations - Keyframes, transitions, effects */
+@import './animations.css';
+
+/* Themes - Light mode overrides and theme-specific styles */
+@import './themes.css';
