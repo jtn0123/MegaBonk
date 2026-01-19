@@ -297,6 +297,33 @@ export function getFullState(): AppState {
 }
 
 /**
+ * Type-safe state key assignment helper
+ * Uses switch statement to provide proper type narrowing for each key
+ */
+function assignStateKey<K extends keyof AppState>(key: K, value: AppState[K]): void {
+    switch (key) {
+        case 'currentTab':
+            state.currentTab = value as TabName;
+            break;
+        case 'filteredData':
+            state.filteredData = value as Entity[];
+            break;
+        case 'allData':
+            state.allData = value as AllGameData;
+            break;
+        case 'currentBuild':
+            state.currentBuild = value as Build;
+            break;
+        case 'compareItems':
+            state.compareItems = value as string[];
+            break;
+        case 'favorites':
+            state.favorites = value as FavoritesState;
+            break;
+    }
+}
+
+/**
  * Batch update multiple state values
  * Only notifies subscribers once per key after all updates
  * @param updates - Partial state object with values to update
@@ -306,13 +333,14 @@ export function batchUpdate(updates: Partial<AppState>): void {
 
     // Update all values without notifying
     for (const key of Object.keys(updates) as (keyof AppState)[]) {
-        if (updates[key] !== undefined) {
-            state[key] = updates[key] as any;
+        const value = updates[key];
+        if (value !== undefined) {
+            assignStateKey(key, value as AppState[typeof key]);
             changedKeys.add(key);
 
             // Sync to window
             if (windowSyncEnabled && typeof window !== 'undefined') {
-                syncStateKeyToWindow(key, updates[key]);
+                syncStateKeyToWindow(key, value as AppState[typeof key]);
             }
         }
     }

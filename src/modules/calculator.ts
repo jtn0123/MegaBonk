@@ -185,17 +185,17 @@ export function calculateBreakpoint(): void {
 
     // Calculate stacks needed
     let stacksNeeded = 0;
-    const perStack = item.scaling_per_stack[0]!; // Value per stack from first entry (guaranteed to exist by check above)
+    const perStack = item.scaling_per_stack[0]; // Value per stack from first entry (guaranteed to exist by length check above)
 
-    // Check for division by zero
-    if (perStack > 0) {
-        stacksNeeded = Math.ceil(target / perStack);
-    } else {
+    // Check for division by zero and validate perStack is a valid number
+    if (typeof perStack !== 'number' || !Number.isFinite(perStack) || perStack <= 0) {
         if (typeof ToastManager !== 'undefined') {
             ToastManager.warning('Invalid scaling value for this item');
         }
         return;
     }
+
+    stacksNeeded = Math.ceil(target / perStack);
 
     // Cap checks
     if (item.stack_cap && stacksNeeded > item.stack_cap) {

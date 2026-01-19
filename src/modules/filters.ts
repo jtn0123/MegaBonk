@@ -453,7 +453,11 @@ export function parseAdvancedSearch(query: string): AdvancedSearchCriteria {
     // This regex is safe because it's bounded by the input length limit
     const tokens = safeQuery.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
 
-    tokens.forEach(token => {
+    // Limit token count to prevent DoS from queries with many small tokens
+    const maxTokens = 50;
+    const limitedTokens = tokens.slice(0, maxTokens);
+
+    limitedTokens.forEach(token => {
         // Skip empty tokens
         if (!token || token.length === 0) return;
 
