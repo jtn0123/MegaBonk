@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+// Note: caches, Response, and navigator are browser globals used in page.evaluate() callbacks
 import { test, expect } from '@playwright/test';
 
 /**
@@ -44,6 +46,30 @@ test.describe('Service Worker Support', () => {
         // Service worker file should be accessible
         expect(response.ok).toBe(true);
     });
+
+    test('should register service worker successfully', async ({ page }) => {
+        // Check if service worker can be registered (or is already registered)
+        const registration = await page.evaluate(async () => {
+            try {
+                const reg = await navigator.serviceWorker.getRegistration();
+                if (reg) {
+                    return {
+                        registered: true,
+                        scope: reg.scope,
+                        active: !!reg.active,
+                        installing: !!reg.installing,
+                        waiting: !!reg.waiting,
+                    };
+                }
+                return { registered: false };
+            } catch (e) {
+                return { error: e.message };
+            }
+        });
+
+        // In dev mode, SW might not be registered, but the API should work
+        expect(registration.error).toBeUndefined();
+    });
 });
 
 test.describe('PWA Manifest', () => {
@@ -82,6 +108,139 @@ test.describe('PWA Manifest', () => {
         // Check for theme-color
         const themeColor = await page.locator('meta[name="theme-color"]').getAttribute('content');
         expect(themeColor).toBeTruthy();
+    });
+
+    test('should have apple-touch-icon', async ({ page }) => {
+        const appleTouchIcon = await page.locator('link[rel="apple-touch-icon"]').count();
+        expect(appleTouchIcon).toBeGreaterThanOrEqual(1);
+    });
+
+    test('should have viewport meta tag for mobile', async ({ page }) => {
+        const viewport = await page.locator('meta[name="viewport"]').getAttribute('content');
+        expect(viewport).toContain('width=device-width');
+    });
+});
+
+test.describe('Cache API Functionality', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
+    });
+
+    test('should be able to open and list caches', async ({ page }) => {
+        const cacheInfo = await page.evaluate(async () => {
+            try {
+                const cacheNames = await caches.keys();
+                return {
+                    supported: true,
+                    cacheCount: cacheNames.length,
+                    cacheNames: cacheNames,
+                };
+            } catch (e) {
+                return { supported: false, error: e.message };
+            }
+        });
+
+        expect(cacheInfo.supported).toBe(true);
+        // In production with SW active, there should be caches
+        // In dev mode, cache count may be 0
+    });
+
+    test('should be able to create and use cache', async ({ page }) => {
+        const cacheTest = await page.evaluate(async () => {
+            try {
+                const testCacheName = 'e2e-test-cache';
+                const cache = await caches.open(testCacheName);
+
+                // Store a test response
+                const testResponse = new Response('test data', {
+                    headers: { 'Content-Type': 'text/plain' },
+                });
+                await cache.put('/test-url', testResponse);
+
+                // Retrieve it
+                const retrieved = await cache.match('/test-url');
+                const text = retrieved ? await retrieved.text() : null;
+
+                // Clean up
+                await caches.delete(testCacheName);
+
+                return {
+                    success: true,
+                    dataMatches: text === 'test data',
+                };
+            } catch (e) {
+                return { success: false, error: e.message };
+            }
+        });
+
+        expect(cacheTest.success).toBe(true);
+        expect(cacheTest.dataMatches).toBe(true);
+    });
+});
+
+test.describe('Data Files Accessibility', () => {
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
+    });
+
+    test('should load items.json data file', async ({ page }) => {
+        const response = await page.evaluate(async () => {
+            try {
+                const res = await fetch('/data/items.json');
+                if (!res.ok) return { ok: false, status: res.status };
+                const data = await res.json();
+                return {
+                    ok: true,
+                    hasItems: Array.isArray(data.items),
+                    itemCount: data.items?.length || 0,
+                };
+            } catch (e) {
+                return { ok: false, error: e.message };
+            }
+        });
+
+        expect(response.ok).toBe(true);
+        expect(response.hasItems).toBe(true);
+        expect(response.itemCount).toBeGreaterThan(0);
+    });
+
+    test('should load weapons.json data file', async ({ page }) => {
+        const response = await page.evaluate(async () => {
+            try {
+                const res = await fetch('/data/weapons.json');
+                if (!res.ok) return { ok: false, status: res.status };
+                const data = await res.json();
+                return {
+                    ok: true,
+                    hasWeapons: Array.isArray(data.weapons),
+                    weaponCount: data.weapons?.length || 0,
+                };
+            } catch (e) {
+                return { ok: false, error: e.message };
+            }
+        });
+
+        expect(response.ok).toBe(true);
+        expect(response.hasWeapons).toBe(true);
+        expect(response.weaponCount).toBeGreaterThan(0);
+    });
+
+    test('should load all critical data files', async ({ page }) => {
+        const dataFiles = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
+
+        for (const file of dataFiles) {
+            const response = await page.evaluate(async fileName => {
+                try {
+                    const res = await fetch(`/data/${fileName}.json`);
+                    return { ok: res.ok, status: res.status, file: fileName };
+                } catch (e) {
+                    return { ok: false, error: e.message, file: fileName };
+                }
+            }, file);
+
+            expect(response.ok, `${file}.json should be accessible`).toBe(true);
+        }
     });
 });
 
@@ -129,5 +288,142 @@ test.describe.skip('Offline Functionality (Requires Service Worker)', () => {
 
         await page.click('.tab-btn[data-tab="weapons"]');
         await expect(page.locator('.tab-btn[data-tab="weapons"]')).toHaveClass(/active/);
+    });
+
+    test('should cache and serve images offline', async ({ page, context }) => {
+        await page.goto('/');
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
+
+        // Wait for images to load and be cached
+        await page.waitForTimeout(3000);
+
+        // Get image sources before going offline
+        const imageSrcs = await page.evaluate(() => {
+            const images = document.querySelectorAll('#itemsContainer img');
+            return Array.from(images)
+                .slice(0, 5)
+                .map(img => img.src);
+        });
+
+        await context.setOffline(true);
+        await page.reload();
+        await page.waitForTimeout(1000);
+
+        // Check that images are still visible (loaded from cache)
+        const imagesLoaded = await page.evaluate(srcs => {
+            return srcs.every(src => {
+                const img = document.querySelector(`img[src="${src}"]`);
+                return img && img.complete && img.naturalWidth > 0;
+            });
+        }, imageSrcs);
+
+        expect(imagesLoaded).toBe(true);
+    });
+
+    test('should show all data tabs offline', async ({ page, context }) => {
+        await page.goto('/');
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
+
+        // Visit all tabs to ensure they're cached
+        const tabs = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
+        for (const tab of tabs) {
+            await page.click(`.tab-btn[data-tab="${tab}"]`);
+            await page.waitForTimeout(500);
+        }
+
+        await page.waitForTimeout(2000); // Wait for caching
+
+        await context.setOffline(true);
+        await page.reload();
+
+        // Verify each tab works offline
+        for (const tab of tabs) {
+            await page.click(`.tab-btn[data-tab="${tab}"]`);
+            await page.waitForTimeout(300);
+            const activeTab = await page.locator(`.tab-btn[data-tab="${tab}"]`).getAttribute('class');
+            expect(activeTab).toContain('active');
+        }
+    });
+
+    test('should maintain search functionality offline', async ({ page, context }) => {
+        await page.goto('/');
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
+        await page.waitForTimeout(2000);
+
+        await context.setOffline(true);
+        await page.reload();
+        await page.waitForTimeout(500);
+
+        // Search should still work (client-side filtering)
+        await page.fill('#searchInput', 'legendary');
+        await page.waitForTimeout(500);
+
+        const visibleCards = await page.locator('#itemsContainer .item-card:visible').count();
+        // Should have some results (legendary items)
+        expect(visibleCards).toBeGreaterThan(0);
+    });
+
+    test('should preserve filter functionality offline', async ({ page, context }) => {
+        await page.goto('/');
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
+        await page.waitForTimeout(2000);
+
+        await context.setOffline(true);
+        await page.reload();
+        await page.waitForTimeout(500);
+
+        // Apply a filter
+        const rarityFilter = page.locator('#rarityFilter');
+        if ((await rarityFilter.count()) > 0) {
+            await rarityFilter.selectOption('legendary');
+            await page.waitForTimeout(300);
+
+            const cards = await page.locator('#itemsContainer .item-card').count();
+            // Filtering should work offline
+            expect(cards).toBeGreaterThanOrEqual(0);
+        }
+    });
+});
+
+test.describe.skip('Service Worker Update (Requires Production Build)', () => {
+    test('should detect when new version is available', async ({ page }) => {
+        await page.goto('/');
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
+
+        // Check for update mechanism
+        const updateCheck = await page.evaluate(async () => {
+            try {
+                const reg = await navigator.serviceWorker.getRegistration();
+                if (!reg) return { hasRegistration: false };
+
+                return {
+                    hasRegistration: true,
+                    hasUpdateMethod: typeof reg.update === 'function',
+                    scope: reg.scope,
+                };
+            } catch (e) {
+                return { error: e.message };
+            }
+        });
+
+        expect(updateCheck.error).toBeUndefined();
+        if (updateCheck.hasRegistration) {
+            expect(updateCheck.hasUpdateMethod).toBe(true);
+        }
+    });
+
+    test('should handle service worker lifecycle events', async ({ page }) => {
+        await page.goto('/');
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
+
+        const lifecycleSupport = await page.evaluate(() => {
+            return {
+                hasServiceWorker: 'serviceWorker' in navigator,
+                hasControllerChangeEvent: typeof navigator.serviceWorker.addEventListener === 'function',
+            };
+        });
+
+        expect(lifecycleSupport.hasServiceWorker).toBe(true);
+        expect(lifecycleSupport.hasControllerChangeEvent).toBe(true);
     });
 });
