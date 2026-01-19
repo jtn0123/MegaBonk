@@ -50,7 +50,7 @@ export function updateCompareButton(): void {
     const compareBtn = safeGetElementById('compare-btn');
     if (!compareBtn) return;
 
-    const compareItems = getState('compareItems');
+    const compareItems = getState('compareItems') || [];
     const countSpan = safeQuerySelector('.compare-count', compareBtn);
     if (countSpan) {
         countSpan.textContent = compareItems.length.toString();
@@ -70,7 +70,7 @@ export function updateCompareButton(): void {
  * Open the comparison modal
  */
 export async function openCompareModal(): Promise<void> {
-    const compareItems = getState('compareItems');
+    const compareItems = getState('compareItems') || [];
     if (compareItems.length < 2) {
         ToastManager.warning('Select at least 2 items to compare!');
         return;
@@ -254,7 +254,7 @@ export async function closeCompareModal(): Promise<void> {
  * Update compare display after item removal
  */
 export function updateCompareDisplay(): void {
-    const compareItems = getState('compareItems');
+    const compareItems = getState('compareItems') || [];
     if (compareItems.length < 2) {
         closeCompareModal();
     } else {
@@ -280,5 +280,5 @@ export function clearCompare(): void {
  * @returns Compare items array
  */
 export function getCompareItems(): string[] {
-    return [...getState('compareItems')];
+    return [...(getState('compareItems') || [])];
 }

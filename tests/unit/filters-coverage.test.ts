@@ -35,6 +35,7 @@ import {
     getSearchHistory,
     addToSearchHistory,
     clearSearchHistory,
+    showSearchHistoryDropdown,
     getAllFilterStates,
     saveFilterState,
     restoreFilterState,
