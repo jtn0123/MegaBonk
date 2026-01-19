@@ -463,26 +463,55 @@ const feedbackCorrections: FeedbackCorrection[] = [];
 const itemSimilarityPenalties = new Map<string, number>();
 
 /**
+ * Confusion matrix tracking - counts how often each item pair is confused
+ * Key format: "detectedId->actualId", value: count
+ */
+const confusionMatrix = new Map<string, number>();
+
+/**
+ * Confusion matrix entry for reporting
+ */
+export interface ConfusionPair {
+    detectedId: string;
+    actualId: string;
+    count: number;
+    lastOccurrence: number;
+}
+
+/**
  * Record a user correction
+ * Updates confusion matrix and applies proportional penalties
  */
 export function recordCorrection(detectedItem: Item, actualItem: Item, confidence: number, imageHash: string): void {
+    const timestamp = Date.now();
+
     feedbackCorrections.push({
         detected: detectedItem.id,
         actual: actualItem.id,
         confidence,
-        timestamp: Date.now(),
+        timestamp,
         imageHash,
     });
 
-    // If same mistake happens 3+ times, add penalty
-    const mistakeKey = `${detectedItem.id}-${actualItem.id}`;
-    const mistakeCount = feedbackCorrections.filter(
-        c => c.detected === detectedItem.id && c.actual === actualItem.id
-    ).length;
+    // Update confusion matrix
+    const confusionKey = `${detectedItem.id}->${actualItem.id}`;
+    const currentCount = confusionMatrix.get(confusionKey) || 0;
+    const newCount = currentCount + 1;
+    confusionMatrix.set(confusionKey, newCount);
 
-    if (mistakeCount >= 3) {
-        itemSimilarityPenalties.set(mistakeKey, -0.05);
+    // Apply proportional penalty based on confusion frequency
+    // More confusions = stronger penalty (up to -0.15 max)
+    const mistakeKey = `${detectedItem.id}-${actualItem.id}`;
+    if (newCount >= 2) {
+        // Scale penalty: 2 confusions = -0.06, 5+ confusions = -0.15 (capped)
+        const penalty = Math.max(-0.03 * newCount, -0.15);
+        itemSimilarityPenalties.set(mistakeKey, penalty);
     }
+
+    // Log confusion event for debugging
+    console.debug(
+        `[CV Confusion] ${detectedItem.id} confused with ${actualItem.id} (count: ${newCount}, confidence: ${confidence.toFixed(3)})`
+    );
 }
 
 /**
@@ -494,11 +523,12 @@ export function getSimilarityPenalty(detectedId: string, templateId: string): nu
 }
 
 /**
- * Clear all feedback corrections
+ * Clear all feedback corrections and confusion matrix
  */
 export function clearFeedbackCorrections(): void {
     feedbackCorrections.length = 0;
     itemSimilarityPenalties.clear();
+    confusionMatrix.clear();
 }
 
 /**
@@ -506,6 +536,89 @@ export function clearFeedbackCorrections(): void {
  */
 export function getFeedbackCorrections(): FeedbackCorrection[] {
     return [...feedbackCorrections];
+}
+
+/**
+ * Get top confused item pairs sorted by frequency
+ */
+export function getTopConfusedPairs(limit: number = 10): ConfusionPair[] {
+    const pairs: ConfusionPair[] = [];
+
+    for (const [key, count] of confusionMatrix.entries()) {
+        const [detectedId, actualId] = key.split('->');
+        if (!detectedId || !actualId) continue;
+
+        // Find last occurrence timestamp
+        const lastCorrection = feedbackCorrections
+            .filter(c => c.detected === detectedId && c.actual === actualId)
+            .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+        pairs.push({
+            detectedId,
+            actualId,
+            count,
+            lastOccurrence: lastCorrection?.timestamp || 0,
+        });
+    }
+
+    // Sort by count descending
+    return pairs.sort((a, b) => b.count - a.count).slice(0, limit);
+}
+
+/**
+ * Get confusion count for a specific item pair
+ */
+export function getConfusionCount(detectedId: string, actualId: string): number {
+    return confusionMatrix.get(`${detectedId}->${actualId}`) || 0;
+}
+
+/**
+ * Get all items that a specific item is commonly confused with
+ */
+export function getConfusedWithItem(itemId: string): ConfusionPair[] {
+    const pairs: ConfusionPair[] = [];
+
+    for (const [key, count] of confusionMatrix.entries()) {
+        const [detectedId, actualId] = key.split('->');
+        if (!detectedId || !actualId) continue;
+
+        // Include if this item was either the detected or actual item
+        if (detectedId === itemId || actualId === itemId) {
+            const lastCorrection = feedbackCorrections
+                .filter(c => c.detected === detectedId && c.actual === actualId)
+                .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+            pairs.push({
+                detectedId,
+                actualId,
+                count,
+                lastOccurrence: lastCorrection?.timestamp || 0,
+            });
+        }
+    }
+
+    return pairs.sort((a, b) => b.count - a.count);
+}
+
+/**
+ * Get confusion matrix statistics
+ */
+export function getConfusionStats(): {
+    totalConfusions: number;
+    uniquePairs: number;
+    mostConfusedPair: ConfusionPair | null;
+    averageConfusionCount: number;
+} {
+    const pairs = getTopConfusedPairs(1);
+    const totalConfusions = Array.from(confusionMatrix.values()).reduce((sum, count) => sum + count, 0);
+    const uniquePairs = confusionMatrix.size;
+
+    return {
+        totalConfusions,
+        uniquePairs,
+        mostConfusedPair: pairs[0] || null,
+        averageConfusionCount: uniquePairs > 0 ? totalConfusions / uniquePairs : 0,
+    };
 }
 
 /**
@@ -517,26 +630,36 @@ export function exportFeedbackCorrections(): string {
 
 /**
  * Import feedback corrections from JSON
+ * Rebuilds confusion matrix and proportional penalties
  */
 export function importFeedbackCorrections(json: string): void {
     try {
         const imported = JSON.parse(json) as FeedbackCorrection[];
         feedbackCorrections.push(...imported);
 
-        // Rebuild penalties
+        // Rebuild confusion matrix and penalties
+        confusionMatrix.clear();
         itemSimilarityPenalties.clear();
-        const mistakeCounts = new Map<string, number>();
 
         feedbackCorrections.forEach(correction => {
-            const key = `${correction.detected}-${correction.actual}`;
-            mistakeCounts.set(key, (mistakeCounts.get(key) || 0) + 1);
+            // Update confusion matrix
+            const confusionKey = `${correction.detected}->${correction.actual}`;
+            confusionMatrix.set(confusionKey, (confusionMatrix.get(confusionKey) || 0) + 1);
         });
 
-        mistakeCounts.forEach((count, key) => {
-            if (count >= 3) {
-                itemSimilarityPenalties.set(key, -0.05);
+        // Apply proportional penalties based on confusion counts
+        confusionMatrix.forEach((count, confusionKey) => {
+            const [detectedId, actualId] = confusionKey.split('->');
+            if (!detectedId || !actualId) return;
+
+            if (count >= 2) {
+                const mistakeKey = `${detectedId}-${actualId}`;
+                const penalty = Math.max(-0.03 * count, -0.15);
+                itemSimilarityPenalties.set(mistakeKey, penalty);
             }
         });
+
+        console.debug(`[CV] Imported ${imported.length} corrections, ${confusionMatrix.size} confusion pairs`);
     } catch (error) {
         throw new Error('Failed to import feedback corrections: ' + (error as Error).message);
     }

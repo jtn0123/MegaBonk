@@ -438,11 +438,11 @@ describe('Feedback Corrections', () => {
         expect(penalty).toBe(0);
     });
 
-    it('should apply penalty after 3+ corrections for same pair', () => {
+    it('should apply proportional penalty based on correction count', () => {
         const detectedItem = { id: 'item1', name: 'Item 1' } as any;
         const actualItem = { id: 'item2', name: 'Item 2' } as any;
 
-        // Record 3 times
+        // Record 3 times - penalty starts after 2 corrections
         recordCorrection(detectedItem, actualItem, 0.75, 'hash1');
         recordCorrection(detectedItem, actualItem, 0.70, 'hash2');
         recordCorrection(detectedItem, actualItem, 0.72, 'hash3');
@@ -450,8 +450,9 @@ describe('Feedback Corrections', () => {
         // Penalty is stored with key: `${detectedItem.id}-${actualItem.id}` = 'item1-item2'
         // getSimilarityPenalty(detectedId, templateId) creates key: `${templateId}-${detectedId}`
         // So to match 'item1-item2', we need templateId='item1', detectedId='item2'
+        // Proportional penalty: 3 corrections = -0.03 * 3 = -0.09
         const penalty = getSimilarityPenalty('item2', 'item1');
-        expect(penalty).toBe(-0.05);
+        expect(penalty).toBe(-0.09);
     });
 
     it('should clear all corrections', () => {
@@ -492,7 +493,7 @@ describe('Feedback Corrections', () => {
         expect(() => importFeedbackCorrections('invalid json')).toThrow();
     });
 
-    it('should rebuild penalties on import', () => {
+    it('should rebuild proportional penalties on import', () => {
         const corrections = [
             { detected: 'x', actual: 'y', confidence: 0.8, timestamp: Date.now(), imageHash: 'h1' },
             { detected: 'x', actual: 'y', confidence: 0.8, timestamp: Date.now(), imageHash: 'h2' },
@@ -501,7 +502,8 @@ describe('Feedback Corrections', () => {
         importFeedbackCorrections(JSON.stringify(corrections));
 
         // Penalty key is 'x-y', getSimilarityPenalty('y', 'x') creates key 'x-y'
+        // Proportional penalty: 3 corrections = -0.03 * 3 = -0.09
         const penalty = getSimilarityPenalty('y', 'x');
-        expect(penalty).toBe(-0.05);
+        expect(penalty).toBe(-0.09);
     });
 });
