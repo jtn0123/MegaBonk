@@ -22,6 +22,35 @@ interface ChartOptions {
     maxStacks: number;
 }
 
+// ========================================
+// Chart Module Cache
+// ========================================
+// Cache the chart module import to avoid repeated async import overhead
+// ES modules are already cached by the browser, but this avoids the async/await overhead
+type ChartModule = typeof import('./charts.ts');
+let cachedChartModule: ChartModule | null = null;
+
+/**
+ * Get the cached chart module or load it
+ * @returns Promise resolving to the chart module
+ */
+async function getChartModule(): Promise<ChartModule | null> {
+    if (cachedChartModule) {
+        return cachedChartModule;
+    }
+    try {
+        cachedChartModule = await import('./charts.ts');
+        return cachedChartModule;
+    } catch (err) {
+        logger.warn({
+            operation: 'chart.init',
+            error: { name: 'ImportError', message: 'Failed to load chart module', module: 'modal' },
+            data: { context: 'module_cache' },
+        });
+        return null;
+    }
+}
+
 /**
  * Union type of all modal entity types
  */
@@ -295,16 +324,9 @@ function renderItemModal(data: Item): string {
             return;
         }
 
-        // Dynamically import chart functions only when needed
-        let chartModule;
-        try {
-            chartModule = await import('./charts.ts');
-        } catch (err) {
-            logger.warn({
-                operation: 'chart.init',
-                error: { name: 'ImportError', message: 'Failed to load chart module', module: 'modal' },
-                data: { context: 'item_modal_init' },
-            });
+        // Use cached chart module to avoid repeated import overhead
+        const chartModule = await getChartModule();
+        if (!chartModule) {
             return; // Can't render charts without the module
         }
 
@@ -385,17 +407,10 @@ function setupScalingTabHandlers(data: Item): void {
         tabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
 
-        // Dynamically import chart functions
-        let chartModule;
-        try {
-            chartModule = await import('./charts.ts');
-        } catch (err) {
-            logger.warn({
-                operation: 'chart.init',
-                error: { name: 'ImportError', message: 'Failed to load chart module for tab switch', module: 'modal' },
-                data: { context: 'tab_switch' },
-            });
-            return;
+        // Use cached chart module to avoid repeated import overhead
+        const chartModule = await getChartModule();
+        if (!chartModule) {
+            return; // Can't render charts without the module
         }
         const { getEffectiveStackCap, createScalingChart } = chartModule;
 
@@ -568,16 +583,9 @@ async function renderTomeModal(data: Tome): Promise<string> {
     // Capture session ID for stale check after async operations
     const sessionId = currentModalSessionId;
 
-    // Dynamically import chart functions
-    let chartModule;
-    try {
-        chartModule = await import('./charts.ts');
-    } catch (err) {
-        logger.warn({
-            operation: 'chart.init',
-            error: { name: 'ImportError', message: 'Failed to load chart module for tome modal', module: 'modal' },
-            data: { context: 'tome_modal' },
-        });
+    // Use cached chart module to avoid repeated import overhead
+    const chartModule = await getChartModule();
+    if (!chartModule) {
         // Return basic content without charts
         return `
             <div class="item-badges">

@@ -195,6 +195,7 @@ export function updateStats(filtered: Entity[], tabName: string): void {
 
 /**
  * Render items grid
+ * Uses DocumentFragment for batch DOM updates to prevent layout thrashing
  * @param {Array} items - Items to render
  */
 export function renderItems(items: Item[]): void {
@@ -207,6 +208,11 @@ export function renderItems(items: Item[]): void {
         container.innerHTML = generateEmptyState('🔍', 'Items');
         return;
     }
+
+    // Use DocumentFragment to batch all DOM operations - prevents multiple reflows
+    const fragment = document.createDocumentFragment();
+    // Cache compare items lookup once instead of per-item
+    const compareItems = getCompareItems();
 
     items.forEach(item => {
         const card = document.createElement('div');
@@ -247,7 +253,7 @@ export function renderItems(items: Item[]): void {
                     ${isFav ? '⭐' : '☆'}
                 </button>
                 <label class="compare-checkbox-label" title="Add to comparison">
-                    <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${getCompareItems().includes(item.id) ? 'checked' : ''}>
+                    <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${compareItems.includes(item.id) ? 'checked' : ''}>
                     <span>+</span>
                 </label>
             </div>
@@ -264,8 +270,11 @@ export function renderItems(items: Item[]): void {
             <button class="view-details-btn" data-type="items" data-id="${item.id}">View Details</button>
         `;
 
-        container.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    // Single DOM operation - append all cards at once
+    container.appendChild(fragment);
 
     // Initialize charts after DOM is painted
     initChartsAsync('initializeItemCharts', 'item_tab_render');
@@ -273,6 +282,7 @@ export function renderItems(items: Item[]): void {
 
 /**
  * Render weapons grid
+ * Uses DocumentFragment for batch DOM updates to prevent layout thrashing
  * @param {Array} weapons - Weapons to render
  */
 export function renderWeapons(weapons: Weapon[]): void {
@@ -285,6 +295,9 @@ export function renderWeapons(weapons: Weapon[]): void {
         container.innerHTML = generateEmptyState('⚔️', 'Weapons');
         return;
     }
+
+    // Use DocumentFragment to batch all DOM operations
+    const fragment = document.createDocumentFragment();
 
     weapons.forEach(weapon => {
         const card = document.createElement('div');
@@ -314,12 +327,16 @@ export function renderWeapons(weapons: Weapon[]): void {
             <button class="view-details-btn" data-type="weapons" data-id="${weapon.id}">View Details</button>
         `;
 
-        container.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    // Single DOM operation - append all cards at once
+    container.appendChild(fragment);
 }
 
 /**
  * Render tomes grid
+ * Uses DocumentFragment for batch DOM updates to prevent layout thrashing
  * @param {Array} tomes - Tomes to render
  */
 export function renderTomes(tomes: Tome[]): void {
@@ -332,6 +349,9 @@ export function renderTomes(tomes: Tome[]): void {
         container.innerHTML = generateEmptyState('📚', 'Tomes');
         return;
     }
+
+    // Use DocumentFragment to batch all DOM operations
+    const fragment = document.createDocumentFragment();
 
     tomes.forEach(tome => {
         const card = document.createElement('div');
@@ -374,8 +394,11 @@ export function renderTomes(tomes: Tome[]): void {
             <button class="view-details-btn" data-type="tomes" data-id="${tome.id}">View Details</button>
         `;
 
-        container.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    // Single DOM operation - append all cards at once
+    container.appendChild(fragment);
 
     // Initialize charts after DOM is painted
     initChartsAsync('initializeTomeCharts', 'tome_tab_render');
@@ -383,6 +406,7 @@ export function renderTomes(tomes: Tome[]): void {
 
 /**
  * Render characters grid
+ * Uses DocumentFragment for batch DOM updates to prevent layout thrashing
  * @param {Array} characters - Characters to render
  */
 export function renderCharacters(characters: Character[]): void {
@@ -395,6 +419,9 @@ export function renderCharacters(characters: Character[]): void {
         container.innerHTML = generateEmptyState('👤', 'Characters');
         return;
     }
+
+    // Use DocumentFragment to batch all DOM operations
+    const fragment = document.createDocumentFragment();
 
     characters.forEach(char => {
         const card = document.createElement('div');
@@ -425,12 +452,16 @@ export function renderCharacters(characters: Character[]): void {
             <button class="view-details-btn" data-type="characters" data-id="${char.id}">View Details</button>
         `;
 
-        container.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    // Single DOM operation - append all cards at once
+    container.appendChild(fragment);
 }
 
 /**
  * Render shrines grid
+ * Uses DocumentFragment for batch DOM updates to prevent layout thrashing
  * @param {Array} shrines - Shrines to render
  */
 export function renderShrines(shrines: Shrine[]): void {
@@ -443,6 +474,9 @@ export function renderShrines(shrines: Shrine[]): void {
         container.innerHTML = generateEmptyState('⛩️', 'Shrines');
         return;
     }
+
+    // Use DocumentFragment to batch all DOM operations
+    const fragment = document.createDocumentFragment();
 
     shrines.forEach(shrine => {
         const card = document.createElement('div');
@@ -471,8 +505,11 @@ export function renderShrines(shrines: Shrine[]): void {
             <button class="view-details-btn" data-type="shrines" data-id="${shrine.id}">View Details</button>
         `;
 
-        container.appendChild(card);
+        fragment.appendChild(card);
     });
+
+    // Single DOM operation - append all cards at once
+    container.appendChild(fragment);
 }
 
 // ========================================
