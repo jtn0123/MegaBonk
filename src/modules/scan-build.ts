@@ -1081,4 +1081,4 @@ export function __resetForTesting(): void {
 // ========================================
 // Global Assignments
 // ========================================
-(window as any).initScanBuild = initScanBuild;
+window.initScanBuild = initScanBuild;

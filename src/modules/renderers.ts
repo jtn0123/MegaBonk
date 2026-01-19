@@ -650,6 +650,6 @@ function truncateSearchDescription(text: string, maxLength: number): string {
 registerFunction('renderTabContent', renderTabContent);
 // Keep window assignment for backwards compatibility during migration
 if (typeof window !== 'undefined') {
-    (window as any).renderTabContent = renderTabContent;
-    (window as any).renderGlobalSearchResults = renderGlobalSearchResults;
+    window.renderTabContent = renderTabContent;
+    window.renderGlobalSearchResults = renderGlobalSearchResults;
 }

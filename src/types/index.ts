@@ -434,4 +434,52 @@ declare global {
               info: (message: string) => void;
           }
         | undefined;
+
+    /**
+     * Window extensions for MegaBonk app
+     * These are assigned at runtime by various modules
+     */
+    interface Window {
+        // State (from store.ts)
+        currentTab?: string;
+        filteredData?: FilteredData;
+        allData?: AllGameData;
+        currentBuild?: Build;
+        compareItems?: Entity[];
+        favorites?: Set<string>;
+
+        // CV functions (from computer-vision.ts, computer-vision-enhanced.ts)
+        initCV?: () => Promise<void>;
+        initEnhancedCV?: (gameData: AllGameData) => void;
+        detectItemsWithEnhancedCV?: (
+            imageDataUrl: string,
+            strategy?: unknown,
+            progressCallback?: (progress: number, status: string) => void
+        ) => Promise<unknown>;
+        resetEnhancedCVState?: () => void;
+
+        // OCR functions (from ocr.ts)
+        initOCR?: () => Promise<void>;
+
+        // Scan build functions (from scan-build.ts, scan-build-enhanced.ts)
+        initScanBuild?: (gameData: AllGameData) => void;
+        initEnhancedScanBuild?: (gameData: AllGameData) => void;
+        handleEnhancedHybridDetect?: () => Promise<void>;
+        compareStrategiesOnImage?: (imageDataUrl: string) => Promise<unknown>;
+
+        // Advisor functions (from advisor.ts)
+        initAdvisor?: (gameData: AllGameData) => void;
+        applyScannedBuild?: (detectedItems: unknown[]) => void;
+
+        // UI functions (from events.ts, renderers.ts)
+        switchTab?: (tabId: string) => void;
+        renderTabContent?: (tabId: string) => void;
+        renderGlobalSearchResults?: (results: unknown[]) => void;
+
+        // Test utilities (from test-utils.ts)
+        testUtils?: {
+            detectResolution: (width: number, height: number) => unknown;
+            getGridPositions: (width: number, height: number) => unknown[];
+        };
+    }
 }

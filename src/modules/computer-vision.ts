@@ -14,5 +14,5 @@ export * from './cv/index.ts';
 import { initCV } from './cv/index.ts';
 
 if (typeof window !== 'undefined') {
-    (window as any).initCV = initCV;
+    window.initCV = initCV;
 }

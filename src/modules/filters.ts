@@ -109,7 +109,8 @@ export function getSearchHistory(): string[] {
         const history = localStorage.getItem(SEARCH_HISTORY_KEY);
         return history ? JSON.parse(history) : [];
     } catch (error) {
-        // localStorage may be unavailable
+        // localStorage may be unavailable in some contexts
+        console.debug('[filters] localStorage unavailable for search history:', (error as Error).message);
         return [];
     }
 }
@@ -133,7 +134,7 @@ export function addToSearchHistory(term: string): void {
 
         localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
     } catch (error) {
-        // localStorage may be unavailable
+        console.debug('[filters] localStorage unavailable for saving history:', (error as Error).message);
     }
 }
 
@@ -144,7 +145,7 @@ export function clearSearchHistory(): void {
     try {
         localStorage.removeItem(SEARCH_HISTORY_KEY);
     } catch (error) {
-        // localStorage may be unavailable
+        console.debug('[filters] localStorage unavailable for clearing history:', (error as Error).message);
     }
 }
 
@@ -161,7 +162,8 @@ export function getAllFilterStates(): Record<string, FilterState> {
         const states = window.sessionStorage.getItem(FILTER_STATE_KEY);
         return states ? JSON.parse(states) : {};
     } catch (error) {
-        // sessionStorage may be unavailable
+        // sessionStorage may be unavailable in some contexts (private browsing, etc.)
+        console.debug('[filters] sessionStorage unavailable for reading filter states:', (error as Error).message);
         return {};
     }
 }
@@ -202,7 +204,8 @@ export function saveFilterState(tabName: string): void {
 
         window.sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(allStates));
     } catch (error) {
-        // sessionStorage may be unavailable
+        // sessionStorage may be unavailable in some contexts (private browsing, etc.)
+        console.debug('[filters] sessionStorage unavailable for saving filter state:', (error as Error).message);
     }
 }
 
@@ -258,7 +261,8 @@ export function restoreFilterState(tabName: string): void {
             }
         }
     } catch (error) {
-        // sessionStorage may be unavailable
+        // sessionStorage may be unavailable in some contexts (private browsing, etc.)
+        console.debug('[filters] sessionStorage unavailable for restoring filter state:', (error as Error).message);
     }
 }
 
@@ -269,7 +273,8 @@ export function clearAllFilterStates(): void {
     try {
         window.sessionStorage.removeItem(FILTER_STATE_KEY);
     } catch (error) {
-        // sessionStorage may be unavailable
+        // sessionStorage may be unavailable in some contexts (private browsing, etc.)
+        console.debug('[filters] sessionStorage unavailable for clearing filter states:', (error as Error).message);
     }
 }
 
@@ -845,7 +850,7 @@ export function handleSearch(): void {
     // If there's a search query, perform global search
     if (searchQuery.trim()) {
         // Get allData from global scope
-        const allData = (window as any).allData;
+        const allData = window.allData;
         if (allData && window.renderGlobalSearchResults) {
             const results = globalSearch(searchQuery.trim(), allData);
             window.renderGlobalSearchResults(results);

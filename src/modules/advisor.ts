@@ -560,5 +560,5 @@ export function resetAdvisor(): void {
 // Global Assignments
 // ========================================
 // Expose functions globally for cross-module access
-(window as any).initAdvisor = initAdvisor;
-(window as any).applyScannedBuild = applyScannedBuild;
+window.initAdvisor = initAdvisor;
+window.applyScannedBuild = applyScannedBuild;
