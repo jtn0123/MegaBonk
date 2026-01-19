@@ -1,0 +1,51 @@
+{
+  "_metadata": {
+    "version": "1.0",
+    "created": "2026-01-19",
+    "description": "Ground truth data for CV accuracy testing",
+    "instructions": [
+      "Add gameplay screenshot files (JPG/PNG) to this directory",
+      "Create an entry for each screenshot with the exact filename",
+      "List all visible items by their exact display name",
+      "Include resolution, character, weapon, and tomes if visible",
+      "Items that appear multiple times should be listed multiple times"
+    ],
+    "naming_convention": {
+      "format": "{resolution}_{scenario}_{description}.jpg",
+      "examples": [
+        "720p_early_forest.jpg",
+        "1080p_midgame_desert.jpg",
+        "1440p_boss_crypt.jpg"
+      ]
+    }
+  },
+  "_example_entry": {
+    "_comment": "This is an example - add real screenshots and data below",
+    "resolution": "1080p",
+    "items": ["Wrench", "Battery", "Medkit", "Scrap", "Scrap", "Gym Sauce"],
+    "character": "Engineer",
+    "weapon": "SMG",
+    "tomes": ["Tome of Fire", "Tome of Ice"]
+  },
+  "sample_test_720p.jpg": {
+    "resolution": "720p",
+    "items": ["Wrench", "Battery", "Medkit"],
+    "character": "Tank",
+    "weapon": "Shotgun",
+    "tomes": []
+  },
+  "sample_test_1080p.jpg": {
+    "resolution": "1080p",
+    "items": ["Gym Sauce", "Wrench", "Battery", "Scrap", "Scrap"],
+    "character": "Engineer",
+    "weapon": "SMG",
+    "tomes": ["Tome of Fire"]
+  },
+  "sample_test_1440p.jpg": {
+    "resolution": "1440p",
+    "items": ["Wrench", "Battery", "Medkit", "Scrap", "Gym Sauce", "Protein Bar"],
+    "character": "Mage",
+    "weapon": "Staff",
+    "tomes": ["Tome of Fire", "Tome of Ice"]
+  }
+}
