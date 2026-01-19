@@ -40,15 +40,19 @@ vi.mock('../../src/modules/formula-renderer.ts', () => ({
     renderFormulaDisplay: vi.fn((formula: string) => `<span class="formula">${formula}</span>`),
 }));
 
-vi.mock('../../src/modules/utils.ts', () => ({
-    safeGetElementById: vi.fn((id: string) => document.getElementById(id)),
-    generateModalImage: vi.fn((data: any, name: string, type: string) => {
-        if (data.image) {
-            return `<img src="${data.image}" alt="${name}" class="modal-${type}-image">`;
-        }
-        return '';
-    }),
-}));
+vi.mock('../../src/modules/utils.ts', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../src/modules/utils')>();
+    return {
+        ...actual,
+        safeGetElementById: vi.fn((id: string) => document.getElementById(id)),
+        generateModalImage: vi.fn((data: any, name: string, type: string) => {
+            if (data.image) {
+                return `<img src="${data.image}" alt="${name}" class="modal-${type}-image">`;
+            }
+            return '';
+        }),
+    };
+});
 
 // Mock charts module for dynamic import
 vi.mock('../../src/modules/charts.ts', () => ({

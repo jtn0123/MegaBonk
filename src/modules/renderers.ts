@@ -14,10 +14,11 @@ import {
 import { isFavorite } from './favorites.ts';
 import { getDataForTab } from './data-service.ts';
 import { filterData, GlobalSearchResult } from './filters.ts';
-import { calculateBreakpoint, populateCalculatorItems } from './calculator.ts';
-import { getCompareItems } from './compare.ts';
-import { updateChangelogStats, renderChangelog } from './changelog.ts';
-import { renderBuildPlanner } from './build-planner.ts';
+// Tab-specific modules are lazy-loaded via dynamic imports for code splitting
+// import { calculateBreakpoint, populateCalculatorItems } from './calculator.ts';
+// import { getCompareItems } from './compare.ts';
+// import { updateChangelogStats, renderChangelog } from './changelog.ts';
+// import { renderBuildPlanner } from './build-planner.ts';
 import { logger } from './logger.ts';
 import { setState } from './store.ts';
 import { registerFunction } from './registry.ts';
@@ -111,15 +112,18 @@ function initChartsAsync(chartInitFn: 'initializeItemCharts' | 'initializeTomeCh
 
 /**
  * Render content for the current tab
+ * Uses dynamic imports for tab-specific modules to enable code splitting
  * @param {string} tabName - Tab to render
  */
-export function renderTabContent(tabName: string): void {
+export async function renderTabContent(tabName: string): Promise<void> {
     if (tabName === 'build-planner') {
+        const { renderBuildPlanner } = await import('./build-planner.ts');
         renderBuildPlanner();
         return;
     }
 
     if (tabName === 'calculator') {
+        const { populateCalculatorItems, calculateBreakpoint } = await import('./calculator.ts');
         populateCalculatorItems();
         // Use data attribute to track listener on the actual element
         // This handles DOM recreation scenarios (HMR, re-renders) correctly
@@ -132,6 +136,7 @@ export function renderTabContent(tabName: string): void {
     }
 
     if (tabName === 'changelog') {
+        const { updateChangelogStats, renderChangelog } = await import('./changelog.ts');
         const data = getDataForTab(tabName) as ChangelogPatch[];
         // filterData works with any array having name/description fields
         const filtered = filterData(data as unknown as Entity[], tabName) as unknown as ChangelogPatch[];
@@ -152,7 +157,7 @@ export function renderTabContent(tabName: string): void {
     // Render based on type
     switch (tabName) {
         case 'items':
-            renderItems(filtered as Item[]);
+            await renderItems(filtered as Item[]);
             break;
         case 'weapons':
             renderWeapons(filtered as Weapon[]);
@@ -198,7 +203,7 @@ export function updateStats(filtered: Entity[], tabName: string): void {
  * Uses DocumentFragment for batch DOM updates to prevent layout thrashing
  * @param {Array} items - Items to render
  */
-export function renderItems(items: Item[]): void {
+export async function renderItems(items: Item[]): Promise<void> {
     const container = safeGetElementById('itemsContainer');
     if (!container) return;
 
@@ -212,6 +217,8 @@ export function renderItems(items: Item[]): void {
     // Use DocumentFragment to batch all DOM operations - prevents multiple reflows
     const fragment = document.createDocumentFragment();
     // Cache compare items lookup once instead of per-item
+    // Dynamic import for code splitting - module is preloaded by tab-loader
+    const { getCompareItems } = await import('./compare.ts');
     const compareItems = getCompareItems();
 
     items.forEach(item => {

@@ -8,24 +8,19 @@ import { safeGetElementById, debounce, escapeHtml } from './utils.ts';
 import { logger } from './logger.ts';
 import { loadAllData } from './data-service.ts';
 import { closeModal, openDetailModal } from './modal.ts';
-import { closeCompareModal, toggleCompareItem, updateCompareDisplay, openCompareModal } from './compare.ts';
-import { quickCalc } from './calculator.ts';
+// All tab-specific modules are lazy-loaded via dynamic imports for code splitting:
+// - calculator.ts (quickCalc)
+// - build-planner.ts (setupBuildPlannerEvents, updateBuildAnalysis)
+// - changelog.ts (toggleChangelogExpand)
 import { toggleFavorite } from './favorites.ts';
-import {
-    clearFilters,
-    handleSearch,
-    updateFilters,
-    restoreFilterState,
-    saveFilterState,
-} from './filters.ts';
+import { clearFilters, handleSearch, updateFilters, restoreFilterState, saveFilterState } from './filters.ts';
 import { showSearchHistoryDropdown } from './search-history.ts';
-import { destroyAllCharts } from './charts.ts';
-import { setupBuildPlannerEvents, updateBuildAnalysis } from './build-planner.ts';
+// Charts module loaded on demand during tab switch
 import { renderTabContent } from './renderers.ts';
-import { toggleChangelogExpand } from './changelog.ts';
 import { getState, setState, type TabName } from './store.ts';
 import { registerFunction } from './registry.ts';
 import { showTabSkeleton } from './skeleton-loader.ts';
+import { loadTabModules, preloadCommonModules } from './tab-loader.ts';
 
 import type { EntityType } from '../types/index.ts';
 
@@ -185,7 +180,10 @@ export function setupEventDelegation(): void {
             // Escape key closes modals
             if (e.key === 'Escape') {
                 closeModal();
-                closeCompareModal();
+                // Dynamic import for code splitting
+                import('./compare.ts').then(({ closeCompareModal }) => {
+                    closeCompareModal();
+                });
                 return;
             }
 
@@ -269,7 +267,10 @@ export function setupEventDelegation(): void {
                     if (itemId && targetVal) {
                         const parsedTarget = parseInt(targetVal, 10);
                         if (!isNaN(parsedTarget)) {
-                            quickCalc(itemId, parsedTarget);
+                            // Dynamic import for code splitting
+                            import('./calculator.ts').then(({ quickCalc }) => {
+                                quickCalc(itemId, parsedTarget);
+                            });
                         }
                     }
                 }
@@ -314,7 +315,10 @@ export function setupEventDelegation(): void {
                         e.preventDefault();
                         // Toggle the checkbox state manually since it may be hidden
                         checkbox.checked = !checkbox.checked;
-                        toggleCompareItem(id);
+                        // Dynamic import for code splitting
+                        import('./compare.ts').then(({ toggleCompareItem }) => {
+                            toggleCompareItem(id);
+                        });
                     }
                 }
                 return;
@@ -338,8 +342,11 @@ export function setupEventDelegation(): void {
                     : (target.closest('.remove-compare-btn') as HTMLElement | null);
                 const id = btn?.dataset.removeId;
                 if (id) {
-                    toggleCompareItem(id);
-                    updateCompareDisplay();
+                    // Dynamic import for code splitting
+                    import('./compare.ts').then(({ toggleCompareItem, updateCompareDisplay }) => {
+                        toggleCompareItem(id);
+                        updateCompareDisplay();
+                    });
                 }
                 return;
             }
@@ -352,7 +359,10 @@ export function setupEventDelegation(): void {
 
             // Changelog expand button
             if (target.classList.contains('changelog-expand-btn')) {
-                toggleChangelogExpand(target as HTMLButtonElement);
+                // Dynamic import for code splitting
+                import('./changelog.ts').then(({ toggleChangelogExpand }) => {
+                    toggleChangelogExpand(target as HTMLButtonElement);
+                });
                 return;
             }
 
@@ -375,7 +385,10 @@ export function setupEventDelegation(): void {
                 if (itemId && targetVal) {
                     const parsedTarget = parseInt(targetVal, 10);
                     if (!isNaN(parsedTarget)) {
-                        quickCalc(itemId, parsedTarget);
+                        // Dynamic import for code splitting
+                        import('./calculator.ts').then(({ quickCalc }) => {
+                            quickCalc(itemId, parsedTarget);
+                        });
                     }
                 }
                 return;
@@ -472,13 +485,19 @@ export function setupEventDelegation(): void {
 
             // Tome checkbox in build planner
             if (target.classList.contains('tome-checkbox')) {
-                updateBuildAnalysis();
+                // Dynamic import for code splitting
+                import('./build-planner.ts').then(({ updateBuildAnalysis }) => {
+                    updateBuildAnalysis();
+                });
                 return;
             }
 
             // Item checkbox in build planner
             if (target.classList.contains('item-checkbox')) {
-                updateBuildAnalysis();
+                // Dynamic import for code splitting
+                import('./build-planner.ts').then(({ updateBuildAnalysis }) => {
+                    updateBuildAnalysis();
+                });
                 return;
             }
 
@@ -600,7 +619,10 @@ export function setupEventListeners(): void {
         closeCompare.addEventListener(
             'click',
             () => {
-                closeCompareModal(); // Use proper cleanup function
+                // Dynamic import for code splitting
+                import('./compare.ts').then(({ closeCompareModal }) => {
+                    closeCompareModal();
+                });
             },
             getListenerOptions()
         );
@@ -638,7 +660,10 @@ export function setupEventListeners(): void {
             const modalContent = compareModal.querySelector('.modal-content');
             if (target === compareModal || (compareModal.contains(target) && !modalContent?.contains(target))) {
                 lastModalCloseTime = now;
-                closeCompareModal();
+                // Dynamic import for code splitting
+                import('./compare.ts').then(({ closeCompareModal }) => {
+                    closeCompareModal();
+                });
             }
         }
     };
@@ -650,11 +675,20 @@ export function setupEventListeners(): void {
     // Compare button
     const compareBtn = safeGetElementById('compare-btn') as HTMLButtonElement | null;
     if (compareBtn) {
-        compareBtn.addEventListener('click', openCompareModal, getListenerOptions());
+        compareBtn.addEventListener(
+            'click',
+            () => {
+                // Dynamic import for code splitting
+                import('./compare.ts').then(({ openCompareModal }) => {
+                    openCompareModal();
+                });
+            },
+            getListenerOptions()
+        );
     }
 
-    // Build planner events
-    setupBuildPlannerEvents();
+    // Build planner events are set up lazily when the tab is first accessed
+    // This is handled by the tab-loader and build-planner module initialization
 
     // Setup event delegation for dynamic elements
     setupEventDelegation();
@@ -763,9 +797,10 @@ export let currentTab: TabName = getState('currentTab');
 
 /**
  * Switch to a different tab
+ * Loads tab-specific modules lazily for better initial load performance
  * @param {string} tabName - Tab name to switch to
  */
-export function switchTab(tabName: TabName): void {
+export async function switchTab(tabName: TabName): Promise<void> {
     // Debounce rapid tab switching to prevent performance issues
     const now = Date.now();
     if (now - lastTabSwitchTime < TAB_SWITCH_DEBOUNCE_MS) {
@@ -785,8 +820,13 @@ export function switchTab(tabName: TabName): void {
         saveFilterState(previousTab);
     }
 
-    // Destroy existing charts before switching tabs
-    destroyAllCharts();
+    // Destroy existing charts before switching tabs (if charts module was loaded)
+    try {
+        const { destroyAllCharts } = await import('./charts.ts');
+        destroyAllCharts();
+    } catch {
+        // Charts module may not be loaded yet, that's fine
+    }
 
     // Update store (also syncs to window.currentTab automatically)
     setState('currentTab', tabName);
@@ -850,8 +890,37 @@ export function switchTab(tabName: TabName): void {
     // Show skeleton loading state before rendering (improves perceived performance)
     showTabSkeleton(tabName);
 
+    // Lazy load tab-specific modules before rendering
+    try {
+        await loadTabModules(tabName);
+    } catch (error) {
+        logger.error({
+            operation: 'tab.module_load_failed',
+            error: {
+                name: (error as Error).name,
+                message: (error as Error).message,
+                module: 'events',
+            },
+            data: { tabName },
+        });
+        // Continue with render attempt anyway - core functionality may still work
+    }
+
     // Render content for the tab (will replace skeleton with actual content)
     renderTabContent(tabName);
+}
+
+/**
+ * Preload modules for common tabs after initial render
+ * Call this after the app has initialized
+ */
+export function scheduleModulePreload(): void {
+    // Use requestIdleCallback if available for non-blocking preload
+    if (typeof requestIdleCallback !== 'undefined') {
+        requestIdleCallback(() => preloadCommonModules());
+    } else {
+        setTimeout(preloadCommonModules, 2000);
+    }
 }
 
 // ========================================

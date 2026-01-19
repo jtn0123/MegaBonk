@@ -127,52 +127,52 @@ describe('renderers.ts coverage tests', () => {
     describe('renderTabContent', () => {
         it('should render build-planner tab', async () => {
             const { renderBuildPlanner } = await import('../../src/modules/build-planner');
-            renderTabContent('build-planner');
+            await renderTabContent('build-planner');
             expect(renderBuildPlanner).toHaveBeenCalled();
         });
 
         it('should render calculator tab', async () => {
             const { populateCalculatorItems } = await import('../../src/modules/calculator');
-            renderTabContent('calculator');
+            await renderTabContent('calculator');
             expect(populateCalculatorItems).toHaveBeenCalled();
         });
 
-        it('should attach listener to calc button only once', () => {
-            renderTabContent('calculator');
+        it('should attach listener to calc button only once', async () => {
+            await renderTabContent('calculator');
             const calcBtn = document.getElementById('calc-button');
             expect(calcBtn?.dataset.listenerAttached).toBe('true');
 
             // Render again - should not attach duplicate listener
-            renderTabContent('calculator');
+            await renderTabContent('calculator');
             expect(calcBtn?.dataset.listenerAttached).toBe('true');
         });
 
-        it('should render items tab', () => {
-            renderTabContent('items');
+        it('should render items tab', async () => {
+            await renderTabContent('items');
             const container = document.getElementById('itemsContainer');
             expect(container?.innerHTML).toContain('Fire Sword');
         });
 
-        it('should render weapons tab', () => {
-            renderTabContent('weapons');
+        it('should render weapons tab', async () => {
+            await renderTabContent('weapons');
             const container = document.getElementById('weaponsContainer');
             expect(container?.innerHTML).toContain('Katana');
         });
 
-        it('should render tomes tab', () => {
-            renderTabContent('tomes');
+        it('should render tomes tab', async () => {
+            await renderTabContent('tomes');
             const container = document.getElementById('tomesContainer');
             expect(container?.innerHTML).toContain('Precision');
         });
 
-        it('should render characters tab', () => {
-            renderTabContent('characters');
+        it('should render characters tab', async () => {
+            await renderTabContent('characters');
             const container = document.getElementById('charactersContainer');
             expect(container?.innerHTML).toContain('CL4NK');
         });
 
-        it('should render shrines tab', () => {
-            renderTabContent('shrines');
+        it('should render shrines tab', async () => {
+            await renderTabContent('shrines');
             const container = document.getElementById('shrinesContainer');
             expect(container?.innerHTML).toContain('Statue');
         });
@@ -180,7 +180,7 @@ describe('renderers.ts coverage tests', () => {
         it('should handle missing data gracefully', async () => {
             const { getDataForTab } = await import('../../src/modules/data-service');
             (getDataForTab as any).mockReturnValueOnce(null);
-            expect(() => renderTabContent('items')).not.toThrow();
+            await expect(renderTabContent('items')).resolves.not.toThrow();
         });
     });
 
@@ -320,9 +320,9 @@ describe('renderers.ts coverage tests', () => {
     });
 
     describe('Render Functions', () => {
-        it('renderItems should render item cards', () => {
+        it('renderItems should render item cards', async () => {
             const items = [{ id: '1', name: 'Test Item', rarity: 'rare', tier: 'A' }];
-            renderItems(items as any);
+            await renderItems(items as any);
             const container = document.getElementById('itemsContainer');
             expect(container?.innerHTML).toContain('Test Item');
         });

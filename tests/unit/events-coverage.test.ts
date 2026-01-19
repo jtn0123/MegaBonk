@@ -304,6 +304,9 @@ describe('events.ts additional coverage tests', () => {
 
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
 
+            // Wait for dynamic import promise to resolve
+            await new Promise(resolve => setTimeout(resolve, 10));
+
             expect(closeModal).toHaveBeenCalled();
             expect(closeCompareModal).toHaveBeenCalled();
         });
@@ -359,7 +362,7 @@ describe('events.ts additional coverage tests', () => {
         it('should log tab switch event', async () => {
             const { logger } = await import('../../src/modules/logger');
 
-            switchTab('items');
+            await switchTab('items');
 
             expect(logger.info).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -371,13 +374,13 @@ describe('events.ts additional coverage tests', () => {
             );
         });
 
-        it('should handle missing allData gracefully', () => {
+        it('should handle missing allData gracefully', async () => {
             (window as any).allData = undefined;
-            expect(() => switchTab('items')).not.toThrow();
+            await expect(switchTab('items')).resolves.not.toThrow();
         });
 
-        it('should persist tab selection to localStorage', () => {
-            switchTab('weapons');
+        it('should persist tab selection to localStorage', async () => {
+            await switchTab('weapons');
             expect(localStorage.getItem('megabonk-current-tab')).toBe('weapons');
         });
     });
