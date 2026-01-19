@@ -18,7 +18,7 @@ import { isItem, isShrine } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 import { logger } from './logger.ts';
 import { isFavorite } from './favorites.ts';
-import { getState, type TabName } from './store.ts';
+import { getState } from './store.ts';
 
 // ========================================
 // Type Definitions
@@ -78,27 +78,9 @@ const MAX_SEARCH_HISTORY = 10;
 const FILTER_STATE_KEY = 'megabonk_filter_state';
 
 // ========================================
-// Global Function Types (from window object)
-// ========================================
-
-// Note: TabName is imported from store.ts and includes all tabs.
-// EntityType only includes entity tabs. Window.currentTab uses TabName to support all tabs.
-
-declare global {
-    interface Window {
-        renderTabContent?: (tabName: TabName) => void;
-        renderGlobalSearchResults?: (results: GlobalSearchResult[]) => void;
-        currentTab?: TabName;
-        clearFilters?: () => void;
-        toggleTextExpand?: (element: HTMLElement) => void;
-        filteredData?: Entity[];
-        globalSearch?: (query: string, allData: AllGameData) => GlobalSearchResult[];
-    }
-}
-
-// ========================================
 // Search History Management
 // ========================================
+// Note: Window interface is declared in types/index.ts
 
 /**
  * Get search history from localStorage

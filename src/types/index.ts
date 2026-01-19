@@ -314,6 +314,34 @@ export type ViewMode = 'grid' | 'list';
 export type Entity = Item | Weapon | Tome | Character | Shrine;
 
 /**
+ * Filtered data is just an array of entities
+ */
+export type FilteredData = Entity[];
+
+/**
+ * Favorites state structure - maps entity type to array of item IDs
+ */
+export interface FavoritesState {
+    items: string[];
+    weapons: string[];
+    tomes: string[];
+    characters: string[];
+    shrines: string[];
+}
+
+/**
+ * Build state structure for build planner
+ */
+export interface Build {
+    character: Character | null;
+    weapon: Weapon | null;
+    tomes: Tome[];
+    items: Item[];
+    name?: string;
+    notes?: string;
+}
+
+/**
  * Entity type discriminator
  */
 export type EntityType = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines';
@@ -441,45 +469,58 @@ declare global {
      */
     interface Window {
         // State (from store.ts)
+        // Note: currentTab uses string for flexibility with both TabName and general strings
         currentTab?: string;
         filteredData?: FilteredData;
         allData?: AllGameData;
         currentBuild?: Build;
-        compareItems?: Entity[];
-        favorites?: Set<string>;
+        compareItems?: string[];
+        favorites?: FavoritesState;
 
         // CV functions (from computer-vision.ts, computer-vision-enhanced.ts)
-        initCV?: () => Promise<void>;
+        initCV?: (gameData: AllGameData) => void;
         initEnhancedCV?: (gameData: AllGameData) => void;
         detectItemsWithEnhancedCV?: (
             imageDataUrl: string,
-            strategy?: unknown,
+            strategyName?: string,
             progressCallback?: (progress: number, status: string) => void
         ) => Promise<unknown>;
         resetEnhancedCVState?: () => void;
 
         // OCR functions (from ocr.ts)
-        initOCR?: () => Promise<void>;
+        initOCR?: (gameData: AllGameData) => void;
 
         // Scan build functions (from scan-build.ts, scan-build-enhanced.ts)
         initScanBuild?: (gameData: AllGameData) => void;
         initEnhancedScanBuild?: (gameData: AllGameData) => void;
-        handleEnhancedHybridDetect?: () => Promise<void>;
+        handleEnhancedHybridDetect?: (imageDataUrl: string) => Promise<unknown>;
         compareStrategiesOnImage?: (imageDataUrl: string) => Promise<unknown>;
 
         // Advisor functions (from advisor.ts)
         initAdvisor?: (gameData: AllGameData) => void;
-        applyScannedBuild?: (detectedItems: unknown[]) => void;
+        applyScannedBuild?: (state: unknown) => void;
 
         // UI functions (from events.ts, renderers.ts)
+        // Note: These use string for flexibility with both TabName and general strings
         switchTab?: (tabId: string) => void;
         renderTabContent?: (tabId: string) => void;
         renderGlobalSearchResults?: (results: unknown[]) => void;
 
+        // Filter functions (from filters.ts)
+        clearFilters?: () => void;
+        toggleTextExpand?: (element: HTMLElement) => void;
+        globalSearch?: (query: string, allData: AllGameData) => unknown[];
+
         // Test utilities (from test-utils.ts)
         testUtils?: {
-            detectResolution: (width: number, height: number) => unknown;
-            getGridPositions: (width: number, height: number) => unknown[];
+            calculateAccuracyMetrics?: (...args: unknown[]) => unknown;
+            calculateF1Score?: (...args: unknown[]) => unknown;
+            detectResolution?: (width: number, height: number) => unknown;
+            detectUILayout?: (...args: unknown[]) => unknown;
+            generateTestReport?: (...args: unknown[]) => unknown;
+            runAutomatedTest?: (...args: unknown[]) => unknown;
+            compareDetectionResults?: (...args: unknown[]) => unknown;
+            getGridPositions?: (width: number, height: number) => unknown[];
         };
     }
 }

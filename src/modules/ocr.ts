@@ -269,7 +269,8 @@ function detectEntitiesFromText<T extends EntityWithId>(
                 seenEntities.add(match.item.id);
                 detections.push({
                     type: options.type,
-                    entity: match.item as Item | Tome | Character | Weapon,
+                    // Type assertion through unknown: T extends EntityWithId includes Item/Tome/Character/Weapon
+                    entity: match.item as unknown as Item | Tome | Character | Weapon,
                     confidence: 1 - score, // Fuse score is 0 (best) to 1 (worst), invert it
                     rawText: segment,
                 });

@@ -426,7 +426,8 @@ function matchTemplate(
     // Resize template if not cached
     if (!resizedTemplate) {
         const templateImageData = template.ctx.getImageData(0, 0, template.width, template.height);
-        resizedTemplate = resizeImageData(templateImageData, iconRegion.width, iconRegion.height);
+        // Convert null to undefined for type consistency
+        resizedTemplate = resizeImageData(templateImageData, iconRegion.width, iconRegion.height) ?? undefined;
 
         // Handle resize failure gracefully
         if (!resizedTemplate) {
