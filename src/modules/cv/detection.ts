@@ -59,7 +59,7 @@ export async function loadImageToCanvas(
                 img.src = ''; // Cancel image loading
                 logger.warn({
                     operation: 'cv.load_image_timeout',
-                    error: { message: `Image loading timed out after ${timeoutMs}ms` },
+                    error: { name: 'TimeoutError', message: `Image loading timed out after ${timeoutMs}ms` },
                 });
                 reject(new Error(`Image loading timed out after ${timeoutMs}ms`));
             }
@@ -91,7 +91,7 @@ export async function loadImageToCanvas(
             const errorMessage = event instanceof ErrorEvent ? event.message : 'Failed to load image';
             logger.warn({
                 operation: 'cv.load_image_error',
-                error: { message: errorMessage },
+                error: { name: 'ImageLoadError', message: errorMessage },
             });
             reject(new Error(errorMessage));
         };
@@ -378,7 +378,7 @@ function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight
     if (!ctx) {
         logger.warn({
             operation: 'cv.resize_image_data',
-            error: { message: 'Failed to get source canvas 2D context' },
+            error: { name: 'CanvasError', message: 'Failed to get source canvas 2D context' },
         });
         return null;
     }
@@ -393,7 +393,7 @@ function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight
     if (!outputCtx) {
         logger.warn({
             operation: 'cv.resize_image_data',
-            error: { message: 'Failed to get output canvas 2D context' },
+            error: { name: 'CanvasError', message: 'Failed to get output canvas 2D context' },
         });
         return null;
     }
@@ -618,14 +618,7 @@ async function detectIconsWithSlidingWindow(
                 progressCallback(progress, `Scanning ${currentStep}/${totalSteps}...`);
             }
 
-            // Extract window region
-            const windowROI: ROI = {
-                x,
-                y,
-                width: primarySize,
-                height: primarySize,
-            };
-
+            // Extract window data for pre-filtering
             const windowData = ctx.getImageData(x, y, primarySize, primarySize);
 
             // Skip empty/uniform regions

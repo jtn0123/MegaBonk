@@ -740,7 +740,7 @@ export function loadBuildFromURL(): boolean {
         if (!/^[A-Za-z0-9+/=]+$/.test(encoded)) {
             logger.warn({
                 operation: 'build.load',
-                error: { message: 'Invalid base64 characters in build URL' },
+                error: { name: 'ValidationError', message: 'Invalid base64 characters in build URL' },
             });
             ToastManager.error('Invalid build link format');
             return false;
@@ -750,7 +750,7 @@ export function loadBuildFromURL(): boolean {
         if (encoded.length > 10000) {
             logger.warn({
                 operation: 'build.load',
-                error: { message: 'Build URL exceeds maximum length' },
+                error: { name: 'ValidationError', message: 'Build URL exceeds maximum length' },
             });
             ToastManager.error('Build link is too long');
             return false;
