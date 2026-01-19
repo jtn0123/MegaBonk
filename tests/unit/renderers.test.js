@@ -215,10 +215,13 @@ describe('Renderers Module', () => {
             expect(container.children.length).toBeGreaterThan(0);
         });
 
-        it('should update window.filteredData', async () => {
+        it('should update filteredData state', async () => {
+            // Import getState to check state (window sync is disabled by default for performance)
+            const { getState } = await import('../../src/modules/store.ts');
             await renderTabContent('items');
-            expect(window.filteredData).toBeDefined();
-            expect(Array.isArray(window.filteredData)).toBe(true);
+            const filteredData = getState('filteredData');
+            expect(filteredData).toBeDefined();
+            expect(Array.isArray(filteredData)).toBe(true);
         });
     });
 
@@ -282,105 +285,105 @@ describe('Renderers Module', () => {
             },
         ];
 
-        it('should render item cards', () => {
-            renderItems(mockItems);
+        it('should render item cards', async () => {
+            await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
             expect(container.querySelectorAll('.item-card').length).toBe(1);
         });
 
-        it('should include item name', () => {
-            renderItems(mockItems);
+        it('should include item name', async () => {
+            await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
             expect(container.innerHTML).toContain('Test Item');
         });
 
-        it('should include rarity class', () => {
-            renderItems(mockItems);
+        it('should include rarity class', async () => {
+            await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
             const card = container.querySelector('.item-card');
             expect(card.classList.contains('rarity-common')).toBe(true);
         });
 
-        it('should set entity data attributes', () => {
-            renderItems(mockItems);
+        it('should set entity data attributes', async () => {
+            await renderItems(mockItems);
 
             const card = document.querySelector('.item-card');
             expect(card.dataset.entityType).toBe('item');
             expect(card.dataset.entityId).toBe('item1');
         });
 
-        it('should include stack text', () => {
-            renderItems(mockItems);
+        it('should include stack text', async () => {
+            await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
             expect(container.innerHTML).toContain('Stacks Well');
         });
 
-        it('should show One-and-Done for one_and_done items', () => {
+        it('should show One-and-Done for one_and_done items', async () => {
             const oneAndDoneItem = [{ ...mockItems[0], one_and_done: true, stacks_well: false }];
-            renderItems(oneAndDoneItem);
+            await renderItems(oneAndDoneItem);
 
             const container = document.getElementById('itemsContainer');
             expect(container.innerHTML).toContain('One-and-Done');
         });
 
-        it('should show Limited for non-stacking items', () => {
+        it('should show Limited for non-stacking items', async () => {
             const limitedItem = [{ ...mockItems[0], one_and_done: false, stacks_well: false }];
-            renderItems(limitedItem);
+            await renderItems(limitedItem);
 
             const container = document.getElementById('itemsContainer');
             expect(container.innerHTML).toContain('Limited');
         });
 
-        it('should include favorite button', () => {
-            renderItems(mockItems);
+        it('should include favorite button', async () => {
+            await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
             expect(container.querySelectorAll('.favorite-btn').length).toBe(1);
         });
 
-        it('should include compare checkbox', () => {
-            renderItems(mockItems);
+        it('should include compare checkbox', async () => {
+            await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
             expect(container.querySelectorAll('.compare-checkbox').length).toBe(1);
         });
 
-        it('should include view details button', () => {
-            renderItems(mockItems);
+        it('should include view details button', async () => {
+            await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
             expect(container.querySelectorAll('.view-details-btn').length).toBe(1);
         });
 
-        it('should render empty state when no items', () => {
-            renderItems([]);
+        it('should render empty state when no items', async () => {
+            await renderItems([]);
 
             const container = document.getElementById('itemsContainer');
             expect(container.innerHTML).toContain('empty-state');
         });
 
-        it('should show favorited state when item is favorited', () => {
+        it('should show favorited state when item is favorited', async () => {
             vi.mocked(isFavorite).mockReturnValue(true);
-            renderItems(mockItems);
+            await renderItems(mockItems);
 
             const favBtn = document.querySelector('.favorite-btn');
             expect(favBtn.classList.contains('favorited')).toBe(true);
             expect(favBtn.textContent).toContain('⭐');
         });
 
-        it('should check compare checkbox when item is in compare list', () => {
+        it('should check compare checkbox when item is in compare list', async () => {
             vi.mocked(getCompareItems).mockReturnValue(['item1']);
-            renderItems(mockItems);
+            await renderItems(mockItems);
 
             const checkbox = document.querySelector('.compare-checkbox');
             expect(checkbox.checked).toBe(true);
         });
 
-        it('should include graph container for scaling items', () => {
+        it('should include graph container for scaling items', async () => {
             const scalingItem = [
                 {
                     ...mockItems[0],
@@ -389,13 +392,13 @@ describe('Renderers Module', () => {
                     graph_type: 'linear',
                 },
             ];
-            renderItems(scalingItem);
+            await renderItems(scalingItem);
 
             const container = document.getElementById('itemsContainer');
             expect(container.querySelector('.item-graph-container')).not.toBeNull();
         });
 
-        it('should not include graph for one_and_done items', () => {
+        it('should not include graph for one_and_done items', async () => {
             const oneAndDoneItem = [
                 {
                     ...mockItems[0],
@@ -404,13 +407,13 @@ describe('Renderers Module', () => {
                     graph_type: 'linear',
                 },
             ];
-            renderItems(oneAndDoneItem);
+            await renderItems(oneAndDoneItem);
 
             const container = document.getElementById('itemsContainer');
             expect(container.querySelector('.item-graph-container')).toBeNull();
         });
 
-        it('should show placeholder for one_and_done items', () => {
+        it('should show placeholder for one_and_done items', async () => {
             const oneAndDoneItem = [
                 {
                     ...mockItems[0],
@@ -419,7 +422,7 @@ describe('Renderers Module', () => {
                     graph_type: 'linear',
                 },
             ];
-            renderItems(oneAndDoneItem);
+            await renderItems(oneAndDoneItem);
 
             const container = document.getElementById('itemsContainer');
             const placeholder = container.querySelector('.item-graph-placeholder');
@@ -427,7 +430,7 @@ describe('Renderers Module', () => {
             expect(placeholder.textContent).toContain('One-and-done');
         });
 
-        it('should show placeholder for flat graph_type items', () => {
+        it('should show placeholder for flat graph_type items', async () => {
             const flatItem = [
                 {
                     ...mockItems[0],
@@ -436,7 +439,7 @@ describe('Renderers Module', () => {
                     graph_type: 'flat',
                 },
             ];
-            renderItems(flatItem);
+            await renderItems(flatItem);
 
             const container = document.getElementById('itemsContainer');
             const placeholder = container.querySelector('.item-graph-placeholder');
@@ -783,17 +786,17 @@ describe('Renderers Module', () => {
     });
 
     describe('Container handling', () => {
-        it('should not throw when container is missing', () => {
+        it('should not throw when container is missing', async () => {
             document.getElementById('itemsContainer')?.remove();
 
-            expect(() => renderItems([{ id: '1', name: 'Test' }])).not.toThrow();
+            await expect(renderItems([{ id: '1', name: 'Test' }])).resolves.not.toThrow();
         });
 
-        it('should clear container before rendering', () => {
+        it('should clear container before rendering', async () => {
             const container = document.getElementById('itemsContainer');
             container.innerHTML = '<div>Old content</div>';
 
-            renderItems([
+            await renderItems([
                 {
                     id: 'item1',
                     name: 'New Item',
