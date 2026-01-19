@@ -19,7 +19,7 @@ import {
 } from './cv-strategy.ts';
 import { startMetricsTracking } from './cv-metrics.ts';
 import { logger } from './logger.ts';
-import { getAllData, setAllData, isTemplatesLoaded as isBaseTemplatesLoaded, setTemplatesLoaded } from './cv/state.ts';
+import { getAllData, setAllData } from './cv/state.ts';
 import { isEmptyCell, detectBorderRarity } from './cv/color.ts';
 
 // Re-export types
