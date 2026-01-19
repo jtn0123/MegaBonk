@@ -331,7 +331,7 @@ async function init(): Promise<void> {
     await safeModuleInit(
         'data-service',
         async () => {
-            loadAllData();
+            await loadAllData();
         },
         { required: true }
     );
