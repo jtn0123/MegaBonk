@@ -646,6 +646,7 @@ function truncateSearchDescription(text: string, maxLength: number): string {
 registerFunction('renderTabContent', renderTabContent);
 // Keep window assignment for backwards compatibility during migration
 if (typeof window !== 'undefined') {
-    window.renderTabContent = renderTabContent;
-    window.renderGlobalSearchResults = renderGlobalSearchResults;
+    // Type assertions: functions use specific types but window uses generic types for flexibility
+    window.renderTabContent = renderTabContent as typeof window.renderTabContent;
+    window.renderGlobalSearchResults = renderGlobalSearchResults as typeof window.renderGlobalSearchResults;
 }

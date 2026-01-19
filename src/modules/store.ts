@@ -3,7 +3,7 @@
 // Simple pub/sub store for shared application state
 // ========================================
 
-import type { AllGameData, Entity, Character, Weapon, Tome, Item } from '../types/index.ts';
+import type { AllGameData, Entity, Build, FavoritesState } from '../types/index.ts';
 
 // ========================================
 // Type Definitions
@@ -23,28 +23,8 @@ export type TabName =
     | 'advisor'
     | 'changelog';
 
-/**
- * Favorites state structure - maps entity type to array of item IDs
- */
-export interface FavoritesState {
-    items: string[];
-    weapons: string[];
-    tomes: string[];
-    characters: string[];
-    shrines: string[];
-}
-
-/**
- * Build state structure for build planner
- */
-export interface Build {
-    character: Character | null;
-    weapon: Weapon | null;
-    tomes: Tome[];
-    items: Item[];
-    name?: string;
-    notes?: string;
-}
+// Re-export types for backwards compatibility
+export type { Build, FavoritesState } from '../types/index.ts';
 
 /**
  * Complete application state interface
@@ -160,10 +140,10 @@ function syncStateKeyToWindow<K extends keyof AppState>(key: K, value: AppState[
             window.currentBuild = value as Build;
             break;
         case 'compareItems':
-            window.compareItems = value as Entity[];
+            window.compareItems = value as string[];
             break;
         case 'favorites':
-            window.favorites = value as Set<string>;
+            window.favorites = value as FavoritesState;
             break;
     }
 }

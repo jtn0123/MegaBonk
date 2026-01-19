@@ -561,4 +561,5 @@ export function resetAdvisor(): void {
 // ========================================
 // Expose functions globally for cross-module access
 window.initAdvisor = initAdvisor;
-window.applyScannedBuild = applyScannedBuild;
+// Type assertion needed: applyScannedBuild accepts BuildState but window type uses unknown for flexibility
+window.applyScannedBuild = applyScannedBuild as typeof window.applyScannedBuild;
