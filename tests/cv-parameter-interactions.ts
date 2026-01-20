@@ -88,6 +88,11 @@ const currentParams = new Map<string, number>();
 // Initialize with baseline values
 PARAMETERS.forEach(p => currentParams.set(p.name, p.baseline));
 
+/** Clear template cache to free memory */
+function clearTemplateCache(): void {
+    templateCache.clear();
+}
+
 function getParam(name: string): number {
     return currentParams.get(name) ?? PARAMETERS.find(p => p.name === name)?.baseline ?? 0;
 }
@@ -258,22 +263,27 @@ async function analyzeParameterPair(
 ): Promise<InteractionResult[]> {
     const results: InteractionResult[] = [];
 
-    // Use a subset of values for faster analysis
-    const values1 = param1.testValues.filter((_, i) => i % 2 === 0 || _ === param1.baseline);
-    const values2 = param2.testValues.filter((_, i) => i % 2 === 0 || _ === param2.baseline);
+    // MEMORY FIX: Use a smaller subset of values to reduce iterations
+    // Take every 3rd value instead of every 2nd, plus always include baseline
+    const values1 = param1.testValues.filter((v, i) => i % 3 === 0 || v === param1.baseline);
+    const values2 = param2.testValues.filter((v, i) => i % 3 === 0 || v === param2.baseline);
+
+    // Limit to max 5 values per parameter to prevent combinatorial explosion
+    const limitedValues1 = values1.slice(0, 5);
+    const limitedValues2 = values2.slice(0, 5);
 
     // Get individual effects first
     const param1Effects = new Map<number, number>();
     const param2Effects = new Map<number, number>();
 
-    for (const v1 of values1) {
+    for (const v1 of limitedValues1) {
         resetToBaseline();
         setParam(param1.name, v1);
         const f1 = await calculateF1ForParams(testCases);
         param1Effects.set(v1, f1 - baselineF1);
     }
 
-    for (const v2 of values2) {
+    for (const v2 of limitedValues2) {
         resetToBaseline();
         setParam(param2.name, v2);
         const f1 = await calculateF1ForParams(testCases);
@@ -281,8 +291,8 @@ async function analyzeParameterPair(
     }
 
     // Test combinations
-    for (const v1 of values1) {
-        for (const v2 of values2) {
+    for (const v1 of limitedValues1) {
+        for (const v2 of limitedValues2) {
             resetToBaseline();
             setParam(param1.name, v1);
             setParam(param2.name, v2);
@@ -423,8 +433,14 @@ async function generateHeatmap(
     param2: Parameter,
     testCases: TestCase[]
 ): Promise<HeatmapData> {
-    const values1 = param1.testValues;
-    const values2 = param2.testValues;
+    // MEMORY FIX: Limit heatmap resolution to prevent OOM
+    // Take at most 7 values per dimension (7x7 = 49 cells max)
+    const maxValues = 7;
+    const step1 = Math.max(1, Math.floor(param1.testValues.length / maxValues));
+    const step2 = Math.max(1, Math.floor(param2.testValues.length / maxValues));
+
+    const values1 = param1.testValues.filter((_, i) => i % step1 === 0).slice(0, maxValues);
+    const values2 = param2.testValues.filter((_, i) => i % step2 === 0).slice(0, maxValues);
     const matrix: number[][] = [];
 
     for (const v1 of values1) {
@@ -647,6 +663,10 @@ async function main(): Promise<void> {
     console.log(`   • interactions-${timestamp}.csv`);
     console.log(`   • pair-summaries-${timestamp}.csv`);
     console.log(`   • heatmaps-${timestamp}.json`);
+
+    // MEMORY FIX: Clean up template cache to free memory
+    clearTemplateCache();
+    console.log('\n🧹 Cleaned up template cache');
 }
 
 // Run if executed directly
