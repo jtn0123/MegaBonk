@@ -18,10 +18,12 @@ npm run preview           # Preview production build locally
 ```bash
 npm test                  # Run unit tests with vitest (watch mode)
 npm run test:unit         # Run unit tests once with coverage
-npm run test:e2e          # Run Playwright e2e tests
+npm run test:e2e          # Run Playwright e2e tests (requires: npx playwright install)
 npm run test:all          # Run both unit and e2e tests
 npx vitest run tests/unit/filtering.test.js  # Run single test file
 ```
+
+**First-time setup:** Run `npx playwright install` to download browser binaries for E2E tests.
 
 ### Mobile App Build
 ```bash
