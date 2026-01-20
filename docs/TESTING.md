@@ -1,17 +1,29 @@
 # Testing Guide
 
+## Initial Setup
+
+Before running tests for the first time, install dependencies:
+
+```bash
+npm install                # Install npm dependencies
+npx playwright install     # Download browser binaries for E2E tests
+```
+
+**Note:** The Playwright browser download (~470MB) is required for E2E tests but not for unit tests.
+
 ## Running Tests
 
 ### Unit Tests
 ```bash
-bun run test:unit          # Run with coverage (may hit memory limits)
-bun test tests/unit/       # Run without coverage (faster, no memory issues)
+npm run test:unit          # Run with coverage (may hit memory limits)
+npm test                   # Run in watch mode
 ```
 
 ### E2E Tests
 ```bash
-bun run test:e2e           # Run Playwright end-to-end tests
-bun run test:e2e:ui        # Run with Playwright UI
+npx playwright install     # Required first time only
+npm run test:e2e           # Run Playwright end-to-end tests
+npm run test:e2e:ui        # Run with Playwright UI
 ```
 
 ### All Tests
