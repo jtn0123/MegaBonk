@@ -1,0 +1,26 @@
+{
+  "_instructions": "Copy entries from this file to ground-truth.json after filling in the labels",
+  "_generated": "2026-01-20T01:39:40.783Z",
+  "_count": 1,
+  "entries": {
+    "steam-community/level_21_english_desert_scorpion.jpg": {
+      "character": "TODO",
+      "level": 0,
+      "resolution": "1920x1080",
+      "biome": "TODO",
+      "ui_state": "gameplay",
+      "items": [
+        "TODO: List all visible items"
+      ],
+      "equipped_weapons": [
+        "TODO: List equipped weapons with levels"
+      ],
+      "equipped_tomes": [
+        "TODO: List equipped tomes with levels"
+      ],
+      "notes": "Scraped from Steam Community. Classification: useful",
+      "difficulty": "TODO",
+      "_needs_labeling": true
+    }
+  }
+}
