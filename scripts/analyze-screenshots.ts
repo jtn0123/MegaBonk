@@ -193,27 +193,70 @@ async function getImageMetadata(filepath: string): Promise<ImageMetadata | null>
 
   // Fallback: Basic detection from file header
   try {
-    const buffer = Buffer.alloc(24);
+    // Read more bytes for JPEG SOF marker parsing
+    const buffer = Buffer.alloc(65536); // 64KB should be enough for most headers
     const fd = fs.openSync(filepath, 'r');
-    fs.readSync(fd, buffer, 0, 24, 0);
+    const bytesRead = fs.readSync(fd, buffer, 0, buffer.length, 0);
     fs.closeSync(fd);
 
     let width = 0;
     let height = 0;
     let format = 'unknown';
 
-    // JPEG detection
+    // JPEG detection - need to find SOF marker for dimensions
     if (buffer[0] === 0xff && buffer[1] === 0xd8) {
       format = 'jpeg';
-      // JPEG dimensions require parsing SOF markers - using placeholder
-      width = 1920;
-      height = 1080;
+      // Parse JPEG markers to find SOF (Start Of Frame)
+      let offset = 2;
+      while (offset < bytesRead - 8) {
+        if (buffer[offset] !== 0xff) {
+          offset++;
+          continue;
+        }
+        const marker = buffer[offset + 1];
+        // SOF markers: 0xC0-0xC3, 0xC5-0xC7, 0xC9-0xCB, 0xCD-0xCF
+        if ((marker >= 0xc0 && marker <= 0xc3) ||
+            (marker >= 0xc5 && marker <= 0xc7) ||
+            (marker >= 0xc9 && marker <= 0xcb) ||
+            (marker >= 0xcd && marker <= 0xcf)) {
+          // SOF marker found - dimensions are at offset+5 (height) and offset+7 (width)
+          height = buffer.readUInt16BE(offset + 5);
+          width = buffer.readUInt16BE(offset + 7);
+          break;
+        }
+        // Skip to next marker
+        if (marker === 0xd8 || marker === 0xd9 || (marker >= 0xd0 && marker <= 0xd7)) {
+          offset += 2;
+        } else {
+          const length = buffer.readUInt16BE(offset + 2);
+          offset += 2 + length;
+        }
+      }
     }
     // PNG detection
     else if (buffer[0] === 0x89 && buffer[1] === 0x50) {
       format = 'png';
       width = buffer.readUInt32BE(16);
       height = buffer.readUInt32BE(20);
+    }
+    // WebP detection
+    else if (buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
+             buffer[8] === 0x57 && buffer[9] === 0x45 && buffer[10] === 0x42 && buffer[11] === 0x50) {
+      format = 'webp';
+      // VP8 format detection (simplified)
+      if (buffer[12] === 0x56 && buffer[13] === 0x50 && buffer[14] === 0x38) {
+        // VP8 lossy
+        if (buffer[15] === 0x20) {
+          width = (buffer[26] | (buffer[27] << 8)) & 0x3fff;
+          height = (buffer[28] | (buffer[29] << 8)) & 0x3fff;
+        }
+        // VP8L lossless
+        else if (buffer[15] === 0x4c) {
+          const bits = buffer[21] | (buffer[22] << 8) | (buffer[23] << 16) | (buffer[24] << 24);
+          width = (bits & 0x3fff) + 1;
+          height = ((bits >> 14) & 0x3fff) + 1;
+        }
+      }
     }
 
     return { width, height, format, size: stats.size };
