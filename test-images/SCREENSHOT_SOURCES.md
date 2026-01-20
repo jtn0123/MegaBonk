@@ -29,7 +29,93 @@ These screenshots have received many community awards, suggesting they show inte
 6. **"Todos los personajes" by Raxziel** (8 awards)
    - URL: `https://images.steamusercontent.com/ugc/18415854389953042110/B9246DB0581C9775C7042F4F448DE8F542DE693E/`
 
-## How to Download Screenshots
+## Automated Scraping Tools
+
+We provide automated scripts to scrape and analyze Steam Community screenshots.
+
+### Quick Start
+
+```bash
+# Full pipeline: scrape, analyze, organize, and generate labels
+npm run steam:pipeline:full
+
+# Or run each step separately:
+npm run steam:scrape          # Download screenshots from Steam
+npm run steam:analyze         # Analyze downloaded screenshots
+npm run steam:pipeline        # Run full pipeline with default options
+```
+
+### Available Scripts
+
+#### 1. Steam Screenshot Scraper
+Downloads screenshots from Steam Community automatically.
+
+```bash
+npx tsx scripts/steam-screenshot-scraper.ts [options]
+
+Options:
+  --limit <n>       Max screenshots to download (default: 50)
+  --sort <type>     Sort: trending, mostrecent, toprated (default: trending)
+  --output <dir>    Output directory (default: test-images/gameplay/steam-scraped)
+  --skip-existing   Skip already downloaded files
+  --dry-run         Show what would be downloaded
+```
+
+#### 2. Screenshot Analyzer
+Analyzes screenshots and scores them for CV training usefulness.
+
+```bash
+npx tsx scripts/analyze-screenshots.ts [options]
+
+Options:
+  --input <dir>     Input directory (default: test-images/gameplay/steam-scraped)
+  --threshold <n>   Usefulness threshold 0-100 (default: 50)
+  --move-useful     Move useful images to steam-community folder
+  --verbose         Show detailed analysis
+```
+
+Classification:
+- **useful**: Score >= threshold, good for CV training
+- **maybe**: Needs manual review (borderline score)
+- **not_useful**: Not suitable for training
+
+#### 3. Full Pipeline
+Combines scraping, analysis, organization, and label generation.
+
+```bash
+npx tsx scripts/steam-screenshot-pipeline.ts [options]
+
+Options:
+  --limit <n>         Max screenshots (default: 30)
+  --auto-organize     Move useful images automatically
+  --generate-labels   Create ground truth template file
+  --skip-scrape       Only analyze existing files
+```
+
+### Workflow
+
+1. **Scrape**: `npm run steam:scrape -- --limit 30`
+2. **Analyze**: `npm run steam:analyze -- --verbose`
+3. **Review**: Check `steam-scraped/analysis-report.json`
+4. **Organize**: Move useful images to `steam-community/`
+5. **Label**: Add ground truth entries for useful images
+6. **Test**: `npm run test:cv:offline`
+
+### Output Directories
+
+```
+test-images/gameplay/
+├── steam-scraped/           # Raw downloaded screenshots
+│   ├── *.jpg                # Screenshot files
+│   ├── analysis-report.json # Analysis results
+│   └── ground-truth-template.json  # Template for labeling
+├── steam-community/         # Curated useful screenshots
+└── pc-1080p/               # Manually captured gameplay
+```
+
+---
+
+## How to Download Screenshots Manually
 
 ### Method 1: Direct Download from URLs
 1. Copy any URL above
