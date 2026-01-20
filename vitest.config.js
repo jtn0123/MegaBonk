@@ -71,11 +71,15 @@ export default defineConfig({
             // Coverage improved after fixing test mock issues
             // Current actual: 54% statements, 49% branches, 57% functions, 54% lines
             // Thresholds set at 45/40/45/45 to catch regressions while allowing variance
+            // Updated 2026-01-20: Increased thresholds after adding comprehensive tests
+            // Target: 90% (aspirational), Current: ~63%
+            // Added tests for: cv-error-analysis, debug-ui, offline-ui, search-history,
+            // skeleton-loader, tab-loader
             thresholds: {
-                statements: 45,
-                branches: 40,
-                functions: 45,
-                lines: 45,
+                statements: 60,
+                branches: 55,
+                functions: 60,
+                lines: 60,
             },
         },
     },
