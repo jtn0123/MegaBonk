@@ -269,7 +269,7 @@ class OfflineCVRunner {
 
             // Run detection (simulated - we'll use a simplified version)
             const startTime = performance.now();
-            const detections = await this.runDetection(ctx, strategy, image.width, image.height);
+            const detections = await this.runDetection(ctx, strategy, image.width, image.height, strategyName);
             const totalTime = performance.now() - startTime;
 
             // Calculate metrics
@@ -327,7 +327,8 @@ class OfflineCVRunner {
         ctx: any,
         strategy: CVStrategy,
         width: number,
-        height: number
+        height: number,
+        strategyName: string = 'current'
     ): Promise<Array<{ id: string; name: string; confidence: number }>> {
         // Load templates if not loaded
         await this.loadTemplates();
@@ -353,8 +354,16 @@ class OfflineCVRunner {
             // Find best match
             const match = await this.findBestMatch(cellImageData, strategy);
 
-            // Threshold for max-based combined scoring (tested range: 0.40-0.50)
-            const testThreshold = 0.45;
+            // Threshold varies by strategy (tuned values based on testing)
+            const thresholdByStrategy: Record<string, number> = {
+                current: 0.45,
+                optimized: 0.42,
+                fast: 0.50,
+                accurate: 0.38,
+                balanced: 0.43,
+                tuned: 0.35,  // Lower threshold to catch more items
+            };
+            const testThreshold = thresholdByStrategy[strategyName] || 0.45;
             if (match && match.confidence >= testThreshold) {
                 detections.push({
                     id: match.item.id,

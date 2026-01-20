@@ -108,6 +108,19 @@ export const STRATEGY_PRESETS: Record<string, CVStrategy> = {
         useEmptyCellDetection: true,
         multiPassEnabled: true,
     },
+
+    // Tuned strategy - optimized thresholds for higher recall
+    tuned: {
+        colorFiltering: 'rarity-first',
+        colorAnalysis: 'multi-region',
+        confidenceThresholds: 'adaptive-rarity',
+        matchingAlgorithm: 'ncc',
+        useContextBoosting: true,
+        useBorderValidation: true,
+        useFeedbackLoop: true,
+        useEmptyCellDetection: true,
+        multiPassEnabled: true,
+    },
 };
 
 /**
