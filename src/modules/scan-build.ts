@@ -17,6 +17,7 @@ import {
     createDebugOverlay,
 } from './computer-vision.ts';
 import { setLastOverlayUrl, updateStats, updateLogViewer, isDebugEnabled } from './debug-ui.ts';
+import { escapeHtml } from './utils.ts';
 
 // State
 let allData: AllGameData = {};
@@ -259,10 +260,10 @@ async function handleAutoDetect(): Promise<void> {
         return;
     }
 
-    try {
-        // Show progress indicator
-        const progressDiv = createProgressIndicator();
+    // Create progress indicator before try block to ensure cleanup in finally
+    const progressDiv = createProgressIndicator();
 
+    try {
         ToastManager.info('Starting auto-detection...');
 
         // Run OCR
@@ -286,8 +287,6 @@ async function handleAutoDetect(): Promise<void> {
                 });
 
                 if (cvResults.length > 0) {
-                    progressDiv.remove();
-
                     // Convert CV results to detection format
                     const cvItems = cvResults
                         .filter(r => r.type === 'item')
@@ -321,9 +320,6 @@ async function handleAutoDetect(): Promise<void> {
             }
         }
 
-        // Hide progress
-        progressDiv.remove();
-
         // Apply detected items
         applyDetectionResults(results);
 
@@ -355,6 +351,9 @@ async function handleAutoDetect(): Promise<void> {
             },
         });
         ToastManager.error(`Auto-detection failed: ${(error as Error).message}`);
+    } finally {
+        // Always clean up progress indicator
+        progressDiv.remove();
     }
 }
 
@@ -385,9 +384,10 @@ async function handleHybridDetect(): Promise<void> {
         });
     }
 
-    try {
-        const progressDiv = createProgressIndicator();
+    // Create progress indicator before try block to ensure cleanup in finally
+    const progressDiv = createProgressIndicator();
 
+    try {
         ToastManager.info('Starting hybrid detection (OCR + Computer Vision)...');
 
         // Run OCR first
@@ -471,8 +471,6 @@ async function handleHybridDetect(): Promise<void> {
             rawText: 'hybrid_detection',
         };
 
-        progressDiv.remove();
-
         applyDetectionResults(hybridResults);
 
         // Update debug UI stats
@@ -529,6 +527,9 @@ async function handleHybridDetect(): Promise<void> {
             },
         });
         ToastManager.error(`Hybrid detection failed: ${(error as Error).message}`);
+    } finally {
+        // Always clean up progress indicator
+        progressDiv.remove();
     }
 }
 
@@ -701,14 +702,14 @@ function displayDetectionConfidence(results: {
 
     if (results.character) {
         html += `<div class="scan-detection-item">
-            <span>Character: ${results.character.entity.name}</span>
+            <span>Character: ${escapeHtml(results.character.entity.name)}</span>
             <span class="confidence">${Math.round(results.character.confidence * 100)}%</span>
         </div>`;
     }
 
     if (results.weapon) {
         html += `<div class="scan-detection-item">
-            <span>Weapon: ${results.weapon.entity.name}</span>
+            <span>Weapon: ${escapeHtml(results.weapon.entity.name)}</span>
             <span class="confidence">${Math.round(results.weapon.confidence * 100)}%</span>
         </div>`;
     }
@@ -717,7 +718,7 @@ function displayDetectionConfidence(results: {
         html += '<div class="scan-detection-section"><strong>Items:</strong>';
         results.items.forEach(item => {
             html += `<div class="scan-detection-item">
-                <span>${item.entity.name}</span>
+                <span>${escapeHtml(item.entity.name)}</span>
                 <span class="confidence">${Math.round(item.confidence * 100)}%</span>
             </div>`;
         });
@@ -728,7 +729,7 @@ function displayDetectionConfidence(results: {
         html += '<div class="scan-detection-section"><strong>Tomes:</strong>';
         results.tomes.forEach(tome => {
             html += `<div class="scan-detection-item">
-                <span>${tome.entity.name}</span>
+                <span>${escapeHtml(tome.entity.name)}</span>
                 <span class="confidence">${Math.round(tome.confidence * 100)}%</span>
             </div>`;
         });
@@ -777,8 +778,8 @@ function createEntitySelection(type: 'character' | 'weapon', entities: (Characte
         card.className = 'scan-entity-card';
         card.dataset.id = entity.id;
         card.innerHTML = `
-            <div class="scan-entity-name">${entity.name}</div>
-            <div class="scan-entity-tier tier-${entity.tier.toLowerCase()}">${entity.tier}</div>
+            <div class="scan-entity-name">${escapeHtml(entity.name)}</div>
+            <div class="scan-entity-tier tier-${escapeHtml(entity.tier.toLowerCase())}">${escapeHtml(entity.tier)}</div>
         `;
 
         card.addEventListener('click', () => {
@@ -846,8 +847,8 @@ function createItemCard(item: Item): HTMLElement {
     const info = document.createElement('div');
     info.className = 'scan-item-info';
     info.innerHTML = `
-        <div class="scan-item-name">${item.name}</div>
-        <div class="scan-item-tier tier-${item.tier.toLowerCase()}">${item.tier}</div>
+        <div class="scan-item-name">${escapeHtml(item.name)}</div>
+        <div class="scan-item-tier tier-${escapeHtml(item.tier.toLowerCase())}">${escapeHtml(item.tier)}</div>
     `;
 
     // Counter controls
@@ -938,8 +939,8 @@ function createTomeGrid(): void {
         card.className = 'scan-tome-card';
         card.dataset.id = tome.id;
         card.innerHTML = `
-            <div class="scan-tome-name">${tome.name}</div>
-            <div class="scan-tome-tier tier-${tome.tier.toLowerCase()}">${tome.tier}</div>
+            <div class="scan-tome-name">${escapeHtml(tome.name)}</div>
+            <div class="scan-tome-tier tier-${escapeHtml(tome.tier.toLowerCase())}">${escapeHtml(tome.tier)}</div>
         `;
 
         card.addEventListener('click', () => {
@@ -968,19 +969,19 @@ function updateSelectionSummary(): void {
 
     // Character
     if (selectedCharacter) {
-        html += `<div class="scan-summary-item">👤 <strong>${selectedCharacter.name}</strong></div>`;
+        html += `<div class="scan-summary-item">👤 <strong>${escapeHtml(selectedCharacter.name)}</strong></div>`;
     }
 
     // Weapon
     if (selectedWeapon) {
-        html += `<div class="scan-summary-item">⚔️ <strong>${selectedWeapon.name}</strong></div>`;
+        html += `<div class="scan-summary-item">⚔️ <strong>${escapeHtml(selectedWeapon.name)}</strong></div>`;
     }
 
     // Items
     if (selectedItems.size > 0) {
         html += '<div class="scan-summary-section"><strong>📦 Items:</strong><ul>';
         selectedItems.forEach(({ item, count }) => {
-            html += `<li>${item.name} x${count}</li>`;
+            html += `<li>${escapeHtml(item.name)} x${count}</li>`;
         });
         html += '</ul></div>';
     }
@@ -989,7 +990,7 @@ function updateSelectionSummary(): void {
     if (selectedTomes.size > 0) {
         html += '<div class="scan-summary-section"><strong>📚 Tomes:</strong><ul>';
         selectedTomes.forEach(tome => {
-            html += `<li>${tome.name}</li>`;
+            html += `<li>${escapeHtml(tome.name)}</li>`;
         });
         html += '</ul></div>';
     }
