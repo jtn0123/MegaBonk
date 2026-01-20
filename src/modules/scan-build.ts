@@ -16,6 +16,7 @@ import {
     aggregateDuplicates,
     createDebugOverlay,
 } from './computer-vision.ts';
+import { setLastOverlayUrl, updateStats, updateLogViewer, isDebugEnabled } from './debug-ui.ts';
 
 // State
 let allData: AllGameData = {};
@@ -474,11 +475,17 @@ async function handleHybridDetect(): Promise<void> {
 
         applyDetectionResults(hybridResults);
 
+        // Update debug UI stats
+        updateStats();
+        updateLogViewer();
+
         // Check if debug mode is enabled
-        const debugModeCheckbox = document.getElementById('scan-debug-mode') as HTMLInputElement;
-        if (debugModeCheckbox && debugModeCheckbox.checked) {
+        if (isDebugEnabled()) {
             // Create debug overlay
             const debugOverlayUrl = await createDebugOverlay(uploadedImage, cvResults);
+
+            // Store overlay URL for download button
+            setLastOverlayUrl(debugOverlayUrl);
 
             // Replace uploaded image with debug overlay
             const imagePreview = document.getElementById('scan-image-preview');
@@ -486,17 +493,19 @@ async function handleHybridDetect(): Promise<void> {
                 imagePreview.innerHTML = `
                     <img src="${debugOverlayUrl}" alt="Debug Overlay" style="max-width: 100%; border-radius: 8px;" />
                     <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                        🐛 Debug Mode: Green=High confidence, Orange=Medium, Red=Low, Yellow=Grid cells
+                        Debug Mode: Green=High confidence, Orange=Medium, Red=Low
                     </p>
                 `;
             }
 
             ToastManager.success(
-                `🎯 Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Debug overlay shown)`
+                `Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Debug overlay shown)`
             );
         } else {
+            // Clear any previous overlay URL
+            setLastOverlayUrl(null);
             ToastManager.success(
-                `🎯 Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Enhanced accuracy!)`
+                `Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Enhanced accuracy!)`
             );
         }
 
