@@ -245,17 +245,26 @@ describe('tab-loader - preloadCommonModules', () => {
         vi.useRealTimers();
     });
 
-    it('should use setTimeout fallback when requestIdleCallback unavailable', () => {
-        const originalRIC = (window as any).requestIdleCallback;
+    it('should use setTimeout fallback when requestIdleCallback unavailable', async () => {
+        const originalRIC = (globalThis as any).requestIdleCallback;
+        // Delete from both window and globalThis to ensure the typeof check fails
+        delete (globalThis as any).requestIdleCallback;
         delete (window as any).requestIdleCallback;
 
-        const setTimeoutSpy = vi.spyOn(window, 'setTimeout');
+        // Reset modules and create spy before import
+        vi.resetModules();
+        const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
 
-        preloadCommonModules();
+        const { preloadCommonModules: preloadFresh } = await import('../../src/modules/tab-loader.ts');
+
+        preloadFresh();
 
         expect(setTimeoutSpy).toHaveBeenCalledWith(expect.any(Function), 1000);
 
+        // Restore
+        (globalThis as any).requestIdleCallback = originalRIC;
         (window as any).requestIdleCallback = originalRIC;
+        setTimeoutSpy.mockRestore();
     });
 
     it('should preload compare module', async () => {

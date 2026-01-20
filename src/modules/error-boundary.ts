@@ -2,10 +2,12 @@
 // Error Boundary Module
 // ========================================
 // Provides module-level error recovery and graceful degradation
+// Includes state snapshots and breadcrumb integration
 // ========================================
 
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
+import { recordError, captureStateSnapshot, getRecentBreadcrumbs, type Breadcrumb } from './breadcrumbs.ts';
 
 // ========================================
 // Type Definitions
@@ -54,6 +56,23 @@ interface DegradedModuleResult {
     error: Error;
 }
 
+/**
+ * Enhanced error report with state snapshot and breadcrumbs
+ */
+export interface ErrorReport {
+    timestamp: number;
+    error: {
+        name: string;
+        message: string;
+        stack?: string;
+        module?: string;
+    };
+    stateSnapshot: Record<string, unknown>;
+    breadcrumbs: Breadcrumb[];
+    context?: string;
+    sessionId?: string;
+}
+
 // ========================================
 // Error Boundary State
 // ========================================
@@ -100,7 +119,14 @@ export function withErrorBoundary<TArgs extends unknown[], TReturn>(
             } catch (error) {
                 const err = error as Error;
 
-                // Log error with wide event
+                // Record error in breadcrumbs
+                recordError(err, moduleName);
+
+                // Capture state snapshot for debugging
+                const stateSnapshot = captureStateSnapshot();
+                const recentBreadcrumbs = getRecentBreadcrumbs(60000); // Last 60 seconds
+
+                // Log error with wide event including state snapshot
                 logger.error({
                     operation: 'error.boundary',
                     error: {
@@ -113,6 +139,8 @@ export function withErrorBoundary<TArgs extends unknown[], TReturn>(
                         retries,
                         maxRetries,
                         phase: 'caught',
+                        stateSnapshot,
+                        breadcrumbCount: recentBreadcrumbs.length,
                     },
                 });
 
@@ -300,6 +328,49 @@ export function getAllErrorBoundaries(): Map<string, ErrorBoundary> {
 }
 
 // ========================================
+// Error Report Builder
+// ========================================
+
+/**
+ * Build a comprehensive error report with state snapshot and breadcrumbs
+ * @param error - The error that occurred
+ * @param moduleName - Optional module name where error occurred
+ * @returns Complete error report
+ */
+export function buildErrorReport(error: Error, moduleName?: string): ErrorReport {
+    // Record error in breadcrumbs first
+    recordError(error, moduleName);
+
+    const stateSnapshot = captureStateSnapshot();
+    const breadcrumbs = getRecentBreadcrumbs(300000); // Last 5 minutes
+
+    return {
+        timestamp: Date.now(),
+        error: {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+            module: moduleName,
+        },
+        stateSnapshot,
+        breadcrumbs,
+        context: moduleName,
+        sessionId: logger.getSessionId(),
+    };
+}
+
+/**
+ * Export error report as JSON string for debugging
+ * @param error - The error that occurred
+ * @param moduleName - Optional module name
+ * @returns JSON string of error report
+ */
+export function exportErrorReport(error: Error, moduleName?: string): string {
+    const report = buildErrorReport(error, moduleName);
+    return JSON.stringify(report, null, 2);
+}
+
+// ========================================
 // Global Error Handlers
 // ========================================
 
@@ -313,6 +384,11 @@ export function initGlobalErrorHandlers(): void {
         window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
             const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
 
+            // Record error and capture state
+            recordError(error, 'global');
+            const stateSnapshot = captureStateSnapshot();
+            const recentBreadcrumbs = getRecentBreadcrumbs(60000);
+
             logger.error({
                 operation: 'error.unhandled_rejection',
                 error: {
@@ -323,6 +399,8 @@ export function initGlobalErrorHandlers(): void {
                 data: {
                     type: 'unhandledrejection',
                     prevented: false,
+                    stateSnapshot,
+                    breadcrumbCount: recentBreadcrumbs.length,
                 },
             });
 
@@ -332,6 +410,13 @@ export function initGlobalErrorHandlers(): void {
 
         // Handle uncaught errors
         window.addEventListener('error', (event: ErrorEvent) => {
+            const error = event.error || new Error(event.message);
+
+            // Record error and capture state
+            recordError(error, 'global');
+            const stateSnapshot = captureStateSnapshot();
+            const recentBreadcrumbs = getRecentBreadcrumbs(60000);
+
             logger.error({
                 operation: 'error.uncaught',
                 error: {
@@ -344,6 +429,8 @@ export function initGlobalErrorHandlers(): void {
                     filename: event.filename,
                     lineno: event.lineno,
                     colno: event.colno,
+                    stateSnapshot,
+                    breadcrumbCount: recentBreadcrumbs.length,
                 },
             });
         });

@@ -154,3 +154,330 @@ export async function createDebugOverlay(imageDataUrl: string, detections: CVDet
 
     return canvas.toDataURL('image/png');
 }
+
+// ========================================
+// Enhanced Debug Visualizations
+// ========================================
+
+/**
+ * Debug visualization options
+ */
+export interface DebugVisualizationOptions {
+    showGrid: boolean;
+    showConfidenceHeatmap: boolean;
+    showMatchingSteps: boolean;
+    confidenceThreshold: number;
+    gridCellSize: number;
+}
+
+const defaultOptions: DebugVisualizationOptions = {
+    showGrid: true,
+    showConfidenceHeatmap: false,
+    showMatchingSteps: false,
+    confidenceThreshold: 0.7,
+    gridCellSize: 64,
+};
+
+/**
+ * Render live grid overlay during scanning
+ * Shows the cell grid being scanned in real-time
+ */
+export function renderGridOverlay(
+    canvas: HTMLCanvasElement,
+    gridCells: ROI[],
+    currentCell?: number,
+    processedCells?: Set<number>
+): void {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Draw grid cells
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+
+    gridCells.forEach((cell, index) => {
+        let color: string;
+
+        if (index === currentCell) {
+            color = 'rgba(255, 255, 0, 0.8)'; // Yellow = currently processing
+        } else if (processedCells?.has(index)) {
+            color = 'rgba(100, 100, 100, 0.4)'; // Gray = processed
+        } else {
+            color = 'rgba(150, 150, 150, 0.3)'; // Light gray = pending
+        }
+
+        ctx.strokeStyle = color;
+        ctx.strokeRect(cell.x, cell.y, cell.width, cell.height);
+
+        // Show cell index
+        ctx.fillStyle = color;
+        ctx.font = '10px monospace';
+        ctx.fillText(`${index}`, cell.x + 2, cell.y + 12);
+    });
+
+    ctx.setLineDash([]);
+}
+
+/**
+ * Render confidence heatmap overlay
+ * Shows detection confidence as a color gradient
+ */
+export function renderConfidenceHeatmap(
+    canvas: HTMLCanvasElement,
+    detections: CVDetectionResult[],
+    threshold: number = 0.7
+): void {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Group detections by confidence bands
+    const bands = [
+        { min: 0.9, max: 1.0, color: 'rgba(0, 255, 0, 0.3)' },
+        { min: 0.8, max: 0.9, color: 'rgba(128, 255, 0, 0.3)' },
+        { min: 0.7, max: 0.8, color: 'rgba(255, 255, 0, 0.3)' },
+        { min: threshold, max: 0.7, color: 'rgba(255, 165, 0, 0.3)' },
+        { min: 0, max: threshold, color: 'rgba(255, 0, 0, 0.3)' },
+    ];
+
+    detections.forEach(detection => {
+        if (!detection.position) return;
+
+        const pos = detection.position;
+        const confidence = detection.confidence;
+
+        // Find matching band
+        const band = bands.find(b => confidence >= b.min && confidence < b.max);
+        if (band) {
+            ctx.fillStyle = band.color;
+            ctx.fillRect(pos.x, pos.y, pos.width, pos.height);
+        }
+    });
+}
+
+/**
+ * Render step-by-step template matching view
+ * Shows the matching process for debugging
+ */
+export interface MatchingStep {
+    templateId: string;
+    templateName: string;
+    similarity: number;
+    position: ROI;
+    isMatch: boolean;
+}
+
+export function renderMatchingSteps(canvas: HTMLCanvasElement, steps: MatchingStep[], currentStep: number): void {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Clear previous steps display
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.fillRect(10, canvas.height - 200, 300, 190);
+
+    // Header
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 14px monospace';
+    ctx.fillText('Template Matching Steps', 20, canvas.height - 180);
+
+    // Show recent steps
+    ctx.font = '11px monospace';
+    const displaySteps = steps.slice(Math.max(0, currentStep - 7), currentStep + 1);
+
+    displaySteps.forEach((step, i) => {
+        const y = canvas.height - 160 + i * 20;
+        const isLatest = i === displaySteps.length - 1;
+
+        // Background for latest step
+        if (isLatest) {
+            ctx.fillStyle = 'rgba(255, 255, 0, 0.2)';
+            ctx.fillRect(15, y - 12, 290, 18);
+        }
+
+        // Match indicator
+        ctx.fillStyle = step.isMatch ? 'rgba(0, 255, 0, 1)' : 'rgba(255, 0, 0, 1)';
+        ctx.fillText(step.isMatch ? '✓' : '✗', 20, y);
+
+        // Template name and similarity
+        ctx.fillStyle = 'white';
+        const text = `${step.templateName.slice(0, 15).padEnd(15)} ${(step.similarity * 100).toFixed(1)}%`;
+        ctx.fillText(text, 40, y);
+    });
+
+    // Progress indicator
+    ctx.fillStyle = 'rgba(100, 100, 255, 1)';
+    ctx.fillText(`Step ${currentStep + 1}/${steps.length}`, 220, canvas.height - 180);
+}
+
+/**
+ * Render side-by-side strategy comparison
+ * Compares results from different CV strategies
+ */
+export interface StrategyResult {
+    strategyName: string;
+    detections: CVDetectionResult[];
+    processingTime: number;
+    accuracy?: number;
+}
+
+export async function renderStrategyComparison(
+    canvas: HTMLCanvasElement,
+    imageDataUrl: string,
+    results: StrategyResult[]
+): Promise<void> {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Load image
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+        const image = new Image();
+        image.onload = () => resolve(image);
+        image.onerror = () => reject(new Error('Failed to load image'));
+        image.src = imageDataUrl;
+    });
+
+    // Calculate layout
+    const numStrategies = results.length;
+    const colWidth = Math.floor(img.width / numStrategies);
+    canvas.width = img.width;
+    canvas.height = img.height + 80; // Extra space for labels
+
+    // Draw comparison panel
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.fillRect(0, 0, canvas.width, 80);
+
+    // Draw header
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 16px monospace';
+    ctx.fillText('Strategy Comparison', 10, 25);
+
+    results.forEach((result, index) => {
+        const x = index * colWidth;
+
+        // Draw strategy header
+        ctx.fillStyle = 'rgba(50, 50, 50, 1)';
+        ctx.fillRect(x, 35, colWidth - 5, 40);
+
+        ctx.fillStyle = 'white';
+        ctx.font = '12px monospace';
+        ctx.fillText(result.strategyName, x + 5, 52);
+        ctx.fillText(`${result.detections.length} items | ${result.processingTime}ms`, x + 5, 68);
+
+        // Draw image section
+        ctx.drawImage(img, x, 80, colWidth, img.height);
+
+        // Draw detections for this strategy
+        result.detections.forEach(detection => {
+            if (!detection.position) return;
+
+            const pos = detection.position;
+            const confidence = detection.confidence;
+
+            const color =
+                confidence >= 0.85
+                    ? 'rgba(0, 255, 0, 0.8)'
+                    : confidence >= 0.7
+                      ? 'rgba(255, 165, 0, 0.8)'
+                      : 'rgba(255, 0, 0, 0.8)';
+
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.strokeRect(
+                x + (pos.x * colWidth) / img.width,
+                80 + pos.y,
+                (pos.width * colWidth) / img.width,
+                pos.height
+            );
+        });
+
+        // Draw separator
+        if (index < numStrategies - 1) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x + colWidth - 2, 80);
+            ctx.lineTo(x + colWidth - 2, canvas.height);
+            ctx.stroke();
+        }
+    });
+}
+
+/**
+ * Render confidence distribution histogram
+ */
+export function renderConfidenceHistogram(
+    canvas: HTMLCanvasElement,
+    detections: CVDetectionResult[],
+    threshold: number = 0.7
+): void {
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Calculate histogram bins
+    const bins = Array(10).fill(0);
+    detections.forEach(d => {
+        const bin = Math.min(9, Math.floor(d.confidence * 10));
+        bins[bin]++;
+    });
+
+    const maxCount = Math.max(...bins, 1);
+
+    // Draw histogram panel
+    const panelX = canvas.width - 210;
+    const panelY = canvas.height - 120;
+    const panelWidth = 200;
+    const panelHeight = 110;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+    ctx.fillRect(panelX, panelY, panelWidth, panelHeight);
+
+    // Title
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 12px monospace';
+    ctx.fillText('Confidence Distribution', panelX + 10, panelY + 15);
+
+    // Draw bars
+    const barWidth = 15;
+    const barStartX = panelX + 20;
+    const barMaxHeight = 60;
+
+    bins.forEach((count, i) => {
+        const x = barStartX + i * (barWidth + 4);
+        const height = (count / maxCount) * barMaxHeight;
+        const y = panelY + 90 - height;
+
+        // Bar color based on bin
+        const confidence = (i + 0.5) / 10;
+        ctx.fillStyle =
+            confidence >= 0.85
+                ? 'rgba(0, 255, 0, 0.8)'
+                : confidence >= 0.7
+                  ? 'rgba(255, 165, 0, 0.8)'
+                  : 'rgba(255, 0, 0, 0.8)';
+
+        ctx.fillRect(x, y, barWidth, height);
+
+        // Count label
+        if (count > 0) {
+            ctx.fillStyle = 'white';
+            ctx.font = '9px monospace';
+            ctx.fillText(String(count), x + 2, y - 2);
+        }
+    });
+
+    // Threshold line
+    const thresholdX = barStartX + threshold * 10 * (barWidth + 4);
+    ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)';
+    ctx.setLineDash([3, 3]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(thresholdX, panelY + 25);
+    ctx.lineTo(thresholdX, panelY + 95);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // X-axis labels
+    ctx.fillStyle = 'rgba(150, 150, 150, 1)';
+    ctx.font = '9px monospace';
+    ctx.fillText('0%', barStartX - 5, panelY + 103);
+    ctx.fillText('100%', barStartX + 155, panelY + 103);
+}
