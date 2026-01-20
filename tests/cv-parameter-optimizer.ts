@@ -348,6 +348,13 @@ let currentParams = new Map<string, number>();
 // Initialize with baseline values
 PARAMETERS.forEach(p => currentParams.set(p.name, p.baseline));
 
+/** Clear template caches to free memory */
+function clearTemplateCache(): void {
+    templateCache.clear();
+    templatesByRarity.clear();
+    templatesByColor.clear();
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -703,6 +710,12 @@ async function runDetection(imagePath: string): Promise<Detection[]> {
     // Scan hotbar region (bottom 20%)
     const startY = Math.floor(image.height * 0.8);
 
+    // MEMORY FIX: Reuse a single temp canvas instead of creating one per template
+    // This prevents thousands of canvas allocations that cause OOM
+    let tempCanvas: any = null;
+    let tempCtx: any = null;
+    let lastRegionSize = 0;
+
     for (let y = startY; y <= image.height - iconSize; y += stepSize) {
         for (let x = 0; x <= image.width - iconSize; x += stepSize) {
             const cellData = ctx.getImageData(x, y, iconSize, iconSize);
@@ -735,16 +748,23 @@ async function runDetection(imagePath: string): Promise<Detection[]> {
 
             const templatesToCheck = candidates.length > 0 ? candidates : Array.from(templateCache.values()).slice(0, 30);
 
+            // MEMORY FIX: Create temp canvas only when size changes
+            if (regionSize !== lastRegionSize) {
+                tempCanvas = createCanvas(regionSize, regionSize);
+                tempCtx = tempCanvas.getContext('2d');
+                lastRegionSize = regionSize;
+            }
+
             // Find best match
             let bestMatch: { template: TemplateData; similarity: number } | null = null;
 
             for (const template of templatesToCheck) {
-                // Resize template to match cell
+                // Resize template to match cell - REUSE temp canvas
                 const tMargin = Math.round(template.width * templateMarginPct);
                 const tSize = template.width - tMargin * 2;
 
-                const tempCanvas = createCanvas(regionSize, regionSize);
-                const tempCtx = tempCanvas.getContext('2d');
+                // Clear and reuse the temp canvas
+                tempCtx.clearRect(0, 0, regionSize, regionSize);
                 tempCtx.drawImage(
                     template.canvas,
                     tMargin, tMargin, tSize, tSize,
@@ -1140,18 +1160,74 @@ async function main(): Promise<void> {
     console.log('🔬 Running sensitivity analysis for all parameters...');
     console.log('   This tests each parameter across its full range.\n');
 
-    const analyses = await runSensitivityAnalysis(testCases);
-
-    // Collect all individual test results
-    const allResults: TestResult[] = [];
-
+    // Get baseline performance first
     resetToBaseline();
     const baselineMetrics = await runTestWithParams(testCases);
+    const baselineF1 = baselineMetrics.f1;
+
+    console.log(`\n📊 Baseline F1: ${(baselineF1 * 100).toFixed(2)}%\n`);
+
+    // Collect all individual test results AND build analyses in ONE pass
+    // (Previously this was running twice - once in runSensitivityAnalysis, once in a separate loop)
+    const allResults: TestResult[] = [];
+    const analyses: SensitivityAnalysis[] = [];
 
     for (const param of PARAMETERS) {
-        const results = await testParameter(param, testCases, baselineMetrics.f1);
+        process.stdout.write(`  Testing ${param.name}... `);
+
+        const results = await testParameter(param, testCases, baselineF1);
         allResults.push(...results);
+
+        // Calculate statistics for sensitivity analysis
+        const f1Values = results.map(r => r.f1Score);
+        const maxF1 = Math.max(...f1Values);
+        const minF1 = Math.min(...f1Values);
+        const f1Range = maxF1 - minF1;
+
+        // Calculate standard deviation (impact score)
+        const mean = f1Values.reduce((a, b) => a + b, 0) / f1Values.length;
+        const variance = f1Values.reduce((sum, val) => sum + Math.pow(val - mean, 2), 0) / f1Values.length;
+        const stdDev = Math.sqrt(variance);
+
+        // Find optimal value
+        const optimalResult = results.reduce((best, r) => r.f1Score > best.f1Score ? r : best);
+
+        // Generate recommendation
+        let recommendation = '';
+        if (optimalResult.value === param.baseline) {
+            recommendation = 'Baseline is optimal';
+        } else if (optimalResult.percentImprovement > 5) {
+            recommendation = `Change to ${optimalResult.value} for +${optimalResult.percentImprovement.toFixed(1)}% improvement`;
+        } else if (optimalResult.percentImprovement > 0) {
+            recommendation = `Minor improvement with ${optimalResult.value} (+${optimalResult.percentImprovement.toFixed(1)}%)`;
+        } else {
+            recommendation = 'No improvement found';
+        }
+
+        analyses.push({
+            parameter: param.name,
+            category: param.category,
+            impactScore: stdDev,
+            optimalValue: optimalResult.value,
+            baselineValue: param.baseline,
+            maxF1,
+            minF1,
+            f1Range,
+            recommendation,
+            rank: 0, // Will be set later
+        });
+
+        console.log(`done (impact: ${(stdDev * 100).toFixed(2)})`);
+
+        // Help garbage collector between parameter tests
+        if (global.gc) {
+            global.gc();
+        }
     }
+
+    // Rank by impact score
+    analyses.sort((a, b) => b.impactScore - a.impactScore);
+    analyses.forEach((a, i) => a.rank = i + 1);
 
     // Generate outputs
     const outputDir = path.join(__dirname, 'cv-optimization-results');
@@ -1234,6 +1310,10 @@ async function main(): Promise<void> {
         console.log('   Individual parameters may interact negatively.');
         console.log('   Consider applying only the top improvements.');
     }
+
+    // MEMORY FIX: Clean up template cache to free memory
+    clearTemplateCache();
+    console.log('\n🧹 Cleaned up template cache');
 }
 
 // Run if executed directly
