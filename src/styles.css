@@ -5413,6 +5413,61 @@ button.breakpoint-card {
     background: rgba(255, 255, 255, 0.3);
 }
 
+/* Debug Panel Mobile Responsive */
+@media (max-width: 768px) {
+    .debug-options-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .debug-stats {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .debug-actions {
+        flex-direction: column;
+    }
+
+    .debug-action-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    .debug-action-download {
+        margin-left: 0;
+    }
+
+    .debug-log-viewer {
+        height: 100px;
+        font-size: 0.7rem;
+    }
+
+    .debug-panel-content {
+        padding: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .debug-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .debug-stat {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .debug-section-title {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+
+    .debug-log-filter {
+        width: 100%;
+    }
+}
+
 /* Image Preview */
 .scan-image-preview {
     margin-bottom: 2rem;

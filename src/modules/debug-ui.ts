@@ -17,6 +17,7 @@ import {
     exportLogs,
     downloadDebugImage,
 } from './image-recognition-debug';
+import { logger } from './logger';
 
 import type { DebugLogEntry } from '../types/computer-vision';
 
@@ -27,6 +28,7 @@ import type { DebugLogEntry } from '../types/computer-vision';
 let isExpanded = false;
 let currentLogFilter: string = 'all';
 let lastOverlayUrl: string | null = null;
+let updateIntervalId: number | null = null;
 
 // ========================================
 // Initialization
@@ -42,6 +44,16 @@ export function initDebugPanel(): void {
     const panelContent = document.getElementById('debug-panel-content');
 
     if (!panel || !expandBtn || !debugModeCheckbox || !panelContent) {
+        logger.warn({
+            operation: 'debug_ui.init',
+            data: {
+                reason: 'missing_elements',
+                hasPanel: !!panel,
+                hasExpandBtn: !!expandBtn,
+                hasCheckbox: !!debugModeCheckbox,
+                hasContent: !!panelContent,
+            },
+        });
         return;
     }
 
@@ -73,12 +85,25 @@ export function initDebugPanel(): void {
     initActionButtons();
 
     // Update stats periodically when panel is visible
-    setInterval(() => {
+    // Store interval ID for cleanup
+    updateIntervalId = window.setInterval(() => {
         if (isExpanded) {
             updateStats();
             updateLogViewer();
         }
     }, 1000);
+}
+
+/**
+ * Cleanup debug panel resources
+ */
+export function cleanupDebugPanel(): void {
+    if (updateIntervalId !== null) {
+        clearInterval(updateIntervalId);
+        updateIntervalId = null;
+    }
+    isExpanded = false;
+    lastOverlayUrl = null;
 }
 
 /**
@@ -215,9 +240,9 @@ function formatLogEntry(log: DebugLogEntry): string {
     });
 
     return `
-        <div class="debug-log-entry ${log.level}">
+        <div class="debug-log-entry ${escapeHtml(log.level)}">
             <span class="debug-log-time">${time}</span>
-            <span class="debug-log-category">${log.category}</span>
+            <span class="debug-log-category">${escapeHtml(log.category)}</span>
             <span class="debug-log-message">${escapeHtml(log.message)}</span>
         </div>
     `;
