@@ -12,6 +12,9 @@ import {
     isTemplatesLoaded,
     isPriorityTemplatesLoaded,
     getDetectionCache,
+    getResizedTemplate,
+    setResizedTemplate,
+    getResizedTemplateCacheSize,
     getCacheCleanupTimer,
     setAllData,
     setTemplatesLoaded,
@@ -507,6 +510,103 @@ describe('CV State Module', () => {
             });
 
             expect(cache.get('empty_detection')?.results).toEqual([]);
+        });
+    });
+
+    // ========================================
+    // Resized Template Cache Tests
+    // ========================================
+    describe('Resized Template Cache', () => {
+        // Helper to create mock ImageData (jsdom doesn't have full ImageData support)
+        const createMockImageData = (width: number, height: number) => ({
+            width,
+            height,
+            data: new Uint8ClampedArray(width * height * 4),
+        }) as unknown as ImageData;
+
+        it('should return undefined for non-existent template', () => {
+            const result = getResizedTemplate('nonexistent', 100, 100);
+            expect(result).toBeUndefined();
+        });
+
+        it('should set and get resized template', () => {
+            const mockImageData = createMockImageData(50, 50);
+            setResizedTemplate('item1', 50, 50, mockImageData);
+
+            const result = getResizedTemplate('item1', 50, 50);
+            expect(result).toBe(mockImageData);
+        });
+
+        it('should use composite key with templateId and dimensions', () => {
+            const mockImageData1 = createMockImageData(50, 50);
+            const mockImageData2 = createMockImageData(100, 100);
+
+            setResizedTemplate('item1', 50, 50, mockImageData1);
+            setResizedTemplate('item1', 100, 100, mockImageData2);
+
+            expect(getResizedTemplate('item1', 50, 50)).toBe(mockImageData1);
+            expect(getResizedTemplate('item1', 100, 100)).toBe(mockImageData2);
+        });
+
+        it('should report correct cache size', () => {
+            expect(getResizedTemplateCacheSize()).toBe(0);
+
+            setResizedTemplate('item1', 50, 50, createMockImageData(1, 1));
+            expect(getResizedTemplateCacheSize()).toBe(1);
+
+            setResizedTemplate('item2', 50, 50, createMockImageData(1, 1));
+            expect(getResizedTemplateCacheSize()).toBe(2);
+        });
+
+        it('should evict oldest entry when cache exceeds 500 entries', () => {
+            // Fill cache to max (500)
+            for (let i = 0; i < 500; i++) {
+                setResizedTemplate(`item${i}`, 50, 50, createMockImageData(1, 1));
+            }
+            expect(getResizedTemplateCacheSize()).toBe(500);
+
+            // Add one more - should evict oldest (item0)
+            setResizedTemplate('newItem', 50, 50, createMockImageData(1, 1));
+
+            expect(getResizedTemplateCacheSize()).toBe(500);
+            expect(getResizedTemplate('item0', 50, 50)).toBeUndefined();
+            expect(getResizedTemplate('newItem', 50, 50)).toBeDefined();
+        });
+
+        it('should handle different dimensions for same template', () => {
+            const small = createMockImageData(32, 32);
+            const medium = createMockImageData(64, 64);
+            const large = createMockImageData(128, 128);
+
+            setResizedTemplate('sword', 32, 32, small);
+            setResizedTemplate('sword', 64, 64, medium);
+            setResizedTemplate('sword', 128, 128, large);
+
+            expect(getResizedTemplateCacheSize()).toBe(3);
+            expect(getResizedTemplate('sword', 32, 32)).toBe(small);
+            expect(getResizedTemplate('sword', 64, 64)).toBe(medium);
+            expect(getResizedTemplate('sword', 128, 128)).toBe(large);
+        });
+
+        it('should overwrite existing entry with same key', () => {
+            const original = createMockImageData(50, 50);
+            const updated = createMockImageData(50, 50);
+
+            setResizedTemplate('item1', 50, 50, original);
+            setResizedTemplate('item1', 50, 50, updated);
+
+            expect(getResizedTemplateCacheSize()).toBe(1);
+            expect(getResizedTemplate('item1', 50, 50)).toBe(updated);
+        });
+
+        it('should be cleared by resetState', () => {
+            setResizedTemplate('item1', 50, 50, createMockImageData(1, 1));
+            setResizedTemplate('item2', 50, 50, createMockImageData(1, 1));
+
+            resetState();
+
+            expect(getResizedTemplateCacheSize()).toBe(0);
+            expect(getResizedTemplate('item1', 50, 50)).toBeUndefined();
         });
     });
 });
