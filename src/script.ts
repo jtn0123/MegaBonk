@@ -25,6 +25,7 @@ import { setupOfflineListeners } from './modules/offline-ui.ts';
 import { scheduleModulePreload } from './modules/events.ts';
 import { initMobileNav, injectMoreMenuStyles } from './modules/mobile-nav.ts';
 import { initRecentlyViewed } from './modules/recently-viewed.ts';
+import { initDebugPanel } from './modules/debug-ui.ts';
 // Note: Tab-specific modules (advisor, build-planner, calculator, changelog) are now lazy-loaded
 // via the tab-loader module when their tabs are first accessed
 // Core modules that may be needed across multiple contexts are still eagerly loaded:
@@ -361,6 +362,15 @@ async function init(): Promise<void> {
         'recently-viewed',
         async () => {
             initRecentlyViewed();
+        },
+        { required: false }
+    );
+
+    // Initialize debug panel UI (non-critical)
+    await safeModuleInit(
+        'debug-panel',
+        async () => {
+            initDebugPanel();
         },
         { required: false }
     );

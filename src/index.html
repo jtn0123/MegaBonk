@@ -512,11 +512,123 @@
                                         🎯 Hybrid: OCR + CV (Phase 3)
                                     </button>
                                 </div>
-                                <div class="scan-debug-toggle">
-                                    <label>
-                                        <input type="checkbox" id="scan-debug-mode" />
-                                        🐛 Debug Mode (show detection overlay)
-                                    </label>
+                                <!-- Debug Panel -->
+                                <div class="debug-panel" id="debug-panel">
+                                    <div class="debug-panel-header" id="debug-panel-header">
+                                        <label class="debug-toggle-main">
+                                            <input type="checkbox" id="scan-debug-mode" />
+                                            <span class="debug-toggle-text">Debug Mode</span>
+                                        </label>
+                                        <button
+                                            class="debug-expand-btn"
+                                            id="debug-expand-btn"
+                                            title="Expand debug options"
+                                        >
+                                            <span class="debug-expand-icon">+</span>
+                                        </button>
+                                    </div>
+                                    <div class="debug-panel-content" id="debug-panel-content" style="display: none">
+                                        <!-- Overlay Options -->
+                                        <div class="debug-section">
+                                            <h5 class="debug-section-title">Overlay Options</h5>
+                                            <div class="debug-options-grid">
+                                                <label class="debug-option">
+                                                    <input type="checkbox" id="debug-show-regions" checked />
+                                                    <span>Region Bounds</span>
+                                                </label>
+                                                <label class="debug-option">
+                                                    <input type="checkbox" id="debug-show-slots" checked />
+                                                    <span>Slot Grid</span>
+                                                </label>
+                                                <label class="debug-option">
+                                                    <input type="checkbox" id="debug-show-labels" checked />
+                                                    <span>Confidence Labels</span>
+                                                </label>
+                                                <label class="debug-option">
+                                                    <input type="checkbox" id="debug-show-detections" checked />
+                                                    <span>Detection Boxes</span>
+                                                </label>
+                                                <label class="debug-option">
+                                                    <input type="checkbox" id="debug-show-heatmap" />
+                                                    <span>Variance Heatmap</span>
+                                                </label>
+                                                <label class="debug-option">
+                                                    <input type="checkbox" id="debug-show-colors" />
+                                                    <span>Dominant Colors</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <!-- Stats Section -->
+                                        <div class="debug-section">
+                                            <h5 class="debug-section-title">Detection Statistics</h5>
+                                            <div class="debug-stats" id="debug-stats">
+                                                <div class="debug-stat">
+                                                    <span class="debug-stat-label">Total Detections</span>
+                                                    <span class="debug-stat-value" id="debug-stat-total">0</span>
+                                                </div>
+                                                <div class="debug-stat">
+                                                    <span class="debug-stat-label">Avg Confidence</span>
+                                                    <span class="debug-stat-value" id="debug-stat-confidence">-</span>
+                                                </div>
+                                                <div class="debug-stat">
+                                                    <span class="debug-stat-label">Avg Time</span>
+                                                    <span class="debug-stat-value" id="debug-stat-time">-</span>
+                                                </div>
+                                                <div class="debug-stat">
+                                                    <span class="debug-stat-label">Cache Hits</span>
+                                                    <span class="debug-stat-value" id="debug-stat-cache">0/0</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- Log Viewer -->
+                                        <div class="debug-section">
+                                            <h5 class="debug-section-title">
+                                                Debug Logs
+                                                <select id="debug-log-filter" class="debug-log-filter">
+                                                    <option value="all">All</option>
+                                                    <option value="error">Errors</option>
+                                                    <option value="warn">Warnings</option>
+                                                    <option value="info">Info</option>
+                                                    <option value="debug">Debug</option>
+                                                </select>
+                                            </h5>
+                                            <div class="debug-log-viewer" id="debug-log-viewer">
+                                                <p class="debug-log-empty">No logs yet. Run a detection to see logs.</p>
+                                            </div>
+                                        </div>
+                                        <!-- Actions -->
+                                        <div class="debug-actions">
+                                            <button
+                                                class="debug-action-btn"
+                                                id="debug-export-logs"
+                                                title="Export logs as JSON"
+                                            >
+                                                Export Logs
+                                            </button>
+                                            <button
+                                                class="debug-action-btn"
+                                                id="debug-clear-logs"
+                                                title="Clear all logs"
+                                            >
+                                                Clear Logs
+                                            </button>
+                                            <button
+                                                class="debug-action-btn"
+                                                id="debug-reset-stats"
+                                                title="Reset statistics"
+                                            >
+                                                Reset Stats
+                                            </button>
+                                            <button
+                                                class="debug-action-btn debug-action-download"
+                                                id="debug-download-overlay"
+                                                title="Download current overlay"
+                                                disabled
+                                            >
+                                                Download Overlay
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                                 <p class="scan-hint">
                                     <strong>OCR</strong>: Text recognition only. <strong>Hybrid</strong>: Text + visual
