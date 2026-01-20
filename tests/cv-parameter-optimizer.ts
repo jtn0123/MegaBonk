@@ -608,7 +608,7 @@ async function loadTemplates(): Promise<void> {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function loadTestCases(): TestCase[] {
-    const gtPath = path.join(__dirname, 'test-images/gameplay/ground-truth.json');
+    const gtPath = path.join(__dirname, '../test-images/gameplay/ground-truth.json');
 
     if (!fs.existsSync(gtPath)) {
         console.warn('⚠️  Ground truth not found. Creating sample...');
@@ -626,7 +626,7 @@ function loadTestCases(): TestCase[] {
     for (const [filename, data] of Object.entries(gtData)) {
         if (filename.startsWith('_')) continue; // Skip metadata
 
-        const imagePath = path.join(__dirname, 'test-images/gameplay', filename);
+        const imagePath = path.join(__dirname, '../test-images/gameplay', filename);
         if (!fs.existsSync(imagePath)) {
             console.warn(`⚠️  Image not found: ${filename}`);
             continue;
@@ -644,7 +644,7 @@ function loadTestCases(): TestCase[] {
 }
 
 function createSampleGroundTruth(): void {
-    const gtDir = path.join(__dirname, 'test-images/gameplay');
+    const gtDir = path.join(__dirname, '../test-images/gameplay');
     if (!fs.existsSync(gtDir)) {
         fs.mkdirSync(gtDir, { recursive: true });
     }

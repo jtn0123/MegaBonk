@@ -182,7 +182,7 @@ async function loadTemplates(): Promise<void> {
 }
 
 function loadTestCases(): TestCase[] {
-    const gtPath = path.join(__dirname, 'test-images/gameplay/ground-truth.json');
+    const gtPath = path.join(__dirname, '../test-images/gameplay/ground-truth.json');
     if (!fs.existsSync(gtPath)) return [];
 
     const gtData = JSON.parse(fs.readFileSync(gtPath, 'utf-8'));
@@ -190,7 +190,7 @@ function loadTestCases(): TestCase[] {
 
     for (const [filename, data] of Object.entries(gtData)) {
         if (filename.startsWith('_')) continue;
-        const imagePath = path.join(__dirname, 'test-images/gameplay', filename);
+        const imagePath = path.join(__dirname, '../test-images/gameplay', filename);
         if (!fs.existsSync(imagePath)) continue;
 
         testCases.push({
