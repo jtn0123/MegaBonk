@@ -44,6 +44,9 @@ ios/App/App.xcodeproj/xcuserdata/
 playwright-report/
 test-results/
 
+# CV optimization results (generated)
+tests/cv-optimization-results/
+
 # Misc
 *.bak
 *.tmp
