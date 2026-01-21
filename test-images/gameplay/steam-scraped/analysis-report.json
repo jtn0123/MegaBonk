@@ -1,165 +1,36 @@
 {
-  "_generated": "2026-01-20T01:42:43.987Z",
-  "_inputDir": "test-images/gameplay/steam-community",
-  "_threshold": 70,
+  "_generated": "2026-01-21T05:15:53.207Z",
+  "_inputDir": "test-images/gameplay/steam-scraped",
+  "_threshold": 50,
   "summary": {
-    "total": 15,
-    "useful": 15,
+    "total": 10,
+    "useful": 10,
     "maybe": 0,
     "notUseful": 0,
-    "avgScore": 84
+    "avgScore": 95
   },
   "results": [
     {
-      "filename": "level_21_english_desert_scorpion.jpg",
-      "filepath": "test-images/gameplay/steam-community/level_21_english_desert_scorpion.jpg",
-      "metadata": {
-        "width": 1920,
-        "height": 1080,
-        "format": "jpeg",
-        "size": 244108
-      },
-      "scores": {
-        "resolution": 100,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 85
-      },
-      "classification": "useful",
-      "reasons": [
-        "Good resolution for CV training",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_01.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_01.jpg",
-      "metadata": {
-        "width": 1920,
-        "height": 1080,
-        "format": "jpeg",
-        "size": 518656
-      },
-      "scores": {
-        "resolution": 100,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 85
-      },
-      "classification": "useful",
-      "reasons": [
-        "Good resolution for CV training",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_02.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_02.jpg",
-      "metadata": {
-        "width": 1920,
-        "height": 1080,
-        "format": "jpeg",
-        "size": 388885
-      },
-      "scores": {
-        "resolution": 100,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 85
-      },
-      "classification": "useful",
-      "reasons": [
-        "Good resolution for CV training",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_03.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_03.jpg",
-      "metadata": {
-        "width": 1920,
-        "height": 1080,
-        "format": "jpeg",
-        "size": 574224
-      },
-      "scores": {
-        "resolution": 100,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 85
-      },
-      "classification": "useful",
-      "reasons": [
-        "Good resolution for CV training",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_04.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_04.jpg",
-      "metadata": {
-        "width": 1920,
-        "height": 1080,
-        "format": "jpeg",
-        "size": 118118
-      },
-      "scores": {
-        "resolution": 100,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 85
-      },
-      "classification": "useful",
-      "reasons": [
-        "Good resolution for CV training",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_05.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_05.jpg",
+      "filename": "steam_10054997231995129950.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_10054997231995129950.jpg",
       "metadata": {
         "width": 2560,
         "height": 1440,
         "format": "jpeg",
-        "size": 630079
+        "size": 607544,
+        "channels": 3
       },
       "scores": {
         "resolution": 100,
         "fileSize": 100,
-        "colorSignature": 50,
+        "colorSignature": 85,
         "aspectRatio": 100,
-        "overall": 85
+        "overall": 96
       },
       "classification": "useful",
       "reasons": [
         "Good resolution for CV training",
-        "Color profile partially matches game UI",
+        "Color profile matches MegaBonk UI",
         "Standard gaming aspect ratio"
       ],
       "recommendations": [
@@ -167,77 +38,26 @@
       ]
     },
     {
-      "filename": "steam_06.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_06.jpg",
-      "metadata": {
-        "width": 2560,
-        "height": 1440,
-        "format": "jpeg",
-        "size": 444259
-      },
-      "scores": {
-        "resolution": 100,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 85
-      },
-      "classification": "useful",
-      "reasons": [
-        "Good resolution for CV training",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_14.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_14.jpg",
-      "metadata": {
-        "width": 2560,
-        "height": 1440,
-        "format": "jpeg",
-        "size": 607544
-      },
-      "scores": {
-        "resolution": 100,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 85
-      },
-      "classification": "useful",
-      "reasons": [
-        "Good resolution for CV training",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_15.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_15.jpg",
+      "filename": "steam_11493720234964072616.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_11493720234964072616.jpg",
       "metadata": {
         "width": 1920,
         "height": 1080,
         "format": "jpeg",
-        "size": 484969
+        "size": 388885,
+        "channels": 3
       },
       "scores": {
         "resolution": 100,
         "fileSize": 100,
-        "colorSignature": 50,
+        "colorSignature": 85,
         "aspectRatio": 100,
-        "overall": 85
+        "overall": 96
       },
       "classification": "useful",
       "reasons": [
         "Good resolution for CV training",
-        "Color profile partially matches game UI",
+        "Color profile matches MegaBonk UI",
         "Standard gaming aspect ratio"
       ],
       "recommendations": [
@@ -245,25 +65,134 @@
       ]
     },
     {
-      "filename": "steam_16.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_16.jpg",
+      "filename": "steam_14131923761587241307.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_14131923761587241307.jpg",
+      "metadata": {
+        "width": 1920,
+        "height": 1080,
+        "format": "jpeg",
+        "size": 264795,
+        "channels": 3
+      },
+      "scores": {
+        "resolution": 100,
+        "fileSize": 100,
+        "colorSignature": 85,
+        "aspectRatio": 100,
+        "overall": 96
+      },
+      "classification": "useful",
+      "reasons": [
+        "Good resolution for CV training",
+        "Color profile matches MegaBonk UI",
+        "Standard gaming aspect ratio"
+      ],
+      "recommendations": [
+        "Add ground truth labels for CV training"
+      ]
+    },
+    {
+      "filename": "steam_14487114544377495734.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_14487114544377495734.jpg",
+      "metadata": {
+        "width": 1920,
+        "height": 1080,
+        "format": "jpeg",
+        "size": 381917,
+        "channels": 3
+      },
+      "scores": {
+        "resolution": 100,
+        "fileSize": 100,
+        "colorSignature": 85,
+        "aspectRatio": 100,
+        "overall": 96
+      },
+      "classification": "useful",
+      "reasons": [
+        "Good resolution for CV training",
+        "Color profile matches MegaBonk UI",
+        "Standard gaming aspect ratio"
+      ],
+      "recommendations": [
+        "Add ground truth labels for CV training"
+      ]
+    },
+    {
+      "filename": "steam_18445750024608086701.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_18445750024608086701.jpg",
+      "metadata": {
+        "width": 1920,
+        "height": 1080,
+        "format": "jpeg",
+        "size": 444257,
+        "channels": 3
+      },
+      "scores": {
+        "resolution": 100,
+        "fileSize": 100,
+        "colorSignature": 85,
+        "aspectRatio": 100,
+        "overall": 96
+      },
+      "classification": "useful",
+      "reasons": [
+        "Good resolution for CV training",
+        "Color profile matches MegaBonk UI",
+        "Standard gaming aspect ratio"
+      ],
+      "recommendations": [
+        "Add ground truth labels for CV training"
+      ]
+    },
+    {
+      "filename": "steam_9355034870308950583_.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_9355034870308950583_.jpg",
+      "metadata": {
+        "width": 2560,
+        "height": 1440,
+        "format": "jpeg",
+        "size": 626472,
+        "channels": 3
+      },
+      "scores": {
+        "resolution": 100,
+        "fileSize": 100,
+        "colorSignature": 85,
+        "aspectRatio": 100,
+        "overall": 96
+      },
+      "classification": "useful",
+      "reasons": [
+        "Good resolution for CV training",
+        "Color profile matches MegaBonk UI",
+        "Standard gaming aspect ratio"
+      ],
+      "recommendations": [
+        "Add ground truth labels for CV training"
+      ]
+    },
+    {
+      "filename": "steam_9381005897045907385_.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_9381005897045907385_.jpg",
       "metadata": {
         "width": 3840,
         "height": 2160,
         "format": "jpeg",
-        "size": 685343
+        "size": 685343,
+        "channels": 3
       },
       "scores": {
         "resolution": 100,
         "fileSize": 100,
-        "colorSignature": 50,
+        "colorSignature": 85,
         "aspectRatio": 100,
-        "overall": 85
+        "overall": 96
       },
       "classification": "useful",
       "reasons": [
         "Good resolution for CV training",
-        "Color profile partially matches game UI",
+        "Color profile matches MegaBonk UI",
         "Standard gaming aspect ratio"
       ],
       "recommendations": [
@@ -271,134 +200,83 @@
       ]
     },
     {
-      "filename": "steam_19.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_19.jpg",
+      "filename": "steam_12273182537323076385.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_12273182537323076385.jpg",
+      "metadata": {
+        "width": 2880,
+        "height": 1800,
+        "format": "jpeg",
+        "size": 663686,
+        "channels": 3
+      },
+      "scores": {
+        "resolution": 100,
+        "fileSize": 100,
+        "colorSignature": 85,
+        "aspectRatio": 90,
+        "overall": 94
+      },
+      "classification": "useful",
+      "reasons": [
+        "Good resolution for CV training",
+        "Color profile matches MegaBonk UI",
+        "Standard gaming aspect ratio"
+      ],
+      "recommendations": [
+        "Add ground truth labels for CV training"
+      ]
+    },
+    {
+      "filename": "steam_13743481476952109613.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_13743481476952109613.jpg",
+      "metadata": {
+        "width": 2880,
+        "height": 1800,
+        "format": "jpeg",
+        "size": 645645,
+        "channels": 3
+      },
+      "scores": {
+        "resolution": 100,
+        "fileSize": 100,
+        "colorSignature": 85,
+        "aspectRatio": 90,
+        "overall": 94
+      },
+      "classification": "useful",
+      "reasons": [
+        "Good resolution for CV training",
+        "Color profile matches MegaBonk UI",
+        "Standard gaming aspect ratio"
+      ],
+      "recommendations": [
+        "Add ground truth labels for CV training"
+      ]
+    },
+    {
+      "filename": "steam_14175018221761753451.jpg",
+      "filepath": "test-images/gameplay/steam-scraped/steam_14175018221761753451.jpg",
       "metadata": {
         "width": 2560,
         "height": 1440,
         "format": "jpeg",
-        "size": 572356
+        "size": 591987,
+        "channels": 3
       },
       "scores": {
         "resolution": 100,
         "fileSize": 100,
-        "colorSignature": 50,
+        "colorSignature": 75,
         "aspectRatio": 100,
-        "overall": 85
+        "overall": 93
       },
       "classification": "useful",
       "reasons": [
         "Good resolution for CV training",
-        "Color profile partially matches game UI",
+        "Color profile matches MegaBonk UI",
         "Standard gaming aspect ratio"
       ],
       "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_21.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_21.jpg",
-      "metadata": {
-        "width": 1920,
-        "height": 1080,
-        "format": "jpeg",
-        "size": 364540
-      },
-      "scores": {
-        "resolution": 100,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 85
-      },
-      "classification": "useful",
-      "reasons": [
-        "Good resolution for CV training",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_22.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_22.jpg",
-      "metadata": {
-        "width": 1920,
-        "height": 1080,
-        "format": "jpeg",
-        "size": 433743
-      },
-      "scores": {
-        "resolution": 100,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 85
-      },
-      "classification": "useful",
-      "reasons": [
-        "Good resolution for CV training",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_23.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_23.jpg",
-      "metadata": {
-        "width": 1366,
-        "height": 768,
-        "format": "jpeg",
-        "size": 230765
-      },
-      "scores": {
-        "resolution": 71,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 100,
-        "overall": 76
-      },
-      "classification": "useful",
-      "reasons": [
-        "Acceptable resolution",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Higher resolution images preferred",
-        "Add ground truth labels for CV training"
-      ]
-    },
-    {
-      "filename": "steam_24.jpg",
-      "filepath": "test-images/gameplay/steam-community/steam_24.jpg",
-      "metadata": {
-        "width": 1280,
-        "height": 800,
-        "format": "jpeg",
-        "size": 196725
-      },
-      "scores": {
-        "resolution": 70,
-        "fileSize": 100,
-        "colorSignature": 50,
-        "aspectRatio": 90,
-        "overall": 74
-      },
-      "classification": "useful",
-      "reasons": [
-        "Acceptable resolution",
-        "Color profile partially matches game UI",
-        "Standard gaming aspect ratio"
-      ],
-      "recommendations": [
-        "Higher resolution images preferred",
         "Add ground truth labels for CV training"
       ]
     }
