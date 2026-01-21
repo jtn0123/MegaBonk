@@ -163,7 +163,11 @@ export function drawModalOverlay() {
 
             // Different styling based on state
             if (correction) {
-                ctx.strokeStyle = '#06b6d4';
+                if (correction.verified) {
+                    ctx.strokeStyle = '#4ade80';
+                } else {
+                    ctx.strokeStyle = '#06b6d4';
+                }
                 ctx.lineWidth = 2 * scale;
             } else if (slotData) {
                 const hue = Math.round(slotData.detection.confidence * 120);
@@ -207,7 +211,7 @@ export function drawModalOverlay() {
         ctx.fillText(`${d.item.name} ${(d.confidence * 100).toFixed(0)}%`, x + 3 * scale, y - 4 * scale);
     }
 
-    // Draw corrected slot labels
+    // Draw corrected/verified slot labels
     for (const [slotIndex, correction] of state.corrections) {
         // Skip slots not in filter
         if (slotFilter && !slotFilter.has(slotIndex)) continue;
@@ -220,12 +224,20 @@ export function drawModalOverlay() {
         const y = pos.y * scale;
         const w = pos.width * scale;
 
-        ctx.fillStyle = 'rgba(6, 182, 212, 0.8)';
-        ctx.fillRect(x, y - labelH * scale, w, labelH * scale);
-        ctx.fillStyle = '#000';
-        ctx.font = `bold ${12 * scale}px sans-serif`;
-        const label = correction.corrected ? correction.corrected.slice(0, 10) : '(empty)';
-        ctx.fillText(label, x + 3 * scale, y - 4 * scale);
+        if (correction.verified) {
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.8)';
+            ctx.fillRect(x, y - labelH * scale, w, labelH * scale);
+            ctx.fillStyle = '#000';
+            ctx.font = `bold ${12 * scale}px sans-serif`;
+            ctx.fillText(`\u2713 ${correction.corrected.slice(0, 8)}`, x + 3 * scale, y - 4 * scale);
+        } else {
+            ctx.fillStyle = 'rgba(6, 182, 212, 0.8)';
+            ctx.fillRect(x, y - labelH * scale, w, labelH * scale);
+            ctx.fillStyle = '#000';
+            ctx.font = `bold ${12 * scale}px sans-serif`;
+            const label = correction.corrected ? correction.corrected.slice(0, 10) : '(empty)';
+            ctx.fillText(label, x + 3 * scale, y - 4 * scale);
+        }
     }
 
     // Reset transform for future operations

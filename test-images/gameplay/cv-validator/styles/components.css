@@ -233,6 +233,17 @@ button:disabled {
     font-weight: bold;
 }
 
+.item-badge.verified {
+    border-left: 3px solid var(--success) !important;
+    background: rgba(74, 222, 128, 0.15) !important;
+}
+
+.item-badge.verified .verified-check {
+    color: var(--success);
+    font-weight: bold;
+    margin-left: 4px;
+}
+
 /* Metric cards */
 .metric-card {
     background: var(--bg-card);
@@ -442,6 +453,12 @@ button:disabled {
 
 .correction-actions .empty-btn {
     background: var(--warning);
+    border: none;
+    color: #000;
+}
+
+.correction-actions .correct-btn {
+    background: var(--success);
     border: none;
     color: #000;
 }

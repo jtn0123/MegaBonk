@@ -42,12 +42,12 @@
             <div class="main-content">
                 <div class="panel screenshot-panel">
                     <h2>Screenshot</h2>
-                    <div class="image-container" id="screenshot-container" onclick="openImageModal()">
+                    <div class="image-container" id="screenshot-container">
                         <img id="screenshot-img" src="" alt="Screenshot">
                         <canvas id="overlay-canvas"></canvas>
                     </div>
                     <p class="status-message" id="image-info">Select an image to begin</p>
-                    <p class="expand-hint">Click image to view full size</p>
+                    <p class="expand-hint">Click slot to correct, click outside slots to view full size</p>
                 </div>
 
                 <!-- Grid Calibration Panel - right below image -->
@@ -177,6 +177,7 @@
 
                         <div class="correction-actions">
                             <button class="apply-btn" id="apply-correction-btn" disabled>Apply Correction</button>
+                            <button class="correct-btn" id="mark-correct-btn">Mark Correct ✓</button>
                             <button class="empty-btn" id="mark-empty-btn">Mark as Empty</button>
                             <button class="cancel-btn" id="cancel-correction-btn">Cancel</button>
                         </div>

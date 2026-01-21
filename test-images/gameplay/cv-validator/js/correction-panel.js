@@ -38,6 +38,7 @@ export function initCorrectionPanel(domElements, callbacks) {
 
     // Action buttons
     elements.applyBtn.addEventListener('click', applyCorrection);
+    elements.correctBtn.addEventListener('click', markAsCorrect);
     elements.emptyBtn.addEventListener('click', markAsEmpty);
     elements.cancelBtn.addEventListener('click', closeCorrectionPanel);
 }
@@ -244,19 +245,55 @@ function applyCorrection() {
 
     const originalName = slotData.detection.item.name;
 
-    // Store correction
+    // If correcting to same item, treat as verified
+    if (state.selectedCorrectionItem === originalName) {
+        state.corrections.set(state.currentCorrectionSlot, {
+            original: {
+                name: originalName,
+                confidence: slotData.detection.confidence,
+            },
+            corrected: originalName,
+            verified: true,
+        });
+        log(`Verified slot ${state.currentCorrectionSlot} as correct: "${originalName}"`, LOG_LEVELS.SUCCESS);
+    } else {
+        // Store correction
+        state.corrections.set(state.currentCorrectionSlot, {
+            original: {
+                name: originalName,
+                confidence: slotData.detection.confidence,
+            },
+            corrected: state.selectedCorrectionItem,
+        });
+        log(
+            `Corrected slot ${state.currentCorrectionSlot}: "${originalName}" \u2192 "${state.selectedCorrectionItem}"`,
+            LOG_LEVELS.SUCCESS
+        );
+    }
+
+    if (onCorrectionApplied) onCorrectionApplied();
+    closeCorrectionPanel();
+}
+
+function markAsCorrect() {
+    if (state.currentCorrectionSlot === null) return;
+
+    const slotData = state.detectionsBySlot.get(state.currentCorrectionSlot);
+    if (!slotData) return;
+
+    const originalName = slotData.detection.item.name;
+
+    // Store as verified correct (special marker)
     state.corrections.set(state.currentCorrectionSlot, {
         original: {
             name: originalName,
             confidence: slotData.detection.confidence,
         },
-        corrected: state.selectedCorrectionItem,
+        corrected: originalName, // Same as original means verified
+        verified: true,
     });
 
-    log(
-        `Corrected slot ${state.currentCorrectionSlot}: "${originalName}" \u2192 "${state.selectedCorrectionItem}"`,
-        LOG_LEVELS.SUCCESS
-    );
+    log(`Verified slot ${state.currentCorrectionSlot} as correct: "${originalName}"`, LOG_LEVELS.SUCCESS);
 
     if (onCorrectionApplied) onCorrectionApplied();
     closeCorrectionPanel();

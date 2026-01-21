@@ -109,6 +109,41 @@ export function createCorrectedBadge(slotIndex, originalName, correctedName, cli
     return badge;
 }
 
+export function createVerifiedBadge(slotIndex, name, confidence, imagePath, clickHandler) {
+    const badge = document.createElement('div');
+    badge.className = `item-badge ${CSS_CLASSES.VERIFIED} ${CSS_CLASSES.CLICKABLE}`;
+    badge.dataset.slotIndex = slotIndex;
+
+    if (imagePath) {
+        const img = document.createElement('img');
+        img.src = CONFIG.PATHS.imagesBase + imagePath;
+        img.alt = name;
+        badge.appendChild(img);
+    }
+
+    const span = document.createElement('span');
+    span.textContent = `[${slotIndex}] ${name}`;
+    badge.appendChild(span);
+
+    const checkSpan = document.createElement('span');
+    checkSpan.className = 'verified-check';
+    checkSpan.textContent = '\u2713';
+    badge.appendChild(checkSpan);
+
+    const confSpan = document.createElement('span');
+    confSpan.className = 'count';
+    confSpan.textContent = formatConfidence(confidence);
+    badge.appendChild(confSpan);
+
+    badge.title = `Slot ${slotIndex}: ${name} - Verified correct (${formatPercent(confidence)})\nClick to edit`;
+
+    if (clickHandler) {
+        badge.addEventListener('click', () => clickHandler(slotIndex));
+    }
+
+    return badge;
+}
+
 // ========================================
 // Metrics Display
 // ========================================
@@ -189,16 +224,28 @@ export function displayDetections(detections, groundTruthItems, container, count
         const correction = state.corrections.get(slotIndex);
         const originalName = slotData.detection.item.name;
         const originalConf = slotData.detection.confidence;
+        const item = slotData.detection.item;
 
         if (correction) {
-            // Show corrected badge
-            const badge = createCorrectedBadge(slotIndex, originalName, correction.corrected, openCorrectionPanel);
-            container.appendChild(badge);
+            if (correction.verified) {
+                // Show verified badge (green)
+                const badge = createVerifiedBadge(
+                    slotIndex,
+                    originalName,
+                    originalConf,
+                    item?.image,
+                    openCorrectionPanel
+                );
+                container.appendChild(badge);
+            } else {
+                // Show corrected badge (cyan or empty)
+                const badge = createCorrectedBadge(slotIndex, originalName, correction.corrected, openCorrectionPanel);
+                container.appendChild(badge);
+            }
         } else {
             // Show normal detection badge (clickable)
             const truthCount = truthCounts.get(originalName) || 0;
             const status = truthCount > 0 ? CSS_CLASSES.MATCH : CSS_CLASSES.FALSE_POSITIVE;
-            const item = slotData.detection.item;
             const badge = createClickableItemBadge(
                 slotIndex,
                 originalName,
@@ -257,9 +304,15 @@ export function drawGridOverlay(ctx, positions, options = {}) {
 
         // Different styling based on state
         if (showCorrections && correction) {
-            // Corrected slot - cyan border
-            ctx.strokeStyle = '#06b6d4';
-            ctx.lineWidth = 2 * scale;
+            if (correction.verified) {
+                // Verified slot - green border
+                ctx.strokeStyle = '#4ade80';
+                ctx.lineWidth = 2 * scale;
+            } else {
+                // Corrected slot - cyan border
+                ctx.strokeStyle = '#06b6d4';
+                ctx.lineWidth = 2 * scale;
+            }
         } else if (showDetections && slotData) {
             // Detected slot - color by confidence
             const hue = Math.round(slotData.detection.confidence * 120);
@@ -322,12 +375,22 @@ export function drawCorrectionLabels(ctx, options = {}) {
         const w = pos.width * scale;
         const h = labelHeight * scale;
 
-        ctx.fillStyle = 'rgba(6, 182, 212, 0.8)';
-        ctx.fillRect(x, y - h, w, h);
-        ctx.fillStyle = '#000';
-        ctx.font = `bold ${10 * scale}px sans-serif`;
-        const label = correction.corrected ? correction.corrected.slice(0, 10) : '(empty)';
-        ctx.fillText(label, x + 2 * scale, y - 4 * scale);
+        if (correction.verified) {
+            // Verified - green label
+            ctx.fillStyle = 'rgba(74, 222, 128, 0.8)';
+            ctx.fillRect(x, y - h, w, h);
+            ctx.fillStyle = '#000';
+            ctx.font = `bold ${10 * scale}px sans-serif`;
+            ctx.fillText(`\u2713 ${correction.corrected.slice(0, 8)}`, x + 2 * scale, y - 4 * scale);
+        } else {
+            // Corrected - cyan label
+            ctx.fillStyle = 'rgba(6, 182, 212, 0.8)';
+            ctx.fillRect(x, y - h, w, h);
+            ctx.fillStyle = '#000';
+            ctx.font = `bold ${10 * scale}px sans-serif`;
+            const label = correction.corrected ? correction.corrected.slice(0, 10) : '(empty)';
+            ctx.fillText(label, x + 2 * scale, y - 4 * scale);
+        }
     }
 }
 

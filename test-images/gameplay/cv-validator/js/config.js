@@ -81,6 +81,7 @@ export const CSS_CLASSES = {
     SELECTED: 'selected',
     COPIED: 'copied',
     CORRECTED: 'corrected',
+    VERIFIED: 'verified',
     MATCH: 'match',
     FALSE_POSITIVE: 'false-positive',
     MISSING: 'missing',

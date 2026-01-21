@@ -136,6 +136,7 @@ const elements = {
     correctionResultsDiv: document.getElementById('correction-results'),
     resultsCount: document.getElementById('results-count'),
     applyCorrectionBtn: document.getElementById('apply-correction-btn'),
+    markCorrectBtn: document.getElementById('mark-correct-btn'),
     markEmptyBtn: document.getElementById('mark-empty-btn'),
     cancelCorrectionBtn: document.getElementById('cancel-correction-btn'),
 
@@ -535,7 +536,7 @@ async function handleRunAllTests() {
 
 function setupOverlayClickHandler() {
     elements.overlayCanvas.addEventListener('click', e => {
-        if (!state.currentImage || state.detectionsBySlot.size === 0) return;
+        if (!state.currentImage) return;
 
         const rect = elements.overlayCanvas.getBoundingClientRect();
         const scaleX = elements.overlayCanvas.width / rect.width;
@@ -543,14 +544,19 @@ function setupOverlayClickHandler() {
         const x = (e.clientX - rect.left) * scaleX;
         const y = (e.clientY - rect.top) * scaleY;
 
-        // Find which slot was clicked
-        for (const [slotIndex, slotData] of state.detectionsBySlot) {
-            const pos = slotData.position;
-            if (x >= pos.x && x <= pos.x + pos.width && y >= pos.y && y <= pos.y + pos.height) {
-                openCorrectionPanel(slotIndex);
-                return;
+        // Check if a detected slot was clicked
+        if (state.detectionsBySlot.size > 0) {
+            for (const [slotIndex, slotData] of state.detectionsBySlot) {
+                const pos = slotData.position;
+                if (x >= pos.x && x <= pos.x + pos.width && y >= pos.y && y <= pos.y + pos.height) {
+                    openCorrectionPanel(slotIndex);
+                    return;
+                }
             }
         }
+
+        // No slot clicked - open modal for full view
+        openImageModal(elements.screenshotImg.src);
     });
 }
 
@@ -597,6 +603,7 @@ async function init() {
             results: elements.correctionResultsDiv,
             resultsCount: elements.resultsCount,
             applyBtn: elements.applyCorrectionBtn,
+            correctBtn: elements.markCorrectBtn,
             emptyBtn: elements.markEmptyBtn,
             cancelBtn: elements.cancelCorrectionBtn,
         },
