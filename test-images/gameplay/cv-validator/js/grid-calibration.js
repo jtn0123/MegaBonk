@@ -21,6 +21,7 @@ function createCalibrationHandler(slider, valueEl, stateProp, suffix = 'px') {
         state.calibration[stateProp] = value;
         valueEl.textContent = suffix ? `${value}${suffix}` : value.toString();
         if (onCalibrationChange) onCalibrationChange();
+        updateModificationWarning();
     });
 }
 
@@ -54,6 +55,17 @@ export function initGridCalibration(domElements, callbacks) {
             const value = parseInt(e.target.value);
             state.calibration.yOffset = value;
             elements.mainYOffsetValue.textContent = `${value}px`;
+            if (onCalibrationChange) onCalibrationChange();
+            updateModificationWarning();
+        });
+    }
+
+    // Handle total items input
+    if (elements.totalItemsInput) {
+        elements.totalItemsInput.addEventListener('change', e => {
+            const value = parseInt(e.target.value) || 60;
+            state.calibration.totalItems = Math.max(1, Math.min(100, value));
+            elements.totalItemsInput.value = state.calibration.totalItems;
             if (onCalibrationChange) onCalibrationChange();
         });
     }
@@ -119,6 +131,10 @@ export function syncUIToState() {
 
     elements.numRowsSlider.value = cal.numRows;
     elements.numRowsValue.textContent = cal.numRows.toString();
+
+    if (elements.totalItemsInput) {
+        elements.totalItemsInput.value = cal.totalItems || 60;
+    }
 }
 
 // ========================================
@@ -144,16 +160,16 @@ export function autoLoadPresetForResolution(width, height) {
         // Apply exact preset
         presetManager.applyPreset(status.preset);
         syncUIToState();
-        updatePresetStatus(status.message);
+        updatePresetStatus(status.message, 'exact');
         log(`Auto-loaded preset for ${width}x${height}`, LOG_LEVELS.SUCCESS);
         return true;
     } else if (status.type === 'scaled') {
         // Found aspect ratio match - we could scale, but for now just notify
-        updatePresetStatus(status.message);
+        updatePresetStatus(status.message, 'scaled');
         log(`Found scaled preset match: ${status.message}`, LOG_LEVELS.INFO);
         return false;
     } else {
-        updatePresetStatus(status.message);
+        updatePresetStatus(status.message, 'default');
         return false;
     }
 }
@@ -167,7 +183,7 @@ function saveCurrentPreset() {
     const { width, height } = state.currentImage;
     const key = presetManager.savePreset(width, height, state.calibration);
     showToast(`Saved preset for ${key}`);
-    updatePresetStatus(`Preset saved: ${height}p`);
+    updatePresetStatus(`Preset saved: ${height}p`, 'exact');
     log(`Saved calibration preset for ${key}`, LOG_LEVELS.SUCCESS);
 }
 
@@ -185,7 +201,7 @@ function loadPresetForCurrentImage() {
         syncUIToState();
         if (onCalibrationChange) onCalibrationChange();
         showToast(`Loaded preset: ${preset.name}`);
-        updatePresetStatus(`Using preset: ${preset.name}`);
+        updatePresetStatus(`Using preset: ${preset.name}`, 'exact');
         log(`Loaded preset for ${width}x${height}`, LOG_LEVELS.SUCCESS);
     } else {
         showToast('No preset found for this resolution');
@@ -203,17 +219,73 @@ function deleteCurrentPreset() {
 
     if (deleted) {
         showToast(`Deleted preset for ${width}x${height}`);
-        updatePresetStatus('No preset - using defaults');
+        updatePresetStatus('No preset - using defaults', 'default');
         log(`Deleted preset for ${width}x${height}`, LOG_LEVELS.WARNING);
     } else {
         showToast('No preset to delete');
     }
 }
 
-function updatePresetStatus(message) {
+function updatePresetStatus(message, type = 'default') {
     if (elements.presetStatus) {
         elements.presetStatus.textContent = message;
     }
+
+    // Update badge
+    if (elements.presetBadge) {
+        elements.presetBadge.className = 'preset-badge';
+        if (type === 'exact') {
+            elements.presetBadge.textContent = 'Exact match';
+            elements.presetBadge.classList.add('exact');
+        } else if (type === 'scaled') {
+            elements.presetBadge.textContent = 'Scaled';
+            elements.presetBadge.classList.add('scaled');
+        } else {
+            elements.presetBadge.textContent = 'Default';
+            elements.presetBadge.classList.add('default');
+        }
+    }
+
+    // Check for modifications
+    updateModificationWarning();
+}
+
+function updateModificationWarning() {
+    if (!elements.presetModified || !state.currentImage) return;
+
+    const modified = wasPresetModified();
+    const modifiedFieldsList = getModifiedFields();
+
+    if (modified && modifiedFieldsList.length > 0) {
+        elements.presetModified.style.display = 'inline';
+        elements.modifiedFields.textContent = modifiedFieldsList.join(', ');
+    } else {
+        elements.presetModified.style.display = 'none';
+    }
+}
+
+function getModifiedFields() {
+    if (!state.currentImage) return [];
+
+    const { width, height } = state.currentImage;
+    const preset = presetManager.getPresetForResolution(width, height);
+
+    if (!preset) return [];
+
+    const cal = state.calibration;
+    const presetCal = preset.calibration;
+    const modified = [];
+
+    if (cal.xOffset !== presetCal.xOffset) modified.push('X Offset');
+    if (cal.yOffset !== presetCal.yOffset) modified.push('Y Offset');
+    if (cal.iconWidth !== presetCal.iconWidth) modified.push('Icon Width');
+    if (cal.iconHeight !== presetCal.iconHeight) modified.push('Icon Height');
+    if (cal.xSpacing !== presetCal.xSpacing) modified.push('X Spacing');
+    if (cal.ySpacing !== presetCal.ySpacing) modified.push('Y Spacing');
+    if (cal.iconsPerRow !== presetCal.iconsPerRow) modified.push('Icons/Row');
+    if (cal.numRows !== presetCal.numRows) modified.push('Rows');
+
+    return modified;
 }
 
 // ========================================
@@ -223,6 +295,10 @@ function updatePresetStatus(message) {
 export function getCalibrationForExport() {
     const cal = state.calibration;
     const image = state.currentImage;
+
+    // Calculate effective total items
+    const maxSlots = cal.iconsPerRow * cal.numRows;
+    const effectiveTotalItems = cal.totalItems > 0 ? Math.min(cal.totalItems, maxSlots) : maxSlots;
 
     return {
         base_resolution: CONFIG.BASE_RESOLUTION,
@@ -234,6 +310,7 @@ export function getCalibrationForExport() {
         y_spacing: cal.ySpacing,
         icons_per_row: cal.iconsPerRow,
         num_rows: cal.numRows,
+        total_items: effectiveTotalItems,
         // Computed values for this image's resolution
         computed: image
             ? {
@@ -242,7 +319,7 @@ export function getCalibrationForExport() {
                   scaled_icon_height: Math.round(cal.iconHeight * (image.height / CONFIG.BASE_RESOLUTION)),
                   scaled_x_spacing: Math.round(cal.xSpacing * (image.height / CONFIG.BASE_RESOLUTION)),
                   scaled_y_spacing: Math.round(cal.ySpacing * (image.height / CONFIG.BASE_RESOLUTION)),
-                  total_slots: cal.iconsPerRow * cal.numRows,
+                  total_slots: effectiveTotalItems,
               }
             : null,
     };

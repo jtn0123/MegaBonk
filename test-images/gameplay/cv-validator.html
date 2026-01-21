@@ -29,12 +29,41 @@
         </div>
         <div class="confidence-slider">
             <label>Show Slots:</label>
-            <input type="text" id="slot-filter" placeholder="all, or 0,1,5" style="width: 80px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-panel); color: var(--text-primary);">
+            <div class="slot-filter-wrapper">
+                <input type="text" id="slot-filter" placeholder="all, or 0,1,5">
+                <button id="slot-filter-helper-btn" class="helper-btn" title="Quick filter presets">...</button>
+                <div class="slot-filter-helper" id="slot-filter-helper">
+                    <div class="helper-presets">
+                        <button data-filter="all">All</button>
+                        <button data-filter="0-19">Row 1</button>
+                        <button data-filter="20-39">Row 2</button>
+                        <button data-filter="40-59">Row 3</button>
+                        <button data-filter="0-9">First 10</button>
+                        <button data-filter="0-19">First 20</button>
+                    </div>
+                    <div class="helper-hint">Format: all, 0-19, 0,1,5</div>
+                </div>
+            </div>
         </div>
         <button id="run-detection" class="primary" disabled>Run Detection</button>
         <button id="run-all">Run All Tests</button>
-        <button id="export-validated" disabled>Export Validated</button>
+        <button id="save-training" class="save-training" disabled>Save to Training</button>
+        <button id="export-validated" disabled>Export JSON</button>
         <button id="toggle-grid-calibration">Grid Calibration &#x25BC;</button>
+    </div>
+
+    <!-- File System Status Indicator -->
+    <div class="fs-status-bar" id="fs-status-bar">
+        <div class="fs-status-indicator" id="fs-status">
+            <span class="fs-icon" id="fs-icon">&#128193;</span>
+            <span class="fs-path" id="fs-path">No directory selected</span>
+            <span class="fs-permission" id="fs-permission"></span>
+        </div>
+        <div class="fs-actions">
+            <button id="fs-select-dir" class="fs-btn">Select Directory</button>
+            <button id="fs-clear-dir" class="fs-btn" style="display: none;">Clear</button>
+        </div>
+        <div class="fs-method" id="fs-method">Save method: Download fallback</div>
     </div>
 
     <div class="page-layout">
@@ -90,17 +119,56 @@
                             <input type="range" id="num-rows" min="1" max="5" step="1" value="3">
                             <span class="value" id="num-rows-value">3</span>
                         </div>
+                        <div class="calibration-control">
+                            <label>Total Items:</label>
+                            <input type="number" id="total-items" min="1" max="100" value="60" style="width: 60px; padding: 4px 8px;">
+                            <span class="value" id="total-items-hint" style="font-size: 10px; color: var(--text-secondary);">Scan first N slots</span>
+                        </div>
                     </div>
                     <div class="calibration-info">
                         <span id="resolution-info">Resolution: --</span>
                         <span id="scale-info">Scale: --</span>
                         <button id="reset-calibration">Reset to Defaults</button>
                     </div>
+                    <!-- Advanced Detection Settings -->
+                    <div class="advanced-settings-toggle">
+                        <button id="toggle-advanced" class="toggle-advanced-btn">Advanced Settings &#x25BC;</button>
+                    </div>
+                    <div class="advanced-settings" id="advanced-settings" style="display: none;">
+                        <div class="calibration-row">
+                            <div class="calibration-control">
+                                <label>Empty Variance:</label>
+                                <input type="range" id="empty-variance" min="50" max="500" step="10" value="300">
+                                <span class="value" id="empty-variance-value">300</span>
+                            </div>
+                            <div class="calibration-control">
+                                <label>Template Margin:</label>
+                                <input type="range" id="template-margin" min="0" max="30" step="1" value="15">
+                                <span class="value" id="template-margin-value">15%</span>
+                            </div>
+                            <div class="calibration-control">
+                                <label>Top Matches:</label>
+                                <input type="range" id="top-matches" min="3" max="10" step="1" value="5">
+                                <span class="value" id="top-matches-value">5</span>
+                            </div>
+                        </div>
+                        <div class="advanced-actions">
+                            <button id="reset-advanced">Reset to Defaults</button>
+                        </div>
+                    </div>
                     <div class="preset-controls">
-                        <span id="preset-status">No preset loaded</span>
-                        <button id="save-preset">Save Preset</button>
-                        <button id="load-preset">Load Preset</button>
-                        <button id="delete-preset">Delete</button>
+                        <div class="preset-status-container">
+                            <span id="preset-status">No preset loaded</span>
+                            <span class="preset-badge" id="preset-badge"></span>
+                            <span class="preset-modified-warning" id="preset-modified" style="display: none;">
+                                &#x26A0; Modified: <span id="modified-fields"></span>
+                            </span>
+                        </div>
+                        <div class="preset-buttons">
+                            <button id="save-preset">Save Preset</button>
+                            <button id="load-preset">Load Preset</button>
+                            <button id="delete-preset">Delete</button>
+                        </div>
                     </div>
                 </div>
 
@@ -132,7 +200,40 @@
 
                 <div class="secondary-panels">
                 <div class="panel">
-                    <h2>CV Detection <span class="count" id="detection-count">0</span> <span class="corrections-counter" id="corrections-counter">0 corrections</span></h2>
+                    <h2>CV Detection <span class="count" id="detection-count">0</span>
+                        <span class="corrections-wrapper">
+                            <span class="corrections-counter" id="corrections-counter">0 corrections</span>
+                            <div class="corrections-dropdown" id="corrections-dropdown">
+                                <div class="corrections-breakdown">
+                                    <div class="breakdown-row"><span class="breakdown-icon verified">&#x2713;</span> <span id="breakdown-verified">0</span> verified</div>
+                                    <div class="breakdown-row"><span class="breakdown-icon corrected">&#x2194;</span> <span id="breakdown-corrected">0</span> corrected</div>
+                                    <div class="breakdown-row"><span class="breakdown-icon empty">&#x2205;</span> <span id="breakdown-empty">0</span> marked empty</div>
+                                    <div class="breakdown-row"><span class="breakdown-icon unknown">?</span> <span id="breakdown-unknown">0</span> unknown</div>
+                                </div>
+                                <div class="validation-progress">
+                                    <div class="progress-label">Validation progress</div>
+                                    <div class="progress-track">
+                                        <div class="progress-fill-validation" id="validation-progress-fill"></div>
+                                    </div>
+                                    <div class="progress-percent" id="validation-percent">0%</div>
+                                </div>
+                            </div>
+                        </span>
+                    </h2>
+                    <!-- Batch Progress Indicator -->
+                    <div class="batch-progress" id="batch-progress" style="display: none;">
+                        <div class="batch-progress-info">
+                            <span id="batch-current-image">Processing...</span>
+                            <span id="batch-progress-count">0/0</span>
+                        </div>
+                        <div class="batch-progress-bar">
+                            <div class="batch-progress-fill" id="batch-progress-fill"></div>
+                        </div>
+                        <div class="batch-progress-stats">
+                            <span>Running Avg F1: <span id="batch-running-f1">--</span></span>
+                            <button id="batch-cancel" class="cancel-batch-btn">Cancel</button>
+                        </div>
+                    </div>
                     <div class="progress-bar" id="progress-container" style="display: none;">
                         <div class="fill" id="progress-fill"></div>
                     </div>
@@ -173,6 +274,15 @@
                             </div>
                             <div class="correction-results" id="correction-results"></div>
                             <div class="results-count" id="results-count" style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;"></div>
+                        </div>
+
+                        <div class="correction-section">
+                            <h4>Not in List? (New/Unknown Item)</h4>
+                            <div class="unknown-item-input">
+                                <input type="text" id="manual-item-input" placeholder="Type item name...">
+                                <button id="add-manual-item">Add as Unknown</button>
+                            </div>
+                            <div class="unknown-hint" style="font-size: 10px; color: var(--text-secondary); margin-top: 4px;">Use for items not in items.json (new game items, variants)</div>
                         </div>
 
                         <div class="correction-actions">
@@ -217,6 +327,89 @@
     </div>
 
     <div class="copy-toast" id="copy-toast">Copied!</div>
+
+    <!-- Enhanced Training Toast -->
+    <div class="training-toast" id="training-toast">
+        <div class="toast-header">
+            <span class="toast-icon" id="toast-icon">&#x2713;</span>
+            <span class="toast-title" id="toast-title">Saved successfully</span>
+            <button class="toast-close" id="toast-close">&times;</button>
+        </div>
+        <div class="toast-body">
+            <div class="toast-filename" id="toast-filename"></div>
+            <div class="toast-next-step">
+                <span>Next step:</span>
+                <code id="toast-command">npm run import:training</code>
+                <button class="copy-cmd-btn" id="copy-cmd-btn" title="Copy to clipboard">&#128203;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Export Preview Modal -->
+    <div class="preview-modal" id="export-preview-modal">
+        <div class="preview-modal-content">
+            <div class="preview-header">
+                <h3>Export Preview</h3>
+                <button class="preview-close" id="preview-close">&times;</button>
+            </div>
+            <div class="preview-body">
+                <div class="preview-file">
+                    <label>File:</label>
+                    <span id="preview-filename"></span>
+                </div>
+                <div class="preview-destination">
+                    <label>Destination:</label>
+                    <span id="preview-destination"></span>
+                </div>
+                <div class="preview-summary">
+                    <h4>Summary</h4>
+                    <ul>
+                        <li><span id="preview-slots">0</span> slots detected</li>
+                        <li><span id="preview-corrections">0</span> corrections made (<span id="preview-corrections-detail"></span>)</li>
+                        <li><span id="preview-crops">0</span> training crops will be saved</li>
+                        <li><span id="preview-unknown">0</span> unknown items flagged</li>
+                        <li>Estimated size: <span id="preview-size">~0 KB</span></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="preview-actions">
+                <button class="cancel-btn" id="preview-cancel">Cancel</button>
+                <button class="confirm-btn" id="preview-confirm">Save to Training</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Batch Test Results Modal -->
+    <div class="batch-modal" id="batch-results-modal">
+        <div class="batch-modal-content">
+            <div class="batch-header">
+                <h3>Batch Test Results</h3>
+                <button class="batch-close" id="batch-close">&times;</button>
+            </div>
+            <div class="batch-body">
+                <table class="batch-table" id="batch-table">
+                    <thead>
+                        <tr>
+                            <th data-sort="image">Image</th>
+                            <th data-sort="f1">F1</th>
+                            <th data-sort="precision">Prec</th>
+                            <th data-sort="recall">Recall</th>
+                            <th data-sort="detected">Det/Exp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="batch-table-body">
+                    </tbody>
+                </table>
+                <div class="batch-summary" id="batch-summary">
+                    <span>Average: F1=<span id="batch-avg-f1">--</span> Precision=<span id="batch-avg-precision">--</span> Recall=<span id="batch-avg-recall">--</span></span>
+                </div>
+            </div>
+            <div class="batch-actions">
+                <button class="export-btn" id="batch-export-csv">Export CSV</button>
+                <button class="export-btn" id="batch-export-json">Export JSON</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Image Modal for Full Size View -->
     <div class="image-modal" id="image-modal">
