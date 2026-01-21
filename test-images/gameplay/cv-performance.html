@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Performance Tracker - MegaBonk</title>
+    <link rel="stylesheet" href="cv-validator/styles/base.css">
+    <style>
+        body {
+            padding: 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 { margin-bottom: 8px; }
+        .header-info { color: var(--text-secondary); margin-bottom: 24px; }
+
+        .nav-links { margin-bottom: 20px; }
+        .nav-links a { color: var(--accent); margin-right: 16px; }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 16px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        button:hover { border-color: var(--accent); }
+        button.primary { background: var(--accent); border-color: var(--accent); }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .stat-card h3 {
+            margin: 0 0 12px 0;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .stat-value.good { color: var(--success); }
+        .stat-value.warning { color: var(--warning); }
+        .stat-value.bad { color: var(--error); }
+
+        .stat-trend {
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        .stat-trend.up { color: var(--success); }
+        .stat-trend.down { color: var(--error); }
+        .stat-trend.neutral { color: var(--text-secondary); }
+
+        .section {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+
+        .section h2 {
+            margin: 0 0 16px 0;
+            font-size: 18px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+        }
+
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Simple bar chart */
+        .bar-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            height: 200px;
+            padding: 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .bar-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
+        }
+
+        .bar {
+            width: 40px;
+            background: var(--accent);
+            border-radius: 4px 4px 0 0;
+            position: relative;
+            transition: height 0.3s ease;
+        }
+
+        .bar:hover { background: var(--success); }
+
+        .bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: var(--text-primary);
+            white-space: nowrap;
+        }
+
+        .bar-label {
+            margin-top: 8px;
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-align: center;
+            max-width: 80px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        tr:hover { background: var(--bg-secondary); }
+
+        .trend-arrow {
+            display: inline-block;
+            margin-left: 4px;
+        }
+        .trend-arrow.up { color: var(--success); }
+        .trend-arrow.down { color: var(--error); }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .run-btn-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        #run-output {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            display: none;
+        }
+
+        .baseline-marker {
+            background: rgba(251, 191, 36, 0.2);
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            color: var(--warning);
+        }
+    </style>
+</head>
+<body>
+    <h1>CV Performance Tracker</h1>
+    <p class="header-info">Track detection accuracy improvements over time</p>
+
+    <div class="nav-links">
+        <a href="cv-validator.html">&larr; Back to Validator</a>
+        <a href="cv-analytics.html">Training Analytics</a>
+    </div>
+
+    <div class="actions">
+        <div class="run-btn-container">
+            <button onclick="runBenchmark()" id="run-btn" class="primary">Run Benchmark Now</button>
+            <button onclick="runQuickBenchmark()" id="quick-btn">Quick Test (3 images)</button>
+            <span class="status-indicator" id="status"></span>
+        </div>
+        <button onclick="loadData()">Refresh Data</button>
+        <button onclick="exportHistory()">Export History</button>
+        <button onclick="clearHistory()">Clear History</button>
+    </div>
+
+    <pre id="run-output"></pre>
+
+    <div id="loading" class="loading">Loading performance data...</div>
+
+    <div id="dashboard" style="display: none;">
+        <!-- Current Performance -->
+        <div class="dashboard-grid">
+            <div class="stat-card">
+                <h3>Current F1 Score</h3>
+                <div class="stat-value" id="current-f1">--</div>
+                <div class="stat-trend" id="f1-trend">--</div>
+            </div>
+            <div class="stat-card">
+                <h3>Current Precision</h3>
+                <div class="stat-value" id="current-precision">--</div>
+                <div class="stat-trend" id="precision-trend">--</div>
+            </div>
+            <div class="stat-card">
+                <h3>Current Recall</h3>
+                <div class="stat-value" id="current-recall">--</div>
+                <div class="stat-trend" id="recall-trend">--</div>
+            </div>
+            <div class="stat-card">
+                <h3>Benchmark Runs</h3>
+                <div class="stat-value" id="total-runs">--</div>
+                <div class="stat-trend neutral" id="runs-info">--</div>
+            </div>
+        </div>
+
+        <!-- Baseline Comparison -->
+        <div class="section">
+            <h2>Baseline Comparison</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                Compare current performance against the initial baseline measurement.
+            </p>
+            <div id="baseline-comparison">
+                <p>No baseline set. Run a benchmark to establish baseline.</p>
+            </div>
+        </div>
+
+        <!-- F1 Score Over Time -->
+        <div class="section">
+            <h2>F1 Score History</h2>
+            <div class="bar-chart" id="f1-chart"></div>
+        </div>
+
+        <!-- Per-Image Performance -->
+        <div class="section">
+            <h2>Performance by Image</h2>
+            <table id="per-image-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Latest F1</th>
+                        <th>Trend</th>
+                        <th>Best F1</th>
+                        <th>Runs</th>
+                    </tr>
+                </thead>
+                <tbody id="per-image-body"></tbody>
+            </table>
+        </div>
+
+        <!-- Recent Runs -->
+        <div class="section">
+            <h2>Recent Benchmark Runs</h2>
+            <table id="runs-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Mode</th>
+                        <th>Images</th>
+                        <th>F1</th>
+                        <th>Precision</th>
+                        <th>Recall</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="runs-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let benchmarkHistory = { runs: [] };
+        let testResults = [];
+
+        async function loadData() {
+            const loading = document.getElementById('loading');
+            const dashboard = document.getElementById('dashboard');
+
+            loading.style.display = 'block';
+            dashboard.style.display = 'none';
+
+            try {
+                // Load benchmark history
+                try {
+                    const histResp = await fetch('../../data/benchmark-history.json');
+                    if (histResp.ok) {
+                        benchmarkHistory = await histResp.json();
+                    }
+                } catch (e) {
+                    console.log('No benchmark history found');
+                    benchmarkHistory = { runs: [] };
+                }
+
+                // Load test results from offline runner
+                try {
+                    const resultsResp = await fetch('../../test-results/cv-test-results.json');
+                    if (resultsResp.ok) {
+                        testResults = await resultsResp.json();
+                    }
+                } catch (e) {
+                    console.log('No test results found');
+                    testResults = [];
+                }
+
+                renderDashboard();
+                loading.style.display = 'none';
+                dashboard.style.display = 'block';
+            } catch (e) {
+                loading.textContent = 'Error loading data: ' + e.message;
+            }
+        }
+
+        function renderDashboard() {
+            // Get latest metrics from test results
+            let latestMetrics = null;
+            if (testResults.length > 0) {
+                // Aggregate metrics from current strategy
+                const currentResults = testResults.filter(r => r.strategy === 'current');
+                if (currentResults.length > 0) {
+                    latestMetrics = {
+                        f1: currentResults.reduce((s, r) => s + r.metrics.f1Score, 0) / currentResults.length,
+                        precision: currentResults.reduce((s, r) => s + r.metrics.precision, 0) / currentResults.length,
+                        recall: currentResults.reduce((s, r) => s + r.metrics.recall, 0) / currentResults.length,
+                    };
+                }
+            }
+
+            // If no test results, try benchmark history
+            if (!latestMetrics && benchmarkHistory.runs.length > 0) {
+                const latest = benchmarkHistory.runs[benchmarkHistory.runs.length - 1];
+                latestMetrics = latest.metrics;
+            }
+
+            // Calculate trends
+            let previousMetrics = null;
+            if (benchmarkHistory.runs.length >= 2) {
+                const prev = benchmarkHistory.runs[benchmarkHistory.runs.length - 2];
+                previousMetrics = prev.metrics;
+            }
+
+            // Update stat cards
+            if (latestMetrics) {
+                updateStatCard('current-f1', latestMetrics.f1, previousMetrics?.f1, 'f1-trend');
+                updateStatCard('current-precision', latestMetrics.precision, previousMetrics?.precision, 'precision-trend');
+                updateStatCard('current-recall', latestMetrics.recall, previousMetrics?.recall, 'recall-trend');
+            }
+
+            document.getElementById('total-runs').textContent = benchmarkHistory.runs.length;
+            document.getElementById('runs-info').textContent =
+                benchmarkHistory.runs.length > 0
+                    ? `Last: ${new Date(benchmarkHistory.runs.slice(-1)[0]?.timestamp).toLocaleDateString()}`
+                    : 'No runs yet';
+
+            // Render baseline comparison
+            renderBaselineComparison(latestMetrics);
+
+            // Render F1 chart
+            renderF1Chart();
+
+            // Render per-image table
+            renderPerImageTable();
+
+            // Render recent runs
+            renderRecentRuns();
+        }
+
+        function updateStatCard(valueId, value, prevValue, trendId) {
+            const valueEl = document.getElementById(valueId);
+            const trendEl = document.getElementById(trendId);
+
+            const percent = (value * 100).toFixed(1);
+            valueEl.textContent = percent + '%';
+
+            // Color based on value
+            valueEl.className = 'stat-value ' + (value >= 0.7 ? 'good' : value >= 0.4 ? 'warning' : 'bad');
+
+            // Trend
+            if (prevValue !== null && prevValue !== undefined) {
+                const delta = (value - prevValue) * 100;
+                const arrow = delta > 0.5 ? '↑' : delta < -0.5 ? '↓' : '→';
+                trendEl.textContent = `${arrow} ${delta >= 0 ? '+' : ''}${delta.toFixed(1)}% vs previous`;
+                trendEl.className = 'stat-trend ' + (delta > 0.5 ? 'up' : delta < -0.5 ? 'down' : 'neutral');
+            } else {
+                trendEl.textContent = 'No previous data';
+                trendEl.className = 'stat-trend neutral';
+            }
+        }
+
+        function renderBaselineComparison(latestMetrics) {
+            const container = document.getElementById('baseline-comparison');
+
+            if (benchmarkHistory.runs.length === 0 || !latestMetrics) {
+                container.innerHTML = '<p>No baseline set. Run a benchmark to establish baseline.</p>';
+                return;
+            }
+
+            const baseline = benchmarkHistory.runs[0];
+            const deltaF1 = (latestMetrics.f1 - baseline.metrics.f1) * 100;
+            const deltaPrecision = (latestMetrics.precision - baseline.metrics.precision) * 100;
+            const deltaRecall = (latestMetrics.recall - baseline.metrics.recall) * 100;
+
+            container.innerHTML = `
+                <table>
+                    <tr>
+                        <th>Metric</th>
+                        <th>Baseline <span class="baseline-marker">${new Date(baseline.timestamp).toLocaleDateString()}</span></th>
+                        <th>Current</th>
+                        <th>Change</th>
+                    </tr>
+                    <tr>
+                        <td>F1 Score</td>
+                        <td>${(baseline.metrics.f1 * 100).toFixed(1)}%</td>
+                        <td>${(latestMetrics.f1 * 100).toFixed(1)}%</td>
+                        <td class="${deltaF1 > 0 ? 'trend-arrow up' : deltaF1 < 0 ? 'trend-arrow down' : ''}">
+                            ${deltaF1 >= 0 ? '+' : ''}${deltaF1.toFixed(1)}%
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Precision</td>
+                        <td>${(baseline.metrics.precision * 100).toFixed(1)}%</td>
+                        <td>${(latestMetrics.precision * 100).toFixed(1)}%</td>
+                        <td class="${deltaPrecision > 0 ? 'trend-arrow up' : deltaPrecision < 0 ? 'trend-arrow down' : ''}">
+                            ${deltaPrecision >= 0 ? '+' : ''}${deltaPrecision.toFixed(1)}%
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>Recall</td>
+                        <td>${(baseline.metrics.recall * 100).toFixed(1)}%</td>
+                        <td>${(latestMetrics.recall * 100).toFixed(1)}%</td>
+                        <td class="${deltaRecall > 0 ? 'trend-arrow up' : deltaRecall < 0 ? 'trend-arrow down' : ''}">
+                            ${deltaRecall >= 0 ? '+' : ''}${deltaRecall.toFixed(1)}%
+                        </td>
+                    </tr>
+                </table>
+            `;
+        }
+
+        function renderF1Chart() {
+            const container = document.getElementById('f1-chart');
+            container.innerHTML = '';
+
+            const runs = benchmarkHistory.runs.slice(-15); // Last 15 runs
+            if (runs.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No benchmark data yet</p>';
+                return;
+            }
+
+            const maxF1 = Math.max(...runs.map(r => r.metrics.f1), 0.1);
+
+            for (const run of runs) {
+                const height = (run.metrics.f1 / maxF1) * 180;
+                const date = new Date(run.timestamp);
+                const label = `${date.getMonth() + 1}/${date.getDate()}`;
+
+                const group = document.createElement('div');
+                group.className = 'bar-group';
+                group.innerHTML = `
+                    <div class="bar" style="height: ${Math.max(4, height)}px;">
+                        <span class="bar-value">${(run.metrics.f1 * 100).toFixed(1)}%</span>
+                    </div>
+                    <span class="bar-label">${label}</span>
+                `;
+                container.appendChild(group);
+            }
+        }
+
+        function renderPerImageTable() {
+            const tbody = document.getElementById('per-image-body');
+            tbody.innerHTML = '';
+
+            // Aggregate by image from test results
+            const byImage = {};
+            for (const result of testResults.filter(r => r.strategy === 'current')) {
+                const img = result.testCase;
+                if (!byImage[img]) {
+                    byImage[img] = { f1Scores: [], latest: 0, best: 0 };
+                }
+                byImage[img].f1Scores.push(result.metrics.f1Score);
+                byImage[img].latest = result.metrics.f1Score;
+                byImage[img].best = Math.max(byImage[img].best, result.metrics.f1Score);
+            }
+
+            // Sort by latest F1
+            const sorted = Object.entries(byImage).sort((a, b) => b[1].latest - a[1].latest);
+
+            for (const [image, data] of sorted) {
+                const shortName = image.split('/').pop();
+                const trend = data.f1Scores.length > 1
+                    ? data.latest - data.f1Scores[data.f1Scores.length - 2]
+                    : 0;
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td title="${image}">${shortName}</td>
+                    <td>${(data.latest * 100).toFixed(1)}%</td>
+                    <td>
+                        ${trend > 0.01 ? '<span class="trend-arrow up">↑</span>' :
+                          trend < -0.01 ? '<span class="trend-arrow down">↓</span>' : '→'}
+                    </td>
+                    <td>${(data.best * 100).toFixed(1)}%</td>
+                    <td>${data.f1Scores.length}</td>
+                `;
+                tbody.appendChild(row);
+            }
+
+            if (sorted.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No per-image data</td></tr>';
+            }
+        }
+
+        function renderRecentRuns() {
+            const tbody = document.getElementById('runs-body');
+            tbody.innerHTML = '';
+
+            const runs = benchmarkHistory.runs.slice(-10).reverse();
+
+            for (const run of runs) {
+                const date = new Date(run.timestamp);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${date.toLocaleDateString()} ${date.toLocaleTimeString()}</td>
+                    <td>${run.mode || 'full'}</td>
+                    <td>${run.imageCount}</td>
+                    <td>${(run.metrics.f1 * 100).toFixed(1)}%</td>
+                    <td>${(run.metrics.precision * 100).toFixed(1)}%</td>
+                    <td>${(run.metrics.recall * 100).toFixed(1)}%</td>
+                    <td>${run.timing?.totalMs || '--'}ms</td>
+                `;
+                tbody.appendChild(row);
+            }
+
+            if (runs.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No runs yet</td></tr>';
+            }
+        }
+
+        async function runBenchmark() {
+            const btn = document.getElementById('run-btn');
+            const status = document.getElementById('status');
+            const output = document.getElementById('run-output');
+
+            btn.disabled = true;
+            status.textContent = 'Running benchmark...';
+            output.style.display = 'block';
+            output.textContent = 'Starting benchmark...\n';
+
+            try {
+                // Note: This requires a server that can execute the benchmark
+                // For now, show instructions
+                output.textContent = `To run the benchmark from command line:
+
+npm run test:cv:offline
+
+Or for a quick test:
+npm run cv:benchmark:quick
+
+The results will be saved to:
+- test-results/cv-test-results.json
+- data/benchmark-history.json
+
+After running, click "Refresh Data" to see the results.`;
+
+                status.textContent = 'See instructions below';
+            } catch (e) {
+                output.textContent = 'Error: ' + e.message;
+                status.textContent = 'Failed';
+            }
+
+            btn.disabled = false;
+        }
+
+        function runQuickBenchmark() {
+            const output = document.getElementById('run-output');
+            output.style.display = 'block';
+            output.textContent = `To run a quick benchmark:
+
+npm run cv:benchmark:quick
+
+This tests on 3 representative images for faster iteration.`;
+        }
+
+        function exportHistory() {
+            const data = {
+                benchmarkHistory,
+                testResults,
+                exportedAt: new Date().toISOString(),
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cv-performance-history-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function clearHistory() {
+            if (!confirm('Clear all benchmark history? This cannot be undone.')) return;
+            benchmarkHistory = { runs: [] };
+            // Note: This only clears in memory. Server-side clearing would need an API.
+            alert('History cleared in memory. To clear files, delete data/benchmark-history.json');
+            renderDashboard();
+        }
+
+        // Load on page load
+        loadData();
+    </script>
+</body>
+</html>

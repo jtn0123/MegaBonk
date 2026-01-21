@@ -1,0 +1,461 @@
+{
+  "version": 1,
+  "runs": [
+    {
+      "id": "run_1769013351259",
+      "timestamp": "2026-01-21T16:35:51.259Z",
+      "mode": "full",
+      "imageCount": 24,
+      "totalItems": 792,
+      "metrics": {
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "avgF1": 0
+      },
+      "timing": {
+        "totalMs": 1969,
+        "avgPerImageMs": 82.04166666666667
+      },
+      "perImage": [
+        {
+          "image": "pc-1080p/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 22,
+            "perItemMs": 1.8333333333333333
+          }
+        },
+        {
+          "image": "pc-1080p/level_33_english_forest_early.jpg",
+          "resolution": "1600x900",
+          "itemCount": 10,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 10,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 9,
+            "perItemMs": 0.9
+          }
+        },
+        {
+          "image": "pc-1080p/level_52_spanish_ocean.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 1,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 19,
+            "perItemMs": 1.0555555555555556
+          }
+        },
+        {
+          "image": "pc-1080p/level_66_russian_desert.jpg",
+          "resolution": "1280x800",
+          "itemCount": 20,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 20,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 22,
+            "perItemMs": 1.1
+          }
+        },
+        {
+          "image": "pc-1080p/level_75_portuguese_hell_final.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 30,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 30,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 30,
+            "perItemMs": 1
+          }
+        },
+        {
+          "image": "pc-1080p/level_108_english_snow_boss.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 1,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 19,
+            "perItemMs": 1.0555555555555556
+          }
+        },
+        {
+          "image": "pc-1080p/level_112_russian_crypt_boss.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 27,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 1,
+            "falseNegatives": 27,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 30,
+            "perItemMs": 1.1111111111111112
+          }
+        },
+        {
+          "image": "pc-1080p/level_281_turkish_hell.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 17,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 17,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 17,
+            "perItemMs": 1
+          }
+        },
+        {
+          "image": "pc-1080p/level_803_russian_stress_test.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 43,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 43,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 46,
+            "perItemMs": 1.069767441860465
+          }
+        },
+        {
+          "image": "steam-community/steam_05.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 75,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 75,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 80,
+            "perItemMs": 1.0666666666666667
+          }
+        },
+        {
+          "image": "steam-community/steam_06.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 36,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 3,
+            "falseNegatives": 36,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 41,
+            "perItemMs": 1.1388888888888888
+          }
+        },
+        {
+          "image": "steam-community/steam_14.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 43,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 1,
+            "falseNegatives": 43,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 45,
+            "perItemMs": 1.0465116279069768
+          }
+        },
+        {
+          "image": "steam-community/steam_15.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 14,
+            "perItemMs": 1.1666666666666667
+          }
+        },
+        {
+          "image": "steam-community/steam_19.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 62,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 62,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 67,
+            "perItemMs": 1.0806451612903225
+          }
+        },
+        {
+          "image": "steam-community/steam_22.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 1,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 1,
+            "falseNegatives": 1,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 1,
+            "perItemMs": 1
+          }
+        },
+        {
+          "image": "steam-community/steam_01.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 26,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 26,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 28,
+            "perItemMs": 1.0769230769230769
+          }
+        },
+        {
+          "image": "steam-community/steam_02.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 3,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 3,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 4,
+            "perItemMs": 1.3333333333333333
+          }
+        },
+        {
+          "image": "steam-community/steam_03.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 31,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 31,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 34,
+            "perItemMs": 1.096774193548387
+          }
+        },
+        {
+          "image": "steam-community/steam_16.jpg",
+          "resolution": "3840x2160",
+          "itemCount": 22,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 22,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 27,
+            "perItemMs": 1.2272727272727273
+          }
+        },
+        {
+          "image": "steam-community/steam_10054997231995129950.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 45,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 1,
+            "falseNegatives": 45,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 47,
+            "perItemMs": 1.0444444444444445
+          }
+        },
+        {
+          "image": "steam-community/steam_14175018221761753451.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 17,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 1,
+            "falseNegatives": 17,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 21,
+            "perItemMs": 1.2352941176470589
+          }
+        },
+        {
+          "image": "steam-community/steam_14487114544377495734.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 89,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 89,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 93,
+            "perItemMs": 1.0449438202247192
+          }
+        },
+        {
+          "image": "steam-community/steam_18445750024608086701.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 19,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 19,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 21,
+            "perItemMs": 1.105263157894737
+          }
+        },
+        {
+          "image": "steam-community/steam_9355034870308950583_.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 116,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 116,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 126,
+            "perItemMs": 1.0862068965517242
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.45,
+        "templateCount": 80
+      }
+    }
+  ]
+}
