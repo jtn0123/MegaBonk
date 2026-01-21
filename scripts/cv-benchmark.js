@@ -1,0 +1,580 @@
+#!/usr/bin/env node
+/**
+ * CV Benchmark Runner
+ *
+ * Runs CV detection on all ground-truth images and records metrics.
+ * Results are stored in data/benchmark-history.json for tracking over time.
+ *
+ * Usage:
+ *   node scripts/cv-benchmark.js                    # Run full benchmark
+ *   node scripts/cv-benchmark.js --quick            # Run on subset (3 images)
+ *   node scripts/cv-benchmark.js --image <path>     # Run on specific image
+ *   node scripts/cv-benchmark.js --compare          # Compare to last run
+ *   node scripts/cv-benchmark.js --history          # Show history summary
+ */
+
+const fs = require('fs');
+const path = require('path');
+
+// Optional canvas for image processing
+let createCanvas, loadImage;
+try {
+    const canvas = require('canvas');
+    createCanvas = canvas.createCanvas;
+    loadImage = canvas.loadImage;
+} catch (e) {
+    console.error('Warning: canvas module not available. Install with: npm install canvas');
+    process.exit(1);
+}
+
+// ========================================
+// Configuration
+// ========================================
+
+const CONFIG = {
+    GROUND_TRUTH_PATH: path.join(__dirname, '..', 'test-images', 'gameplay', 'ground-truth.json'),
+    IMAGES_BASE_PATH: path.join(__dirname, '..', 'test-images', 'gameplay'),
+    BENCHMARK_HISTORY_PATH: path.join(__dirname, '..', 'data', 'benchmark-history.json'),
+    ITEMS_PATH: path.join(__dirname, '..', 'data', 'items.json'),
+    TEMPLATES_PATH: path.join(__dirname, '..', 'src', 'images', 'items'),
+
+    // Detection settings
+    DEFAULT_THRESHOLD: 0.45,
+    BASE_RESOLUTION: 720,
+
+    // Grid calibration presets
+    CALIBRATION_PRESETS: {
+        '1280x720': { xOffset: 0, yOffset: 92, iconWidth: 40, iconHeight: 40, xSpacing: 4, ySpacing: 4, iconsPerRow: 22 },
+        '1280x800': { xOffset: 0, yOffset: 102, iconWidth: 44, iconHeight: 44, xSpacing: 5, ySpacing: 5, iconsPerRow: 22 },
+        '1920x1080': { xOffset: 0, yOffset: 138, iconWidth: 60, iconHeight: 60, xSpacing: 6, ySpacing: 6, iconsPerRow: 22 },
+        '2560x1440': { xOffset: -3, yOffset: 184, iconWidth: 78, iconHeight: 80, xSpacing: 11, ySpacing: 4, iconsPerRow: 22 },
+    },
+};
+
+// ========================================
+// Utility Functions
+// ========================================
+
+function nameToId(name) {
+    return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+}
+
+function getCalibrationForResolution(width, height) {
+    const key = `${width}x${height}`;
+    if (CONFIG.CALIBRATION_PRESETS[key]) {
+        return { ...CONFIG.CALIBRATION_PRESETS[key] };
+    }
+    // Scale from base
+    const scale = height / CONFIG.BASE_RESOLUTION;
+    return {
+        xOffset: 0,
+        yOffset: Math.round(92 * scale),
+        iconWidth: Math.round(40 * scale),
+        iconHeight: Math.round(40 * scale),
+        xSpacing: Math.round(4 * scale),
+        ySpacing: Math.round(4 * scale),
+        iconsPerRow: 22,
+    };
+}
+
+function calculateGridPositions(imageWidth, imageHeight, calibration, itemCount) {
+    const positions = [];
+    const cellWidth = calibration.iconWidth + calibration.xSpacing;
+    const cellHeight = calibration.iconHeight + calibration.ySpacing;
+    const totalGridWidth = calibration.iconsPerRow * cellWidth - calibration.xSpacing;
+    const startX = Math.round((imageWidth - totalGridWidth) / 2) + calibration.xOffset;
+    const numRows = Math.ceil(itemCount / calibration.iconsPerRow);
+    const totalGridHeight = numRows * cellHeight - calibration.ySpacing;
+    const startY = imageHeight - totalGridHeight - calibration.yOffset;
+
+    for (let i = 0; i < itemCount; i++) {
+        const row = Math.floor(i / calibration.iconsPerRow);
+        const col = i % calibration.iconsPerRow;
+        positions.push({
+            index: i,
+            x: Math.round(startX + col * cellWidth),
+            y: Math.round(startY + row * cellHeight),
+            width: calibration.iconWidth,
+            height: calibration.iconHeight,
+        });
+    }
+    return positions;
+}
+
+// Simple NCC (Normalized Cross-Correlation) for template matching
+function calculateNCC(imgData1, imgData2) {
+    if (imgData1.length !== imgData2.length) return 0;
+
+    let sum1 = 0, sum2 = 0;
+    const n = imgData1.length / 4; // RGBA
+
+    // Calculate means
+    for (let i = 0; i < imgData1.length; i += 4) {
+        sum1 += (imgData1[i] + imgData1[i + 1] + imgData1[i + 2]) / 3;
+        sum2 += (imgData2[i] + imgData2[i + 1] + imgData2[i + 2]) / 3;
+    }
+    const mean1 = sum1 / n;
+    const mean2 = sum2 / n;
+
+    // Calculate NCC
+    let numerator = 0, denom1 = 0, denom2 = 0;
+    for (let i = 0; i < imgData1.length; i += 4) {
+        const v1 = (imgData1[i] + imgData1[i + 1] + imgData1[i + 2]) / 3 - mean1;
+        const v2 = (imgData2[i] + imgData2[i + 1] + imgData2[i + 2]) / 3 - mean2;
+        numerator += v1 * v2;
+        denom1 += v1 * v1;
+        denom2 += v2 * v2;
+    }
+
+    const denom = Math.sqrt(denom1 * denom2);
+    return denom > 0 ? numerator / denom : 0;
+}
+
+// ========================================
+// Detection Engine (Simplified)
+// ========================================
+
+class SimpleCVEngine {
+    constructor() {
+        this.templates = new Map();
+        this.itemsData = null;
+    }
+
+    async loadTemplates() {
+        // Load items data
+        if (fs.existsSync(CONFIG.ITEMS_PATH)) {
+            this.itemsData = JSON.parse(fs.readFileSync(CONFIG.ITEMS_PATH, 'utf8'));
+        }
+
+        if (!this.itemsData?.items) {
+            console.error('Could not load items.json');
+            return;
+        }
+
+        // Load template images
+        for (const item of this.itemsData.items) {
+            const templatePath = path.join(__dirname, '..', 'src', item.image);
+            if (fs.existsSync(templatePath)) {
+                try {
+                    const img = await loadImage(templatePath);
+                    const canvas = createCanvas(40, 40);
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, 40, 40);
+                    const imageData = ctx.getImageData(0, 0, 40, 40);
+                    this.templates.set(item.id, {
+                        item,
+                        imageData: imageData.data,
+                    });
+                } catch (e) {
+                    // Template not found
+                }
+            }
+        }
+
+        console.log(`Loaded ${this.templates.size} templates`);
+    }
+
+    async detectItems(imagePath, groundTruthItems, threshold = CONFIG.DEFAULT_THRESHOLD) {
+        const fullPath = path.join(CONFIG.IMAGES_BASE_PATH, imagePath);
+        if (!fs.existsSync(fullPath)) {
+            return { error: `Image not found: ${fullPath}` };
+        }
+
+        const image = await loadImage(fullPath);
+        const width = image.width;
+        const height = image.height;
+
+        const calibration = getCalibrationForResolution(width, height);
+        const positions = calculateGridPositions(width, height, calibration, groundTruthItems.length);
+
+        // Create canvas for the image
+        const canvas = createCanvas(width, height);
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(image, 0, 0);
+
+        const detections = [];
+        const startTime = Date.now();
+
+        for (let i = 0; i < positions.length && i < groundTruthItems.length; i++) {
+            const pos = positions[i];
+
+            // Extract crop
+            const cropCanvas = createCanvas(40, 40);
+            const cropCtx = cropCanvas.getContext('2d');
+            cropCtx.drawImage(canvas, pos.x, pos.y, pos.width, pos.height, 0, 0, 40, 40);
+            const cropData = cropCtx.getImageData(0, 0, 40, 40).data;
+
+            // Match against templates
+            let bestMatch = null;
+            let bestScore = 0;
+
+            for (const [itemId, template] of this.templates) {
+                const score = calculateNCC(cropData, template.imageData);
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMatch = template.item;
+                }
+            }
+
+            if (bestMatch && bestScore >= threshold) {
+                detections.push({
+                    slot: i,
+                    item: bestMatch.name,
+                    itemId: bestMatch.id,
+                    confidence: bestScore,
+                    groundTruth: groundTruthItems[i],
+                    correct: bestMatch.name === groundTruthItems[i],
+                });
+            } else {
+                detections.push({
+                    slot: i,
+                    item: null,
+                    confidence: bestScore,
+                    groundTruth: groundTruthItems[i],
+                    correct: false,
+                });
+            }
+        }
+
+        const elapsed = Date.now() - startTime;
+
+        // Calculate metrics
+        const truePositives = detections.filter(d => d.correct).length;
+        const falsePositives = detections.filter(d => d.item && !d.correct).length;
+        const falseNegatives = detections.filter(d => !d.item || !d.correct).length;
+
+        const precision = truePositives + falsePositives > 0
+            ? truePositives / (truePositives + falsePositives) : 0;
+        const recall = truePositives + falseNegatives > 0
+            ? truePositives / (truePositives + falseNegatives) : 0;
+        const f1 = precision + recall > 0
+            ? 2 * (precision * recall) / (precision + recall) : 0;
+
+        return {
+            imagePath,
+            resolution: `${width}x${height}`,
+            itemCount: groundTruthItems.length,
+            detections,
+            metrics: {
+                truePositives,
+                falsePositives,
+                falseNegatives,
+                precision,
+                recall,
+                f1,
+                accuracy: truePositives / groundTruthItems.length,
+            },
+            timing: {
+                totalMs: elapsed,
+                perItemMs: elapsed / groundTruthItems.length,
+            },
+            threshold,
+        };
+    }
+}
+
+// ========================================
+// Benchmark History Management
+// ========================================
+
+function loadBenchmarkHistory() {
+    if (fs.existsSync(CONFIG.BENCHMARK_HISTORY_PATH)) {
+        return JSON.parse(fs.readFileSync(CONFIG.BENCHMARK_HISTORY_PATH, 'utf8'));
+    }
+    return {
+        version: 1,
+        runs: [],
+    };
+}
+
+function saveBenchmarkHistory(history) {
+    const dir = path.dirname(CONFIG.BENCHMARK_HISTORY_PATH);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(CONFIG.BENCHMARK_HISTORY_PATH, JSON.stringify(history, null, 2));
+}
+
+function addBenchmarkRun(history, runData) {
+    history.runs.push(runData);
+    // Keep last 100 runs
+    if (history.runs.length > 100) {
+        history.runs = history.runs.slice(-100);
+    }
+    saveBenchmarkHistory(history);
+}
+
+// ========================================
+// Main Benchmark Runner
+// ========================================
+
+async function runBenchmark(options = {}) {
+    const { quick, imagePath, verbose } = options;
+
+    console.log('CV Benchmark Runner');
+    console.log('===================');
+    console.log('');
+
+    // Load ground truth
+    if (!fs.existsSync(CONFIG.GROUND_TRUTH_PATH)) {
+        console.error(`Ground truth not found: ${CONFIG.GROUND_TRUTH_PATH}`);
+        process.exit(1);
+    }
+
+    const groundTruth = JSON.parse(fs.readFileSync(CONFIG.GROUND_TRUTH_PATH, 'utf8'));
+    const imageEntries = Object.entries(groundTruth).filter(([key]) => !key.startsWith('_'));
+
+    // Filter images
+    let imagesToRun;
+    if (imagePath) {
+        imagesToRun = imageEntries.filter(([path]) => path.includes(imagePath));
+        if (imagesToRun.length === 0) {
+            console.error(`No images matching: ${imagePath}`);
+            process.exit(1);
+        }
+    } else if (quick) {
+        // Pick 3 diverse images (different difficulties)
+        imagesToRun = imageEntries.slice(0, 3);
+    } else {
+        imagesToRun = imageEntries;
+    }
+
+    console.log(`Running benchmark on ${imagesToRun.length} image(s)...`);
+    console.log('');
+
+    // Initialize CV engine
+    const engine = new SimpleCVEngine();
+    await engine.loadTemplates();
+
+    // Run detection on each image
+    const results = [];
+    const startTime = Date.now();
+
+    for (const [imgPath, data] of imagesToRun) {
+        if (!data.items || data.items.length === 0) {
+            console.log(`Skipping ${imgPath}: no ground truth items`);
+            continue;
+        }
+
+        process.stdout.write(`Processing ${imgPath}... `);
+
+        const result = await engine.detectItems(imgPath, data.items);
+
+        if (result.error) {
+            console.log(`ERROR: ${result.error}`);
+            continue;
+        }
+
+        results.push(result);
+
+        const m = result.metrics;
+        console.log(`F1=${(m.f1 * 100).toFixed(1)}% P=${(m.precision * 100).toFixed(1)}% R=${(m.recall * 100).toFixed(1)}% (${result.timing.totalMs}ms)`);
+
+        if (verbose) {
+            // Show incorrect detections
+            const incorrect = result.detections.filter(d => !d.correct);
+            for (const d of incorrect.slice(0, 5)) {
+                console.log(`  Slot ${d.slot}: detected "${d.item}" but was "${d.groundTruth}" (${(d.confidence * 100).toFixed(0)}%)`);
+            }
+        }
+    }
+
+    const totalTime = Date.now() - startTime;
+
+    // Calculate aggregate metrics
+    const aggregate = {
+        imageCount: results.length,
+        totalItems: results.reduce((s, r) => s + r.itemCount, 0),
+        totalTruePositives: results.reduce((s, r) => s + r.metrics.truePositives, 0),
+        totalFalsePositives: results.reduce((s, r) => s + r.metrics.falsePositives, 0),
+        totalFalseNegatives: results.reduce((s, r) => s + r.metrics.falseNegatives, 0),
+    };
+
+    aggregate.precision = aggregate.totalTruePositives + aggregate.totalFalsePositives > 0
+        ? aggregate.totalTruePositives / (aggregate.totalTruePositives + aggregate.totalFalsePositives) : 0;
+    aggregate.recall = aggregate.totalTruePositives + aggregate.totalFalseNegatives > 0
+        ? aggregate.totalTruePositives / (aggregate.totalTruePositives + aggregate.totalFalseNegatives) : 0;
+    aggregate.f1 = aggregate.precision + aggregate.recall > 0
+        ? 2 * (aggregate.precision * aggregate.recall) / (aggregate.precision + aggregate.recall) : 0;
+    aggregate.accuracy = aggregate.totalItems > 0
+        ? aggregate.totalTruePositives / aggregate.totalItems : 0;
+
+    // Per-image averages
+    aggregate.avgF1 = results.length > 0
+        ? results.reduce((s, r) => s + r.metrics.f1, 0) / results.length : 0;
+    aggregate.avgPrecision = results.length > 0
+        ? results.reduce((s, r) => s + r.metrics.precision, 0) / results.length : 0;
+    aggregate.avgRecall = results.length > 0
+        ? results.reduce((s, r) => s + r.metrics.recall, 0) / results.length : 0;
+
+    console.log('');
+    console.log('Aggregate Results');
+    console.log('-----------------');
+    console.log(`Images:      ${aggregate.imageCount}`);
+    console.log(`Total items: ${aggregate.totalItems}`);
+    console.log(`TP/FP/FN:    ${aggregate.totalTruePositives}/${aggregate.totalFalsePositives}/${aggregate.totalFalseNegatives}`);
+    console.log(`Accuracy:    ${(aggregate.accuracy * 100).toFixed(1)}%`);
+    console.log(`Precision:   ${(aggregate.precision * 100).toFixed(1)}%`);
+    console.log(`Recall:      ${(aggregate.recall * 100).toFixed(1)}%`);
+    console.log(`F1 Score:    ${(aggregate.f1 * 100).toFixed(1)}%`);
+    console.log(`Avg F1:      ${(aggregate.avgF1 * 100).toFixed(1)}%`);
+    console.log(`Total time:  ${totalTime}ms`);
+
+    // Create benchmark run record
+    const runData = {
+        id: `run_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        mode: quick ? 'quick' : imagePath ? 'single' : 'full',
+        imageCount: aggregate.imageCount,
+        totalItems: aggregate.totalItems,
+        metrics: {
+            accuracy: aggregate.accuracy,
+            precision: aggregate.precision,
+            recall: aggregate.recall,
+            f1: aggregate.f1,
+            avgF1: aggregate.avgF1,
+        },
+        timing: {
+            totalMs: totalTime,
+            avgPerImageMs: totalTime / results.length,
+        },
+        perImage: results.map(r => ({
+            image: r.imagePath,
+            resolution: r.resolution,
+            itemCount: r.itemCount,
+            metrics: r.metrics,
+            timing: r.timing,
+        })),
+        config: {
+            threshold: CONFIG.DEFAULT_THRESHOLD,
+            templateCount: engine.templates.size,
+        },
+    };
+
+    // Save to history
+    const history = loadBenchmarkHistory();
+    addBenchmarkRun(history, runData);
+
+    console.log('');
+    console.log(`Results saved to: ${CONFIG.BENCHMARK_HISTORY_PATH}`);
+
+    return runData;
+}
+
+async function showHistory() {
+    const history = loadBenchmarkHistory();
+
+    if (history.runs.length === 0) {
+        console.log('No benchmark history found. Run a benchmark first.');
+        return;
+    }
+
+    console.log('Benchmark History');
+    console.log('=================');
+    console.log('');
+    console.log('Date                 | Mode   | Images | F1     | Precision | Recall | Time');
+    console.log('---------------------|--------|--------|--------|-----------|--------|------');
+
+    for (const run of history.runs.slice(-20).reverse()) {
+        const date = new Date(run.timestamp).toISOString().slice(0, 16).replace('T', ' ');
+        const mode = run.mode.padEnd(6);
+        const images = String(run.imageCount).padStart(6);
+        const f1 = `${(run.metrics.f1 * 100).toFixed(1)}%`.padStart(6);
+        const precision = `${(run.metrics.precision * 100).toFixed(1)}%`.padStart(9);
+        const recall = `${(run.metrics.recall * 100).toFixed(1)}%`.padStart(6);
+        const time = `${run.timing.totalMs}ms`.padStart(6);
+
+        console.log(`${date} | ${mode} | ${images} | ${f1} | ${precision} | ${recall} | ${time}`);
+    }
+
+    // Show trend
+    if (history.runs.length >= 2) {
+        const recent = history.runs.slice(-5);
+        const older = history.runs.slice(-10, -5);
+
+        if (older.length > 0) {
+            const recentAvgF1 = recent.reduce((s, r) => s + r.metrics.f1, 0) / recent.length;
+            const olderAvgF1 = older.reduce((s, r) => s + r.metrics.f1, 0) / older.length;
+            const delta = recentAvgF1 - olderAvgF1;
+
+            console.log('');
+            console.log(`Trend: ${delta >= 0 ? '+' : ''}${(delta * 100).toFixed(2)}% F1 (last 5 vs previous 5)`);
+        }
+    }
+}
+
+async function compareToLast() {
+    const history = loadBenchmarkHistory();
+
+    if (history.runs.length < 2) {
+        console.log('Need at least 2 runs to compare. Run more benchmarks first.');
+        return;
+    }
+
+    const current = history.runs[history.runs.length - 1];
+    const previous = history.runs[history.runs.length - 2];
+
+    console.log('Comparison: Current vs Previous Run');
+    console.log('====================================');
+    console.log('');
+    console.log(`Current:  ${current.timestamp}`);
+    console.log(`Previous: ${previous.timestamp}`);
+    console.log('');
+
+    const metrics = ['accuracy', 'precision', 'recall', 'f1'];
+    for (const m of metrics) {
+        const curr = current.metrics[m] * 100;
+        const prev = previous.metrics[m] * 100;
+        const delta = curr - prev;
+        const arrow = delta > 0 ? '↑' : delta < 0 ? '↓' : '=';
+        console.log(`${m.padEnd(10)}: ${curr.toFixed(1)}% ${arrow} (${delta >= 0 ? '+' : ''}${delta.toFixed(2)}%)`);
+    }
+
+    // Per-image comparison
+    if (current.perImage && previous.perImage) {
+        console.log('');
+        console.log('Per-Image Changes:');
+
+        for (const currImg of current.perImage) {
+            const prevImg = previous.perImage.find(p => p.image === currImg.image);
+            if (prevImg) {
+                const delta = currImg.metrics.f1 - prevImg.metrics.f1;
+                if (Math.abs(delta) > 0.01) {
+                    const arrow = delta > 0 ? '↑' : '↓';
+                    console.log(`  ${currImg.image}: ${arrow} ${(delta * 100).toFixed(1)}%`);
+                }
+            }
+        }
+    }
+}
+
+// ========================================
+// Main
+// ========================================
+
+async function main() {
+    const args = process.argv.slice(2);
+
+    if (args.includes('--history')) {
+        await showHistory();
+    } else if (args.includes('--compare')) {
+        await compareToLast();
+    } else {
+        const options = {
+            quick: args.includes('--quick'),
+            verbose: args.includes('--verbose') || args.includes('-v'),
+        };
+
+        const imageIdx = args.indexOf('--image');
+        if (imageIdx !== -1 && args[imageIdx + 1]) {
+            options.imagePath = args[imageIdx + 1];
+        }
+
+        await runBenchmark(options);
+    }
+}
+
+main().catch(err => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+});
