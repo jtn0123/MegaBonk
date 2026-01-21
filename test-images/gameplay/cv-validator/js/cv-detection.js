@@ -150,27 +150,48 @@ export function isEmptyCell(imageData) {
         return sharedLibrary.isEmptyCell(imageData);
     }
 
-    // Fallback to local implementation
+    // Fallback to local implementation - uses RGB variance (matches TypeScript version)
     const pixels = imageData.data;
-    let sum = 0,
-        sumSq = 0,
-        count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
+    let sumSqR = 0,
+        sumSqG = 0,
+        sumSqB = 0;
+    let count = 0;
 
-    for (let i = 0; i < pixels.length; i += 4) {
-        const r = pixels[i];
-        const g = pixels[i + 1];
-        const b = pixels[i + 2];
-        const gray = (r + g + b) / 3;
-        sum += gray;
-        sumSq += gray * gray;
+    // Sample every 4th pixel for performance (matches TS version)
+    for (let i = 0; i < pixels.length; i += 16) {
+        const r = pixels[i] || 0;
+        const g = pixels[i + 1] || 0;
+        const b = pixels[i + 2] || 0;
+
+        sumR += r;
+        sumG += g;
+        sumB += b;
+        sumSqR += r * r;
+        sumSqG += g * g;
+        sumSqB += b * b;
         count++;
     }
 
-    const mean = sum / count;
-    const variance = sumSq / count - mean * mean;
+    if (count === 0) return true;
 
-    // Low variance or very dark = empty
-    return variance < CONFIG.EMPTY_CELL_VARIANCE_THRESHOLD || mean < CONFIG.EMPTY_CELL_MEAN_THRESHOLD;
+    // Calculate variance for each channel
+    const meanR = sumR / count;
+    const meanG = sumG / count;
+    const meanB = sumB / count;
+
+    const varianceR = sumSqR / count - meanR * meanR;
+    const varianceG = sumSqG / count - meanG * meanG;
+    const varianceB = sumSqB / count - meanB * meanB;
+
+    const totalVariance = varianceR + varianceG + varianceB;
+
+    // Low RGB variance = uniform color = likely empty (threshold 500 matches TS version)
+    // Also check for very dark cells
+    const meanGray = (meanR + meanG + meanB) / 3;
+    return totalVariance < 500 || meanGray < CONFIG.EMPTY_CELL_MEAN_THRESHOLD;
 }
 
 // ========================================
@@ -292,43 +313,50 @@ function matchWithTrainingTemplates(centerData, primaryTemplate, itemId) {
     // Get primary template score
     const primaryScore = calculateSimilarity(centerData, primaryTemplate);
 
-    // Match against training templates
-    const trainingScores = [];
+    // Match against training templates - store raw scores and weights separately
+    const trainingResults = [];
     for (const trainingTpl of trainingTemplates) {
         // Resize training template to match center data size
         const resizedTraining = resizeImageData(trainingTpl.imageData, centerData.width, centerData.height);
         if (!resizedTraining) continue;
 
-        const score = calculateSimilarity(centerData, resizedTraining) * trainingTpl.weight;
-        trainingScores.push(score);
+        const rawScore = calculateSimilarity(centerData, resizedTraining);
+        trainingResults.push({ rawScore, weight: trainingTpl.weight });
     }
 
-    if (trainingScores.length === 0) {
+    if (trainingResults.length === 0) {
         return primaryScore;
     }
 
     // Aggregation strategy:
-    // 1. Take the max score (primary has 1.5x weight to prefer canonical template)
-    // 2. Add voting bonus for multiple high-confidence matches
+    // 1. Compare all RAW scores to find best match
+    // 2. Apply weight to the winning score
+    // 3. Add voting bonus for multiple high-confidence matches
     const primaryWeight = 1.5;
-    const weightedPrimaryScore = primaryScore * primaryWeight;
 
-    // Normalize all scores to comparable scale for max calculation
-    // Primary is weighted, training scores are already weighted in their calculation
-    const normalizedPrimary = primaryScore; // Keep unweighted for comparison
-    const allNormalizedScores = [normalizedPrimary, ...trainingScores]; // Training scores already have weight applied
-    const maxScore = Math.max(...allNormalizedScores);
+    // Collect all raw scores for comparison (fair comparison without weights)
+    const allRawScores = [primaryScore, ...trainingResults.map(t => t.rawScore)];
+    const maxRawScore = Math.max(...allRawScores);
 
-    // For voting, count how many templates (including primary) exceed threshold
+    // Determine which template won and apply its weight
+    let finalBaseScore;
+    if (primaryScore === maxRawScore) {
+        // Primary template won - apply primary weight bonus
+        finalBaseScore = primaryScore * Math.min(1.0, primaryWeight * 0.7); // Scaled bonus, max 1.0
+    } else {
+        // A training template won - find which one and apply its weight
+        const winningTraining = trainingResults.find(t => t.rawScore === maxRawScore);
+        const weight = winningTraining?.weight || 1.0;
+        finalBaseScore = maxRawScore * Math.min(1.0, weight * 0.85); // Scaled bonus, max 1.0
+    }
+
+    // Voting bonus: count how many templates exceed threshold (using raw scores)
     const threshold = 0.5;
-    const votesAboveThreshold = allNormalizedScores.filter(s => s > threshold).length;
+    const votesAboveThreshold = allRawScores.filter(s => s > threshold).length;
     const votingBonus = Math.min(0.08, votesAboveThreshold * 0.015); // Up to 8% bonus
 
-    // If primary is best by a significant margin, apply primary weight bonus
-    const primaryBonus = weightedPrimaryScore > maxScore * 1.3 ? 0.03 : 0;
-
     // Final score with voting bonus, capped at 0.99
-    return Math.min(0.99, maxScore + votingBonus + primaryBonus);
+    return Math.min(0.99, finalBaseScore + votingBonus);
 }
 
 // ========================================

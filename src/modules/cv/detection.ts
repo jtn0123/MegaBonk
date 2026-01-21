@@ -24,6 +24,30 @@ import { getTrainingTemplatesForItem, isTrainingDataLoaded } from './training.ts
 import type { TrainingTemplate } from './training.ts';
 
 // ========================================
+// Configuration
+// ========================================
+
+/** Base path for worker scripts - can be overridden for subdirectory deployments */
+let workerBasePath = '';
+
+/**
+ * Set the base path for worker scripts
+ * Useful for deployments where the app is not at the root URL
+ * @param path The base path (e.g., '/megabonk' or '' for root)
+ */
+export function setWorkerBasePath(path: string): void {
+    // Normalize: remove trailing slash if present
+    workerBasePath = path.endsWith('/') ? path.slice(0, -1) : path;
+}
+
+/**
+ * Get the full path to a worker script
+ */
+function getWorkerPath(workerName: string): string {
+    return `${workerBasePath}/workers/${workerName}`;
+}
+
+// ========================================
 // Image Loading
 // ========================================
 
@@ -122,16 +146,18 @@ function hashImageDataUrl(dataUrl: string): string {
     const step = Math.max(1, Math.floor(len / sampleCount));
 
     // DJB2 hash on sampled characters
+    // Use >>> 0 inside loop to keep values as unsigned 32-bit integers
+    // This prevents overflow beyond JS safe integer range
     for (let i = 0; i < len; i += step) {
         const char = dataUrl.charCodeAt(i);
-        hash1 = ((hash1 << 5) + hash1) ^ char; // hash * 33 ^ char
+        hash1 = (((hash1 << 5) + hash1) ^ char) >>> 0; // hash * 33 ^ char, kept as uint32
     }
 
     // Secondary hash from end of string for additional uniqueness
     const endSampleStart = Math.max(0, len - 1000);
     for (let i = endSampleStart; i < len; i += 10) {
         const char = dataUrl.charCodeAt(i);
-        hash2 = (hash2 << 5) + hash2 + char;
+        hash2 = (((hash2 << 5) + hash2) + char) >>> 0; // kept as uint32
     }
 
     // Combine both hashes with length for final key
@@ -329,10 +355,28 @@ export function detectGridPositions(width: number, height: number, _gridSize: nu
  */
 function extractIconRegion(ctx: CanvasRenderingContext2D, cell: ROI): ImageData {
     // Extract 80% of cell to avoid count number area in bottom-right
-    const iconWidth = Math.floor(cell.width * 0.8);
-    const iconHeight = Math.floor(cell.height * 0.8);
+    let iconWidth = Math.floor(cell.width * 0.8);
+    let iconHeight = Math.floor(cell.height * 0.8);
 
-    return ctx.getImageData(cell.x, cell.y, iconWidth, iconHeight);
+    // Ensure minimum size
+    iconWidth = Math.max(1, iconWidth);
+    iconHeight = Math.max(1, iconHeight);
+
+    // Bounds check: ensure we don't exceed canvas dimensions
+    const canvasWidth = ctx.canvas.width;
+    const canvasHeight = ctx.canvas.height;
+
+    const safeX = Math.max(0, Math.min(cell.x, canvasWidth - 1));
+    const safeY = Math.max(0, Math.min(cell.y, canvasHeight - 1));
+    const safeWidth = Math.min(iconWidth, canvasWidth - safeX);
+    const safeHeight = Math.min(iconHeight, canvasHeight - safeY);
+
+    // Return empty ImageData if dimensions are invalid
+    if (safeWidth <= 0 || safeHeight <= 0) {
+        return ctx.createImageData(1, 1);
+    }
+
+    return ctx.getImageData(safeX, safeY, safeWidth, safeHeight);
 }
 
 /**
@@ -437,43 +481,50 @@ function matchTemplateMulti(
     // Extract icon region for matching against training templates
     const iconRegion = extractIconRegion(screenshotCtx, cell);
 
-    // Match against training templates
-    const trainingScores: number[] = [];
+    // Match against training templates - store raw scores and weights separately
+    const trainingResults: Array<{ rawScore: number; weight: number }> = [];
     for (const trainingTpl of trainingTemplates) {
         // Resize training template to match icon region size
         const resizedTraining = resizeImageData(trainingTpl.imageData, iconRegion.width, iconRegion.height);
         if (!resizedTraining) continue;
 
-        const score = calculateSimilarity(iconRegion, resizedTraining) * trainingTpl.weight;
-        trainingScores.push(score);
+        const rawScore = calculateSimilarity(iconRegion, resizedTraining);
+        trainingResults.push({ rawScore, weight: trainingTpl.weight });
     }
 
-    if (trainingScores.length === 0) {
+    if (trainingResults.length === 0) {
         return primaryScore;
     }
 
     // Aggregation strategy:
-    // 1. Take the max score (primary has 1.5x weight to prefer canonical template)
-    // 2. Add voting bonus for multiple high-confidence matches
+    // 1. Compare all RAW scores to find best match
+    // 2. Apply weight to the winning score
+    // 3. Add voting bonus for multiple high-confidence matches
     const primaryWeight = 1.5;
-    const weightedPrimaryScore = primaryScore * primaryWeight;
 
-    // Normalize all scores to comparable scale for max calculation
-    // Primary is weighted, training scores are already weighted in their calculation
-    const normalizedPrimary = primaryScore; // Keep unweighted for comparison
-    const allNormalizedScores = [normalizedPrimary, ...trainingScores.map(s => s)]; // Training scores already have weight applied
-    const maxScore = Math.max(...allNormalizedScores);
+    // Collect all raw scores for comparison (fair comparison without weights)
+    const allRawScores = [primaryScore, ...trainingResults.map(t => t.rawScore)];
+    const maxRawScore = Math.max(...allRawScores);
 
-    // For voting, count how many templates (including primary) exceed threshold
+    // Determine which template won and apply its weight
+    let finalBaseScore: number;
+    if (primaryScore === maxRawScore) {
+        // Primary template won - apply primary weight bonus
+        finalBaseScore = primaryScore * Math.min(1.0, primaryWeight * 0.7); // Scaled bonus, max 1.0
+    } else {
+        // A training template won - find which one and apply its weight
+        const winningTraining = trainingResults.find(t => t.rawScore === maxRawScore);
+        const weight = winningTraining?.weight || 1.0;
+        finalBaseScore = maxRawScore * Math.min(1.0, weight * 0.85); // Scaled bonus, max 1.0
+    }
+
+    // Voting bonus: count how many templates exceed threshold (using raw scores)
     const threshold = 0.5;
-    const votesAboveThreshold = allNormalizedScores.filter(s => s > threshold).length;
+    const votesAboveThreshold = allRawScores.filter(s => s > threshold).length;
     const votingBonus = Math.min(0.08, votesAboveThreshold * 0.015); // Up to 8% bonus
 
-    // If primary is best by a significant margin, apply primary weight bonus
-    const primaryBonus = weightedPrimaryScore > maxScore * 1.3 ? 0.03 : 0;
-
     // Final score with voting bonus, capped at 0.99
-    const finalScore = Math.min(0.99, maxScore + votingBonus + primaryBonus);
+    const finalScore = Math.min(0.99, finalBaseScore + votingBonus);
 
     return finalScore;
 }
@@ -489,7 +540,7 @@ export function extractCountRegion(cell: ROI): ROI {
         y: cell.y + cell.height - countSize,
         width: countSize,
         height: countSize,
-        label: `${cell.label}_count`,
+        label: `${cell.label || 'cell'}_count`,
     };
 }
 
@@ -812,7 +863,7 @@ async function detectItemsWithWorkers(
     try {
         // Initialize workers
         for (let i = 0; i < workerCount; i++) {
-            workers.push(new Worker('/workers/template-matcher-worker.js'));
+            workers.push(new Worker(getWorkerPath('template-matcher-worker.js')));
         }
 
         // Prepare template data for workers (serialize ImageData)
@@ -1130,8 +1181,11 @@ export async function detectItemCounts(imageDataUrl: string, cells: ROI[]): Prom
             );
 
             // OCR just this tiny region
+            // PSM 8 = SINGLE_WORD mode (optimized for single word recognition)
+            // Using numeric value directly since Tesseract.PSM may not be accessible via dynamic import
             const result = await Tesseract.recognize(countCanvas.toDataURL(), 'eng', {
-                tessedit_pageseg_mode: Tesseract.PSM.SINGLE_WORD,
+                tessedit_pageseg_mode: 8, // PSM.SINGLE_WORD
+                tessedit_char_whitelist: '0123456789x×', // Only allow digits and count prefixes
             } as any);
 
             const text = result.data.text.trim();

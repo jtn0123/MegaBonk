@@ -15,6 +15,7 @@ const itemTemplates = new Map<string, TemplateData>();
 const templatesByColor = new Map<string, Item[]>();
 let templatesLoaded = false;
 let priorityTemplatesLoaded = false;
+let standardTemplatesLoading = false; // Guard against concurrent standard template loads
 
 // Detection result cache (key = image hash, value = results)
 const detectionCache = new Map<string, { results: CVDetectionResult[]; timestamp: number }>();
@@ -55,6 +56,14 @@ export function isTemplatesLoaded(): boolean {
 
 export function isPriorityTemplatesLoaded(): boolean {
     return priorityTemplatesLoaded;
+}
+
+export function isStandardTemplatesLoading(): boolean {
+    return standardTemplatesLoading;
+}
+
+export function setStandardTemplatesLoading(loading: boolean): void {
+    standardTemplatesLoading = loading;
 }
 
 export function getDetectionCache(): Map<string, { results: CVDetectionResult[]; timestamp: number }> {
@@ -118,6 +127,7 @@ export function resetState(): void {
     templatesByColor.clear();
     templatesLoaded = false;
     priorityTemplatesLoaded = false;
+    standardTemplatesLoading = false;
     detectionCache.clear();
     resizedTemplateCache.clear();
     if (cacheCleanupTimer) {

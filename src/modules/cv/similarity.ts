@@ -58,10 +58,21 @@ export function normalizeColors(imageData: SimpleImageData): SimpleImageData {
     const rangeG = maxG - minG || 1;
     const rangeB = maxB - minB || 1;
 
+    // Minimum range threshold to avoid amplifying noise
+    // If range is < 20, the image is nearly uniform and normalization would amplify tiny variations
+    const MIN_RANGE_THRESHOLD = 20;
+
     for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.round((((data[i] ?? 0) - minR) / rangeR) * 255);
-        data[i + 1] = Math.round((((data[i + 1] ?? 0) - minG) / rangeG) * 255);
-        data[i + 2] = Math.round((((data[i + 2] ?? 0) - minB) / rangeB) * 255);
+        // Only normalize channels with sufficient range to avoid noise amplification
+        if (rangeR >= MIN_RANGE_THRESHOLD) {
+            data[i] = Math.round((((data[i] ?? 0) - minR) / rangeR) * 255);
+        }
+        if (rangeG >= MIN_RANGE_THRESHOLD) {
+            data[i + 1] = Math.round((((data[i + 1] ?? 0) - minG) / rangeG) * 255);
+        }
+        if (rangeB >= MIN_RANGE_THRESHOLD) {
+            data[i + 2] = Math.round((((data[i + 2] ?? 0) - minB) / rangeB) * 255);
+        }
     }
 
     return { data, width: imageData.width, height: imageData.height };

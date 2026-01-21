@@ -49,6 +49,7 @@ export interface TrainingTemplate {
 // Map of item_id -> array of training templates
 const trainingTemplates = new Map<string, TrainingTemplate[]>();
 let trainingDataLoaded = false;
+let trainingDataLoadingInProgress = false; // Prevent concurrent load attempts
 let trainingIndex: TrainingIndex | null = null;
 
 // Track available source images and which are enabled
@@ -244,6 +245,17 @@ export async function loadTrainingData(): Promise<boolean> {
         return true;
     }
 
+    // Prevent concurrent load attempts
+    if (trainingDataLoadingInProgress) {
+        logger.info({
+            operation: 'cv.training.load_in_progress',
+            data: { message: 'Training data load already in progress' },
+        });
+        return false;
+    }
+
+    trainingDataLoadingInProgress = true;
+
     try {
         // Load index file
         const indexPath = trainingDataBasePath + 'index.json';
@@ -317,6 +329,7 @@ export async function loadTrainingData(): Promise<boolean> {
             },
         });
 
+        trainingDataLoadingInProgress = false;
         return true;
     } catch (error) {
         logger.warn({
@@ -327,7 +340,9 @@ export async function loadTrainingData(): Promise<boolean> {
             },
         });
 
-        trainingDataLoaded = true; // Mark as loaded (with error)
+        // Don't mark as loaded on error - allow retry
+        // Just reset the loading flag so another attempt can be made
+        trainingDataLoadingInProgress = false;
         return false;
     }
 }
@@ -366,6 +381,7 @@ export function getTrainingStats(): {
 export function clearTrainingData(): void {
     trainingTemplates.clear();
     trainingDataLoaded = false;
+    trainingDataLoadingInProgress = false;
     trainingIndex = null;
     availableSources.clear();
     enabledSources.clear();
