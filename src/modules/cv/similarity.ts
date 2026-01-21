@@ -309,15 +309,27 @@ export function calculateCombinedSimilarity(imageData1: SimpleImageData, imageDa
     const edges = calculateEdgeSimilarity(processed1, processed2);
 
     // Use the best method as base
-    const maxScore = Math.max(ncc, histogram, ssim, edges);
+    const scores = [ncc, histogram, ssim, edges];
+    const maxScore = Math.max(...scores);
 
-    // Bonus if multiple methods agree
+    // Bonus if multiple methods agree (all within threshold of each other)
+    // Count pairs of methods that agree, excluding self-comparison
     let agreementBonus = 0;
     const threshold = 0.1;
-    if (Math.abs(ncc - maxScore) < threshold) agreementBonus += 0.02;
-    if (Math.abs(histogram - maxScore) < threshold) agreementBonus += 0.02;
-    if (Math.abs(ssim - maxScore) < threshold) agreementBonus += 0.02;
-    if (Math.abs(edges - maxScore) < threshold) agreementBonus += 0.02;
+
+    // Count how many methods are close to the max score
+    // Exclude the max itself from the count (it always "agrees" with itself)
+    let agreementCount = 0;
+    for (const score of scores) {
+        // Only count if this score is close to max BUT not the max itself
+        if (score < maxScore && Math.abs(score - maxScore) < threshold) {
+            agreementCount++;
+        }
+    }
+
+    // Award bonus based on how many OTHER methods agree with the best
+    // 0 others agree = no bonus, 1 agrees = 0.02, 2 agree = 0.04, 3 agree = 0.06
+    agreementBonus = agreementCount * 0.02;
 
     return Math.min(0.99, maxScore + agreementBonus);
 }

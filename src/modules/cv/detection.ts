@@ -455,17 +455,25 @@ function matchTemplateMulti(
     // Aggregation strategy:
     // 1. Take the max score (primary has 1.5x weight to prefer canonical template)
     // 2. Add voting bonus for multiple high-confidence matches
-    const weightedPrimaryScore = primaryScore * 1.5;
-    const allScores = [weightedPrimaryScore, ...trainingScores];
-    const maxScore = Math.max(...allScores) / 1.5; // Normalize back
+    const primaryWeight = 1.5;
+    const weightedPrimaryScore = primaryScore * primaryWeight;
 
-    // Voting bonus: count how many templates exceed threshold
+    // Normalize all scores to comparable scale for max calculation
+    // Primary is weighted, training scores are already weighted in their calculation
+    const normalizedPrimary = primaryScore; // Keep unweighted for comparison
+    const allNormalizedScores = [normalizedPrimary, ...trainingScores.map(s => s)]; // Training scores already have weight applied
+    const maxScore = Math.max(...allNormalizedScores);
+
+    // For voting, count how many templates (including primary) exceed threshold
     const threshold = 0.5;
-    const votesAboveThreshold = allScores.filter(s => s / 1.5 > threshold).length;
+    const votesAboveThreshold = allNormalizedScores.filter(s => s > threshold).length;
     const votingBonus = Math.min(0.08, votesAboveThreshold * 0.015); // Up to 8% bonus
 
+    // If primary is best by a significant margin, apply primary weight bonus
+    const primaryBonus = weightedPrimaryScore > maxScore * 1.3 ? 0.03 : 0;
+
     // Final score with voting bonus, capped at 0.99
-    const finalScore = Math.min(0.99, maxScore + votingBonus);
+    const finalScore = Math.min(0.99, maxScore + votingBonus + primaryBonus);
 
     return finalScore;
 }
