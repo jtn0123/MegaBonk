@@ -93,6 +93,13 @@ function normalizeItemId(name) {
 }
 
 // ==================== TEST RUNNER ====================
+// MEMORY FIX: Create reusable canvases ONCE outside the loop
+const resizeCanvas = createCanvas(32, 32);
+const resizeCtx = resizeCanvas.getContext('2d');
+let srcCanvas = null;
+let srcCtx = null;
+let lastSrcSize = 0;
+
 async function runTest(params, templates, testCases) {
     let totalTP = 0, totalFP = 0, totalFN = 0;
 
@@ -126,11 +133,18 @@ async function runTest(params, templates, testCases) {
             const variance = sumSq / count - (sum / count) ** 2;
             if (variance < params.min_variance) continue;
 
-            const resizeCanvas = createCanvas(32, 32);
-            const resizeCtx = resizeCanvas.getContext('2d');
-            const srcCanvas = createCanvas(pos.width, pos.height);
-            srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
+            // MEMORY FIX: Reuse srcCanvas, only recreate if size changed
+            const srcSize = pos.width;
+            if (srcSize !== lastSrcSize) {
+                srcCanvas = createCanvas(srcSize, srcSize);
+                srcCtx = srcCanvas.getContext('2d');
+                lastSrcSize = srcSize;
+            }
+            srcCtx.clearRect(0, 0, srcSize, srcSize);
+            srcCtx.putImageData(cellData, 0, 0);
+
             const margin = Math.round(pos.width * params.crop_margin);
+            resizeCtx.clearRect(0, 0, 32, 32);
             resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 

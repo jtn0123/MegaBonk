@@ -147,6 +147,11 @@ function isEmptyCell(imageData: any): boolean {
     return variance < 300 || mean < 40;
 }
 
+// MEMORY FIX: Reusable canvas for template matching
+let matchCanvas: any = null;
+let matchCtx: any = null;
+let lastMatchSize = { w: 0, h: 0 };
+
 async function findBestMatch(cellData: any, cellW: number, cellH: number) {
     const margin = Math.round(cellW * 0.15);
     const cw = cellW - margin * 2, ch = cellH - margin * 2;
@@ -169,13 +174,19 @@ async function findBestMatch(cellData: any, cellW: number, cellH: number) {
 
     let bestMatch: { item: GameItem; confidence: number } | null = null;
 
+    // MEMORY FIX: Reuse canvas instead of creating new one per template
+    if (lastMatchSize.w !== cw || lastMatchSize.h !== ch) {
+        matchCanvas = createCanvas(cw, ch);
+        matchCtx = matchCanvas.getContext('2d');
+        lastMatchSize = { w: cw, h: ch };
+    }
+
     for (const template of templateCache.values()) {
         const tMargin = Math.round(template.width * 0.15);
-        const tempCanvas = createCanvas(cw, ch);
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCtx.drawImage(template.canvas, tMargin, tMargin,
+        matchCtx.clearRect(0, 0, cw, ch);
+        matchCtx.drawImage(template.canvas, tMargin, tMargin,
             template.width - tMargin*2, template.height - tMargin*2, 0, 0, cw, ch);
-        let templateData = tempCtx.getImageData(0, 0, cw, ch);
+        let templateData = matchCtx.getImageData(0, 0, cw, ch);
         templateData = enhanceContrast(templateData);
         templateData = normalizeColors(templateData);
 
