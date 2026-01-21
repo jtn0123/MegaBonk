@@ -1962,22 +1962,22 @@ button:disabled {
     margin-top: 4px;
 }
 
-.batch-status.unlabeled {
+.batch-label-status.unlabeled {
     background: var(--bg-primary);
     color: var(--text-secondary);
 }
 
-.batch-status.verified {
+.batch-label-status.verified {
     background: rgba(74, 222, 128, 0.2);
     color: var(--success);
 }
 
-.batch-status.corrected {
+.batch-label-status.corrected {
     background: rgba(251, 191, 36, 0.2);
     color: var(--warning);
 }
 
-.batch-status.empty {
+.batch-label-status.empty {
     background: rgba(107, 114, 128, 0.2);
     color: var(--text-secondary);
 }

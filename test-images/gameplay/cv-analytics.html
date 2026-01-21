@@ -418,28 +418,75 @@
 
         async function loadValidatedExports() {
             // Try to load from validated-exports directory
-            // This is limited in browser context, so we'll parse what we can
+            // Since browsers can't list directories, we use multiple strategies
             const exports = [];
 
-            // Try known export files (this would need server-side support in production)
-            const knownFiles = [
-                '../../validated-exports/validated_pc-1080p_level_108_english_snow_boss_2026-01-21T04-59-25.json',
-                '../../validated-exports/validated_pc-1080p_level_112_russian_crypt_boss_2026-01-21T04-23-47.json',
-                '../../validated-exports/validated_pc-1080p_level_803_russian_stress_test_2026-01-21T03-46-35.json',
-            ];
-
-            for (const file of knownFiles) {
-                try {
-                    const resp = await fetch(file);
-                    if (resp.ok) {
-                        const data = await resp.json();
-                        exports.push(data);
+            // Strategy 1: Try to load manifest file (if it exists)
+            try {
+                const manifestResp = await fetch('../../validated-exports/manifest.json');
+                if (manifestResp.ok) {
+                    const manifest = await manifestResp.json();
+                    for (const file of manifest.files || []) {
+                        try {
+                            const resp = await fetch(`../../validated-exports/${file}`);
+                            if (resp.ok) {
+                                exports.push(await resp.json());
+                            }
+                        } catch (e) { /* skip */ }
                     }
-                } catch (e) {
-                    // File not found, continue
+                    if (exports.length > 0) return exports;
+                }
+            } catch (e) { /* no manifest, try other strategies */ }
+
+            // Strategy 2: Get file list from training index sources
+            if (trainingIndex?.sources) {
+                const sourceFiles = new Set();
+                for (const [sourceName, sourceData] of Object.entries(trainingIndex.sources)) {
+                    if (sourceData.source_file) {
+                        sourceFiles.add(sourceData.source_file);
+                    }
+                }
+                for (const file of sourceFiles) {
+                    try {
+                        // Try both relative paths
+                        const paths = [
+                            `../../validated-exports/${file}`,
+                            `../../${file}`,
+                        ];
+                        for (const path of paths) {
+                            const resp = await fetch(path);
+                            if (resp.ok) {
+                                exports.push(await resp.json());
+                                break;
+                            }
+                        }
+                    } catch (e) { /* skip */ }
+                }
+                if (exports.length > 0) return exports;
+            }
+
+            // Strategy 3: Fallback to scanning common patterns
+            const patterns = [
+                'validated_pc-1080p_',
+                'validated_pc-720p_',
+                'validated_pc-1440p_',
+            ];
+            // Try recent dates (last 30 days)
+            const now = new Date();
+            for (let i = 0; i < 30; i++) {
+                const date = new Date(now);
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                for (const pattern of patterns) {
+                    // Try a few hour variations
+                    for (const hour of ['00', '04', '08', '12', '16', '20']) {
+                        const filename = `${pattern}level_*_${dateStr}T${hour}*.json`;
+                        // Can't use wildcards in fetch, so just note this limitation
+                    }
                 }
             }
 
+            console.log('Note: For full export discovery, create validated-exports/manifest.json with { "files": ["file1.json", ...] }');
             return exports;
         }
 
