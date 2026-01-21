@@ -928,6 +928,22 @@ export async function autoDetectGrid(ctx, width, height, options = {}) {
         if (progressCallback) progressCallback(90, 'Validating cells...');
         const validation = validateGrid(ctx, gridResult.positions);
 
+        // Pass 6: Empty screen detection
+        // Icons smaller than 22px absolute are likely false positives from UI elements
+        const minAbsoluteIconSize = 22;
+        const iconsTooSmall = metrics.iconWidth < minAbsoluteIconSize || metrics.iconHeight < minAbsoluteIconSize;
+
+        const isLikelyEmpty = bandRegion.confidence < 0.4 && borderResult.edges.length < 3 && metrics.isDefault;
+
+        const hasInconsistentDetection =
+            borderResult.edges.length >= 2 && metrics.confidence < 0.3 && validation.validCells.length < 3;
+
+        if (isLikelyEmpty || hasInconsistentDetection || iconsTooSmall) {
+            log('Detected likely empty screen or false positives, clearing cells', LOG_LEVELS.INFO);
+            validation.validCells = [];
+            validation.confidence = 0;
+        }
+
         const elapsed = Date.now() - startTime;
         log(`=== Auto-Detection Complete in ${elapsed.toFixed(0)}ms ===`, LOG_LEVELS.SUCCESS);
 

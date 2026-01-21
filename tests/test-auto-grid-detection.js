@@ -580,6 +580,27 @@ async function autoDetectGrid(ctx, width, height) {
     const gridResult = buildPreciseGrid(metrics, bandRegion, width, height, borderResult.edges);
     const validation = validateGrid(ctx, gridResult.positions);
 
+    // Icon size validation:
+    // MegaBonk icons are typically 40-60px, but can be smaller in zoomed-out views
+    // Icons smaller than 22px absolute are almost certainly false positives
+    const minAbsoluteIconSize = 22;
+    const iconsTooSmall = metrics.iconWidth < minAbsoluteIconSize || metrics.iconHeight < minAbsoluteIconSize;
+
+    // Empty screen detection:
+    // If band confidence is low AND few consistent edges, likely no items visible
+    const isLikelyEmpty = bandRegion.confidence < 0.4 && borderResult.edges.length < 3 && metrics.isDefault;
+
+    // Also detect if we found edges but they're inconsistent (random gameplay elements)
+    const hasInconsistentDetection =
+        borderResult.edges.length >= 2 && metrics.confidence < 0.3 && validation.validCells.length < 3;
+
+    // If detected icons are too small, it's probably false positives
+    if (isLikelyEmpty || hasInconsistentDetection || iconsTooSmall) {
+        // Override to return 0 items for gameplay screens
+        validation.validCells = [];
+        validation.confidence = 0;
+    }
+
     return {
         success: true,
         bandRegion,
@@ -645,7 +666,9 @@ async function runTests() {
             console.log(
                 `  Band: Y=${result.bandRegion.topY}-${result.bandRegion.bottomY} (height=${result.bandRegion.height}px), conf=${(result.bandRegion.confidence * 100).toFixed(0)}%`
             );
-            console.log(`  Borders: ${result.borders.edges.length} edges detected`);
+            console.log(
+                `  Borders: ${result.borders.edges.length} edges, metrics.conf=${(result.metrics.confidence * 100).toFixed(0)}%, isDefault=${result.metrics.isDefault || false}`
+            );
             console.log(
                 `  Grid: ${result.grid.iconsPerRow}x${result.grid.numRows}, icon=${result.metrics.iconWidth}x${result.metrics.iconHeight}px`
             );
