@@ -10,6 +10,13 @@ const GT_PATH = './test-images/gameplay/ground-truth.json';
 const V1_DIR = './test-results/extracted-templates';
 const OUTPUT_DIR = './test-results/calibration';
 
+// MEMORY FIX: Reusable canvases to prevent OOM
+const resizeCanvas = createCanvas(32, 32);
+const resizeCtx = resizeCanvas.getContext('2d');
+let srcCanvas = null;
+let srcCtx = null;
+let lastSrcSize = 0;
+
 function calculateNCC(d1, d2) {
     let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
@@ -104,11 +111,16 @@ async function main() {
             const variance = sumSq / count - (sum / count) ** 2;
             if (variance < 350) continue;
 
-            const resizeCanvas = createCanvas(32, 32);
-            const resizeCtx = resizeCanvas.getContext('2d');
-            const srcCanvas = createCanvas(pos.width, pos.height);
-            srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
+            // MEMORY FIX: Reuse canvases
+            if (pos.width !== lastSrcSize) {
+                srcCanvas = createCanvas(pos.width, pos.height);
+                srcCtx = srcCanvas.getContext('2d');
+                lastSrcSize = pos.width;
+            }
+            srcCtx.clearRect(0, 0, pos.width, pos.height);
+            srcCtx.putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.1);
+            resizeCtx.clearRect(0, 0, 32, 32);
             resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
@@ -220,11 +232,16 @@ async function main() {
             const variance = sumSq / count - (sum / count) ** 2;
             if (variance < 400) continue;
 
-            const resizeCanvas = createCanvas(32, 32);
-            const resizeCtx = resizeCanvas.getContext('2d');
-            const srcCanvas = createCanvas(pos.width, pos.height);
-            srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
+            // MEMORY FIX: Reuse canvases
+            if (pos.width !== lastSrcSize) {
+                srcCanvas = createCanvas(pos.width, pos.height);
+                srcCtx = srcCanvas.getContext('2d');
+                lastSrcSize = pos.width;
+            }
+            srcCtx.clearRect(0, 0, pos.width, pos.height);
+            srcCtx.putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.1);
+            resizeCtx.clearRect(0, 0, 32, 32);
             resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
