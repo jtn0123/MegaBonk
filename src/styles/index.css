@@ -1,11 +1,36 @@
 /* ========================================
    MegaBonk CSS Module Index
    ========================================
-   This file serves as the entry point for all CSS modules.
-   Each module is responsible for a specific aspect of the UI.
+   Modular CSS entry point for better maintainability.
 
-   Import order matters - base styles should come first,
-   followed by layout, components, and finally themes/overrides.
+   MIGRATION STATUS: ~37% complete (2,618 of 7,073 lines)
+   The main styles.css is still the primary stylesheet.
+   Once migration is complete, switch index.html to use this file.
+
+   Completed Modules:
+   ✓ base.css       - Variables, reset, focus states
+   ✓ layout.css     - Container, header, footer
+   ✓ navigation.css - Tabs, mobile scroll indicators
+   ✓ cards.css      - Item/weapon/character cards, grids
+   ✓ forms.css      - Inputs, buttons, filters
+   ✓ modal.css      - Modal dialogs, overlays
+   ✓ features.css   - Build planner, breakpoint calculator
+   ✓ animations.css - Keyframes, transitions
+   ✓ themes.css     - Light mode overrides
+
+   TODO (still in styles.css):
+   - Compare Mode
+   - Character/Weapon specific modals
+   - Shrine styles
+   - Changelog tab
+   - Toast notifications
+   - Loading/skeleton states
+   - Error messages
+   - Full responsive breakpoints
+   - Mobile bottom navigation
+   - Keyboard shortcuts modal
+   - Advisor module
+   - Global search results
    ======================================== */
 
 /* Base styles - CSS reset, variables, typography */
