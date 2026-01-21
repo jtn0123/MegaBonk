@@ -1,0 +1,239 @@
+/* ========================================
+   Characters & Weapons - Cards and Modals
+   ======================================== */
+
+/* ========================================
+   Card Specific Styles
+   ======================================== */
+
+.character-card,
+.weapon-card,
+.tome-card {
+    position: relative;
+}
+
+.character-passive,
+.weapon-pattern,
+.tome-effect {
+    background: rgba(233, 69, 96, 0.1);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border-left: 3px solid var(--accent);
+    margin: 1rem 0;
+    font-size: 0.9rem;
+}
+
+.upgradeable-stats {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+}
+
+.stat-tag {
+    padding: 0.25rem 0.75rem;
+    background: var(--bg-dark);
+    border: 1px solid var(--common);
+    border-radius: 12px;
+    font-size: 0.85rem;
+}
+
+.playstyle-badge {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, var(--rare), var(--epic));
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+/* ========================================
+   Strengths & Weaknesses
+   ======================================== */
+
+.strengths-weaknesses {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin: 1.5rem 0;
+}
+
+.strengths,
+.weaknesses {
+    padding: 1rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+}
+
+.strengths {
+    background: rgba(92, 184, 92, 0.1);
+    border-left: 3px solid var(--common);
+}
+
+.weaknesses {
+    background: rgba(220, 53, 69, 0.1);
+    border-left: 3px solid var(--tier-c);
+}
+
+.strengths h4 {
+    color: #22c55e;
+    margin-bottom: 0.75rem;
+}
+
+.weaknesses h4 {
+    color: #ef4444;
+    margin-bottom: 0.75rem;
+}
+
+.strengths ul,
+.weaknesses ul {
+    margin: 0;
+    padding-left: 1.25rem;
+    list-style: none;
+}
+
+.strengths li,
+.weaknesses li {
+    margin-bottom: 0.25rem;
+}
+
+.strengths li::before {
+    content: '✓ ';
+    color: var(--common);
+    font-weight: bold;
+}
+
+.weaknesses li::before {
+    content: '✗ ';
+    color: var(--tier-c);
+    font-weight: bold;
+}
+
+/* ========================================
+   Character Modal
+   ======================================== */
+
+.character-passive {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+}
+
+.character-passive strong {
+    color: var(--accent);
+    font-size: 1.1rem;
+}
+
+.character-meta {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+}
+
+.character-meta > div {
+    margin-bottom: 0.5rem;
+}
+
+.character-meta > div:last-child {
+    margin-bottom: 0;
+}
+
+.character-section {
+    margin: 1.5rem 0;
+}
+
+.character-section h3 {
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+}
+
+.tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.synergy-group {
+    margin-bottom: 1rem;
+}
+
+.synergy-group h4 {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================
+   Weapon Modal
+   ======================================== */
+
+.weapon-stats-section {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--bg-dark);
+    border-radius: 8px;
+    border-left: 3px solid var(--accent);
+}
+
+.weapon-stats-section div {
+    margin-bottom: 0.5rem;
+}
+
+.weapon-stats-section div:last-child {
+    margin-bottom: 0;
+}
+
+.weapon-description {
+    margin: 1rem 0;
+    line-height: 1.6;
+}
+
+.weapon-section {
+    margin: 1.5rem 0;
+}
+
+.weapon-section h3 {
+    margin-bottom: 0.75rem;
+    color: var(--accent);
+}
+
+.unlock-requirement {
+    margin-top: 1.5rem;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 3px solid #ffc107;
+    border-radius: 6px;
+    color: var(--text-secondary);
+}
+
+.text-muted {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.build-tips {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: rgba(233, 69, 96, 0.1);
+    border-left: 3px solid var(--accent);
+    border-radius: 6px;
+}
+
+.build-tips h3 {
+    margin-bottom: 0.5rem;
+    color: var(--accent);
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+    .strengths-weaknesses {
+        grid-template-columns: 1fr;
+    }
+}
