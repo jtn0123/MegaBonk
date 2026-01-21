@@ -63,6 +63,9 @@ import {
 } from './image-modal.js';
 import { initItemReference, populateItemReference } from './item-reference.js';
 import { initBatchLabeling, toggleBatchMode, isBatchMode, selectItemInBatch } from './batch-labeling.js';
+import { initActiveLearning } from './active-learning.js';
+import { initTemplateManager } from './template-manager.js';
+import { initAlgorithmEnsemble } from './algorithm-ensemble.js';
 
 // ========================================
 // DOM Element References
@@ -1692,6 +1695,11 @@ async function init() {
             },
         }
     );
+
+    // Initialize learning and performance tracking modules
+    initActiveLearning();
+    initTemplateManager();
+    initAlgorithmEnsemble();
 
     // Setup event handlers
     elements.imageSelect.addEventListener('change', handleImageSelect);
