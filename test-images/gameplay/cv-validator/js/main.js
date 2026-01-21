@@ -62,6 +62,7 @@ import {
     isModalOpen,
 } from './image-modal.js';
 import { initItemReference, populateItemReference } from './item-reference.js';
+import { initBatchLabeling, toggleBatchMode, isBatchMode, selectItemInBatch } from './batch-labeling.js';
 
 // ========================================
 // DOM Element References
@@ -133,6 +134,24 @@ const elements = {
     batchProgressFill: document.getElementById('batch-progress-fill'),
     batchRunningF1: document.getElementById('batch-running-f1'),
     batchCancelBtn: document.getElementById('batch-cancel'),
+
+    // Batch labeling panel
+    toggleBatchBtn: document.getElementById('toggle-batch'),
+    batchPanel: document.getElementById('batch-panel'),
+    batchLabelProgress: document.getElementById('batch-label-progress'),
+    batchProgressBar: document.getElementById('batch-progress-bar'),
+    batchSlotInfo: document.getElementById('batch-slot-info'),
+    batchCurrentCrop: document.getElementById('batch-current-crop'),
+    batchCurrentName: document.getElementById('batch-current-name'),
+    batchCurrentConf: document.getElementById('batch-current-conf'),
+    batchLabelStatus: document.getElementById('batch-label-status'),
+    batchAlternatives: document.getElementById('batch-alternatives'),
+    batchPrevBtn: document.getElementById('batch-prev'),
+    batchNextBtn: document.getElementById('batch-next'),
+    batchAcceptBtn: document.getElementById('batch-accept'),
+    batchEmptyBtn: document.getElementById('batch-empty'),
+    batchSkipBtn: document.getElementById('batch-skip'),
+    batchFinishBtn: document.getElementById('batch-finish'),
 
     // Ground truth panel
     truthItemsDiv: document.getElementById('truth-items'),
@@ -1320,6 +1339,7 @@ async function handleImageSelect(e) {
         closeCorrectionPanel();
         elements.exportValidatedBtn.disabled = true;
         elements.saveTrainingBtn.disabled = true;
+        elements.toggleBatchBtn.disabled = true;
 
         // Show grid preview so user can calibrate Y offset before detection
         drawGridPreview(elements.overlayCanvas, state.currentImage.width, state.currentImage.height, getSlotFilter());
@@ -1388,9 +1408,10 @@ async function handleRunDetection() {
 
         elements.detectionStatus.textContent = `Found ${detections.length} items in ${elapsed.toFixed(0)}ms`;
 
-        // Enable export buttons
+        // Enable export and batch buttons
         elements.exportValidatedBtn.disabled = state.detectionsBySlot.size === 0;
         elements.saveTrainingBtn.disabled = state.detectionsBySlot.size === 0;
+        elements.toggleBatchBtn.disabled = state.detectionsBySlot.size === 0;
 
         // Log detailed results
         log(`True Positives: ${metrics.truePositives}`);
@@ -1641,6 +1662,37 @@ async function init() {
         }
     );
 
+    initBatchLabeling(
+        {
+            toggleBatchBtn: elements.toggleBatchBtn,
+            batchPanel: elements.batchPanel,
+            batchProgress: elements.batchLabelProgress,
+            batchProgressBar: elements.batchProgressBar,
+            batchSlotInfo: elements.batchSlotInfo,
+            batchCurrentCrop: elements.batchCurrentCrop,
+            batchCurrentName: elements.batchCurrentName,
+            batchCurrentConf: elements.batchCurrentConf,
+            batchLabelStatus: elements.batchLabelStatus,
+            batchAlternatives: elements.batchAlternatives,
+            batchPrevBtn: elements.batchPrevBtn,
+            batchNextBtn: elements.batchNextBtn,
+            batchAcceptBtn: elements.batchAcceptBtn,
+            batchEmptyBtn: elements.batchEmptyBtn,
+            batchSkipBtn: elements.batchSkipBtn,
+            batchFinishBtn: elements.batchFinishBtn,
+        },
+        {
+            onCorrectionApplied: recalculateAndDisplay,
+            highlightSlot: (slotIndex) => {
+                // Scroll to slot in detection list and highlight in overlay
+                const slotItem = elements.detectedItemsDiv.querySelector(`[data-slot="${slotIndex}"]`);
+                if (slotItem) {
+                    slotItem.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            },
+        }
+    );
+
     // Setup event handlers
     elements.imageSelect.addEventListener('change', handleImageSelect);
     elements.runDetectionBtn.addEventListener('click', handleRunDetection);
@@ -1676,6 +1728,9 @@ async function init() {
             handleRunDetection();
         }
     });
+
+    // Batch labeling toggle
+    elements.toggleBatchBtn.addEventListener('click', toggleBatchMode);
 
     // Training sources dropdown
     elements.trainingSourcesBtn.addEventListener('click', toggleSourcesDropdown);
