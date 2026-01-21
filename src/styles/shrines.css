@@ -1,0 +1,125 @@
+/* ========================================
+   Shrines - Grid, Cards, Modal
+   ======================================== */
+
+/* ========================================
+   Shrines Grid
+   ======================================== */
+
+.shrines-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 1.5rem;
+}
+
+.shrine-card {
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    border-top: 5px solid var(--accent);
+    transition: all 0.3s ease;
+}
+
+.shrine-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+    border-color: rgba(233, 69, 96, 0.3);
+}
+
+.shrine-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.shrine-icon {
+    font-size: 2rem;
+}
+
+.shrine-name {
+    font-size: 1.3rem;
+    font-weight: bold;
+}
+
+.shrine-type {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: var(--accent);
+    border-radius: 12px;
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.shrine-description {
+    color: var(--text-muted);
+    margin: 1rem 0;
+    line-height: 1.6;
+}
+
+.shrine-reward {
+    background: var(--bg-dark);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border-left: 3px solid var(--common);
+    margin: 1rem 0;
+}
+
+.shrine-strategy {
+    background: rgba(251, 191, 36, 0.1);
+    padding: 0.75rem;
+    border-radius: 6px;
+    border-left: 3px solid var(--legendary);
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+/* ========================================
+   Shrine Modal
+   ======================================== */
+
+.shrine-icon-large {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.shrine-icon-modal {
+    font-size: 3rem;
+}
+
+.shrine-modal-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.shrine-description-full {
+    margin: 1rem 0;
+    font-size: 1.05rem;
+}
+
+.shrine-detail-section {
+    margin: 1rem 0;
+    padding: 0.75rem;
+    background: var(--bg-dark);
+    border-radius: 6px;
+}
+
+.shrine-detail-section strong {
+    color: var(--accent);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.shrine-strategy strong {
+    color: var(--legendary);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+/* Shrine card restyle to match item-card */
+.item-card.shrine-card {
+    border-left-color: var(--accent);
+}

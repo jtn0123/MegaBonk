@@ -3,34 +3,33 @@
    ========================================
    Modular CSS entry point for better maintainability.
 
-   MIGRATION STATUS: ~37% complete (2,618 of 7,073 lines)
-   The main styles.css is still the primary stylesheet.
+   MIGRATION STATUS: ~85% complete
+   Most styles have been extracted into logical modules.
    Once migration is complete, switch index.html to use this file.
 
    Completed Modules:
-   ✓ base.css       - Variables, reset, focus states
-   ✓ layout.css     - Container, header, footer
-   ✓ navigation.css - Tabs, mobile scroll indicators
-   ✓ cards.css      - Item/weapon/character cards, grids
-   ✓ forms.css      - Inputs, buttons, filters
-   ✓ modal.css      - Modal dialogs, overlays
-   ✓ features.css   - Build planner, breakpoint calculator
-   ✓ animations.css - Keyframes, transitions
-   ✓ themes.css     - Light mode overrides
+   ✓ base.css           - Variables, reset, focus states
+   ✓ layout.css         - Container, header, footer
+   ✓ navigation.css     - Tabs, mobile scroll indicators
+   ✓ cards.css          - Item/weapon/character cards, grids
+   ✓ forms.css          - Inputs, buttons, filters
+   ✓ modal.css          - Modal dialogs, overlays
+   ✓ features.css       - Build planner, breakpoint calculator
+   ✓ animations.css     - Keyframes, transitions
+   ✓ themes.css         - Light mode overrides
+   ✓ compare.css        - Compare mode UI
+   ✓ states.css         - Loading, skeleton, toast, errors
+   ✓ shrines.css        - Shrine grid, cards, modal
+   ✓ characters.css     - Character/weapon cards, modals
+   ✓ changelog.css      - Changelog tab styles
+   ✓ shortcuts.css      - Keyboard shortcuts, theme toggle
+   ✓ search.css         - Global search results
+   ✓ mobile-nav.css     - Mobile bottom navigation
+   ✓ scan-build-enhanced.css - Scan build feature
 
    TODO (still in styles.css):
-   - Compare Mode
-   - Character/Weapon specific modals
-   - Shrine styles
-   - Changelog tab
-   - Toast notifications
-   - Loading/skeleton states
-   - Error messages
-   - Full responsive breakpoints
-   - Mobile bottom navigation
-   - Keyboard shortcuts modal
-   - Advisor module
-   - Global search results
+   - Advisor module responsive styles
+   - Some edge-case responsive overrides
    ======================================== */
 
 /* Base styles - CSS reset, variables, typography */
@@ -59,3 +58,30 @@
 
 /* Themes - Light mode overrides and theme-specific styles */
 @import './themes.css';
+
+/* Compare Mode - Compare checkboxes, floating button, compare grid */
+@import './compare.css';
+
+/* UI States - Loading overlay, skeleton, toast, errors, offline */
+@import './states.css';
+
+/* Shrines - Shrine grid, cards, modal */
+@import './shrines.css';
+
+/* Characters - Character/weapon specific cards and modals */
+@import './characters.css';
+
+/* Changelog - Version history, changelog entries */
+@import './changelog.css';
+
+/* Shortcuts - Keyboard shortcuts modal, theme toggle */
+@import './shortcuts.css';
+
+/* Search - Global search results styling */
+@import './search.css';
+
+/* Mobile Navigation - Bottom nav bar */
+@import './mobile-nav.css';
+
+/* Scan Build - Enhanced scan build feature */
+@import './scan-build-enhanced.css';
