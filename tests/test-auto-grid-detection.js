@@ -70,17 +70,24 @@ function detectRarityAtPixel(r, g, b) {
 }
 
 function detectHotbarBand(ctx, width, height) {
-    const scanStartY = Math.floor(height * 0.75);
+    // Scan bottom 30% of screen
+    const scanStartY = Math.floor(height * 0.7);
+
+    // Only sample center 70% of width (where hotbar items are)
+    const sampleStartX = Math.floor(width * 0.15);
+    const sampleWidth = Math.floor(width * 0.7);
+
     const stripHeight = 2;
     const stripData = [];
 
     for (let y = scanStartY; y < height - stripHeight; y += stripHeight) {
-        const imageData = ctx.getImageData(0, y, width, stripHeight);
+        const imageData = ctx.getImageData(sampleStartX, y, sampleWidth, stripHeight);
         const pixels = imageData.data;
 
         let totalBrightness = 0;
         let totalVariance = 0;
         let colorfulPixels = 0;
+        let rarityBorderPixels = 0;
         let count = 0;
 
         for (let i = 0; i < pixels.length; i += 16) {
@@ -98,6 +105,10 @@ function detectHotbarBand(ctx, width, height) {
             const saturation = Math.max(r, g, b) - Math.min(r, g, b);
             if (saturation > 50) colorfulPixels++;
 
+            if (detectRarityAtPixel(r, g, b)) {
+                rarityBorderPixels++;
+            }
+
             count++;
         }
 
@@ -106,39 +117,70 @@ function detectHotbarBand(ctx, width, height) {
             avgBrightness: totalBrightness / count,
             avgVariance: totalVariance / count,
             colorfulRatio: colorfulPixels / count,
+            rarityRatio: rarityBorderPixels / count,
         });
     }
 
     let bestBandStart = -1;
     let bestBandEnd = height;
     let bestScore = 0;
-    const windowSize = 15;
+
+    // INCREASED window size: 35 strips × 2px = ~70px
+    const windowSize = 35;
 
     for (let i = 0; i < stripData.length - windowSize; i++) {
-        const window = stripData.slice(i, i + windowSize);
+        const windowSlice = stripData.slice(i, i + windowSize);
 
-        const avgBrightness = window.reduce((s, d) => s + d.avgBrightness, 0) / window.length;
-        const avgVariance = window.reduce((s, d) => s + d.avgVariance, 0) / window.length;
-        const avgColorful = window.reduce((s, d) => s + d.colorfulRatio, 0) / window.length;
+        const avgBrightness = windowSlice.reduce((s, d) => s + d.avgBrightness, 0) / windowSlice.length;
+        const avgVariance = windowSlice.reduce((s, d) => s + d.avgVariance, 0) / windowSlice.length;
+        const avgColorful = windowSlice.reduce((s, d) => s + d.colorfulRatio, 0) / windowSlice.length;
+        const avgRarity = windowSlice.reduce((s, d) => s + d.rarityRatio, 0) / windowSlice.length;
 
         let score = 0;
-        if (avgBrightness >= 30 && avgBrightness <= 150) score += 30;
-        if (avgVariance > 300) score += Math.min(40, avgVariance / 50);
-        if (avgColorful > 0.05) score += avgColorful * 100;
 
-        const yPosition = window[0].y / height;
-        if (yPosition > 0.85) score += 20;
+        if (avgBrightness >= 25 && avgBrightness <= 160) {
+            score += 25;
+        }
+        if (avgVariance > 200) {
+            score += Math.min(35, avgVariance / 40);
+        }
+        if (avgColorful > 0.03) {
+            score += avgColorful * 80;
+        }
+        if (avgRarity > 0.01) {
+            score += avgRarity * 150;
+        }
+
+        const yPosition = windowSlice[0].y / height;
+        if (yPosition > 0.88) {
+            score += 25;
+        } else if (yPosition > 0.82) {
+            score += 15;
+        }
 
         if (score > bestScore) {
             bestScore = score;
-            bestBandStart = window[0].y;
-            bestBandEnd = window[window.length - 1].y + stripHeight;
+            bestBandStart = windowSlice[0].y;
+            bestBandEnd = windowSlice[windowSlice.length - 1].y + stripHeight;
         }
     }
 
     if (bestBandStart === -1) {
-        bestBandStart = Math.floor(height * 0.9);
+        bestBandStart = Math.floor(height * 0.88);
         bestBandEnd = height - 5;
+    }
+
+    // Constrain band height - hotbar is typically 1-2 icon rows (~60-120px at 1080p)
+    const maxBandHeight = Math.floor(height * 0.12);
+    const minBandHeight = Math.floor(height * 0.06);
+
+    const currentHeight = bestBandEnd - bestBandStart;
+    if (currentHeight > maxBandHeight) {
+        bestBandStart = bestBandEnd - maxBandHeight;
+    }
+
+    if (bestBandEnd - bestBandStart < minBandHeight) {
+        bestBandStart = bestBandEnd - minBandHeight;
     }
 
     return {
@@ -153,12 +195,18 @@ function detectRarityBorders(ctx, width, bandRegion) {
     const { topY, bottomY } = bandRegion;
     const bandHeight = bottomY - topY;
 
+    // RESTRICT: Only scan center 70% of width
+    const scanStartX = Math.floor(width * 0.15);
+    const scanEndX = Math.floor(width * 0.85);
+
     const scanLines = [
-        topY + Math.floor(bandHeight * 0.1),
+        topY + Math.floor(bandHeight * 0.05),
+        topY + Math.floor(bandHeight * 0.15),
         topY + Math.floor(bandHeight * 0.3),
         topY + Math.floor(bandHeight * 0.5),
         topY + Math.floor(bandHeight * 0.7),
-        topY + Math.floor(bandHeight * 0.9),
+        topY + Math.floor(bandHeight * 0.85),
+        topY + Math.floor(bandHeight * 0.95),
     ];
 
     const allEdges = [];
@@ -166,15 +214,16 @@ function detectRarityBorders(ctx, width, bandRegion) {
     for (const scanY of scanLines) {
         if (scanY >= ctx.canvas.height) continue;
 
-        const lineData = ctx.getImageData(0, scanY, width, 1);
+        const lineData = ctx.getImageData(scanStartX, scanY, scanEndX - scanStartX, 1);
         const pixels = lineData.data;
 
         let inBorder = false;
         let borderStart = -1;
         let currentRarity = null;
 
-        for (let x = 0; x < width; x++) {
-            const idx = x * 4;
+        for (let localX = 0; localX < scanEndX - scanStartX; localX++) {
+            const x = localX + scanStartX;
+            const idx = localX * 4;
             const r = pixels[idx];
             const g = pixels[idx + 1];
             const b = pixels[idx + 2];
@@ -205,12 +254,81 @@ function detectRarityBorders(ctx, width, bandRegion) {
     }
 
     // Cluster edges
-    const clusteredEdges = clusterEdgesByX(allEdges, 6);
+    let clusteredEdges = clusterEdgesByX(allEdges, 6);
+
+    // Filter by vertical consistency (true borders appear at multiple Y levels)
+    clusteredEdges = filterByVerticalConsistency(clusteredEdges, 2);
+
+    // Apply spacing consistency filter
+    clusteredEdges = filterBySpacingConsistency(clusteredEdges);
 
     return {
         edges: clusteredEdges,
         allEdges,
     };
+}
+
+function filterBySpacingConsistency(edges) {
+    if (edges.length < 3) return edges;
+
+    const gaps = [];
+    for (let i = 1; i < edges.length; i++) {
+        const gap = edges[i].x - edges[i - 1].x;
+        if (gap > 0 && gap < 150) {
+            gaps.push({ gap, fromIdx: i - 1, toIdx: i });
+        }
+    }
+
+    if (gaps.length < 2) return edges;
+
+    const gapCounts = new Map();
+    const tolerance = 4;
+
+    for (const { gap } of gaps) {
+        const bucket = Math.round(gap / tolerance) * tolerance;
+        gapCounts.set(bucket, (gapCounts.get(bucket) || 0) + 1);
+    }
+
+    let modeGap = 0;
+    let modeCount = 0;
+    for (const [bucket, count] of gapCounts) {
+        if (count > modeCount) {
+            modeCount = count;
+            modeGap = bucket;
+        }
+    }
+
+    // Require at least 3 consistent spacings to be confident
+    if (modeCount < 3) return edges;
+
+    const consistentEdgeIndices = new Set();
+
+    for (const { gap, fromIdx, toIdx } of gaps) {
+        if (Math.abs(gap - modeGap) <= tolerance) {
+            consistentEdgeIndices.add(fromIdx);
+            consistentEdgeIndices.add(toIdx);
+        }
+    }
+
+    // Check multiples of mode (skipped cells)
+    for (const { gap, fromIdx, toIdx } of gaps) {
+        const multiplier = Math.round(gap / modeGap);
+        if (multiplier >= 2 && multiplier <= 4) {
+            const expectedGap = modeGap * multiplier;
+            if (Math.abs(gap - expectedGap) <= tolerance * multiplier) {
+                consistentEdgeIndices.add(fromIdx);
+                consistentEdgeIndices.add(toIdx);
+            }
+        }
+    }
+
+    const filtered = edges.filter((_, idx) => consistentEdgeIndices.has(idx));
+
+    if (filtered.length < 3 && edges.length >= 3) {
+        return edges;
+    }
+
+    return filtered;
 }
 
 function clusterEdgesByX(edges, tolerance) {
@@ -243,12 +361,23 @@ function processCluster(edges) {
     const avgX = Math.round(edges.reduce((s, e) => s + e.x, 0) / edges.length);
     const avgWidth = Math.round(edges.reduce((s, e) => s + e.width, 0) / edges.length);
 
+    // Require edges to appear in at least 2 scan lines (vertical consistency)
+    // True item borders appear at multiple Y positions, random elements don't
+    const uniqueYs = new Set(edges.map(e => e.y));
+    const verticalConsistency = uniqueYs.size;
+
     return {
         x: avgX,
         borderWidth: avgWidth,
-        confidence: edges.length / 5,
+        confidence: edges.length / 7,
         detections: edges.length,
+        verticalConsistency,
     };
+}
+
+// Filter clusters to keep only those with vertical consistency
+function filterByVerticalConsistency(clusters, minConsistency = 2) {
+    return clusters.filter(c => c.verticalConsistency >= minConsistency);
 }
 
 function calculateIconMetrics(cellEdges, width, bandRegion) {
@@ -274,8 +403,11 @@ function calculateIconMetrics(cellEdges, width, bandRegion) {
     const estimatedSpacing = Math.max(2, Math.min(10, Math.round(avgBorderWidth * 1.2)));
     const iconWidth = gapMode - estimatedSpacing;
 
-    const maxIconHeight = bandRegion.height - 10;
-    const iconHeight = Math.min(iconWidth, maxIconHeight);
+    // Icon height: icons are typically square
+    const estimatedRowHeight = iconWidth + estimatedSpacing;
+    const possibleRows = Math.floor(bandRegion.height / estimatedRowHeight);
+    const maxIconHeight = possibleRows >= 1 ? iconWidth : bandRegion.height - 10;
+    const iconHeight = Math.min(iconWidth, Math.max(iconWidth, maxIconHeight));
 
     return {
         iconWidth: Math.round(iconWidth),
@@ -337,7 +469,8 @@ function buildPreciseGrid(metrics, bandRegion, width, height, cellEdges) {
     const bandHeight = bandRegion.bottomY - bandRegion.topY;
 
     const possibleRows = Math.floor(bandHeight / rowHeight);
-    const numRows = Math.min(possibleRows, 3);
+    // MegaBonk hotbar typically has 1-2 rows, not 3
+    const numRows = Math.min(possibleRows, 2);
 
     const bottomMargin = 5;
     const firstRowY = bandRegion.bottomY - iconHeight - bottomMargin;
@@ -510,7 +643,7 @@ async function runTests() {
             console.log(`  Resolution: ${image.width}x${image.height}`);
             console.log(`  Expected: ${expectedItems}, Detected: ${detectedCells} (${totalCells} total cells)`);
             console.log(
-                `  Band: Y=${result.bandRegion.topY}-${result.bandRegion.bottomY}, conf=${(result.bandRegion.confidence * 100).toFixed(0)}%`
+                `  Band: Y=${result.bandRegion.topY}-${result.bandRegion.bottomY} (height=${result.bandRegion.height}px), conf=${(result.bandRegion.confidence * 100).toFixed(0)}%`
             );
             console.log(`  Borders: ${result.borders.edges.length} edges detected`);
             console.log(

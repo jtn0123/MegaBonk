@@ -144,20 +144,25 @@ function detectRarityAtPixel(r, g, b) {
 export function detectHotbarBand(ctx, width, height) {
     log('Pass 1: Detecting hotbar band...', LOG_LEVELS.INFO);
 
-    // Scan bottom 25% of screen
-    const scanStartY = Math.floor(height * 0.75);
+    // Scan bottom 30% of screen (hotbar is usually at very bottom)
+    const scanStartY = Math.floor(height * 0.7);
+
+    // Only sample center 70% of width (where hotbar items are, avoiding UI edges)
+    const sampleStartX = Math.floor(width * 0.15);
+    const sampleWidth = Math.floor(width * 0.7);
 
     // Analyze horizontal strips
     const stripData = [];
     const stripHeight = 2; // Sample every 2 pixels for speed
 
     for (let y = scanStartY; y < height - stripHeight; y += stripHeight) {
-        const imageData = ctx.getImageData(0, y, width, stripHeight);
+        const imageData = ctx.getImageData(sampleStartX, y, sampleWidth, stripHeight);
         const pixels = imageData.data;
 
         let totalBrightness = 0;
         let totalVariance = 0;
         let colorfulPixels = 0;
+        let rarityBorderPixels = 0;
         let count = 0;
 
         // Sample across the strip
@@ -179,6 +184,11 @@ export function detectHotbarBand(ctx, width, height) {
             const saturation = Math.max(r, g, b) - Math.min(r, g, b);
             if (saturation > 50) colorfulPixels++;
 
+            // Count actual rarity border color matches (more specific)
+            if (detectRarityAtPixel(r, g, b)) {
+                rarityBorderPixels++;
+            }
+
             count++;
         }
 
@@ -187,6 +197,7 @@ export function detectHotbarBand(ctx, width, height) {
             avgBrightness: totalBrightness / count,
             avgVariance: totalVariance / count,
             colorfulRatio: colorfulPixels / count,
+            rarityRatio: rarityBorderPixels / count,
         });
     }
 
@@ -199,49 +210,76 @@ export function detectHotbarBand(ctx, width, height) {
     let bestBandEnd = height;
     let bestScore = 0;
 
-    // Sliding window to find best band
-    const windowSize = 15; // ~30px window
+    // INCREASED window size: 35 strips × 2px = ~70px to capture full icon height
+    const windowSize = 35;
 
     for (let i = 0; i < stripData.length - windowSize; i++) {
-        const window = stripData.slice(i, i + windowSize);
+        const windowSlice = stripData.slice(i, i + windowSize);
 
-        const avgBrightness = window.reduce((s, d) => s + d.avgBrightness, 0) / window.length;
-        const avgVariance = window.reduce((s, d) => s + d.avgVariance, 0) / window.length;
-        const avgColorful = window.reduce((s, d) => s + d.colorfulRatio, 0) / window.length;
+        const avgBrightness = windowSlice.reduce((s, d) => s + d.avgBrightness, 0) / windowSlice.length;
+        const avgVariance = windowSlice.reduce((s, d) => s + d.avgVariance, 0) / windowSlice.length;
+        const avgColorful = windowSlice.reduce((s, d) => s + d.colorfulRatio, 0) / windowSlice.length;
+        const avgRarity = windowSlice.reduce((s, d) => s + d.rarityRatio, 0) / windowSlice.length;
 
-        // Score: prefer moderate brightness, high variance, some color
-        // Hotbar typically has brightness 40-120, variance > 500, some colorful pixels
+        // Score: prefer moderate brightness, high variance, rarity borders present
         let score = 0;
 
-        if (avgBrightness >= 30 && avgBrightness <= 150) {
-            score += 30;
+        // Moderate brightness indicates UI panel area
+        if (avgBrightness >= 25 && avgBrightness <= 160) {
+            score += 25;
         }
-        if (avgVariance > 300) {
-            score += Math.min(40, avgVariance / 50);
+
+        // High variance means colorful icons
+        if (avgVariance > 200) {
+            score += Math.min(35, avgVariance / 40);
         }
-        if (avgColorful > 0.05) {
-            score += avgColorful * 100;
+
+        // Colorful pixels
+        if (avgColorful > 0.03) {
+            score += avgColorful * 80;
+        }
+
+        // BONUS: Rarity border colors detected (strong signal)
+        if (avgRarity > 0.01) {
+            score += avgRarity * 150;
         }
 
         // Prefer lower on screen (hotbar is at very bottom)
-        const yPosition = window[0].y / height;
-        if (yPosition > 0.85) {
-            score += 20;
+        const yPosition = windowSlice[0].y / height;
+        if (yPosition > 0.88) {
+            score += 25;
+        } else if (yPosition > 0.82) {
+            score += 15;
         }
 
         if (score > bestScore) {
             bestScore = score;
-            bestBandStart = window[0].y;
-            bestBandEnd = window[window.length - 1].y + stripHeight;
+            bestBandStart = windowSlice[0].y;
+            bestBandEnd = windowSlice[windowSlice.length - 1].y + stripHeight;
         }
     }
 
-    // Refine band edges
+    // Fallback if no band found
     if (bestBandStart === -1) {
-        // Fallback: use default position
-        bestBandStart = Math.floor(height * 0.9);
+        bestBandStart = Math.floor(height * 0.88);
         bestBandEnd = height - 5;
         log('Pass 1: Could not detect hotbar, using fallback position', LOG_LEVELS.WARNING);
+    }
+
+    // Constrain band height - hotbar is typically 1-2 icon rows (~60-120px at 1080p)
+    // Max band height is ~12% of screen height (covers 2 full icon rows with margin)
+    const maxBandHeight = Math.floor(height * 0.12);
+    const minBandHeight = Math.floor(height * 0.06); // ~43px at 720p, ~65px at 1080p
+
+    // If band is too tall, constrain it to reasonable size
+    const currentHeight = bestBandEnd - bestBandStart;
+    if (currentHeight > maxBandHeight) {
+        // Keep the bottom of the band (where hotbar is) and move top down
+        bestBandStart = bestBandEnd - maxBandHeight;
+    }
+
+    if (bestBandEnd - bestBandStart < minBandHeight) {
+        bestBandStart = bestBandEnd - minBandHeight;
     }
 
     const result = {
@@ -253,7 +291,7 @@ export function detectHotbarBand(ctx, width, height) {
     };
 
     log(
-        `Pass 1: Detected hotbar band at Y=${result.topY}-${result.bottomY} (confidence: ${(result.confidence * 100).toFixed(0)}%)`,
+        `Pass 1: Detected hotbar band at Y=${result.topY}-${result.bottomY} (height=${result.height}px, confidence: ${(result.confidence * 100).toFixed(0)}%)`,
         LOG_LEVELS.SUCCESS
     );
 
@@ -273,13 +311,19 @@ export function detectRarityBorders(ctx, width, bandRegion) {
     const { topY, bottomY } = bandRegion;
     const bandHeight = bottomY - topY;
 
+    // RESTRICT: Only scan center 70% of width (hotbar is centered, avoid UI edges)
+    const scanStartX = Math.floor(width * 0.15);
+    const scanEndX = Math.floor(width * 0.85);
+
     // Scan multiple horizontal lines within the band
     const scanLines = [
-        topY + Math.floor(bandHeight * 0.1), // Top of icons
+        topY + Math.floor(bandHeight * 0.05), // Very top edge of icons
+        topY + Math.floor(bandHeight * 0.15), // Top of icons
         topY + Math.floor(bandHeight * 0.3), // Upper middle
         topY + Math.floor(bandHeight * 0.5), // Middle
         topY + Math.floor(bandHeight * 0.7), // Lower middle
-        topY + Math.floor(bandHeight * 0.9), // Bottom of icons
+        topY + Math.floor(bandHeight * 0.85), // Bottom of icons
+        topY + Math.floor(bandHeight * 0.95), // Very bottom edge
     ];
 
     // Collect all detected edges across scan lines
@@ -289,15 +333,16 @@ export function detectRarityBorders(ctx, width, bandRegion) {
     for (const scanY of scanLines) {
         if (scanY >= ctx.canvas.height) continue;
 
-        const lineData = ctx.getImageData(0, scanY, width, 1);
+        const lineData = ctx.getImageData(scanStartX, scanY, scanEndX - scanStartX, 1);
         const pixels = lineData.data;
 
         let inBorder = false;
         let borderStart = -1;
         let currentRarity = null;
 
-        for (let x = 0; x < width; x++) {
-            const idx = x * 4;
+        for (let localX = 0; localX < scanEndX - scanStartX; localX++) {
+            const x = localX + scanStartX; // Convert to absolute X
+            const idx = localX * 4;
             const r = pixels[idx];
             const g = pixels[idx + 1];
             const b = pixels[idx + 2];
@@ -336,9 +381,19 @@ export function detectRarityBorders(ctx, width, bandRegion) {
     log(`Pass 2: Found ${allEdges.length} potential border edges`, LOG_LEVELS.INFO);
 
     // Cluster edges by X position (edges at same X across different scan lines = same icon)
-    const clusteredEdges = clusterEdgesByX(allEdges, 6); // 6px tolerance
+    let clusteredEdges = clusterEdgesByX(allEdges, 6); // 6px tolerance
 
-    log(`Pass 2: Clustered into ${clusteredEdges.length} cell positions`, LOG_LEVELS.SUCCESS);
+    log(`Pass 2: Clustered into ${clusteredEdges.length} cell positions`, LOG_LEVELS.INFO);
+
+    // VERTICAL CONSISTENCY FILTER: True borders appear at multiple Y positions
+    clusteredEdges = filterByVerticalConsistency(clusteredEdges, 2);
+
+    log(`Pass 2: After vertical filter: ${clusteredEdges.length} consistent positions`, LOG_LEVELS.INFO);
+
+    // SPACING CONSISTENCY FILTER: Remove edges that don't fit regular spacing pattern
+    clusteredEdges = filterBySpacingConsistency(clusteredEdges, width);
+
+    log(`Pass 2: After spacing filter: ${clusteredEdges.length} consistent positions`, LOG_LEVELS.SUCCESS);
 
     return {
         edges: clusteredEdges,
@@ -348,6 +403,85 @@ export function detectRarityBorders(ctx, width, bandRegion) {
             .sort((a, b) => b[1] - a[1])
             .map(([color]) => color),
     };
+}
+
+/**
+ * Filter edges to keep only those that form consistent spacing patterns
+ * This removes random noise from gameplay elements (trees, etc.)
+ */
+function filterBySpacingConsistency(edges, _width) {
+    if (edges.length < 3) return edges;
+
+    // Calculate all gaps between consecutive edges
+    const gaps = [];
+    for (let i = 1; i < edges.length; i++) {
+        const gap = edges[i].x - edges[i - 1].x;
+        if (gap > 0 && gap < 150) {
+            // Reasonable gap range
+            gaps.push({ gap, fromIdx: i - 1, toIdx: i });
+        }
+    }
+
+    if (gaps.length < 2) return edges;
+
+    // Find dominant gap size (icon stride: iconWidth + spacing)
+    // Use histogram approach to find mode
+    const gapCounts = new Map();
+    const tolerance = 4; // Allow ±4px variance
+
+    for (const { gap } of gaps) {
+        const bucket = Math.round(gap / tolerance) * tolerance;
+        gapCounts.set(bucket, (gapCounts.get(bucket) || 0) + 1);
+    }
+
+    // Find the most common gap size
+    let modeGap = 0;
+    let modeCount = 0;
+    for (const [bucket, count] of gapCounts) {
+        if (count > modeCount) {
+            modeCount = count;
+            modeGap = bucket;
+        }
+    }
+
+    // Require at least 3 consistent spacings to be confident
+    if (modeCount < 3) return edges;
+
+    log(`Pass 2: Spacing filter - Mode gap=${modeGap}px (${modeCount} occurrences)`, LOG_LEVELS.INFO);
+
+    // Keep only edges that participate in consistent-spacing relationships
+    const consistentEdgeIndices = new Set();
+
+    for (const { gap, fromIdx, toIdx } of gaps) {
+        // Check if this gap matches the mode (within tolerance)
+        if (Math.abs(gap - modeGap) <= tolerance) {
+            consistentEdgeIndices.add(fromIdx);
+            consistentEdgeIndices.add(toIdx);
+        }
+    }
+
+    // Also check for multiples of the mode (skipped cells due to empty slots)
+    for (const { gap, fromIdx, toIdx } of gaps) {
+        const multiplier = Math.round(gap / modeGap);
+        if (multiplier >= 2 && multiplier <= 4) {
+            const expectedGap = modeGap * multiplier;
+            if (Math.abs(gap - expectedGap) <= tolerance * multiplier) {
+                consistentEdgeIndices.add(fromIdx);
+                consistentEdgeIndices.add(toIdx);
+            }
+        }
+    }
+
+    // Filter to consistent edges only
+    const filtered = edges.filter((_, idx) => consistentEdgeIndices.has(idx));
+
+    // If we filtered out too many, fall back to original
+    if (filtered.length < 3 && edges.length >= 3) {
+        log(`Pass 2: Spacing filter too aggressive, keeping original edges`, LOG_LEVELS.WARNING);
+        return edges;
+    }
+
+    return filtered;
 }
 
 /**
@@ -398,13 +532,26 @@ function processCluster(edges) {
     });
     const dominantRarity = Object.entries(rarityCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || 'unknown';
 
+    // Calculate vertical consistency - true borders appear at multiple Y positions
+    const uniqueYs = new Set(edges.map(e => e.y));
+    const verticalConsistency = uniqueYs.size;
+
     return {
         x: avgX,
         borderWidth: avgWidth,
         rarity: dominantRarity,
-        confidence: edges.length / 5, // More scan lines = higher confidence
+        confidence: edges.length / 7, // More scan lines = higher confidence
         detections: edges.length,
+        verticalConsistency,
     };
+}
+
+/**
+ * Filter clusters to keep only those with vertical consistency
+ * True item borders appear at multiple Y positions, random elements don't
+ */
+function filterByVerticalConsistency(clusters, minConsistency = 2) {
+    return clusters.filter(c => c.verticalConsistency >= minConsistency);
 }
 
 // ========================================
@@ -449,9 +596,15 @@ export function calculateIconMetrics(cellEdges, width, bandRegion) {
     // Icon width = total gap - spacing
     const iconWidth = gapMode - estimatedSpacing;
 
-    // Icon height typically equals width, but verify with band height
-    const maxIconHeight = bandRegion.height - 10; // Leave some margin
-    const iconHeight = Math.min(iconWidth, maxIconHeight);
+    // Icon height: typically equals width for square icons
+    // Use band height to inform, but icons are usually square (height = width)
+    const estimatedRowHeight = iconWidth + estimatedSpacing;
+    const possibleRows = Math.floor(bandRegion.height / estimatedRowHeight);
+
+    // Icons are typically square, so height should match width
+    // Only constrain if band is unusually small (shouldn't happen with improved band detection)
+    const maxIconHeight = possibleRows >= 1 ? iconWidth : bandRegion.height - 10;
+    const iconHeight = Math.min(iconWidth, Math.max(iconWidth, maxIconHeight));
 
     // Calculate how many icons fit
     const totalGridWidth = cellEdges.length * gapMode;
@@ -546,7 +699,8 @@ export function buildPreciseGrid(metrics, bandRegion, width, height, cellEdges) 
 
     // How many rows can fit?
     const possibleRows = Math.floor(bandHeight / rowHeight);
-    const numRows = Math.min(possibleRows, 3); // Max 3 rows typically
+    // MegaBonk hotbar typically has 1-2 rows, not 3
+    const numRows = Math.min(possibleRows, 2);
 
     // Y offset: position first row near bottom of band
     const bottomMargin = 5;
