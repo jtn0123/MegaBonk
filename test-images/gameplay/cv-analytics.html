@@ -364,6 +364,13 @@
     </div>
 
     <script>
+        // HTML escape helper to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
         // Data holders
         let trainingIndex = null;
         let validatedExports = [];
@@ -465,28 +472,11 @@
                 if (exports.length > 0) return exports;
             }
 
-            // Strategy 3: Fallback to scanning common patterns
-            const patterns = [
-                'validated_pc-1080p_',
-                'validated_pc-720p_',
-                'validated_pc-1440p_',
-            ];
-            // Try recent dates (last 30 days)
-            const now = new Date();
-            for (let i = 0; i < 30; i++) {
-                const date = new Date(now);
-                date.setDate(date.getDate() - i);
-                const dateStr = date.toISOString().split('T')[0];
-                for (const pattern of patterns) {
-                    // Try a few hour variations
-                    for (const hour of ['00', '04', '08', '12', '16', '20']) {
-                        const filename = `${pattern}level_*_${dateStr}T${hour}*.json`;
-                        // Can't use wildcards in fetch, so just note this limitation
-                    }
-                }
+            // Note: Browser fetch cannot scan directories or use wildcards
+            // For full export discovery, create validated-exports/manifest.json
+            if (exports.length === 0) {
+                console.log('Tip: Create validated-exports/manifest.json with { "files": ["file1.json", ...] } for automatic discovery');
             }
-
-            console.log('Note: For full export discovery, create validated-exports/manifest.json with { "files": ["file1.json", ...] }');
             return exports;
         }
 
@@ -554,7 +544,7 @@
             for (const [source, data] of Object.entries(sources)) {
                 const tag = document.createElement('div');
                 tag.className = 'resolution-tag';
-                tag.innerHTML = `${source}: <span class="count">${data.sample_count || 0}</span>`;
+                tag.innerHTML = `${escapeHtml(source)}: <span class="count">${data.sample_count || 0}</span>`;
                 container.appendChild(tag);
             }
 
@@ -581,7 +571,7 @@
             for (const [res, count] of Object.entries(resCounts).sort((a, b) => b[1] - a[1])) {
                 const tag = document.createElement('div');
                 tag.className = 'resolution-tag';
-                tag.innerHTML = `${res}: <span class="count">${count}</span>`;
+                tag.innerHTML = `${escapeHtml(res)}: <span class="count">${count}</span>`;
                 container.appendChild(tag);
             }
 
@@ -624,15 +614,15 @@
                 const row = document.createElement('tr');
                 const coverageClass = item.samples === 0 ? 'low' : item.samples < 2 ? 'medium' : 'high';
                 row.innerHTML = `
-                    <td>${item.name}</td>
+                    <td>${escapeHtml(item.name)}</td>
                     <td>${item.samples}</td>
                     <td>
                         <div class="coverage-bar">
-                            <div class="coverage-fill ${coverageClass}" style="width: ${Math.min(100, item.samples * 20)}%"></div>
+                            <div class="coverage-fill ${escapeHtml(coverageClass)}" style="width: ${Math.min(100, item.samples * 20)}%"></div>
                         </div>
                         ${item.samples}/5
                     </td>
-                    <td>${item.sources}</td>
+                    <td>${escapeHtml(item.sources)}</td>
                 `;
                 tbody.appendChild(row);
             }
@@ -667,8 +657,8 @@
             for (const conf of sortedConfusions.slice(0, 15)) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${conf.detected}</td>
-                    <td>${conf.actual}</td>
+                    <td>${escapeHtml(conf.detected)}</td>
+                    <td>${escapeHtml(conf.actual)}</td>
                     <td>${conf.count}</td>
                     <td style="color: var(--text-secondary);">May need more training samples</td>
                 `;
@@ -707,11 +697,11 @@
                 const row = document.createElement('tr');
                 const coverageClass = item.samples === 0 ? 'low' : item.samples < 3 ? 'medium' : 'high';
                 row.innerHTML = `
-                    <td>${item.name}</td>
+                    <td>${escapeHtml(item.name)}</td>
                     <td>${item.samples}</td>
                     <td>
                         <div class="coverage-bar">
-                            <div class="coverage-fill ${coverageClass}" style="width: ${Math.min(100, item.samples * 10)}%"></div>
+                            <div class="coverage-fill ${escapeHtml(coverageClass)}" style="width: ${Math.min(100, item.samples * 10)}%"></div>
                         </div>
                     </td>
                     <td>${item.resolutions}</td>
