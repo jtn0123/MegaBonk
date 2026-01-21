@@ -1828,3 +1828,244 @@ button:disabled {
 .validate-link:hover {
     text-decoration: underline;
 }
+
+/* ========================================
+ * Batch Labeling Mode
+ * ======================================== */
+
+.batch-btn {
+    background: var(--bg-secondary);
+    border-color: var(--border);
+}
+
+.batch-btn:not(:disabled):hover {
+    background: #3a3d4a;
+}
+
+.batch-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.batch-panel {
+    display: none;
+    background: var(--bg-secondary);
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.batch-panel.active {
+    display: block;
+}
+
+.batch-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+}
+
+.batch-header h3 {
+    margin: 0;
+    color: var(--accent);
+}
+
+.batch-progress-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.batch-progress-display span {
+    font-size: 13px;
+    font-family: monospace;
+}
+
+.batch-progress-track {
+    width: 150px;
+    height: 8px;
+    background: var(--bg-primary);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.batch-progress-fill-bar {
+    height: 100%;
+    background: var(--success);
+    transition: width 0.2s ease;
+    width: 0%;
+}
+
+.batch-content {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 20px;
+    margin-bottom: 16px;
+}
+
+.batch-current {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+}
+
+.batch-crop-container {
+    width: 80px;
+    height: 80px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.batch-crop-container img {
+    max-width: 100%;
+    max-height: 100%;
+    image-rendering: pixelated;
+}
+
+.batch-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.batch-slot-info {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.batch-current-name {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.batch-current-conf {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.batch-label-status {
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+.batch-status.unlabeled {
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+}
+
+.batch-status.verified {
+    background: rgba(74, 222, 128, 0.2);
+    color: var(--success);
+}
+
+.batch-status.corrected {
+    background: rgba(251, 191, 36, 0.2);
+    color: var(--warning);
+}
+
+.batch-status.empty {
+    background: rgba(107, 114, 128, 0.2);
+    color: var(--text-secondary);
+}
+
+.batch-alternatives h4 {
+    margin: 0 0 8px 0;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.batch-alt-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.batch-alt-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.batch-alt-btn:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent);
+}
+
+.batch-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.batch-nav-btn {
+    padding: 8px 16px;
+    background: var(--bg-primary);
+    font-size: 14px;
+}
+
+.batch-accept-btn {
+    padding: 10px 24px;
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
+    font-weight: 600;
+}
+
+.batch-accept-btn:hover {
+    background: #22c55e;
+}
+
+.batch-empty-btn {
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+}
+
+.batch-skip-btn {
+    padding: 8px 16px;
+    background: var(--bg-secondary);
+}
+
+.batch-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 12px;
+}
+
+.batch-shortcuts {
+    font-size: 11px;
+    color: var(--text-secondary);
+}
+
+.batch-shortcuts span {
+    background: var(--bg-primary);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.batch-finish-btn {
+    padding: 8px 16px;
+    background: var(--accent);
+    border-color: var(--accent);
+}

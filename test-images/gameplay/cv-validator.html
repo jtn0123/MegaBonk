@@ -74,6 +74,7 @@
         </div>
         <button id="run-detection" class="primary" disabled>Run Detection</button>
         <button id="run-all">Run All Tests</button>
+        <button id="toggle-batch" class="batch-btn" disabled title="Keyboard: ←/→ navigate, Enter accept, E empty, S skip">Bulk Label</button>
         <button id="save-training" class="save-training" disabled>Save to Training</button>
         <button id="export-validated" disabled>Export JSON</button>
         <button id="toggle-grid-calibration">Grid Calibration &#x25BC;</button>
@@ -332,6 +333,49 @@
                             <button class="correct-btn" id="mark-correct-btn">Mark Correct ✓</button>
                             <button class="empty-btn" id="mark-empty-btn">Mark Empty</button>
                             <button class="cancel-btn" id="cancel-correction-btn">Cancel</button>
+                        </div>
+                    </div>
+
+                    <!-- Batch Labeling Panel -->
+                    <div class="batch-panel" id="batch-panel">
+                        <div class="batch-header">
+                            <h3>Bulk Labeling Mode</h3>
+                            <div class="batch-progress-display">
+                                <span id="batch-label-progress">0/0 (0%)</span>
+                                <div class="batch-progress-track">
+                                    <div class="batch-progress-fill-bar" id="batch-progress-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="batch-content">
+                            <div class="batch-current">
+                                <div class="batch-crop-container">
+                                    <img id="batch-current-crop" src="" alt="Current slot">
+                                </div>
+                                <div class="batch-info">
+                                    <div class="batch-slot-info" id="batch-slot-info">Slot 1 of --</div>
+                                    <div class="batch-current-name" id="batch-current-name">--</div>
+                                    <div class="batch-current-conf" id="batch-current-conf">--</div>
+                                    <div class="batch-label-status unlabeled" id="batch-label-status">Not labeled</div>
+                                </div>
+                            </div>
+                            <div class="batch-alternatives">
+                                <h4>Quick Select (1-6)</h4>
+                                <div class="batch-alt-list" id="batch-alternatives"></div>
+                            </div>
+                        </div>
+                        <div class="batch-actions">
+                            <button id="batch-prev" class="batch-nav-btn" title="←/A">◀ Prev</button>
+                            <button id="batch-accept" class="batch-accept-btn" title="Enter/Space">Accept ✓</button>
+                            <button id="batch-empty" class="batch-empty-btn" title="E">Empty</button>
+                            <button id="batch-skip" class="batch-skip-btn" title="S">Skip</button>
+                            <button id="batch-next" class="batch-nav-btn" title="→/D">Next ▶</button>
+                        </div>
+                        <div class="batch-footer">
+                            <div class="batch-shortcuts">
+                                <span>Keys: ←→ navigate • Enter accept • E empty • S skip • 1-6 select alt • Esc exit</span>
+                            </div>
+                            <button id="batch-finish" class="batch-finish-btn">Finish Labeling</button>
                         </div>
                     </div>
                 </div>
