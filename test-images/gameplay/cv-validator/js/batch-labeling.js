@@ -204,6 +204,15 @@ function acceptCurrentDetection() {
             verified: true,
         });
         slot.labeled = true;
+    } else if (slot.type === 'empty') {
+        // For empty slots, "accepting" confirms it's empty
+        state.corrections.set(slot.index, {
+            original: { name: null, confidence: 0 },
+            corrected: null,
+            verified: true,
+        });
+        slot.labeled = true;
+        showToast('Empty slot confirmed');
     }
 
     updateBatchUI();
