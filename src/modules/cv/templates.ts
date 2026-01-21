@@ -59,7 +59,10 @@ export async function loadTemplatesBatch(
             // Skip items without images
             if (!item.image) return;
             // Try WebP first (smaller), fallback to PNG
-            const imagePath = item.image.replace('.png', '.webp');
+            // Only replace .png extension at the end of the path
+            const imagePath = item.image.endsWith('.png')
+                ? item.image.slice(0, -4) + '.webp'
+                : item.image.replace(/\.png$/, '.webp');
             const img = new Image();
 
             await new Promise<void>((resolve, reject) => {

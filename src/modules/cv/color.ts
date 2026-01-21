@@ -75,7 +75,8 @@ export function getDominantColor(imageData: ImageData): string {
     if (avgR > avgG && avgR > avgB) {
         // Red dominant
         if (avgG > avgB * 1.3) return 'orange';
-        if (avgR > 180 && avgG > 140) return 'yellow';
+        // Yellow requires high red, high green, AND low blue
+        if (avgR > 180 && avgG > 140 && avgB < 120) return 'yellow';
         return 'red';
     } else if (avgG > avgR && avgG > avgB) {
         // Green dominant
