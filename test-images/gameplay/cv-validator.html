@@ -210,6 +210,60 @@
                             <button id="delete-preset">Delete</button>
                         </div>
                     </div>
+
+                    <!-- Auto-Detect Section -->
+                    <div class="auto-detect-section">
+                        <div class="auto-detect-header">
+                            <button id="auto-detect-btn" class="auto-detect-btn" disabled>
+                                <span class="auto-detect-icon">🔍</span> Auto-Detect Grid
+                            </button>
+                            <span class="auto-detect-status" id="auto-detect-status"></span>
+                        </div>
+                        <div class="auto-detect-progress" id="auto-detect-progress" style="display: none;">
+                            <div class="progress-bar-mini">
+                                <div class="progress-fill-mini" id="auto-detect-progress-fill"></div>
+                            </div>
+                            <span class="progress-text" id="auto-detect-progress-text">Detecting...</span>
+                        </div>
+                        <div class="auto-detect-results" id="auto-detect-results" style="display: none;">
+                            <div class="detection-confidence">
+                                <span class="confidence-label">Detection Confidence:</span>
+                                <span class="confidence-value" id="auto-detect-confidence">0%</span>
+                                <span class="confidence-bar">
+                                    <span class="confidence-fill" id="auto-detect-confidence-fill"></span>
+                                </span>
+                            </div>
+                            <div class="detection-stats" id="auto-detect-stats">
+                                <span class="stat"><strong>Cells:</strong> <span id="auto-cells">0</span></span>
+                                <span class="stat"><strong>Valid:</strong> <span id="auto-valid">0</span></span>
+                                <span class="stat"><strong>Empty:</strong> <span id="auto-empty">0</span></span>
+                            </div>
+                            <div class="comparison-toggle">
+                                <button id="toggle-comparison" class="toggle-comparison-btn">
+                                    Compare with Preset ▼
+                                </button>
+                            </div>
+                            <div class="comparison-view" id="comparison-view" style="display: none;">
+                                <table class="comparison-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Metric</th>
+                                            <th>Auto</th>
+                                            <th>Preset</th>
+                                            <th>Diff</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="comparison-table-body">
+                                    </tbody>
+                                </table>
+                                <div class="comparison-summary" id="comparison-summary"></div>
+                            </div>
+                            <div class="auto-detect-actions">
+                                <button id="apply-auto-detect" class="apply-auto-btn">Apply Auto-Detected</button>
+                                <button id="toggle-overlay" class="overlay-btn">Show Overlay</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Metrics - below calibration -->
