@@ -50,6 +50,7 @@ import {
     getCalibrationForExport,
     wasPresetModified,
     getPresetName,
+    syncUIToState,
 } from './grid-calibration.js';
 import {
     initImageModal,
@@ -66,6 +67,7 @@ import { initBatchLabeling, toggleBatchMode, isBatchMode, selectItemInBatch } fr
 import { initActiveLearning } from './active-learning.js';
 import { initTemplateManager } from './template-manager.js';
 import { initAlgorithmEnsemble } from './algorithm-ensemble.js';
+import { autoDetectGrid, compareWithPreset, drawDetectionOverlay } from './auto-grid-detection.js';
 
 // ========================================
 // DOM Element References
@@ -202,6 +204,26 @@ const elements = {
     topMatchesSlider: document.getElementById('top-matches'),
     topMatchesValue: document.getElementById('top-matches-value'),
     resetAdvancedBtn: document.getElementById('reset-advanced'),
+
+    // Auto-detect grid
+    autoDetectBtn: document.getElementById('auto-detect-btn'),
+    autoDetectStatus: document.getElementById('auto-detect-status'),
+    autoDetectProgress: document.getElementById('auto-detect-progress'),
+    autoDetectProgressFill: document.getElementById('auto-detect-progress-fill'),
+    autoDetectProgressText: document.getElementById('auto-detect-progress-text'),
+    autoDetectResults: document.getElementById('auto-detect-results'),
+    autoDetectConfidence: document.getElementById('auto-detect-confidence'),
+    autoDetectConfidenceFill: document.getElementById('auto-detect-confidence-fill'),
+    autoDetectStats: document.getElementById('auto-detect-stats'),
+    autoCells: document.getElementById('auto-cells'),
+    autoValid: document.getElementById('auto-valid'),
+    autoEmpty: document.getElementById('auto-empty'),
+    toggleComparisonBtn: document.getElementById('toggle-comparison'),
+    comparisonView: document.getElementById('comparison-view'),
+    comparisonTableBody: document.getElementById('comparison-table-body'),
+    comparisonSummary: document.getElementById('comparison-summary'),
+    applyAutoDetectBtn: document.getElementById('apply-auto-detect'),
+    toggleOverlayBtn: document.getElementById('toggle-overlay'),
 
     // Correction panel
     correctionPanel: document.getElementById('correction-panel'),
@@ -933,6 +955,216 @@ function initAdvancedSettings() {
 }
 
 // ========================================
+// Auto-Detect Grid
+// ========================================
+
+// Store last auto-detection result for overlay toggle
+let lastAutoDetectResult = null;
+let showAutoDetectOverlay = false;
+
+function initAutoDetect() {
+    if (!elements.autoDetectBtn) return;
+
+    // Auto-detect button click
+    elements.autoDetectBtn.addEventListener('click', handleAutoDetect);
+
+    // Apply auto-detected calibration
+    if (elements.applyAutoDetectBtn) {
+        elements.applyAutoDetectBtn.addEventListener('click', applyAutoDetectedCalibration);
+    }
+
+    // Toggle comparison view
+    if (elements.toggleComparisonBtn) {
+        elements.toggleComparisonBtn.addEventListener('click', () => {
+            const isHidden = elements.comparisonView.style.display === 'none';
+            elements.comparisonView.style.display = isHidden ? 'block' : 'none';
+            elements.toggleComparisonBtn.textContent = isHidden
+                ? 'Compare with Preset \u25B2'
+                : 'Compare with Preset \u25BC';
+        });
+    }
+
+    // Toggle overlay
+    if (elements.toggleOverlayBtn) {
+        elements.toggleOverlayBtn.addEventListener('click', toggleAutoDetectOverlay);
+    }
+}
+
+async function handleAutoDetect() {
+    if (!state.currentImage) {
+        log('No image loaded', LOG_LEVELS.WARNING);
+        return;
+    }
+
+    elements.autoDetectBtn.disabled = true;
+    elements.autoDetectProgress.style.display = 'flex';
+    elements.autoDetectResults.style.display = 'none';
+
+    try {
+        const result = await autoDetectGrid(
+            state.currentImage.ctx,
+            state.currentImage.width,
+            state.currentImage.height,
+            {
+                progressCallback: (percent, message) => {
+                    elements.autoDetectProgressFill.style.width = `${percent}%`;
+                    elements.autoDetectProgressText.textContent = message || `${Math.round(percent)}%`;
+                },
+            }
+        );
+
+        lastAutoDetectResult = result;
+
+        if (result.success) {
+            displayAutoDetectResults(result);
+        } else {
+            elements.autoDetectStatus.textContent = `Failed: ${result.error}`;
+            log(`Auto-detection failed: ${result.error}`, LOG_LEVELS.ERROR);
+        }
+    } catch (error) {
+        log(`Auto-detection error: ${error.message}`, LOG_LEVELS.ERROR);
+        elements.autoDetectStatus.textContent = 'Error';
+    } finally {
+        elements.autoDetectBtn.disabled = false;
+        elements.autoDetectProgress.style.display = 'none';
+    }
+}
+
+function displayAutoDetectResults(result) {
+    elements.autoDetectResults.style.display = 'block';
+
+    // Confidence
+    const confidencePercent = Math.round(result.confidence * 100);
+    elements.autoDetectConfidence.textContent = `${confidencePercent}%`;
+    elements.autoDetectConfidenceFill.style.width = `${confidencePercent}%`;
+
+    // Color-code confidence
+    if (confidencePercent >= 70) {
+        elements.autoDetectConfidence.style.color = 'var(--success)';
+    } else if (confidencePercent >= 40) {
+        elements.autoDetectConfidence.style.color = 'var(--warning)';
+    } else {
+        elements.autoDetectConfidence.style.color = 'var(--error)';
+    }
+
+    // Stats
+    elements.autoCells.textContent = result.validation.totalCells;
+    elements.autoValid.textContent = result.validation.stats.valid;
+    elements.autoEmpty.textContent = result.validation.stats.empty;
+
+    // Build comparison table
+    buildComparisonTable(result);
+
+    // Status message
+    const cal = result.calibration;
+    elements.autoDetectStatus.textContent = `Detected ${cal.iconsPerRow}x${cal.numRows} grid, ${cal.iconWidth}x${cal.iconHeight}px icons`;
+
+    log(
+        `Auto-detection complete: ${result.validation.stats.valid} valid cells, confidence ${confidencePercent}%`,
+        LOG_LEVELS.SUCCESS
+    );
+}
+
+function buildComparisonTable(result) {
+    if (!elements.comparisonTableBody) return;
+
+    // Get current preset/calibration
+    const currentCal = state.calibration;
+    const autoCal = result.calibration;
+
+    const comparison = compareWithPreset(autoCal, currentCal);
+
+    if (!comparison) {
+        elements.comparisonTableBody.innerHTML = '<tr><td colspan="4">No preset to compare</td></tr>';
+        return;
+    }
+
+    const fields = [
+        { key: 'iconWidth', label: 'Icon Width' },
+        { key: 'iconHeight', label: 'Icon Height' },
+        { key: 'xSpacing', label: 'X Spacing' },
+        { key: 'ySpacing', label: 'Y Spacing' },
+        { key: 'xOffset', label: 'X Offset' },
+        { key: 'yOffset', label: 'Y Offset' },
+        { key: 'iconsPerRow', label: 'Icons/Row' },
+        { key: 'numRows', label: 'Rows' },
+    ];
+
+    let html = '';
+    for (const field of fields) {
+        const comp = comparison[field.key];
+        if (!comp) continue;
+
+        let diffClass = 'match';
+        if (comp.diff > 0) {
+            diffClass = comp.isClose ? 'diff' : 'big-diff';
+        }
+
+        const diffStr = comp.diff === 0 ? '-' : comp.diff > 0 ? `+${comp.diff}` : comp.diff;
+
+        html += `<tr>
+            <td>${field.label}</td>
+            <td>${comp.auto}</td>
+            <td>${comp.preset}</td>
+            <td class="${diffClass}">${diffStr}</td>
+        </tr>`;
+    }
+
+    elements.comparisonTableBody.innerHTML = html;
+
+    // Summary
+    elements.comparisonSummary.textContent = `Match score: ${comparison.matchScore.toFixed(0)}% - ${comparison.recommendation}`;
+}
+
+function applyAutoDetectedCalibration() {
+    if (!lastAutoDetectResult || !lastAutoDetectResult.calibration) {
+        log('No auto-detected calibration to apply', LOG_LEVELS.WARNING);
+        return;
+    }
+
+    const cal = lastAutoDetectResult.calibration;
+
+    // Apply to state
+    state.calibration.iconWidth = cal.iconWidth;
+    state.calibration.iconHeight = cal.iconHeight;
+    state.calibration.xSpacing = cal.xSpacing;
+    state.calibration.ySpacing = cal.ySpacing;
+    state.calibration.xOffset = cal.xOffset;
+    state.calibration.yOffset = cal.yOffset;
+    state.calibration.iconsPerRow = cal.iconsPerRow;
+    state.calibration.numRows = cal.numRows;
+    state.calibration.totalItems = cal.totalItems || cal.iconsPerRow * cal.numRows;
+
+    // Sync UI to state
+    syncUIToState();
+
+    // Refresh grid display
+    updateGridDisplay();
+
+    log('Applied auto-detected calibration', LOG_LEVELS.SUCCESS);
+}
+
+function toggleAutoDetectOverlay() {
+    showAutoDetectOverlay = !showAutoDetectOverlay;
+    elements.toggleOverlayBtn.classList.toggle('active', showAutoDetectOverlay);
+
+    if (showAutoDetectOverlay && lastAutoDetectResult) {
+        // Draw overlay on the main canvas
+        const ctx = elements.overlayCanvas.getContext('2d');
+        ctx.clearRect(0, 0, elements.overlayCanvas.width, elements.overlayCanvas.height);
+        drawDetectionOverlay(ctx, lastAutoDetectResult, {
+            showBand: true,
+            showEdges: true,
+            showGrid: true,
+            showLabels: true,
+        });
+    } else {
+        // Redraw normal grid
+        updateGridDisplay();
+    }
+}
+
+// ========================================
 // Training Sources Dropdown
 // ========================================
 
@@ -1331,6 +1563,15 @@ async function handleImageSelect(e) {
         // Auto-load preset for this resolution
         autoLoadPresetForResolution(state.currentImage.width, state.currentImage.height);
 
+        // Enable auto-detect button
+        if (elements.autoDetectBtn) {
+            elements.autoDetectBtn.disabled = false;
+        }
+        // Hide previous auto-detect results
+        if (elements.autoDetectResults) {
+            elements.autoDetectResults.style.display = 'none';
+        }
+
         // Display ground truth
         displayGroundTruth(imagePath, elements.truthItemsDiv, elements.truthCount);
 
@@ -1686,7 +1927,7 @@ async function init() {
         },
         {
             onCorrectionApplied: recalculateAndDisplay,
-            highlightSlot: (slotIndex) => {
+            highlightSlot: slotIndex => {
                 // Scroll to slot in detection list and highlight in overlay
                 const slotItem = elements.detectedItemsDiv.querySelector(`[data-slot="${slotIndex}"]`);
                 if (slotItem) {
@@ -1819,6 +2060,9 @@ async function init() {
             }
         }
     });
+
+    // Auto-detect grid handlers
+    initAutoDetect();
 
     // Advanced settings toggle
     elements.toggleAdvancedBtn.addEventListener('click', toggleAdvancedSettings);
