@@ -138,14 +138,16 @@ describe('calculateSimilarity', () => {
         expect(similarity).toBeLessThanOrEqual(1);
     });
 
-    it('returns 0 when denominator is 0 (uniform images)', () => {
-        // Uniform images have zero variance, leading to 0 denominator
+    it('handles uniform images correctly (identical should have high similarity)', () => {
+        // With enhanced similarity, two identical uniform images have high similarity
+        // because histogram similarity and other methods correctly identify them as similar
         const img1 = createMockImageData(8, 8, 128);
         const img2 = createMockImageData(8, 8, 128);
 
         const similarity = calculateSimilarity(img1, img2);
 
-        expect(similarity).toBe(0);
+        // Identical images (even uniform ones) should have high similarity
+        expect(similarity).toBeGreaterThan(0.5);
     });
 
     it('handles small images', () => {

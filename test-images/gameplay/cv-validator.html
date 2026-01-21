@@ -4,607 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CV Validation Tool - MegaBonk</title>
-    <style>
-        :root {
-            --bg-dark: #1a1a2e;
-            --bg-card: #16213e;
-            --bg-panel: #0f3460;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --accent: #e94560;
-            --success: #4ade80;
-            --warning: #fbbf24;
-            --error: #f87171;
-            --border: #2d4a6f;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: var(--accent);
-        }
-
-        .header-info {
-            text-align: center;
-            margin-bottom: 20px;
-            color: var(--text-secondary);
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            align-items: center;
-            justify-content: center;
-        }
-
-        select, button {
-            padding: 10px 15px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: var(--bg-panel);
-            color: var(--text-primary);
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        select:hover, button:hover {
-            border-color: var(--accent);
-        }
-
-        button.primary {
-            background: var(--accent);
-            border-color: var(--accent);
-        }
-
-        button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .page-layout {
-            display: grid;
-            grid-template-columns: 1fr 320px;
-            gap: 20px;
-        }
-
-        @media (max-width: 1400px) {
-            .page-layout {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        @media (max-width: 1200px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .sidebar {
-            position: sticky;
-            top: 20px;
-            max-height: calc(100vh - 40px);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .sidebar .panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-        }
-
-        .search-box {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-
-        .search-box input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            background: var(--bg-panel);
-            color: var(--text-primary);
-            font-size: 14px;
-        }
-
-        .search-box input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .filter-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-bottom: 10px;
-        }
-
-        .filter-btn {
-            padding: 4px 8px;
-            font-size: 11px;
-            border-radius: 4px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
-
-        .filter-btn:hover, .filter-btn.active {
-            border-color: var(--accent);
-            color: var(--text-primary);
-        }
-
-        .filter-btn.active {
-            background: var(--accent);
-        }
-
-        .item-reference-list {
-            flex: 1;
-            overflow-y: auto;
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
-            gap: 6px;
-            align-content: start;
-        }
-
-        .ref-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 6px;
-            background: var(--bg-panel);
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-        }
-
-        .ref-item:hover {
-            border-color: var(--accent);
-            transform: scale(1.05);
-        }
-
-        .ref-item.copied {
-            border-color: var(--success);
-            background: rgba(74, 222, 128, 0.1);
-        }
-
-        .ref-item img {
-            width: 40px;
-            height: 40px;
-            border-radius: 4px;
-            margin-bottom: 4px;
-        }
-
-        .ref-item .name {
-            font-size: 10px;
-            text-align: center;
-            line-height: 1.2;
-            word-break: break-word;
-        }
-
-        .ref-item .rarity-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            margin-top: 2px;
-        }
-
-        .rarity-common { background: #9ca3af; }
-        .rarity-uncommon { background: #22c55e; }
-        .rarity-rare { background: #3b82f6; }
-        .rarity-epic { background: #a855f7; }
-        .rarity-legendary { background: #f59e0b; }
-
-        .copy-toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--success);
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .copy-toast.show {
-            opacity: 1;
-        }
-
-        /* Image Modal/Lightbox */
-        .image-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.95);
-            z-index: 2000;
-            padding: 20px;
-            cursor: zoom-out;
-            overflow: auto;
-        }
-
-        .image-modal.show {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .image-modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            max-width: 1600px;
-            margin-bottom: 10px;
-            color: var(--text-primary);
-        }
-
-        .image-modal-header h3 {
-            margin: 0;
-        }
-
-        .image-modal-close {
-            background: var(--accent);
-            border: none;
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .image-modal-content {
-            position: relative;
-            max-width: 100%;
-            max-height: calc(100vh - 100px);
-        }
-
-        .image-modal-content img {
-            max-width: 100%;
-            max-height: calc(100vh - 100px);
-            object-fit: contain;
-        }
-
-        .image-modal-content canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-        }
-
-        .zoom-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .zoom-controls button {
-            padding: 6px 12px;
-            background: var(--bg-panel);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            border-radius: 4px;
-            cursor: pointer;
-        }
-
-        .zoom-controls button:hover {
-            border-color: var(--accent);
-        }
-
-        .zoom-controls span {
-            min-width: 50px;
-            text-align: center;
-        }
-
-        .image-container {
-            cursor: zoom-in;
-        }
-
-        .expand-hint {
-            text-align: center;
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin-top: 5px;
-        }
-
-        .panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .panel h2 {
-            margin-bottom: 15px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border);
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .panel h2 .count {
-            background: var(--bg-panel);
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 12px;
-        }
-
-        .image-container {
-            position: relative;
-            width: 100%;
-            background: #000;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .image-container img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .image-container canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .item-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .item-badge {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 6px 10px;
-            background: var(--bg-panel);
-            border-radius: 6px;
-            font-size: 13px;
-        }
-
-        .item-badge img {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-        }
-
-        .item-badge .count {
-            color: var(--text-secondary);
-            font-size: 11px;
-        }
-
-        .item-badge.match {
-            border-left: 3px solid var(--success);
-        }
-
-        .item-badge.false-positive {
-            border-left: 3px solid var(--error);
-            background: rgba(248, 113, 113, 0.1);
-        }
-
-        .item-badge.missing {
-            border-left: 3px solid var(--warning);
-            background: rgba(251, 191, 36, 0.1);
-            opacity: 0.7;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .metric-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
-            text-align: center;
-        }
-
-        .metric-card .value {
-            font-size: 28px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .metric-card .label {
-            color: var(--text-secondary);
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-
-        .metric-card.success .value { color: var(--success); }
-        .metric-card.warning .value { color: var(--warning); }
-        .metric-card.error .value { color: var(--error); }
-
-        .loading {
-            text-align: center;
-            padding: 40px;
-            color: var(--text-secondary);
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 4px;
-            background: var(--bg-panel);
-            border-radius: 2px;
-            overflow: hidden;
-            margin: 10px 0;
-        }
-
-        .progress-bar .fill {
-            height: 100%;
-            background: var(--accent);
-            transition: width 0.3s ease;
-        }
-
-        .status-message {
-            text-align: center;
-            padding: 10px;
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
-        .thumbnail-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .thumbnail {
-            position: relative;
-            cursor: pointer;
-            border: 2px solid transparent;
-            border-radius: 6px;
-            overflow: hidden;
-            transition: border-color 0.2s;
-        }
-
-        .thumbnail:hover {
-            border-color: var(--accent);
-        }
-
-        .thumbnail.selected {
-            border-color: var(--accent);
-        }
-
-        .thumbnail img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
-
-        .thumbnail .label {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.8);
-            padding: 4px;
-            font-size: 10px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .legend {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 15px;
-            font-size: 13px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .legend-item .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 3px;
-        }
-
-        .legend-item .dot.match { background: var(--success); }
-        .legend-item .dot.false-positive { background: var(--error); }
-        .legend-item .dot.missing { background: var(--warning); }
-
-        .confidence-slider {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .confidence-slider input {
-            width: 100px;
-        }
-
-        .confidence-slider .value {
-            font-family: monospace;
-            min-width: 40px;
-        }
-
-        #log-panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 20px;
-        }
-
-        #log-panel h3 {
-            margin-bottom: 10px;
-        }
-
-        #log-content {
-            max-height: 200px;
-            overflow-y: auto;
-            font-family: monospace;
-            font-size: 12px;
-            background: #000;
-            padding: 10px;
-            border-radius: 4px;
-        }
-
-        .log-entry {
-            margin-bottom: 4px;
-        }
-
-        .log-entry.info { color: var(--text-secondary); }
-        .log-entry.success { color: var(--success); }
-        .log-entry.warning { color: var(--warning); }
-        .log-entry.error { color: var(--error); }
-    </style>
+    <link rel="stylesheet" href="cv-validator/styles/base.css">
+    <link rel="stylesheet" href="cv-validator/styles/layout.css">
+    <link rel="stylesheet" href="cv-validator/styles/components.css">
+    <link rel="stylesheet" href="cv-validator/styles/modal.css">
 </head>
 <body>
     <h1>CV Validation Tool</h1>
@@ -619,39 +22,25 @@
             <input type="range" id="confidence-threshold" min="0.3" max="0.9" step="0.01" value="0.45">
             <span class="value" id="confidence-value">0.45</span>
         </div>
+        <div class="confidence-slider">
+            <label>Grid Y Offset:</label>
+            <input type="range" id="grid-y-offset" min="-100" max="100" step="5" value="0">
+            <span class="value" id="grid-y-value">0px</span>
+        </div>
+        <div class="confidence-slider">
+            <label>Show Slots:</label>
+            <input type="text" id="slot-filter" placeholder="all, or 0,1,5" style="width: 80px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg-panel); color: var(--text-primary);">
+        </div>
         <button id="run-detection" class="primary" disabled>Run Detection</button>
         <button id="run-all">Run All Tests</button>
-    </div>
-
-    <div class="metrics-grid">
-        <div class="metric-card" id="metric-f1">
-            <div class="value">--</div>
-            <div class="label">F1 Score</div>
-        </div>
-        <div class="metric-card" id="metric-precision">
-            <div class="value">--</div>
-            <div class="label">Precision</div>
-        </div>
-        <div class="metric-card" id="metric-recall">
-            <div class="value">--</div>
-            <div class="label">Recall</div>
-        </div>
-        <div class="metric-card" id="metric-detected">
-            <div class="value">--</div>
-            <div class="label">Detected Items</div>
-        </div>
-    </div>
-
-    <div class="legend">
-        <div class="legend-item"><span class="dot match"></span> Match</div>
-        <div class="legend-item"><span class="dot false-positive"></span> False Positive</div>
-        <div class="legend-item"><span class="dot missing"></span> Missing</div>
+        <button id="export-validated" disabled>Export Validated</button>
+        <button id="toggle-grid-calibration">Grid Calibration &#x25BC;</button>
     </div>
 
     <div class="page-layout">
         <div class="main-area">
             <div class="main-content">
-                <div class="panel">
+                <div class="panel screenshot-panel">
                     <h2>Screenshot</h2>
                     <div class="image-container" id="screenshot-container" onclick="openImageModal()">
                         <img id="screenshot-img" src="" alt="Screenshot">
@@ -661,19 +50,144 @@
                     <p class="expand-hint">Click image to view full size</p>
                 </div>
 
+                <!-- Grid Calibration Panel - right below image -->
+                <div class="grid-calibration-panel" id="grid-calibration-panel" style="display: none;">
+                    <div class="calibration-row">
+                        <div class="calibration-control">
+                            <label>X Offset:</label>
+                            <input type="range" id="grid-x-offset" min="-200" max="200" step="1" value="0">
+                            <span class="value" id="grid-x-value">0px</span>
+                        </div>
+                        <div class="calibration-control">
+                            <label>Icon Width:</label>
+                            <input type="range" id="icon-width" min="20" max="80" step="1" value="40">
+                            <span class="value" id="icon-width-value">40px</span>
+                        </div>
+                        <div class="calibration-control">
+                            <label>Icon Height:</label>
+                            <input type="range" id="icon-height" min="20" max="80" step="1" value="40">
+                            <span class="value" id="icon-height-value">40px</span>
+                        </div>
+                    </div>
+                    <div class="calibration-row">
+                        <div class="calibration-control">
+                            <label>X Spacing:</label>
+                            <input type="range" id="x-spacing" min="0" max="20" step="1" value="4">
+                            <span class="value" id="x-spacing-value">4px</span>
+                        </div>
+                        <div class="calibration-control">
+                            <label>Y Spacing:</label>
+                            <input type="range" id="y-spacing" min="0" max="40" step="1" value="4">
+                            <span class="value" id="y-spacing-value">4px</span>
+                        </div>
+                        <div class="calibration-control">
+                            <label>Icons/Row:</label>
+                            <input type="range" id="icons-per-row" min="10" max="30" step="1" value="20">
+                            <span class="value" id="icons-per-row-value">20</span>
+                        </div>
+                        <div class="calibration-control">
+                            <label>Rows:</label>
+                            <input type="range" id="num-rows" min="1" max="5" step="1" value="3">
+                            <span class="value" id="num-rows-value">3</span>
+                        </div>
+                    </div>
+                    <div class="calibration-info">
+                        <span id="resolution-info">Resolution: --</span>
+                        <span id="scale-info">Scale: --</span>
+                        <button id="reset-calibration">Reset to Defaults</button>
+                    </div>
+                    <div class="preset-controls">
+                        <span id="preset-status">No preset loaded</span>
+                        <button id="save-preset">Save Preset</button>
+                        <button id="load-preset">Load Preset</button>
+                        <button id="delete-preset">Delete</button>
+                    </div>
+                </div>
+
+                <!-- Metrics - below calibration -->
+                <div class="metrics-grid">
+                    <div class="metric-card" id="metric-f1">
+                        <div class="value">--</div>
+                        <div class="label">F1 Score</div>
+                    </div>
+                    <div class="metric-card" id="metric-precision">
+                        <div class="value">--</div>
+                        <div class="label">Precision</div>
+                    </div>
+                    <div class="metric-card" id="metric-recall">
+                        <div class="value">--</div>
+                        <div class="label">Recall</div>
+                    </div>
+                    <div class="metric-card" id="metric-detected">
+                        <div class="value">--</div>
+                        <div class="label">Detected Items</div>
+                    </div>
+                </div>
+
+                <div class="legend">
+                    <div class="legend-item"><span class="dot match"></span> Match</div>
+                    <div class="legend-item"><span class="dot false-positive"></span> False Positive</div>
+                    <div class="legend-item"><span class="dot missing"></span> Missing</div>
+                </div>
+
+                <div class="secondary-panels">
                 <div class="panel">
-                    <h2>CV Detection <span class="count" id="detection-count">0</span></h2>
+                    <h2>CV Detection <span class="count" id="detection-count">0</span> <span class="corrections-counter" id="corrections-counter">0 corrections</span></h2>
                     <div class="progress-bar" id="progress-container" style="display: none;">
                         <div class="fill" id="progress-fill"></div>
                     </div>
                     <p class="status-message" id="detection-status">Waiting...</p>
                     <div class="item-list" id="detected-items"></div>
+
+                    <!-- Correction Panel -->
+                    <div class="correction-panel" id="correction-panel">
+                        <h3>
+                            Correct Detection
+                            <span class="slot-badge" id="correction-slot-badge">Slot 0</span>
+                        </h3>
+                        <div class="current-detection" id="current-detection-display">
+                            <img id="correction-current-img" src="" alt="">
+                            <div class="info">
+                                <div class="name" id="correction-current-name">Item Name</div>
+                                <div class="confidence" id="correction-current-conf">Confidence: 0%</div>
+                            </div>
+                        </div>
+
+                        <div class="correction-section">
+                            <h4>Quick Picks (Top Alternatives)</h4>
+                            <div class="quick-picks" id="quick-picks"></div>
+                        </div>
+
+                        <div class="correction-section">
+                            <h4>Search All Items</h4>
+                            <div class="correction-search">
+                                <input type="text" id="correction-search-input" placeholder="Search items...">
+                            </div>
+                            <div class="filter-buttons" id="correction-filters">
+                                <button class="filter-btn active" data-rarity="all">All</button>
+                                <button class="filter-btn" data-rarity="common">Common</button>
+                                <button class="filter-btn" data-rarity="uncommon">Uncommon</button>
+                                <button class="filter-btn" data-rarity="rare">Rare</button>
+                                <button class="filter-btn" data-rarity="epic">Epic</button>
+                                <button class="filter-btn" data-rarity="legendary">Legendary</button>
+                            </div>
+                            <div class="correction-results" id="correction-results"></div>
+                            <div class="results-count" id="results-count" style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;"></div>
+                        </div>
+
+                        <div class="correction-actions">
+                            <button class="apply-btn" id="apply-correction-btn" disabled>Apply Correction</button>
+                            <button class="empty-btn" id="mark-empty-btn">Mark as Empty</button>
+                            <button class="cancel-btn" id="cancel-correction-btn">Cancel</button>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="panel">
                     <h2>Ground Truth <span class="count" id="truth-count">0</span></h2>
                     <div class="item-list" id="truth-items"></div>
                 </div>
+                </div><!-- end secondary-panels -->
             </div>
 
             <div id="log-panel">
@@ -717,959 +231,12 @@
             </div>
         </div>
         <div class="image-modal-content" id="modal-content">
+            <div class="modal-loading" id="modal-loading">Loading image...</div>
             <img id="modal-img" src="" alt="Full size screenshot">
             <canvas id="modal-overlay"></canvas>
         </div>
     </div>
 
-    <script>
-        // ========================================
-        // CV Validator Tool - Main Script
-        // ========================================
-
-        // Global state
-        let groundTruth = {};
-        let itemsData = null;
-        let itemLookup = new Map(); // name -> item data
-        let itemIdLookup = new Map(); // id -> item data
-        let templateCache = new Map(); // item id -> ImageData
-        let currentImage = null;
-        let currentImagePath = null;
-
-        // DOM elements
-        const imageSelect = document.getElementById('image-select');
-        const confidenceSlider = document.getElementById('confidence-threshold');
-        const confidenceValue = document.getElementById('confidence-value');
-        const runDetectionBtn = document.getElementById('run-detection');
-        const runAllBtn = document.getElementById('run-all');
-        const screenshotImg = document.getElementById('screenshot-img');
-        const overlayCanvas = document.getElementById('overlay-canvas');
-        const detectedItemsDiv = document.getElementById('detected-items');
-        const truthItemsDiv = document.getElementById('truth-items');
-        const logContent = document.getElementById('log-content');
-        const progressFill = document.getElementById('progress-fill');
-        const progressContainer = document.getElementById('progress-container');
-        const detectionStatus = document.getElementById('detection-status');
-        const detectionCount = document.getElementById('detection-count');
-        const truthCount = document.getElementById('truth-count');
-        const imageInfo = document.getElementById('image-info');
-
-        // ========================================
-        // Logging
-        // ========================================
-
-        function log(message, level = 'info') {
-            const entry = document.createElement('div');
-            entry.className = `log-entry ${level}`;
-            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-            logContent.appendChild(entry);
-            logContent.scrollTop = logContent.scrollHeight;
-        }
-
-        function clearLog() {
-            logContent.innerHTML = '';
-        }
-
-        // ========================================
-        // Data Loading
-        // ========================================
-
-        async function loadGroundTruth() {
-            try {
-                const response = await fetch('ground-truth.json');
-                groundTruth = await response.json();
-                log(`Loaded ground truth with ${Object.keys(groundTruth).filter(k => !k.startsWith('_')).length} test images`, 'success');
-                populateImageSelect();
-            } catch (error) {
-                log(`Failed to load ground-truth.json: ${error.message}`, 'error');
-            }
-        }
-
-        async function loadItemsData() {
-            try {
-                const response = await fetch('../../data/items.json');
-                itemsData = await response.json();
-
-                // Build lookup maps
-                for (const item of itemsData.items) {
-                    itemLookup.set(item.name.toLowerCase(), item);
-                    itemIdLookup.set(item.id, item);
-                }
-
-                log(`Loaded ${itemsData.items.length} items from items.json`, 'success');
-            } catch (error) {
-                log(`Failed to load items.json: ${error.message}`, 'error');
-            }
-        }
-
-        function populateImageSelect() {
-            imageSelect.innerHTML = '<option value="">-- Select a test image --</option>';
-
-            for (const [imagePath, data] of Object.entries(groundTruth)) {
-                if (imagePath.startsWith('_')) continue; // Skip metadata
-
-                const itemCount = data.items?.length || 0;
-                const option = document.createElement('option');
-                option.value = imagePath;
-                option.textContent = `${imagePath} (${itemCount} items)`;
-                imageSelect.appendChild(option);
-            }
-        }
-
-        // ========================================
-        // Template Loading
-        // ========================================
-
-        async function loadTemplate(item) {
-            if (templateCache.has(item.id)) {
-                return templateCache.get(item.id);
-            }
-
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-
-                    const imageData = ctx.getImageData(0, 0, img.width, img.height);
-                    templateCache.set(item.id, {
-                        imageData,
-                        width: img.width,
-                        height: img.height,
-                        canvas,
-                        ctx
-                    });
-                    resolve(templateCache.get(item.id));
-                };
-
-                img.onerror = () => {
-                    resolve(null);
-                };
-
-                // Use relative path from test-images/gameplay to src/images
-                const imagePath = '../../src/' + item.image;
-                img.src = imagePath;
-            });
-        }
-
-        async function loadAllTemplates() {
-            log('Loading item templates...');
-            let loaded = 0;
-
-            for (const item of itemsData.items) {
-                if (item.image) {
-                    await loadTemplate(item);
-                    loaded++;
-                }
-            }
-
-            log(`Loaded ${loaded} item templates`, 'success');
-        }
-
-        // ========================================
-        // Image Processing
-        // ========================================
-
-        async function loadImage(imagePath) {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    resolve({ img, canvas, ctx, width: img.width, height: img.height });
-                };
-
-                img.onerror = () => reject(new Error(`Failed to load: ${imagePath}`));
-                img.src = imagePath;
-            });
-        }
-
-        // ========================================
-        // CV Detection (Browser-based)
-        // ========================================
-
-        function detectGridPositions(width, height) {
-            const iconSize = Math.round(40 * (height / 720));
-            const spacing = Math.round(4 * (height / 720));
-            const positions = [];
-
-            const rowHeight = iconSize + spacing;
-            const bottomMargin = Math.round(20 * (height / 720));
-
-            // Multiple row support
-            const rowYPositions = [
-                height - bottomMargin - iconSize,
-                height - bottomMargin - iconSize - rowHeight,
-                height - bottomMargin - iconSize - rowHeight * 2,
-            ];
-
-            const sideMargin = Math.round(width * 0.20);
-            const usableWidth = width - sideMargin * 2;
-            const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
-
-            for (const rowY of rowYPositions) {
-                if (rowY < height * 0.75) break;
-
-                const totalWidth = maxItemsPerRow * (iconSize + spacing);
-                const startX = Math.round((width - totalWidth) / 2);
-
-                for (let i = 0; i < maxItemsPerRow; i++) {
-                    positions.push({
-                        x: startX + i * (iconSize + spacing),
-                        y: rowY,
-                        width: iconSize,
-                        height: iconSize,
-                    });
-                }
-            }
-
-            return positions;
-        }
-
-        function isEmptyCell(imageData) {
-            const pixels = imageData.data;
-            let sum = 0, sumSq = 0, count = 0;
-
-            for (let i = 0; i < pixels.length; i += 4) {
-                const r = pixels[i];
-                const g = pixels[i + 1];
-                const b = pixels[i + 2];
-                const gray = (r + g + b) / 3;
-                sum += gray;
-                sumSq += gray * gray;
-                count++;
-            }
-
-            const mean = sum / count;
-            const variance = sumSq / count - mean * mean;
-
-            // Low variance or very dark = empty
-            return variance < 300 || mean < 40;
-        }
-
-        function calculateNCC(imageData1, imageData2) {
-            const pixels1 = imageData1.data;
-            const pixels2 = imageData2.data;
-
-            let sum1 = 0, sum2 = 0, sumProduct = 0, sumSquare1 = 0, sumSquare2 = 0, count = 0;
-            const len = Math.min(pixels1.length, pixels2.length);
-
-            for (let i = 0; i < len; i += 4) {
-                const gray1 = (pixels1[i] + pixels1[i + 1] + pixels1[i + 2]) / 3;
-                const gray2 = (pixels2[i] + pixels2[i + 1] + pixels2[i + 2]) / 3;
-
-                sum1 += gray1;
-                sum2 += gray2;
-                sumProduct += gray1 * gray2;
-                sumSquare1 += gray1 * gray1;
-                sumSquare2 += gray2 * gray2;
-                count++;
-            }
-
-            const mean1 = sum1 / count;
-            const mean2 = sum2 / count;
-            const numerator = sumProduct / count - mean1 * mean2;
-            const denominator = Math.sqrt((sumSquare1 / count - mean1 * mean1) * (sumSquare2 / count - mean2 * mean2));
-
-            if (denominator === 0) return 0;
-            return (numerator / denominator + 1) / 2;
-        }
-
-        function resizeImageData(imageData, targetWidth, targetHeight) {
-            const canvas = document.createElement('canvas');
-            canvas.width = imageData.width;
-            canvas.height = imageData.height;
-            const ctx = canvas.getContext('2d');
-            ctx.putImageData(imageData, 0, 0);
-
-            const outCanvas = document.createElement('canvas');
-            outCanvas.width = targetWidth;
-            outCanvas.height = targetHeight;
-            const outCtx = outCanvas.getContext('2d');
-            outCtx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
-
-            return outCtx.getImageData(0, 0, targetWidth, targetHeight);
-        }
-
-        async function runDetection(imageData, width, height, threshold) {
-            const gridPositions = detectGridPositions(width, height);
-            const detections = [];
-            const ctx = imageData.ctx;
-
-            log(`Scanning ${gridPositions.length} grid positions...`);
-
-            let processedCells = 0;
-            const nonEmptyCells = [];
-
-            // First pass: find non-empty cells
-            for (const cell of gridPositions) {
-                const cellData = ctx.getImageData(cell.x, cell.y, cell.width, cell.height);
-                if (!isEmptyCell(cellData)) {
-                    nonEmptyCells.push({ cell, cellData });
-                }
-            }
-
-            log(`Found ${nonEmptyCells.length} non-empty cells`);
-
-            // Second pass: match templates
-            for (const { cell, cellData } of nonEmptyCells) {
-                processedCells++;
-                updateProgress((processedCells / nonEmptyCells.length) * 100);
-
-                let bestMatch = null;
-
-                for (const [itemId, template] of templateCache) {
-                    if (!template) continue;
-
-                    // Resize template to cell size (center region)
-                    const margin = Math.round(cell.width * 0.15);
-                    const centerWidth = cell.width - margin * 2;
-                    const centerHeight = cell.height - margin * 2;
-
-                    // Extract center of cell
-                    const centerData = ctx.createImageData(centerWidth, centerHeight);
-                    for (let y = 0; y < centerHeight; y++) {
-                        for (let x = 0; x < centerWidth; x++) {
-                            const srcIdx = ((y + margin) * cell.width + (x + margin)) * 4;
-                            const dstIdx = (y * centerWidth + x) * 4;
-                            centerData.data[dstIdx] = cellData.data[srcIdx];
-                            centerData.data[dstIdx + 1] = cellData.data[srcIdx + 1];
-                            centerData.data[dstIdx + 2] = cellData.data[srcIdx + 2];
-                            centerData.data[dstIdx + 3] = cellData.data[srcIdx + 3];
-                        }
-                    }
-
-                    // Resize template center
-                    const tMargin = Math.round(template.width * 0.15);
-                    const tCenterCanvas = document.createElement('canvas');
-                    tCenterCanvas.width = centerWidth;
-                    tCenterCanvas.height = centerHeight;
-                    const tCenterCtx = tCenterCanvas.getContext('2d');
-                    tCenterCtx.drawImage(
-                        template.canvas,
-                        tMargin, tMargin,
-                        template.width - tMargin * 2, template.height - tMargin * 2,
-                        0, 0,
-                        centerWidth, centerHeight
-                    );
-                    const resizedTemplate = tCenterCtx.getImageData(0, 0, centerWidth, centerHeight);
-
-                    const similarity = calculateNCC(centerData, resizedTemplate);
-
-                    if (!bestMatch || similarity > bestMatch.confidence) {
-                        bestMatch = {
-                            item: itemIdLookup.get(itemId),
-                            confidence: similarity,
-                            position: cell
-                        };
-                    }
-                }
-
-                if (bestMatch && bestMatch.confidence >= threshold) {
-                    detections.push(bestMatch);
-                }
-            }
-
-            return detections;
-        }
-
-        function updateProgress(percent) {
-            progressFill.style.width = `${percent}%`;
-        }
-
-        // ========================================
-        // Results Display
-        // ========================================
-
-        function displayGroundTruth(imagePath) {
-            const data = groundTruth[imagePath];
-            if (!data || !data.items) {
-                truthItemsDiv.innerHTML = '<p class="status-message">No ground truth available</p>';
-                truthCount.textContent = '0';
-                return;
-            }
-
-            // Count items
-            const itemCounts = new Map();
-            for (const itemName of data.items) {
-                itemCounts.set(itemName, (itemCounts.get(itemName) || 0) + 1);
-            }
-
-            truthCount.textContent = data.items.length;
-
-            truthItemsDiv.innerHTML = '';
-            for (const [name, count] of itemCounts) {
-                const item = itemLookup.get(name.toLowerCase());
-                const badge = createItemBadge(name, count, item?.image, 'truth');
-                truthItemsDiv.appendChild(badge);
-            }
-        }
-
-        function displayDetections(detections, groundTruthItems) {
-            detectedItemsDiv.innerHTML = '';
-
-            if (detections.length === 0) {
-                detectedItemsDiv.innerHTML = '<p class="status-message">No items detected</p>';
-                detectionCount.textContent = '0';
-                return;
-            }
-
-            // Count detections
-            const detectionCounts = new Map();
-            for (const d of detections) {
-                const name = d.item.name;
-                detectionCounts.set(name, (detectionCounts.get(name) || 0) + 1);
-            }
-
-            // Count ground truth
-            const truthCounts = new Map();
-            for (const name of groundTruthItems) {
-                truthCounts.set(name, (truthCounts.get(name) || 0) + 1);
-            }
-
-            detectionCount.textContent = detections.length;
-
-            // Display with classification
-            for (const [name, count] of detectionCounts) {
-                const truthCount = truthCounts.get(name) || 0;
-                const status = truthCount > 0 ? 'match' : 'false-positive';
-                const item = itemLookup.get(name.toLowerCase());
-                const badge = createItemBadge(name, count, item?.image, status);
-                badge.title = `Detected: ${count}, Truth: ${truthCount}`;
-                detectedItemsDiv.appendChild(badge);
-            }
-
-            // Show missing items
-            for (const [name, count] of truthCounts) {
-                if (!detectionCounts.has(name)) {
-                    const item = itemLookup.get(name.toLowerCase());
-                    const badge = createItemBadge(name, count, item?.image, 'missing');
-                    badge.title = 'Not detected';
-                    detectedItemsDiv.appendChild(badge);
-                }
-            }
-        }
-
-        function createItemBadge(name, count, imagePath, status) {
-            const badge = document.createElement('div');
-            badge.className = `item-badge ${status}`;
-
-            if (imagePath) {
-                const img = document.createElement('img');
-                img.src = '../../src/' + imagePath;
-                img.alt = name;
-                badge.appendChild(img);
-            }
-
-            const span = document.createElement('span');
-            span.textContent = name;
-            badge.appendChild(span);
-
-            if (count > 1) {
-                const countSpan = document.createElement('span');
-                countSpan.className = 'count';
-                countSpan.textContent = `x${count}`;
-                badge.appendChild(countSpan);
-            }
-
-            return badge;
-        }
-
-        function calculateMetrics(detections, groundTruthItems) {
-            const detectedCounts = new Map();
-            for (const d of detections) {
-                detectedCounts.set(d.item.name, (detectedCounts.get(d.item.name) || 0) + 1);
-            }
-
-            const truthCounts = new Map();
-            for (const name of groundTruthItems) {
-                truthCounts.set(name, (truthCounts.get(name) || 0) + 1);
-            }
-
-            let truePositives = 0;
-            let falsePositives = 0;
-            let falseNegatives = 0;
-
-            // True positives and false positives
-            for (const [name, count] of detectedCounts) {
-                const truthCount = truthCounts.get(name) || 0;
-                truePositives += Math.min(count, truthCount);
-                if (count > truthCount) {
-                    falsePositives += count - truthCount;
-                }
-            }
-
-            // False negatives
-            for (const [name, count] of truthCounts) {
-                const detectedCount = detectedCounts.get(name) || 0;
-                if (detectedCount < count) {
-                    falseNegatives += count - detectedCount;
-                }
-            }
-
-            const precision = truePositives + falsePositives > 0
-                ? truePositives / (truePositives + falsePositives)
-                : 0;
-
-            const recall = truePositives + falseNegatives > 0
-                ? truePositives / (truePositives + falseNegatives)
-                : 0;
-
-            const f1 = precision + recall > 0
-                ? 2 * (precision * recall) / (precision + recall)
-                : 0;
-
-            return { precision, recall, f1, truePositives, falsePositives, falseNegatives };
-        }
-
-        function displayMetrics(metrics) {
-            const f1Elem = document.getElementById('metric-f1');
-            const precisionElem = document.getElementById('metric-precision');
-            const recallElem = document.getElementById('metric-recall');
-            const detectedElem = document.getElementById('metric-detected');
-
-            f1Elem.querySelector('.value').textContent = `${(metrics.f1 * 100).toFixed(1)}%`;
-            precisionElem.querySelector('.value').textContent = `${(metrics.precision * 100).toFixed(1)}%`;
-            recallElem.querySelector('.value').textContent = `${(metrics.recall * 100).toFixed(1)}%`;
-            detectedElem.querySelector('.value').textContent = `${metrics.truePositives}/${metrics.truePositives + metrics.falseNegatives}`;
-
-            // Color coding
-            f1Elem.className = `metric-card ${metrics.f1 >= 0.7 ? 'success' : metrics.f1 >= 0.4 ? 'warning' : 'error'}`;
-            precisionElem.className = `metric-card ${metrics.precision >= 0.7 ? 'success' : metrics.precision >= 0.4 ? 'warning' : 'error'}`;
-            recallElem.className = `metric-card ${metrics.recall >= 0.7 ? 'success' : metrics.recall >= 0.4 ? 'warning' : 'error'}`;
-        }
-
-        function drawOverlay(detections, width, height) {
-            const canvas = overlayCanvas;
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-
-            ctx.clearRect(0, 0, width, height);
-
-            // Draw detection boxes
-            for (const d of detections) {
-                const pos = d.position;
-
-                // Color based on confidence
-                const hue = Math.round(d.confidence * 120); // 0 = red, 120 = green
-                ctx.strokeStyle = `hsl(${hue}, 70%, 50%)`;
-                ctx.lineWidth = 2;
-                ctx.strokeRect(pos.x, pos.y, pos.width, pos.height);
-
-                // Label
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                ctx.fillRect(pos.x, pos.y - 16, pos.width, 16);
-                ctx.fillStyle = '#fff';
-                ctx.font = '10px sans-serif';
-                ctx.fillText(`${d.item.name.slice(0, 10)} ${(d.confidence * 100).toFixed(0)}%`, pos.x + 2, pos.y - 4);
-            }
-
-            // Draw grid positions (faint)
-            const gridPositions = detectGridPositions(width, height);
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-            ctx.lineWidth = 1;
-            for (const pos of gridPositions) {
-                ctx.strokeRect(pos.x, pos.y, pos.width, pos.height);
-            }
-        }
-
-        // ========================================
-        // Event Handlers
-        // ========================================
-
-        imageSelect.addEventListener('change', async (e) => {
-            const imagePath = e.target.value;
-            if (!imagePath) return;
-
-            currentImagePath = imagePath;
-            clearLog();
-            log(`Selected: ${imagePath}`);
-
-            // Display image
-            screenshotImg.src = imagePath;
-            imageInfo.textContent = `Loading ${imagePath}...`;
-
-            // Load image data
-            try {
-                currentImage = await loadImage(imagePath);
-                imageInfo.textContent = `${currentImage.width}x${currentImage.height}`;
-                runDetectionBtn.disabled = false;
-
-                // Display ground truth
-                displayGroundTruth(imagePath);
-
-                // Clear previous detections
-                detectedItemsDiv.innerHTML = '<p class="status-message">Click "Run Detection" to analyze</p>';
-                detectionCount.textContent = '0';
-                lastDetections = [];
-
-                // Clear overlay
-                overlayCanvas.getContext('2d').clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
-
-            } catch (error) {
-                log(`Error loading image: ${error.message}`, 'error');
-                imageInfo.textContent = 'Failed to load';
-            }
-        });
-
-        confidenceSlider.addEventListener('input', (e) => {
-            confidenceValue.textContent = e.target.value;
-        });
-
-        runDetectionBtn.addEventListener('click', async () => {
-            if (!currentImage || !currentImagePath) return;
-
-            const threshold = parseFloat(confidenceSlider.value);
-
-            runDetectionBtn.disabled = true;
-            progressContainer.style.display = 'block';
-            detectionStatus.textContent = 'Running detection...';
-            clearLog();
-            log(`Starting detection with threshold ${threshold}`);
-
-            try {
-                const startTime = performance.now();
-                const detections = await runDetection(currentImage, currentImage.width, currentImage.height, threshold);
-                const elapsed = performance.now() - startTime;
-
-                log(`Detection complete: ${detections.length} items found in ${elapsed.toFixed(0)}ms`, 'success');
-
-                // Store detections for modal overlay
-                lastDetections = detections;
-
-                const truthData = groundTruth[currentImagePath];
-                const truthItems = truthData?.items || [];
-
-                // Display results
-                displayDetections(detections, truthItems);
-
-                // Calculate and display metrics
-                const metrics = calculateMetrics(detections, truthItems);
-                displayMetrics(metrics);
-
-                // Draw overlay
-                drawOverlay(detections, currentImage.width, currentImage.height);
-
-                detectionStatus.textContent = `Found ${detections.length} items in ${elapsed.toFixed(0)}ms`;
-
-                // Log detailed results
-                log(`True Positives: ${metrics.truePositives}`);
-                log(`False Positives: ${metrics.falsePositives}`);
-                log(`False Negatives: ${metrics.falseNegatives}`);
-                log(`F1 Score: ${(metrics.f1 * 100).toFixed(1)}%`);
-
-            } catch (error) {
-                log(`Detection failed: ${error.message}`, 'error');
-                detectionStatus.textContent = 'Detection failed';
-            } finally {
-                runDetectionBtn.disabled = false;
-                progressContainer.style.display = 'none';
-            }
-        });
-
-        runAllBtn.addEventListener('click', async () => {
-            const threshold = parseFloat(confidenceSlider.value);
-            clearLog();
-            log('Running detection on all test images...');
-
-            const results = [];
-            let totalF1 = 0;
-            let testCount = 0;
-
-            for (const [imagePath, data] of Object.entries(groundTruth)) {
-                if (imagePath.startsWith('_')) continue;
-                if (!data.items || data.items.length === 0) continue;
-
-                try {
-                    const imageData = await loadImage(imagePath);
-                    const detections = await runDetection(imageData, imageData.width, imageData.height, threshold);
-                    const metrics = calculateMetrics(detections, data.items);
-
-                    results.push({
-                        image: imagePath,
-                        f1: metrics.f1,
-                        precision: metrics.precision,
-                        recall: metrics.recall,
-                        detected: detections.length,
-                        expected: data.items.length
-                    });
-
-                    totalF1 += metrics.f1;
-                    testCount++;
-
-                    const status = metrics.f1 >= 0.5 ? 'success' : metrics.f1 >= 0.2 ? 'warning' : 'error';
-                    log(`${imagePath}: F1=${(metrics.f1 * 100).toFixed(1)}%, ${detections.length}/${data.items.length} items`, status);
-
-                } catch (error) {
-                    log(`${imagePath}: Error - ${error.message}`, 'error');
-                }
-            }
-
-            const avgF1 = testCount > 0 ? totalF1 / testCount : 0;
-            log(`\nAverage F1 Score: ${(avgF1 * 100).toFixed(1)}% across ${testCount} tests`, avgF1 >= 0.5 ? 'success' : 'warning');
-
-            // Sort by F1 score to show worst performers
-            results.sort((a, b) => a.f1 - b.f1);
-            log('\nWorst performers:');
-            for (const r of results.slice(0, 5)) {
-                log(`  ${r.image}: F1=${(r.f1 * 100).toFixed(1)}%`);
-            }
-        });
-
-        // ========================================
-        // Image Modal (Full Size View)
-        // ========================================
-
-        const imageModal = document.getElementById('image-modal');
-        const modalImg = document.getElementById('modal-img');
-        const modalOverlay = document.getElementById('modal-overlay');
-        const modalTitle = document.getElementById('modal-title');
-        const modalContent = document.getElementById('modal-content');
-        const zoomLevelSpan = document.getElementById('zoom-level');
-
-        let currentZoom = 1;
-        let lastDetections = [];
-
-        function openImageModal() {
-            if (!screenshotImg.src || screenshotImg.src === window.location.href) return;
-
-            modalImg.src = screenshotImg.src;
-            modalTitle.textContent = currentImagePath || 'Screenshot';
-
-            // Wait for image to load then setup overlay
-            modalImg.onload = () => {
-                currentZoom = 1;
-                updateModalZoom();
-                drawModalOverlay();
-            };
-
-            imageModal.classList.add('show');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeImageModal() {
-            imageModal.classList.remove('show');
-            document.body.style.overflow = '';
-        }
-
-        function zoomImage(delta) {
-            currentZoom = Math.max(0.25, Math.min(4, currentZoom + delta));
-            updateModalZoom();
-        }
-
-        function resetZoom() {
-            currentZoom = 1;
-            updateModalZoom();
-        }
-
-        function fitToScreen() {
-            if (!modalImg.naturalWidth) return;
-
-            const maxW = window.innerWidth - 60;
-            const maxH = window.innerHeight - 120;
-            const scaleW = maxW / modalImg.naturalWidth;
-            const scaleH = maxH / modalImg.naturalHeight;
-            currentZoom = Math.min(scaleW, scaleH, 1);
-            updateModalZoom();
-        }
-
-        function updateModalZoom() {
-            const w = modalImg.naturalWidth * currentZoom;
-            const h = modalImg.naturalHeight * currentZoom;
-
-            modalImg.style.width = w + 'px';
-            modalImg.style.height = h + 'px';
-            modalOverlay.width = w;
-            modalOverlay.height = h;
-            modalOverlay.style.width = w + 'px';
-            modalOverlay.style.height = h + 'px';
-
-            zoomLevelSpan.textContent = Math.round(currentZoom * 100) + '%';
-            drawModalOverlay();
-        }
-
-        function drawModalOverlay() {
-            if (!lastDetections.length) return;
-
-            const ctx = modalOverlay.getContext('2d');
-            ctx.clearRect(0, 0, modalOverlay.width, modalOverlay.height);
-
-            const scale = currentZoom;
-
-            // Draw detection boxes
-            for (const d of lastDetections) {
-                const pos = d.position;
-                const x = pos.x * scale;
-                const y = pos.y * scale;
-                const w = pos.width * scale;
-                const h = pos.height * scale;
-
-                // Color based on confidence
-                const hue = Math.round(d.confidence * 120);
-                ctx.strokeStyle = `hsl(${hue}, 70%, 50%)`;
-                ctx.lineWidth = 2;
-                ctx.strokeRect(x, y, w, h);
-
-                // Label
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                const labelH = 18 * scale;
-                ctx.fillRect(x, y - labelH, w, labelH);
-                ctx.fillStyle = '#fff';
-                ctx.font = `${12 * scale}px sans-serif`;
-                ctx.fillText(`${d.item.name} ${(d.confidence * 100).toFixed(0)}%`, x + 3, y - 4 * scale);
-            }
-
-            // Draw grid positions (faint)
-            if (currentImage) {
-                const gridPositions = detectGridPositions(currentImage.width, currentImage.height);
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
-                ctx.lineWidth = 1;
-                for (const pos of gridPositions) {
-                    ctx.strokeRect(pos.x * scale, pos.y * scale, pos.width * scale, pos.height * scale);
-                }
-            }
-        }
-
-        // Close modal on Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && imageModal.classList.contains('show')) {
-                closeImageModal();
-            }
-        });
-
-        // Close modal when clicking outside the image
-        imageModal.addEventListener('click', (e) => {
-            if (e.target === imageModal || e.target === modalContent) {
-                closeImageModal();
-            }
-        });
-
-        // Prevent closing when clicking on the image itself
-        modalImg.addEventListener('click', (e) => {
-            e.stopPropagation();
-        });
-
-        // ========================================
-        // Item Reference Panel
-        // ========================================
-
-        const itemReferenceList = document.getElementById('item-reference-list');
-        const itemSearch = document.getElementById('item-search');
-        const refCount = document.getElementById('ref-count');
-        const copyToast = document.getElementById('copy-toast');
-        const filterButtons = document.querySelectorAll('.filter-btn');
-
-        let currentFilter = 'all';
-        let searchQuery = '';
-
-        function populateItemReference() {
-            if (!itemsData) return;
-
-            itemReferenceList.innerHTML = '';
-            let count = 0;
-
-            // Sort items by name
-            const sortedItems = [...itemsData.items].sort((a, b) => a.name.localeCompare(b.name));
-
-            for (const item of sortedItems) {
-                // Apply filters
-                if (currentFilter !== 'all' && item.rarity !== currentFilter) continue;
-                if (searchQuery && !item.name.toLowerCase().includes(searchQuery.toLowerCase())) continue;
-
-                const div = document.createElement('div');
-                div.className = 'ref-item';
-                div.dataset.name = item.name;
-                div.title = `${item.name} (${item.rarity})\nClick to copy name`;
-
-                if (item.image) {
-                    const img = document.createElement('img');
-                    img.src = '../../src/' + item.image;
-                    img.alt = item.name;
-                    img.onerror = () => { img.style.display = 'none'; };
-                    div.appendChild(img);
-                }
-
-                const nameSpan = document.createElement('span');
-                nameSpan.className = 'name';
-                nameSpan.textContent = item.name;
-                div.appendChild(nameSpan);
-
-                const rarityDot = document.createElement('span');
-                rarityDot.className = `rarity-dot rarity-${item.rarity}`;
-                div.appendChild(rarityDot);
-
-                div.addEventListener('click', () => copyItemName(item.name, div));
-
-                itemReferenceList.appendChild(div);
-                count++;
-            }
-
-            refCount.textContent = count;
-        }
-
-        function copyItemName(name, element) {
-            navigator.clipboard.writeText(name).then(() => {
-                // Show visual feedback
-                element.classList.add('copied');
-                setTimeout(() => element.classList.remove('copied'), 500);
-
-                // Show toast
-                copyToast.textContent = `Copied: "${name}"`;
-                copyToast.classList.add('show');
-                setTimeout(() => copyToast.classList.remove('show'), 1500);
-
-                log(`Copied item name: ${name}`, 'success');
-            }).catch(err => {
-                log(`Failed to copy: ${err.message}`, 'error');
-            });
-        }
-
-        // Filter buttons
-        filterButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                filterButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentFilter = btn.dataset.rarity;
-                populateItemReference();
-            });
-        });
-
-        // Search input
-        itemSearch.addEventListener('input', (e) => {
-            searchQuery = e.target.value;
-            populateItemReference();
-        });
-
-        // ========================================
-        // Initialize
-        // ========================================
-
-        async function init() {
-            log('Initializing CV Validator...');
-
-            await loadGroundTruth();
-            await loadItemsData();
-
-            if (itemsData) {
-                await loadAllTemplates();
-                populateItemReference();
-            }
-
-            log('Ready!', 'success');
-        }
-
-        init();
-    </script>
+    <script type="module" src="cv-validator/js/main.js"></script>
 </body>
 </html>

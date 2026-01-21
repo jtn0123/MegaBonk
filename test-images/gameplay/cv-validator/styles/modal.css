@@ -1,0 +1,116 @@
+/* ========================================
+ * CV Validator - Modal Styles
+ * Image modal and lightbox
+ * ======================================== */
+
+.image-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 2000;
+    padding: 20px;
+    cursor: zoom-out;
+    overflow: auto;
+}
+
+.image-modal.show {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.image-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 1600px;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+
+.image-modal-header h3 {
+    margin: 0;
+}
+
+.image-modal-close {
+    background: var(--accent);
+    border: none;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.image-modal-content {
+    position: relative;
+    max-width: 100%;
+    max-height: calc(100vh - 100px);
+}
+
+.image-modal-content img {
+    max-width: 100%;
+    max-height: calc(100vh - 100px);
+    object-fit: contain;
+}
+
+.image-modal-content canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+}
+
+.image-modal-content canvas.clickable {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.modal-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--text-secondary);
+    font-size: 14px;
+    z-index: 1;
+}
+
+.modal-loading.hidden {
+    display: none;
+}
+
+.zoom-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.zoom-controls button {
+    padding: 6px 12px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.zoom-controls button:hover {
+    border-color: var(--accent);
+}
+
+.zoom-controls span {
+    min-width: 50px;
+    text-align: center;
+}
+
+/* Slot number styling on overlay */
+.slot-number {
+    font-size: 10px;
+    fill: rgba(255, 255, 255, 0.8);
+}
