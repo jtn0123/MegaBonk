@@ -64,23 +64,28 @@ function saveLearningData() {
  * Record a correction event for learning
  */
 export function recordCorrection(detectedItem, actualItem, confidence) {
-    if (!detectedItem && !actualItem) return;
+    // Normalize empty strings to null for consistent handling
+    const detected = detectedItem?.trim() || null;
+    const actual = actualItem?.trim() || null;
+
+    // Skip if we have no meaningful data
+    if (!detected && !actual) return;
 
     learningData.sessionStats.corrections++;
 
     // Track confusion pattern
-    if (detectedItem && actualItem && detectedItem !== actualItem) {
-        const key = `${detectedItem}|${actualItem}`;
+    if (detected && actual && detected !== actual) {
+        const key = `${detected}|${actual}`;
         learningData.confusionCounts[key] = (learningData.confusionCounts[key] || 0) + 1;
 
         // Track error-prone items
-        learningData.errorProneItems[detectedItem] = (learningData.errorProneItems[detectedItem] || 0) + 1;
+        learningData.errorProneItems[detected] = (learningData.errorProneItems[detected] || 0) + 1;
     }
 
     // Update confidence calibration
-    if (actualItem) {
-        if (!learningData.confidenceCalibration[actualItem]) {
-            learningData.confidenceCalibration[actualItem] = {
+    if (actual) {
+        if (!learningData.confidenceCalibration[actual]) {
+            learningData.confidenceCalibration[actual] = {
                 totalDetections: 0,
                 correctDetections: 0,
                 avgConfidenceWhenCorrect: 0,
@@ -88,10 +93,10 @@ export function recordCorrection(detectedItem, actualItem, confidence) {
             };
         }
 
-        const cal = learningData.confidenceCalibration[actualItem];
+        const cal = learningData.confidenceCalibration[actual];
         cal.totalDetections++;
 
-        if (detectedItem === actualItem) {
+        if (detected === actual) {
             cal.correctDetections++;
             cal.avgConfidenceWhenCorrect =
                 (cal.avgConfidenceWhenCorrect * (cal.correctDetections - 1) + confidence) / cal.correctDetections;

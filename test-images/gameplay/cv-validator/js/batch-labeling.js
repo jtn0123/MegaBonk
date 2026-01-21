@@ -284,16 +284,16 @@ function updateBatchUI() {
     const labeledCount = batchSlots.filter(s => s.labeled).length;
     const progress = batchSlots.length > 0 ? Math.round((labeledCount / batchSlots.length) * 100) : 0;
 
-    if (elements.batchProgress) {
-        elements.batchProgress.textContent = `${labeledCount}/${batchSlots.length} (${progress}%)`;
+    if (elements.batchLabelProgress) {
+        elements.batchLabelProgress.textContent = `${labeledCount}/${batchSlots.length} (${progress}%)`;
     }
     if (elements.batchProgressBar) {
         elements.batchProgressBar.style.width = `${progress}%`;
     }
 
-    // Update slot info
+    // Update slot info (show batch position, not grid slot index)
     if (elements.batchSlotInfo) {
-        elements.batchSlotInfo.textContent = `Slot ${slot.index + 1} of ${batchSlots.length}`;
+        elements.batchSlotInfo.textContent = `Item ${currentBatchSlot + 1} of ${batchSlots.length} (grid slot ${slot.index})`;
     }
 
     // Update current slot display
@@ -328,18 +328,18 @@ function updateBatchUI() {
             if (correction) {
                 if (correction.corrected === null) {
                     elements.batchLabelStatus.textContent = 'Marked empty';
-                    elements.batchLabelStatus.className = 'batch-status empty';
+                    elements.batchLabelStatus.className = 'batch-label-status empty';
                 } else if (correction.verified) {
                     elements.batchLabelStatus.textContent = `Verified: ${correction.corrected}`;
-                    elements.batchLabelStatus.className = 'batch-status verified';
+                    elements.batchLabelStatus.className = 'batch-label-status verified';
                 } else {
                     elements.batchLabelStatus.textContent = `Corrected: ${correction.corrected}`;
-                    elements.batchLabelStatus.className = 'batch-status corrected';
+                    elements.batchLabelStatus.className = 'batch-label-status corrected';
                 }
             }
         } else {
             elements.batchLabelStatus.textContent = 'Not labeled';
-            elements.batchLabelStatus.className = 'batch-status unlabeled';
+            elements.batchLabelStatus.className = 'batch-label-status unlabeled';
         }
     }
 
