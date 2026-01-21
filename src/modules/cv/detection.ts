@@ -20,6 +20,8 @@ import {
 import { loadItemTemplates } from './templates.ts';
 import { getDominantColor, isEmptyCell, calculateColorVariance, detectBorderRarity } from './color.ts';
 import { calculateEnhancedSimilarity } from './similarity.ts';
+import { getTrainingTemplatesForItem, isTrainingDataLoaded } from './training.ts';
+import type { TrainingTemplate } from './training.ts';
 
 // ========================================
 // Image Loading
@@ -413,6 +415,61 @@ function matchTemplate(
 }
 
 /**
+ * Match using multiple templates (primary + training data)
+ * Returns aggregated similarity score with voting bonus
+ */
+function matchTemplateMulti(
+    screenshotCtx: CanvasRenderingContext2D,
+    cell: ROI,
+    template: TemplateData,
+    itemId: string,
+    trainingTemplates: TrainingTemplate[]
+): number {
+    // Get primary template score
+    const primaryScore = matchTemplate(screenshotCtx, cell, template, itemId);
+
+    // If no training templates, return primary score
+    if (!trainingTemplates || trainingTemplates.length === 0) {
+        return primaryScore;
+    }
+
+    // Extract icon region for matching against training templates
+    const iconRegion = extractIconRegion(screenshotCtx, cell);
+
+    // Match against training templates
+    const trainingScores: number[] = [];
+    for (const trainingTpl of trainingTemplates) {
+        // Resize training template to match icon region size
+        const resizedTraining = resizeImageData(trainingTpl.imageData, iconRegion.width, iconRegion.height);
+        if (!resizedTraining) continue;
+
+        const score = calculateSimilarity(iconRegion, resizedTraining) * trainingTpl.weight;
+        trainingScores.push(score);
+    }
+
+    if (trainingScores.length === 0) {
+        return primaryScore;
+    }
+
+    // Aggregation strategy:
+    // 1. Take the max score (primary has 1.5x weight to prefer canonical template)
+    // 2. Add voting bonus for multiple high-confidence matches
+    const weightedPrimaryScore = primaryScore * 1.5;
+    const allScores = [weightedPrimaryScore, ...trainingScores];
+    const maxScore = Math.max(...allScores) / 1.5; // Normalize back
+
+    // Voting bonus: count how many templates exceed threshold
+    const threshold = 0.5;
+    const votesAboveThreshold = allScores.filter(s => s / 1.5 > threshold).length;
+    const votingBonus = Math.min(0.08, votesAboveThreshold * 0.015); // Up to 8% bonus
+
+    // Final score with voting bonus, capped at 0.99
+    const finalScore = Math.min(0.99, maxScore + votingBonus);
+
+    return finalScore;
+}
+
+/**
  * Extract count region from cell (bottom-right corner)
  */
 export function extractCountRegion(cell: ROI): ROI {
@@ -574,6 +631,7 @@ async function detectIconsWithSlidingWindow(
             stepSize,
             totalSteps,
             templatesLoaded: itemTemplates.size,
+            trainingDataLoaded: isTrainingDataLoaded(),
         },
     });
 
@@ -610,11 +668,16 @@ async function detectIconsWithSlidingWindow(
             const itemsToCheck = candidateItems.length > 0 ? candidateItems : items.slice(0, 30);
 
             // Match against candidate templates at multiple scales
+            // Use multi-template matching if training data is available
+            const useMultiTemplate = isTrainingDataLoaded();
             let bestMatch: { item: Item; similarity: number; scale: number } | null = null;
 
             for (const item of itemsToCheck) {
                 const template = itemTemplates.get(item.id);
                 if (!template) continue;
+
+                // Get training templates for this item (if available)
+                const trainingTemplates = useMultiTemplate ? getTrainingTemplatesForItem(item.id) : [];
 
                 // Try each scale and find the best match
                 for (const scaleSize of sizesToUse) {
@@ -626,7 +689,11 @@ async function detectIconsWithSlidingWindow(
                         height: scaleSize,
                     };
 
-                    const similarity = matchTemplate(ctx, scaleROI, template, item.id);
+                    // Use multi-template matching if we have training data
+                    const similarity =
+                        trainingTemplates.length > 0
+                            ? matchTemplateMulti(ctx, scaleROI, template, item.id, trainingTemplates)
+                            : matchTemplate(ctx, scaleROI, template, item.id);
 
                     // Apply scale-aware confidence adjustment
                     // Smaller icons naturally have lower similarity due to pixelation

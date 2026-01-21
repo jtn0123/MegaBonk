@@ -59,7 +59,8 @@
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
     "test:check-cleanup": "node scripts/check-test-cleanup.js",
-    "prepare": "husky"
+    "prepare": "husky",
+    "import:training": "node scripts/import-training-data.js"
   },
   "keywords": [],
   "author": "",

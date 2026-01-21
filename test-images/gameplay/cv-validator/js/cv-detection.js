@@ -7,6 +7,12 @@ import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { log } from './utils.js';
 
+// Store current image context for crop extraction
+let currentImageCtx = null;
+export function getCurrentImageCtx() {
+    return currentImageCtx;
+}
+
 // ========================================
 // Grid Position Detection
 // ========================================
@@ -42,6 +48,9 @@ export function detectGridPositions(width, height) {
     const totalGridWidth = cal.iconsPerRow * (iconW + spacingX) - spacingX;
     const baseStartX = Math.round((width - totalGridWidth) / 2);
 
+    // Calculate max items to scan
+    const maxItems = cal.totalItems > 0 ? cal.totalItems : cal.iconsPerRow * cal.numRows;
+
     let slotIndex = 0;
     let rowIndex = 0;
     for (const rowY of rowYPositions) {
@@ -51,6 +60,9 @@ export function detectGridPositions(width, height) {
         const startX = baseStartX + scaledXOffset;
 
         for (let col = 0; col < cal.iconsPerRow; col++) {
+            // Stop if we've reached totalItems limit
+            if (slotIndex >= maxItems) break;
+
             positions.push({
                 x: startX + col * (iconW + spacingX),
                 y: rowY,
@@ -62,6 +74,10 @@ export function detectGridPositions(width, height) {
             });
             slotIndex++;
         }
+
+        // Stop if we've reached totalItems limit
+        if (slotIndex >= maxItems) break;
+
         rowIndex++;
     }
 
@@ -133,6 +149,19 @@ export function calculateNCC(imageData1, imageData2) {
 }
 
 // ========================================
+// Image Data to Data URL
+// ========================================
+
+export function imageDataToDataURL(imageData) {
+    const canvas = document.createElement('canvas');
+    canvas.width = imageData.width;
+    canvas.height = imageData.height;
+    const ctx = canvas.getContext('2d');
+    ctx.putImageData(imageData, 0, 0);
+    return canvas.toDataURL('image/png');
+}
+
+// ========================================
 // Image Data Resize
 // ========================================
 
@@ -161,8 +190,12 @@ export async function runDetection(imageData, width, height, threshold, progress
     const detections = [];
     const ctx = imageData.ctx;
 
+    // Store ctx for crop extraction
+    currentImageCtx = ctx;
+
     // Clear previous detection tracking
     state.detectionsBySlot.clear();
+    state.emptyCells.clear();
     state.gridPositionsCache = gridPositions;
 
     log(`Scanning ${gridPositions.length} grid positions...`);
@@ -170,11 +203,18 @@ export async function runDetection(imageData, width, height, threshold, progress
     let processedCells = 0;
     const nonEmptyCells = [];
 
-    // First pass: find non-empty cells
+    // First pass: find non-empty cells, track empty ones
     for (const cell of gridPositions) {
         const cellData = ctx.getImageData(cell.x, cell.y, cell.width, cell.height);
         if (!isEmptyCell(cellData)) {
             nonEmptyCells.push({ cell, cellData });
+        } else {
+            // Track empty cells so they can be corrected if wrongly classified
+            const cropDataURL = imageDataToDataURL(cellData);
+            state.emptyCells.set(cell.slotIndex, {
+                position: cell,
+                cropDataURL: cropDataURL,
+            });
         }
     }
 
@@ -250,11 +290,15 @@ export async function runDetection(imageData, width, height, threshold, progress
         if (bestMatch && bestMatch.confidence >= threshold) {
             detections.push(bestMatch);
 
-            // Store slot data with alternatives
+            // Generate crop data URL for display
+            const cropDataURL = imageDataToDataURL(cellData);
+
+            // Store slot data with alternatives and crop
             state.detectionsBySlot.set(cell.slotIndex, {
                 detection: bestMatch,
                 topMatches: topMatches,
                 position: cell,
+                cropDataURL: cropDataURL,
             });
 
             // Log with top 3 alternatives

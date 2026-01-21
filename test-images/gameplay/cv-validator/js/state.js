@@ -20,15 +20,17 @@ export const state = {
 
     // Detection results
     lastDetections: [],
-    detectionsBySlot: new Map(), // slotIndex -> { detection, topMatches, position }
+    detectionsBySlot: new Map(), // slotIndex -> { detection, topMatches, position, cropDataURL }
+    emptyCells: new Map(), // slotIndex -> { position, cropDataURL } - cells detected as empty
     gridPositionsCache: [],
 
     // Corrections
-    corrections: new Map(), // slotIndex -> { original: {name, confidence}, corrected: string|null }
+    corrections: new Map(), // slotIndex -> { original: {name, confidence}, corrected: string|null, is_unknown?: bool }
 
     // Correction panel state
     selectedCorrectionItem: null,
     currentCorrectionSlot: null,
+    currentSlotIsEmpty: false, // true if correcting an empty slot
     correctionFilter: 'all',
     correctionSearchQuery: '',
 
@@ -46,6 +48,7 @@ export const state = {
         ySpacing: CONFIG.DEFAULT_CALIBRATION.ySpacing,
         iconsPerRow: CONFIG.DEFAULT_CALIBRATION.iconsPerRow,
         numRows: CONFIG.DEFAULT_CALIBRATION.numRows,
+        totalItems: CONFIG.DEFAULT_CALIBRATION.totalItems,
     },
 
     // Modal state
@@ -56,6 +59,7 @@ export const state = {
 export function resetDetectionState() {
     state.lastDetections = [];
     state.detectionsBySlot.clear();
+    state.emptyCells.clear();
     state.gridPositionsCache = [];
     state.corrections.clear();
     state.selectedCorrectionItem = null;

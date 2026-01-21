@@ -38,10 +38,28 @@ export function createItemBadge(name, count, imagePath, status) {
     return badge;
 }
 
-export function createClickableItemBadge(slotIndex, name, confidence, imagePath, status, clickHandler) {
+export function createClickableItemBadge(
+    slotIndex,
+    name,
+    confidence,
+    imagePath,
+    status,
+    clickHandler,
+    cropDataURL = null
+) {
     const badge = document.createElement('div');
     badge.className = `item-badge ${status} ${CSS_CLASSES.CLICKABLE}`;
     badge.dataset.slotIndex = slotIndex;
+
+    // Add crop image if available (shows actual captured region)
+    if (cropDataURL) {
+        const cropImg = document.createElement('img');
+        cropImg.src = cropDataURL;
+        cropImg.alt = 'crop';
+        cropImg.className = 'crop-preview';
+        cropImg.title = 'Actual captured region';
+        badge.appendChild(cropImg);
+    }
 
     if (imagePath) {
         const img = document.createElement('img');
@@ -68,10 +86,20 @@ export function createClickableItemBadge(slotIndex, name, confidence, imagePath,
     return badge;
 }
 
-export function createCorrectedBadge(slotIndex, originalName, correctedName, clickHandler) {
+export function createCorrectedBadge(slotIndex, originalName, correctedName, clickHandler, cropDataURL = null) {
     const badge = document.createElement('div');
     badge.className = `item-badge ${CSS_CLASSES.CORRECTED} ${CSS_CLASSES.CLICKABLE}`;
     badge.dataset.slotIndex = slotIndex;
+
+    // Add crop image if available (shows actual captured region)
+    if (cropDataURL) {
+        const cropImg = document.createElement('img');
+        cropImg.src = cropDataURL;
+        cropImg.alt = 'crop';
+        cropImg.className = 'crop-preview';
+        cropImg.title = 'Actual captured region';
+        badge.appendChild(cropImg);
+    }
 
     if (correctedName) {
         const item = getItemByName(correctedName);
@@ -109,10 +137,20 @@ export function createCorrectedBadge(slotIndex, originalName, correctedName, cli
     return badge;
 }
 
-export function createVerifiedBadge(slotIndex, name, confidence, imagePath, clickHandler) {
+export function createVerifiedBadge(slotIndex, name, confidence, imagePath, clickHandler, cropDataURL = null) {
     const badge = document.createElement('div');
     badge.className = `item-badge ${CSS_CLASSES.VERIFIED} ${CSS_CLASSES.CLICKABLE}`;
     badge.dataset.slotIndex = slotIndex;
+
+    // Add crop image if available (shows actual captured region)
+    if (cropDataURL) {
+        const cropImg = document.createElement('img');
+        cropImg.src = cropDataURL;
+        cropImg.alt = 'crop';
+        cropImg.className = 'crop-preview';
+        cropImg.title = 'Actual captured region';
+        badge.appendChild(cropImg);
+    }
 
     if (imagePath) {
         const img = document.createElement('img');
@@ -194,7 +232,7 @@ export function displayGroundTruth(imagePath, container, countElement) {
 export function displayDetections(detections, groundTruthItems, container, countElement, openCorrectionPanel) {
     container.innerHTML = '';
 
-    if (detections.length === 0 && state.corrections.size === 0) {
+    if (detections.length === 0 && state.corrections.size === 0 && state.emptyCells.size === 0) {
         container.innerHTML = '<p class="status-message">No items detected</p>';
         countElement.textContent = '0';
         return;
@@ -217,44 +255,91 @@ export function displayDetections(detections, groundTruthItems, container, count
 
     countElement.textContent = effectiveDetections.filter(d => d.name).length;
 
-    // Display detections per slot (ordered)
-    const sortedDetections = [...state.detectionsBySlot.entries()].sort((a, b) => a[0] - b[0]);
+    // Collect all slots for sorted display
+    const allSlots = new Map();
 
-    for (const [slotIndex, slotData] of sortedDetections) {
+    // Add detected slots
+    for (const [slotIndex, slotData] of state.detectionsBySlot) {
+        allSlots.set(slotIndex, { type: 'detection', data: slotData });
+    }
+
+    // Add empty slots (can be corrected)
+    for (const [slotIndex, emptyData] of state.emptyCells) {
+        if (!allSlots.has(slotIndex)) {
+            allSlots.set(slotIndex, { type: 'empty', data: emptyData });
+        }
+    }
+
+    // Display all slots (ordered)
+    const sortedSlots = [...allSlots.entries()].sort((a, b) => a[0] - b[0]);
+
+    for (const [slotIndex, slotInfo] of sortedSlots) {
         const correction = state.corrections.get(slotIndex);
-        const originalName = slotData.detection.item.name;
-        const originalConf = slotData.detection.confidence;
-        const item = slotData.detection.item;
 
-        if (correction) {
-            if (correction.verified) {
-                // Show verified badge (green)
-                const badge = createVerifiedBadge(
+        if (slotInfo.type === 'empty') {
+            // This was detected as empty
+            const emptyData = slotInfo.data;
+
+            if (correction) {
+                // Empty slot was corrected to have an item
+                const badge = createEmptyCorrectedBadge(
+                    slotIndex,
+                    correction.corrected,
+                    openCorrectionPanel,
+                    emptyData.cropDataURL
+                );
+                container.appendChild(badge);
+            } else {
+                // Show empty slot badge (clickable to correct)
+                const badge = createEmptySlotBadge(slotIndex, openCorrectionPanel, emptyData.cropDataURL);
+                container.appendChild(badge);
+            }
+        } else {
+            // This was detected as having an item
+            const slotData = slotInfo.data;
+            const originalName = slotData.detection.item.name;
+            const originalConf = slotData.detection.confidence;
+            const item = slotData.detection.item;
+            const cropDataURL = slotData.cropDataURL;
+
+            if (correction) {
+                if (correction.verified) {
+                    // Show verified badge (green)
+                    const badge = createVerifiedBadge(
+                        slotIndex,
+                        originalName,
+                        originalConf,
+                        item?.image,
+                        openCorrectionPanel,
+                        cropDataURL
+                    );
+                    container.appendChild(badge);
+                } else {
+                    // Show corrected badge (cyan or empty)
+                    const badge = createCorrectedBadge(
+                        slotIndex,
+                        originalName,
+                        correction.corrected,
+                        openCorrectionPanel,
+                        cropDataURL
+                    );
+                    container.appendChild(badge);
+                }
+            } else {
+                // Show normal detection badge (clickable)
+                const truthCount = truthCounts.get(originalName) || 0;
+                const status = truthCount > 0 ? CSS_CLASSES.MATCH : CSS_CLASSES.FALSE_POSITIVE;
+                const badge = createClickableItemBadge(
                     slotIndex,
                     originalName,
                     originalConf,
                     item?.image,
-                    openCorrectionPanel
+                    status,
+                    openCorrectionPanel,
+                    cropDataURL
                 );
                 container.appendChild(badge);
-            } else {
-                // Show corrected badge (cyan or empty)
-                const badge = createCorrectedBadge(slotIndex, originalName, correction.corrected, openCorrectionPanel);
-                container.appendChild(badge);
             }
-        } else {
-            // Show normal detection badge (clickable)
-            const truthCount = truthCounts.get(originalName) || 0;
-            const status = truthCount > 0 ? CSS_CLASSES.MATCH : CSS_CLASSES.FALSE_POSITIVE;
-            const badge = createClickableItemBadge(
-                slotIndex,
-                originalName,
-                originalConf,
-                item?.image,
-                status,
-                openCorrectionPanel
-            );
-            container.appendChild(badge);
         }
     }
 
@@ -268,6 +353,87 @@ export function displayDetections(detections, groundTruthItems, container, count
             container.appendChild(badge);
         }
     }
+}
+
+// Badge for empty slots
+export function createEmptySlotBadge(slotIndex, clickHandler, cropDataURL = null) {
+    const badge = document.createElement('div');
+    badge.className = `item-badge empty-slot ${CSS_CLASSES.CLICKABLE}`;
+    badge.dataset.slotIndex = slotIndex;
+
+    // Add crop image if available
+    if (cropDataURL) {
+        const cropImg = document.createElement('img');
+        cropImg.src = cropDataURL;
+        cropImg.alt = 'crop';
+        cropImg.className = 'crop-preview';
+        cropImg.title = 'Actual captured region';
+        badge.appendChild(cropImg);
+    }
+
+    const span = document.createElement('span');
+    span.textContent = `[${slotIndex}] (empty)`;
+    span.className = 'empty-label';
+    badge.appendChild(span);
+
+    const actionSpan = document.createElement('span');
+    actionSpan.className = 'action-hint';
+    actionSpan.textContent = 'Click to correct';
+    badge.appendChild(actionSpan);
+
+    badge.title = `Slot ${slotIndex}: Detected as empty\nClick to correct if wrong`;
+
+    if (clickHandler) {
+        badge.addEventListener('click', () => clickHandler(slotIndex, true)); // true = isEmptySlot
+    }
+
+    return badge;
+}
+
+// Badge for corrected empty slots (now has an item)
+export function createEmptyCorrectedBadge(slotIndex, correctedName, clickHandler, cropDataURL = null) {
+    const badge = document.createElement('div');
+    badge.className = `item-badge ${CSS_CLASSES.CORRECTED} ${CSS_CLASSES.CLICKABLE}`;
+    badge.dataset.slotIndex = slotIndex;
+
+    // Add crop image if available
+    if (cropDataURL) {
+        const cropImg = document.createElement('img');
+        cropImg.src = cropDataURL;
+        cropImg.alt = 'crop';
+        cropImg.className = 'crop-preview';
+        cropImg.title = 'Actual captured region';
+        badge.appendChild(cropImg);
+    }
+
+    if (correctedName) {
+        const item = getItemByName(correctedName);
+        if (item?.image) {
+            const img = document.createElement('img');
+            img.src = CONFIG.PATHS.imagesBase + item.image;
+            img.alt = correctedName;
+            badge.appendChild(img);
+        }
+
+        const nameContainer = document.createElement('span');
+        const originalSpan = document.createElement('span');
+        originalSpan.className = 'original-name';
+        originalSpan.textContent = `[${slotIndex}] (empty)`;
+        const correctedSpan = document.createElement('span');
+        correctedSpan.className = 'corrected-name';
+        correctedSpan.textContent = ` \u2192 ${correctedName}`;
+        nameContainer.appendChild(originalSpan);
+        nameContainer.appendChild(correctedSpan);
+        badge.appendChild(nameContainer);
+    }
+
+    badge.title = `Slot ${slotIndex}: Corrected from empty to "${correctedName}"\nClick to edit`;
+
+    if (clickHandler) {
+        badge.addEventListener('click', () => clickHandler(slotIndex, true));
+    }
+
+    return badge;
 }
 
 // ========================================

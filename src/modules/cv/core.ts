@@ -18,6 +18,7 @@ import {
     CACHE_TTL,
     MAX_CACHE_SIZE,
 } from './state.ts';
+import { loadTrainingData, clearTrainingData, isTrainingDataLoaded } from './training.ts';
 
 // ========================================
 // Cache Cleanup
@@ -100,6 +101,9 @@ export function cleanupCV(): void {
     getItemTemplates().clear();
     getTemplatesByColor().clear();
 
+    // Clear training data
+    clearTrainingData();
+
     // Reset state
     setTemplatesLoaded(false);
     setPriorityTemplatesLoaded(false);
@@ -120,6 +124,20 @@ export function initCV(gameData: AllGameData): void {
 
     // Start periodic cache cleanup to prevent memory leaks
     startCacheCleanup();
+
+    // Load training data in background (non-blocking)
+    // Training data enhances detection but isn't required for basic functionality
+    if (!isTrainingDataLoaded()) {
+        loadTrainingData().catch(error => {
+            logger.warn({
+                operation: 'cv.training.background_load_error',
+                error: {
+                    name: (error as Error).name,
+                    message: (error as Error).message,
+                },
+            });
+        });
+    }
 
     logger.info({
         operation: 'cv.init',

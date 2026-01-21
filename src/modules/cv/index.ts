@@ -55,3 +55,14 @@ export {
     CACHE_TTL,
     MAX_CACHE_SIZE,
 } from './state.ts';
+
+// Training Data
+export {
+    loadTrainingData,
+    getTrainingTemplates,
+    getTrainingTemplatesForItem,
+    isTrainingDataLoaded,
+    getTrainingStats,
+    clearTrainingData,
+} from './training.ts';
+export type { TrainingTemplate, TrainingIndex, TrainingSample } from './training.ts';

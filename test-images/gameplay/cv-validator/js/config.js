@@ -17,6 +17,7 @@ export const CONFIG = {
         ySpacing: 4,
         iconsPerRow: 20,
         numRows: 3,
+        totalItems: 60, // 0 = no limit, use iconsPerRow * numRows
     },
 
     // Detection settings

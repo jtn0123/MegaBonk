@@ -41,36 +41,81 @@ export function initCorrectionPanel(domElements, callbacks) {
     elements.correctBtn.addEventListener('click', markAsCorrect);
     elements.emptyBtn.addEventListener('click', markAsEmpty);
     elements.cancelBtn.addEventListener('click', closeCorrectionPanel);
+
+    // Unknown item input
+    if (elements.addManualItemBtn) {
+        elements.addManualItemBtn.addEventListener('click', addUnknownItem);
+    }
+    if (elements.manualItemInput) {
+        elements.manualItemInput.addEventListener('keypress', e => {
+            if (e.key === 'Enter') {
+                addUnknownItem();
+            }
+        });
+    }
 }
 
 // ========================================
 // Open/Close Panel
 // ========================================
 
-export function openCorrectionPanel(slotIndex) {
+export function openCorrectionPanel(slotIndex, isEmptySlot = false) {
+    // Try to get detection data or empty cell data
     const slotData = state.detectionsBySlot.get(slotIndex);
-    if (!slotData) return;
+    const emptyData = state.emptyCells.get(slotIndex);
+
+    if (!slotData && !emptyData) return;
 
     state.currentCorrectionSlot = slotIndex;
+    state.currentSlotIsEmpty = isEmptySlot || (!slotData && !!emptyData);
     state.selectedCorrectionItem = null;
     elements.applyBtn.disabled = true;
 
     // Update panel header
     elements.slotBadge.textContent = `Slot ${slotIndex}`;
 
-    // Show current detection
-    const detection = slotData.detection;
-    elements.currentName.textContent = detection.item.name;
-    elements.currentConf.textContent = `Confidence: ${(detection.confidence * 100).toFixed(1)}%`;
-    if (detection.item.image) {
-        elements.currentImg.src = CONFIG.PATHS.imagesBase + detection.item.image;
-        elements.currentImg.style.display = 'block';
-    } else {
-        elements.currentImg.style.display = 'none';
-    }
+    if (state.currentSlotIsEmpty) {
+        // Empty slot mode
+        elements.currentName.textContent = '(empty)';
+        elements.currentConf.textContent = 'Detected as empty';
 
-    // Populate quick picks (top alternatives excluding the best match)
-    populateQuickPicks(slotData.topMatches);
+        // Show crop preview if available
+        if (emptyData?.cropDataURL) {
+            elements.currentImg.src = emptyData.cropDataURL;
+            elements.currentImg.style.display = 'block';
+        } else {
+            elements.currentImg.style.display = 'none';
+        }
+
+        // Hide quick picks for empty slots (no top matches)
+        elements.quickPicks.innerHTML =
+            '<span style="color: var(--text-secondary); font-size: 12px;">Select item from list below</span>';
+
+        // Hide the "mark empty" button since it's already empty
+        if (elements.emptyBtn) elements.emptyBtn.style.display = 'none';
+    } else {
+        // Normal detection mode
+        const detection = slotData.detection;
+        elements.currentName.textContent = detection.item.name;
+        elements.currentConf.textContent = `Confidence: ${(detection.confidence * 100).toFixed(1)}%`;
+
+        // Show crop preview if available, otherwise template
+        if (slotData.cropDataURL) {
+            elements.currentImg.src = slotData.cropDataURL;
+            elements.currentImg.style.display = 'block';
+        } else if (detection.item.image) {
+            elements.currentImg.src = CONFIG.PATHS.imagesBase + detection.item.image;
+            elements.currentImg.style.display = 'block';
+        } else {
+            elements.currentImg.style.display = 'none';
+        }
+
+        // Populate quick picks (top alternatives excluding the best match)
+        populateQuickPicks(slotData.topMatches);
+
+        // Show the "mark empty" button
+        if (elements.emptyBtn) elements.emptyBtn.style.display = '';
+    }
 
     // Clear and reset search
     elements.searchInput.value = '';
@@ -92,7 +137,7 @@ export function openCorrectionPanel(slotIndex) {
     const badge = document.querySelector(`.item-badge[data-slot-index="${slotIndex}"]`);
     if (badge) badge.classList.add(CSS_CLASSES.SELECTED);
 
-    log(`Opened correction panel for slot ${slotIndex}`, LOG_LEVELS.INFO);
+    log(`Opened correction panel for slot ${slotIndex}${state.currentSlotIsEmpty ? ' (empty)' : ''}`, LOG_LEVELS.INFO);
 }
 
 export function closeCorrectionPanel() {
@@ -241,34 +286,52 @@ function applyCorrection() {
     if (state.currentCorrectionSlot === null || state.selectedCorrectionItem === null) return;
 
     const slotData = state.detectionsBySlot.get(state.currentCorrectionSlot);
-    if (!slotData) return;
+    const emptyData = state.emptyCells.get(state.currentCorrectionSlot);
 
-    const originalName = slotData.detection.item.name;
+    if (!slotData && !emptyData) return;
 
-    // If correcting to same item, treat as verified
-    if (state.selectedCorrectionItem === originalName) {
+    if (state.currentSlotIsEmpty) {
+        // Correcting an empty slot to have an item
         state.corrections.set(state.currentCorrectionSlot, {
             original: {
-                name: originalName,
-                confidence: slotData.detection.confidence,
-            },
-            corrected: originalName,
-            verified: true,
-        });
-        log(`Verified slot ${state.currentCorrectionSlot} as correct: "${originalName}"`, LOG_LEVELS.SUCCESS);
-    } else {
-        // Store correction
-        state.corrections.set(state.currentCorrectionSlot, {
-            original: {
-                name: originalName,
-                confidence: slotData.detection.confidence,
+                name: null,
+                confidence: 0,
             },
             corrected: state.selectedCorrectionItem,
+            fromEmpty: true,
         });
         log(
-            `Corrected slot ${state.currentCorrectionSlot}: "${originalName}" \u2192 "${state.selectedCorrectionItem}"`,
+            `Corrected empty slot ${state.currentCorrectionSlot} \u2192 "${state.selectedCorrectionItem}"`,
             LOG_LEVELS.SUCCESS
         );
+    } else {
+        const originalName = slotData.detection.item.name;
+
+        // If correcting to same item, treat as verified
+        if (state.selectedCorrectionItem === originalName) {
+            state.corrections.set(state.currentCorrectionSlot, {
+                original: {
+                    name: originalName,
+                    confidence: slotData.detection.confidence,
+                },
+                corrected: originalName,
+                verified: true,
+            });
+            log(`Verified slot ${state.currentCorrectionSlot} as correct: "${originalName}"`, LOG_LEVELS.SUCCESS);
+        } else {
+            // Store correction
+            state.corrections.set(state.currentCorrectionSlot, {
+                original: {
+                    name: originalName,
+                    confidence: slotData.detection.confidence,
+                },
+                corrected: state.selectedCorrectionItem,
+            });
+            log(
+                `Corrected slot ${state.currentCorrectionSlot}: "${originalName}" \u2192 "${state.selectedCorrectionItem}"`,
+                LOG_LEVELS.SUCCESS
+            );
+        }
     }
 
     if (onCorrectionApplied) onCorrectionApplied();
@@ -317,6 +380,54 @@ function markAsEmpty() {
     });
 
     log(`Marked slot ${state.currentCorrectionSlot} as empty (was: "${originalName}")`, LOG_LEVELS.WARNING);
+
+    if (onCorrectionApplied) onCorrectionApplied();
+    closeCorrectionPanel();
+}
+
+function addUnknownItem() {
+    if (state.currentCorrectionSlot === null) return;
+
+    const itemName = elements.manualItemInput?.value?.trim();
+    if (!itemName) {
+        log('Please enter an item name', LOG_LEVELS.WARNING);
+        return;
+    }
+
+    const slotData = state.detectionsBySlot.get(state.currentCorrectionSlot);
+    const emptyData = state.emptyCells.get(state.currentCorrectionSlot);
+
+    if (!slotData && !emptyData) return;
+
+    // Store correction with unknown flag
+    if (state.currentSlotIsEmpty) {
+        state.corrections.set(state.currentCorrectionSlot, {
+            original: {
+                name: null,
+                confidence: 0,
+            },
+            corrected: itemName,
+            fromEmpty: true,
+            is_unknown: true,
+        });
+    } else {
+        const originalName = slotData.detection.item.name;
+        state.corrections.set(state.currentCorrectionSlot, {
+            original: {
+                name: originalName,
+                confidence: slotData.detection.confidence,
+            },
+            corrected: itemName,
+            is_unknown: true,
+        });
+    }
+
+    log(`Added unknown item "${itemName}" to slot ${state.currentCorrectionSlot}`, LOG_LEVELS.WARNING);
+
+    // Clear the input
+    if (elements.manualItemInput) {
+        elements.manualItemInput.value = '';
+    }
 
     if (onCorrectionApplied) onCorrectionApplied();
     closeCorrectionPanel();
