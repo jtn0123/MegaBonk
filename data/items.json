@@ -1,7 +1,7 @@
 {
-  "version": "1.0.19",
-  "last_updated": "2026-01-08",
-  "total_items": 78,
+  "version": "1.0.20",
+  "last_updated": "2026-01-20",
+  "total_items": 80,
   "items": [
     {
       "id": "anvil",
@@ -2345,7 +2345,7 @@
     {
       "id": "beacon",
       "name": "Beacon",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "A",
       "unlocked_by_default": true,
       "unlock_requirement": null,
@@ -2388,7 +2388,7 @@
     {
       "id": "cowards_cloak",
       "name": "Coward's Cloak",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "A",
       "unlocked_by_default": false,
       "unlock_requirement": "Run 10,000 units without attacking",
@@ -2431,7 +2431,7 @@
     {
       "id": "demonic_blade",
       "name": "Demonic Blade",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "A",
       "unlocked_by_default": false,
       "unlock_requirement": "Reach level 40 as Succubus",
@@ -2474,7 +2474,7 @@
     {
       "id": "echo_shard",
       "name": "Echo Shard",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "S",
       "unlocked_by_default": false,
       "unlock_requirement": "XP Tome Level 8",
@@ -2518,7 +2518,7 @@
     {
       "id": "golden_shield",
       "name": "Golden Shield",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "B",
       "unlocked_by_default": true,
       "unlock_requirement": null,
@@ -2564,7 +2564,7 @@
     {
       "id": "golden_sneakers",
       "name": "Golden Sneakers",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "B",
       "unlocked_by_default": false,
       "unlock_requirement": "Earn 10,000 gold in one run",
@@ -2609,7 +2609,7 @@
     {
       "id": "idle_juice",
       "name": "Idle Juice",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "A",
       "unlocked_by_default": false,
       "unlock_requirement": "Kill 500 enemies while stationary",
@@ -2655,7 +2655,7 @@
     {
       "id": "kevin",
       "name": "Kevin",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "SS",
       "unlocked_by_default": false,
       "unlock_requirement": "Take damage 5,000 times in one run",
@@ -2702,7 +2702,7 @@
     {
       "id": "leeching_crystal",
       "name": "Leeching Crystal",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "B",
       "unlocked_by_default": true,
       "unlock_requirement": null,
@@ -2793,7 +2793,7 @@
     {
       "id": "moldy_gloves",
       "name": "Moldy Gloves",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "S",
       "unlocked_by_default": false,
       "unlock_requirement": "Duplicate Moldy Cheese 3 times in one run",
@@ -2838,7 +2838,7 @@
     {
       "id": "phantom_shroud",
       "name": "Phantom Shroud",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "S",
       "unlocked_by_default": false,
       "unlock_requirement": "Evade 1,000 attacks",
@@ -2949,7 +2949,7 @@
     {
       "id": "thunder_mitts",
       "name": "Thunder Mitts",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "S",
       "unlocked_by_default": false,
       "unlock_requirement": "Kill 2,000 enemies with lightning",
@@ -2991,7 +2991,7 @@
     {
       "id": "unstable_transfusion",
       "name": "Unstable Transfusion",
-      "rarity": "rare",
+      "rarity": "uncommon",
       "tier": "A",
       "unlocked_by_default": true,
       "unlock_requirement": null,
@@ -3034,7 +3034,7 @@
     {
       "id": "brass_knuckles",
       "name": "Brass Knuckles",
-      "rarity": "common",
+      "rarity": "uncommon",
       "tier": "A",
       "unlocked_by_default": false,
       "unlock_requirement": "Kill 5,000 enemies with Sword",
@@ -3076,7 +3076,7 @@
     {
       "id": "bob_dead",
       "name": "Bob (Dead)",
-      "rarity": "common",
+      "rarity": "rare",
       "tier": "A",
       "unlocked_by_default": false,
       "unlock_requirement": "Survive final swarm 2 minutes",
@@ -3164,7 +3164,7 @@
     {
       "id": "campfire",
       "name": "Campfire",
-      "rarity": "common",
+      "rarity": "uncommon",
       "tier": "B",
       "unlocked_by_default": true,
       "unlock_requirement": null,
@@ -3210,7 +3210,7 @@
     {
       "id": "credit_card_green",
       "name": "Credit Card (Green)",
-      "rarity": "common",
+      "rarity": "rare",
       "tier": "B",
       "unlocked_by_default": false,
       "unlock_requirement": "Open 50 chests",
@@ -3253,7 +3253,7 @@
     {
       "id": "credit_card_red",
       "name": "Credit Card (Red)",
-      "rarity": "common",
+      "rarity": "uncommon",
       "tier": "A",
       "unlocked_by_default": false,
       "unlock_requirement": "Open 100 chests",
@@ -3295,7 +3295,7 @@
     {
       "id": "electric_plug",
       "name": "Electric Plug",
-      "rarity": "common",
+      "rarity": "uncommon",
       "tier": "B",
       "unlocked_by_default": true,
       "unlock_requirement": null,
@@ -3338,7 +3338,7 @@
     {
       "id": "feathers",
       "name": "Feathers",
-      "rarity": "common",
+      "rarity": "uncommon",
       "tier": "B",
       "unlocked_by_default": true,
       "unlock_requirement": null,
@@ -3514,7 +3514,7 @@
     {
       "id": "scarf",
       "name": "Scarf",
-      "rarity": "common",
+      "rarity": "rare",
       "tier": "A",
       "unlocked_by_default": true,
       "unlock_requirement": null,
@@ -3639,6 +3639,95 @@
         "thorns",
         "aoe",
         "proc"
+      ]
+    },
+    {
+      "id": "snek",
+      "name": "Snek",
+      "rarity": "legendary",
+      "tier": "S",
+      "unlocked_by_default": false,
+      "unlock_requirement": "Find the secret room in Crypt (pressure plate in pillar room)",
+      "unlock_cost_silver": 0,
+      "base_effect": "+4 poison stacks, 5% chance to burst all poison damage instantly",
+      "scaling_type": "poison_burst",
+      "stacking_behavior": "additive",
+      "stacks_well": true,
+      "stack_cap": null,
+      "formula": "Poison Stacks = 4 × Stack Count, Burst Chance = 0.05 × Stack Count",
+      "scaling_per_stack": [
+        4,
+        8,
+        12,
+        16,
+        20,
+        24,
+        28,
+        32,
+        36,
+        40
+      ],
+      "detailed_description": "Each copy adds +4 poison stacks to attacks and 5% chance to instantly burst all accumulated poison damage. With 5 copies: +20 poison stacks and 25% burst chance. Incredible for poison builds.",
+      "synergies": [
+        "Poison builds",
+        "DoT builds",
+        "Attack Speed"
+      ],
+      "anti_synergies": [],
+      "notes": "STACKS WELL: Each copy adds more poison stacks and higher burst chance. Found in secret room in Crypt.",
+      "graph_type": "linear_scaling",
+      "one_and_done": false,
+      "image": "images/items/snek.png",
+      "tags": [
+        "poison",
+        "dot",
+        "proc"
+      ]
+    },
+    {
+      "id": "old_mask",
+      "name": "Old Mask",
+      "rarity": "uncommon",
+      "tier": "B",
+      "unlocked_by_default": false,
+      "unlock_requirement": "Find at top of towers in Graveyard",
+      "unlock_cost_silver": 0,
+      "base_effect": "Increases Elite enemy spawn rate",
+      "scaling_type": "spawn_modifier",
+      "stacking_behavior": "additive",
+      "stacks_well": true,
+      "stack_cap": null,
+      "formula": "Elite Spawn Rate Increase = Base × (1 + 0.25 × Stack Count)",
+      "scaling_per_stack": [
+        25,
+        50,
+        75,
+        100,
+        125,
+        150,
+        175,
+        200,
+        225,
+        250
+      ],
+      "detailed_description": "Increases the spawn rate of Elite enemies. More Elites means more challenge but also more rewards. Each copy increases Elite spawn rate by 25%.",
+      "synergies": [
+        "High damage builds",
+        "Elite hunting builds",
+        "Reward farming"
+      ],
+      "anti_synergies": [
+        "Low damage builds",
+        "Early game"
+      ],
+      "notes": "RISK/REWARD: More Elites spawn, increasing difficulty but also potential rewards. Found at top of towers in Graveyard.",
+      "graph_type": "linear_scaling",
+      "one_and_done": false,
+      "image": "images/items/old_mask.png",
+      "tags": [
+        "spawn",
+        "risk-reward",
+        "elite"
       ]
     }
   ]

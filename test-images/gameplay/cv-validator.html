@@ -24,8 +24,35 @@
         </div>
         <div class="confidence-slider">
             <label>Grid Y Offset:</label>
-            <input type="range" id="grid-y-offset" min="-100" max="100" step="5" value="0">
+            <input type="range" id="grid-y-offset" min="-100" max="100" step="1" value="0">
             <span class="value" id="grid-y-value">0px</span>
+        </div>
+        <div class="detection-options">
+            <label>Detection:</label>
+            <div class="toggle-group">
+                <button id="toggle-enhanced" class="toggle-btn active" title="Multi-method similarity (NCC+SSIM+histogram+edges)">
+                    Enhanced
+                </button>
+                <div class="training-toggle-wrapper">
+                    <button id="toggle-training" class="toggle-btn active" title="Use training data templates">
+                        Training Data
+                    </button>
+                    <button id="training-sources-btn" class="sources-btn" title="Select training data sources">▼</button>
+                    <div class="training-sources-dropdown" id="training-sources-dropdown">
+                        <div class="sources-header">
+                            <span>Training Sources</span>
+                            <button id="sources-select-all" class="sources-action">All</button>
+                            <button id="sources-select-none" class="sources-action">None</button>
+                        </div>
+                        <div class="sources-list" id="sources-list">
+                            <p class="sources-loading">Loading sources...</p>
+                        </div>
+                        <div class="sources-footer">
+                            <a href="training-validator.html" target="_blank" class="validate-link">Validate Training Data &rarr;</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="confidence-slider">
             <label>Show Slots:</label>
@@ -81,48 +108,60 @@
 
                 <!-- Grid Calibration Panel - right below image -->
                 <div class="grid-calibration-panel" id="grid-calibration-panel" style="display: none;">
-                    <div class="calibration-row">
-                        <div class="calibration-control">
-                            <label>X Offset:</label>
-                            <input type="range" id="grid-x-offset" min="-200" max="200" step="1" value="0">
-                            <span class="value" id="grid-x-value">0px</span>
+                    <div class="calibration-grid">
+                        <div class="cal-group">
+                            <span class="cal-group-label">Position</span>
+                            <div class="cal-input">
+                                <label>X</label>
+                                <input type="number" id="grid-x-offset" min="-200" max="200" step="1" value="0">
+                                <span class="unit">px</span>
+                            </div>
+                            <div class="cal-input">
+                                <label>Y</label>
+                                <input type="number" id="cal-y-offset" min="-100" max="100" step="1" value="0">
+                                <span class="unit">px</span>
+                            </div>
                         </div>
-                        <div class="calibration-control">
-                            <label>Icon Width:</label>
-                            <input type="range" id="icon-width" min="20" max="80" step="1" value="40">
-                            <span class="value" id="icon-width-value">40px</span>
+                        <div class="cal-group">
+                            <span class="cal-group-label">Icon Size</span>
+                            <div class="cal-input">
+                                <label>W</label>
+                                <input type="number" id="icon-width" min="20" max="80" step="1" value="40">
+                                <span class="unit">px</span>
+                            </div>
+                            <div class="cal-input">
+                                <label>H</label>
+                                <input type="number" id="icon-height" min="20" max="80" step="1" value="40">
+                                <span class="unit">px</span>
+                            </div>
                         </div>
-                        <div class="calibration-control">
-                            <label>Icon Height:</label>
-                            <input type="range" id="icon-height" min="20" max="80" step="1" value="40">
-                            <span class="value" id="icon-height-value">40px</span>
+                        <div class="cal-group">
+                            <span class="cal-group-label">Spacing</span>
+                            <div class="cal-input">
+                                <label>X</label>
+                                <input type="number" id="x-spacing" min="0" max="20" step="1" value="4">
+                                <span class="unit">px</span>
+                            </div>
+                            <div class="cal-input">
+                                <label>Y</label>
+                                <input type="number" id="y-spacing" min="0" max="40" step="1" value="4">
+                                <span class="unit">px</span>
+                            </div>
                         </div>
-                    </div>
-                    <div class="calibration-row">
-                        <div class="calibration-control">
-                            <label>X Spacing:</label>
-                            <input type="range" id="x-spacing" min="0" max="20" step="1" value="4">
-                            <span class="value" id="x-spacing-value">4px</span>
-                        </div>
-                        <div class="calibration-control">
-                            <label>Y Spacing:</label>
-                            <input type="range" id="y-spacing" min="0" max="40" step="1" value="4">
-                            <span class="value" id="y-spacing-value">4px</span>
-                        </div>
-                        <div class="calibration-control">
-                            <label>Icons/Row:</label>
-                            <input type="range" id="icons-per-row" min="10" max="30" step="1" value="20">
-                            <span class="value" id="icons-per-row-value">20</span>
-                        </div>
-                        <div class="calibration-control">
-                            <label>Rows:</label>
-                            <input type="range" id="num-rows" min="1" max="5" step="1" value="3">
-                            <span class="value" id="num-rows-value">3</span>
-                        </div>
-                        <div class="calibration-control">
-                            <label>Total Items:</label>
-                            <input type="number" id="total-items" min="1" max="100" value="60" style="width: 60px; padding: 4px 8px;">
-                            <span class="value" id="total-items-hint" style="font-size: 10px; color: var(--text-secondary);">Scan first N slots</span>
+                        <div class="cal-group">
+                            <span class="cal-group-label">Grid</span>
+                            <div class="cal-input">
+                                <label>Cols</label>
+                                <input type="number" id="icons-per-row" min="10" max="30" step="1" value="20">
+                            </div>
+                            <div class="cal-input">
+                                <label>Rows</label>
+                                <input type="number" id="num-rows" min="1" max="5" step="1" value="3">
+                            </div>
+                            <div class="cal-input">
+                                <label>Items</label>
+                                <input type="number" id="total-items" min="1" max="100" step="1" value="60">
+                            </div>
                         </div>
                     </div>
                     <div class="calibration-info">
@@ -198,28 +237,31 @@
                     <div class="legend-item"><span class="dot missing"></span> Missing</div>
                 </div>
 
-                <div class="secondary-panels">
-                <div class="panel">
-                    <h2>CV Detection <span class="count" id="detection-count">0</span>
-                        <span class="corrections-wrapper">
-                            <span class="corrections-counter" id="corrections-counter">0 corrections</span>
-                            <div class="corrections-dropdown" id="corrections-dropdown">
-                                <div class="corrections-breakdown">
-                                    <div class="breakdown-row"><span class="breakdown-icon verified">&#x2713;</span> <span id="breakdown-verified">0</span> verified</div>
-                                    <div class="breakdown-row"><span class="breakdown-icon corrected">&#x2194;</span> <span id="breakdown-corrected">0</span> corrected</div>
-                                    <div class="breakdown-row"><span class="breakdown-icon empty">&#x2205;</span> <span id="breakdown-empty">0</span> marked empty</div>
-                                    <div class="breakdown-row"><span class="breakdown-icon unknown">?</span> <span id="breakdown-unknown">0</span> unknown</div>
-                                </div>
-                                <div class="validation-progress">
-                                    <div class="progress-label">Validation progress</div>
-                                    <div class="progress-track">
-                                        <div class="progress-fill-validation" id="validation-progress-fill"></div>
+                <!-- CV Detection Panel - Full Width -->
+                <div class="panel cv-detection-panel">
+                    <div class="cv-detection-header">
+                        <h2>CV Detection <span class="count" id="detection-count">0</span>
+                            <span class="corrections-wrapper">
+                                <span class="corrections-counter" id="corrections-counter">0 corrections</span>
+                                <div class="corrections-dropdown" id="corrections-dropdown">
+                                    <div class="corrections-breakdown">
+                                        <div class="breakdown-row"><span class="breakdown-icon verified">&#x2713;</span> <span id="breakdown-verified">0</span> verified</div>
+                                        <div class="breakdown-row"><span class="breakdown-icon corrected">&#x2194;</span> <span id="breakdown-corrected">0</span> corrected</div>
+                                        <div class="breakdown-row"><span class="breakdown-icon empty">&#x2205;</span> <span id="breakdown-empty">0</span> marked empty</div>
+                                        <div class="breakdown-row"><span class="breakdown-icon unknown">?</span> <span id="breakdown-unknown">0</span> unknown</div>
                                     </div>
-                                    <div class="progress-percent" id="validation-percent">0%</div>
+                                    <div class="validation-progress">
+                                        <div class="progress-label">Validation progress</div>
+                                        <div class="progress-track">
+                                            <div class="progress-fill-validation" id="validation-progress-fill"></div>
+                                        </div>
+                                        <div class="progress-percent" id="validation-percent">0%</div>
+                                    </div>
                                 </div>
-                            </div>
-                        </span>
-                    </h2>
+                            </span>
+                        </h2>
+                        <p class="status-message inline-status" id="detection-status">Waiting...</p>
+                    </div>
                     <!-- Batch Progress Indicator -->
                     <div class="batch-progress" id="batch-progress" style="display: none;">
                         <div class="batch-progress-info">
@@ -237,7 +279,6 @@
                     <div class="progress-bar" id="progress-container" style="display: none;">
                         <div class="fill" id="progress-fill"></div>
                     </div>
-                    <p class="status-message" id="detection-status">Waiting...</p>
                     <div class="item-list" id="detected-items"></div>
 
                     <!-- Correction Panel -->
@@ -246,59 +287,60 @@
                             Correct Detection
                             <span class="slot-badge" id="correction-slot-badge">Slot 0</span>
                         </h3>
-                        <div class="current-detection" id="current-detection-display">
-                            <img id="correction-current-img" src="" alt="">
-                            <div class="info">
-                                <div class="name" id="correction-current-name">Item Name</div>
-                                <div class="confidence" id="correction-current-conf">Confidence: 0%</div>
+                        <div class="correction-layout">
+                            <div class="correction-left">
+                                <div class="current-detection" id="current-detection-display">
+                                    <img id="correction-current-img" src="" alt="">
+                                    <div class="info">
+                                        <div class="name" id="correction-current-name">Item Name</div>
+                                        <div class="confidence" id="correction-current-conf">Confidence: 0%</div>
+                                    </div>
+                                </div>
+                                <div class="correction-section">
+                                    <h4>Quick Picks</h4>
+                                    <div class="quick-picks" id="quick-picks"></div>
+                                </div>
+                            </div>
+                            <div class="correction-right">
+                                <div class="correction-section">
+                                    <h4>Search All Items</h4>
+                                    <div class="correction-search">
+                                        <input type="text" id="correction-search-input" placeholder="Search items...">
+                                    </div>
+                                    <div class="filter-buttons" id="correction-filters">
+                                        <button class="filter-btn active" data-rarity="all">All</button>
+                                        <button class="filter-btn" data-rarity="common">Common</button>
+                                        <button class="filter-btn" data-rarity="uncommon">Uncommon</button>
+                                        <button class="filter-btn" data-rarity="rare">Rare</button>
+                                        <button class="filter-btn" data-rarity="epic">Epic</button>
+                                        <button class="filter-btn" data-rarity="legendary">Legendary</button>
+                                    </div>
+                                    <div class="correction-results" id="correction-results"></div>
+                                    <div class="results-count" id="results-count" style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;"></div>
+                                </div>
+                                <div class="correction-section">
+                                    <h4>Unknown Item</h4>
+                                    <div class="unknown-item-input">
+                                        <input type="text" id="manual-item-input" placeholder="Type item name...">
+                                        <button id="add-manual-item">Add</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="correction-section">
-                            <h4>Quick Picks (Top Alternatives)</h4>
-                            <div class="quick-picks" id="quick-picks"></div>
-                        </div>
-
-                        <div class="correction-section">
-                            <h4>Search All Items</h4>
-                            <div class="correction-search">
-                                <input type="text" id="correction-search-input" placeholder="Search items...">
-                            </div>
-                            <div class="filter-buttons" id="correction-filters">
-                                <button class="filter-btn active" data-rarity="all">All</button>
-                                <button class="filter-btn" data-rarity="common">Common</button>
-                                <button class="filter-btn" data-rarity="uncommon">Uncommon</button>
-                                <button class="filter-btn" data-rarity="rare">Rare</button>
-                                <button class="filter-btn" data-rarity="epic">Epic</button>
-                                <button class="filter-btn" data-rarity="legendary">Legendary</button>
-                            </div>
-                            <div class="correction-results" id="correction-results"></div>
-                            <div class="results-count" id="results-count" style="font-size: 11px; color: var(--text-secondary); margin-top: 6px;"></div>
-                        </div>
-
-                        <div class="correction-section">
-                            <h4>Not in List? (New/Unknown Item)</h4>
-                            <div class="unknown-item-input">
-                                <input type="text" id="manual-item-input" placeholder="Type item name...">
-                                <button id="add-manual-item">Add as Unknown</button>
-                            </div>
-                            <div class="unknown-hint" style="font-size: 10px; color: var(--text-secondary); margin-top: 4px;">Use for items not in items.json (new game items, variants)</div>
-                        </div>
-
                         <div class="correction-actions">
                             <button class="apply-btn" id="apply-correction-btn" disabled>Apply Correction</button>
                             <button class="correct-btn" id="mark-correct-btn">Mark Correct ✓</button>
-                            <button class="empty-btn" id="mark-empty-btn">Mark as Empty</button>
+                            <button class="empty-btn" id="mark-empty-btn">Mark Empty</button>
                             <button class="cancel-btn" id="cancel-correction-btn">Cancel</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="panel">
+                <!-- Ground Truth - Full Width at Bottom -->
+                <div class="panel ground-truth-panel">
                     <h2>Ground Truth <span class="count" id="truth-count">0</span></h2>
                     <div class="item-list" id="truth-items"></div>
                 </div>
-                </div><!-- end secondary-panels -->
             </div>
 
             <div id="log-panel">

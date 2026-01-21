@@ -23,8 +23,16 @@ import {
     loadImage,
     populateImageSelect,
     getGroundTruthForImage,
+    loadTrainingDataIfAvailable,
+    getAvailableSources,
+    getEnabledSources,
+    enableSource,
+    disableSource,
+    setEnabledSources,
+    enableAllSources,
+    getSourceSampleCounts,
 } from './data-loader.js';
-import { runDetection } from './cv-detection.js';
+import { runDetection, loadSharedLibrary, setDetectionOptions, getDetectionOptions } from './cv-detection.js';
 import {
     displayMetrics,
     displayGroundTruth,
@@ -69,6 +77,15 @@ const elements = {
     runAllBtn: document.getElementById('run-all'),
     exportValidatedBtn: document.getElementById('export-validated'),
     saveTrainingBtn: document.getElementById('save-training'),
+
+    // Detection option toggles
+    toggleEnhanced: document.getElementById('toggle-enhanced'),
+    toggleTraining: document.getElementById('toggle-training'),
+    trainingSourcesBtn: document.getElementById('training-sources-btn'),
+    trainingSourcesDropdown: document.getElementById('training-sources-dropdown'),
+    sourcesList: document.getElementById('sources-list'),
+    sourcesSelectAll: document.getElementById('sources-select-all'),
+    sourcesSelectNone: document.getElementById('sources-select-none'),
 
     // Main Y offset (in controls)
     mainYOffsetSlider: document.getElementById('grid-y-offset'),
@@ -130,24 +147,18 @@ const elements = {
     // Log panel
     logContent: document.getElementById('log-content'),
 
-    // Calibration panel
+    // Calibration panel (number inputs)
     gridCalibrationPanel: document.getElementById('grid-calibration-panel'),
     toggleCalibrationBtn: document.getElementById('toggle-grid-calibration'),
     resetCalibrationBtn: document.getElementById('reset-calibration'),
-    gridXOffsetSlider: document.getElementById('grid-x-offset'),
-    gridXValue: document.getElementById('grid-x-value'),
-    iconWidthSlider: document.getElementById('icon-width'),
-    iconWidthValue: document.getElementById('icon-width-value'),
-    iconHeightSlider: document.getElementById('icon-height'),
-    iconHeightValue: document.getElementById('icon-height-value'),
-    xSpacingSlider: document.getElementById('x-spacing'),
-    xSpacingValue: document.getElementById('x-spacing-value'),
-    ySpacingSlider: document.getElementById('y-spacing'),
-    ySpacingValue: document.getElementById('y-spacing-value'),
-    iconsPerRowSlider: document.getElementById('icons-per-row'),
-    iconsPerRowValue: document.getElementById('icons-per-row-value'),
-    numRowsSlider: document.getElementById('num-rows'),
-    numRowsValue: document.getElementById('num-rows-value'),
+    gridXOffsetInput: document.getElementById('grid-x-offset'),
+    calYOffsetInput: document.getElementById('cal-y-offset'),
+    iconWidthInput: document.getElementById('icon-width'),
+    iconHeightInput: document.getElementById('icon-height'),
+    xSpacingInput: document.getElementById('x-spacing'),
+    ySpacingInput: document.getElementById('y-spacing'),
+    iconsPerRowInput: document.getElementById('icons-per-row'),
+    numRowsInput: document.getElementById('num-rows'),
     totalItemsInput: document.getElementById('total-items'),
     resolutionInfo: document.getElementById('resolution-info'),
     scaleInfo: document.getElementById('scale-info'),
@@ -489,17 +500,51 @@ async function saveToTrainingDirectory(data, filename) {
             return false;
         }
 
-        // Create file in the directory
+        // Create JSON file in the directory
         const fileHandle = await dirHandle.getFileHandle(filename, { create: true });
         const writable = await fileHandle.createWritable();
         await writable.write(JSON.stringify(data, null, 2));
         await writable.close();
 
         log(`✓ Saved to: ${filename}`, LOG_LEVELS.SUCCESS);
+
+        // Also save a copy of the source image for reference
+        await saveSourceImageCopy(dirHandle, filename);
+
         return true;
     } catch (err) {
         log(`Failed to save to directory: ${err.message}`, LOG_LEVELS.ERROR);
         return false;
+    }
+}
+
+/**
+ * Save a copy of the source screenshot image alongside the JSON export
+ * This preserves the original image in case the source file is renamed/moved
+ */
+async function saveSourceImageCopy(dirHandle, jsonFilename) {
+    if (!state.currentImage || !state.currentImage.canvas) {
+        log('No source image to save', LOG_LEVELS.WARNING);
+        return;
+    }
+
+    try {
+        // Generate image filename (same as JSON but with .png extension)
+        const imageFilename = jsonFilename.replace('.json', '.png');
+
+        // Use the already-loaded canvas which has the image drawn on it
+        const blob = await new Promise(resolve => state.currentImage.canvas.toBlob(resolve, 'image/png'));
+
+        // Save to directory
+        const imageHandle = await dirHandle.getFileHandle(imageFilename, { create: true });
+        const writable = await imageHandle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+
+        log(`✓ Source image saved: ${imageFilename}`, LOG_LEVELS.SUCCESS);
+    } catch (err) {
+        log(`Warning: Could not save source image copy: ${err.message}`, LOG_LEVELS.WARNING);
+        // Don't fail the whole save if image copy fails
     }
 }
 
@@ -863,6 +908,82 @@ function initAdvancedSettings() {
         elements.topMatchesValue.textContent = '5';
         log('Reset advanced settings to defaults', LOG_LEVELS.INFO);
     });
+}
+
+// ========================================
+// Training Sources Dropdown
+// ========================================
+
+function populateSourcesDropdown() {
+    const sources = getAvailableSources();
+    const enabledSet = new Set(getEnabledSources());
+    const counts = getSourceSampleCounts();
+
+    if (sources.length === 0) {
+        elements.sourcesList.innerHTML = '<p class="sources-loading">No training data loaded</p>';
+        return;
+    }
+
+    elements.sourcesList.innerHTML = '';
+
+    for (const source of sources) {
+        const count = counts.get(source) || 0;
+        const isEnabled = enabledSet.has(source);
+
+        // Create a friendlier display name
+        const displayName = source.replace(/\.jpg$|\.png$/i, '').replace(/^pc-\d+p\//, '');
+
+        const item = document.createElement('div');
+        item.className = 'source-item';
+        item.innerHTML = `
+            <input type="checkbox" id="source-${source}" data-source="${source}" ${isEnabled ? 'checked' : ''}>
+            <label for="source-${source}">${displayName}</label>
+            <span class="source-count">${count}</span>
+        `;
+
+        // Handle checkbox change
+        const checkbox = item.querySelector('input');
+        checkbox.addEventListener('change', e => {
+            if (e.target.checked) {
+                enableSource(source);
+            } else {
+                disableSource(source);
+            }
+            log(`Training source "${displayName}": ${e.target.checked ? 'ON' : 'OFF'}`, LOG_LEVELS.INFO);
+
+            // Auto re-run if we have results
+            if (state.currentImage && state.detectionsBySlot.size > 0) {
+                handleRunDetection();
+            }
+        });
+
+        elements.sourcesList.appendChild(item);
+    }
+}
+
+function toggleSourcesDropdown() {
+    const isShown = elements.trainingSourcesDropdown.classList.toggle('show');
+    if (isShown) {
+        populateSourcesDropdown();
+    }
+}
+
+function selectAllSources() {
+    enableAllSources();
+    populateSourcesDropdown();
+    log('All training sources enabled', LOG_LEVELS.INFO);
+    if (state.currentImage && state.detectionsBySlot.size > 0) {
+        handleRunDetection();
+    }
+}
+
+function selectNoSources() {
+    setEnabledSources([]);
+    populateSourcesDropdown();
+    log('All training sources disabled', LOG_LEVELS.INFO);
+    if (state.currentImage && state.detectionsBySlot.size > 0) {
+        handleRunDetection();
+    }
 }
 
 function updateGridDisplay() {
@@ -1425,6 +1546,12 @@ async function init() {
     await loadGroundTruth();
     await loadItemsData();
 
+    // Load shared CV library for enhanced detection
+    await loadSharedLibrary();
+
+    // Load training data if available (uses shared library)
+    await loadTrainingDataIfAvailable();
+
     // Initialize item reference early (needed for populateItemReference)
     initItemReference({
         list: elements.itemReferenceList,
@@ -1469,23 +1596,20 @@ async function init() {
             panel: elements.gridCalibrationPanel,
             toggleBtn: elements.toggleCalibrationBtn,
             resetBtn: elements.resetCalibrationBtn,
-            xOffsetSlider: elements.gridXOffsetSlider,
-            xOffsetValue: elements.gridXValue,
+            // Number inputs in calibration panel
+            xOffsetInput: elements.gridXOffsetInput,
+            calYOffsetInput: elements.calYOffsetInput,
+            iconWidthInput: elements.iconWidthInput,
+            iconHeightInput: elements.iconHeightInput,
+            xSpacingInput: elements.xSpacingInput,
+            ySpacingInput: elements.ySpacingInput,
+            iconsPerRowInput: elements.iconsPerRowInput,
+            numRowsInput: elements.numRowsInput,
+            totalItemsInput: elements.totalItemsInput,
+            // Main Y offset slider in controls bar
             mainYOffsetSlider: elements.mainYOffsetSlider,
             mainYOffsetValue: elements.mainYOffsetValue,
-            iconWidthSlider: elements.iconWidthSlider,
-            iconWidthValue: elements.iconWidthValue,
-            iconHeightSlider: elements.iconHeightSlider,
-            iconHeightValue: elements.iconHeightValue,
-            xSpacingSlider: elements.xSpacingSlider,
-            xSpacingValue: elements.xSpacingValue,
-            ySpacingSlider: elements.ySpacingSlider,
-            ySpacingValue: elements.ySpacingValue,
-            iconsPerRowSlider: elements.iconsPerRowSlider,
-            iconsPerRowValue: elements.iconsPerRowValue,
-            numRowsSlider: elements.numRowsSlider,
-            numRowsValue: elements.numRowsValue,
-            totalItemsInput: elements.totalItemsInput,
+            // Info displays
             resolutionInfo: elements.resolutionInfo,
             scaleInfo: elements.scaleInfo,
             presetStatus: elements.presetStatus,
@@ -1529,6 +1653,41 @@ async function init() {
     });
 
     elements.slotFilterInput.addEventListener('input', updateGridDisplay);
+
+    // Detection option toggles
+    elements.toggleEnhanced.addEventListener('click', () => {
+        elements.toggleEnhanced.classList.toggle('active');
+        const enabled = elements.toggleEnhanced.classList.contains('active');
+        setDetectionOptions({ useEnhanced: enabled });
+        log(`Enhanced detection: ${enabled ? 'ON' : 'OFF'}`, LOG_LEVELS.INFO);
+        // Auto re-run if we have results
+        if (state.currentImage && state.detectionsBySlot.size > 0) {
+            handleRunDetection();
+        }
+    });
+
+    elements.toggleTraining.addEventListener('click', () => {
+        elements.toggleTraining.classList.toggle('active');
+        const enabled = elements.toggleTraining.classList.contains('active');
+        setDetectionOptions({ useTrainingData: enabled });
+        log(`Training data: ${enabled ? 'ON' : 'OFF'}`, LOG_LEVELS.INFO);
+        // Auto re-run if we have results
+        if (state.currentImage && state.detectionsBySlot.size > 0) {
+            handleRunDetection();
+        }
+    });
+
+    // Training sources dropdown
+    elements.trainingSourcesBtn.addEventListener('click', toggleSourcesDropdown);
+    elements.sourcesSelectAll.addEventListener('click', selectAllSources);
+    elements.sourcesSelectNone.addEventListener('click', selectNoSources);
+
+    // Close sources dropdown when clicking outside
+    document.addEventListener('click', e => {
+        if (!elements.trainingSourcesDropdown.contains(e.target) && e.target !== elements.trainingSourcesBtn) {
+            elements.trainingSourcesDropdown.classList.remove('show');
+        }
+    });
 
     // Setup overlay click handler
     setupOverlayClickHandler();

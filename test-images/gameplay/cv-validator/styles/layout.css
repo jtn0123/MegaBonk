@@ -19,26 +19,32 @@
     justify-content: center;
 }
 
+/* Main page layout - wider with smaller sidebar */
 .page-layout {
     display: grid;
-    grid-template-columns: 1fr 320px;
+    grid-template-columns: 1fr 280px;
     gap: 12px;
+    max-width: 1800px;
+    margin: 0 auto;
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1200px) {
     .page-layout {
         grid-template-columns: 1fr;
+    }
+    .sidebar {
+        display: none;
     }
 }
 
 .main-content {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     margin-bottom: 12px;
 }
 
-/* Screenshot panel takes full width and is larger */
+/* Screenshot panel takes full width */
 .main-content .panel:first-child {
     width: 100%;
 }
@@ -52,15 +58,56 @@
     height: auto;
 }
 
-/* Stack CV Detection and Ground Truth side by side below screenshot */
-.secondary-panels {
+/* CV Detection Panel - full width, horizontal items */
+.cv-detection-panel {
+    width: 100%;
+}
+
+.cv-detection-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.cv-detection-header h2 {
+    margin: 0;
+}
+
+.cv-detection-header .inline-status {
+    margin: 0;
+    padding: 4px 10px;
+    font-size: 12px;
+    background: var(--bg-panel);
+    border-radius: 4px;
+}
+
+/* Ground Truth Panel - full width at bottom */
+.ground-truth-panel {
+    width: 100%;
+}
+
+/* Correction panel - side by side layout */
+.correction-layout {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 250px 1fr;
+    gap: 15px;
+}
+
+.correction-left {
+    display: flex;
+    flex-direction: column;
     gap: 12px;
 }
 
-@media (max-width: 900px) {
-    .secondary-panels {
+.correction-right {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@media (max-width: 700px) {
+    .correction-layout {
         grid-template-columns: 1fr;
     }
 }
@@ -137,8 +184,8 @@
 .item-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
-    max-height: 400px;
+    gap: 6px;
+    max-height: 300px;
     overflow-y: auto;
 }
 

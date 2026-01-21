@@ -60,7 +60,9 @@
     "typecheck:watch": "tsc --noEmit --watch",
     "test:check-cleanup": "node scripts/check-test-cleanup.js",
     "prepare": "husky",
-    "import:training": "node scripts/import-training-data.js"
+    "import:training": "node scripts/import-training-data.js",
+    "build:cv-library": "vite build --config vite.cv-library.config.js",
+    "cv:dev": "vite build --config vite.cv-library.config.js --watch"
   },
   "keywords": [],
   "author": "",

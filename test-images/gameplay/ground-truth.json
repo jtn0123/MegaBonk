@@ -836,5 +836,285 @@
     "time_alive": "65:23",
     "notes": "END GAME SUMMARY - Fox character. +505 Silver. 50+ items visible.",
     "difficulty": "template_source"
+  },
+
+  "steam-community/steam_01.jpg": {
+    "character": "Unknown",
+    "level": 281,
+    "resolution": "1920x1080",
+    "biome": "hell",
+    "ui_state": "gameplay",
+    "items": [
+      "Forbidden Juice", "Moldy Cheese", "Dragonfire", "Dragonfire",
+      "Spicy Meatball", "Beer", "Turbo Skates", "Medkit", "Backpack",
+      "Demonic Soul", "Borgar", "Wrench", "Spiky Shield", "Spiky Shield",
+      "Ice Crystal", "Ice Crystal", "Ice Crystal", "Campfire", "Ghost",
+      "Cursed Doll", "Time Bracelet", "Feathers", "Battery", "Golden Sneakers",
+      "Sucky Magnet", "Medkit"
+    ],
+    "equipped_weapons": [
+      "Sword LVL 40", "Gun LVL 24", "Boomerang LVL 22", "Wrench LVL 40"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 56", "Combat Tome LVL 44", "Ice Tome LVL 16", "Lightning Tome LVL 39"
+    ],
+    "notes": "Hell biome, Turkish language ('Yandı' difficulty x8). Heavy particle effects, purple enemies. FPS counter visible. 26 items.",
+    "difficulty": "hard"
+  },
+
+  "steam-community/steam_02.jpg": {
+    "character": "Unknown",
+    "level": 5,
+    "resolution": "1920x1080",
+    "biome": "forest",
+    "ui_state": "inventory_chest",
+    "items": [
+      "Medkit", "Golden Sneakers", "Medkit"
+    ],
+    "chest_item": {
+      "name": "Giant Fork",
+      "rarity": "legendary",
+      "description_ru": "Гигантская Вилка"
+    },
+    "equipped_weapons": [
+      "Sword LVL 2", "Gun LVL 1"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 1", "Combat Tome LVL 2"
+    ],
+    "notes": "INVENTORY/CHEST UI - Russian. Legendary Giant Fork pickup. Early game with 3 items.",
+    "difficulty": "easy"
+  },
+
+  "steam-community/steam_03.jpg": {
+    "character": "Unknown",
+    "level": 112,
+    "resolution": "1920x1080",
+    "biome": "crypt",
+    "ui_state": "gameplay",
+    "items": [
+      "Time Bracelet", "Ghost", "Campfire", "Medkit", "Moldy Cheese",
+      "Wrench", "Borgar", "Ice Crystal", "Ice Crystal", "Feathers",
+      "Backpack", "Spiky Shield", "Turbo Skates", "Turbo Skates",
+      "Dragonfire", "Demonic Soul", "Cursed Doll", "Medkit", "Sucky Magnet",
+      "Golden Sneakers", "Battery", "Ice Cube", "Ice Cube", "Wrench", "Wrench",
+      "Spicy Meatball", "Forbidden Juice", "Moldy Cheese", "Moldy Cheese",
+      "Ghost", "Backpack"
+    ],
+    "equipped_weapons": [
+      "Portal LVL 6", "Sword LVL 12", "Fire Staff LVL 5", "Ice Staff LVL 17"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 18", "Combat Tome LVL 13", "Ice Tome LVL 19", "Lightning Tome LVL 21"
+    ],
+    "notes": "Crypt biome, Russian. Boss 'Жуткий Стив' (Spooky Steve). Timer 0:00. 31 items total.",
+    "difficulty": "hard"
+  },
+
+  "steam-community/steam_16.jpg": {
+    "character": "Unknown",
+    "level": 60,
+    "resolution": "1920x1080",
+    "biome": "ocean",
+    "ui_state": "gameplay",
+    "items": [
+      "Medkit", "Ice Crystal", "Sucky Magnet", "Moldy Cheese", "Campfire",
+      "Wrench", "Spicy Meatball", "Turbo Skates", "Time Bracelet", "Feathers",
+      "Ice Cube", "Borgar", "Battery", "Backpack", "Spiky Shield",
+      "Golden Sneakers", "Medkit", "Wrench", "Moldy Cheese", "Ice Crystal",
+      "Dragonfire", "Ghost"
+    ],
+    "equipped_weapons": [
+      "Portal LVL 7", "Dice LVL 8", "Gun LVL 8", "Sword LVL 8"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 7", "Combat Tome LVL 10", "Fire Tome LVL 5", "Ice Tome LVL 5"
+    ],
+    "notes": "Ocean biome (purple), Russian. Boss 'Чадбарк' (Chadbark) 419.6K/695.6K HP. 22 items.",
+    "difficulty": "medium"
+  },
+
+  "steam-community/steam_10054997231995129950.jpg": {
+    "character": "Unknown",
+    "level": 69,
+    "resolution": "2560x1440",
+    "biome": "crypt",
+    "ui_state": "inventory_panel",
+    "items": [
+      "Wrench", "Wrench", "Wrench",
+      "Forbidden Juice", "Forbidden Juice", "Forbidden Juice",
+      "Ghost", "Ghost",
+      "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar",
+      "Ice Crystal", "Ice Crystal",
+      "Honeycomb", "Honeycomb",
+      "Feathers", "Feathers", "Feathers",
+      "Beer", "Beer", "Beer",
+      "Dragonfire",
+      "Moldy Cheese",
+      "Spiky Shield",
+      "Credit Card (Red)",
+      "Medkit",
+      "Ice Cube", "Ice Cube",
+      "Cursed Doll",
+      "Demonic Soul"
+    ],
+    "equipped_weapons": [
+      "Dice LVL 5", "Sword LVL 1", "Axe LVL 8", "Boomerang LVL 3"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 10", "Combat Tome LVL 8", "Ice Tome LVL 19", "Lightning Tome LVL 15"
+    ],
+    "notes": "INVENTORY PANEL UI - Portuguese ('Inventário', 'Armas', 'Grimórios', 'Itens'). Crypt biome. Chest ready to open ('ABRIR'). Stats panel visible. 45+ items with many stacks. EXCELLENT for inventory grid detection.",
+    "difficulty": "medium"
+  },
+
+  "steam-community/steam_14175018221761753451.jpg": {
+    "character": "Unknown",
+    "level": 17,
+    "resolution": "2560x1440",
+    "biome": "forest",
+    "ui_state": "gameplay",
+    "items": [
+      "Banana", "Oats", "Spicy Meatball", "Spicy Meatball", "Feathers", "Feathers",
+      "Key", "Key", "Key", "Ice Cube", "Ice Cube", "Medkit", "Medkit",
+      "Ghost", "Ghost", "Snek", "Snek"
+    ],
+    "equipped_weapons": [
+      "Sword LVL 1", "Gun LVL 1", "Axe LVL 2", "Boomerang LVL 3"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 4", "Combat Tome LVL 4", "Ice Tome LVL 4", "Lightning Tome LVL 2"
+    ],
+    "notes": "Forest biome, English ('Find the Boss Portal'). Early-mid game with 17 items. Clear item bar. Good for testing moderate item counts.",
+    "difficulty": "easy"
+  },
+
+  "steam-community/steam_14487114544377495734.jpg": {
+    "character": "Bandit",
+    "level": 1624,
+    "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "kills": 301989,
+    "time_alive": "52:24",
+    "items": [
+      "Feathers", "Feathers", "Feathers", "Feathers", "Feathers",
+      "Milk", "Milk", "Milk", "Milk", "Milk", "Milk",
+      "Ice Cube", "Ice Cube", "Ice Cube",
+      "Wrench", "Wrench",
+      "Honeycomb", "Honeycomb", "Honeycomb", "Honeycomb", "Honeycomb",
+      "Backpack", "Backpack", "Backpack",
+      "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar",
+      "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers",
+      "Ice Crystal", "Ice Crystal", "Ice Crystal", "Ice Crystal",
+      "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese",
+      "Demonic Soul", "Demonic Soul", "Demonic Soul",
+      "Sucky Magnet", "Sucky Magnet", "Sucky Magnet", "Sucky Magnet",
+      "Time Bracelet", "Time Bracelet", "Time Bracelet", "Time Bracelet", "Time Bracelet",
+      "Forbidden Juice", "Forbidden Juice", "Forbidden Juice", "Forbidden Juice",
+      "Medkit", "Medkit", "Medkit", "Medkit",
+      "Spiky Shield", "Spiky Shield", "Spiky Shield", "Spiky Shield",
+      "Cursed Doll", "Cursed Doll", "Cursed Doll", "Cursed Doll",
+      "Campfire", "Campfire",
+      "Ghost", "Ghost", "Ghost", "Ghost", "Ghost",
+      "Turbo Skates", "Turbo Skates",
+      "Credit Card (Red)",
+      "Snek"
+    ],
+    "damage_sources": [
+      "Dexecutioner LVL 67",
+      "Spicy Meatball LVL 5",
+      "Cursed Doll LVL 1",
+      "Big Bonk LVL 8",
+      "Lightning Orb LVL 2",
+      "Snek LVL 5",
+      "Dragon's Breath LVL 8",
+      "Ice Cube LVL 4",
+      "Grandma's Secret Tonic LVL 4",
+      "Cursed Grabbies LVL 6",
+      "Katana LVL 67",
+      "Scythe LVL 67"
+    ],
+    "notes": "END GAME SUMMARY - Russian ('ИТОГ'). Bandit character, Level 1624. +377 Silver. 80+ items with stack counts. EXCELLENT for template extraction.",
+    "difficulty": "template_source"
+  },
+
+  "steam-community/steam_18445750024608086701.jpg": {
+    "character": "Unknown",
+    "level": 329,
+    "resolution": "1920x1080",
+    "biome": "hell",
+    "ui_state": "gameplay",
+    "items": [
+      "Demonic Blood", "Demonic Blood", "Demonic Blood", "Demonic Blood",
+      "Cursed Doll", "Cursed Doll",
+      "Ice Crystal", "Ice Crystal",
+      "Dragonfire", "Dragonfire",
+      "Time Bracelet",
+      "Ice Cube",
+      "Moldy Cheese",
+      "Spicy Meatball",
+      "Borgar",
+      "Medkit", "Medkit",
+      "Ghost",
+      "Honeycomb"
+    ],
+    "equipped_weapons": [
+      "Sword LVL 50", "Gun LVL 46", "Boomerang LVL 60", "Wrench LVL 5"
+    ],
+    "equipped_tomes": [
+      "Fire Tome LVL 26", "Combat Tome LVL 52", "Ice Tome LVL 44", "Lightning Tome LVL 57"
+    ],
+    "notes": "Hell biome, Russian ('Победи Финального Босса' = Defeat Final Boss). Level 329, late game. Heavy particle effects. Boss 'Сжёг' visible. 19 items.",
+    "difficulty": "hard"
+  },
+
+  "steam-community/steam_9355034870308950583_.jpg": {
+    "character": "Bandit",
+    "level": 1834,
+    "resolution": "2560x1440",
+    "ui_state": "end_game_summary",
+    "kills": 588959,
+    "time_alive": "86:22",
+    "items": [
+      "Feathers", "Feathers", "Feathers", "Feathers",
+      "Milk", "Milk", "Milk", "Milk", "Milk", "Milk", "Milk",
+      "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube", "Ice Cube",
+      "Wrench", "Wrench", "Wrench", "Wrench",
+      "Honeycomb", "Honeycomb", "Honeycomb", "Honeycomb", "Honeycomb", "Honeycomb",
+      "Backpack", "Backpack", "Backpack", "Backpack", "Backpack",
+      "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar", "Borgar",
+      "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers", "Golden Sneakers",
+      "Ice Crystal", "Ice Crystal", "Ice Crystal", "Ice Crystal", "Ice Crystal", "Ice Crystal",
+      "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese", "Moldy Cheese",
+      "Demonic Soul", "Demonic Soul", "Demonic Soul",
+      "Sucky Magnet", "Sucky Magnet",
+      "Time Bracelet", "Time Bracelet", "Time Bracelet", "Time Bracelet", "Time Bracelet",
+      "Forbidden Juice", "Forbidden Juice", "Forbidden Juice", "Forbidden Juice",
+      "Medkit", "Medkit", "Medkit", "Medkit",
+      "Spiky Shield", "Spiky Shield", "Spiky Shield", "Spiky Shield",
+      "Cursed Doll", "Cursed Doll", "Cursed Doll", "Cursed Doll",
+      "Campfire", "Campfire", "Campfire", "Campfire",
+      "Ghost", "Ghost", "Ghost", "Ghost",
+      "Turbo Skates", "Turbo Skates",
+      "Credit Card (Red)"
+    ],
+    "damage_sources": [
+      "Big Bonk LVL 10",
+      "Spicy Meatball LVL 6",
+      "Lightning Orb LVL 5",
+      "Dexecutioner LVL 92",
+      "Ice Cube LVL 4",
+      "Cursed Doll LVL 1",
+      "Dice LVL 92",
+      "Cursed Grabbies LVL 6",
+      "Katana LVL 92",
+      "Joe's Dagger LVL 9",
+      "Soul Harvester LVL 7",
+      "Mirror LVL 13",
+      "Dragon's Breath LVL 92",
+      "Blood Trail LVL 1"
+    ],
+    "notes": "END GAME SUMMARY - Russian ('ИТОГ'). Bandit character, Level 1834. 2 Unlocks, +776 Silver. 110+ items with high stack counts. Quests: Багровый Бандит, Золотой Бандит. EXCELLENT for template extraction.",
+    "difficulty": "template_source"
   }
 }

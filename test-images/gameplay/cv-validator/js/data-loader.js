@@ -1,12 +1,16 @@
 /* global Image */
 /* ========================================
  * CV Validator - Data Loader
- * Ground truth, items, templates loading
+ * Ground truth, items, templates, training data loading
  * ======================================== */
 
 import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { log, LOG_LEVELS } from './utils.js';
+
+// Training data loading state
+let trainingDataLoaded = false;
+let sharedLibrary = null;
 
 // ========================================
 // Ground Truth Loading
@@ -163,4 +167,159 @@ export function getAllItems() {
 
 export function getGroundTruthForImage(imagePath) {
     return state.groundTruth[imagePath];
+}
+
+// ========================================
+// Training Data Loading
+// ========================================
+
+/**
+ * Load training data from the shared CV library
+ * Sets the base path for the CV Validator's relative location
+ */
+export async function loadTrainingDataIfAvailable() {
+    if (trainingDataLoaded) {
+        log('Training data already loaded', LOG_LEVELS.INFO);
+        return true;
+    }
+
+    try {
+        // Try to import the shared CV library
+        sharedLibrary = await import('../../../../dist/cv-library/cv-library.js');
+
+        // Set the base path relative to cv-validator directory
+        // The training data is at data/training-data/ from project root
+        // From cv-validator, that's ../../../../data/training-data/
+        sharedLibrary.setTrainingDataBasePath('../../../../data/training-data/');
+
+        // Load the training data
+        const success = await sharedLibrary.loadTrainingData();
+
+        if (success) {
+            trainingDataLoaded = true;
+            const stats = sharedLibrary.getTrainingStats();
+            log(
+                `Training data loaded: ${stats.totalItems} items, ${stats.totalTemplates} templates`,
+                LOG_LEVELS.SUCCESS
+            );
+
+            // Log top items with most samples
+            if (stats.itemsWithMostSamples.length > 0) {
+                const topItems = stats.itemsWithMostSamples
+                    .slice(0, 3)
+                    .map(i => `${i.id}(${i.count})`)
+                    .join(', ');
+                log(`  Top trained items: ${topItems}`, LOG_LEVELS.INFO);
+            }
+            return true;
+        } else {
+            log('Training data index not found (this is normal for new setups)', LOG_LEVELS.INFO);
+            return false;
+        }
+    } catch (err) {
+        // This is expected if the library hasn't been built yet
+        log(`Training data not available: ${err.message}`, LOG_LEVELS.INFO);
+        log('  Run "npm run build:cv-library" to enable enhanced detection', LOG_LEVELS.INFO);
+        return false;
+    }
+}
+
+/**
+ * Check if training data is loaded
+ */
+export function isTrainingDataLoaded() {
+    return trainingDataLoaded && sharedLibrary?.isTrainingDataLoaded?.();
+}
+
+/**
+ * Get training data statistics
+ */
+export function getTrainingStats() {
+    if (!sharedLibrary?.getTrainingStats) {
+        return null;
+    }
+    return sharedLibrary.getTrainingStats();
+}
+
+// ========================================
+// Training Source Management
+// ========================================
+
+/**
+ * Get available training data sources
+ */
+export function getAvailableSources() {
+    if (!sharedLibrary?.getAvailableSources) {
+        return [];
+    }
+    return sharedLibrary.getAvailableSources();
+}
+
+/**
+ * Get currently enabled sources
+ */
+export function getEnabledSources() {
+    if (!sharedLibrary?.getEnabledSources) {
+        return [];
+    }
+    return sharedLibrary.getEnabledSources();
+}
+
+/**
+ * Enable a specific source
+ */
+export function enableSource(source) {
+    if (sharedLibrary?.enableSource) {
+        sharedLibrary.enableSource(source);
+    }
+}
+
+/**
+ * Disable a specific source
+ */
+export function disableSource(source) {
+    if (sharedLibrary?.disableSource) {
+        sharedLibrary.disableSource(source);
+    }
+}
+
+/**
+ * Set which sources are enabled
+ */
+export function setEnabledSources(sources) {
+    if (sharedLibrary?.setEnabledSources) {
+        sharedLibrary.setEnabledSources(sources);
+    }
+}
+
+/**
+ * Enable all sources
+ */
+export function enableAllSources() {
+    if (sharedLibrary?.enableAllSources) {
+        sharedLibrary.enableAllSources();
+    }
+}
+
+/**
+ * Get source sample counts (for UI display)
+ */
+export function getSourceSampleCounts() {
+    if (!sharedLibrary?.getTrainingIndex) {
+        return new Map();
+    }
+
+    const index = sharedLibrary.getTrainingIndex();
+    if (!index) return new Map();
+
+    const counts = new Map();
+
+    for (const itemData of Object.values(index.items)) {
+        for (const sample of itemData.samples) {
+            const source = sample.source_image;
+            counts.set(source, (counts.get(source) || 0) + 1);
+        }
+    }
+
+    return counts;
 }

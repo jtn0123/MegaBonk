@@ -12,17 +12,19 @@ let elements = {};
 let onCalibrationChange = null;
 
 // ========================================
-// Factory Function for Calibration Sliders
+// Factory Function for Calibration Inputs
 // ========================================
 
-function createCalibrationHandler(slider, valueEl, stateProp, suffix = 'px') {
-    slider.addEventListener('input', e => {
-        const value = parseInt(e.target.value);
+function createCalibrationHandler(input, stateProp) {
+    // Handle both 'input' (for immediate feedback) and 'change' (for typing)
+    const handleChange = e => {
+        const value = parseInt(e.target.value) || 0;
         state.calibration[stateProp] = value;
-        valueEl.textContent = suffix ? `${value}${suffix}` : value.toString();
         if (onCalibrationChange) onCalibrationChange();
         updateModificationWarning();
-    });
+    };
+    input.addEventListener('input', handleChange);
+    input.addEventListener('change', handleChange);
 }
 
 // ========================================
@@ -40,34 +42,46 @@ export function initGridCalibration(domElements, callbacks) {
         elements.toggleBtn.textContent = isHidden ? 'Grid Calibration \u25B2' : 'Grid Calibration \u25BC';
     });
 
-    // Setup calibration sliders using factory function
-    createCalibrationHandler(elements.xOffsetSlider, elements.xOffsetValue, 'xOffset', 'px');
-    createCalibrationHandler(elements.iconWidthSlider, elements.iconWidthValue, 'iconWidth', 'px');
-    createCalibrationHandler(elements.iconHeightSlider, elements.iconHeightValue, 'iconHeight', 'px');
-    createCalibrationHandler(elements.xSpacingSlider, elements.xSpacingValue, 'xSpacing', 'px');
-    createCalibrationHandler(elements.ySpacingSlider, elements.ySpacingValue, 'ySpacing', 'px');
-    createCalibrationHandler(elements.iconsPerRowSlider, elements.iconsPerRowValue, 'iconsPerRow', '');
-    createCalibrationHandler(elements.numRowsSlider, elements.numRowsValue, 'numRows', '');
+    // Setup calibration inputs using factory function
+    createCalibrationHandler(elements.xOffsetInput, 'xOffset');
+    createCalibrationHandler(elements.iconWidthInput, 'iconWidth');
+    createCalibrationHandler(elements.iconHeightInput, 'iconHeight');
+    createCalibrationHandler(elements.xSpacingInput, 'xSpacing');
+    createCalibrationHandler(elements.ySpacingInput, 'ySpacing');
+    createCalibrationHandler(elements.iconsPerRowInput, 'iconsPerRow');
+    createCalibrationHandler(elements.numRowsInput, 'numRows');
+    createCalibrationHandler(elements.totalItemsInput, 'totalItems');
 
-    // Handle the main Y offset slider in controls bar (no separate slider in calibration panel)
+    // Handle the main Y offset slider in controls bar
     if (elements.mainYOffsetSlider) {
         elements.mainYOffsetSlider.addEventListener('input', e => {
             const value = parseInt(e.target.value);
             state.calibration.yOffset = value;
             elements.mainYOffsetValue.textContent = `${value}px`;
+            // Sync to calibration panel input if it exists
+            if (elements.calYOffsetInput) {
+                elements.calYOffsetInput.value = value;
+            }
             if (onCalibrationChange) onCalibrationChange();
             updateModificationWarning();
         });
     }
 
-    // Handle total items input
-    if (elements.totalItemsInput) {
-        elements.totalItemsInput.addEventListener('change', e => {
-            const value = parseInt(e.target.value) || 60;
-            state.calibration.totalItems = Math.max(1, Math.min(100, value));
-            elements.totalItemsInput.value = state.calibration.totalItems;
+    // Handle Y offset in calibration panel (syncs with main slider)
+    if (elements.calYOffsetInput) {
+        const handleYChange = e => {
+            const value = parseInt(e.target.value) || 0;
+            state.calibration.yOffset = value;
+            // Sync to main slider
+            if (elements.mainYOffsetSlider) {
+                elements.mainYOffsetSlider.value = value;
+                elements.mainYOffsetValue.textContent = `${value}px`;
+            }
             if (onCalibrationChange) onCalibrationChange();
-        });
+            updateModificationWarning();
+        };
+        elements.calYOffsetInput.addEventListener('input', handleYChange);
+        elements.calYOffsetInput.addEventListener('change', handleYChange);
     }
 
     // Reset to defaults
@@ -105,35 +119,23 @@ function resetToDefaults() {
 export function syncUIToState() {
     const cal = state.calibration;
 
-    elements.xOffsetSlider.value = cal.xOffset;
-    elements.xOffsetValue.textContent = `${cal.xOffset}px`;
+    // Sync number inputs
+    if (elements.xOffsetInput) elements.xOffsetInput.value = cal.xOffset;
+    if (elements.iconWidthInput) elements.iconWidthInput.value = cal.iconWidth;
+    if (elements.iconHeightInput) elements.iconHeightInput.value = cal.iconHeight;
+    if (elements.xSpacingInput) elements.xSpacingInput.value = cal.xSpacing;
+    if (elements.ySpacingInput) elements.ySpacingInput.value = cal.ySpacing;
+    if (elements.iconsPerRowInput) elements.iconsPerRowInput.value = cal.iconsPerRow;
+    if (elements.numRowsInput) elements.numRowsInput.value = cal.numRows;
+    if (elements.totalItemsInput) elements.totalItemsInput.value = cal.totalItems || 60;
 
-    // Y offset is only in main controls bar
+    // Y offset - sync both main slider and calibration panel input
     if (elements.mainYOffsetSlider) {
         elements.mainYOffsetSlider.value = cal.yOffset;
         elements.mainYOffsetValue.textContent = `${cal.yOffset}px`;
     }
-
-    elements.iconWidthSlider.value = cal.iconWidth;
-    elements.iconWidthValue.textContent = `${cal.iconWidth}px`;
-
-    elements.iconHeightSlider.value = cal.iconHeight;
-    elements.iconHeightValue.textContent = `${cal.iconHeight}px`;
-
-    elements.xSpacingSlider.value = cal.xSpacing;
-    elements.xSpacingValue.textContent = `${cal.xSpacing}px`;
-
-    elements.ySpacingSlider.value = cal.ySpacing;
-    elements.ySpacingValue.textContent = `${cal.ySpacing}px`;
-
-    elements.iconsPerRowSlider.value = cal.iconsPerRow;
-    elements.iconsPerRowValue.textContent = cal.iconsPerRow.toString();
-
-    elements.numRowsSlider.value = cal.numRows;
-    elements.numRowsValue.textContent = cal.numRows.toString();
-
-    if (elements.totalItemsInput) {
-        elements.totalItemsInput.value = cal.totalItems || 60;
+    if (elements.calYOffsetInput) {
+        elements.calYOffsetInput.value = cal.yOffset;
     }
 }
 

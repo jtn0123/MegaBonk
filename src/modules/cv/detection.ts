@@ -338,8 +338,9 @@ function extractIconRegion(ctx: CanvasRenderingContext2D, cell: ROI): ImageData 
 /**
  * Resize ImageData to target dimensions
  * Returns null if canvas context cannot be obtained
+ * Exported for use by CV Validator and other library consumers
  */
-function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight: number): ImageData | null {
+export function resizeImageData(imageData: ImageData, targetWidth: number, targetHeight: number): ImageData | null {
     const canvas = document.createElement('canvas');
     canvas.width = imageData.width;
     canvas.height = imageData.height;

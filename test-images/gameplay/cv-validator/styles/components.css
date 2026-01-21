@@ -6,12 +6,12 @@
 /* Form elements */
 select,
 button {
-    padding: 10px 15px;
+    padding: 8px 12px;
     border: 1px solid var(--border);
     border-radius: 6px;
     background: var(--bg-panel);
     color: var(--text-primary);
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
 }
 
@@ -34,7 +34,7 @@ button:disabled {
 .confidence-slider {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .confidence-slider input[type='range'] {
@@ -73,7 +73,7 @@ button:disabled {
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    margin-bottom: 10px;
+    margin-bottom: 8px;
 }
 
 .filter-btn {
@@ -169,26 +169,32 @@ button:disabled {
     opacity: 1;
 }
 
-/* Item badges */
+/* Item badges - horizontal compact */
 .item-badge {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 10px;
+    padding: 4px 8px;
     background: var(--bg-panel);
-    border-radius: 6px;
-    font-size: 13px;
+    border-radius: 4px;
+    font-size: 12px;
 }
 
 .item-badge img {
     width: 24px;
     height: 24px;
-    border-radius: 4px;
+    border-radius: 3px;
+    flex-shrink: 0;
 }
 
 .item-badge .count {
     color: var(--text-secondary);
-    font-size: 11px;
+    font-size: 10px;
+}
+
+.item-badge .conf {
+    font-size: 10px;
+    color: var(--text-secondary);
 }
 
 .item-badge.match {
@@ -249,9 +255,9 @@ button:disabled {
 
 /* Crop preview in badges */
 .item-badge .crop-preview {
-    width: 28px;
-    height: 28px;
-    border-radius: 4px;
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
     border: 1px solid var(--border);
     background: #000;
     object-fit: contain;
@@ -302,7 +308,7 @@ button:disabled {
 }
 
 .metric-card .value {
-    font-size: 22px;
+    font-size: 20px;
     font-weight: bold;
     margin-bottom: 2px;
 }
@@ -617,48 +623,93 @@ button:disabled {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 15px;
+    padding: 16px 20px;
     margin-bottom: 20px;
 }
 
-.calibration-row {
+.calibration-grid {
     display: flex;
-    gap: 20px;
     flex-wrap: wrap;
-    margin-bottom: 10px;
+    gap: 12px;
+    margin-bottom: 14px;
 }
 
-.calibration-control {
+.cal-group {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex: 1;
-    min-width: 200px;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-panel);
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
 }
 
-.calibration-control label {
-    font-size: 12px;
-    color: var(--text-secondary);
-    min-width: 70px;
+/* Color-code different groups */
+.cal-group:nth-child(1) { border-left-color: var(--cyan); }      /* Position */
+.cal-group:nth-child(2) { border-left-color: var(--success); }   /* Icon Size */
+.cal-group:nth-child(3) { border-left-color: var(--warning); }   /* Spacing */
+.cal-group:nth-child(4) { border-left-color: var(--accent); }    /* Grid */
+
+.cal-group-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    min-width: 55px;
+    padding-right: 10px;
+    border-right: 1px solid var(--border);
 }
 
-.calibration-control input[type='range'] {
-    flex: 1;
-    max-width: 120px;
+.cal-input {
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
-.calibration-control .value {
+.cal-input label {
+    font-size: 11px;
+    color: var(--text-primary);
+    font-weight: 500;
+    min-width: 20px;
+}
+
+.cal-input input[type='number'] {
+    width: 55px;
+    padding: 5px 6px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 13px;
     font-family: monospace;
-    font-size: 12px;
-    min-width: 45px;
     text-align: right;
+}
+
+.cal-input input[type='number']:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(233, 69, 96, 0.05);
+}
+
+.cal-input input[type='number']::-webkit-inner-spin-button,
+.cal-input input[type='number']::-webkit-outer-spin-button {
+    opacity: 1;
+    height: 20px;
+}
+
+.cal-input .unit {
+    font-size: 10px;
+    color: var(--text-secondary);
+    min-width: 14px;
 }
 
 .calibration-info {
     display: flex;
     gap: 20px;
     align-items: center;
-    padding-top: 10px;
+    padding-top: 12px;
     border-top: 1px solid var(--border);
     font-size: 12px;
     color: var(--text-secondary);
@@ -666,6 +717,9 @@ button:disabled {
 
 .calibration-info span {
     font-family: monospace;
+    background: var(--bg-panel);
+    padding: 3px 8px;
+    border-radius: 4px;
 }
 
 #toggle-grid-calibration {
@@ -1582,4 +1636,195 @@ button:disabled {
 
 .preset-controls {
     flex-wrap: wrap;
+}
+
+/* ========================================
+ * Detection Options Toggles
+ * ======================================== */
+
+.detection-options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.detection-options label {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.toggle-group {
+    display: flex;
+    gap: 4px;
+}
+
+.toggle-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--surface, var(--bg-panel));
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.toggle-btn:hover {
+    border-color: var(--accent);
+}
+
+.toggle-btn.active {
+    background: var(--success);
+    color: #000;
+    border-color: var(--success);
+}
+
+.toggle-btn.active::after {
+    content: ' ✓';
+}
+
+/* Training Sources Dropdown */
+.training-toggle-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.training-toggle-wrapper .toggle-btn {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.sources-btn {
+    padding: 4px 6px;
+    font-size: 10px;
+    border: 1px solid var(--border);
+    border-left: none;
+    border-radius: 0 4px 4px 0;
+    background: var(--bg-panel);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.sources-btn:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+.training-sources-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 200;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    min-width: 280px;
+    max-width: 400px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    margin-top: 4px;
+}
+
+.training-sources-dropdown.show {
+    display: block;
+}
+
+.sources-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-panel);
+    border-radius: 6px 6px 0 0;
+}
+
+.sources-header span {
+    flex: 1;
+    font-size: 12px;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.sources-action {
+    padding: 2px 8px;
+    font-size: 10px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.sources-action:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+.sources-list {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 8px;
+}
+
+.sources-loading {
+    font-size: 11px;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 10px;
+    margin: 0;
+}
+
+.source-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.source-item:hover {
+    background: var(--bg-panel);
+}
+
+.source-item input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    cursor: pointer;
+}
+
+.source-item label {
+    flex: 1;
+    font-size: 11px;
+    color: var(--text-primary);
+    cursor: pointer;
+    word-break: break-all;
+}
+
+.source-item .source-count {
+    font-size: 10px;
+    color: var(--text-secondary);
+    background: var(--bg-panel);
+    padding: 2px 6px;
+    border-radius: 3px;
+}
+
+.sources-footer {
+    padding: 8px 12px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+}
+
+.validate-link {
+    font-size: 11px;
+    color: var(--accent);
+    text-decoration: none;
+}
+
+.validate-link:hover {
+    text-decoration: underline;
 }

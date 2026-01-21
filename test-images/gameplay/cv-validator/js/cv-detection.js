@@ -1,11 +1,60 @@
 /* ========================================
  * CV Validator - CV Detection
- * Grid detection, NCC, template matching
+ * Grid detection, similarity matching, template matching
+ * Now uses shared CV library for enhanced detection
  * ======================================== */
 
 import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { log } from './utils.js';
+
+// Import from shared CV library (built from TypeScript)
+// Falls back to local implementations if library not available
+let sharedLibrary = null;
+let useSharedLibrary = false;
+
+// Detection options (can be toggled via UI)
+let detectionOptions = {
+    useEnhanced: true, // Multi-method vs NCC only
+    useTrainingData: true, // Use training templates
+};
+
+/**
+ * Set detection options (called from UI toggles)
+ */
+export function setDetectionOptions(options) {
+    detectionOptions = { ...detectionOptions, ...options };
+}
+
+/**
+ * Get current detection options
+ */
+export function getDetectionOptions() {
+    return { ...detectionOptions };
+}
+
+// Try to load the shared CV library
+async function loadSharedLibrary() {
+    try {
+        // Path relative to cv-validator directory
+        sharedLibrary = await import('../../../../dist/cv-library/cv-library.js');
+        useSharedLibrary = true;
+        log('Loaded shared CV library with enhanced detection');
+        return true;
+    } catch (err) {
+        log(`Shared CV library not available, using local NCC: ${err.message}`);
+        useSharedLibrary = false;
+        return false;
+    }
+}
+
+// Export the loader for initialization
+export { loadSharedLibrary, useSharedLibrary };
+
+// Check if shared library is loaded
+export function isSharedLibraryLoaded() {
+    return useSharedLibrary && sharedLibrary !== null;
+}
 
 // Store current image context for crop extraction
 let currentImageCtx = null;
@@ -57,20 +106,27 @@ export function detectGridPositions(width, height) {
         // Don't scan too high up the screen
         if (rowY < height * CONFIG.MIN_ROW_HEIGHT_PERCENT) break;
 
-        const startX = baseStartX + scaledXOffset;
+        // Calculate how many items are in this row
+        const itemsRemaining = maxItems - slotIndex;
+        const itemsInThisRow = Math.min(cal.iconsPerRow, itemsRemaining);
 
-        for (let col = 0; col < cal.iconsPerRow; col++) {
-            // Stop if we've reached totalItems limit
-            if (slotIndex >= maxItems) break;
+        // Calculate centering offset - ONLY for the bottom row (rowIndex 0)
+        // Upper rows always start from the left
+        let centeringOffset = 0;
+        if (rowIndex === 0 && itemsInThisRow < cal.iconsPerRow) {
+            centeringOffset = Math.floor((cal.iconsPerRow - itemsInThisRow) / 2);
+        }
+        const rowStartX = baseStartX + scaledXOffset + centeringOffset * (iconW + spacingX);
 
+        for (let col = 0; col < itemsInThisRow; col++) {
             positions.push({
-                x: startX + col * (iconW + spacingX),
+                x: rowStartX + col * (iconW + spacingX),
                 y: rowY,
                 width: iconW,
                 height: iconH,
                 slotIndex: slotIndex,
                 row: rowIndex,
-                col: col,
+                col: col + centeringOffset, // Actual column position (for display)
             });
             slotIndex++;
         }
@@ -89,6 +145,12 @@ export function detectGridPositions(width, height) {
 // ========================================
 
 export function isEmptyCell(imageData) {
+    // Use shared library if available
+    if (useSharedLibrary && sharedLibrary?.isEmptyCell) {
+        return sharedLibrary.isEmptyCell(imageData);
+    }
+
+    // Fallback to local implementation
     const pixels = imageData.data;
     let sum = 0,
         sumSq = 0,
@@ -112,9 +174,26 @@ export function isEmptyCell(imageData) {
 }
 
 // ========================================
-// NCC (Normalized Cross-Correlation)
+// Similarity Calculation
 // ========================================
 
+/**
+ * Calculate similarity using the shared library's enhanced method
+ * Falls back to local NCC if library not available or enhanced is disabled
+ */
+export function calculateSimilarity(imageData1, imageData2) {
+    // Use enhanced only if enabled AND library loaded
+    if (detectionOptions.useEnhanced && useSharedLibrary && sharedLibrary?.calculateEnhancedSimilarity) {
+        return sharedLibrary.calculateEnhancedSimilarity(imageData1, imageData2);
+    }
+
+    // Fallback to local NCC
+    return calculateNCC(imageData1, imageData2);
+}
+
+/**
+ * Local NCC implementation (fallback when shared library not available)
+ */
 export function calculateNCC(imageData1, imageData2) {
     const pixels1 = imageData1.data;
     const pixels2 = imageData2.data;
@@ -166,6 +245,12 @@ export function imageDataToDataURL(imageData) {
 // ========================================
 
 export function resizeImageData(imageData, targetWidth, targetHeight) {
+    // Use shared library if available
+    if (useSharedLibrary && sharedLibrary?.resizeImageData) {
+        return sharedLibrary.resizeImageData(imageData, targetWidth, targetHeight);
+    }
+
+    // Local implementation
     const canvas = document.createElement('canvas');
     canvas.width = imageData.width;
     canvas.height = imageData.height;
@@ -179,6 +264,63 @@ export function resizeImageData(imageData, targetWidth, targetHeight) {
     outCtx.drawImage(canvas, 0, 0, targetWidth, targetHeight);
 
     return outCtx.getImageData(0, 0, targetWidth, targetHeight);
+}
+
+// ========================================
+// Training Template Matching
+// ========================================
+
+/**
+ * Match using training templates if available
+ * Returns boosted similarity score
+ */
+function matchWithTrainingTemplates(centerData, primaryTemplate, itemId) {
+    // Skip if training data is disabled via toggle
+    if (!detectionOptions.useTrainingData) {
+        return null;
+    }
+
+    if (!useSharedLibrary || !sharedLibrary?.isTrainingDataLoaded || !sharedLibrary.isTrainingDataLoaded()) {
+        return null; // No training data available
+    }
+
+    const trainingTemplates = sharedLibrary.getTrainingTemplatesForItem(itemId);
+    if (!trainingTemplates || trainingTemplates.length === 0) {
+        return null;
+    }
+
+    // Get primary template score
+    const primaryScore = calculateSimilarity(centerData, primaryTemplate);
+
+    // Match against training templates
+    const trainingScores = [];
+    for (const trainingTpl of trainingTemplates) {
+        // Resize training template to match center data size
+        const resizedTraining = resizeImageData(trainingTpl.imageData, centerData.width, centerData.height);
+        if (!resizedTraining) continue;
+
+        const score = calculateSimilarity(centerData, resizedTraining) * trainingTpl.weight;
+        trainingScores.push(score);
+    }
+
+    if (trainingScores.length === 0) {
+        return primaryScore;
+    }
+
+    // Aggregation strategy:
+    // 1. Take the max score (primary has 1.5x weight to prefer canonical template)
+    // 2. Add voting bonus for multiple high-confidence matches
+    const weightedPrimaryScore = primaryScore * 1.5;
+    const allScores = [weightedPrimaryScore, ...trainingScores];
+    const maxScore = Math.max(...allScores) / 1.5; // Normalize back
+
+    // Voting bonus: count how many templates exceed threshold
+    const threshold = 0.5;
+    const votesAboveThreshold = allScores.filter(s => s / 1.5 > threshold).length;
+    const votingBonus = Math.min(0.08, votesAboveThreshold * 0.015); // Up to 8% bonus
+
+    // Final score with voting bonus, capped at 0.99
+    return Math.min(0.99, maxScore + votingBonus);
 }
 
 // ========================================
@@ -198,7 +340,20 @@ export async function runDetection(imageData, width, height, threshold, progress
     state.emptyCells.clear();
     state.gridPositionsCache = gridPositions;
 
-    log(`Scanning ${gridPositions.length} grid positions...`);
+    // Log detection method based on toggles
+    let detectionMethod = 'NCC only';
+    if (detectionOptions.useEnhanced && useSharedLibrary) {
+        detectionMethod = 'enhanced multi-method';
+    } else if (detectionOptions.useEnhanced && !useSharedLibrary) {
+        detectionMethod = 'NCC only (library not loaded)';
+    }
+
+    let trainingStatus = 'training data disabled';
+    if (detectionOptions.useTrainingData) {
+        trainingStatus =
+            useSharedLibrary && sharedLibrary?.isTrainingDataLoaded?.() ? 'with training data' : 'no training data';
+    }
+    log(`Scanning ${gridPositions.length} grid positions using ${detectionMethod} (${trainingStatus})...`);
 
     let processedCells = 0;
     const nonEmptyCells = [];
@@ -272,7 +427,13 @@ export async function runDetection(imageData, width, height, threshold, progress
             );
             const resizedTemplate = tCenterCtx.getImageData(0, 0, centerWidth, centerHeight);
 
-            const similarity = calculateNCC(centerData, resizedTemplate);
+            // Try training template matching first
+            let similarity = matchWithTrainingTemplates(centerData, resizedTemplate, itemId);
+
+            // Fall back to regular similarity if no training data
+            if (similarity === null) {
+                similarity = calculateSimilarity(centerData, resizedTemplate);
+            }
 
             allMatches.push({
                 item: state.itemIdLookup.get(itemId),
@@ -327,4 +488,15 @@ export function getResolutionInfo(width, height) {
         scale,
         scaleText: `${scale.toFixed(2)}x`,
     };
+}
+
+// ========================================
+// Get Training Data Stats (for UI display)
+// ========================================
+
+export function getTrainingDataStats() {
+    if (!useSharedLibrary || !sharedLibrary?.getTrainingStats) {
+        return null;
+    }
+    return sharedLibrary.getTrainingStats();
 }

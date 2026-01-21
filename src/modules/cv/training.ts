@@ -39,6 +39,7 @@ export interface TrainingTemplate {
     weight: number; // 1.2 for corrected, 1.0 for verified, 0.8 for uncorrected
     resolution: string;
     validationType: string;
+    sourceImage: string; // e.g., "pc-1080p/level_803_russian_stress_test.jpg"
 }
 
 // ========================================
@@ -50,8 +51,22 @@ const trainingTemplates = new Map<string, TrainingTemplate[]>();
 let trainingDataLoaded = false;
 let trainingIndex: TrainingIndex | null = null;
 
+// Track available source images and which are enabled
+const availableSources = new Set<string>();
+const enabledSources = new Set<string>();
+
 // Base path for training data (relative to app root)
-const TRAINING_DATA_BASE_PATH = '/data/training-data/';
+// Can be overridden with setTrainingDataBasePath() for library consumers
+let trainingDataBasePath = '/data/training-data/';
+
+/**
+ * Set the base path for training data
+ * Useful for library consumers who have different directory structures
+ * @param path The base path (should end with /)
+ */
+export function setTrainingDataBasePath(path: string): void {
+    trainingDataBasePath = path.endsWith('/') ? path : path + '/';
+}
 
 // ========================================
 // Getters
@@ -70,7 +85,80 @@ export function getTrainingIndex(): TrainingIndex | null {
 }
 
 export function getTrainingTemplatesForItem(itemId: string): TrainingTemplate[] {
-    return trainingTemplates.get(itemId) || [];
+    const templates = trainingTemplates.get(itemId) || [];
+
+    // If no sources are enabled or all sources are enabled, return all
+    if (enabledSources.size === 0 || enabledSources.size === availableSources.size) {
+        return templates;
+    }
+
+    // Filter by enabled sources
+    return templates.filter(t => enabledSources.has(t.sourceImage));
+}
+
+// ========================================
+// Source Management
+// ========================================
+
+/**
+ * Get all available training data sources
+ */
+export function getAvailableSources(): string[] {
+    return Array.from(availableSources).sort();
+}
+
+/**
+ * Get currently enabled sources
+ */
+export function getEnabledSources(): string[] {
+    return Array.from(enabledSources).sort();
+}
+
+/**
+ * Enable a specific source
+ */
+export function enableSource(source: string): void {
+    if (availableSources.has(source)) {
+        enabledSources.add(source);
+    }
+}
+
+/**
+ * Disable a specific source
+ */
+export function disableSource(source: string): void {
+    enabledSources.delete(source);
+}
+
+/**
+ * Set which sources are enabled (replaces current selection)
+ */
+export function setEnabledSources(sources: string[]): void {
+    enabledSources.clear();
+    for (const source of sources) {
+        if (availableSources.has(source)) {
+            enabledSources.add(source);
+        }
+    }
+}
+
+/**
+ * Enable all sources
+ */
+export function enableAllSources(): void {
+    enabledSources.clear();
+    for (const source of availableSources) {
+        enabledSources.add(source);
+    }
+}
+
+/**
+ * Check if a source is enabled
+ */
+export function isSourceEnabled(source: string): boolean {
+    // If no explicit selection, all are considered enabled
+    if (enabledSources.size === 0) return true;
+    return enabledSources.has(source);
 }
 
 // ========================================
@@ -140,7 +228,7 @@ async function loadTrainingImage(imagePath: string): Promise<ImageData | null> {
             resolve(null);
         };
 
-        img.src = TRAINING_DATA_BASE_PATH + imagePath;
+        img.src = trainingDataBasePath + imagePath;
     });
 }
 
@@ -158,7 +246,7 @@ export async function loadTrainingData(): Promise<boolean> {
 
     try {
         // Load index file
-        const indexPath = TRAINING_DATA_BASE_PATH + 'index.json';
+        const indexPath = trainingDataBasePath + 'index.json';
         const response = await fetch(indexPath);
 
         if (!response.ok) {
@@ -193,11 +281,15 @@ export async function loadTrainingData(): Promise<boolean> {
                 const imageData = await loadTrainingImage(sample.file);
 
                 if (imageData) {
+                    // Track this source
+                    availableSources.add(sample.source_image);
+
                     templates.push({
                         imageData,
                         weight: getTemplateWeight(sample.validation_type),
                         resolution: sample.source_resolution,
                         validationType: sample.validation_type,
+                        sourceImage: sample.source_image,
                     });
                     loadedCount++;
                 } else {
@@ -212,12 +304,16 @@ export async function loadTrainingData(): Promise<boolean> {
 
         trainingDataLoaded = true;
 
+        // Enable all sources by default
+        enableAllSources();
+
         logger.info({
             operation: 'cv.training.load_complete',
             data: {
                 loadedTemplates: loadedCount,
                 failedTemplates: failedCount,
                 itemsWithTemplates: trainingTemplates.size,
+                sourcesFound: availableSources.size,
             },
         });
 
@@ -271,4 +367,6 @@ export function clearTrainingData(): void {
     trainingTemplates.clear();
     trainingDataLoaded = false;
     trainingIndex = null;
+    availableSources.clear();
+    enabledSources.clear();
 }

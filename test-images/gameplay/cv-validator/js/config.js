@@ -64,6 +64,12 @@ export const CONFIG = {
         itemsData: '../../data/items.json',
         imagesBase: '../../src/',
     },
+
+    // Detection method toggles (default both enabled)
+    DETECTION_OPTIONS: {
+        useEnhanced: true, // Multi-method vs NCC only
+        useTrainingData: true, // Use training templates
+    },
 };
 
 // Metric thresholds for color coding
