@@ -12,6 +12,8 @@ import {
     isTemplatesLoaded,
     setTemplatesLoaded,
     setPriorityTemplatesLoaded,
+    isStandardTemplatesLoading,
+    setStandardTemplatesLoading,
 } from './state.ts';
 import { getDominantColor } from './color.ts';
 
@@ -224,11 +226,22 @@ export async function loadItemTemplates(): Promise<void> {
 
     // Load remaining items in background (non-blocking)
     // Use setTimeout(0) to yield to the event loop without arbitrary delay
+    // Guard against concurrent loads with isStandardTemplatesLoading flag
+    if (isStandardTemplatesLoading()) {
+        logger.info({
+            operation: 'cv.load_templates',
+            data: { phase: 'skipped_standard', reason: 'already_loading' },
+        });
+        return;
+    }
+    setStandardTemplatesLoading(true);
+
     setTimeout(async () => {
         try {
             const standardResult = await loadTemplatesBatch(standard);
             groupTemplatesByColor(standard);
             setTemplatesLoaded(true);
+            setStandardTemplatesLoading(false);
 
             logger.info({
                 operation: 'cv.load_templates',
@@ -254,6 +267,7 @@ export async function loadItemTemplates(): Promise<void> {
             });
             // Still mark as loaded to prevent infinite retries
             setTemplatesLoaded(true);
+            setStandardTemplatesLoading(false);
         }
     }, 0);
 }
