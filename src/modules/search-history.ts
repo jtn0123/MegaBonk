@@ -4,13 +4,14 @@
 // Manages search history persistence and UI
 
 import { escapeHtml } from './utils.ts';
+import { MAX_SEARCH_HISTORY } from './constants.ts';
 
 // ========================================
 // Constants
 // ========================================
 
 const SEARCH_HISTORY_KEY = 'megabonk_search_history';
-const MAX_SEARCH_HISTORY = 10;
+// MAX_SEARCH_HISTORY imported from constants.ts
 
 // ========================================
 // Search History Management
@@ -18,12 +19,24 @@ const MAX_SEARCH_HISTORY = 10;
 
 /**
  * Get search history from localStorage
+ * Validates that stored data is an array of strings
  * @returns Search history array
  */
 export function getSearchHistory(): string[] {
     try {
         const history = localStorage.getItem(SEARCH_HISTORY_KEY);
-        return history ? JSON.parse(history) : [];
+        if (!history) return [];
+
+        const parsed = JSON.parse(history);
+
+        // Validate it's an array
+        if (!Array.isArray(parsed)) {
+            console.debug('[search-history] Invalid history format, expected array');
+            return [];
+        }
+
+        // Filter to only valid string entries
+        return parsed.filter((item): item is string => typeof item === 'string' && item.length > 0);
     } catch (error) {
         console.debug('[search-history] localStorage unavailable:', (error as Error).message);
         return [];
@@ -69,10 +82,7 @@ export function clearSearchHistory(): void {
  * @param searchInput - Search input element
  * @param onSelect - Callback when item is selected
  */
-export function showSearchHistoryDropdown(
-    searchInput: HTMLInputElement,
-    onSelect: (term: string) => void
-): void {
+export function showSearchHistoryDropdown(searchInput: HTMLInputElement, onSelect: (term: string) => void): void {
     const history = getSearchHistory();
     if (history.length === 0) return;
 
@@ -128,11 +138,15 @@ export function showSearchHistoryDropdown(
 
     // Clear button handler
     const clearBtn = dropdown.querySelector('.clear-history-btn') as HTMLButtonElement | null;
-    clearBtn?.addEventListener('click', e => {
-        e.stopPropagation();
-        clearSearchHistory();
-        closeDropdown();
-    }, { signal: abortController.signal });
+    clearBtn?.addEventListener(
+        'click',
+        e => {
+            e.stopPropagation();
+            clearSearchHistory();
+            closeDropdown();
+        },
+        { signal: abortController.signal }
+    );
 
     const historyItems = dropdown.querySelectorAll('.search-history-item');
     let currentIndex = -1;

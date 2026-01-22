@@ -18,6 +18,7 @@ import {
 } from './computer-vision.ts';
 import { setLastOverlayUrl, updateStats, updateLogViewer, isDebugEnabled } from './debug-ui.ts';
 import { escapeHtml } from './utils.ts';
+import { MAX_ITEM_COUNT, MAX_FILE_SIZE_BYTES } from './constants.ts';
 
 // State
 let allData: AllGameData = {};
@@ -57,9 +58,21 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
     templatesLoaded = false;
     templatesLoadError = null;
 
+    // Disable hybrid detect button until templates are loaded
+    const hybridBtn = document.getElementById('scan-hybrid-detect-btn') as HTMLButtonElement | null;
+    if (hybridBtn) {
+        hybridBtn.disabled = true;
+        hybridBtn.title = 'Loading item templates...';
+    }
+
     loadItemTemplates()
         .then(() => {
             templatesLoaded = true;
+            // Re-enable hybrid detect button
+            if (hybridBtn) {
+                hybridBtn.disabled = false;
+                hybridBtn.title = '';
+            }
             logger.info({
                 operation: 'scan_build.templates_loaded',
                 data: { success: true },
@@ -67,6 +80,11 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
         })
         .catch(error => {
             templatesLoadError = error as Error;
+            // Re-enable button but show warning state
+            if (hybridBtn) {
+                hybridBtn.disabled = false;
+                hybridBtn.title = 'Templates failed to load - reduced accuracy';
+            }
             logger.error({
                 operation: 'scan_build.load_templates',
                 error: {
@@ -139,9 +157,9 @@ async function handleFileSelect(e: Event): Promise<void> {
         return;
     }
 
-    // Validate file size (max 10MB)
-    if (file.size > 10 * 1024 * 1024) {
-        ToastManager.error('Image size must be less than 10MB');
+    // Validate file size
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+        ToastManager.error(`Image size must be less than ${MAX_FILE_SIZE_BYTES / (1024 * 1024)}MB`);
         return;
     }
 
@@ -186,17 +204,33 @@ async function handleFileSelect(e: Event): Promise<void> {
 
 /**
  * Display the uploaded image
+ * Uses DOM manipulation instead of innerHTML to prevent XSS from malformed data URLs
  */
 function displayUploadedImage(): void {
     const previewContainer = document.getElementById('scan-image-preview');
     if (!previewContainer || !uploadedImage) return;
 
-    previewContainer.innerHTML = `
-        <div class="scan-image-wrapper">
-            <img src="${uploadedImage}" alt="Uploaded build screenshot" class="scan-preview-image" />
-            <button class="scan-clear-btn" id="scan-clear-image" aria-label="Clear image">✕</button>
-        </div>
-    `;
+    // Clear existing content safely
+    previewContainer.innerHTML = '';
+
+    // Create elements via DOM API to prevent XSS
+    const wrapper = document.createElement('div');
+    wrapper.className = 'scan-image-wrapper';
+
+    const img = document.createElement('img');
+    img.src = uploadedImage; // Set via property, not innerHTML
+    img.alt = 'Uploaded build screenshot';
+    img.className = 'scan-preview-image';
+
+    const clearBtn = document.createElement('button');
+    clearBtn.className = 'scan-clear-btn';
+    clearBtn.id = 'scan-clear-image';
+    clearBtn.setAttribute('aria-label', 'Clear image');
+    clearBtn.textContent = '✕';
+
+    wrapper.appendChild(img);
+    wrapper.appendChild(clearBtn);
+    previewContainer.appendChild(wrapper);
 
     previewContainer.style.display = 'block';
 
@@ -946,7 +980,7 @@ function createItemCard(item: Item): HTMLElement {
 function updateItemCount(item: Item, delta: number, display: HTMLElement, card: HTMLElement): void {
     const current = selectedItems.get(item.id);
     const currentCount = current?.count || 0;
-    const newCount = Math.max(0, Math.min(99, currentCount + delta)); // Cap at 99
+    const newCount = Math.max(0, Math.min(MAX_ITEM_COUNT, currentCount + delta));
 
     if (newCount === 0) {
         selectedItems.delete(item.id);
@@ -1111,9 +1145,19 @@ function applyToAdvisor(): void {
 }
 
 /**
+ * Scan state return type
+ */
+interface ScanState {
+    character: Character | null;
+    weapon: Weapon | null;
+    items: Array<{ id: string; name: string; count: number }>;
+    tomes: Array<{ id: string; name: string }>;
+}
+
+/**
  * Get current scan state
  */
-export function getScanState() {
+export function getScanState(): ScanState {
     return {
         character: selectedCharacter,
         weapon: selectedWeapon,

@@ -3,17 +3,9 @@
 // ========================================
 // Cross-tab search functionality
 
-import type {
-    Entity,
-    EntityType,
-    Item,
-    Weapon,
-    Tome,
-    Character,
-    Shrine,
-    AllGameData,
-} from '../types/index.ts';
+import type { Entity, EntityType, Item, Weapon, Tome, Character, Shrine, AllGameData } from '../types/index.ts';
 import { fuzzyMatchScore } from './fuzzy-match.ts';
+import { MAX_GLOBAL_SEARCH_RESULTS, MAX_SEARCH_RESULTS_PER_TYPE } from './constants.ts';
 
 // ========================================
 // Type Definitions
@@ -60,10 +52,10 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
         'passive',
     ];
 
-    // Score thresholds for early termination
+    // Score thresholds for early termination within field search
     const EXACT_MATCH_SCORE = 2000;
     const STARTS_WITH_SCORE = 1500;
-    const MAX_TOTAL_RESULTS = 100;
+    // MAX_GLOBAL_SEARCH_RESULTS and MAX_SEARCH_RESULTS_PER_TYPE imported from constants.ts
 
     // Define data sources with their types
     const dataSources: Array<{ type: EntityType; data: Entity[] | undefined }> = [
@@ -74,11 +66,18 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
         { type: 'shrines', data: allData.shrines?.shrines },
     ];
 
-    // Search each data type
+    // Search each data type - don't break early to ensure all types are searched
     for (const { type, data } of dataSources) {
         if (!data) continue;
 
+        let resultsForType = 0;
+
         for (const item of data) {
+            // Limit results per type to ensure variety across all data types
+            if (resultsForType >= MAX_SEARCH_RESULTS_PER_TYPE) {
+                break;
+            }
+
             let bestScore = 0;
 
             // Check fields in priority order
@@ -88,7 +87,7 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
                     const match = fuzzyMatchScore(searchTerm, value, field);
                     if (match.score > bestScore) {
                         bestScore = match.score;
-                        // Early termination for high-quality matches
+                        // Early termination for high-quality matches within item
                         if (bestScore >= STARTS_WITH_SCORE && field === 'name') {
                             break;
                         }
@@ -117,15 +116,11 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
                     item: item as Item | Weapon | Tome | Character | Shrine,
                     score: bestScore,
                 });
+                resultsForType++;
             }
-        }
-
-        // Early termination if enough results
-        if (results.length >= MAX_TOTAL_RESULTS) {
-            break;
         }
     }
 
-    // Sort by score (highest first)
-    return results.sort((a, b) => b.score - a.score);
+    // Sort by score (highest first) and limit total results
+    return results.sort((a, b) => b.score - a.score).slice(0, MAX_GLOBAL_SEARCH_RESULTS);
 }

@@ -6,7 +6,14 @@ import type { Character, Weapon, Tome, Item } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
 import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue } from './utils.ts';
-import { BUILD_ITEMS_LIMIT, DEFAULT_BUILD_STATS, ITEM_EFFECTS, type BuildStats, type ItemEffect } from './constants.ts';
+import {
+    BUILD_ITEMS_LIMIT,
+    DEFAULT_BUILD_STATS,
+    ITEM_EFFECTS,
+    MAX_BUILD_HISTORY,
+    type BuildStats,
+    type ItemEffect,
+} from './constants.ts';
 import { logger } from './logger.ts';
 import { getState, setState, type Build } from './store.ts';
 
@@ -82,7 +89,7 @@ function updateCurrentBuild(build: Build): void {
 
 // Build history management
 const BUILD_HISTORY_KEY = 'megabonk_build_history';
-const MAX_BUILD_HISTORY = 20;
+// MAX_BUILD_HISTORY imported from constants.ts
 
 // Track if events have been set up (for lazy initialization)
 let eventsInitialized = false;
@@ -256,6 +263,12 @@ export function saveBuildToHistory(): void {
  */
 export function loadBuildFromHistory(index: number): void {
     try {
+        // Validate index is a finite integer
+        if (!Number.isFinite(index) || !Number.isInteger(index)) {
+            ToastManager.error('Invalid build index');
+            return;
+        }
+
         const history = getBuildHistory();
         if (index < 0 || index >= history.length) {
             ToastManager.error('Build not found in history');
@@ -296,6 +309,12 @@ export function loadBuildFromHistory(index: number): void {
  */
 export function deleteBuildFromHistory(index: number): void {
     try {
+        // Validate index is a finite integer
+        if (!Number.isFinite(index) || !Number.isInteger(index)) {
+            ToastManager.error('Invalid build index');
+            return;
+        }
+
         let history = getBuildHistory();
         if (index < 0 || index >= history.length) {
             ToastManager.error('Build not found in history');
@@ -591,6 +610,15 @@ export function setupBuildPlannerEvents(): void {
 // Cache calculated stats to avoid repeated calculations when build hasn't changed
 let lastBuildCacheKey = '';
 let cachedBuildStats: CalculatedBuildStats | null = null;
+
+/**
+ * Invalidate the memoization cache
+ * Should be called when underlying data changes (e.g., allData reload)
+ */
+export function invalidateBuildStatsCache(): void {
+    lastBuildCacheKey = '';
+    cachedBuildStats = null;
+}
 
 /**
  * Generate a cache key from build state
@@ -1048,8 +1076,17 @@ export function updateBuildURL(): void {
     if (!buildData.t || buildData.t.length === 0) delete buildData.t;
     if (!buildData.i || buildData.i.length === 0) delete buildData.i;
 
-    const encoded = btoa(JSON.stringify(buildData));
-    history.replaceState(null, '', `#build=${encoded}`);
+    try {
+        const encoded = btoa(JSON.stringify(buildData));
+        history.replaceState(null, '', `#build=${encoded}`);
+    } catch (error) {
+        // btoa can throw on very large strings or encoding issues
+        // Silently fail for URL update (non-critical operation)
+        logger.debug({
+            operation: 'build.url_update',
+            error: { name: (error as Error).name, message: (error as Error).message },
+        });
+    }
 }
 
 /**

@@ -7,7 +7,9 @@
 import { allData } from './data-service.ts';
 import { logger } from './logger.ts';
 import { escapeHtml, generateEntityImage } from './utils.ts';
+import { MAX_RECENT_ITEMS } from './constants.ts';
 import type { EntityType, Entity } from '../types/index.ts';
+import type { Item, Weapon, Tome, Character, Shrine } from '../types/index.ts';
 
 // ========================================
 // Types
@@ -24,7 +26,7 @@ interface RecentlyViewedEntry {
 // ========================================
 
 const STORAGE_KEY = 'megabonk-recently-viewed';
-const MAX_RECENT_ITEMS = 10;
+// MAX_RECENT_ITEMS imported from constants.ts
 const TABS_WITH_RECENT: EntityType[] = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
 
 // ========================================
@@ -46,14 +48,14 @@ export function loadRecentlyViewed(): void {
         if (stored) {
             recentlyViewed = JSON.parse(stored);
             // Clean up old entries (older than 7 days)
-            const weekAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
+            const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
             recentlyViewed = recentlyViewed.filter(entry => entry.timestamp > weekAgo);
             saveRecentlyViewed();
         }
     } catch (error) {
         logger.warn({
             operation: 'recently-viewed.load',
-            error: { name: 'StorageError', message: 'Failed to load recently viewed', module: 'recently-viewed' }
+            error: { name: 'StorageError', message: 'Failed to load recently viewed', module: 'recently-viewed' },
         });
         recentlyViewed = [];
     }
@@ -68,7 +70,7 @@ function saveRecentlyViewed(): void {
     } catch (error) {
         logger.warn({
             operation: 'recently-viewed.save',
-            error: { name: 'StorageError', message: 'Failed to save recently viewed', module: 'recently-viewed' }
+            error: { name: 'StorageError', message: 'Failed to save recently viewed', module: 'recently-viewed' },
         });
     }
 }
@@ -90,7 +92,7 @@ export function addToRecentlyViewed(type: EntityType, id: string): void {
     recentlyViewed.unshift({
         type,
         id,
-        timestamp: Date.now()
+        timestamp: Date.now(),
     });
 
     // Keep only MAX_RECENT_ITEMS
@@ -125,21 +127,32 @@ export function clearRecentlyViewed(): void {
 
 /**
  * Get entity data for a recently viewed entry
+ * Returns null if entity not found or data not loaded
  */
 export function getEntityForEntry(entry: RecentlyViewedEntry): Entity | null {
     const { type, id } = entry;
 
+    // Helper to safely find and return entity
+    const findEntity = <T extends Entity>(
+        collection: T[] | undefined,
+        predicate: (item: T) => boolean
+    ): Entity | null => {
+        if (!collection) return null;
+        const found = collection.find(predicate);
+        return found ?? null;
+    };
+
     switch (type) {
         case 'items':
-            return allData.items?.items.find(i => i.id === id) as Entity || null;
+            return findEntity(allData.items?.items as Item[] | undefined, (i: Item) => i.id === id);
         case 'weapons':
-            return allData.weapons?.weapons.find(w => w.id === id) as Entity || null;
+            return findEntity(allData.weapons?.weapons as Weapon[] | undefined, (w: Weapon) => w.id === id);
         case 'tomes':
-            return allData.tomes?.tomes.find(t => t.id === id) as Entity || null;
+            return findEntity(allData.tomes?.tomes as Tome[] | undefined, (t: Tome) => t.id === id);
         case 'characters':
-            return allData.characters?.characters.find(c => c.id === id) as Entity || null;
+            return findEntity(allData.characters?.characters as Character[] | undefined, (c: Character) => c.id === id);
         case 'shrines':
-            return allData.shrines?.shrines.find(s => s.id === id) as Entity || null;
+            return findEntity(allData.shrines?.shrines as Shrine[] | undefined, (s: Shrine) => s.id === id);
         default:
             return null;
     }
@@ -167,7 +180,7 @@ export function renderRecentlyViewedSection(containerSelector: string = '#tab-co
     const recentWithData = recent
         .map(entry => ({
             entry,
-            entity: getEntityForEntry(entry)
+            entity: getEntityForEntry(entry),
         }))
         .filter(item => item.entity !== null);
 
@@ -182,16 +195,18 @@ export function renderRecentlyViewedSection(containerSelector: string = '#tab-co
             <button class="clear-recent-btn" aria-label="Clear recently viewed">Clear</button>
         </div>
         <div class="recently-viewed-items">
-            ${recentWithData.map(({ entry, entity }) => {
-                const name = entity?.name || 'Unknown';
-                const imageHtml = entity ? generateEntityImage(entity, name, 'recent-image') : '';
-                return `
+            ${recentWithData
+                .map(({ entry, entity }) => {
+                    const name = entity?.name || 'Unknown';
+                    const imageHtml = entity ? generateEntityImage(entity, name, 'recent-image') : '';
+                    return `
                     <div class="recent-item" data-type="${entry.type}" data-id="${entry.id}" role="button" tabindex="0">
                         ${imageHtml || '<span class="recent-icon">📦</span>'}
                         <span class="recent-name">${escapeHtml(name)}</span>
                     </div>
                 `;
-            }).join('')}
+                })
+                .join('')}
         </div>
     `;
 
@@ -210,14 +225,21 @@ export function renderRecentlyViewedSection(containerSelector: string = '#tab-co
             const id = (item as HTMLElement).dataset.id;
             if (type && id) {
                 // Trigger modal open
-                import('./modal.ts').then(({ openDetailModal }) => {
-                    openDetailModal(type, id);
-                });
+                import('./modal.ts')
+                    .then(({ openDetailModal }) => {
+                        openDetailModal(type, id);
+                    })
+                    .catch(err => {
+                        logger.warn({
+                            operation: 'recently-viewed.open_modal',
+                            error: { name: 'ImportError', message: (err as Error).message, module: 'recently-viewed' },
+                        });
+                    });
             }
         };
 
         item.addEventListener('click', handleClick);
-        item.addEventListener('keypress', (e) => {
+        item.addEventListener('keypress', e => {
             if ((e as KeyboardEvent).key === 'Enter' || (e as KeyboardEvent).key === ' ') {
                 handleClick();
             }
@@ -260,6 +282,6 @@ export function initRecentlyViewed(): void {
 
     logger.info({
         operation: 'recently-viewed.init',
-        data: { count: recentlyViewed.length }
+        data: { count: recentlyViewed.length },
     });
 }

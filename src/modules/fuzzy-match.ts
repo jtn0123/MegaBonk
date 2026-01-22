@@ -94,6 +94,26 @@ export function fuzzyMatchScore(searchTerm: string, text: string, fieldName: str
 // ========================================
 
 /**
+ * Allowed filter keys for advanced search
+ * Whitelist approach prevents prototype pollution attacks
+ */
+const ALLOWED_FILTER_KEYS = new Set([
+    'tier',
+    'rarity',
+    'damage',
+    'stacks_well',
+    'one_and_done',
+    'type',
+    'stat',
+    'priority',
+    'tags',
+    'synergy',
+    'effect',
+    'scaling_type',
+    'graph_type',
+]);
+
+/**
  * Parse advanced search syntax
  * Examples: "tier:SS damage:>100 stacks_well:true fire"
  * @param query - Search query
@@ -135,8 +155,9 @@ export function parseAdvancedSearch(query: string): AdvancedSearchCriteria {
 
         if (filterMatch) {
             const [, key, value] = filterMatch;
-            if (key && value && key.length <= 50 && value.length <= 100) {
-                criteria.filters[key] = value;
+            // Only allow whitelisted filter keys to prevent prototype pollution
+            if (key && value && key.length <= 50 && value.length <= 100 && ALLOWED_FILTER_KEYS.has(key.toLowerCase())) {
+                criteria.filters[key.toLowerCase()] = value;
             }
         } else {
             if (token.length <= 200) {

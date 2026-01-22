@@ -104,3 +104,12 @@ export const MAX_COMPARE_ITEMS = 3;
 export const BUILD_ITEMS_LIMIT = 40;
 export const VALID_TIERS: readonly Tier[] = Object.freeze(['SS', 'S', 'A', 'B', 'C']);
 export const VALID_RARITIES: readonly Rarity[] = Object.freeze(['common', 'uncommon', 'rare', 'epic', 'legendary']);
+
+// QA Round 3: Centralized limits
+export const MAX_ITEM_COUNT = 99; // Maximum count per item in scan build
+export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB file upload limit
+export const MAX_BUILD_HISTORY = 20; // Maximum saved builds in history
+export const MAX_SEARCH_HISTORY = 10; // Maximum saved search terms
+export const MAX_RECENT_ITEMS = 10; // Maximum recently viewed items
+export const MAX_GLOBAL_SEARCH_RESULTS = 100; // Maximum global search results
+export const MAX_SEARCH_RESULTS_PER_TYPE = 30; // Maximum results per entity type in global search
