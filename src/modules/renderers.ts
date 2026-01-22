@@ -12,7 +12,8 @@ import {
     generateEmptyState,
 } from './utils.ts';
 import { isFavorite } from './favorites.ts';
-import { getDataForTab } from './data-service.ts';
+import { getDataForTab, allData } from './data-service.ts';
+import type { AllGameData } from '../types/index.ts';
 import { filterData, GlobalSearchResult } from './filters.ts';
 // Tab-specific modules are lazy-loaded via dynamic imports for code splitting
 // import { calculateBreakpoint, populateCalculatorItems } from './calculator.ts';
@@ -119,6 +120,9 @@ export async function renderTabContent(tabName: string): Promise<void> {
     if (tabName === 'build-planner') {
         const { renderBuildPlanner } = await import('./build-planner.ts');
         renderBuildPlanner();
+        // Initialize screenshot import feature
+        const { initBuildPlannerScan } = await import('./build-planner-scan.ts');
+        initBuildPlannerScan(allData as AllGameData);
         return;
     }
 

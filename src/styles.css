@@ -7141,3 +7141,195 @@ button.breakpoint-card {
 [data-theme='light'] .random-build-slot .slot-image {
     background: var(--bg-primary);
 }
+
+/* ========================================
+   Build Planner Screenshot Import
+   ======================================== */
+
+.build-scan-modal .modal-content {
+    max-width: 900px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.build-scan-processing {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.build-scan-image-preview {
+    max-width: 100%;
+    max-height: 300px;
+    overflow: hidden;
+    border-radius: 8px;
+    border: 2px solid var(--bg-subtle);
+}
+
+.build-scan-image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    display: block;
+}
+
+.build-scan-progress {
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.build-scan-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--bg-subtle);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+}
+
+.build-scan-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #00ff88);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.build-scan-progress-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.build-scan-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 1rem;
+}
+
+@media (max-width: 768px) {
+    .build-scan-preview {
+        grid-template-columns: 1fr;
+    }
+}
+
+.build-scan-results {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.build-scan-results h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.build-scan-stats {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem;
+    background: var(--bg-subtle);
+    border-radius: 8px;
+    font-size: 0.9rem;
+}
+
+.build-scan-stats span {
+    color: var(--text-secondary);
+}
+
+.build-scan-empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 2rem;
+    text-align: center;
+    background: var(--bg-subtle);
+    border-radius: 8px;
+}
+
+.build-scan-section {
+    margin-bottom: 1rem;
+}
+
+.build-scan-section h4 {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.build-scan-entity {
+    padding: 0.5rem 1rem;
+    background: var(--bg-subtle);
+    border-radius: 6px;
+    font-weight: 600;
+}
+
+.build-scan-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.build-scan-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    background: var(--bg-subtle);
+    border-radius: 6px;
+    border-left: 3px solid transparent;
+}
+
+.build-scan-item.confidence-high {
+    border-left-color: #00ff88;
+}
+
+.build-scan-item.confidence-medium {
+    border-left-color: #ffc107;
+}
+
+.build-scan-item.confidence-low {
+    border-left-color: #ff6347;
+}
+
+.build-scan-item .item-name {
+    font-weight: 500;
+}
+
+.build-scan-item .item-confidence {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.build-scan-item.confidence-high .item-confidence {
+    color: #00ff88;
+}
+
+.build-scan-item.confidence-medium .item-confidence {
+    color: #ffc107;
+}
+
+.build-scan-item.confidence-low .item-confidence {
+    color: #ff6347;
+}
+
+.build-scan-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--bg-subtle);
+}
+
+#import-screenshot-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}

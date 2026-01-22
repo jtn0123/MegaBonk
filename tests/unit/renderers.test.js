@@ -19,9 +19,9 @@ vi.mock('../../src/modules/compare.ts', () => ({
     getCompareItems: vi.fn().mockReturnValue([]),
 }));
 
-vi.mock('../../src/modules/data-service.ts', () => ({
-    getDataForTab: vi.fn().mockImplementation(tabName => {
-        const mockData = {
+vi.mock('../../src/modules/data-service.ts', () => {
+    const mockAllData = {
+        items: {
             items: [
                 {
                     id: 'item1',
@@ -34,6 +34,8 @@ vi.mock('../../src/modules/data-service.ts', () => ({
                     stacks_well: true,
                 },
             ],
+        },
+        weapons: {
             weapons: [
                 {
                     id: 'weapon1',
@@ -44,6 +46,8 @@ vi.mock('../../src/modules/data-service.ts', () => ({
                     upgradeable_stats: ['damage', 'speed'],
                 },
             ],
+        },
+        tomes: {
             tomes: [
                 {
                     id: 'tome1',
@@ -55,6 +59,8 @@ vi.mock('../../src/modules/data-service.ts', () => ({
                     description: 'Test tome description',
                 },
             ],
+        },
+        characters: {
             characters: [
                 {
                     id: 'char1',
@@ -66,6 +72,8 @@ vi.mock('../../src/modules/data-service.ts', () => ({
                     playstyle: 'Aggressive',
                 },
             ],
+        },
+        shrines: {
             shrines: [
                 {
                     id: 'shrine1',
@@ -77,10 +85,23 @@ vi.mock('../../src/modules/data-service.ts', () => ({
                     reusable: true,
                 },
             ],
-        };
-        return mockData[tabName] || [];
-    }),
-}));
+        },
+    };
+
+    return {
+        getDataForTab: vi.fn().mockImplementation(tabName => {
+            const mockData = {
+                items: mockAllData.items.items,
+                weapons: mockAllData.weapons.weapons,
+                tomes: mockAllData.tomes.tomes,
+                characters: mockAllData.characters.characters,
+                shrines: mockAllData.shrines.shrines,
+            };
+            return mockData[tabName] || [];
+        }),
+        allData: mockAllData,
+    };
+});
 
 vi.mock('../../src/modules/filters.ts', () => ({
     filterData: vi.fn().mockImplementation(data => data),
@@ -98,6 +119,10 @@ vi.mock('../../src/modules/changelog.ts', () => ({
 
 vi.mock('../../src/modules/build-planner.ts', () => ({
     renderBuildPlanner: vi.fn(),
+}));
+
+vi.mock('../../src/modules/build-planner-scan.ts', () => ({
+    initBuildPlannerScan: vi.fn(),
 }));
 
 vi.mock('../../src/modules/charts.ts', () => ({

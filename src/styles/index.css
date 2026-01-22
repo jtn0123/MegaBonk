@@ -56,9 +56,6 @@
 /* Animations - Keyframes, transitions, effects */
 @import './animations.css';
 
-/* Themes - Light mode overrides and theme-specific styles */
-@import './themes.css';
-
 /* Compare Mode - Compare checkboxes, floating button, compare grid */
 @import './compare.css';
 
@@ -85,3 +82,6 @@
 
 /* Scan Build - Enhanced scan build feature */
 @import './scan-build-enhanced.css';
+
+/* Themes - Light mode overrides and theme-specific styles (must be last for override priority) */
+@import './themes.css';
