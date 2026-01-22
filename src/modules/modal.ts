@@ -81,6 +81,14 @@ let lastFocusableElement: Element | null | undefined = null;
 function handleFocusTrap(e: KeyboardEvent): void {
     if (!focusTrapActive) return;
 
+    // Guard: Check if modal element still exists in DOM and is active
+    // This prevents stale listeners from causing errors on abnormal modal close
+    const modal = safeGetElementById('itemModal');
+    if (!modal || !modal.classList.contains('active')) {
+        deactivateFocusTrap(); // Clean up stale listener
+        return;
+    }
+
     if (e.key === 'Tab') {
         if (e.shiftKey) {
             // Shift + Tab

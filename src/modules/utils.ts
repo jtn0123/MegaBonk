@@ -318,16 +318,31 @@ export function isValidExternalUrl(url: string | null | undefined): boolean {
 // ========================================
 
 /**
+ * Interface for debounced functions with cancel capability
+ */
+export interface DebouncedFunction<T extends (...args: unknown[]) => unknown> {
+    (...args: Parameters<T>): void;
+    /** Cancel any pending invocation */
+    cancel: () => void;
+}
+
+/**
  * Create a debounced version of a function
  * Delays execution until after wait milliseconds have elapsed since the last call
+ * Returns a function with a .cancel() method to cancel pending invocations
  */
-export function debounce<T extends (...args: unknown[]) => unknown>(
-    fn: T,
-    delay: number
-): (...args: Parameters<T>) => void {
+export function debounce<T extends (...args: unknown[]) => unknown>(fn: T, delay: number): DebouncedFunction<T> {
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
-    return function (this: unknown, ...args: Parameters<T>) {
+
+    const debouncedFn = function (this: unknown, ...args: Parameters<T>): void {
         clearTimeout(timeoutId);
         timeoutId = setTimeout(() => fn.apply(this, args), delay);
+    } as DebouncedFunction<T>;
+
+    debouncedFn.cancel = (): void => {
+        clearTimeout(timeoutId);
+        timeoutId = undefined;
     };
+
+    return debouncedFn;
 }

@@ -85,10 +85,9 @@ function validateData(data: unknown, type: DataType): boolean {
 
     // Use Zod validation for typed data (items, weapons, tomes, characters, shrines, stats)
     // Validation errors are logged by the validation module itself
-    validateWithZod(data, type);
-
-    // Return true even if validation fails to allow app to load
-    return true;
+    // Return the actual validation result to properly reject corrupt data
+    const result = validateWithZod(data, type);
+    return result.valid;
 }
 
 // ========================================

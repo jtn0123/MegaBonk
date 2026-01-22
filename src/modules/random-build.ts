@@ -307,6 +307,23 @@ export function renderBuildPreview(build: RandomBuild): string {
 
 let lastGeneratedBuild: RandomBuild | null = null;
 
+// Boolean constraint keys that can be set from UI toggles
+type BooleanConstraintKey = 'noLegendary' | 'noSSItems' | 'onlyOneAndDone' | 'randomTomeCount' | 'challengeMode';
+const BOOLEAN_CONSTRAINT_KEYS: BooleanConstraintKey[] = [
+    'noLegendary',
+    'noSSItems',
+    'onlyOneAndDone',
+    'randomTomeCount',
+    'challengeMode',
+];
+
+/**
+ * Type guard to check if a string is a valid boolean constraint key
+ */
+function isBooleanConstraintKey(key: string): key is BooleanConstraintKey {
+    return BOOLEAN_CONSTRAINT_KEYS.includes(key as BooleanConstraintKey);
+}
+
 /**
  * Get current constraints from UI
  */
@@ -316,10 +333,10 @@ function getConstraintsFromUI(): BuildConstraints {
     const toggles = document.querySelectorAll('.constraint-toggle');
     toggles.forEach(toggle => {
         const checkbox = toggle.querySelector('input[type="checkbox"]') as HTMLInputElement;
-        const constraintName = (toggle as HTMLElement).dataset.constraint as keyof BuildConstraints;
+        const constraintName = (toggle as HTMLElement).dataset.constraint;
 
-        if (checkbox?.checked && constraintName) {
-            (constraints as any)[constraintName] = true;
+        if (checkbox?.checked && constraintName && isBooleanConstraintKey(constraintName)) {
+            constraints[constraintName] = true;
         }
     });
 

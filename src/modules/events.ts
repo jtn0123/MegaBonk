@@ -28,7 +28,17 @@ import type { EntityType } from '../types/index.ts';
 const TAB_STORAGE_KEY = 'megabonk-current-tab';
 
 // Valid tab names for validation
-const VALID_TABS: TabName[] = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator'];
+const VALID_TABS: TabName[] = [
+    'items',
+    'weapons',
+    'tomes',
+    'characters',
+    'shrines',
+    'build-planner',
+    'calculator',
+    'advisor',
+    'changelog',
+];
 
 // ========================================
 // Memory Management: AbortController for event cleanup
@@ -42,6 +52,10 @@ let activeHighlightTimeout: ReturnType<typeof setTimeout> | null = null;
 // Track tab switch timing to prevent rapid switching issues
 let lastTabSwitchTime = 0;
 const TAB_SWITCH_DEBOUNCE_MS = 100; // Minimum time between tab switches
+
+// Track scroll/resize listener cleanup functions to prevent memory leaks
+let scrollListenerCleanup: (() => void) | null = null;
+let resizeListenerCleanup: (() => void) | null = null;
 
 /**
  * Reset internal timers for testing purposes
@@ -121,6 +135,9 @@ export function cleanupEventListeners(): void {
         activeHighlightTimeout = null;
     }
 
+    // Clean up scroll/resize listeners to prevent memory leaks
+    cleanupTabScrollListeners();
+
     if (eventAbortController) {
         eventAbortController.abort();
         eventAbortController = null;
@@ -128,6 +145,21 @@ export function cleanupEventListeners(): void {
             operation: 'events.cleanup',
             data: { message: 'All event listeners cleaned up' },
         });
+    }
+}
+
+/**
+ * Clean up tab scroll/resize listeners
+ * Prevents memory leaks from accumulated listeners
+ */
+export function cleanupTabScrollListeners(): void {
+    if (scrollListenerCleanup) {
+        scrollListenerCleanup();
+        scrollListenerCleanup = null;
+    }
+    if (resizeListenerCleanup) {
+        resizeListenerCleanup();
+        resizeListenerCleanup = null;
     }
 }
 
@@ -181,9 +213,16 @@ export function setupEventDelegation(): void {
             if (e.key === 'Escape') {
                 closeModal();
                 // Dynamic import for code splitting
-                import('./compare.ts').then(({ closeCompareModal }) => {
-                    closeCompareModal();
-                });
+                import('./compare.ts')
+                    .then(({ closeCompareModal }) => {
+                        closeCompareModal();
+                    })
+                    .catch(err => {
+                        logger.warn({
+                            operation: 'import.compare',
+                            error: { name: 'ImportError', message: err.message },
+                        });
+                    });
                 return;
             }
 
@@ -268,9 +307,16 @@ export function setupEventDelegation(): void {
                         const parsedTarget = parseInt(targetVal, 10);
                         if (!isNaN(parsedTarget)) {
                             // Dynamic import for code splitting
-                            import('./calculator.ts').then(({ quickCalc }) => {
-                                quickCalc(itemId, parsedTarget);
-                            });
+                            import('./calculator.ts')
+                                .then(({ quickCalc }) => {
+                                    quickCalc(itemId, parsedTarget);
+                                })
+                                .catch(err => {
+                                    logger.warn({
+                                        operation: 'import.calculator',
+                                        error: { name: 'ImportError', message: err.message },
+                                    });
+                                });
                         }
                     }
                 }
@@ -316,9 +362,16 @@ export function setupEventDelegation(): void {
                         // Toggle the checkbox state manually since it may be hidden
                         checkbox.checked = !checkbox.checked;
                         // Dynamic import for code splitting
-                        import('./compare.ts').then(({ toggleCompareItem }) => {
-                            toggleCompareItem(id);
-                        });
+                        import('./compare.ts')
+                            .then(({ toggleCompareItem }) => {
+                                toggleCompareItem(id);
+                            })
+                            .catch(err => {
+                                logger.warn({
+                                    operation: 'import.compare',
+                                    error: { name: 'ImportError', message: err.message },
+                                });
+                            });
                     }
                 }
                 return;
@@ -343,10 +396,17 @@ export function setupEventDelegation(): void {
                 const id = btn?.dataset.removeId;
                 if (id) {
                     // Dynamic import for code splitting
-                    import('./compare.ts').then(({ toggleCompareItem, updateCompareDisplay }) => {
-                        toggleCompareItem(id);
-                        updateCompareDisplay();
-                    });
+                    import('./compare.ts')
+                        .then(({ toggleCompareItem, updateCompareDisplay }) => {
+                            toggleCompareItem(id);
+                            updateCompareDisplay();
+                        })
+                        .catch(err => {
+                            logger.warn({
+                                operation: 'import.compare',
+                                error: { name: 'ImportError', message: err.message },
+                            });
+                        });
                 }
                 return;
             }
@@ -360,9 +420,16 @@ export function setupEventDelegation(): void {
             // Changelog expand button
             if (target.classList.contains('changelog-expand-btn')) {
                 // Dynamic import for code splitting
-                import('./changelog.ts').then(({ toggleChangelogExpand }) => {
-                    toggleChangelogExpand(target as HTMLButtonElement);
-                });
+                import('./changelog.ts')
+                    .then(({ toggleChangelogExpand }) => {
+                        toggleChangelogExpand(target as HTMLButtonElement);
+                    })
+                    .catch(err => {
+                        logger.warn({
+                            operation: 'import.changelog',
+                            error: { name: 'ImportError', message: err.message },
+                        });
+                    });
                 return;
             }
 
@@ -386,9 +453,16 @@ export function setupEventDelegation(): void {
                     const parsedTarget = parseInt(targetVal, 10);
                     if (!isNaN(parsedTarget)) {
                         // Dynamic import for code splitting
-                        import('./calculator.ts').then(({ quickCalc }) => {
-                            quickCalc(itemId, parsedTarget);
-                        });
+                        import('./calculator.ts')
+                            .then(({ quickCalc }) => {
+                                quickCalc(itemId, parsedTarget);
+                            })
+                            .catch(err => {
+                                logger.warn({
+                                    operation: 'import.calculator',
+                                    error: { name: 'ImportError', message: err.message },
+                                });
+                            });
                     }
                 }
                 return;
@@ -486,18 +560,32 @@ export function setupEventDelegation(): void {
             // Tome checkbox in build planner
             if (target.classList.contains('tome-checkbox')) {
                 // Dynamic import for code splitting
-                import('./build-planner.ts').then(({ updateBuildAnalysis }) => {
-                    updateBuildAnalysis();
-                });
+                import('./build-planner.ts')
+                    .then(({ updateBuildAnalysis }) => {
+                        updateBuildAnalysis();
+                    })
+                    .catch(err => {
+                        logger.warn({
+                            operation: 'import.build-planner',
+                            error: { name: 'ImportError', message: err.message },
+                        });
+                    });
                 return;
             }
 
             // Item checkbox in build planner
             if (target.classList.contains('item-checkbox')) {
                 // Dynamic import for code splitting
-                import('./build-planner.ts').then(({ updateBuildAnalysis }) => {
-                    updateBuildAnalysis();
-                });
+                import('./build-planner.ts')
+                    .then(({ updateBuildAnalysis }) => {
+                        updateBuildAnalysis();
+                    })
+                    .catch(err => {
+                        logger.warn({
+                            operation: 'import.build-planner',
+                            error: { name: 'ImportError', message: err.message },
+                        });
+                    });
                 return;
             }
 
@@ -564,6 +652,9 @@ export function setupEventListeners(): void {
     const tabButtons = document.querySelector('.tab-buttons') as HTMLElement | null;
 
     if (tabContainer && tabButtons) {
+        // Clean up any existing scroll/resize listeners before adding new ones
+        cleanupTabScrollListeners();
+
         const updateTabScrollIndicators = (): void => {
             const canScrollLeft = tabButtons.scrollLeft > 5;
             const canScrollRight = tabButtons.scrollLeft < tabButtons.scrollWidth - tabButtons.clientWidth - 5;
@@ -584,11 +675,17 @@ export function setupEventListeners(): void {
             });
         };
 
+        const debouncedResizeHandler = debounce(updateTabScrollIndicators, 100);
+
         tabButtons.addEventListener('scroll', throttledScrollHandler, getListenerOptions({ passive: true }));
+        window.addEventListener('resize', debouncedResizeHandler, getListenerOptions());
+
+        // Store cleanup functions to prevent memory leaks
+        scrollListenerCleanup = () => tabButtons.removeEventListener('scroll', throttledScrollHandler);
+        resizeListenerCleanup = () => window.removeEventListener('resize', debouncedResizeHandler);
+
         // Initial check after a short delay to ensure layout is complete
         setTimeout(updateTabScrollIndicators, 100);
-        // Recheck on resize
-        window.addEventListener('resize', debounce(updateTabScrollIndicators, 100), getListenerOptions());
     }
 
     // Search input - Bug fix: Add debounce to prevent excessive re-renders
@@ -620,9 +717,16 @@ export function setupEventListeners(): void {
             'click',
             () => {
                 // Dynamic import for code splitting
-                import('./compare.ts').then(({ closeCompareModal }) => {
-                    closeCompareModal();
-                });
+                import('./compare.ts')
+                    .then(({ closeCompareModal }) => {
+                        closeCompareModal();
+                    })
+                    .catch(err => {
+                        logger.warn({
+                            operation: 'import.compare',
+                            error: { name: 'ImportError', message: err.message },
+                        });
+                    });
             },
             getListenerOptions()
         );
@@ -661,9 +765,16 @@ export function setupEventListeners(): void {
             if (target === compareModal || (compareModal.contains(target) && !modalContent?.contains(target))) {
                 lastModalCloseTime = now;
                 // Dynamic import for code splitting
-                import('./compare.ts').then(({ closeCompareModal }) => {
-                    closeCompareModal();
-                });
+                import('./compare.ts')
+                    .then(({ closeCompareModal }) => {
+                        closeCompareModal();
+                    })
+                    .catch(err => {
+                        logger.warn({
+                            operation: 'import.compare',
+                            error: { name: 'ImportError', message: err.message },
+                        });
+                    });
             }
         }
     };
@@ -679,9 +790,16 @@ export function setupEventListeners(): void {
             'click',
             () => {
                 // Dynamic import for code splitting
-                import('./compare.ts').then(({ openCompareModal }) => {
-                    openCompareModal();
-                });
+                import('./compare.ts')
+                    .then(({ openCompareModal }) => {
+                        openCompareModal();
+                    })
+                    .catch(err => {
+                        logger.warn({
+                            operation: 'import.compare',
+                            error: { name: 'ImportError', message: err.message },
+                        });
+                    });
             },
             getListenerOptions()
         );
@@ -801,6 +919,15 @@ export let currentTab: TabName = getState('currentTab');
  * @param {string} tabName - Tab name to switch to
  */
 export async function switchTab(tabName: TabName): Promise<void> {
+    // Runtime validation for tab names to catch invalid calls early
+    if (!VALID_TABS.includes(tabName)) {
+        logger.warn({
+            operation: 'tab.switch',
+            error: { name: 'InvalidTabError', message: `Invalid tab name: ${tabName}` },
+        });
+        return;
+    }
+
     // Debounce rapid tab switching to prevent performance issues
     const now = Date.now();
     if (now - lastTabSwitchTime < TAB_SWITCH_DEBOUNCE_MS) {

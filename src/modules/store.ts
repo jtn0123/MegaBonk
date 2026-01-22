@@ -118,9 +118,13 @@ const deepCloneInitialState = (): AppState => ({
 // Subscribers map: key -> Set of callbacks
 const subscribers = new Map<keyof AppState, Set<Subscriber<any>>>();
 
-// Window sync enabled flag - disabled by default for performance
-// Enable with enableWindowSync() if backwards compatibility is needed
-let windowSyncEnabled = false;
+/**
+ * Window sync enabled flag - enabled by default for backwards compatibility.
+ * Legacy code may access window.allData, window.currentTab, etc.
+ * Performance impact is minimal (just object assignment on state change).
+ * Can be disabled with disableWindowSync() if not needed.
+ */
+let windowSyncEnabled = true;
 
 /**
  * Sync a state key to the window object for backwards compatibility
