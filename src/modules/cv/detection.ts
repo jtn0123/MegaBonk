@@ -23,6 +23,7 @@ import {
 import { loadItemTemplates } from './templates.ts';
 import {
     getDominantColor,
+    getColorCandidates,
     isEmptyCell,
     calculateColorVariance,
     detectBorderRarity,
@@ -32,6 +33,7 @@ import {
 import { calculateEnhancedSimilarity } from './similarity.ts';
 import { getTrainingTemplatesForItem, isTrainingDataLoaded } from './training.ts';
 import type { TrainingTemplate } from './training.ts';
+import { getMetricsCollector } from './metrics.ts';
 
 // ========================================
 // Configuration
@@ -667,6 +669,8 @@ async function detectIconsWithTwoPhase(
     } = {}
 ): Promise<{ detections: CVDetectionResult[]; gridUsed: boolean; grid: GridParameters | null }> {
     const { minConfidence = 0.65, progressCallback } = options;
+    const metrics = getMetricsCollector();
+    const gridStartTime = performance.now();
 
     // Phase 1: Detect grid structure
     if (progressCallback) {
@@ -676,6 +680,8 @@ async function detectIconsWithTwoPhase(
     const hotbarRegion = detectHotbarRegion(ctx, width, height);
     const edges = detectIconEdges(ctx, width, hotbarRegion);
     const grid = inferGridFromEdges(edges, hotbarRegion, width);
+
+    metrics.recordGridDetectionTime(performance.now() - gridStartTime);
 
     logger.info({
         operation: 'cv.two_phase.grid_detection',
@@ -689,10 +695,12 @@ async function detectIconsWithTwoPhase(
 
     // If grid detection failed or low confidence, fall back to sliding window
     if (!grid || grid.confidence < 0.4 || grid.columns < 3) {
+        const failureReason = !grid ? 'no_grid' : grid.confidence < 0.4 ? 'low_confidence' : 'too_few_columns';
         logger.info({
             operation: 'cv.two_phase.fallback_to_sliding_window',
-            data: { reason: !grid ? 'no_grid' : grid.confidence < 0.4 ? 'low_confidence' : 'too_few_columns' },
+            data: { reason: failureReason },
         });
+        metrics.recordTwoPhaseAttempt(false, failureReason, grid?.confidence || 0, 0);
         return { detections: [], gridUsed: false, grid: null };
     }
 
@@ -740,12 +748,33 @@ async function detectIconsWithTwoPhase(
             continue;
         }
 
-        // Color-based pre-filtering
+        // Color-based pre-filtering using adjacent colors
         const cellColor = getDominantColor(cellData);
-        const colorCandidates = templatesByColor.get(cellColor) || [];
-        const mixedCandidates = templatesByColor.get('mixed') || [];
-        const candidateItems = [...colorCandidates, ...mixedCandidates];
+        const colorsToCheck = getColorCandidates(cellColor);
+
+        // Gather candidates from exact match and adjacent colors
+        const candidateItems: Item[] = [];
+        const seenIds = new Set<string>();
+        let usedExactMatch = false;
+
+        for (const color of colorsToCheck) {
+            const colorItems = templatesByColor.get(color) || [];
+            if (color === cellColor && colorItems.length > 0) {
+                usedExactMatch = true;
+            }
+            for (const item of colorItems) {
+                if (!seenIds.has(item.id)) {
+                    seenIds.add(item.id);
+                    candidateItems.push(item);
+                }
+            }
+        }
+
         const itemsToCheck = candidateItems.length > 0 ? candidateItems : items.slice(0, 30);
+        const usedAdjacent = !usedExactMatch && candidateItems.length > 0;
+
+        // Record color filter metrics
+        metrics.recordColorFilter(usedExactMatch, usedAdjacent, itemsToCheck.length);
 
         // Match against candidate templates
         let bestMatch: { item: Item; similarity: number } | null = null;
@@ -776,8 +805,13 @@ async function detectIconsWithTwoPhase(
                 position: { x: cell.x, y: cell.y, width: cell.width, height: cell.height },
                 method: 'template_match',
             });
+            // Record detection metrics
+            metrics.recordDetection(bestMatch.similarity, bestMatch.item.rarity);
         }
     }
+
+    const templateMatchingTime = performance.now() - gridStartTime - (metrics.isEnabled() ? 0 : 0);
+    metrics.recordTemplateMatchingTime(templateMatchingTime);
 
     logger.info({
         operation: 'cv.two_phase.complete',
@@ -786,6 +820,9 @@ async function detectIconsWithTwoPhase(
             cellsScanned: gridCells.length,
         },
     });
+
+    // Record successful two-phase attempt
+    metrics.recordTwoPhaseAttempt(true, null, grid.confidence, gridCells.length);
 
     return { detections, gridUsed: true, grid };
 }
@@ -1323,27 +1360,62 @@ interface GridVerificationResult {
 /**
  * Find the mode (most common value) in an array with tolerance
  */
-function findMode(values: number[], tolerance: number): { mode: number; count: number } {
+function findMode(values: number[], tolerance: number): { mode: number; count: number; stdDev: number } {
     if (values.length === 0) {
-        return { mode: 0, count: 0 };
+        return { mode: 0, count: 0, stdDev: 0 };
     }
 
-    const buckets = new Map<number, number>();
+    const buckets = new Map<number, number[]>();
     for (const value of values) {
         const bucket = Math.round(value / tolerance) * tolerance;
-        buckets.set(bucket, (buckets.get(bucket) || 0) + 1);
+        if (!buckets.has(bucket)) {
+            buckets.set(bucket, []);
+        }
+        buckets.get(bucket)!.push(value);
     }
 
     let mode = 0;
     let maxCount = 0;
-    for (const [bucket, count] of buckets) {
-        if (count > maxCount) {
-            maxCount = count;
+    let modeValues: number[] = [];
+    for (const [bucket, vals] of buckets) {
+        if (vals.length > maxCount) {
+            maxCount = vals.length;
             mode = bucket;
+            modeValues = vals;
         }
     }
 
-    return { mode, count: maxCount };
+    // Calculate standard deviation of values in the mode bucket
+    let stdDev = 0;
+    if (modeValues.length > 1) {
+        const mean = modeValues.reduce((a, b) => a + b, 0) / modeValues.length;
+        const variance = modeValues.reduce((sum, v) => sum + (v - mean) ** 2, 0) / modeValues.length;
+        stdDev = Math.sqrt(variance);
+    }
+
+    return { mode, count: maxCount, stdDev };
+}
+
+/**
+ * Calculate adaptive tolerance based on actual spacing variance
+ * Uses 2 * standard deviation, clamped to reasonable range
+ */
+function calculateAdaptiveTolerance(spacings: number[], expectedIconSize: number, baseStdDev: number): number {
+    // Base tolerance from expected icon size
+    const baseTolerance = expectedIconSize * 0.2; // 20% base
+
+    if (spacings.length < 3 || baseStdDev === 0) {
+        return baseTolerance;
+    }
+
+    // Adaptive tolerance: 2 * stdDev, but clamped
+    const adaptiveTolerance = baseStdDev * 2;
+
+    // Clamp between 15% and 35% of expected icon size
+    const minTolerance = expectedIconSize * 0.15;
+    const maxTolerance = expectedIconSize * 0.35;
+
+    return Math.max(minTolerance, Math.min(maxTolerance, Math.max(adaptiveTolerance, baseTolerance)));
 }
 
 /**
@@ -1356,8 +1428,39 @@ function fitsGrid(value: number, gridStart: number, spacing: number, tolerance: 
 }
 
 /**
+ * Cluster detections into rows based on Y position
+ * Returns array of rows, each containing positions with similar Y
+ */
+function clusterByY(
+    positions: Array<{ x: number; y: number; detection: CVDetectionResult }>,
+    yTolerance: number
+): Array<Array<{ x: number; y: number; detection: CVDetectionResult }>> {
+    if (positions.length === 0) return [];
+
+    // Sort by Y
+    const sorted = [...positions].sort((a, b) => a.y - b.y);
+    const rows: Array<Array<{ x: number; y: number; detection: CVDetectionResult }>> = [];
+    let currentRow: typeof positions = [sorted[0]];
+
+    for (let i = 1; i < sorted.length; i++) {
+        const yDiff = sorted[i].y - sorted[i - 1].y;
+        if (yDiff <= yTolerance) {
+            // Same row
+            currentRow.push(sorted[i]);
+        } else {
+            // New row
+            rows.push(currentRow);
+            currentRow = [sorted[i]];
+        }
+    }
+    rows.push(currentRow);
+
+    return rows;
+}
+
+/**
  * Verify that detections form a consistent grid pattern
- * Filters out outliers that don't fit the grid
+ * Uses row-aware verification and adaptive tolerance for better accuracy
  */
 export function verifyGridPattern(detections: CVDetectionResult[], expectedIconSize: number): GridVerificationResult {
     // Need at least 3 detections to verify a pattern
@@ -1388,57 +1491,113 @@ export function verifyGridPattern(detections: CVDetectionResult[], expectedIconS
         };
     }
 
-    // Calculate X spacings between adjacent items (sorted by X)
-    const sortedByX = [...positions].sort((a, b) => a.x - b.x);
-    const xSpacings: number[] = [];
-    for (let i = 1; i < sortedByX.length; i++) {
-        const gap = sortedByX[i].x - sortedByX[i - 1].x;
-        if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) {
-            xSpacings.push(gap);
+    // Phase 1: Cluster into rows (row-aware approach)
+    const yClusterTolerance = expectedIconSize * 0.3;
+    const rows = clusterByY(positions, yClusterTolerance);
+
+    // Phase 2: Calculate X spacings within each row
+    const allXSpacings: number[] = [];
+    for (const row of rows) {
+        if (row.length < 2) continue;
+        const sortedRow = [...row].sort((a, b) => a.x - b.x);
+        for (let i = 1; i < sortedRow.length; i++) {
+            const gap = sortedRow[i].x - sortedRow[i - 1].x;
+            if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) {
+                allXSpacings.push(gap);
+            }
         }
     }
 
-    // Calculate Y spacings (for multi-row inventories)
-    const sortedByY = [...positions].sort((a, b) => a.y - b.y);
+    // Phase 3: Calculate Y spacings between row centers
     const ySpacings: number[] = [];
-    for (let i = 1; i < sortedByY.length; i++) {
-        const gap = sortedByY[i].y - sortedByY[i - 1].y;
-        if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) {
-            ySpacings.push(gap);
+    if (rows.length > 1) {
+        // Calculate row centers
+        const rowCenters = rows
+            .map(row => {
+                const avgY = row.reduce((sum, p) => sum + p.y, 0) / row.length;
+                return avgY;
+            })
+            .sort((a, b) => a - b);
+
+        for (let i = 1; i < rowCenters.length; i++) {
+            const gap = rowCenters[i] - rowCenters[i - 1];
+            if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) {
+                ySpacings.push(gap);
+            }
         }
     }
 
-    // Find mode spacing (most common gap)
-    const tolerance = Math.max(6, expectedIconSize * 0.15);
-    const xMode = findMode(xSpacings, tolerance);
-    const yMode = ySpacings.length > 0 ? findMode(ySpacings, tolerance) : { mode: expectedIconSize, count: 0 };
+    // Find mode spacing with variance tracking
+    const baseTolerance = Math.max(6, expectedIconSize * 0.15);
+    const xMode = findMode(allXSpacings, baseTolerance);
+    const yMode =
+        ySpacings.length > 0 ? findMode(ySpacings, baseTolerance) : { mode: expectedIconSize, count: 0, stdDev: 0 };
 
     // Use expected icon size as fallback
     const xSpacing = xMode.count >= 2 ? xMode.mode : expectedIconSize;
     const ySpacing = yMode.count >= 2 ? yMode.mode : expectedIconSize;
 
+    // Calculate adaptive tolerance based on observed variance
+    const xTolerance = calculateAdaptiveTolerance(allXSpacings, expectedIconSize, xMode.stdDev);
+    const yTolerance = calculateAdaptiveTolerance(ySpacings, expectedIconSize, yMode.stdDev);
+    const tolerance = Math.max(xTolerance, yTolerance);
+
     // Find grid origin (leftmost, topmost detection)
     const minX = Math.min(...positions.map(p => p.x));
     const minY = Math.min(...positions.map(p => p.y));
 
-    // Filter detections that fit the grid
-    const filtered = positions.filter(p => {
-        const fitsX = fitsGrid(p.x, minX, xSpacing, tolerance);
-        const fitsY = fitsGrid(p.y, minY, ySpacing, tolerance);
-        return fitsX && fitsY;
-    });
+    // Phase 4: Filter detections using row-aware validation
+    // Instead of strict grid origin check, verify that items are consistently spaced
+    const filtered: typeof positions = [];
+
+    for (const row of rows) {
+        if (row.length === 0) continue;
+
+        // For each row, verify X spacing between adjacent items
+        const sortedRow = [...row].sort((a, b) => a.x - b.x);
+
+        // Always include the first item in each row
+        filtered.push(sortedRow[0]);
+
+        // Check remaining items: they should be at consistent spacing from previous
+        for (let i = 1; i < sortedRow.length; i++) {
+            const gap = sortedRow[i].x - sortedRow[i - 1].x;
+
+            // Accept if gap is close to expected spacing (within tolerance)
+            const isConsistentSpacing = Math.abs(gap - xSpacing) <= tolerance;
+
+            // Also accept if gap is a multiple of spacing (skipped slots)
+            const isMultipleSpacing =
+                (gap > xSpacing * 1.5 && Math.abs((gap % xSpacing) - 0) <= tolerance) ||
+                Math.abs((gap % xSpacing) - xSpacing) <= tolerance;
+
+            if (isConsistentSpacing || isMultipleSpacing) {
+                filtered.push(sortedRow[i]);
+            }
+        }
+    }
 
     // Calculate confidence based on how many detections fit
     const fitRatio = filtered.length / positions.length;
-    const isValid = fitRatio >= 0.7 || filtered.length >= positions.length - 1;
+
+    // More lenient validity check:
+    // - At least 70% fit, OR
+    // - At most 2 outliers for small sets, OR
+    // - At least 80% of each row fits (row-aware)
+    const maxOutliers = Math.max(2, Math.ceil(positions.length * 0.15));
+    const isValid =
+        fitRatio >= 0.7 || positions.length - filtered.length <= maxOutliers || filtered.length >= positions.length - 2;
 
     logger.info({
         operation: 'cv.grid_verification',
         data: {
             totalDetections: positions.length,
             filteredDetections: filtered.length,
+            rows: rows.length,
             xSpacing,
             ySpacing,
+            tolerance,
+            adaptiveXTolerance: xTolerance,
             fitRatio,
             isValid,
         },
@@ -1540,11 +1699,24 @@ async function detectIconsWithSlidingWindow(
                 continue;
             }
 
-            // Color-based pre-filtering
+            // Color-based pre-filtering using adjacent colors
             const windowColor = getDominantColor(windowData);
-            const colorCandidates = templatesByColor.get(windowColor) || [];
-            const mixedCandidates = templatesByColor.get('mixed') || [];
-            const candidateItems = [...colorCandidates, ...mixedCandidates];
+            const colorsToCheck = getColorCandidates(windowColor);
+
+            // Gather candidates from exact match and adjacent colors
+            const candidateItems: Item[] = [];
+            const seenIds = new Set<string>();
+
+            for (const color of colorsToCheck) {
+                const colorItems = templatesByColor.get(color) || [];
+                for (const item of colorItems) {
+                    if (!seenIds.has(item.id)) {
+                        seenIds.add(item.id);
+                        candidateItems.push(item);
+                    }
+                }
+            }
+
             const itemsToCheck = candidateItems.length > 0 ? candidateItems : items.slice(0, 30);
 
             // Match against candidate templates at multiple scales
@@ -1802,6 +1974,9 @@ export async function detectItemsWithCV(
     progressCallback?: (progress: number, status: string) => void,
     useWorkers: boolean = false
 ): Promise<CVDetectionResult[]> {
+    const metrics = getMetricsCollector();
+    const runStartTime = performance.now();
+
     try {
         // Check cache first
         const imageHash = hashImageDataUrl(imageDataUrl);
@@ -1833,6 +2008,10 @@ export async function detectItemsWithCV(
         }
 
         const { ctx, width, height } = await loadImageToCanvas(imageDataUrl);
+
+        // Start metrics collection for this run
+        const resolution = detectResolution(width, height);
+        metrics.startRun(width, height, resolution.category);
 
         if (progressCallback) {
             progressCallback(15, 'Analyzing image structure...');
@@ -1964,6 +2143,9 @@ export async function detectItemsWithCV(
         const gridVerification = verifyGridPattern(allDetections, expectedIconSize);
         let verifiedDetections = gridVerification.isValid ? gridVerification.filteredDetections : allDetections;
 
+        // Record grid verification metrics
+        metrics.recordGridVerification(allDetections.length, verifiedDetections.length);
+
         if (progressCallback) {
             progressCallback(92, 'Applying context boosting...');
         }
@@ -1977,9 +2159,23 @@ export async function detectItemsWithCV(
 
         // Validate detections with border rarity check (stronger validation)
         // Filter out null results (rejected by strict rarity validation)
+        const validationStartTime = performance.now();
+        const beforeValidation = boostedDetections.length;
         boostedDetections = boostedDetections
-            .map(detection => validateWithBorderRarity(detection, ctx, false))
+            .map(detection => {
+                const validated = validateWithBorderRarity(detection, ctx, false);
+                // Record validation result
+                if (validated === null) {
+                    metrics.recordRarityValidation(false, true);
+                } else if (validated.confidence > detection.confidence) {
+                    metrics.recordRarityValidation(true, false);
+                } else {
+                    metrics.recordRarityValidation(false, false);
+                }
+                return validated;
+            })
             .filter((d): d is CVDetectionResult => d !== null);
+        metrics.recordValidationTime(performance.now() - validationStartTime);
 
         if (progressCallback) {
             progressCallback(100, 'Smart detection complete');
@@ -2010,6 +2206,9 @@ export async function detectItemsWithCV(
         // Cache results for future use
         cacheResults(imageHash, boostedDetections);
 
+        // End metrics run
+        metrics.endRun(performance.now() - runStartTime);
+
         return boostedDetections;
     } catch (error) {
         logger.error({
@@ -2019,6 +2218,8 @@ export async function detectItemsWithCV(
                 message: (error as Error).message,
             },
         });
+        // End metrics run even on error
+        metrics.endRun(performance.now() - runStartTime);
         throw error;
     }
 }

@@ -220,3 +220,7 @@ export type {
     AccuracySummary,
     TrendAnalysis,
 } from './accuracy-tracker.ts';
+
+// CV Detection Metrics
+export { getMetricsCollector, enableMetrics, disableMetrics, isMetricsEnabled } from './metrics.ts';
+export type { CVDetectionMetrics, CVAggregatedMetrics } from './metrics.ts';

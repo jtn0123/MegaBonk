@@ -336,6 +336,39 @@ export function getDominantColor(imageData: ImageData): string {
 }
 
 /**
+ * Get adjacent/related colors for a given primary color
+ * Used for expanded color filtering when exact match fails
+ */
+export function getAdjacentColors(color: string): string[] {
+    // Define color adjacency relationships based on color wheel and common variations
+    const adjacencyMap: Record<string, string[]> = {
+        red: ['orange', 'magenta', 'purple'],
+        orange: ['red', 'yellow'],
+        yellow: ['orange', 'lime', 'green'],
+        green: ['lime', 'cyan', 'yellow'],
+        lime: ['green', 'yellow', 'cyan'],
+        cyan: ['green', 'blue', 'lime'],
+        blue: ['cyan', 'purple', 'navy'],
+        purple: ['blue', 'magenta', 'red'],
+        magenta: ['purple', 'red'],
+        gray: ['black', 'white'],
+        black: ['gray'],
+        white: ['gray'],
+    };
+
+    return adjacencyMap[color] || [];
+}
+
+/**
+ * Get all color candidates for filtering, including adjacent colors
+ * Returns array of colors in priority order: [exact, ...adjacent]
+ */
+export function getColorCandidates(color: string): string[] {
+    const adjacent = getAdjacentColors(color);
+    return [color, ...adjacent];
+}
+
+/**
  * Calculate color variance to detect empty cells or low-detail regions
  */
 export function calculateColorVariance(imageData: ImageData): number {
