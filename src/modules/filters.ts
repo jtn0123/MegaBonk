@@ -4,12 +4,7 @@
 // Main filter UI and data filtering logic
 // Split into focused modules for maintainability
 
-import type {
-    Entity,
-    EntityType,
-    ChangelogPatch,
-    SortBy,
-} from '../types/index.ts';
+import type { Entity, EntityType, ChangelogPatch, SortBy } from '../types/index.ts';
 import { isItem, isShrine, isInputElement, isSelectElement } from '../types/index.ts';
 import { safeGetElementById, safeQuerySelectorAll, sortData } from './utils.ts';
 import { logger } from './logger.ts';
@@ -40,10 +35,7 @@ export {
     type AdvancedSearchCriteria,
 } from './fuzzy-match.ts';
 
-export {
-    globalSearch,
-    type GlobalSearchResult,
-} from './global-search.ts';
+export { globalSearch, type GlobalSearchResult } from './global-search.ts';
 
 // Import for internal use
 import { addToSearchHistory } from './search-history.ts';
@@ -209,9 +201,7 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
                         fuzzyMatchScore(searchTerm, tags, 'tags'),
                     ];
 
-                    const bestMatch = matches.reduce((best, current) =>
-                        current.score > best.score ? current : best
-                    );
+                    const bestMatch = matches.reduce((best, current) => (current.score > best.score ? current : best));
 
                     return {
                         item: { ...item, _matchContext: bestMatch } as Entity & ItemWithMatchContext,
@@ -290,18 +280,30 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
             filtered = filteredPatches as unknown as Entity[];
         }
 
-        // Date sorting
+        // Date sorting - pre-compute date values for O(n) instead of O(n log n) date parsing
         const sortByEl = safeGetElementById('sortBy');
         const sortBy = isSelectElement(sortByEl) ? sortByEl.value : 'date_desc';
-        const getDateValue = (dateStr: string): number => {
-            const d = new Date(dateStr);
-            return isNaN(d.getTime()) ? (sortBy === 'date_asc' ? Infinity : -Infinity) : d.getTime();
-        };
         const patchesForSort = filtered as unknown as ChangelogPatch[];
+
+        // Pre-compute date values once (avoids repeated parsing during sort comparisons)
+        const dateCache = new Map<string, number>();
+        const defaultValue = sortBy === 'date_asc' ? Infinity : -Infinity;
+        patchesForSort.forEach(patch => {
+            if (!dateCache.has(patch.date)) {
+                const d = new Date(patch.date);
+                dateCache.set(patch.date, isNaN(d.getTime()) ? defaultValue : d.getTime());
+            }
+        });
+
+        // Sort using cached date values
         if (sortBy === 'date_asc') {
-            patchesForSort.sort((a, b) => getDateValue(a.date) - getDateValue(b.date));
+            patchesForSort.sort(
+                (a, b) => (dateCache.get(a.date) ?? defaultValue) - (dateCache.get(b.date) ?? defaultValue)
+            );
         } else {
-            patchesForSort.sort((a, b) => getDateValue(b.date) - getDateValue(a.date));
+            patchesForSort.sort(
+                (a, b) => (dateCache.get(b.date) ?? defaultValue) - (dateCache.get(a.date) ?? defaultValue)
+            );
         }
 
         logFilterEvent(filterStartTime, tabName, searchQuery, originalCount, patchesForSort.length);

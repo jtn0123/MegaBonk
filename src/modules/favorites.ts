@@ -29,16 +29,28 @@ const FAVORITES_KEY = 'megabonk_favorites';
 
 /**
  * Load favorites from localStorage
+ * @returns True if favorites were loaded successfully, false otherwise
  */
-export function loadFavorites(): void {
+export function loadFavorites(): boolean {
     try {
         const stored = localStorage.getItem(FAVORITES_KEY);
         if (stored) {
-            setState('favorites', JSON.parse(stored) as FavoritesState);
+            const parsed = JSON.parse(stored);
+            // Validate structure before setting state
+            if (typeof parsed === 'object' && parsed !== null) {
+                setState('favorites', parsed as FavoritesState);
+                return true;
+            }
         }
+        return true; // No favorites stored is not an error
     } catch (error) {
         // localStorage may be unavailable in some contexts (private browsing, etc.)
         console.debug('[favorites] localStorage unavailable for loading favorites:', (error as Error).message);
+        // Show user feedback for load failures (matching save failure behavior)
+        if (typeof ToastManager !== 'undefined') {
+            ToastManager.warning('Could not load saved favorites. Using fresh list.');
+        }
+        return false;
     }
 }
 

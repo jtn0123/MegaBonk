@@ -16,6 +16,9 @@ import { getState, setState } from './store.ts';
 // Compare mode state - uses centralized store
 // No local copy - always read from store for proper test isolation
 
+// Flag to prevent double-close race condition
+let isModalClosing = false;
+
 // ========================================
 // Exported Functions
 // ========================================
@@ -201,32 +204,55 @@ export async function openCompareModal(): Promise<void> {
     compareBody.innerHTML = html;
     modal.style.display = 'block';
     modal.setAttribute('aria-hidden', 'false'); // Announce modal to screen readers
-    // Trigger animation after display is set
+
+    // Trigger animation after display is set, then initialize chart
+    // Using nested RAF ensures chart init happens after modal is visible
     requestAnimationFrame(() => {
         modal.classList.add('active');
+
+        // Initialize compare chart after modal is confirmed active
+        if (chartableItems.length >= 2) {
+            // Use another RAF to ensure DOM is painted with active state
+            requestAnimationFrame(async () => {
+                // Check if modal is still active and canvas exists before creating chart
+                const currentModal = safeGetElementById('compareModal');
+                const canvas = document.getElementById('compare-scaling-chart');
+                if (!currentModal || !currentModal.classList.contains('active') || !canvas) {
+                    return;
+                }
+
+                try {
+                    // Dynamically import chart function only when needed
+                    const { createCompareChart } = await import('./charts.ts');
+                    // Re-verify modal state after async import
+                    if (currentModal.classList.contains('active') && canvas.parentElement) {
+                        createCompareChart('compare-scaling-chart', chartableItems);
+                    }
+                } catch (error) {
+                    // Chart module failed to load - modal still works, just without chart
+                    console.warn('[compare] Failed to load chart module:', error);
+                }
+            });
+        }
     });
-
-    // Initialize compare chart after DOM is ready
-    if (chartableItems.length >= 2) {
-        // Dynamically import chart function only when needed
-        const { createCompareChart } = await import('./charts.ts');
-
-        // Use requestAnimationFrame for more reliable DOM readiness
-        requestAnimationFrame(() => {
-            // Check if modal is still active and canvas exists before creating chart
-            const modal = safeGetElementById('compareModal');
-            const canvas = document.getElementById('compare-scaling-chart');
-            if (modal && modal.classList.contains('active') && canvas) {
-                createCompareChart('compare-scaling-chart', chartableItems);
-            }
-        });
-    }
 }
 
 /**
  * Close compare modal with animation
  */
 export async function closeCompareModal(): Promise<void> {
+    // Prevent double-close race condition
+    if (isModalClosing) {
+        return;
+    }
+
+    const modal = safeGetElementById('compareModal');
+    if (!modal || modal.style.display === 'none') {
+        return;
+    }
+
+    isModalClosing = true;
+
     // Destroy compare chart before closing to prevent memory leak
     // Dynamically import to access chartInstances
     try {
@@ -240,14 +266,12 @@ export async function closeCompareModal(): Promise<void> {
         // Chart module not loaded yet, nothing to clean up
     }
 
-    const modal = safeGetElementById('compareModal');
-    if (modal) {
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden', 'true'); // Hide from screen readers
-        setTimeout(() => {
-            modal.style.display = 'none';
-        }, 300);
-    }
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true'); // Hide from screen readers
+    setTimeout(() => {
+        modal.style.display = 'none';
+        isModalClosing = false; // Reset flag after close animation completes
+    }, 300);
 }
 
 /**

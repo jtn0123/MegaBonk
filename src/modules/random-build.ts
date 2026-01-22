@@ -66,11 +66,7 @@ function randomElements<T>(array: T[], count: number): T[] {
 /**
  * Filter entities by rarity constraint
  */
-function filterByRarity<T extends { rarity?: Rarity }>(
-    items: T[],
-    maxRarity?: Rarity,
-    noLegendary?: boolean
-): T[] {
+function filterByRarity<T extends { rarity?: Rarity }>(items: T[], maxRarity?: Rarity, noLegendary?: boolean): T[] {
     let filtered = items;
 
     if (noLegendary) {
@@ -135,7 +131,7 @@ export function generateRandomBuild(constraints: BuildConstraints = {}): RandomB
         noSSItems = false,
         onlyOneAndDone = false,
         randomTomeCount = false,
-        challengeMode = false
+        challengeMode = false,
     } = constraints;
 
     // Get available data
@@ -153,13 +149,9 @@ export function generateRandomBuild(constraints: BuildConstraints = {}): RandomB
     }
 
     // Filter weapons and characters for challenge mode
-    let filteredWeapons = challengeMode
-        ? filterByTier(weapons, 'B', false, true)
-        : weapons;
+    let filteredWeapons = challengeMode ? filterByTier(weapons, 'B', false, true) : weapons;
 
-    let filteredCharacters = challengeMode
-        ? filterByTier(characters, 'B', false, true)
-        : characters;
+    let filteredCharacters = challengeMode ? filterByTier(characters, 'B', false, true) : characters;
 
     // Generate random selections
     const character = randomElement(filteredCharacters);
@@ -187,8 +179,8 @@ export function generateRandomBuild(constraints: BuildConstraints = {}): RandomB
             character: character?.name,
             weapon: weapon?.name,
             tomeCount: selectedTomes.length,
-            itemCount: selectedItems.length
-        }
+            itemCount: selectedItems.length,
+        },
     });
 
     return {
@@ -196,7 +188,7 @@ export function generateRandomBuild(constraints: BuildConstraints = {}): RandomB
         weapon: weapon as Weapon | null,
         tomes: selectedTomes as Tome[],
         items: selectedItems as Item[],
-        constraints
+        constraints,
     };
 }
 
@@ -352,6 +344,27 @@ function handleGenerate(): void {
         const constraints = getConstraintsFromUI();
         lastGeneratedBuild = generateRandomBuild(constraints);
 
+        // Check if we got a valid build (at least character or weapon)
+        if (!lastGeneratedBuild.character && !lastGeneratedBuild.weapon) {
+            // Show error message - constraints too restrictive
+            previewContainer.innerHTML = `
+                <div class="random-build-error">
+                    <span class="error-icon">⚠️</span>
+                    <p>No characters or weapons match your constraints.</p>
+                    <p>Try loosening the filters (e.g., disable Challenge Mode).</p>
+                </div>
+            `;
+            resultSection.style.display = 'block';
+            generateBtn.classList.remove('rolling');
+
+            logger.warn({
+                operation: 'random-build.generate',
+                error: { name: 'NoMatchError', message: 'No characters or weapons match constraints' },
+                data: { constraints: Object.keys(constraints).filter(k => constraints[k as keyof BuildConstraints]) },
+            });
+            return;
+        }
+
         // Render preview
         previewContainer.innerHTML = renderBuildPreview(lastGeneratedBuild);
 
@@ -383,7 +396,7 @@ async function handleApplyToBuildPlanner(): Promise<void> {
     } catch (error) {
         logger.warn({
             operation: 'random-build.apply',
-            error: { name: 'ImportError', message: 'Failed to apply build', module: 'random-build' }
+            error: { name: 'ImportError', message: 'Failed to apply build', module: 'random-build' },
         });
     }
 }
@@ -403,7 +416,7 @@ export function setupRandomBuildHandlers(): void {
     // Toggle button states
     const toggles = document.querySelectorAll('.constraint-toggle');
     toggles.forEach(toggle => {
-        toggle.addEventListener('click', (e) => {
+        toggle.addEventListener('click', e => {
             const target = e.currentTarget as HTMLElement;
             const checkbox = target.querySelector('input[type="checkbox"]') as HTMLInputElement;
 

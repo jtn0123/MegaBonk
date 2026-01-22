@@ -80,10 +80,11 @@ export function computeBreakpoint(data: BreakpointData, itemId: string, target: 
 
     // Calculate stacks needed
     let stacksNeeded = 0;
-    const firstValue = item.scaling_per_stack[0];
+    const firstValue = item.scaling_per_stack[0] ?? null;
 
     // Validate that first value is a valid positive number
-    if (typeof firstValue !== 'number' || !Number.isFinite(firstValue) || firstValue <= 0) {
+    // Handle null, undefined, NaN, non-numeric values, and zero/negative
+    if (firstValue === null || typeof firstValue !== 'number' || !Number.isFinite(firstValue) || firstValue <= 0) {
         return { error: 'Invalid scaling value' };
     }
 
@@ -185,10 +186,11 @@ export function calculateBreakpoint(): void {
 
     // Calculate stacks needed
     let stacksNeeded = 0;
-    const perStack = item.scaling_per_stack[0]; // Value per stack from first entry (guaranteed to exist by length check above)
+    const perStack = item.scaling_per_stack[0] ?? null; // Value per stack from first entry
 
     // Check for division by zero and validate perStack is a valid number
-    if (typeof perStack !== 'number' || !Number.isFinite(perStack) || perStack <= 0) {
+    // Handle null, undefined, NaN, non-numeric values, and zero/negative
+    if (perStack === null || typeof perStack !== 'number' || !Number.isFinite(perStack) || perStack <= 0) {
         if (typeof ToastManager !== 'undefined') {
             ToastManager.warning('Invalid scaling value for this item');
         }
