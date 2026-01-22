@@ -26,11 +26,25 @@ export interface TrainingItemData {
     samples: TrainingSample[];
 }
 
+/**
+ * Source statistics for training data
+ */
+export interface TrainingSourceStats {
+    count: number;
+    weight: number;
+}
+
 export interface TrainingIndex {
     version: string;
     created_at: string;
     updated_at: string;
     total_samples: number;
+    sources?: {
+        ground_truth?: TrainingSourceStats;
+        verified?: TrainingSourceStats;
+        corrected?: TrainingSourceStats;
+        corrected_from_empty?: TrainingSourceStats;
+    };
     items: Record<string, TrainingItemData>;
 }
 
@@ -385,4 +399,68 @@ export function clearTrainingData(): void {
     trainingIndex = null;
     availableSources.clear();
     enabledSources.clear();
+}
+
+/**
+ * Training data version info
+ */
+export interface TrainingDataVersion {
+    version: string;
+    createdAt: string;
+    updatedAt: string;
+    totalSamples: number;
+    sources: {
+        verified: number;
+        corrected: number;
+        corrected_from_empty: number;
+    };
+    itemCount: number;
+}
+
+/**
+ * Get training data version and statistics
+ * Useful for tracking accuracy improvements over time
+ */
+export function getTrainingDataVersion(): TrainingDataVersion | null {
+    if (!trainingIndex) return null;
+
+    // Count samples by validation type
+    const sourceCounts = {
+        verified: 0,
+        corrected: 0,
+        corrected_from_empty: 0,
+    };
+
+    for (const itemData of Object.values(trainingIndex.items)) {
+        for (const sample of itemData.samples) {
+            if (sample.validation_type in sourceCounts) {
+                sourceCounts[sample.validation_type as keyof typeof sourceCounts]++;
+            }
+        }
+    }
+
+    return {
+        version: trainingIndex.version,
+        createdAt: trainingIndex.created_at,
+        updatedAt: trainingIndex.updated_at,
+        totalSamples: trainingIndex.total_samples,
+        sources: sourceCounts,
+        itemCount: Object.keys(trainingIndex.items).length,
+    };
+}
+
+/**
+ * Log training data version on startup (for debugging)
+ */
+export function logTrainingDataVersion(): void {
+    const version = getTrainingDataVersion();
+    if (version) {
+        console.log(`[CV Training] Version ${version.version}`);
+        console.log(`  - Total samples: ${version.totalSamples}`);
+        console.log(`  - Items: ${version.itemCount}`);
+        console.log(
+            `  - Sources: ${version.sources.verified} verified, ${version.sources.corrected} corrected, ${version.sources.corrected_from_empty} from empty`
+        );
+        console.log(`  - Updated: ${version.updatedAt}`);
+    }
 }

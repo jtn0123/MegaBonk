@@ -36,3 +36,45 @@ export interface TemplateData {
     width: number;
     height: number;
 }
+
+// ========================================
+// Grid Preset Types
+// ========================================
+
+/**
+ * Grid calibration values for a specific resolution
+ */
+export interface PresetCalibration {
+    xOffset: number;
+    yOffset: number;
+    iconWidth: number;
+    iconHeight: number;
+    xSpacing: number;
+    ySpacing: number;
+    iconsPerRow: number;
+    numRows: number;
+}
+
+/**
+ * A single grid preset for a resolution
+ */
+export interface GridPreset {
+    name: string;
+    resolution: {
+        width: number;
+        height: number;
+    };
+    calibration: PresetCalibration;
+    lastModified: string;
+    source?: 'auto-detected' | 'manual' | 'default' | 'imported';
+}
+
+/**
+ * Grid presets file structure
+ */
+export interface GridPresetsFile {
+    version: string;
+    description: string;
+    lastModified: string;
+    presets: Record<string, GridPreset>;
+}

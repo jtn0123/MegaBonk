@@ -6028,10 +6028,80 @@ button.breakpoint-card {
     font-size: 0.9rem;
 }
 
-/* Confidence color coding */
+/* Confidence color coding - HIGH (>80%) */
+.scan-detection-item .confidence.confidence-high {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+    border: 1px solid rgba(0, 255, 136, 0.4);
+}
+
+/* Confidence color coding - MEDIUM (50-80%) */
+.scan-detection-item .confidence.confidence-medium {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+}
+
+/* Confidence color coding - LOW (<50%) */
+.scan-detection-item .confidence.confidence-low {
+    background: rgba(255, 99, 71, 0.2);
+    color: #ff6347;
+    border: 1px solid rgba(255, 99, 71, 0.4);
+}
+
+/* Fallback for unclassified confidence */
 .scan-detection-item .confidence {
     background: rgba(0, 255, 136, 0.2);
     color: var(--accent-primary);
+}
+
+/* Low confidence warning banner */
+.scan-low-confidence-warning {
+    margin: 1rem 0;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 99, 71, 0.15);
+    border: 1px solid rgba(255, 99, 71, 0.4);
+    border-radius: 6px;
+    color: #ff6347;
+    font-size: 0.9rem;
+}
+
+.scan-low-confidence-warning strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+/* Detection stats summary */
+.scan-detection-stats {
+    display: flex;
+    gap: 1rem;
+    margin: 0.75rem 0;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    flex-wrap: wrap;
+}
+
+.scan-detection-stat {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+}
+
+.scan-detection-stat .stat-count {
+    font-weight: bold;
+}
+
+.scan-detection-stat.stat-high .stat-count {
+    color: #00ff88;
+}
+
+.scan-detection-stat.stat-medium .stat-count {
+    color: #ffc107;
+}
+
+.scan-detection-stat.stat-low .stat-count {
+    color: #ff6347;
 }
 
 .scan-detection-section {

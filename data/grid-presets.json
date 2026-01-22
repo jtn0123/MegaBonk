@@ -1,0 +1,55 @@
+{
+  "version": "1.1",
+  "description": "Grid calibration presets for CV Validator and main site. Presets are resolution-specific configurations for detecting items in MegaBonk screenshots.",
+  "lastModified": "2026-01-21T00:00:00.000Z",
+  "presets": {
+    "1920x1080": {
+      "name": "1080p",
+      "resolution": { "width": 1920, "height": 1080 },
+      "calibration": {
+        "xOffset": 0,
+        "yOffset": 0,
+        "iconWidth": 60,
+        "iconHeight": 60,
+        "xSpacing": 6,
+        "ySpacing": 6,
+        "iconsPerRow": 20,
+        "numRows": 2
+      },
+      "lastModified": "2026-01-21T00:00:00.000Z",
+      "source": "auto-detected"
+    },
+    "2560x1440": {
+      "name": "1440p",
+      "resolution": { "width": 2560, "height": 1440 },
+      "calibration": {
+        "xOffset": 0,
+        "yOffset": 0,
+        "iconWidth": 80,
+        "iconHeight": 80,
+        "xSpacing": 8,
+        "ySpacing": 8,
+        "iconsPerRow": 20,
+        "numRows": 2
+      },
+      "lastModified": "2026-01-21T00:00:00.000Z",
+      "source": "auto-detected"
+    },
+    "1280x720": {
+      "name": "720p",
+      "resolution": { "width": 1280, "height": 720 },
+      "calibration": {
+        "xOffset": 0,
+        "yOffset": 0,
+        "iconWidth": 40,
+        "iconHeight": 40,
+        "xSpacing": 4,
+        "ySpacing": 4,
+        "iconsPerRow": 20,
+        "numRows": 2
+      },
+      "lastModified": "2026-01-21T00:00:00.000Z",
+      "source": "default"
+    }
+  }
+}

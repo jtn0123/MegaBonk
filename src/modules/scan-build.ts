@@ -687,6 +687,15 @@ function updateItemCardCount(itemId: string, count: number): void {
 }
 
 /**
+ * Get confidence class based on confidence level
+ */
+function getConfidenceClass(confidence: number): string {
+    if (confidence >= 0.8) return 'confidence-high';
+    if (confidence >= 0.5) return 'confidence-medium';
+    return 'confidence-low';
+}
+
+/**
  * Display detection confidence information
  */
 function displayDetectionConfidence(results: {
@@ -698,28 +707,71 @@ function displayDetectionConfidence(results: {
     const container = document.getElementById('scan-detection-info');
     if (!container) return;
 
+    // Count detections by confidence level
+    const allDetections: DetectionResult[] = [
+        ...(results.character ? [results.character] : []),
+        ...(results.weapon ? [results.weapon] : []),
+        ...results.items,
+        ...results.tomes,
+    ];
+
+    const highCount = allDetections.filter(d => d.confidence >= 0.8).length;
+    const mediumCount = allDetections.filter(d => d.confidence >= 0.5 && d.confidence < 0.8).length;
+    const lowCount = allDetections.filter(d => d.confidence < 0.5).length;
+    const avgConfidence =
+        allDetections.length > 0 ? allDetections.reduce((sum, d) => sum + d.confidence, 0) / allDetections.length : 0;
+
     let html = '<div class="scan-detection-results"><h4>🔍 Detection Confidence:</h4>';
 
+    // Stats summary
+    if (allDetections.length > 0) {
+        html += `<div class="scan-detection-stats">
+            <div class="scan-detection-stat stat-high">
+                <span class="stat-count">${highCount}</span> high
+            </div>
+            <div class="scan-detection-stat stat-medium">
+                <span class="stat-count">${mediumCount}</span> medium
+            </div>
+            <div class="scan-detection-stat stat-low">
+                <span class="stat-count">${lowCount}</span> low
+            </div>
+            <div class="scan-detection-stat">
+                Avg: <span class="stat-count">${Math.round(avgConfidence * 100)}%</span>
+            </div>
+        </div>`;
+    }
+
+    // Low confidence warning
+    if (lowCount >= 3 || (lowCount > 0 && lowCount >= allDetections.length * 0.5)) {
+        html += `<div class="scan-low-confidence-warning">
+            <strong>⚠️ Many low-confidence detections</strong>
+            Some items may be incorrectly identified. Review the selections below and adjust as needed.
+        </div>`;
+    }
+
     if (results.character) {
+        const confClass = getConfidenceClass(results.character.confidence);
         html += `<div class="scan-detection-item">
             <span>Character: ${escapeHtml(results.character.entity.name)}</span>
-            <span class="confidence">${Math.round(results.character.confidence * 100)}%</span>
+            <span class="confidence ${confClass}">${Math.round(results.character.confidence * 100)}%</span>
         </div>`;
     }
 
     if (results.weapon) {
+        const confClass = getConfidenceClass(results.weapon.confidence);
         html += `<div class="scan-detection-item">
             <span>Weapon: ${escapeHtml(results.weapon.entity.name)}</span>
-            <span class="confidence">${Math.round(results.weapon.confidence * 100)}%</span>
+            <span class="confidence ${confClass}">${Math.round(results.weapon.confidence * 100)}%</span>
         </div>`;
     }
 
     if (results.items.length > 0) {
         html += '<div class="scan-detection-section"><strong>Items:</strong>';
         results.items.forEach(item => {
+            const confClass = getConfidenceClass(item.confidence);
             html += `<div class="scan-detection-item">
                 <span>${escapeHtml(item.entity.name)}</span>
-                <span class="confidence">${Math.round(item.confidence * 100)}%</span>
+                <span class="confidence ${confClass}">${Math.round(item.confidence * 100)}%</span>
             </div>`;
         });
         html += '</div>';
@@ -728,9 +780,10 @@ function displayDetectionConfidence(results: {
     if (results.tomes.length > 0) {
         html += '<div class="scan-detection-section"><strong>Tomes:</strong>';
         results.tomes.forEach(tome => {
+            const confClass = getConfidenceClass(tome.confidence);
             html += `<div class="scan-detection-item">
                 <span>${escapeHtml(tome.entity.name)}</span>
-                <span class="confidence">${Math.round(tome.confidence * 100)}%</span>
+                <span class="confidence ${confClass}">${Math.round(tome.confidence * 100)}%</span>
             </div>`;
         });
         html += '</div>';

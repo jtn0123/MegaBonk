@@ -78,7 +78,8 @@ export function resetCalibration() {
 
 export const presetManager = {
     STORAGE_KEY: 'cv-validator-presets',
-    PRESETS_FILE_PATH: 'grid-presets.json',
+    // Path is relative to cv-validator folder (code prepends ../ for fetch)
+    PRESETS_FILE_PATH: '../../data/grid-presets.json',
     _filePresetsLoaded: false,
 
     // Load all presets from localStorage

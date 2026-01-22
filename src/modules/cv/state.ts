@@ -3,7 +3,7 @@
 // ========================================
 
 import type { AllGameData, Item } from '../../types/index.ts';
-import type { CVDetectionResult, TemplateData } from './types.ts';
+import type { CVDetectionResult, TemplateData, GridPreset, GridPresetsFile } from './types.ts';
 
 // ========================================
 // Module State
@@ -165,8 +165,118 @@ export function resetState(): void {
     detectionCache.clear();
     resizedTemplateCache.clear();
     multiScaleTemplates.clear();
+    gridPresets = null;
+    gridPresetsLoaded = false;
     if (cacheCleanupTimer) {
         clearInterval(cacheCleanupTimer);
         cacheCleanupTimer = null;
     }
+}
+
+// ========================================
+// Grid Presets State
+// ========================================
+
+let gridPresets: GridPresetsFile | null = null;
+let gridPresetsLoaded = false;
+
+/**
+ * Load grid presets from the data directory
+ */
+export async function loadGridPresets(): Promise<GridPresetsFile | null> {
+    if (gridPresetsLoaded && gridPresets) {
+        return gridPresets;
+    }
+
+    try {
+        const response = await fetch('data/grid-presets.json');
+        if (!response.ok) {
+            console.warn(`Grid presets not found (${response.status})`);
+            gridPresetsLoaded = true;
+            return null;
+        }
+
+        gridPresets = await response.json();
+        gridPresetsLoaded = true;
+        console.log(`Loaded ${Object.keys(gridPresets?.presets || {}).length} grid presets`);
+        return gridPresets;
+    } catch (e) {
+        console.warn('Failed to load grid presets:', e);
+        gridPresetsLoaded = true;
+        return null;
+    }
+}
+
+/**
+ * Get a preset for a specific resolution
+ */
+export function getPresetForResolution(width: number, height: number): GridPreset | null {
+    if (!gridPresets?.presets) return null;
+    const key = `${width}x${height}`;
+    return gridPresets.presets[key] || null;
+}
+
+/**
+ * Find best matching preset by aspect ratio (fallback when exact resolution not found)
+ */
+export function findPresetByAspectRatio(width: number, height: number): GridPreset | null {
+    if (!gridPresets?.presets) return null;
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+        return null;
+    }
+
+    const targetRatio = width / height;
+    let bestMatch: GridPreset | null = null;
+    let bestScore = Infinity;
+
+    for (const preset of Object.values(gridPresets.presets)) {
+        const presetRatio = preset.resolution.width / preset.resolution.height;
+        const ratioDiff = Math.abs(presetRatio - targetRatio);
+
+        // Prefer closer aspect ratio and closer total resolution
+        const sizeDiff = Math.abs(preset.resolution.width * preset.resolution.height - width * height) / 1000000;
+        const score = ratioDiff * 10 + sizeDiff;
+
+        if (score < bestScore) {
+            bestScore = score;
+            bestMatch = preset;
+        }
+    }
+
+    return bestMatch;
+}
+
+/**
+ * Get all loaded presets
+ */
+export function getAllGridPresets(): Record<string, GridPreset> {
+    return gridPresets?.presets || {};
+}
+
+/**
+ * Check if grid presets have been loaded
+ */
+export function isGridPresetsLoaded(): boolean {
+    return gridPresetsLoaded;
+}
+
+/**
+ * Scale calibration values from one resolution to another
+ */
+export function scaleCalibrationToResolution(
+    calibration: GridPreset['calibration'],
+    fromHeight: number,
+    toHeight: number
+): GridPreset['calibration'] {
+    const scale = toHeight / fromHeight;
+    return {
+        xOffset: Math.round(calibration.xOffset * scale),
+        yOffset: Math.round(calibration.yOffset * scale),
+        iconWidth: Math.round(calibration.iconWidth * scale),
+        iconHeight: Math.round(calibration.iconHeight * scale),
+        xSpacing: Math.round(calibration.xSpacing * scale),
+        ySpacing: Math.round(calibration.ySpacing * scale),
+        iconsPerRow: calibration.iconsPerRow, // These don't scale
+        numRows: calibration.numRows,
+    };
 }

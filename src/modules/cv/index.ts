@@ -4,7 +4,7 @@
 // Re-exports all CV functionality for backwards compatibility
 
 // Types
-export type { CVDetectionResult, ROI, TemplateData } from './types.ts';
+export type { CVDetectionResult, ROI, TemplateData, PresetCalibration, GridPreset, GridPresetsFile } from './types.ts';
 
 // Core - Initialization and Cleanup
 export { cleanupCV, initCV, isFullyLoaded, isPriorityLoaded, startCacheCleanup, stopCacheCleanup } from './core.ts';
@@ -54,6 +54,13 @@ export {
     isPriorityTemplatesLoaded,
     CACHE_TTL,
     MAX_CACHE_SIZE,
+    // Grid presets
+    loadGridPresets,
+    getPresetForResolution,
+    findPresetByAspectRatio,
+    getAllGridPresets,
+    isGridPresetsLoaded,
+    scaleCalibrationToResolution,
 } from './state.ts';
 
 // Training Data
@@ -64,5 +71,68 @@ export {
     isTrainingDataLoaded,
     getTrainingStats,
     clearTrainingData,
+    getTrainingDataVersion,
+    logTrainingDataVersion,
 } from './training.ts';
-export type { TrainingTemplate, TrainingIndex, TrainingSample } from './training.ts';
+export type {
+    TrainingTemplate,
+    TrainingIndex,
+    TrainingSample,
+    TrainingDataVersion,
+    TrainingSourceStats,
+} from './training.ts';
+
+// Auto-Grid Detection
+export {
+    autoDetectGrid,
+    detectHotbarBand,
+    detectRarityBorders,
+    calculateIconMetrics,
+    buildPreciseGrid,
+    validateGrid,
+    compareWithPreset,
+    drawDetectionOverlay,
+    setConfig as setAutoGridConfig,
+    getConfig as getAutoGridConfig,
+} from './auto-grid-detection.ts';
+export type {
+    AutoGridConfig,
+    GridCalibration,
+    BandRegion,
+    CellEdge,
+    BorderResult,
+    IconMetrics,
+    GridPosition,
+    GridResult,
+    CellValidation,
+    ValidatedCell,
+    ValidationResult,
+    FailureReason,
+    AutoDetectionResult,
+    PresetComparison,
+    ProgressCallback,
+} from './auto-grid-detection.ts';
+
+// Accuracy Tracking
+export {
+    loadBenchmarkHistory,
+    getAccuracySummary,
+    analyzeTrends,
+    getWeakItems,
+    getPerImageMetrics,
+    getGradeForF1,
+    getQualityDescription,
+    formatPercent,
+    isHistoryLoaded,
+    getRunCount,
+    getLastRun,
+    clearHistory,
+} from './accuracy-tracker.ts';
+export type {
+    ItemAccuracyMetrics,
+    ImageAccuracyMetrics,
+    BenchmarkRun,
+    BenchmarkHistory,
+    AccuracySummary,
+    TrendAnalysis,
+} from './accuracy-tracker.ts';
