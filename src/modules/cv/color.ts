@@ -58,35 +58,35 @@ export const RARITY_BORDER_COLORS: Record<string, RarityColorDef> = {
     },
     uncommon: {
         name: 'uncommon',
-        // Green
+        // Green - widened ranges for noise tolerance
         h: [85, 155],
-        s: [40, 100],
-        l: [25, 65],
-        rgb: { r: [30, 150], g: [120, 255], b: [30, 150] },
+        s: [30, 100],
+        l: [20, 70],
+        rgb: { r: [0, 150], g: [100, 255], b: [0, 150] },
     },
     rare: {
         name: 'rare',
-        // Blue
+        // Blue - widened red range to include pure blue [0, 128, 255]
         h: [190, 250],
         s: [50, 100],
         l: [35, 70],
-        rgb: { r: [30, 150], g: [80, 200], b: [150, 255] },
+        rgb: { r: [0, 150], g: [60, 220], b: [150, 255] },
     },
     epic: {
         name: 'epic',
-        // Purple
+        // Purple - widened green range to include [128, 0, 255]
         h: [260, 320],
         s: [40, 100],
-        l: [30, 65],
-        rgb: { r: [120, 220], g: [30, 150], b: [150, 255] },
+        l: [25, 70],
+        rgb: { r: [100, 220], g: [0, 150], b: [150, 255] },
     },
     legendary: {
         name: 'legendary',
-        // Orange/Gold
+        // Orange/Gold - widened blue range to include pure orange [255, 165, 0]
         h: [15, 55],
         s: [70, 100],
-        l: [45, 75],
-        rgb: { r: [200, 255], g: [100, 220], b: [20, 120] },
+        l: [40, 80],
+        rgb: { r: [200, 255], g: [80, 220], b: [0, 150] },
     },
 };
 
