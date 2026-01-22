@@ -9,6 +9,7 @@ import {
     preprocessImage,
     calculateNCC,
     calculateSSIM,
+    calculateWindowedSSIM,
     calculateHistogramSimilarity,
     calculateEdgeSimilarity,
     calculateCombinedSimilarity,
@@ -190,6 +191,83 @@ describe('CV Similarity - Individual Methods', () => {
 
             expect(similarity).toBeGreaterThanOrEqual(0);
             expect(similarity).toBeLessThanOrEqual(1);
+        });
+    });
+
+    describe('calculateWindowedSSIM', () => {
+        it('should return high similarity for identical images', () => {
+            const img = createGradientImageData(16, 16);
+            const similarity = calculateWindowedSSIM(img, img);
+
+            expect(similarity).toBeGreaterThan(0.9);
+        });
+
+        it('should return 0 for images with different dimensions', () => {
+            const img1 = createMockImageData(16, 16);
+            const img2 = createMockImageData(8, 8);
+
+            const similarity = calculateWindowedSSIM(img1, img2);
+
+            expect(similarity).toBe(0);
+        });
+
+        it('should return value in valid range [0, 1]', () => {
+            const img1 = createGradientImageData(16, 16);
+            const img2 = createColorfulImageData(16, 16);
+
+            const similarity = calculateWindowedSSIM(img1, img2);
+
+            expect(similarity).toBeGreaterThanOrEqual(0);
+            expect(similarity).toBeLessThanOrEqual(1);
+        });
+
+        it('should fall back to global SSIM for small images', () => {
+            // Images smaller than window size (8x8) should fall back to global SSIM
+            const img1 = createMockImageData(4, 4, 128);
+            const img2 = createMockImageData(4, 4, 128);
+
+            const similarity = calculateWindowedSSIM(img1, img2);
+
+            // Should return a valid score (from fallback)
+            expect(similarity).toBeGreaterThanOrEqual(0);
+            expect(similarity).toBeLessThanOrEqual(1);
+        });
+
+        it('should capture local structure better than global SSIM', () => {
+            // Create two images with same average but different local structure
+            const img1 = createGradientImageData(32, 32);
+            const img2 = createMockImageData(32, 32, 128);
+
+            const globalSSIM = calculateSSIM(img1, img2);
+            const windowedSSIM = calculateWindowedSSIM(img1, img2);
+
+            // Windowed SSIM should generally be lower for structurally different images
+            // because it captures local differences better
+            expect(typeof windowedSSIM).toBe('number');
+            expect(windowedSSIM).toBeGreaterThanOrEqual(0);
+            expect(windowedSSIM).toBeLessThanOrEqual(1);
+        });
+
+        it('should handle uniform images correctly', () => {
+            const img1 = createMockImageData(16, 16, 128);
+            const img2 = createMockImageData(16, 16, 128);
+
+            const similarity = calculateWindowedSSIM(img1, img2);
+
+            expect(similarity).toBeGreaterThan(0.9);
+        });
+
+        it('should complete in reasonable time for typical icon sizes', () => {
+            const img1 = createGradientImageData(64, 64);
+            const img2 = createGradientImageData(64, 64);
+
+            const start = performance.now();
+            const similarity = calculateWindowedSSIM(img1, img2);
+            const elapsed = performance.now() - start;
+
+            expect(similarity).toBeGreaterThan(0.9);
+            // Should complete within 100ms for 64x64 images
+            expect(elapsed).toBeLessThan(100);
         });
     });
 

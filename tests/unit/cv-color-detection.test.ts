@@ -9,6 +9,8 @@ import { describe, it, expect, test } from 'vitest';
 import {
     extractDominantColors,
     getDominantColor,
+    getDetailedColorCategory,
+    matchColorCategories,
     calculateColorVariance,
     isEmptyCell,
     extractBorderPixels,
@@ -308,5 +310,129 @@ describe('Performance', () => {
 
         // Allow more time for CI environments (was 5ms, now 20ms)
         expect(elapsed).toBeLessThan(20);
+    });
+});
+
+// ========================================
+// Detailed Color Category Tests
+// ========================================
+
+describe('getDetailedColorCategory', () => {
+    it('returns primary color for red image', () => {
+        const imageData = image.solid(32, 32, 200, 50, 50);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('red');
+        expect(category.saturation).toBe('high');
+    });
+
+    it('returns primary color for green image', () => {
+        const imageData = image.solid(32, 32, 50, 200, 50);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('green');
+    });
+
+    it('returns primary color for blue image', () => {
+        const imageData = image.solid(32, 32, 50, 50, 200);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('blue');
+    });
+
+    it('identifies gray for low saturation', () => {
+        const imageData = image.solid(32, 32, 128, 128, 128);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('gray');
+        expect(category.saturation).toBe('low');
+    });
+
+    it('identifies black for dark gray', () => {
+        const imageData = image.solid(32, 32, 30, 30, 30);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('gray');
+        expect(category.secondary).toBe('black');
+        expect(category.brightness).toBe('dark');
+    });
+
+    it('identifies white for bright gray', () => {
+        const imageData = image.solid(32, 32, 240, 240, 240);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('gray');
+        expect(category.secondary).toBe('white');
+        expect(category.brightness).toBe('bright');
+    });
+
+    it('identifies orange as red with secondary', () => {
+        const imageData = image.solid(32, 32, 255, 150, 50);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('red');
+        expect(category.secondary).toBe('orange');
+    });
+
+    it('identifies cyan as blue with secondary', () => {
+        // Cyan (50, 200, 230) has blue > green, so it's categorized as blue
+        const imageData = image.solid(32, 32, 50, 200, 230);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('blue');
+        expect(category.secondary).toBe('sky'); // High green secondary
+    });
+
+    it('identifies cyan as green when green dominates', () => {
+        // True cyan with green > blue
+        const imageData = image.solid(32, 32, 50, 230, 200);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('green');
+        expect(category.secondary).toBe('cyan');
+    });
+
+    it('identifies purple as blue with secondary', () => {
+        const imageData = image.solid(32, 32, 150, 50, 200);
+        const category = getDetailedColorCategory(imageData);
+
+        expect(category.primary).toBe('blue');
+        expect(category.secondary).toBe('purple');
+    });
+});
+
+describe('matchColorCategories', () => {
+    it('returns 1.0 for identical categories', () => {
+        const cat1 = { primary: 'red', secondary: 'orange', saturation: 'high' as const, brightness: 'medium' as const };
+        const cat2 = { primary: 'red', secondary: 'orange', saturation: 'high' as const, brightness: 'medium' as const };
+
+        const score = matchColorCategories(cat1, cat2);
+        expect(score).toBe(1.0);
+    });
+
+    it('returns 0.5+ for same primary only', () => {
+        const cat1 = { primary: 'red', secondary: 'orange', saturation: 'high' as const, brightness: 'bright' as const };
+        const cat2 = { primary: 'red', secondary: 'dark_red', saturation: 'medium' as const, brightness: 'dark' as const };
+
+        const score = matchColorCategories(cat1, cat2);
+        expect(score).toBeGreaterThanOrEqual(0.5);
+    });
+
+    it('returns 0 for completely different categories', () => {
+        const cat1 = { primary: 'red', secondary: 'orange', saturation: 'high' as const, brightness: 'bright' as const };
+        const cat2 = { primary: 'blue', secondary: 'navy', saturation: 'low' as const, brightness: 'dark' as const };
+
+        const score = matchColorCategories(cat1, cat2);
+        expect(score).toBeLessThan(0.5);
+    });
+
+    it('gives partial credit for adjacent saturation levels', () => {
+        const cat1 = { primary: 'green', secondary: 'lime', saturation: 'medium' as const, brightness: 'medium' as const };
+        const cat2 = { primary: 'green', secondary: 'lime', saturation: 'high' as const, brightness: 'medium' as const };
+
+        const score = matchColorCategories(cat1, cat2);
+        // Should get partial saturation credit
+        expect(score).toBeGreaterThan(0.75);
+        expect(score).toBeLessThan(1.0);
     });
 });

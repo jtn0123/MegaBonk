@@ -166,10 +166,21 @@ export function extractDominantColors(
 }
 
 /**
- * Get dominant color category from ImageData
- * Used for color-based pre-filtering
+ * Hierarchical color category with detailed information
+ * Provides richer color matching for better pre-filtering
  */
-export function getDominantColor(imageData: ImageData): string {
+export interface DetailedColorCategory {
+    primary: string; // Main color category
+    secondary: string; // More specific subcategory
+    saturation: 'low' | 'medium' | 'high';
+    brightness: 'dark' | 'medium' | 'bright';
+}
+
+/**
+ * Get detailed hierarchical color category from ImageData
+ * More accurate than simple dominant color for template matching
+ */
+export function getDetailedColorCategory(imageData: ImageData): DetailedColorCategory {
     const pixels = imageData.data;
     let sumR = 0;
     let sumG = 0;
@@ -184,47 +195,144 @@ export function getDominantColor(imageData: ImageData): string {
         count++;
     }
 
+    if (count === 0) {
+        return { primary: 'gray', secondary: 'neutral', saturation: 'low', brightness: 'medium' };
+    }
+
     const avgR = sumR / count;
     const avgG = sumG / count;
     const avgB = sumB / count;
 
-    // Categorize into color buckets
+    // Calculate HSL-like values
     const maxChannel = Math.max(avgR, avgG, avgB);
     const minChannel = Math.min(avgR, avgG, avgB);
     const diff = maxChannel - minChannel;
+    const lightness = (maxChannel + minChannel) / 2;
+    const saturationValue = diff === 0 ? 0 : diff / (255 - Math.abs(2 * lightness - 255));
 
-    // Low saturation = gray/white/black
+    // Determine saturation level
+    let saturation: 'low' | 'medium' | 'high';
+    if (saturationValue < 0.2) saturation = 'low';
+    else if (saturationValue < 0.5) saturation = 'medium';
+    else saturation = 'high';
+
+    // Determine brightness level
+    let brightness: 'dark' | 'medium' | 'bright';
+    if (lightness < 80) brightness = 'dark';
+    else if (lightness < 180) brightness = 'medium';
+    else brightness = 'bright';
+
+    // Determine primary and secondary colors
+    let primary: string;
+    let secondary: string;
+
+    // Low saturation = achromatic
     if (diff < 30) {
-        const brightness = (avgR + avgG + avgB) / 3;
-        if (brightness < 60) return 'black';
-        if (brightness > 200) return 'white';
+        primary = 'gray';
+        if (lightness < 60) secondary = 'black';
+        else if (lightness > 200) secondary = 'white';
+        else secondary = 'neutral';
+        return { primary, secondary, saturation, brightness };
+    }
+
+    // Chromatic colors - determine by dominant channel
+    if (avgR >= avgG && avgR >= avgB) {
+        // Red dominant
+        primary = 'red';
+        if (avgG > avgB * 1.5 && avgG > 100) {
+            secondary = avgG > 180 ? 'yellow' : 'orange';
+        } else if (avgB > avgG * 1.2 && avgB > 80) {
+            secondary = 'magenta';
+        } else {
+            secondary = avgR > 200 ? 'bright_red' : 'dark_red';
+        }
+    } else if (avgG >= avgR && avgG >= avgB) {
+        // Green dominant
+        primary = 'green';
+        if (avgB > avgR * 1.3 && avgB > 80) {
+            secondary = 'cyan';
+        } else if (avgR > avgB && avgR > 100) {
+            secondary = 'lime';
+        } else {
+            secondary = avgG > 200 ? 'bright_green' : 'forest';
+        }
+    } else {
+        // Blue dominant
+        primary = 'blue';
+        if (avgR > avgG * 1.3 && avgR > 80) {
+            secondary = 'purple';
+        } else if (avgG > avgR && avgG > 100) {
+            secondary = 'sky';
+        } else {
+            secondary = avgB > 200 ? 'bright_blue' : 'navy';
+        }
+    }
+
+    return { primary, secondary, saturation, brightness };
+}
+
+/**
+ * Calculate color category match score between two detailed categories
+ * Returns score from 0 (no match) to 1 (perfect match)
+ */
+export function matchColorCategories(category1: DetailedColorCategory, category2: DetailedColorCategory): number {
+    let score = 0;
+
+    // Primary color match (most important)
+    if (category1.primary === category2.primary) {
+        score += 0.5;
+        // Bonus for secondary match
+        if (category1.secondary === category2.secondary) {
+            score += 0.25;
+        }
+    }
+
+    // Saturation match
+    if (category1.saturation === category2.saturation) {
+        score += 0.15;
+    } else if (
+        (category1.saturation === 'low' && category2.saturation === 'medium') ||
+        (category1.saturation === 'medium' && category2.saturation === 'low') ||
+        (category1.saturation === 'medium' && category2.saturation === 'high') ||
+        (category1.saturation === 'high' && category2.saturation === 'medium')
+    ) {
+        score += 0.08; // Adjacent saturation levels
+    }
+
+    // Brightness match
+    if (category1.brightness === category2.brightness) {
+        score += 0.1;
+    }
+
+    return score;
+}
+
+/**
+ * Get dominant color category from ImageData (legacy function)
+ * Used for color-based pre-filtering
+ */
+export function getDominantColor(imageData: ImageData): string {
+    const detailed = getDetailedColorCategory(imageData);
+
+    // Map detailed category to simple color string for backward compatibility
+    if (detailed.primary === 'gray') {
+        if (detailed.secondary === 'black') return 'black';
+        if (detailed.secondary === 'white') return 'white';
         return 'gray';
     }
 
-    // High saturation = color
-    if (avgR > avgG && avgR > avgB) {
-        // Red dominant
-        if (avgG > avgB * 1.3) return 'orange';
-        // Yellow requires high red, high green, AND low blue
-        if (avgR > 180 && avgG > 140 && avgB < 120) return 'yellow';
-        return 'red';
-    } else if (avgG > avgR && avgG > avgB) {
-        // Green dominant
-        if (avgB > avgR * 1.3) return 'cyan';
-        if (avgG > 180 && avgB < 100) return 'lime';
-        return 'green';
-    } else if (avgB > avgR && avgB > avgG) {
-        // Blue dominant
-        if (avgR > avgG * 1.3) return 'purple';
-        if (avgB > 180 && avgG < 100) return 'blue';
-        return 'blue';
+    // Use secondary for more specific colors where available
+    if (detailed.secondary === 'yellow' || detailed.secondary === 'orange') {
+        return detailed.secondary;
+    }
+    if (detailed.secondary === 'cyan' || detailed.secondary === 'lime') {
+        return detailed.secondary;
+    }
+    if (detailed.secondary === 'purple' || detailed.secondary === 'magenta') {
+        return detailed.secondary;
     }
 
-    // Mixed colors
-    if (avgR > 150 && avgG < 100 && avgB > 150) return 'magenta';
-    if (avgR > 100 && avgG > 100 && avgB < 80) return 'brown';
-
-    return 'mixed'; // Fallback
+    return detailed.primary;
 }
 
 /**
