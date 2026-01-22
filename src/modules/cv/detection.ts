@@ -14,11 +14,21 @@ import {
     isPriorityTemplatesLoaded,
     getResizedTemplate,
     setResizedTemplate,
+    getMultiScaleTemplate,
+    hasMultiScaleTemplates,
+    COMMON_ICON_SIZES,
     CACHE_TTL,
     MAX_CACHE_SIZE,
 } from './state.ts';
 import { loadItemTemplates } from './templates.ts';
-import { getDominantColor, isEmptyCell, calculateColorVariance, detectBorderRarity } from './color.ts';
+import {
+    getDominantColor,
+    isEmptyCell,
+    calculateColorVariance,
+    detectBorderRarity,
+    countRarityBorderPixels,
+    detectRarityAtPixel,
+} from './color.ts';
 import { calculateEnhancedSimilarity } from './similarity.ts';
 import { getTrainingTemplatesForItem, isTrainingDataLoaded } from './training.ts';
 import type { TrainingTemplate } from './training.ts';
@@ -285,6 +295,235 @@ export function nonMaxSuppression(detections: CVDetectionResult[], iouThreshold:
 // ========================================
 
 /**
+ * Enhanced hotbar region detection using rarity border analysis
+ * Returns the Y coordinates of the detected hotbar band
+ */
+export function detectHotbarRegion(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number
+): { topY: number; bottomY: number; confidence: number } {
+    // Scan bottom 35% of screen (hotbar is at very bottom)
+    const scanStartY = Math.floor(height * 0.65);
+    const scanEndY = height - 5;
+
+    // Sample center 70% of width (hotbar is centered)
+    const sampleStartX = Math.floor(width * 0.15);
+    const sampleWidth = Math.floor(width * 0.7);
+
+    // Analyze horizontal strips
+    const stripHeight = 2;
+    const strips: Array<{
+        y: number;
+        rarityRatio: number;
+        colorfulRatio: number;
+        variance: number;
+    }> = [];
+
+    for (let y = scanStartY; y < scanEndY; y += stripHeight) {
+        const imageData = ctx.getImageData(sampleStartX, y, sampleWidth, stripHeight);
+        const stats = countRarityBorderPixels(imageData);
+        const variance = calculateColorVariance(imageData);
+
+        strips.push({
+            y,
+            rarityRatio: stats.rarityCount / stats.total,
+            colorfulRatio: stats.colorfulCount / stats.total,
+            variance,
+        });
+    }
+
+    // Find the best hotbar band using sliding window
+    const windowSize = 35; // ~70px window
+    let bestScore = 0;
+    let bestBandStart = scanStartY;
+    let bestBandEnd = scanEndY;
+
+    for (let i = 0; i < strips.length - windowSize; i++) {
+        const windowSlice = strips.slice(i, i + windowSize);
+
+        const avgRarityRatio = windowSlice.reduce((s, d) => s + d.rarityRatio, 0) / windowSlice.length;
+        const avgColorful = windowSlice.reduce((s, d) => s + d.colorfulRatio, 0) / windowSlice.length;
+        const avgVariance = windowSlice.reduce((s, d) => s + d.variance, 0) / windowSlice.length;
+
+        let score = 0;
+
+        // Rarity borders are a strong signal
+        if (avgRarityRatio > 0.01) {
+            score += avgRarityRatio * 200;
+        }
+
+        // Colorful pixels indicate icons
+        if (avgColorful > 0.03) {
+            score += avgColorful * 80;
+        }
+
+        // High variance means varied content (icons)
+        if (avgVariance > 200) {
+            score += Math.min(30, avgVariance / 50);
+        }
+
+        // Prefer lower on screen (hotbar is at very bottom)
+        const yPosition = windowSlice[0].y / height;
+        if (yPosition > 0.88) {
+            score += 30;
+        } else if (yPosition > 0.82) {
+            score += 15;
+        }
+
+        if (score > bestScore) {
+            bestScore = score;
+            bestBandStart = windowSlice[0].y;
+            bestBandEnd = windowSlice[windowSlice.length - 1].y + stripHeight;
+        }
+    }
+
+    // Constrain band height
+    const maxBandHeight = Math.floor(height * 0.15);
+    const minBandHeight = Math.floor(height * 0.05);
+
+    if (bestBandEnd - bestBandStart > maxBandHeight) {
+        bestBandStart = bestBandEnd - maxBandHeight;
+    }
+    if (bestBandEnd - bestBandStart < minBandHeight) {
+        bestBandStart = bestBandEnd - minBandHeight;
+    }
+
+    // Fallback if nothing detected
+    if (bestScore < 10) {
+        bestBandStart = Math.floor(height * 0.85);
+        bestBandEnd = height - 5;
+    }
+
+    return {
+        topY: bestBandStart,
+        bottomY: bestBandEnd,
+        confidence: Math.min(1, bestScore / 100),
+    };
+}
+
+/**
+ * Detect vertical edges (icon borders) using rarity colors
+ * Returns X positions of detected edges
+ */
+export function detectIconEdges(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    bandRegion: { topY: number; bottomY: number }
+): number[] {
+    const { topY, bottomY } = bandRegion;
+    const bandHeight = bottomY - topY;
+
+    // Only scan center 70% of width
+    const scanStartX = Math.floor(width * 0.15);
+    const scanEndX = Math.floor(width * 0.85);
+
+    // Scan multiple horizontal lines within the band
+    const scanYOffsets = [0.1, 0.25, 0.5, 0.75, 0.9];
+    const edgeCounts = new Map<number, number>();
+
+    for (const yOffset of scanYOffsets) {
+        const scanY = Math.floor(topY + bandHeight * yOffset);
+        if (scanY >= ctx.canvas.height) continue;
+
+        const lineData = ctx.getImageData(scanStartX, scanY, scanEndX - scanStartX, 1);
+        const pixels = lineData.data;
+
+        let inBorder = false;
+        let borderStart = -1;
+
+        for (let localX = 0; localX < scanEndX - scanStartX; localX++) {
+            const x = localX + scanStartX;
+            const idx = localX * 4;
+            const r = pixels[idx] ?? 0;
+            const g = pixels[idx + 1] ?? 0;
+            const b = pixels[idx + 2] ?? 0;
+
+            const rarity = detectRarityAtPixel(r, g, b);
+
+            if (rarity && !inBorder) {
+                inBorder = true;
+                borderStart = x;
+            } else if (!rarity && inBorder) {
+                const borderWidth = x - borderStart;
+
+                // Valid borders are 2-8 pixels wide
+                if (borderWidth >= 2 && borderWidth <= 8) {
+                    // Record edge at start of border
+                    const bucket = Math.round(borderStart / 4) * 4; // 4px tolerance
+                    edgeCounts.set(bucket, (edgeCounts.get(bucket) || 0) + 1);
+                }
+
+                inBorder = false;
+            }
+        }
+    }
+
+    // Filter to edges detected in multiple scan lines
+    const consistentEdges: number[] = [];
+    for (const [x, count] of edgeCounts) {
+        if (count >= 2) {
+            consistentEdges.push(x);
+        }
+    }
+
+    // Sort by X position
+    consistentEdges.sort((a, b) => a - b);
+
+    // Filter by spacing consistency
+    return filterByConsistentSpacing(consistentEdges);
+}
+
+/**
+ * Filter edges to keep only those with consistent spacing
+ */
+function filterByConsistentSpacing(edges: number[]): number[] {
+    if (edges.length < 3) return edges;
+
+    // Calculate gaps
+    const gaps: Array<{ gap: number; fromIdx: number; toIdx: number }> = [];
+    for (let i = 1; i < edges.length; i++) {
+        const gap = edges[i] - edges[i - 1];
+        if (gap > 20 && gap < 120) {
+            gaps.push({ gap, fromIdx: i - 1, toIdx: i });
+        }
+    }
+
+    if (gaps.length < 2) return edges;
+
+    // Find mode gap (most common spacing)
+    const gapCounts = new Map<number, number>();
+    const tolerance = 4;
+
+    for (const { gap } of gaps) {
+        const bucket = Math.round(gap / tolerance) * tolerance;
+        gapCounts.set(bucket, (gapCounts.get(bucket) || 0) + 1);
+    }
+
+    let modeGap = 0;
+    let modeCount = 0;
+    for (const [bucket, count] of gapCounts) {
+        if (count > modeCount) {
+            modeCount = count;
+            modeGap = bucket;
+        }
+    }
+
+    if (modeCount < 2) return edges;
+
+    // Keep edges that fit the mode spacing
+    const consistentIndices = new Set<number>();
+    for (const { gap, fromIdx, toIdx } of gaps) {
+        if (Math.abs(gap - modeGap) <= tolerance) {
+            consistentIndices.add(fromIdx);
+            consistentIndices.add(toIdx);
+        }
+    }
+
+    return edges.filter((_, idx) => consistentIndices.has(idx));
+}
+
+/**
  * Get adaptive icon sizes based on image dimensions
  * Returns array of sizes to try for multi-scale detection
  */
@@ -418,10 +657,28 @@ export function resizeImageData(imageData: ImageData, targetWidth: number, targe
 }
 
 /**
+ * Find the closest pre-generated template size
+ */
+function findClosestTemplateSize(targetSize: number): number {
+    let closest = COMMON_ICON_SIZES[0];
+    let minDiff = Math.abs(targetSize - closest);
+
+    for (const size of COMMON_ICON_SIZES) {
+        const diff = Math.abs(targetSize - size);
+        if (diff < minDiff) {
+            minDiff = diff;
+            closest = size;
+        }
+    }
+
+    return closest;
+}
+
+/**
  * Match a screenshot cell against an item template
  * Returns similarity score (0-1, higher is better)
  * Returns 0 if template resizing fails
- * Uses cache to avoid redundant template resizing
+ * Uses pre-generated multi-scale templates when available, falls back to cache
  */
 function matchTemplate(
     screenshotCtx: CanvasRenderingContext2D,
@@ -432,13 +689,29 @@ function matchTemplate(
     // Extract icon region from screenshot (exclude count area)
     const iconRegion = extractIconRegion(screenshotCtx, cell);
 
-    // Check cache for resized template
+    // Try to use pre-generated multi-scale template first (much faster)
     let resizedTemplate: ImageData | undefined;
-    if (itemId) {
+    if (itemId && hasMultiScaleTemplates(itemId)) {
+        // Find closest pre-generated size
+        const targetSize = Math.max(iconRegion.width, iconRegion.height);
+        const closestSize = findClosestTemplateSize(targetSize);
+        resizedTemplate = getMultiScaleTemplate(itemId, closestSize);
+
+        // If sizes don't match exactly, we need to resize
+        if (resizedTemplate && (closestSize !== iconRegion.width || closestSize !== iconRegion.height)) {
+            const resized = resizeImageData(resizedTemplate, iconRegion.width, iconRegion.height);
+            if (resized) {
+                resizedTemplate = resized;
+            }
+        }
+    }
+
+    // Fall back to cache-based approach
+    if (!resizedTemplate && itemId) {
         resizedTemplate = getResizedTemplate(itemId, iconRegion.width, iconRegion.height);
     }
 
-    // Resize template if not cached
+    // Resize from original template if not found
     if (!resizedTemplate) {
         const templateImageData = template.ctx.getImageData(0, 0, template.width, template.height);
         // Convert null to undefined for type consistency
@@ -1060,15 +1333,33 @@ export async function detectItemsWithCV(
             return workerResults;
         }
 
-        // NEW: Smart sliding window detection
-        // Scan hotbar region (bottom 20% of screen)
+        // NEW: Smart sliding window detection with improved hotbar detection
+        // First detect hotbar region using rarity border analysis
+        if (progressCallback) {
+            progressCallback(18, 'Detecting hotbar region...');
+        }
+
+        const detectedHotbar = detectHotbarRegion(ctx, width, height);
+
+        // Use detected hotbar region, with fallback
         const hotbarROI: ROI = {
             x: 0,
-            y: Math.floor(height * 0.8),
+            y: detectedHotbar.confidence > 0.3 ? detectedHotbar.topY : Math.floor(height * 0.8),
             width: width,
-            height: Math.floor(height * 0.2),
+            height:
+                detectedHotbar.confidence > 0.3
+                    ? detectedHotbar.bottomY - detectedHotbar.topY
+                    : Math.floor(height * 0.2),
             label: 'hotbar_region',
         };
+
+        logger.info({
+            operation: 'cv.hotbar_detection',
+            data: {
+                detected: detectedHotbar,
+                usingROI: hotbarROI,
+            },
+        });
 
         if (progressCallback) {
             progressCallback(20, 'Scanning hotbar region...');

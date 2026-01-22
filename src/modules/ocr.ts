@@ -12,6 +12,10 @@ import { logger } from './logger.ts';
 // Lazy-loaded Tesseract module reference
 let tesseractModule: typeof import('tesseract.js') | null = null;
 
+// Track active Tesseract workers for cleanup
+let activeWorker: Awaited<ReturnType<typeof import('tesseract.js').createWorker>> | null = null;
+let workerInitPromise: Promise<void> | null = null;
+
 /**
  * Lazy load Tesseract.js only when needed
  * This reduces initial bundle size since OCR may not be used in every session
@@ -29,6 +33,111 @@ async function getTesseract(): Promise<typeof import('tesseract.js')> {
         });
     }
     return tesseractModule;
+}
+
+/**
+ * Get or create a reusable Tesseract worker
+ * Workers are expensive to create, so we reuse them
+ */
+async function getOrCreateWorker(): Promise<Awaited<ReturnType<typeof import('tesseract.js').createWorker>>> {
+    // If worker exists and is ready, return it
+    if (activeWorker) {
+        return activeWorker;
+    }
+
+    // If initialization is in progress, wait for it
+    if (workerInitPromise) {
+        await workerInitPromise;
+        if (activeWorker) {
+            return activeWorker;
+        }
+    }
+
+    // Create new worker
+    const Tesseract = await getTesseract();
+
+    workerInitPromise = (async () => {
+        logger.info({
+            operation: 'ocr.worker_init',
+            data: { phase: 'start' },
+        });
+
+        try {
+            activeWorker = await Tesseract.createWorker('eng', 1, {
+                logger: (info: { status: string; progress: number }) => {
+                    if (info.status === 'loading tesseract core' || info.status === 'initializing api') {
+                        logger.debug({
+                            operation: 'ocr.worker_progress',
+                            data: { status: info.status, progress: info.progress },
+                        });
+                    }
+                },
+            });
+
+            logger.info({
+                operation: 'ocr.worker_init',
+                data: { phase: 'complete' },
+            });
+        } catch (error) {
+            logger.error({
+                operation: 'ocr.worker_init',
+                error: {
+                    name: (error as Error).name,
+                    message: (error as Error).message,
+                    module: 'ocr',
+                },
+            });
+            throw error;
+        }
+    })();
+
+    await workerInitPromise;
+    workerInitPromise = null;
+
+    return activeWorker!;
+}
+
+/**
+ * Terminate the Tesseract worker to free memory
+ * Call this when OCR is no longer needed
+ */
+export async function terminateOCRWorker(): Promise<void> {
+    if (activeWorker) {
+        logger.info({
+            operation: 'ocr.worker_terminate',
+            data: { phase: 'start' },
+        });
+
+        try {
+            await activeWorker.terminate();
+            activeWorker = null;
+            workerInitPromise = null;
+
+            logger.info({
+                operation: 'ocr.worker_terminate',
+                data: { phase: 'complete' },
+            });
+        } catch (error) {
+            logger.warn({
+                operation: 'ocr.worker_terminate',
+                error: {
+                    name: (error as Error).name,
+                    message: (error as Error).message,
+                    module: 'ocr',
+                },
+            });
+            // Force cleanup even if terminate fails
+            activeWorker = null;
+            workerInitPromise = null;
+        }
+    }
+}
+
+/**
+ * Check if OCR worker is currently active
+ */
+export function isOCRWorkerActive(): boolean {
+    return activeWorker !== null;
 }
 
 // ========================================
@@ -152,11 +261,10 @@ export async function extractTextFromImage(
 ): Promise<string> {
     let lastError: Error | null = null;
 
-    // Lazy load Tesseract on first use
+    // Initialize worker (reused across calls)
     if (progressCallback) {
         progressCallback(0, 'Loading OCR engine...');
     }
-    const Tesseract = await getTesseract();
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
         try {
@@ -169,17 +277,31 @@ export async function extractTextFromImage(
                 progressCallback(0, `Retrying OCR (attempt ${attempt + 1}/${maxRetries + 1})...`);
             }
 
-            const recognizePromise = Tesseract.recognize(imageDataUrl, 'eng', {
-                logger: (info: { status: string; progress: number }) => {
-                    if (progressCallback && info.status === 'recognizing text') {
-                        const progress = Math.round(info.progress * 100);
-                        progressCallback(progress, `Recognizing text... ${progress}%`);
-                    }
-                },
-            });
+            // Get or create reusable worker
+            const worker = await getOrCreateWorker();
+
+            // Progress tracking for recognition
+            let lastProgress = 0;
+            const progressInterval = progressCallback
+                ? setInterval(() => {
+                      // Simulate progress since worker.recognize doesn't have progress callback
+                      if (lastProgress < 90) {
+                          lastProgress += 10;
+                          progressCallback(lastProgress, `Recognizing text... ${lastProgress}%`);
+                      }
+                  }, 500)
+                : null;
+
+            // Use worker.recognize instead of Tesseract.recognize (reuses worker)
+            const recognizePromise = worker.recognize(imageDataUrl);
 
             // Wrap with timeout to prevent indefinite waiting
-            const result = await withTimeout(recognizePromise, timeoutMs, 'OCR recognition') as TesseractResult;
+            const result = (await withTimeout(recognizePromise, timeoutMs, 'OCR recognition')) as TesseractResult;
+
+            // Clear progress interval
+            if (progressInterval) {
+                clearInterval(progressInterval);
+            }
 
             const extractedText = result.data.text;
 
@@ -212,6 +334,11 @@ export async function extractTextFromImage(
                     module: 'ocr',
                 },
             });
+
+            // If worker failed, terminate it so a fresh one is created on retry
+            if (lastError.message.includes('worker') || lastError.message.includes('timeout')) {
+                await terminateOCRWorker();
+            }
 
             // Don't sleep after the last attempt
             if (attempt < maxRetries) {
@@ -510,14 +637,19 @@ export function extractItemCounts(text: string): Map<string, number> {
 /**
  * Reset OCR module state (for testing)
  */
-export function __resetForTesting(): void {
+export async function __resetForTesting(): Promise<void> {
     itemFuse = null;
     tomeFuse = null;
     characterFuse = null;
     weaponFuse = null;
+
+    // Clean up worker
+    await terminateOCRWorker();
 }
 
 // ========================================
 // Global Assignments
 // ========================================
 window.initOCR = initOCR;
+window.terminateOCRWorker = terminateOCRWorker;
+window.isOCRWorkerActive = isOCRWorkerActive;
