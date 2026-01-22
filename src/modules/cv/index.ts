@@ -152,6 +152,22 @@ export type {
     TemplateSelectionOptions,
 } from './unified-template-manager.ts';
 
+// Training Feedback Export
+export {
+    startFeedbackSession,
+    getCurrentSession,
+    clearFeedbackSession,
+    extractCropFromImage,
+    addCorrection,
+    removeCorrection,
+    exportFeedback,
+    downloadFeedback,
+    getCorrectionCount,
+    getCorrections,
+    isDetectionCorrected,
+} from './training-feedback.ts';
+export type { DetectionForFeedback, FeedbackCorrection, FeedbackExport, FeedbackSession } from './training-feedback.ts';
+
 // Accuracy Tracking
 export {
     loadBenchmarkHistory,
