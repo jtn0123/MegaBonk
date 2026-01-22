@@ -634,6 +634,156 @@ export function extractItemCounts(text: string): Map<string, number> {
     return counts;
 }
 
+// ========================================
+// Specialized Stack Count Detection
+// ========================================
+
+/**
+ * Stack count detection result
+ */
+export interface StackCountResult {
+    count: number | null;
+    confidence: number;
+    rawText: string;
+}
+
+/**
+ * Preprocess image for digit OCR
+ * Applies high contrast and thresholding for better digit recognition
+ */
+function preprocessForDigits(canvas: HTMLCanvasElement): HTMLCanvasElement {
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    if (!ctx) return canvas;
+
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    // Convert to grayscale and apply high contrast
+    for (let i = 0; i < data.length; i += 4) {
+        // Grayscale using luminosity method
+        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+
+        // Apply contrast enhancement
+        const contrast = 2.0;
+        const adjusted = Math.round(((gray / 255 - 0.5) * contrast + 0.5) * 255);
+        const clamped = Math.max(0, Math.min(255, adjusted));
+
+        // Threshold to binary (white text on dark background or vice versa)
+        const threshold = 128;
+        const binary = clamped > threshold ? 255 : 0;
+
+        data[i] = binary;
+        data[i + 1] = binary;
+        data[i + 2] = binary;
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    return canvas;
+}
+
+/**
+ * Detect stack count from a small image region (bottom-right corner of item cell)
+ * Optimized for detecting 1-2 digit numbers like "x2", "x5", "12"
+ */
+export async function detectStackCount(imageDataUrl: string): Promise<StackCountResult> {
+    try {
+        // Create canvas from image
+        const img = new Image();
+        await new Promise<void>((resolve, reject) => {
+            img.onload = () => resolve();
+            img.onerror = reject;
+            img.src = imageDataUrl;
+        });
+
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) {
+            return { count: null, confidence: 0, rawText: '' };
+        }
+        ctx.drawImage(img, 0, 0);
+
+        // Preprocess for better digit recognition
+        const processedCanvas = preprocessForDigits(canvas);
+
+        // Get worker and recognize with digit-only whitelist
+        const worker = await getOrCreateWorker();
+
+        // Configure for single word/digits mode
+        await worker.setParameters({
+            tessedit_char_whitelist: '0123456789x×X',
+            tessedit_pageseg_mode: '8', // PSM 8 = Single word
+        });
+
+        const result = (await worker.recognize(processedCanvas.toDataURL())) as TesseractResult;
+
+        // Reset parameters for future calls
+        await worker.setParameters({
+            tessedit_char_whitelist: '',
+            tessedit_pageseg_mode: '3', // Default: auto page segmentation
+        });
+
+        const rawText = result.data.text.trim();
+        const confidence = result.data.confidence / 100;
+
+        // Parse count from recognized text
+        // Look for patterns: "x2", "×3", "5", "12"
+        const countMatch = rawText.match(/[x×X]?(\d{1,2})/);
+        let count: number | null = null;
+
+        if (countMatch && countMatch[1]) {
+            const parsed = parseInt(countMatch[1], 10);
+            // Valid counts are typically 1-20 in MegaBonk
+            if (!isNaN(parsed) && parsed >= 1 && parsed <= 30) {
+                count = parsed;
+            }
+        }
+
+        logger.info({
+            operation: 'ocr.stack_count',
+            data: {
+                rawText,
+                count,
+                confidence,
+            },
+        });
+
+        return { count, confidence, rawText };
+    } catch (error) {
+        logger.warn({
+            operation: 'ocr.stack_count',
+            error: {
+                name: (error as Error).name,
+                message: (error as Error).message,
+                module: 'ocr',
+            },
+        });
+        return { count: null, confidence: 0, rawText: '' };
+    }
+}
+
+/**
+ * Batch detect stack counts for multiple cell regions
+ * More efficient than calling detectStackCount multiple times
+ */
+export async function detectStackCountsBatch(imageDataUrls: string[]): Promise<Map<number, StackCountResult>> {
+    const results = new Map<number, StackCountResult>();
+
+    // Process in parallel with a concurrency limit
+    const concurrency = 3;
+    for (let i = 0; i < imageDataUrls.length; i += concurrency) {
+        const batch = imageDataUrls.slice(i, i + concurrency);
+        const batchResults = await Promise.all(batch.map(url => detectStackCount(url)));
+
+        batchResults.forEach((result, idx) => {
+            results.set(i + idx, result);
+        });
+    }
+
+    return results;
+}
+
 /**
  * Reset OCR module state (for testing)
  */

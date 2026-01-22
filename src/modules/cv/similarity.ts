@@ -133,8 +133,9 @@ export function calculateNCC(imageData1: SimpleImageData, imageData2: SimpleImag
 }
 
 /**
- * SSIM (Structural Similarity Index)
+ * SSIM (Structural Similarity Index) - Global version
  * More robust than NCC for image comparison
+ * Note: With stabilization constants C1/C2, SSIM returns [0, 1] for typical images
  */
 export function calculateSSIM(img1: SimpleImageData, img2: SimpleImageData): number {
     if (img1.width !== img2.width || img1.height !== img2.height) return 0;
@@ -183,7 +184,98 @@ export function calculateSSIM(img1: SimpleImageData, img2: SimpleImageData): num
 
     const ssim = ((2 * mean1 * mean2 + C1) * (2 * covar + C2)) / ((mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2));
 
-    return (ssim + 1) / 2;
+    // SSIM with stabilization constants already returns [0, 1] for typical images
+    // Clamp to ensure valid range (no transformation needed)
+    return Math.max(0, Math.min(1, ssim));
+}
+
+/**
+ * Windowed SSIM (Structural Similarity Index)
+ * Uses sliding window approach for better local structure comparison
+ * More accurate than global SSIM for template matching
+ */
+export function calculateWindowedSSIM(img1: SimpleImageData, img2: SimpleImageData): number {
+    if (img1.width !== img2.width || img1.height !== img2.height) return 0;
+
+    const width = img1.width;
+    const height = img1.height;
+    const windowSize = 8; // 8x8 windows - good balance of locality and speed
+    const stepSize = 4; // 50% overlap for smoother results
+
+    // SSIM constants
+    const K1 = 0.01;
+    const K2 = 0.03;
+    const L = 255; // Dynamic range
+    const C1 = (K1 * L) ** 2;
+    const C2 = (K2 * L) ** 2;
+
+    // Convert to grayscale arrays for faster access
+    const gray1 = new Float32Array(width * height);
+    const gray2 = new Float32Array(width * height);
+
+    for (let i = 0; i < width * height; i++) {
+        const idx = i * 4;
+        gray1[i] = ((img1.data[idx] ?? 0) + (img1.data[idx + 1] ?? 0) + (img1.data[idx + 2] ?? 0)) / 3;
+        gray2[i] = ((img2.data[idx] ?? 0) + (img2.data[idx + 1] ?? 0) + (img2.data[idx + 2] ?? 0)) / 3;
+    }
+
+    let totalSSIM = 0;
+    let windowCount = 0;
+
+    // Slide window across image
+    for (let wy = 0; wy <= height - windowSize; wy += stepSize) {
+        for (let wx = 0; wx <= width - windowSize; wx += stepSize) {
+            // Compute local statistics for this window
+            let mean1 = 0,
+                mean2 = 0;
+            const windowPixels = windowSize * windowSize;
+
+            // First pass: compute means
+            for (let dy = 0; dy < windowSize; dy++) {
+                for (let dx = 0; dx < windowSize; dx++) {
+                    const idx = (wy + dy) * width + (wx + dx);
+                    mean1 += gray1[idx];
+                    mean2 += gray2[idx];
+                }
+            }
+            mean1 /= windowPixels;
+            mean2 /= windowPixels;
+
+            // Second pass: compute variances and covariance
+            let var1 = 0,
+                var2 = 0,
+                covar = 0;
+            for (let dy = 0; dy < windowSize; dy++) {
+                for (let dx = 0; dx < windowSize; dx++) {
+                    const idx = (wy + dy) * width + (wx + dx);
+                    const d1 = gray1[idx] - mean1;
+                    const d2 = gray2[idx] - mean2;
+                    var1 += d1 * d1;
+                    var2 += d2 * d2;
+                    covar += d1 * d2;
+                }
+            }
+            var1 /= windowPixels;
+            var2 /= windowPixels;
+            covar /= windowPixels;
+
+            // Compute local SSIM
+            const numerator = (2 * mean1 * mean2 + C1) * (2 * covar + C2);
+            const denominator = (mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2);
+            const localSSIM = numerator / denominator;
+
+            totalSSIM += localSSIM;
+            windowCount++;
+        }
+    }
+
+    if (windowCount === 0) {
+        // Fallback to global SSIM for very small images
+        return calculateSSIM(img1, img2);
+    }
+
+    // Average SSIM across all windows, clamped to [0, 1]
+    return Math.max(0, Math.min(1, totalSSIM / windowCount));
 }
 
 /**
@@ -316,33 +408,32 @@ export function calculateCombinedSimilarity(imageData1: SimpleImageData, imageDa
     // Calculate multiple similarity metrics
     const ncc = calculateNCC(processed1, processed2);
     const histogram = calculateHistogramSimilarity(processed1, processed2);
-    const ssim = calculateSSIM(processed1, processed2);
+    // Use windowed SSIM for better local structure comparison
+    const ssim = calculateWindowedSSIM(processed1, processed2);
     const edges = calculateEdgeSimilarity(processed1, processed2);
 
-    // Use the best method as base
+    // Weighted combination instead of just max
+    // SSIM and edges are more reliable for icon matching
+    const weights = {
+        ncc: 0.2,
+        histogram: 0.2,
+        ssim: 0.35, // Higher weight - windowed SSIM captures local structure well
+        edges: 0.25, // Higher weight - edges are robust to color variations
+    };
+
+    const weightedScore =
+        ncc * weights.ncc + histogram * weights.histogram + ssim * weights.ssim + edges * weights.edges;
+
+    // Bonus if multiple methods agree (all above a threshold)
     const scores = [ncc, histogram, ssim, edges];
-    const maxScore = Math.max(...scores);
+    const agreementThreshold = 0.6;
+    const methodsAboveThreshold = scores.filter(s => s >= agreementThreshold).length;
 
-    // Bonus if multiple methods agree (all within threshold of each other)
-    // Count pairs of methods that agree, excluding self-comparison
-    let agreementBonus = 0;
-    const threshold = 0.1;
+    // Award bonus based on method agreement
+    // 2 methods agree = 0.02, 3 agree = 0.04, 4 agree = 0.06
+    const agreementBonus = Math.max(0, (methodsAboveThreshold - 1) * 0.02);
 
-    // Count how many methods are close to the max score
-    // Exclude the max itself from the count (it always "agrees" with itself)
-    let agreementCount = 0;
-    for (const score of scores) {
-        // Only count if this score is close to max BUT not the max itself
-        if (score < maxScore && Math.abs(score - maxScore) < threshold) {
-            agreementCount++;
-        }
-    }
-
-    // Award bonus based on how many OTHER methods agree with the best
-    // 0 others agree = no bonus, 1 agrees = 0.02, 2 agree = 0.04, 3 agree = 0.06
-    agreementBonus = agreementCount * 0.02;
-
-    return Math.min(0.99, maxScore + agreementBonus);
+    return Math.min(0.99, weightedScore + agreementBonus);
 }
 
 /**

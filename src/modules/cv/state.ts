@@ -20,8 +20,91 @@ let standardTemplatesLoading = false; // Guard against concurrent standard templ
 // Detection result cache (key = image hash, value = results)
 const detectionCache = new Map<string, { results: CVDetectionResult[]; timestamp: number }>();
 
-// Resized template cache (key = templateId_width_height, value = ImageData)
-const resizedTemplateCache = new Map<string, ImageData>();
+// ========================================
+// LRU Cache Implementation
+// ========================================
+
+/**
+ * LRU (Least Recently Used) Cache
+ * Provides O(1) get/set operations with automatic eviction
+ */
+class LRUCache<K, V> {
+    private cache: Map<K, V>;
+    private maxSize: number;
+
+    constructor(maxSize: number) {
+        this.cache = new Map();
+        this.maxSize = maxSize;
+    }
+
+    /**
+     * Get value from cache, moving it to most recently used
+     */
+    get(key: K): V | undefined {
+        const value = this.cache.get(key);
+        if (value !== undefined) {
+            // Move to end (most recently used) by deleting and re-adding
+            this.cache.delete(key);
+            this.cache.set(key, value);
+        }
+        return value;
+    }
+
+    /**
+     * Set value in cache, evicting LRU entry if full
+     */
+    set(key: K, value: V): void {
+        // If key exists, delete it first (will be re-added at end)
+        if (this.cache.has(key)) {
+            this.cache.delete(key);
+        } else if (this.cache.size >= this.maxSize) {
+            // Evict least recently used (first entry in Map)
+            const firstKey = this.cache.keys().next().value;
+            if (firstKey !== undefined) {
+                this.cache.delete(firstKey);
+            }
+        }
+        this.cache.set(key, value);
+    }
+
+    /**
+     * Check if key exists in cache
+     */
+    has(key: K): boolean {
+        return this.cache.has(key);
+    }
+
+    /**
+     * Delete a specific key
+     */
+    delete(key: K): boolean {
+        return this.cache.delete(key);
+    }
+
+    /**
+     * Clear the entire cache
+     */
+    clear(): void {
+        this.cache.clear();
+    }
+
+    /**
+     * Get current size of cache
+     */
+    get size(): number {
+        return this.cache.size;
+    }
+
+    /**
+     * Get all entries (for iteration)
+     */
+    entries(): IterableIterator<[K, V]> {
+        return this.cache.entries();
+    }
+}
+
+// Resized template cache using LRU (key = templateId_width_height, value = ImageData)
+const resizedTemplateCache = new LRUCache<string, ImageData>(500);
 const MAX_RESIZED_CACHE_SIZE = 500; // Keep up to 500 resized variants
 
 // Multi-scale template variants (pre-generated at common sizes for faster matching)
@@ -79,20 +162,13 @@ export function getDetectionCache(): Map<string, { results: CVDetectionResult[];
 
 export function getResizedTemplate(templateId: string, width: number, height: number): ImageData | undefined {
     const key = `${templateId}_${width}_${height}`;
+    // LRU cache automatically moves accessed item to most recently used
     return resizedTemplateCache.get(key);
 }
 
 export function setResizedTemplate(templateId: string, width: number, height: number, imageData: ImageData): void {
     const key = `${templateId}_${width}_${height}`;
-
-    // Evict oldest entries if cache is full (simple FIFO)
-    if (resizedTemplateCache.size >= MAX_RESIZED_CACHE_SIZE) {
-        const firstKey = resizedTemplateCache.keys().next().value;
-        if (firstKey) {
-            resizedTemplateCache.delete(firstKey);
-        }
-    }
-
+    // LRU cache automatically handles eviction
     resizedTemplateCache.set(key, imageData);
 }
 
