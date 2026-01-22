@@ -32,14 +32,207 @@ interface TemplateData {
     height: number;
 }
 
-// Rarity color ranges (HSV-like for border detection)
-const RARITY_COLORS: Record<string, { r: [number, number]; g: [number, number]; b: [number, number] }> = {
-    common: { r: [100, 180], g: [100, 180], b: [100, 180] },      // Gray
-    uncommon: { r: [0, 100], g: [150, 255], b: [0, 100] },        // Green
-    rare: { r: [0, 100], g: [100, 200], b: [200, 255] },          // Blue
-    epic: { r: [150, 255], g: [0, 100], b: [200, 255] },          // Purple
-    legendary: { r: [200, 255], g: [100, 200], b: [0, 100] },     // Orange/Gold
+// ========================================
+// Rarity Border Color Detection (ported from real detector)
+// ========================================
+
+interface RarityColorDef {
+    name: string;
+    h: [number, number];
+    s: [number, number];
+    l: [number, number];
+    rgb: { r: [number, number]; g: [number, number]; b: [number, number] };
+}
+
+const RARITY_BORDER_COLORS: Record<string, RarityColorDef> = {
+    common: {
+        name: 'common',
+        h: [0, 360],
+        s: [0, 25],
+        l: [35, 75],
+        rgb: { r: [100, 200], g: [100, 200], b: [100, 200] },
+    },
+    uncommon: {
+        name: 'uncommon',
+        h: [85, 155],
+        s: [30, 100],
+        l: [20, 70],
+        rgb: { r: [0, 150], g: [100, 255], b: [0, 150] },
+    },
+    rare: {
+        name: 'rare',
+        h: [190, 250],
+        s: [50, 100],
+        l: [35, 70],
+        rgb: { r: [0, 150], g: [60, 220], b: [150, 255] },
+    },
+    epic: {
+        name: 'epic',
+        h: [260, 320],
+        s: [40, 100],
+        l: [25, 70],
+        rgb: { r: [100, 220], g: [0, 150], b: [150, 255] },
+    },
+    legendary: {
+        name: 'legendary',
+        h: [15, 55],
+        s: [70, 100],
+        l: [40, 80],
+        rgb: { r: [200, 255], g: [80, 220], b: [0, 150] },
+    },
 };
+
+/**
+ * Convert RGB to HSL color space
+ */
+function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
+
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r:
+                h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+                break;
+            case g:
+                h = ((b - r) / d + 2) / 6;
+                break;
+            case b:
+                h = ((r - g) / d + 4) / 6;
+                break;
+        }
+    }
+
+    return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
+/**
+ * Check if a color matches a specific rarity border color
+ */
+function matchesRarityColor(r: number, g: number, b: number, rarity: string): boolean {
+    const def = RARITY_BORDER_COLORS[rarity];
+    if (!def) return false;
+
+    // Quick RGB range check first
+    if (r < def.rgb.r[0] || r > def.rgb.r[1]) return false;
+    if (g < def.rgb.g[0] || g > def.rgb.g[1]) return false;
+    if (b < def.rgb.b[0] || b > def.rgb.b[1]) return false;
+
+    // HSL check for more accuracy
+    const hsl = rgbToHsl(r, g, b);
+
+    // Handle hue wraparound
+    let hueMatch = false;
+    if (def.h[0] <= def.h[1]) {
+        hueMatch = hsl.h >= def.h[0] && hsl.h <= def.h[1];
+    } else {
+        hueMatch = hsl.h >= def.h[0] || hsl.h <= def.h[1];
+    }
+
+    const satMatch = hsl.s >= def.s[0] && hsl.s <= def.s[1];
+    const lumMatch = hsl.l >= def.l[0] && hsl.l <= def.l[1];
+
+    return hueMatch && satMatch && lumMatch;
+}
+
+/**
+ * Detect rarity at a specific pixel
+ */
+function detectRarityAtPixel(r: number, g: number, b: number): string | null {
+    for (const rarity of Object.keys(RARITY_BORDER_COLORS)) {
+        if (matchesRarityColor(r, g, b, rarity)) {
+            return rarity;
+        }
+    }
+    return null;
+}
+
+/**
+ * Count rarity border pixels in image data
+ */
+function countRarityBorderPixels(imageData: any): {
+    total: number;
+    rarityCount: number;
+    colorfulCount: number;
+} {
+    const pixels = imageData.data;
+    let rarityCount = 0;
+    let colorfulCount = 0;
+
+    for (let i = 0; i < pixels.length; i += 4) {
+        const r = pixels[i] ?? 0;
+        const g = pixels[i + 1] ?? 0;
+        const b = pixels[i + 2] ?? 0;
+
+        // Check if colorful
+        const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+        if (saturation > 40) colorfulCount++;
+
+        // Check specific rarity
+        const rarity = detectRarityAtPixel(r, g, b);
+        if (rarity) {
+            rarityCount++;
+        }
+    }
+
+    return {
+        total: pixels.length / 4,
+        rarityCount,
+        colorfulCount,
+    };
+}
+
+/**
+ * Calculate color variance for detecting empty cells
+ */
+function calculateColorVariance(imageData: any): number {
+    const pixels = imageData.data;
+    let sumR = 0, sumG = 0, sumB = 0;
+    let count = 0;
+
+    for (let i = 0; i < pixels.length; i += 16) {
+        sumR += pixels[i] ?? 0;
+        sumG += pixels[i + 1] ?? 0;
+        sumB += pixels[i + 2] ?? 0;
+        count++;
+    }
+
+    const meanR = sumR / count;
+    const meanG = sumG / count;
+    const meanB = sumB / count;
+
+    let varianceSum = 0;
+    for (let i = 0; i < pixels.length; i += 16) {
+        const diffR = (pixels[i] ?? 0) - meanR;
+        const diffG = (pixels[i + 1] ?? 0) - meanG;
+        const diffB = (pixels[i + 2] ?? 0) - meanB;
+        varianceSum += diffR * diffR + diffG * diffG + diffB * diffB;
+    }
+
+    return varianceSum / count;
+}
+
+// ========================================
+// Grid Parameters Interface
+// ========================================
+
+interface GridParameters {
+    startX: number;
+    startY: number;
+    cellWidth: number;
+    cellHeight: number;
+    columns: number;
+    rows: number;
+    confidence: number;
+}
 
 const templateCache = new Map<string, TemplateData>();
 const templatesByRarity = new Map<string, TemplateData[]>();
@@ -321,7 +514,8 @@ class OfflineCVRunner {
     }
 
     /**
-     * Run actual CV detection using templates and grid positions
+     * Run actual CV detection using templates and dynamic grid detection
+     * Ported from real browser detector for consistency
      */
     private async runDetection(
         ctx: any,
@@ -333,16 +527,48 @@ class OfflineCVRunner {
         // Load templates if not loaded
         await this.loadTemplates();
 
-        // Detect grid positions (hotbar at bottom)
-        const gridPositions = this.detectGridPositions(width, height);
+        // Phase 1: Detect hotbar region using rarity border analysis
+        const hotbarRegion = this.detectHotbarRegion(ctx, width, height);
 
-        // Get confidence thresholds
-        const thresholds = getConfidenceThresholds(strategy);
+        // Phase 2: Detect icon edges within the hotbar
+        const edges = this.detectIconEdges(ctx, width, hotbarRegion);
+
+        // Phase 3: Infer grid structure from edges
+        const grid = this.inferGridFromEdges(edges, hotbarRegion, width);
+
+        // Generate grid positions from detected grid or fall back to static
+        let gridPositions: Array<{ x: number; y: number; width: number; height: number }>;
+
+        if (grid && grid.confidence >= 0.4 && grid.columns >= 3) {
+            // Use dynamically detected grid
+            gridPositions = this.generateGridROIs(grid);
+            if (this.config.verbose) {
+                console.log(`   Grid detected: ${grid.columns}x${grid.rows}, confidence: ${(grid.confidence * 100).toFixed(1)}%`);
+            }
+        } else {
+            // Fall back to static grid detection
+            gridPositions = this.detectGridPositionsStatic(width, height);
+            if (this.config.verbose) {
+                console.log(`   Using static grid fallback (${gridPositions.length} cells)`);
+            }
+        }
 
         const detections: Array<{ id: string; name: string; confidence: number }> = [];
 
+        // Note: Offline runner produces lower similarity scores than browser version
+        // because it lacks multi-scale templates and training data optimizations.
+        // Use 0.50 threshold (vs 0.65 in browser) to compensate.
+        const CONFIDENCE_THRESHOLD = 0.50;
+
         // Process each grid cell
         for (const cell of gridPositions) {
+            // Bounds check
+            if (cell.x < 0 || cell.y < 0 ||
+                cell.x + cell.width > width ||
+                cell.y + cell.height > height) {
+                continue;
+            }
+
             // Get cell image data
             const cellImageData = ctx.getImageData(cell.x, cell.y, cell.width, cell.height);
 
@@ -354,17 +580,7 @@ class OfflineCVRunner {
             // Find best match
             const match = await this.findBestMatch(cellImageData, strategy);
 
-            // Threshold varies by strategy (tuned values based on testing)
-            const thresholdByStrategy: Record<string, number> = {
-                current: 0.45,
-                optimized: 0.42,
-                fast: 0.50,
-                accurate: 0.38,
-                balanced: 0.43,
-                tuned: 0.35,  // Lower threshold to catch more items
-            };
-            const testThreshold = thresholdByStrategy[strategyName] || 0.45;
-            if (match && match.confidence >= testThreshold) {
+            if (match && match.confidence >= CONFIDENCE_THRESHOLD) {
                 detections.push({
                     id: match.item.id,
                     name: match.item.name,
@@ -374,6 +590,330 @@ class OfflineCVRunner {
         }
 
         return detections;
+    }
+
+    /**
+     * Detect hotbar region using rarity border analysis (ported from real detector)
+     */
+    private detectHotbarRegion(
+        ctx: any,
+        width: number,
+        height: number
+    ): { topY: number; bottomY: number; confidence: number } {
+        // Scan bottom 35% of screen
+        const scanStartY = Math.floor(height * 0.65);
+        const scanEndY = height - 5;
+
+        // Sample center 70% of width
+        const sampleStartX = Math.floor(width * 0.15);
+        const sampleWidth = Math.floor(width * 0.7);
+
+        // Analyze horizontal strips
+        const stripHeight = 2;
+        const strips: Array<{
+            y: number;
+            rarityRatio: number;
+            colorfulRatio: number;
+            variance: number;
+        }> = [];
+
+        for (let y = scanStartY; y < scanEndY; y += stripHeight) {
+            const imageData = ctx.getImageData(sampleStartX, y, sampleWidth, stripHeight);
+            const stats = countRarityBorderPixels(imageData);
+            const variance = calculateColorVariance(imageData);
+
+            strips.push({
+                y,
+                rarityRatio: stats.rarityCount / stats.total,
+                colorfulRatio: stats.colorfulCount / stats.total,
+                variance,
+            });
+        }
+
+        // Find best hotbar band using sliding window
+        const windowSize = 35;
+        let bestScore = 0;
+        let bestBandStart = scanStartY;
+        let bestBandEnd = scanEndY;
+
+        for (let i = 0; i < strips.length - windowSize; i++) {
+            const windowSlice = strips.slice(i, i + windowSize);
+
+            const avgRarityRatio = windowSlice.reduce((s, d) => s + d.rarityRatio, 0) / windowSlice.length;
+            const avgColorful = windowSlice.reduce((s, d) => s + d.colorfulRatio, 0) / windowSlice.length;
+            const avgVariance = windowSlice.reduce((s, d) => s + d.variance, 0) / windowSlice.length;
+
+            let score = 0;
+
+            if (avgRarityRatio > 0.01) {
+                score += avgRarityRatio * 200;
+            }
+            if (avgColorful > 0.03) {
+                score += avgColorful * 80;
+            }
+            if (avgVariance > 200) {
+                score += Math.min(30, avgVariance / 50);
+            }
+
+            // Prefer lower on screen
+            const yPosition = windowSlice[0].y / height;
+            if (yPosition > 0.88) {
+                score += 30;
+            } else if (yPosition > 0.82) {
+                score += 15;
+            }
+
+            if (score > bestScore) {
+                bestScore = score;
+                bestBandStart = windowSlice[0].y;
+                bestBandEnd = windowSlice[windowSlice.length - 1].y + stripHeight;
+            }
+        }
+
+        // Constrain band height
+        const maxBandHeight = Math.floor(height * 0.15);
+        const minBandHeight = Math.floor(height * 0.05);
+
+        if (bestBandEnd - bestBandStart > maxBandHeight) {
+            bestBandStart = bestBandEnd - maxBandHeight;
+        }
+        if (bestBandEnd - bestBandStart < minBandHeight) {
+            bestBandStart = bestBandEnd - minBandHeight;
+        }
+
+        // Fallback if nothing detected
+        if (bestScore < 10) {
+            bestBandStart = Math.floor(height * 0.85);
+            bestBandEnd = height - 5;
+        }
+
+        return {
+            topY: bestBandStart,
+            bottomY: bestBandEnd,
+            confidence: Math.min(1, bestScore / 100),
+        };
+    }
+
+    /**
+     * Detect vertical edges (icon borders) using rarity colors (ported from real detector)
+     */
+    private detectIconEdges(
+        ctx: any,
+        width: number,
+        bandRegion: { topY: number; bottomY: number }
+    ): number[] {
+        const { topY, bottomY } = bandRegion;
+        const bandHeight = bottomY - topY;
+
+        // Only scan center 70% of width
+        const scanStartX = Math.floor(width * 0.15);
+        const scanEndX = Math.floor(width * 0.85);
+
+        // Scan multiple horizontal lines within the band
+        const scanYOffsets = [0.1, 0.25, 0.5, 0.75, 0.9];
+        const edgeCounts = new Map<number, number>();
+
+        for (const yOffset of scanYOffsets) {
+            const scanY = Math.floor(topY + bandHeight * yOffset);
+            if (scanY >= ctx.canvas.height) continue;
+
+            const lineData = ctx.getImageData(scanStartX, scanY, scanEndX - scanStartX, 1);
+            const pixels = lineData.data;
+
+            let inBorder = false;
+            let borderStart = -1;
+
+            for (let localX = 0; localX < scanEndX - scanStartX; localX++) {
+                const x = localX + scanStartX;
+                const idx = localX * 4;
+                const r = pixels[idx] ?? 0;
+                const g = pixels[idx + 1] ?? 0;
+                const b = pixels[idx + 2] ?? 0;
+
+                const rarity = detectRarityAtPixel(r, g, b);
+
+                if (rarity && !inBorder) {
+                    inBorder = true;
+                    borderStart = x;
+                } else if (!rarity && inBorder) {
+                    const borderWidth = x - borderStart;
+
+                    // Valid borders are 2-8 pixels wide
+                    if (borderWidth >= 2 && borderWidth <= 8) {
+                        const bucket = Math.round(borderStart / 4) * 4;
+                        edgeCounts.set(bucket, (edgeCounts.get(bucket) || 0) + 1);
+                    }
+
+                    inBorder = false;
+                }
+            }
+        }
+
+        // Filter to edges detected in multiple scan lines
+        const consistentEdges: number[] = [];
+        for (const [x, count] of edgeCounts) {
+            if (count >= 2) {
+                consistentEdges.push(x);
+            }
+        }
+
+        consistentEdges.sort((a, b) => a - b);
+        return this.filterByConsistentSpacing(consistentEdges);
+    }
+
+    /**
+     * Filter edges to keep only those with consistent spacing
+     */
+    private filterByConsistentSpacing(edges: number[]): number[] {
+        if (edges.length < 3) return edges;
+
+        const gaps: Array<{ gap: number; fromIdx: number; toIdx: number }> = [];
+        for (let i = 1; i < edges.length; i++) {
+            const gap = edges[i] - edges[i - 1];
+            if (gap > 20 && gap < 120) {
+                gaps.push({ gap, fromIdx: i - 1, toIdx: i });
+            }
+        }
+
+        if (gaps.length < 2) return edges;
+
+        const gapCounts = new Map<number, number>();
+        const tolerance = 4;
+
+        for (const { gap } of gaps) {
+            const bucket = Math.round(gap / tolerance) * tolerance;
+            gapCounts.set(bucket, (gapCounts.get(bucket) || 0) + 1);
+        }
+
+        let modeGap = 0;
+        let modeCount = 0;
+        for (const [bucket, count] of gapCounts) {
+            if (count > modeCount) {
+                modeCount = count;
+                modeGap = bucket;
+            }
+        }
+
+        if (modeCount < 2) return edges;
+
+        const consistentIndices = new Set<number>();
+        for (const { gap, fromIdx, toIdx } of gaps) {
+            if (Math.abs(gap - modeGap) <= tolerance) {
+                consistentIndices.add(fromIdx);
+                consistentIndices.add(toIdx);
+            }
+        }
+
+        return edges.filter((_, idx) => consistentIndices.has(idx));
+    }
+
+    /**
+     * Infer grid structure from detected edges (ported from real detector)
+     */
+    private inferGridFromEdges(
+        edges: number[],
+        hotbarRegion: { topY: number; bottomY: number },
+        width: number
+    ): GridParameters | null {
+        if (edges.length < 2) {
+            return null;
+        }
+
+        // Calculate spacings between edges
+        const spacings: number[] = [];
+        for (let i = 1; i < edges.length; i++) {
+            const spacing = edges[i] - edges[i - 1];
+            if (spacing > 20 && spacing < 120) {
+                spacings.push(spacing);
+            }
+        }
+
+        if (spacings.length < 1) {
+            return null;
+        }
+
+        // Find the mode spacing
+        const spacingCounts = new Map<number, number>();
+        const tolerance = 6;
+
+        for (const spacing of spacings) {
+            const bucket = Math.round(spacing / tolerance) * tolerance;
+            spacingCounts.set(bucket, (spacingCounts.get(bucket) || 0) + 1);
+        }
+
+        let modeSpacing = 0;
+        let modeCount = 0;
+        for (const [bucket, count] of spacingCounts) {
+            if (count > modeCount) {
+                modeCount = count;
+                modeSpacing = bucket;
+            }
+        }
+
+        if (modeCount < 2 || modeSpacing < 25) {
+            return null;
+        }
+
+        // Find first edge that starts consistent sequence
+        let startX = edges[0];
+        for (let i = 0; i < edges.length - 1; i++) {
+            const gap = edges[i + 1] - edges[i];
+            if (Math.abs(gap - modeSpacing) <= tolerance) {
+                startX = edges[i];
+                break;
+            }
+        }
+
+        // Count consistent columns
+        let columns = 1;
+        let lastEdge = startX;
+        for (let i = 0; i < edges.length; i++) {
+            if (edges[i] <= lastEdge) continue;
+            const gap = edges[i] - lastEdge;
+            if (Math.abs(gap - modeSpacing) <= tolerance) {
+                columns++;
+                lastEdge = edges[i];
+            }
+        }
+
+        // Calculate confidence
+        const expectedEdges = columns;
+        const actualConsistentEdges = modeCount + 1;
+        const confidence = Math.min(1, actualConsistentEdges / Math.max(3, expectedEdges));
+
+        // Determine rows based on hotbar height
+        const bandHeight = hotbarRegion.bottomY - hotbarRegion.topY;
+        const rows = Math.max(1, Math.round(bandHeight / modeSpacing));
+
+        return {
+            startX,
+            startY: hotbarRegion.topY,
+            cellWidth: modeSpacing,
+            cellHeight: modeSpacing,
+            columns,
+            rows,
+            confidence,
+        };
+    }
+
+    /**
+     * Generate grid cell ROIs from grid parameters
+     */
+    private generateGridROIs(grid: GridParameters, maxCells: number = 50): Array<{ x: number; y: number; width: number; height: number }> {
+        const cells: Array<{ x: number; y: number; width: number; height: number }> = [];
+
+        for (let row = 0; row < grid.rows && cells.length < maxCells; row++) {
+            for (let col = 0; col < grid.columns && cells.length < maxCells; col++) {
+                cells.push({
+                    x: grid.startX + col * grid.cellWidth,
+                    y: grid.startY + row * grid.cellHeight,
+                    width: grid.cellWidth,
+                    height: grid.cellHeight,
+                });
+            }
+        }
+
+        return cells;
     }
 
     /**
@@ -440,10 +980,10 @@ class OfflineCVRunner {
     }
 
     /**
-     * Detect grid positions adaptively based on image content
-     * Supports multiple rows and varying resolutions
+     * Static fallback grid detection when dynamic detection fails
+     * Uses fixed formulas based on resolution
      */
-    private detectGridPositions(width: number, height: number, ctx?: any): Array<{ x: number; y: number; width: number; height: number }> {
+    private detectGridPositionsStatic(width: number, height: number): Array<{ x: number; y: number; width: number; height: number }> {
         // Grid parameters - tuned for game's UI layout
         const iconSize = Math.round(40 * (height / 720));
         const spacing = Math.round(4 * (height / 720));
@@ -554,21 +1094,37 @@ class OfflineCVRunner {
      * Detect rarity from item border color
      * Returns the most likely rarity based on border pixel colors
      */
+    /**
+     * Detect rarity from border color using HSL-based matching (ported from real detector)
+     */
     private detectRarityFromBorder(imageData: any): string | null {
         const { width, height, data } = imageData;
-        const borderPixels = 3; // Sample 3 pixels from border
+        const borderPixels = 3;
 
-        // Collect border pixel colors (top and left edges)
-        let sumR = 0, sumG = 0, sumB = 0, count = 0;
+        // Count votes for each rarity
+        const rarityVotes: Record<string, number> = {
+            common: 0,
+            uncommon: 0,
+            rare: 0,
+            epic: 0,
+            legendary: 0,
+        };
+
+        let totalPixels = 0;
 
         // Top edge
         for (let x = 0; x < width; x++) {
             for (let y = 0; y < borderPixels; y++) {
                 const idx = (y * width + x) * 4;
-                sumR += data[idx];
-                sumG += data[idx + 1];
-                sumB += data[idx + 2];
-                count++;
+                const r = data[idx] ?? 0;
+                const g = data[idx + 1] ?? 0;
+                const b = data[idx + 2] ?? 0;
+
+                const rarity = detectRarityAtPixel(r, g, b);
+                if (rarity) {
+                    rarityVotes[rarity]++;
+                }
+                totalPixels++;
             }
         }
 
@@ -576,37 +1132,36 @@ class OfflineCVRunner {
         for (let y = borderPixels; y < height; y++) {
             for (let x = 0; x < borderPixels; x++) {
                 const idx = (y * width + x) * 4;
-                sumR += data[idx];
-                sumG += data[idx + 1];
-                sumB += data[idx + 2];
-                count++;
+                const r = data[idx] ?? 0;
+                const g = data[idx + 1] ?? 0;
+                const b = data[idx + 2] ?? 0;
+
+                const rarity = detectRarityAtPixel(r, g, b);
+                if (rarity) {
+                    rarityVotes[rarity]++;
+                }
+                totalPixels++;
             }
         }
 
-        const avgR = sumR / count;
-        const avgG = sumG / count;
-        const avgB = sumB / count;
+        // Find rarity with most votes
+        let bestMatch: string | null = null;
+        let bestVotes = 0;
 
-        // Match against rarity colors
-        let bestRarity: string | null = null;
-        let bestScore = 0;
-
-        for (const [rarity, ranges] of Object.entries(RARITY_COLORS)) {
-            const rInRange = avgR >= ranges.r[0] && avgR <= ranges.r[1];
-            const gInRange = avgG >= ranges.g[0] && avgG <= ranges.g[1];
-            const bInRange = avgB >= ranges.b[0] && avgB <= ranges.b[1];
-
-            // Score based on how many channels match
-            const score = (rInRange ? 1 : 0) + (gInRange ? 1 : 0) + (bInRange ? 1 : 0);
-
-            if (score > bestScore) {
-                bestScore = score;
-                bestRarity = rarity;
+        for (const [rarity, votes] of Object.entries(rarityVotes)) {
+            if (votes > bestVotes) {
+                bestVotes = votes;
+                bestMatch = rarity;
             }
         }
 
-        // Only return if we have a confident match (at least 2 channels)
-        return bestScore >= 2 ? bestRarity : null;
+        // Require at least 10% of border pixels to match
+        const minVoteRatio = 0.1;
+        if (bestVotes < totalPixels * minVoteRatio) {
+            return null;
+        }
+
+        return bestMatch;
     }
 
     /**
@@ -632,7 +1187,8 @@ class OfflineCVRunner {
         let bestMatch: { item: GameItem; confidence: number; rarity?: string } | null = null;
 
         // Extract center region of cell (ignore edges that might have background)
-        const margin = Math.round(cellImageData.width * 0.15); // 15% margin to ignore backgrounds
+        // 20% margin matches real detector for consistency
+        const margin = Math.round(cellImageData.width * 0.20);
         const centerWidth = cellImageData.width - margin * 2;
         const centerHeight = cellImageData.height - margin * 2;
 
@@ -749,7 +1305,9 @@ class OfflineCVRunner {
         var1 /= n; var2 /= n; covar /= n;
         const C1 = (0.01 * 255) ** 2, C2 = (0.03 * 255) ** 2;
         const ssim = ((2 * mean1 * mean2 + C1) * (2 * covar + C2)) / ((mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2));
-        return (ssim + 1) / 2;
+        // SSIM returns value in [-1, 1] range, clamp to [0, 1] for similarity score
+        // Note: Don't apply (ssim+1)/2 transformation - that inflates scores
+        return Math.max(0, ssim);
     }
 
     /**
