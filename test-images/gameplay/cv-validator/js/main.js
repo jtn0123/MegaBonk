@@ -623,7 +623,9 @@ function showTrainingToast(filename, isDirect) {
 
     // Update toast content
     elements.toastFilename.textContent = filename;
-    elements.toastTitle.textContent = isDirect ? 'Saved successfully' : 'Downloaded - move to validated-exports/';
+    elements.toastTitle.textContent = isDirect
+        ? 'Saved successfully'
+        : 'Downloaded to ~/Downloads - npm run import:training will find it';
     elements.toastIcon.textContent = isDirect ? '\u2713' : '\u26A0';
 
     // Toggle fallback styling
@@ -681,7 +683,7 @@ function showExportPreview() {
     elements.previewFilename.textContent = filename;
     elements.previewDestination.textContent = cachedDirectoryHandle
         ? cachedDirectoryHandle.name + '/'
-        : 'Downloads folder (fallback)';
+        : '~/Downloads (will be auto-imported by npm run import:training)';
 
     elements.previewSlots.textContent = data.summary.total_slots_detected;
     elements.previewCorrections.textContent = data.summary.corrections_made;
@@ -1599,7 +1601,7 @@ async function doSaveTrainingData() {
         // Fallback to download
         log('Using download fallback...', LOG_LEVELS.WARNING);
         exportValidatedData();
-        log('Move the file to validated-exports/ and run: npm run import:training', LOG_LEVELS.INFO);
+        log('Run: npm run import:training (will auto-find files in ~/Downloads)', LOG_LEVELS.INFO);
         showTrainingToast(filename, false);
     }
 

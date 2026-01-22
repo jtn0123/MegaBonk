@@ -14,10 +14,13 @@
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
 // Default directories
 const DEFAULT_INPUT_DIR = path.join(__dirname, '..', 'validated-exports');
 const DEFAULT_OUTPUT_DIR = path.join(__dirname, '..', 'data', 'training-data');
+const DOWNLOADS_DIR = path.join(os.homedir(), 'Downloads');
+const TEST_IMAGES_DIR = path.join(__dirname, '..', 'test-images', 'gameplay');
 
 // Configuration
 const CONFIG = {
@@ -80,13 +83,109 @@ function saveIndex(outputDir, index) {
     fs.writeFileSync(indexPath, JSON.stringify(index, null, 2));
 }
 
+/**
+ * Scan ~/Downloads for validated export files and copy them to validated-exports/
+ * Also copies the corresponding source images from test-images/gameplay/
+ */
+function collectAndCopyFromDownloads(targetDir) {
+    console.log('');
+    console.log('Checking ~/Downloads for validated exports...');
+
+    // Ensure Downloads directory exists
+    if (!fs.existsSync(DOWNLOADS_DIR)) {
+        console.log('  Downloads directory not found');
+        return { copied: 0, skipped: 0 };
+    }
+
+    // Find validated_*.json files in Downloads
+    const allFiles = fs.readdirSync(DOWNLOADS_DIR);
+    const validatedFiles = allFiles.filter(f => /^validated_.*\.json$/.test(f));
+
+    if (validatedFiles.length === 0) {
+        console.log('  No validated_*.json files found in Downloads');
+        return { copied: 0, skipped: 0 };
+    }
+
+    console.log(`Found ${validatedFiles.length} file(s) in Downloads:`);
+    validatedFiles.forEach(f => console.log(`  - ${f}`));
+    console.log('');
+    console.log('Copying to validated-exports/...');
+
+    // Ensure target directory exists
+    fs.mkdirSync(targetDir, { recursive: true });
+
+    let copied = 0;
+    let skipped = 0;
+
+    for (const filename of validatedFiles) {
+        const sourcePath = path.join(DOWNLOADS_DIR, filename);
+        const targetPath = path.join(targetDir, filename);
+
+        try {
+            // Read the JSON to get source image info
+            const jsonContent = fs.readFileSync(sourcePath, 'utf8');
+            const data = JSON.parse(jsonContent);
+
+            // Check if JSON already exists in target
+            if (fs.existsSync(targetPath)) {
+                const existingContent = fs.readFileSync(targetPath, 'utf8');
+                if (existingContent === jsonContent) {
+                    console.log(`  ⏭ Skipped (identical): ${filename}`);
+                    skipped++;
+                    continue;
+                } else {
+                    console.log(`  ⚠ Skipped (different file exists): ${filename}`);
+                    skipped++;
+                    continue;
+                }
+            }
+
+            // Copy JSON file
+            fs.copyFileSync(sourcePath, targetPath);
+            console.log(`  ✓ Copied: ${filename}`);
+            copied++;
+
+            // Try to copy source image
+            if (data.image) {
+                const sourceImagePath = path.join(TEST_IMAGES_DIR, data.image);
+                // Generate image filename matching the JSON (replace .json with the source extension)
+                const imageBasename = filename.replace('.json', '');
+                const sourceExt = path.extname(data.image) || '.jpg';
+                const targetImageFilename = imageBasename + sourceExt;
+                const targetImagePath = path.join(targetDir, targetImageFilename);
+
+                if (fs.existsSync(sourceImagePath)) {
+                    if (!fs.existsSync(targetImagePath)) {
+                        fs.copyFileSync(sourceImagePath, targetImagePath);
+                        console.log(`  ✓ Copied image: ${data.image} → ${targetImageFilename}`);
+                    } else {
+                        console.log(`  ⏭ Image already exists: ${targetImageFilename}`);
+                    }
+                } else {
+                    console.log(`  ⚠ Source image not found: ${data.image}`);
+                }
+            }
+        } catch (error) {
+            console.log(`  ✗ Error processing ${filename}: ${error.message}`);
+        }
+    }
+
+    console.log('');
+    return { copied, skipped };
+}
+
 // Main import function
 async function importTrainingData(inputDir, outputDir) {
     console.log('CV Training Data Import');
     console.log('=======================');
     console.log(`Input:  ${inputDir}`);
     console.log(`Output: ${outputDir}`);
-    console.log('');
+
+    // First, collect any validated exports from Downloads folder
+    const downloadResults = collectAndCopyFromDownloads(inputDir);
+    if (downloadResults.copied > 0) {
+        console.log(`Copied ${downloadResults.copied} file(s) from Downloads to validated-exports/`);
+    }
 
     // Ensure directories exist
     if (!fs.existsSync(inputDir)) {
