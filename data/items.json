@@ -3647,7 +3647,7 @@
       "rarity": "legendary",
       "tier": "S",
       "unlocked_by_default": false,
-      "unlock_requirement": "Find the secret room in Crypt (pressure plate in pillar room)",
+      "unlock_requirement": "Find secret room in Crypt - step on pressure plate in high-low platform room, enter door in lava",
       "unlock_cost_silver": 0,
       "base_effect": "+4 poison stacks, 5% chance to burst all poison damage instantly",
       "scaling_type": "poison_burst",
@@ -3671,10 +3671,12 @@
       "synergies": [
         "Poison builds",
         "DoT builds",
-        "Attack Speed"
+        "Attack Speed",
+        "Fast-hitting weapons",
+        "Multi-hit attacks"
       ],
       "anti_synergies": [],
-      "notes": "STACKS WELL: Each copy adds more poison stacks and higher burst chance. Found in secret room in Crypt.",
+      "notes": "STACKS WELL: Each copy adds +4 poison stacks and +5% burst chance. Found in Crypt secret room (Graveyard map) - locate the high-low platform room, step on pressure plate, enter hidden door in lava. Best with fast-hitting weapons.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
       "image": "images/items/snek.png",
