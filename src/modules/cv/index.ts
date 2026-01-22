@@ -113,6 +113,45 @@ export type {
     ProgressCallback,
 } from './auto-grid-detection.ts';
 
+// Unified Template Manager
+export {
+    calculateQualityScore,
+    calculateResolutionBonus,
+    selectBestTemplates,
+    calculateWeightedMatchScore,
+    generateMultiScaleVariants,
+    getTemplateAtSize,
+    loadTemplate,
+    loadTemplatesBatch,
+    groupTemplatesByColor,
+    prioritizeItems,
+    cacheDetection,
+    getCachedDetection,
+    clearCache,
+    cleanExpiredCache,
+    getTemplate,
+    getAllTemplates,
+    getTemplatesByColorGroup,
+    getAllColorGroups,
+    isTemplatesFullyLoaded,
+    isPriorityLoaded as isUnifiedPriorityLoaded,
+    getTemplateCount,
+    getScaledVariantCount,
+    getCacheSize,
+    getConfig as getUnifiedConfig,
+    setTemplatesLoaded as setUnifiedTemplatesLoaded,
+    setPriorityTemplatesLoaded as setUnifiedPriorityLoaded,
+    resetState as resetUnifiedState,
+} from './unified-template-manager.ts';
+export type {
+    TemplateSource,
+    ScaledTemplate,
+    TemplateData as UnifiedTemplateData,
+    TrainingSample,
+    WeightedTemplate,
+    TemplateSelectionOptions,
+} from './unified-template-manager.ts';
+
 // Accuracy Tracking
 export {
     loadBenchmarkHistory,
