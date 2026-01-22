@@ -4,7 +4,7 @@
  * Initialization, event wiring, export functionality
  * ======================================== */
 
-import { state, resetDetectionState } from './state.js';
+import { state, resetDetectionState, presetManager } from './state.js';
 import {
     log,
     clearLog,
@@ -1806,6 +1806,9 @@ async function init() {
     initToast(elements.copyToast);
 
     log('Initializing CV Validator...');
+
+    // Load presets from file first (merges with localStorage)
+    await presetManager.loadFromFile();
 
     // Load data
     await loadGroundTruth();

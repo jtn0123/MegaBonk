@@ -1,3 +1,4 @@
+/* global Blob */
 /* ========================================
  * CV Validator - State Management
  * Centralized state object + preset manager
@@ -77,6 +78,8 @@ export function resetCalibration() {
 
 export const presetManager = {
     STORAGE_KEY: 'cv-validator-presets',
+    PRESETS_FILE_PATH: 'grid-presets.json',
+    _filePresetsLoaded: false,
 
     // Load all presets from localStorage
     load() {
@@ -96,6 +99,80 @@ export const presetManager = {
         } catch (e) {
             console.warn('Failed to save presets to localStorage:', e);
         }
+    },
+
+    // Load presets from grid-presets.json file and merge with localStorage
+    async loadFromFile() {
+        if (this._filePresetsLoaded) return;
+
+        try {
+            // Fetch presets file relative to cv-validator folder (go up one level)
+            const response = await fetch(`../${this.PRESETS_FILE_PATH}`);
+            if (!response.ok) {
+                console.warn(`grid-presets.json not found (${response.status}), using localStorage only`);
+                this._filePresetsLoaded = true;
+                return;
+            }
+
+            const fileData = await response.json();
+            if (!fileData.presets || typeof fileData.presets !== 'object') {
+                console.warn('Invalid grid-presets.json format');
+                this._filePresetsLoaded = true;
+                return;
+            }
+
+            // Merge file presets with localStorage (localStorage takes precedence for conflicts)
+            const localData = this.load();
+            let merged = false;
+
+            for (const [key, preset] of Object.entries(fileData.presets)) {
+                if (!localData.presets[key]) {
+                    // File preset doesn't exist in localStorage, add it
+                    localData.presets[key] = preset;
+                    merged = true;
+                    console.log(`Imported preset from file: ${key}`);
+                }
+            }
+
+            if (merged) {
+                this.save(localData);
+                console.log('File presets merged into localStorage');
+            }
+
+            this._filePresetsLoaded = true;
+        } catch (e) {
+            console.warn('Failed to load presets from file:', e);
+            this._filePresetsLoaded = true;
+        }
+    },
+
+    // Generate exportable JSON data for all presets
+    getExportData() {
+        const data = this.load();
+        return {
+            version: '1.0',
+            description: 'Grid calibration presets for CV Validator. Edit manually or export from the validator UI.',
+            exportedAt: new Date().toISOString(),
+            presets: data.presets,
+        };
+    },
+
+    // Trigger download of grid-presets.json with all current presets
+    exportToFile() {
+        const exportData = this.getExportData();
+        const json = JSON.stringify(exportData, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'grid-presets.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        return true;
     },
 
     // Get preset for a specific resolution

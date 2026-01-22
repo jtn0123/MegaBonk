@@ -184,9 +184,14 @@ function saveCurrentPreset() {
 
     const { width, height } = state.currentImage;
     const key = presetManager.savePreset(width, height, state.calibration);
-    showToast(`Saved preset for ${key}`);
+
+    // Export to file for persistence across ports/sessions
+    presetManager.exportToFile();
+
+    showToast(`Saved ${key} - place grid-presets.json in test-images/gameplay/`);
     updatePresetStatus(`Preset saved: ${height}p`, 'exact');
     log(`Saved calibration preset for ${key}`, LOG_LEVELS.SUCCESS);
+    log(`Downloaded grid-presets.json - move to test-images/gameplay/ for persistence`, LOG_LEVELS.INFO);
 }
 
 function loadPresetForCurrentImage() {
