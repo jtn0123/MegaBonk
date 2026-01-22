@@ -216,11 +216,44 @@ export const presetManager = {
 
     // Find best matching preset by aspect ratio (fallback)
     findByAspectRatio(width, height) {
+        // Validate input parameters
+        if (!Number.isFinite(width) || !Number.isFinite(height)) {
+            console.warn('[findByAspectRatio] Invalid dimensions:', width, height);
+            return null;
+        }
+        if (width <= 0 || height <= 0) {
+            console.warn('[findByAspectRatio] Dimensions must be positive:', width, height);
+            return null;
+        }
+
         const data = this.load();
+
+        // Validate presets collection exists
+        if (!data.presets || typeof data.presets !== 'object') {
+            return null;
+        }
+
+        const presetEntries = Object.entries(data.presets);
+        if (presetEntries.length === 0) {
+            return null;
+        }
+
         const targetRatio = width / height;
         const tolerance = 0.01;
 
-        for (const [_key, preset] of Object.entries(data.presets)) {
+        for (const [_key, preset] of presetEntries) {
+            // Validate preset structure
+            if (!preset?.resolution?.width || !preset?.resolution?.height) {
+                console.warn('[findByAspectRatio] Preset missing resolution:', _key);
+                continue;
+            }
+
+            // Guard against division by zero
+            if (preset.resolution.height === 0) {
+                console.warn('[findByAspectRatio] Preset has zero height:', _key);
+                continue;
+            }
+
             const presetRatio = preset.resolution.width / preset.resolution.height;
             if (Math.abs(presetRatio - targetRatio) < tolerance) {
                 // Calculate scale factor

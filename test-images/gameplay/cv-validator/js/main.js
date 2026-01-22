@@ -193,6 +193,7 @@ const elements = {
     savePresetBtn: document.getElementById('save-preset'),
     loadPresetBtn: document.getElementById('load-preset'),
     deletePresetBtn: document.getElementById('delete-preset'),
+    exportAllPresetsBtn: document.getElementById('export-all-presets'),
 
     // Advanced settings
     toggleAdvancedBtn: document.getElementById('toggle-advanced'),
@@ -429,7 +430,8 @@ async function updateFileSystemStatus() {
 
             elements.fsSelectDirBtn.textContent = 'Change';
             elements.fsClearDirBtn.style.display = 'inline-block';
-        } catch {
+        } catch (error) {
+            console.warn('[updateFileSystemStatus] Failed:', error.message);
             resetFileSystemStatus();
         }
     } else {
@@ -456,8 +458,8 @@ async function clearDirectoryHandle() {
         const store = tx.objectStore(STORE_NAME);
         store.delete(HANDLE_KEY);
         tx.oncomplete = () => db.close();
-    } catch {
-        // Ignore errors
+    } catch (error) {
+        console.warn('[clearDirectoryHandle] Failed to clear from IndexedDB:', error.message);
     }
     updateFileSystemStatus();
     log('Directory cleared', LOG_LEVELS.INFO);
@@ -480,8 +482,9 @@ async function getValidatedExportsDirectory() {
             if (newPermission === 'granted') {
                 return cachedDirectoryHandle;
             }
-        } catch {
+        } catch (error) {
             // Handle is stale, clear it
+            console.warn('[getValidatedExportsDirectory] Cached handle stale:', error.message);
             cachedDirectoryHandle = null;
         }
     }
@@ -502,8 +505,8 @@ async function getValidatedExportsDirectory() {
                 return storedHandle;
             }
         }
-    } catch {
-        // No stored handle or permission denied
+    } catch (error) {
+        console.warn('[getValidatedExportsDirectory] Failed to load from IndexedDB:', error.message);
     }
 
     // Prompt user to select directory
@@ -962,6 +965,30 @@ function initAdvancedSettings() {
 let lastAutoDetectResult = null;
 let showAutoDetectOverlay = false;
 
+/**
+ * Convert failure reason codes to human-readable messages
+ */
+function formatFailureReason(reasonCode) {
+    const reasonMessages = {
+        no_vertical_clusters: 'Could not find vertical grid lines',
+        icons_too_small: 'Detected icons are too small (< 22px)',
+        likely_empty_screen: 'Image appears to have no item hotbar',
+        inconsistent_detection: 'Detection results are inconsistent',
+        exception_thrown: 'An error occurred during detection',
+        insufficient_contrast: 'Image has insufficient contrast',
+        no_rarity_borders: 'No rarity border colors detected',
+    };
+    return reasonMessages[reasonCode] || reasonCode;
+}
+
+/**
+ * Format multiple failure reasons for display
+ */
+function formatFailureReasons(reasons) {
+    if (!reasons || reasons.length === 0) return null;
+    return reasons.map(formatFailureReason);
+}
+
 function initAutoDetect() {
     if (!elements.autoDetectBtn) return;
 
@@ -1013,13 +1040,39 @@ async function handleAutoDetect() {
             }
         );
 
-        lastAutoDetectResult = result;
-
         if (result.success) {
+            // Only cache successful results
+            lastAutoDetectResult = result;
             displayAutoDetectResults(result);
+
+            // Show warnings if there were issues even on success
+            if (result.reasons && result.reasons.length > 0) {
+                const formattedReasons = formatFailureReasons(result.reasons);
+                log(`Detection warnings: ${formattedReasons.join(', ')}`, LOG_LEVELS.WARNING);
+            }
         } else {
-            elements.autoDetectStatus.textContent = `Failed: ${result.error}`;
-            log(`Auto-detection failed: ${result.error}`, LOG_LEVELS.ERROR);
+            // Clear stale cache on failure
+            lastAutoDetectResult = null;
+
+            // Display failure reasons in status area
+            let statusMessage = `Failed: ${result.error}`;
+            if (result.reasons && result.reasons.length > 0) {
+                const formattedReasons = formatFailureReasons(result.reasons);
+                statusMessage = `Failed: ${formattedReasons[0]}`;
+                // Log all reasons
+                log(`Auto-detection failed:`, LOG_LEVELS.ERROR);
+                formattedReasons.forEach(reason => log(`  - ${reason}`, LOG_LEVELS.ERROR));
+            } else {
+                log(`Auto-detection failed: ${result.error}`, LOG_LEVELS.ERROR);
+            }
+
+            elements.autoDetectStatus.textContent = statusMessage;
+            // Add tooltip with all reasons if there are multiple
+            if (result.reasons && result.reasons.length > 1) {
+                elements.autoDetectStatus.title = formatFailureReasons(result.reasons).join('\n');
+            } else {
+                elements.autoDetectStatus.title = '';
+            }
         }
     } catch (error) {
         log(`Auto-detection error: ${error.message}`, LOG_LEVELS.ERROR);
@@ -1117,8 +1170,19 @@ function buildComparisonTable(result) {
 }
 
 function applyAutoDetectedCalibration() {
-    if (!lastAutoDetectResult || !lastAutoDetectResult.calibration) {
+    // Validate that we have a successful result with calibration data
+    if (!lastAutoDetectResult) {
         log('No auto-detected calibration to apply', LOG_LEVELS.WARNING);
+        return;
+    }
+
+    if (!lastAutoDetectResult.success) {
+        log('Cannot apply failed auto-detection result', LOG_LEVELS.ERROR);
+        return;
+    }
+
+    if (!lastAutoDetectResult.calibration) {
+        log('Auto-detection result missing calibration data', LOG_LEVELS.ERROR);
         return;
     }
 
@@ -1887,6 +1951,7 @@ async function init() {
             savePresetBtn: elements.savePresetBtn,
             loadPresetBtn: elements.loadPresetBtn,
             deletePresetBtn: elements.deletePresetBtn,
+            exportAllPresetsBtn: elements.exportAllPresetsBtn,
         },
         {
             onCalibrationChange: updateGridDisplay,
@@ -2080,8 +2145,8 @@ async function init() {
         if (storedHandle) {
             cachedDirectoryHandle = storedHandle;
         }
-    } catch {
-        // Ignore errors
+    } catch (error) {
+        console.warn('[init] Failed to load cached directory handle:', error.message);
     }
     updateFileSystemStatus();
 

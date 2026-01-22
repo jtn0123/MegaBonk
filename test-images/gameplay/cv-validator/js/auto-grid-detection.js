@@ -4,6 +4,49 @@
  * Self-calibrating grid detection for any resolution
  * ======================================== */
 
+/**
+ * Magic Numbers Documentation for Auto-Grid Detection:
+ *
+ * Brightness/Color Thresholds:
+ * - 25-160: Brightness range for UI panel detection. Below 25 is too dark (game world),
+ *   above 160 is too bright (sky, glare). UI panels typically have moderate brightness.
+ *
+ * - Variance threshold 200: Minimum color variance to indicate "interesting" content.
+ *   Uniform regions (empty cells, solid backgrounds) have variance < 200.
+ *   Icon regions with details have higher variance.
+ *
+ * - Variance threshold 400-600: Cell validation thresholds.
+ *   < 400: Likely empty cell
+ *   400-600: Suspicious (may be empty or low-contrast icon)
+ *   > 600: Likely contains an item
+ *
+ * - 0.01 (1%): Minimum ratio of rarity-colored pixels to consider a cell valid.
+ *   Item borders have colored pixels; empty cells don't.
+ *
+ * Spatial Thresholds:
+ * - 0.7/0.85: Screen width percentages for scan region.
+ *   Hotbar is centered, so we skip the outer 15% on each side to avoid UI noise.
+ *
+ * - 0.88-0.98: Screen height percentage where hotbar lives.
+ *   The item bar is at the very bottom of the screen.
+ *
+ * - maxDetectedRows (default 2): MegaBonk hotbar typically has 1-2 rows.
+ *   Can be overridden via CONFIG.maxDetectedRows.
+ *
+ * Edge Detection:
+ * - 2-8 pixel border width: Rarity borders are typically 2-6 pixels wide.
+ *   We allow up to 8 to account for scaling artifacts.
+ *
+ * - 6 pixel X tolerance for clustering: Edges at the same X ±6 pixels are
+ *   considered the same cell boundary (accounts for anti-aliasing).
+ *
+ * - minConsistency 2: An edge must appear in at least 2 scan lines to be
+ *   considered a real cell boundary (filters single-line noise).
+ *
+ * - Mode gap tolerance 4: When finding dominant spacing, allow ±4px variance.
+ *   This accounts for rounding/scaling differences across the grid.
+ */
+
 import { CONFIG } from './config.js';
 import { log, LOG_LEVELS } from './utils.js';
 
@@ -383,17 +426,34 @@ export function detectRarityBorders(ctx, width, bandRegion) {
     // Cluster edges by X position (edges at same X across different scan lines = same icon)
     let clusteredEdges = clusterEdgesByX(allEdges, 6); // 6px tolerance
 
-    log(`Pass 2: Clustered into ${clusteredEdges.length} cell positions`, LOG_LEVELS.INFO);
+    if (clusteredEdges.length === 0) {
+        log(`Pass 2: No vertical edge clusters found - image may not contain a hotbar`, LOG_LEVELS.WARNING);
+    } else {
+        log(`Pass 2: Clustered into ${clusteredEdges.length} cell positions`, LOG_LEVELS.INFO);
+    }
 
     // VERTICAL CONSISTENCY FILTER: True borders appear at multiple Y positions
+    const beforeVerticalFilter = clusteredEdges.length;
     clusteredEdges = filterByVerticalConsistency(clusteredEdges, 2);
 
-    log(`Pass 2: After vertical filter: ${clusteredEdges.length} consistent positions`, LOG_LEVELS.INFO);
+    if (clusteredEdges.length === 0 && beforeVerticalFilter > 0) {
+        log(
+            `Pass 2: Vertical filter removed all edges - edges don't appear consistently across scan lines`,
+            LOG_LEVELS.WARNING
+        );
+    } else {
+        log(`Pass 2: After vertical filter: ${clusteredEdges.length} consistent positions`, LOG_LEVELS.INFO);
+    }
 
     // SPACING CONSISTENCY FILTER: Remove edges that don't fit regular spacing pattern
+    const beforeSpacingFilter = clusteredEdges.length;
     clusteredEdges = filterBySpacingConsistency(clusteredEdges, width);
 
-    log(`Pass 2: After spacing filter: ${clusteredEdges.length} consistent positions`, LOG_LEVELS.SUCCESS);
+    if (clusteredEdges.length === 0 && beforeSpacingFilter > 0) {
+        log(`Pass 2: Spacing filter removed all edges - no consistent grid spacing found`, LOG_LEVELS.WARNING);
+    } else {
+        log(`Pass 2: After spacing filter: ${clusteredEdges.length} consistent positions`, LOG_LEVELS.SUCCESS);
+    }
 
     return {
         edges: clusteredEdges,
@@ -410,7 +470,10 @@ export function detectRarityBorders(ctx, width, bandRegion) {
  * This removes random noise from gameplay elements (trees, etc.)
  */
 function filterBySpacingConsistency(edges, _width) {
-    if (edges.length < 3) return edges;
+    if (edges.length < 3) {
+        log(`Pass 2 (spacing): Skipping filter - need at least 3 edges, have ${edges.length}`, LOG_LEVELS.INFO);
+        return edges;
+    }
 
     // Calculate all gaps between consecutive edges
     const gaps = [];
@@ -422,7 +485,13 @@ function filterBySpacingConsistency(edges, _width) {
         }
     }
 
-    if (gaps.length < 2) return edges;
+    if (gaps.length < 2) {
+        log(
+            `Pass 2 (spacing): Not enough valid gaps to determine spacing pattern (${gaps.length} gaps)`,
+            LOG_LEVELS.INFO
+        );
+        return edges;
+    }
 
     // Find dominant gap size (icon stride: iconWidth + spacing)
     // Use histogram approach to find mode
@@ -699,8 +768,9 @@ export function buildPreciseGrid(metrics, bandRegion, width, height, cellEdges) 
 
     // How many rows can fit?
     const possibleRows = Math.floor(bandHeight / rowHeight);
-    // MegaBonk hotbar typically has 1-2 rows, not 3
-    const numRows = Math.min(possibleRows, 2);
+    // MegaBonk hotbar typically has 1-2 rows - configurable via CONFIG.maxDetectedRows
+    const maxRows = CONFIG.maxDetectedRows || 2;
+    const numRows = Math.min(possibleRows, maxRows);
 
     // Y offset: position first row near bottom of band
     const bottomMargin = 5;
@@ -938,10 +1008,32 @@ export async function autoDetectGrid(ctx, width, height, options = {}) {
         const hasInconsistentDetection =
             borderResult.edges.length >= 2 && metrics.confidence < 0.3 && validation.validCells.length < 3;
 
+        // Collect failure reasons for UI display
+        const failureReasons = [];
+        if (iconsTooSmall) {
+            failureReasons.push('icons_too_small');
+            log(
+                `Pass 6: Icons too small (${metrics.iconWidth}x${metrics.iconHeight}px < ${minAbsoluteIconSize}px minimum)`,
+                LOG_LEVELS.WARNING
+            );
+        }
+        if (isLikelyEmpty) {
+            failureReasons.push('likely_empty_screen');
+            log('Pass 6: Low band confidence + few edges + using defaults = likely empty screen', LOG_LEVELS.WARNING);
+        }
+        if (hasInconsistentDetection) {
+            failureReasons.push('inconsistent_detection');
+            log('Pass 6: Edges found but metrics unreliable and few valid cells', LOG_LEVELS.WARNING);
+        }
+        if (borderResult.edges.length === 0) {
+            failureReasons.push('no_vertical_clusters');
+        }
+
         if (isLikelyEmpty || hasInconsistentDetection || iconsTooSmall) {
             log('Detected likely empty screen or false positives, clearing cells', LOG_LEVELS.INFO);
             validation.validCells = [];
             validation.confidence = 0;
+            validation.failureReasons = failureReasons;
         }
 
         const elapsed = Date.now() - startTime;
@@ -959,12 +1051,14 @@ export async function autoDetectGrid(ctx, width, height, options = {}) {
             calibration: gridResult.calibration,
             elapsed,
             confidence: calculateOverallConfidence(bandRegion, metrics, validation),
+            reasons: failureReasons.length > 0 ? failureReasons : null,
         };
     } catch (error) {
         log(`Auto-detection failed: ${error.message}`, LOG_LEVELS.ERROR);
         return {
             success: false,
             error: error.message,
+            reasons: ['exception_thrown'],
             calibration: null,
         };
     }

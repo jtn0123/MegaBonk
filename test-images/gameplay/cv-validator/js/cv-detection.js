@@ -244,7 +244,12 @@ export function calculateNCC(imageData1, imageData2) {
     const numerator = sumProduct / count - mean1 * mean2;
     const denominator = Math.sqrt((sumSquare1 / count - mean1 * mean1) * (sumSquare2 / count - mean2 * mean2));
 
-    if (denominator === 0) return 0;
+    if (denominator === 0) {
+        // Denominator is 0 when one or both images have uniform color (zero variance).
+        // This typically happens with empty cells or solid-color regions.
+        // Returning 0 indicates no meaningful correlation can be computed.
+        return 0;
+    }
     return (numerator / denominator + 1) / 2;
 }
 
@@ -290,6 +295,33 @@ export function resizeImageData(imageData, targetWidth, targetHeight) {
 // ========================================
 // Training Template Matching
 // ========================================
+
+/**
+ * Magic Numbers Documentation for Training Template Matching:
+ *
+ * Weights and Thresholds:
+ * - primaryWeight (1.5): Primary template gets 1.5x weight bonus. Primary templates
+ *   are high-quality reference images, so they're more reliable than user-submitted
+ *   training samples which may have compression artifacts or lighting variations.
+ *
+ * - 0.7 scaling factor: When primary wins, apply weight * 0.7 = 1.05x effective bonus.
+ *   This moderate boost reflects primary template reliability without being excessive.
+ *
+ * - 0.85 scaling factor: When training template wins, apply weight * 0.85.
+ *   Training templates get slightly less boost since they may be lower quality.
+ *
+ * - threshold (0.5): Minimum raw score to count as a "vote" for confidence bonus.
+ *   Scores below 0.5 indicate poor match and shouldn't contribute to voting bonus.
+ *
+ * - votingBonus max (0.08): Up to 8% bonus when multiple templates agree.
+ *   Multiple high-confidence matches indicate strong item identity.
+ *
+ * - 0.015 per vote: Each template scoring >0.5 adds 1.5% bonus.
+ *   Diminishing returns prevent excessive bonus from many mediocre matches.
+ *
+ * - 0.99 max score cap: Prevent confidence overflow. No match should be 100%
+ *   certain since there's always some measurement noise.
+ */
 
 /**
  * Match using training templates if available

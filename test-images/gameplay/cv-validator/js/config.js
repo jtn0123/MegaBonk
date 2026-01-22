@@ -20,6 +20,10 @@ export const CONFIG = {
         totalItems: 60, // 0 = no limit, use iconsPerRow * numRows
     },
 
+    // Auto-detection settings
+    // Maximum rows to detect in hotbar (MegaBonk typically has 1-2 rows)
+    maxDetectedRows: 2,
+
     // Detection settings
     DEFAULT_THRESHOLD: 0.45,
     MIN_THRESHOLD: 0.3,

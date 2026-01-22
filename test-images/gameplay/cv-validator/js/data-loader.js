@@ -1,4 +1,4 @@
-/* global Image */
+/* global Image, setTimeout, clearTimeout */
 /* ========================================
  * CV Validator - Data Loader
  * Ground truth, items, templates, training data loading
@@ -7,6 +7,27 @@
 import { CONFIG } from './config.js';
 import { state } from './state.js';
 import { log, LOG_LEVELS } from './utils.js';
+
+// ========================================
+// Timeout Utility
+// ========================================
+
+const IMAGE_LOAD_TIMEOUT_MS = 10000;
+
+/**
+ * Wrap a promise with a timeout to prevent infinite hangs
+ * @param {Promise} promise - The promise to wrap
+ * @param {number} ms - Timeout in milliseconds
+ * @param {string} context - Description for error message
+ * @returns {Promise} - The wrapped promise
+ */
+function withTimeout(promise, ms, context) {
+    let timeoutId;
+    const timeoutPromise = new Promise((_, reject) => {
+        timeoutId = setTimeout(() => reject(new Error(`${context} timed out after ${ms}ms`)), ms);
+    });
+    return Promise.race([promise, timeoutPromise]).finally(() => clearTimeout(timeoutId));
+}
 
 // Training data loading state
 let trainingDataLoaded = false;
@@ -64,7 +85,7 @@ export async function loadTemplate(item) {
         return state.templateCache.get(item.id);
     }
 
-    return new Promise(resolve => {
+    const loadPromise = new Promise(resolve => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
 
@@ -94,6 +115,13 @@ export async function loadTemplate(item) {
         const imagePath = CONFIG.PATHS.imagesBase + item.image;
         img.src = imagePath;
     });
+
+    try {
+        return await withTimeout(loadPromise, IMAGE_LOAD_TIMEOUT_MS, `Loading template ${item.id}`);
+    } catch (error) {
+        log(`Template load failed for ${item.id}: ${error.message}`, LOG_LEVELS.WARNING);
+        return null;
+    }
 }
 
 export async function loadAllTemplates() {
@@ -113,7 +141,7 @@ export async function loadAllTemplates() {
 // ========================================
 
 export async function loadImage(imagePath) {
-    return new Promise((resolve, reject) => {
+    const loadPromise = new Promise((resolve, reject) => {
         const img = new Image();
         img.crossOrigin = 'anonymous';
 
@@ -129,6 +157,8 @@ export async function loadImage(imagePath) {
         img.onerror = () => reject(new Error(`Failed to load: ${imagePath}`));
         img.src = imagePath;
     });
+
+    return withTimeout(loadPromise, IMAGE_LOAD_TIMEOUT_MS, `Loading image ${imagePath}`);
 }
 
 // ========================================

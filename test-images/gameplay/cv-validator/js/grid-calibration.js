@@ -100,6 +100,9 @@ export function initGridCalibration(domElements, callbacks) {
     if (elements.deletePresetBtn) {
         elements.deletePresetBtn.addEventListener('click', deleteCurrentPreset);
     }
+    if (elements.exportAllPresetsBtn) {
+        elements.exportAllPresetsBtn.addEventListener('click', exportAllPresets);
+    }
 }
 
 // ========================================
@@ -230,6 +233,29 @@ function deleteCurrentPreset() {
         log(`Deleted preset for ${width}x${height}`, LOG_LEVELS.WARNING);
     } else {
         showToast('No preset to delete');
+    }
+}
+
+/**
+ * Export all presets to a JSON file for backup/sharing
+ */
+export function exportAllPresets() {
+    const allPresets = presetManager.getAllPresets();
+    const presetCount = Object.keys(allPresets).length;
+
+    if (presetCount === 0) {
+        showToast('No presets to export');
+        return;
+    }
+
+    const success = presetManager.exportToFile();
+
+    if (success) {
+        showToast(`Exported ${presetCount} preset${presetCount !== 1 ? 's' : ''}`);
+        log(`Exported ${presetCount} presets to grid-presets.json`, LOG_LEVELS.SUCCESS);
+    } else {
+        showToast('Export failed');
+        log('Failed to export presets', LOG_LEVELS.ERROR);
     }
 }
 
