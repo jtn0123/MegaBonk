@@ -592,7 +592,8 @@ describe('extractCountRegion', () => {
 
         const countRegion = extractCountRegion(cell);
 
-        expect(countRegion.label).toBe('undefined_count');
+        // Falls back to 'cell' when no label provided
+        expect(countRegion.label).toBe('cell_count');
     });
 
     it('count region is contained within cell', () => {

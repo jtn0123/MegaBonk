@@ -25,28 +25,39 @@ vi.mock('../../src/modules/compare', () => ({
 }));
 
 // Mock data-service
-vi.mock('../../src/modules/data-service', () => ({
-    getDataForTab: vi.fn().mockImplementation((tabName: string) => {
-        const mockData: Record<string, any[]> = {
-            items: [
-                { id: 'item1', name: 'Fire Sword', rarity: 'legendary', tier: 'S', base_effect: 'Deals fire damage' },
-            ],
-            weapons: [
-                { id: 'weapon1', name: 'Katana', tier: 'A', attack_pattern: 'Melee' },
-            ],
-            tomes: [
-                { id: 'tome1', name: 'Precision', tier: 'A', stat_affected: 'Crit', value_per_level: '+1%' },
-            ],
-            characters: [
-                { id: 'char1', name: 'CL4NK', tier: 'S', passive_ability: 'Crit bonus' },
-            ],
-            shrines: [
-                { id: 'shrine1', name: 'Statue', icon: '⛩️', reward: '+5% damage' },
-            ],
-        };
-        return mockData[tabName] || [];
-    }),
-}));
+vi.mock('../../src/modules/data-service', () => {
+    const mockAllData = {
+        items: { items: [{ id: 'item1', name: 'Fire Sword', rarity: 'legendary', tier: 'S', base_effect: 'Deals fire damage' }] },
+        weapons: { weapons: [{ id: 'weapon1', name: 'Katana', tier: 'A', attack_pattern: 'Melee' }] },
+        tomes: { tomes: [{ id: 'tome1', name: 'Precision', tier: 'A', stat_affected: 'Crit', value_per_level: '+1%' }] },
+        characters: { characters: [{ id: 'char1', name: 'CL4NK', tier: 'S', passive_ability: 'Crit bonus' }] },
+        shrines: { shrines: [{ id: 'shrine1', name: 'Statue', icon: '⛩️', reward: '+5% damage' }] },
+    };
+
+    return {
+        allData: mockAllData,
+        getDataForTab: vi.fn().mockImplementation((tabName: string) => {
+            const mockData: Record<string, any[]> = {
+                items: [
+                    { id: 'item1', name: 'Fire Sword', rarity: 'legendary', tier: 'S', base_effect: 'Deals fire damage' },
+                ],
+                weapons: [
+                    { id: 'weapon1', name: 'Katana', tier: 'A', attack_pattern: 'Melee' },
+                ],
+                tomes: [
+                    { id: 'tome1', name: 'Precision', tier: 'A', stat_affected: 'Crit', value_per_level: '+1%' },
+                ],
+                characters: [
+                    { id: 'char1', name: 'CL4NK', tier: 'S', passive_ability: 'Crit bonus' },
+                ],
+                shrines: [
+                    { id: 'shrine1', name: 'Statue', icon: '⛩️', reward: '+5% damage' },
+                ],
+            };
+            return mockData[tabName] || [];
+        }),
+    };
+});
 
 // Mock filters
 vi.mock('../../src/modules/filters', () => ({

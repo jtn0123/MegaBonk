@@ -152,6 +152,35 @@ export type {
     TemplateSelectionOptions,
 } from './unified-template-manager.ts';
 
+// Active Learning
+export {
+    initActiveLearning,
+    findUncertainDetections,
+    shouldPromptForLearning,
+    startActiveLearningSession,
+    getActiveLearningSession,
+    getCurrentUncertainDetection,
+    submitVerification,
+    skipCurrentDetection,
+    endActiveLearningSession,
+    renderActiveLearningPrompt,
+    renderCompletionMessage,
+    renderUncertainBadge,
+    handleVerificationAction,
+} from './active-learning.ts';
+export type { UncertainDetection, VerificationResponse, ActiveLearningSession } from './active-learning.ts';
+
+// Metrics Summary
+export {
+    calculateMetricsSummary,
+    getSystemAccuracy,
+    renderMetricsSummary,
+    renderSystemAccuracyBadge,
+    renderCompactMetrics,
+    logMetricsSummary,
+} from './metrics-summary.ts';
+export type { DetectionForMetrics, MetricsSummary, SystemAccuracy } from './metrics-summary.ts';
+
 // Training Feedback Export
 export {
     startFeedbackSession,
