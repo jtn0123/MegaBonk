@@ -35,11 +35,14 @@ const CONFIG = {
 };
 
 // Generate a stable item ID from name
+// Must match normalizeToItemId() in cv-validator/js/main.js
 function nameToId(name) {
     return name
         .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_|_$/g, '');
+        .replace(/[^a-z0-9\s]/g, '') // Remove special characters (apostrophes, etc)
+        .replace(/\s+/g, '_') // Replace spaces with underscores
+        .replace(/_+/g, '_') // Collapse multiple underscores
+        .replace(/^_|_$/g, ''); // Trim leading/trailing underscores
 }
 
 // Parse base64 data URL to buffer
