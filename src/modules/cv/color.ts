@@ -3,6 +3,136 @@
 // ========================================
 
 /**
+ * Convert RGB to HSL color space
+ * Returns { h: 0-360, s: 0-100, l: 0-100 }
+ */
+export function rgbToHsl(r: number, g: number, b: number): { h: number; s: number; l: number } {
+    r /= 255;
+    g /= 255;
+    b /= 255;
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    let h = 0;
+    let s = 0;
+    const l = (max + min) / 2;
+
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r:
+                h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+                break;
+            case g:
+                h = ((b - r) / d + 2) / 6;
+                break;
+            case b:
+                h = ((r - g) / d + 4) / 6;
+                break;
+        }
+    }
+
+    return { h: h * 360, s: s * 100, l: l * 100 };
+}
+
+// ========================================
+// Rarity Border Color Definitions (HSL ranges)
+// ========================================
+
+export interface RarityColorDef {
+    name: string;
+    h: [number, number];
+    s: [number, number];
+    l: [number, number];
+    rgb: { r: [number, number]; g: [number, number]; b: [number, number] };
+}
+
+export const RARITY_BORDER_COLORS: Record<string, RarityColorDef> = {
+    common: {
+        name: 'common',
+        // Gray - low saturation
+        h: [0, 360],
+        s: [0, 25],
+        l: [35, 75],
+        rgb: { r: [100, 200], g: [100, 200], b: [100, 200] },
+    },
+    uncommon: {
+        name: 'uncommon',
+        // Green
+        h: [85, 155],
+        s: [40, 100],
+        l: [25, 65],
+        rgb: { r: [30, 150], g: [120, 255], b: [30, 150] },
+    },
+    rare: {
+        name: 'rare',
+        // Blue
+        h: [190, 250],
+        s: [50, 100],
+        l: [35, 70],
+        rgb: { r: [30, 150], g: [80, 200], b: [150, 255] },
+    },
+    epic: {
+        name: 'epic',
+        // Purple
+        h: [260, 320],
+        s: [40, 100],
+        l: [30, 65],
+        rgb: { r: [120, 220], g: [30, 150], b: [150, 255] },
+    },
+    legendary: {
+        name: 'legendary',
+        // Orange/Gold
+        h: [15, 55],
+        s: [70, 100],
+        l: [45, 75],
+        rgb: { r: [200, 255], g: [100, 220], b: [20, 120] },
+    },
+};
+
+/**
+ * Check if a color matches a specific rarity border color
+ */
+export function matchesRarityColor(r: number, g: number, b: number, rarity: string): boolean {
+    const def = RARITY_BORDER_COLORS[rarity];
+    if (!def) return false;
+
+    // Quick RGB range check first (faster)
+    if (r < def.rgb.r[0] || r > def.rgb.r[1]) return false;
+    if (g < def.rgb.g[0] || g > def.rgb.g[1]) return false;
+    if (b < def.rgb.b[0] || b > def.rgb.b[1]) return false;
+
+    // HSL check for more accuracy
+    const hsl = rgbToHsl(r, g, b);
+
+    // Handle hue wraparound for red/orange
+    let hueMatch = false;
+    if (def.h[0] <= def.h[1]) {
+        hueMatch = hsl.h >= def.h[0] && hsl.h <= def.h[1];
+    } else {
+        hueMatch = hsl.h >= def.h[0] || hsl.h <= def.h[1];
+    }
+
+    const satMatch = hsl.s >= def.s[0] && hsl.s <= def.s[1];
+    const lumMatch = hsl.l >= def.l[0] && hsl.l <= def.l[1];
+
+    return hueMatch && satMatch && lumMatch;
+}
+
+/**
+ * Detect rarity at a specific pixel
+ * Returns rarity string or null if no match
+ */
+export function detectRarityAtPixel(r: number, g: number, b: number): string | null {
+    for (const rarity of Object.keys(RARITY_BORDER_COLORS)) {
+        if (matchesRarityColor(r, g, b, rarity)) {
+            return rarity;
+        }
+    }
+    return null;
+}
+
+/**
  * Extract dominant colors from image region
  * Useful for icon-based matching
  */
@@ -214,52 +344,91 @@ export function extractBorderPixels(imageData: ImageData, borderWidth: number = 
 }
 
 /**
- * Detect rarity from border color
+ * Detect rarity from border color using HSL-based matching
  * Returns rarity string or null if no clear match
  */
 export function detectBorderRarity(imageData: ImageData): string | null {
     const borderPixels = extractBorderPixels(imageData, 3);
 
-    // Calculate average RGB
-    let sumR = 0;
-    let sumG = 0;
-    let sumB = 0;
-    let count = 0;
-
-    for (let i = 0; i < borderPixels.length; i += 3) {
-        sumR += borderPixels[i] ?? 0;
-        sumG += borderPixels[i + 1] ?? 0;
-        sumB += borderPixels[i + 2] ?? 0;
-        count++;
-    }
-
-    const avgR = sumR / count;
-    const avgG = sumG / count;
-    const avgB = sumB / count;
-
-    // Define rarity colors (approximate, may need tuning)
-    const rarityColors: Record<string, { r: number; g: number; b: number; tolerance: number }> = {
-        common: { r: 128, g: 128, b: 128, tolerance: 40 }, // Gray
-        uncommon: { r: 0, g: 255, b: 0, tolerance: 60 }, // Green
-        rare: { r: 0, g: 128, b: 255, tolerance: 60 }, // Blue
-        epic: { r: 128, g: 0, b: 255, tolerance: 60 }, // Purple
-        legendary: { r: 255, g: 165, b: 0, tolerance: 60 }, // Orange/Gold
+    // Count votes for each rarity based on individual pixel matching
+    const rarityVotes: Record<string, number> = {
+        common: 0,
+        uncommon: 0,
+        rare: 0,
+        epic: 0,
+        legendary: 0,
     };
 
-    // Find closest color match
+    let totalPixels = 0;
+
+    for (let i = 0; i < borderPixels.length; i += 3) {
+        const r = borderPixels[i] ?? 0;
+        const g = borderPixels[i + 1] ?? 0;
+        const b = borderPixels[i + 2] ?? 0;
+
+        const rarity = detectRarityAtPixel(r, g, b);
+        if (rarity) {
+            rarityVotes[rarity]++;
+        }
+        totalPixels++;
+    }
+
+    // Find rarity with most votes
     let bestMatch: string | null = null;
-    let bestDistance = Infinity;
+    let bestVotes = 0;
 
-    for (const [rarity, color] of Object.entries(rarityColors)) {
-        const distance = Math.sqrt(
-            Math.pow(avgR - color.r, 2) + Math.pow(avgG - color.g, 2) + Math.pow(avgB - color.b, 2)
-        );
-
-        if (distance < color.tolerance && distance < bestDistance) {
+    for (const [rarity, votes] of Object.entries(rarityVotes)) {
+        if (votes > bestVotes) {
+            bestVotes = votes;
             bestMatch = rarity;
-            bestDistance = distance;
         }
     }
 
+    // Require at least 10% of border pixels to match
+    const minVoteRatio = 0.1;
+    if (bestVotes < totalPixels * minVoteRatio) {
+        return null;
+    }
+
     return bestMatch;
+}
+
+/**
+ * Count rarity border pixels in a horizontal scan line
+ * Used for hotbar detection
+ */
+export function countRarityBorderPixels(imageData: ImageData): {
+    total: number;
+    rarityCount: number;
+    colorfulCount: number;
+    rarityCounts: Record<string, number>;
+} {
+    const pixels = imageData.data;
+    let rarityCount = 0;
+    let colorfulCount = 0;
+    const rarityCounts: Record<string, number> = {};
+
+    for (let i = 0; i < pixels.length; i += 4) {
+        const r = pixels[i] ?? 0;
+        const g = pixels[i + 1] ?? 0;
+        const b = pixels[i + 2] ?? 0;
+
+        // Check if colorful (potential border)
+        const saturation = Math.max(r, g, b) - Math.min(r, g, b);
+        if (saturation > 40) colorfulCount++;
+
+        // Check specific rarity
+        const rarity = detectRarityAtPixel(r, g, b);
+        if (rarity) {
+            rarityCount++;
+            rarityCounts[rarity] = (rarityCounts[rarity] || 0) + 1;
+        }
+    }
+
+    return {
+        total: pixels.length / 4,
+        rarityCount,
+        colorfulCount,
+        rarityCounts,
+    };
 }

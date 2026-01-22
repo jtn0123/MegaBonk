@@ -14,8 +14,50 @@ import {
     setPriorityTemplatesLoaded,
     isStandardTemplatesLoading,
     setStandardTemplatesLoading,
+    setMultiScaleTemplate,
+    getMultiScaleTemplateCount,
+    COMMON_ICON_SIZES,
 } from './state.ts';
 import { getDominantColor } from './color.ts';
+
+// ========================================
+// Multi-Scale Template Generation
+// ========================================
+
+/**
+ * Generate multi-scale variants of a template for faster matching
+ * Pre-computes resized versions at common icon sizes
+ */
+function generateMultiScaleVariants(itemId: string, canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D): void {
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Generate variants at common sizes (skip if already that size)
+    for (const targetSize of COMMON_ICON_SIZES) {
+        if (targetSize === width && targetSize === height) {
+            // Store original as-is
+            const imageData = ctx.getImageData(0, 0, width, height);
+            setMultiScaleTemplate(itemId, targetSize, imageData);
+            continue;
+        }
+
+        // Create resized canvas
+        const resizedCanvas = document.createElement('canvas');
+        resizedCanvas.width = targetSize;
+        resizedCanvas.height = targetSize;
+        const resizedCtx = resizedCanvas.getContext('2d', { willReadFrequently: true });
+
+        if (!resizedCtx) continue;
+
+        // Use high-quality scaling
+        resizedCtx.imageSmoothingEnabled = true;
+        resizedCtx.imageSmoothingQuality = 'high';
+        resizedCtx.drawImage(canvas, 0, 0, width, height, 0, 0, targetSize, targetSize);
+
+        const imageData = resizedCtx.getImageData(0, 0, targetSize, targetSize);
+        setMultiScaleTemplate(itemId, targetSize, imageData);
+    }
+}
 
 // ========================================
 // Template Prioritization
@@ -89,6 +131,9 @@ export async function loadTemplatesBatch(
                         height: img.height,
                     });
 
+                    // Generate multi-scale variants for faster matching
+                    generateMultiScaleVariants(item.id, canvas, ctx);
+
                     loaded++;
                     resolve();
                 };
@@ -116,6 +161,9 @@ export async function loadTemplatesBatch(
                             width: pngImg.width,
                             height: pngImg.height,
                         });
+
+                        // Generate multi-scale variants for faster matching
+                        generateMultiScaleVariants(item.id, canvas, ctx);
 
                         loaded++;
                         resolve();
@@ -252,6 +300,7 @@ export async function loadItemTemplates(): Promise<void> {
                     standardLoaded: standardResult.loaded,
                     standardFailed: standardResult.failed,
                     total: items.length,
+                    multiScaleVariants: getMultiScaleTemplateCount(),
                     colorGroups: Object.fromEntries(
                         Array.from(templatesByColor.entries()).map(([color, items]) => [color, items.length])
                     ),
