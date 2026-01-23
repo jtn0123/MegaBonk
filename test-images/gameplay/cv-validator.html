@@ -78,6 +78,7 @@
         <button id="save-training" class="save-training" disabled>Save to Training</button>
         <button id="export-validated" disabled>Export JSON</button>
         <button id="toggle-grid-calibration">Grid Calibration &#x25BC;</button>
+        <button id="toggle-ablation" class="toggle-ablation-btn">Ablation Testing &#x25BC;</button>
     </div>
 
     <!-- File System Status Indicator -->
@@ -263,6 +264,177 @@
                                 <button id="apply-auto-detect" class="apply-auto-btn">Apply Auto-Detected</button>
                                 <button id="toggle-overlay" class="overlay-btn">Show Overlay</button>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ablation Testing Panel -->
+                <div class="ablation-panel" id="ablation-panel">
+                    <div class="ablation-header">
+                        <h3><span class="icon">🧪</span> Ablation Testing</h3>
+                        <div class="ablation-header-actions">
+                            <button id="reset-ablation-config" class="preset-btn">Reset to Default</button>
+                        </div>
+                    </div>
+                    <div class="ablation-body">
+                        <!-- Presets -->
+                        <div class="ablation-presets">
+                            <label>Quick Presets:</label>
+                            <button class="preset-btn" data-preset="baseline-all-on">Baseline (All On)</button>
+                            <button class="preset-btn" data-preset="minimal">Minimal</button>
+                            <button class="preset-btn" data-preset="no-preprocessing">No Preprocessing</button>
+                            <button class="preset-btn" data-preset="no-dynamic-grid">Static Grid</button>
+                            <button class="preset-btn" data-preset="ssim-only">SSIM Only</button>
+                            <button class="preset-btn" data-preset="ncc-only">NCC Only</button>
+                            <button class="preset-btn" data-preset="all-metrics">All Metrics</button>
+                        </div>
+
+                        <!-- Live Metrics -->
+                        <div class="ablation-live-metrics">
+                            <div class="live-metric f1">
+                                <div class="value" id="ablation-f1">--</div>
+                                <div class="label">F1 Score</div>
+                            </div>
+                            <div class="live-metric precision">
+                                <div class="value" id="ablation-precision">--</div>
+                                <div class="label">Precision</div>
+                            </div>
+                            <div class="live-metric recall">
+                                <div class="value" id="ablation-recall">--</div>
+                                <div class="label">Recall</div>
+                            </div>
+                            <div class="live-metric">
+                                <div class="value" id="ablation-time">--</div>
+                                <div class="label">Time (ms)</div>
+                            </div>
+                        </div>
+
+                        <!-- Component Toggles by Category -->
+                        <div class="ablation-categories">
+                            <!-- Template Matching -->
+                            <div class="ablation-category">
+                                <h4>Template Matching</h4>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useMultiScale" checked>
+                                    <span class="toggle-label">Multi-Scale</span>
+                                    <span class="toggle-hint">48/64px</span>
+                                </label>
+                            </div>
+
+                            <!-- Preprocessing -->
+                            <div class="ablation-category">
+                                <h4>Preprocessing</h4>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useContrastEnhancement" checked>
+                                    <span class="toggle-label">Contrast Enhancement</span>
+                                </label>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useColorNormalization" checked>
+                                    <span class="toggle-label">Color Normalization</span>
+                                </label>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useSharpening">
+                                    <span class="toggle-label">Sharpening</span>
+                                    <span class="toggle-hint">slower</span>
+                                </label>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useHistogramEqualization">
+                                    <span class="toggle-label">Histogram Eq.</span>
+                                    <span class="toggle-hint">slower</span>
+                                </label>
+                            </div>
+
+                            <!-- Grid Detection -->
+                            <div class="ablation-category">
+                                <h4>Grid Detection</h4>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useDynamicGrid" checked>
+                                    <span class="toggle-label">Dynamic Grid</span>
+                                </label>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useResolutionAwareParams" checked>
+                                    <span class="toggle-label">Resolution-Aware</span>
+                                </label>
+                            </div>
+
+                            <!-- Filtering -->
+                            <div class="ablation-category">
+                                <h4>Filtering</h4>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useRarityFiltering" checked>
+                                    <span class="toggle-label">Rarity Filtering</span>
+                                </label>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useEmptyCellFilter" checked>
+                                    <span class="toggle-label">Empty Cell Filter</span>
+                                </label>
+                            </div>
+
+                            <!-- Similarity Metrics -->
+                            <div class="ablation-category">
+                                <h4>Similarity Metrics</h4>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-metrics.ssim" checked>
+                                    <span class="toggle-label">SSIM</span>
+                                    <span class="toggle-hint">40%</span>
+                                </label>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-metrics.ncc" checked>
+                                    <span class="toggle-label">NCC</span>
+                                    <span class="toggle-hint">35%</span>
+                                </label>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-metrics.histogram" checked>
+                                    <span class="toggle-label">Histogram</span>
+                                    <span class="toggle-hint">25%</span>
+                                </label>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-metrics.edge">
+                                    <span class="toggle-label">Edge</span>
+                                    <span class="toggle-hint">slower</span>
+                                </label>
+                            </div>
+
+                            <!-- Scoring -->
+                            <div class="ablation-category">
+                                <h4>Scoring</h4>
+                                <label class="ablation-toggle">
+                                    <input type="checkbox" id="toggle-useAgreementBonus" checked>
+                                    <span class="toggle-label">Agreement Bonus</span>
+                                    <span class="toggle-hint">+3%</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Component Impact (populated after batch tests) -->
+                        <div class="ablation-impact" id="ablation-impact" style="display: none;">
+                            <h4>Component Impact (from batch tests)</h4>
+                            <div class="impact-list" id="impact-list"></div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="ablation-actions">
+                            <button id="apply-ablation-config" class="primary">Apply & Re-detect</button>
+                            <button id="run-ablation-batch" class="run-ablation-btn" disabled>Run Batch Ablation</button>
+                            <button id="clear-ablation-results">Clear Results</button>
+                        </div>
+
+                        <!-- Ablation Results Table -->
+                        <div class="ablation-results" id="ablation-results" style="display: none;">
+                            <h4>Batch Ablation Results</h4>
+                            <table class="ablation-results-table">
+                                <thead>
+                                    <tr>
+                                        <th>Config</th>
+                                        <th>F1</th>
+                                        <th>Precision</th>
+                                        <th>Recall</th>
+                                        <th>Time</th>
+                                        <th>Δ Baseline</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ablation-results-body"></tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
