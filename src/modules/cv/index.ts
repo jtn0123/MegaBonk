@@ -338,3 +338,41 @@ export {
     similarityPassesThreshold,
 } from './similarity.ts';
 export type { SimilarityResult } from './similarity.ts';
+
+// Resolution Profiles
+export {
+    getResolutionTier,
+    getProfileForResolution,
+    getClosestPreset,
+    getScaleFromBase,
+    scaleValue,
+    getExpectedIconSize,
+    getExpectedCellStride,
+    interpolateProfile,
+    getTemplateScales,
+    describeResolution,
+    validateIconSize,
+    getHotbarScanRegion,
+    getCountTextRegion,
+    RESOLUTION_PRESETS,
+    STRATEGY_PROFILES,
+    LOW_RES_PROFILE,
+    MEDIUM_RES_PROFILE,
+    HIGH_RES_PROFILE,
+    ULTRA_RES_PROFILE,
+} from './resolution-profiles.ts';
+export type {
+    ResolutionTier,
+    ResolutionInfo,
+    StrategyProfile,
+} from './resolution-profiles.ts';
+
+// Count Detection
+export {
+    detectCount,
+    detectCounts,
+    hasCountOverlay,
+    correctToCommonStack,
+    COMMON_STACK_SIZES,
+} from './count-detection.ts';
+export type { CountDetectionResult } from './count-detection.ts';
