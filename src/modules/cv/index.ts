@@ -246,3 +246,45 @@ export {
     describeMargins,
 } from './margin-config.ts';
 export type { MarginConfig, RarityMargins, ResolutionConfig } from './margin-config.ts';
+
+// Template Variants
+export {
+    generateVariants,
+    selectBestVariants,
+    getRecommendedVariant,
+    scoreVariantMatch,
+    getVariantStats,
+    DEFAULT_VARIANT_CONFIG,
+    MINIMAL_VARIANT_CONFIG,
+    FULL_VARIANT_CONFIG,
+} from './template-variants.ts';
+export type { TemplateVariant, VariantType, VariantConfig } from './template-variants.ts';
+
+// Template Ranking
+export {
+    recordMatchResult,
+    getTemplateRanking,
+    getRankingsForItem,
+    getTopTemplates,
+    shouldSkipTemplate,
+    getSkipListEntry,
+    getSkipList,
+    addToSkipList,
+    removeFromSkipList,
+    clearSkipList,
+    getConfusionMatrix,
+    getRecommendedThreshold,
+    exportPerformanceData,
+    importPerformanceData,
+    getRankingStats,
+    clearPerformanceData,
+    setRankingConfig,
+    getRankingConfig,
+    DEFAULT_RANKING_CONFIG,
+} from './template-ranking.ts';
+export type {
+    TemplatePerformance,
+    TemplateRanking,
+    SkipListEntry,
+    RankingConfig,
+} from './template-ranking.ts';
