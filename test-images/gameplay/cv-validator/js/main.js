@@ -68,6 +68,17 @@ import { initActiveLearning } from './active-learning.js';
 import { initTemplateManager } from './template-manager.js';
 import { initAlgorithmEnsemble } from './algorithm-ensemble.js';
 import { autoDetectGrid, compareWithPreset, drawDetectionOverlay } from './auto-grid-detection.js';
+import {
+    initAblationPanel,
+    updateLiveMetrics,
+    recordDetectionResult,
+    updateResultsDisplay,
+    updateImpactDisplay,
+    setBatchAblationEnabled,
+    getCurrentPipelineConfig,
+    runBatchAblation,
+} from './ablation-panel.js';
+import { getAblationResults } from './pipeline-config.js';
 
 // ========================================
 // DOM Element References
@@ -1705,6 +1716,14 @@ async function handleRunDetection() {
             detectedElem: elements.metricDetected,
         });
 
+        // Update ablation panel live metrics
+        updateLiveMetrics({
+            f1Score: metrics.f1,
+            precision: metrics.precision,
+            recall: metrics.recall,
+            time: elapsed,
+        });
+
         // Draw overlay
         drawOverlay(
             elements.overlayCanvas,
@@ -2009,6 +2028,20 @@ async function init() {
     initActiveLearning();
     initTemplateManager();
     initAlgorithmEnsemble();
+
+    // Initialize ablation testing panel
+    initAblationPanel(pipelineConfig => {
+        // Callback when config changes - re-run detection
+        if (state.currentImage) {
+            log(`Ablation config changed: ${pipelineConfig.name}`);
+            handleRunDetection();
+        }
+    });
+
+    // Enable batch ablation button when we have test images
+    if (state.groundTruth && Object.keys(state.groundTruth).length > 0) {
+        setBatchAblationEnabled(true);
+    }
 
     // Setup event handlers
     elements.imageSelect.addEventListener('change', handleImageSelect);

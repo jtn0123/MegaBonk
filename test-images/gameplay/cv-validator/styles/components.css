@@ -2302,3 +2302,349 @@ button:disabled {
     border-color: var(--accent);
     color: white;
 }
+
+/* ========================================
+ * Ablation Testing Panel
+ * ======================================== */
+
+.ablation-panel {
+    display: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-top: 16px;
+    overflow: hidden;
+}
+
+.ablation-panel.show {
+    display: block;
+}
+
+.ablation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(99, 102, 241, 0.15));
+    border-bottom: 1px solid var(--border);
+}
+
+.ablation-header h3 {
+    margin: 0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ablation-header h3 .icon {
+    font-size: 16px;
+}
+
+.ablation-header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.ablation-body {
+    padding: 16px;
+}
+
+/* Component Categories */
+.ablation-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.ablation-category {
+    background: var(--bg-panel);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.ablation-category h4 {
+    margin: 0 0 10px 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+}
+
+.ablation-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 0;
+    cursor: pointer;
+}
+
+.ablation-toggle:hover {
+    opacity: 0.9;
+}
+
+.ablation-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--success);
+}
+
+.ablation-toggle .toggle-label {
+    flex: 1;
+    font-size: 12px;
+    color: var(--text-primary);
+}
+
+.ablation-toggle .toggle-hint {
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.ablation-toggle.disabled {
+    opacity: 0.5;
+}
+
+.ablation-toggle.disabled input {
+    accent-color: var(--text-secondary);
+}
+
+/* Presets Section */
+.ablation-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 12px;
+    background: var(--bg-panel);
+    border-radius: 6px;
+    margin-bottom: 16px;
+}
+
+.ablation-presets label {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-right: 8px;
+}
+
+.preset-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+
+.preset-btn:hover {
+    border-color: var(--accent);
+}
+
+.preset-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+}
+
+/* Impact Display */
+.ablation-impact {
+    background: var(--bg-panel);
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 12px;
+}
+
+.ablation-impact h4 {
+    margin: 0 0 10px 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.impact-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.impact-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    padding: 4px 8px;
+    background: var(--bg-card);
+    border-radius: 4px;
+}
+
+.impact-item .impact-icon {
+    width: 16px;
+    text-align: center;
+}
+
+.impact-item .impact-name {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+.impact-item .impact-delta {
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.impact-item .impact-delta.positive {
+    color: var(--success);
+}
+
+.impact-item .impact-delta.negative {
+    color: var(--error);
+}
+
+.impact-item .impact-delta.neutral {
+    color: var(--text-secondary);
+}
+
+/* Ablation Actions */
+.ablation-actions {
+    display: flex;
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+}
+
+.ablation-actions button {
+    padding: 8px 16px;
+    font-size: 12px;
+}
+
+.run-ablation-btn {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border: none;
+    color: white;
+    font-weight: 600;
+}
+
+.run-ablation-btn:hover {
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+}
+
+.run-ablation-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Ablation Results */
+.ablation-results {
+    margin-top: 16px;
+    background: var(--bg-panel);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.ablation-results h4 {
+    margin: 0 0 10px 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+}
+
+.ablation-results-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+}
+
+.ablation-results-table th {
+    text-align: left;
+    padding: 8px;
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    font-size: 10px;
+    text-transform: uppercase;
+}
+
+.ablation-results-table td {
+    padding: 8px;
+    border-bottom: 1px solid var(--border);
+}
+
+.ablation-results-table tr:hover {
+    background: var(--bg-card);
+}
+
+.ablation-results-table .config-name {
+    font-weight: 500;
+}
+
+.ablation-results-table .metric {
+    font-family: monospace;
+}
+
+.ablation-results-table .best {
+    color: var(--success);
+    font-weight: bold;
+}
+
+.ablation-results-table .worst {
+    color: var(--error);
+}
+
+/* Toggle Ablation Button in Controls */
+.toggle-ablation-btn {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(139, 92, 246, 0.2));
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    color: var(--text-primary);
+}
+
+.toggle-ablation-btn:hover {
+    border-color: #8b5cf6;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(139, 92, 246, 0.3));
+}
+
+.toggle-ablation-btn.active {
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-color: #8b5cf6;
+    color: white;
+}
+
+/* Live Metrics Display in Ablation */
+.ablation-live-metrics {
+    display: flex;
+    gap: 16px;
+    padding: 12px;
+    background: var(--bg-card);
+    border-radius: 6px;
+    margin-bottom: 12px;
+}
+
+.live-metric {
+    text-align: center;
+}
+
+.live-metric .value {
+    font-size: 20px;
+    font-weight: bold;
+    font-family: monospace;
+}
+
+.live-metric .label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.live-metric.f1 .value {
+    color: var(--cyan);
+}
+
+.live-metric.precision .value {
+    color: var(--success);
+}
+
+.live-metric.recall .value {
+    color: var(--warning);
+}
