@@ -14,10 +14,15 @@ export {
     calculateEdgeSimilarity,
     calculateCombinedSimilarity,
     calculateEnhancedSimilarity,
+    calculateDetailedSimilarity,
+    calculateAdaptiveSimilarity,
+    calculateAdaptiveDetailedSimilarity,
+    similarityPassesThreshold,
     preprocessImage,
     enhanceContrast,
     normalizeColors,
 } from './similarity.ts';
+export type { SimilarityResult } from './similarity.ts';
 
 // ----------------------------------------
 // Color Functions (from color.ts)
