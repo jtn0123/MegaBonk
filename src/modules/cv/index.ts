@@ -376,3 +376,32 @@ export {
     COMMON_STACK_SIZES,
 } from './count-detection.ts';
 export type { CountDetectionResult } from './count-detection.ts';
+
+// Ensemble Detector
+export {
+    combineStrategyDetections,
+    selectStrategiesForImage,
+    setEnsembleConfig,
+    getEnsembleConfig,
+    getStrategy,
+    getRecommendedConfig,
+    describeEnsembleConfig,
+    STRATEGIES,
+    DEFAULT_STRATEGY,
+    HIGH_PRECISION_STRATEGY,
+    HIGH_RECALL_STRATEGY,
+    EDGE_FOCUSED_STRATEGY,
+    COLOR_FOCUSED_STRATEGY,
+    FAST_STRATEGY,
+    DEFAULT_ENSEMBLE_CONFIG,
+    PRECISION_ENSEMBLE_CONFIG,
+    RECALL_ENSEMBLE_CONFIG,
+    FAST_ENSEMBLE_CONFIG,
+} from './ensemble-detector.ts';
+export type {
+    StrategyId,
+    DetectionStrategy,
+    StrategyDetection,
+    EnsembleResult,
+    EnsembleConfig,
+} from './ensemble-detector.ts';
