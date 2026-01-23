@@ -129,11 +129,15 @@ export function getTrainingTemplatesForItem(itemId: string): TrainingTemplate[] 
 // Session Template Management
 // ========================================
 
+// Max session templates per item to prevent memory bloat
+const MAX_SESSION_TEMPLATES_PER_ITEM = 10;
+
 /**
  * Add a template to the session pool (immediately available for detection)
  * @param itemId The item ID this template represents
  * @param imageData The ImageData of the cropped icon
  * @param metadata Additional metadata about the template
+ * @returns true if template was added, false if duplicate or limit reached
  */
 export function addSessionTemplate(
     itemId: string,
@@ -144,25 +148,55 @@ export function addSessionTemplate(
         sourceImage?: string;
         originalConfidence?: number;
     } = {}
-): void {
+): boolean {
+    const sourceImage = metadata.sourceImage || `session_${Date.now()}`;
+
+    // Initialize array if needed
+    if (!sessionTemplates.has(itemId)) {
+        sessionTemplates.set(itemId, []);
+    }
+
+    const existingTemplates = sessionTemplates.get(itemId)!;
+
+    // Check for duplicate (same source image and resolution)
+    const isDuplicate = existingTemplates.some(
+        t => t.sourceImage === sourceImage && t.resolution === (metadata.resolution || 'unknown')
+    );
+
+    if (isDuplicate) {
+        logger.info({
+            operation: 'cv.training.session_template_duplicate',
+            data: { itemId, sourceImage },
+        });
+        return false;
+    }
+
+    // Check per-item limit
+    if (existingTemplates.length >= MAX_SESSION_TEMPLATES_PER_ITEM) {
+        logger.info({
+            operation: 'cv.training.session_template_limit_reached',
+            data: { itemId, limit: MAX_SESSION_TEMPLATES_PER_ITEM },
+        });
+        return false;
+    }
+
     const template: TrainingTemplate = {
         imageData,
         weight: getTemplateWeight(metadata.validationType || 'corrected'),
         resolution: metadata.resolution || 'unknown',
         validationType: metadata.validationType || 'corrected',
-        sourceImage: metadata.sourceImage || `session_${Date.now()}`,
+        sourceImage,
     };
 
-    if (!sessionTemplates.has(itemId)) {
-        sessionTemplates.set(itemId, []);
-    }
-    sessionTemplates.get(itemId)!.push(template);
+    existingTemplates.push(template);
     sessionTemplateCount++;
 
     logger.info({
         operation: 'cv.training.session_template_added',
         data: { itemId, sessionCount: sessionTemplateCount, validationType: metadata.validationType },
     });
+
+    return true;
 }
 
 /**

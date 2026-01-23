@@ -80,14 +80,6 @@ import {
 } from './ablation-panel.js';
 import { getAblationResults } from './pipeline-config.js';
 import { initDebugPanel, updateDebugPanel } from './debug-panel.js';
-import {
-    getPrioritySlots,
-    calculateUncertaintyScore,
-    getSuggestedCorrections,
-    getSessionStats,
-    getConfusionPairs,
-    getErrorProneItems,
-} from './active-learning.js';
 
 // ========================================
 // DOM Element References
