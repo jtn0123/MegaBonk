@@ -73,6 +73,12 @@ export {
     clearTrainingData,
     getTrainingDataVersion,
     logTrainingDataVersion,
+    // Session template management (real-time learning)
+    addSessionTemplate,
+    getSessionTemplateCount,
+    getSessionTemplatesForItem,
+    clearSessionTemplates,
+    getSessionTemplateItems,
 } from './training.ts';
 export type {
     TrainingTemplate,
