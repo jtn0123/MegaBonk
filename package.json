@@ -73,7 +73,11 @@
     "cv:benchmark:compare": "node scripts/cv-benchmark.js --compare",
     "cv:performance": "npx serve -l 8002 . -o /test-images/gameplay/cv-performance.html",
     "build:cv-library": "vite build --config vite.cv-library.config.js",
-    "cv:dev": "vite build --config vite.cv-library.config.js --watch"
+    "cv:dev": "vite build --config vite.cv-library.config.js --watch",
+    "cv:ablation": "npx tsx scripts/ablation-report.ts",
+    "cv:ablation:quick": "npx tsx scripts/ablation-report.ts --quick",
+    "cv:ablation:full": "npx tsx scripts/ablation-report.ts --verbose",
+    "cv:ablation:compare": "npx tsx scripts/ablation-report.ts --quick --compare"
   },
   "keywords": [],
   "author": "",

@@ -147,7 +147,7 @@ export type {
     TemplateSource,
     ScaledTemplate,
     TemplateData as UnifiedTemplateData,
-    TrainingSample,
+    TrainingSample as UnifiedTrainingSample,
     WeightedTemplate,
     TemplateSelectionOptions,
 } from './unified-template-manager.ts';
@@ -224,3 +224,25 @@ export type {
 // CV Detection Metrics
 export { getMetricsCollector, enableMetrics, disableMetrics, isMetricsEnabled } from './metrics.ts';
 export type { CVDetectionMetrics, CVAggregatedMetrics } from './metrics.ts';
+
+// Adaptive Preprocessing
+export {
+    analyzeScene,
+    getPreprocessConfig,
+    applyAdaptivePreprocessing,
+    describeScene,
+} from './adaptive-preprocessing.ts';
+export type { SceneAnalysis, PreprocessConfig } from './adaptive-preprocessing.ts';
+
+// Margin Configuration
+export {
+    DEFAULT_MARGIN_CONFIG,
+    OPTIMIZED_MARGIN_CONFIG,
+    CONSERVATIVE_MARGIN_CONFIG,
+    setMarginConfig,
+    getMarginConfig,
+    calculateCellMargin,
+    calculateTemplateMargin,
+    describeMargins,
+} from './margin-config.ts';
+export type { MarginConfig, RarityMargins, ResolutionConfig } from './margin-config.ts';
