@@ -238,9 +238,177 @@ const templateCache = new Map<string, TemplateData>();
 const templatesByRarity = new Map<string, TemplateData[]>();
 let itemsData: ItemsData | null = null;
 
-// Standard template size for consistent matching
-// 64x64 is a good balance between detail and memory
-const STANDARD_TEMPLATE_SIZE = 64;
+// Multi-scale template sizes for better matching across resolutions
+// Two scales: 48 for smaller icons, 64 for larger
+const TEMPLATE_SCALES = [48, 64];
+const DEFAULT_TEMPLATE_SIZE = 64;
+
+// ========================================
+// Pipeline Configuration for Ablation Testing
+// ========================================
+
+/**
+ * Pipeline configuration with toggleable components for ablation testing.
+ * Each toggle allows testing impact of individual pipeline stages.
+ */
+interface PipelineConfig {
+    name: string;                         // Config name for reporting
+
+    // Template matching options
+    useMultiScale: boolean;               // Use multiple template scales [48, 64] vs just 64
+
+    // Preprocessing options
+    useContrastEnhancement: boolean;      // Apply contrast enhancement
+    useColorNormalization: boolean;       // Apply color normalization
+    useSharpening: boolean;               // Apply image sharpening
+    useHistogramEqualization: boolean;    // Apply adaptive histogram equalization
+
+    // Grid detection options
+    useDynamicGrid: boolean;              // Use dynamic grid detection vs static fallback
+    useResolutionAwareParams: boolean;    // Use resolution-specific grid parameters
+
+    // Filtering options
+    useRarityFiltering: boolean;          // Filter templates by detected rarity
+    useEmptyCellFilter: boolean;          // Skip empty cells
+
+    // Similarity metrics (at least one must be true)
+    metrics: {
+        ssim: boolean;                    // Structural similarity
+        ncc: boolean;                     // Normalized cross-correlation
+        histogram: boolean;               // Color histogram comparison
+        edge: boolean;                    // Edge-based similarity
+    };
+
+    // Score combination
+    useAgreementBonus: boolean;           // Add bonus when metrics agree
+}
+
+/**
+ * Default pipeline configuration (current best settings)
+ */
+const DEFAULT_PIPELINE_CONFIG: PipelineConfig = {
+    name: 'default',
+    useMultiScale: true,
+    useContrastEnhancement: true,
+    useColorNormalization: true,
+    useSharpening: false,
+    useHistogramEqualization: false,
+    useDynamicGrid: true,
+    useResolutionAwareParams: true,
+    useRarityFiltering: true,
+    useEmptyCellFilter: true,
+    metrics: {
+        ssim: true,
+        ncc: true,
+        histogram: true,
+        edge: false,
+    },
+    useAgreementBonus: true,
+};
+
+/**
+ * Generate ablation test configurations by toggling each component off individually
+ */
+function generateAblationConfigs(): PipelineConfig[] {
+    const configs: PipelineConfig[] = [];
+
+    // Baseline with all features on
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'baseline-all-on' });
+
+    // Minimal config (everything off except essentials)
+    configs.push({
+        name: 'minimal',
+        useMultiScale: false,
+        useContrastEnhancement: false,
+        useColorNormalization: false,
+        useSharpening: false,
+        useHistogramEqualization: false,
+        useDynamicGrid: false,
+        useResolutionAwareParams: false,
+        useRarityFiltering: false,
+        useEmptyCellFilter: false,
+        metrics: { ssim: true, ncc: false, histogram: false, edge: false },
+        useAgreementBonus: false,
+    });
+
+    // Toggle off each component individually
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'no-multi-scale', useMultiScale: false });
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'no-contrast', useContrastEnhancement: false });
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'no-normalize', useColorNormalization: false });
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'no-dynamic-grid', useDynamicGrid: false });
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'no-resolution-params', useResolutionAwareParams: false });
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'no-rarity-filter', useRarityFiltering: false });
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'no-empty-filter', useEmptyCellFilter: false });
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'no-agreement-bonus', useAgreementBonus: false });
+
+    // Test individual metrics
+    configs.push({
+        ...DEFAULT_PIPELINE_CONFIG,
+        name: 'ssim-only',
+        metrics: { ssim: true, ncc: false, histogram: false, edge: false },
+    });
+    configs.push({
+        ...DEFAULT_PIPELINE_CONFIG,
+        name: 'ncc-only',
+        metrics: { ssim: false, ncc: true, histogram: false, edge: false },
+    });
+    configs.push({
+        ...DEFAULT_PIPELINE_CONFIG,
+        name: 'histogram-only',
+        metrics: { ssim: false, ncc: false, histogram: true, edge: false },
+    });
+    configs.push({
+        ...DEFAULT_PIPELINE_CONFIG,
+        name: 'ssim+ncc',
+        metrics: { ssim: true, ncc: true, histogram: false, edge: false },
+    });
+    configs.push({
+        ...DEFAULT_PIPELINE_CONFIG,
+        name: 'ssim+histogram',
+        metrics: { ssim: true, ncc: false, histogram: true, edge: false },
+    });
+
+    // Toggle ON additional features
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'with-sharpening', useSharpening: true });
+    configs.push({ ...DEFAULT_PIPELINE_CONFIG, name: 'with-histogram-eq', useHistogramEqualization: true });
+    configs.push({
+        ...DEFAULT_PIPELINE_CONFIG,
+        name: 'with-edge-metric',
+        metrics: { ssim: true, ncc: true, histogram: true, edge: true },
+    });
+
+    return configs;
+}
+
+/**
+ * Generate quick ablation configs (subset for faster testing)
+ */
+function generateQuickAblationConfigs(): PipelineConfig[] {
+    return [
+        { ...DEFAULT_PIPELINE_CONFIG, name: 'baseline-all-on' },
+        { ...DEFAULT_PIPELINE_CONFIG, name: 'no-multi-scale', useMultiScale: false },
+        { ...DEFAULT_PIPELINE_CONFIG, name: 'no-contrast', useContrastEnhancement: false },
+        { ...DEFAULT_PIPELINE_CONFIG, name: 'no-dynamic-grid', useDynamicGrid: false },
+        { ...DEFAULT_PIPELINE_CONFIG, name: 'no-rarity-filter', useRarityFiltering: false },
+        {
+            name: 'minimal',
+            useMultiScale: false,
+            useContrastEnhancement: false,
+            useColorNormalization: false,
+            useSharpening: false,
+            useHistogramEqualization: false,
+            useDynamicGrid: false,
+            useResolutionAwareParams: false,
+            useRarityFiltering: false,
+            useEmptyCellFilter: false,
+            metrics: { ssim: true, ncc: false, histogram: false, edge: false },
+            useAgreementBonus: false,
+        },
+    ];
+}
+
+// Multi-scale template cache: itemId -> scale -> TemplateData
+const multiScaleTemplates = new Map<string, Map<number, TemplateData>>();
 
 // Name-to-ID lookup map (populated from items.json)
 // Fixes critical bug: ground truth used hyphens but item IDs use underscores
@@ -383,6 +551,17 @@ interface RunnerConfig {
     strategies: string[]; // Strategy preset names to test
     parallel: boolean;
     verbose: boolean;
+    // Ablation testing options
+    ablationMode: boolean;              // Run ablation tests instead of strategy tests
+    ablationQuick: boolean;             // Use quick subset of ablation configs
+    pipelineConfigs?: PipelineConfig[]; // Custom pipeline configs to test
+}
+
+/**
+ * Ablation test result (extends TestResult with config info)
+ */
+interface AblationResult extends TestResult {
+    pipelineConfig: string;
 }
 
 /**
@@ -391,6 +570,8 @@ interface RunnerConfig {
 class OfflineCVRunner {
     private testCases: TestCase[] = [];
     private results: TestResult[] = [];
+    private ablationResults: AblationResult[] = [];
+    private currentPipelineConfig: PipelineConfig = DEFAULT_PIPELINE_CONFIG;
 
     constructor(private config: RunnerConfig) {}
 
@@ -470,6 +651,12 @@ class OfflineCVRunner {
      * Run all tests
      */
     async runAllTests(): Promise<void> {
+        // Branch to ablation mode if enabled
+        if (this.config.ablationMode) {
+            await this.runAblationTests();
+            return;
+        }
+
         console.log('🚀 Starting Offline CV Test Runner\n');
         console.log(`Test cases: ${this.testCases.length}`);
         console.log(`Strategies: ${this.config.strategies.join(', ')}`);
@@ -494,6 +681,573 @@ class OfflineCVRunner {
         console.log(`\n📊 Generating report...`);
 
         this.generateReport();
+    }
+
+    /**
+     * Run ablation tests - systematically toggle pipeline components
+     */
+    async runAblationTests(): Promise<void> {
+        const configs = this.config.pipelineConfigs
+            || (this.config.ablationQuick ? generateQuickAblationConfigs() : generateAblationConfigs());
+
+        console.log('🧪 Starting Ablation Test Mode\n');
+        console.log(`Test cases: ${this.testCases.length}`);
+        console.log(`Pipeline configs: ${configs.length}`);
+        console.log(`Total runs: ${this.testCases.length * configs.length}\n`);
+
+        console.log('Configurations to test:');
+        for (const cfg of configs) {
+            console.log(`   - ${cfg.name}`);
+        }
+        console.log('');
+
+        const startTime = Date.now();
+
+        for (const pipelineConfig of configs) {
+            console.log(`\n═══════════════════════════════════════`);
+            console.log(`🔧 Pipeline Config: ${pipelineConfig.name}`);
+            console.log(`═══════════════════════════════════════`);
+            this.printPipelineConfigSummary(pipelineConfig);
+
+            // Set current pipeline config
+            this.currentPipelineConfig = pipelineConfig;
+
+            // Run all test cases with this config
+            for (const testCase of this.testCases) {
+                const itemCount = testCase.groundTruth.items.reduce((sum, item) => sum + item.count, 0);
+                console.log(`\n📋 ${testCase.name}`);
+                console.log(`   Ground truth: ${itemCount} items`);
+
+                await this.runAblationTest(testCase, pipelineConfig);
+            }
+        }
+
+        const totalTime = Date.now() - startTime;
+
+        console.log(`\n\n✅ Ablation tests completed in ${(totalTime / 1000).toFixed(1)}s`);
+        console.log(`\n📊 Generating ablation report...`);
+
+        this.generateAblationReport();
+    }
+
+    /**
+     * Print summary of pipeline config toggles
+     */
+    private printPipelineConfigSummary(config: PipelineConfig): void {
+        const on = '✓';
+        const off = '✗';
+
+        console.log(`   Template: multi-scale=${config.useMultiScale ? on : off}`);
+        console.log(`   Preprocess: contrast=${config.useContrastEnhancement ? on : off} normalize=${config.useColorNormalization ? on : off} sharpen=${config.useSharpening ? on : off} histEq=${config.useHistogramEqualization ? on : off}`);
+        console.log(`   Grid: dynamic=${config.useDynamicGrid ? on : off} resAware=${config.useResolutionAwareParams ? on : off}`);
+        console.log(`   Filter: rarity=${config.useRarityFiltering ? on : off} empty=${config.useEmptyCellFilter ? on : off}`);
+        console.log(`   Metrics: ssim=${config.metrics.ssim ? on : off} ncc=${config.metrics.ncc ? on : off} hist=${config.metrics.histogram ? on : off} edge=${config.metrics.edge ? on : off}`);
+        console.log(`   Bonus: agreement=${config.useAgreementBonus ? on : off}`);
+    }
+
+    /**
+     * Run a single ablation test
+     */
+    private async runAblationTest(testCase: TestCase, pipelineConfig: PipelineConfig): Promise<void> {
+        try {
+            // Load image
+            const image = await loadImage(testCase.imagePath);
+            const canvas = createCanvas(image.width, image.height);
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(image, 0, 0);
+
+            // Run detection with current pipeline config
+            const startTime = performance.now();
+            const detections = await this.runDetectionWithConfig(ctx, image.width, image.height, pipelineConfig);
+            const totalTime = performance.now() - startTime;
+
+            // Calculate metrics
+            const metrics = this.calculateMetrics(detections, testCase.groundTruth);
+
+            // Determine if test passed
+            const passed = metrics.f1Score >= 0.8 && totalTime < 10000;
+
+            const result: AblationResult = {
+                testCase: testCase.name,
+                strategy: 'ablation',
+                pipelineConfig: pipelineConfig.name,
+                passed,
+                metrics: {
+                    totalTime,
+                    detections: detections.length,
+                    ...metrics,
+                },
+                errors: [],
+            };
+
+            this.ablationResults.push(result);
+
+            const emoji = passed ? '✅' : '❌';
+            const f1Pct = (metrics.f1Score * 100).toFixed(1);
+            console.log(`   ${emoji} F1=${f1Pct}%, P=${(metrics.precision * 100).toFixed(1)}%, R=${(metrics.recall * 100).toFixed(1)}%, Time=${totalTime.toFixed(0)}ms`);
+
+            if (this.config.verbose) {
+                this.printDetectionDebug(detections, testCase.groundTruth, metrics);
+            }
+
+        } catch (error) {
+            console.error(`   ❌ Error: ${(error as Error).message}`);
+
+            this.ablationResults.push({
+                testCase: testCase.name,
+                strategy: 'ablation',
+                pipelineConfig: pipelineConfig.name,
+                passed: false,
+                metrics: {
+                    totalTime: 0,
+                    detections: 0,
+                    truePositives: 0,
+                    falsePositives: 0,
+                    falseNegatives: 0,
+                    precision: 0,
+                    recall: 0,
+                    f1Score: 0,
+                    accuracy: 0,
+                },
+                errors: [(error as Error).message],
+            });
+        }
+    }
+
+    /**
+     * Run detection with specific pipeline configuration
+     * This is the configurable version of runDetection
+     */
+    private async runDetectionWithConfig(
+        ctx: any,
+        width: number,
+        height: number,
+        config: PipelineConfig
+    ): Promise<Array<{ id: string; name: string; confidence: number }>> {
+        // Load templates if not loaded
+        await this.loadTemplates();
+
+        // Grid detection based on config
+        let gridPositions: Array<{ x: number; y: number; width: number; height: number }>;
+
+        if (config.useDynamicGrid) {
+            // Phase 1: Detect hotbar region
+            const hotbarRegion = this.detectHotbarRegion(ctx, width, height);
+
+            // Phase 2: Detect icon edges
+            const edges = this.detectIconEdges(ctx, width, hotbarRegion);
+
+            // Phase 3: Infer grid structure
+            const grid = this.inferGridFromEdges(edges, hotbarRegion, width);
+
+            if (grid && grid.confidence >= 0.4 && grid.columns >= 3) {
+                gridPositions = this.generateGridROIs(grid);
+                if (this.config.verbose) {
+                    console.log(`      Grid detected: ${grid.columns}x${grid.rows}, conf=${(grid.confidence * 100).toFixed(0)}%`);
+                }
+            } else {
+                // Fall back to static
+                gridPositions = config.useResolutionAwareParams
+                    ? this.detectGridPositionsStatic(width, height)
+                    : this.detectGridPositionsBasic(width, height);
+            }
+        } else {
+            // Static grid only
+            gridPositions = config.useResolutionAwareParams
+                ? this.detectGridPositionsStatic(width, height)
+                : this.detectGridPositionsBasic(width, height);
+        }
+
+        const detections: Array<{ id: string; name: string; confidence: number }> = [];
+        const CONFIDENCE_THRESHOLD = 0.40;
+
+        // Process each grid cell
+        for (const cell of gridPositions) {
+            // Bounds check
+            if (cell.x < 0 || cell.y < 0 ||
+                cell.x + cell.width > width ||
+                cell.y + cell.height > height) {
+                continue;
+            }
+
+            // Get cell image data
+            const cellImageData = ctx.getImageData(cell.x, cell.y, cell.width, cell.height);
+
+            // Skip empty cells if enabled
+            if (config.useEmptyCellFilter && this.isEmptyCell(cellImageData)) {
+                continue;
+            }
+
+            // Find best match using configured pipeline
+            const match = await this.findBestMatchWithConfig(cellImageData, config);
+
+            if (match && match.confidence >= CONFIDENCE_THRESHOLD) {
+                detections.push({
+                    id: match.item.id,
+                    name: match.item.name,
+                    confidence: match.confidence,
+                });
+            }
+        }
+
+        return detections;
+    }
+
+    /**
+     * Basic static grid detection (no resolution-aware params)
+     */
+    private detectGridPositionsBasic(width: number, height: number): Array<{ x: number; y: number; width: number; height: number }> {
+        const iconSize = 64;
+        const spacing = 6;
+        const bottomMargin = 30;
+        const sideMargin = width * 0.18;
+        const maxRows = 2;
+
+        const positions: Array<{ x: number; y: number; width: number; height: number }> = [];
+        const rowHeight = iconSize + spacing;
+
+        for (let row = 0; row < maxRows; row++) {
+            const rowY = height - bottomMargin - iconSize - row * rowHeight;
+            if (rowY < height * 0.70) break;
+
+            const usableWidth = width - sideMargin * 2;
+            const maxItemsPerRow = Math.min(15, Math.floor(usableWidth / (iconSize + spacing)));
+            const totalWidth = maxItemsPerRow * (iconSize + spacing);
+            const startX = Math.round((width - totalWidth) / 2);
+
+            for (let i = 0; i < maxItemsPerRow; i++) {
+                positions.push({
+                    x: startX + i * (iconSize + spacing),
+                    y: rowY,
+                    width: iconSize,
+                    height: iconSize,
+                });
+            }
+        }
+
+        return positions;
+    }
+
+    /**
+     * Find best match with configurable pipeline
+     */
+    private async findBestMatchWithConfig(
+        cellImageData: any,
+        config: PipelineConfig
+    ): Promise<{ item: GameItem; confidence: number; rarity?: string } | null> {
+        // Detect rarity if filtering enabled
+        let detectedRarity: string | null = null;
+        if (config.useRarityFiltering) {
+            detectedRarity = this.detectRarityFromBorder(cellImageData);
+        }
+
+        // Get candidate templates
+        let candidateIds: string[];
+        if (detectedRarity && templatesByRarity.has(detectedRarity)) {
+            candidateIds = templatesByRarity.get(detectedRarity)!.map(t => t.item.id);
+        } else {
+            candidateIds = Array.from(templateCache.keys());
+        }
+
+        let bestMatch: { item: GameItem; confidence: number; rarity?: string } | null = null;
+
+        // Prepare cell for matching
+        const margin = Math.round(cellImageData.width * 0.20);
+        const centerWidth = cellImageData.width - margin * 2;
+        const centerHeight = cellImageData.height - margin * 2;
+
+        const tempCanvas = createCanvas(cellImageData.width, cellImageData.height);
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.putImageData(cellImageData, 0, 0);
+
+        // Determine scales to use
+        const scales = config.useMultiScale ? TEMPLATE_SCALES : [DEFAULT_TEMPLATE_SIZE];
+
+        // Pre-create cell data at each scale
+        const cellDataByScale = new Map<number, any>();
+        for (const scale of scales) {
+            const cellCanvas = createCanvas(scale, scale);
+            const cellCtx = cellCanvas.getContext('2d');
+            cellCtx.drawImage(
+                tempCanvas,
+                margin, margin,
+                centerWidth, centerHeight,
+                0, 0,
+                scale, scale
+            );
+            cellDataByScale.set(scale, cellCtx.getImageData(0, 0, scale, scale));
+        }
+
+        // Try each candidate at each scale
+        for (const itemId of candidateIds) {
+            const scaleMap = multiScaleTemplates.get(itemId);
+            if (!scaleMap) continue;
+
+            for (const scale of scales) {
+                const template = scaleMap.get(scale);
+                if (!template) continue;
+
+                const cellData = cellDataByScale.get(scale);
+                if (!cellData) continue;
+
+                // Extract center region of template
+                const tMargin = Math.round(scale * 0.15);
+                const tCenterSize = scale - tMargin * 2;
+
+                const templateCenterCanvas = createCanvas(scale, scale);
+                const templateCenterCtx = templateCenterCanvas.getContext('2d');
+                templateCenterCtx.drawImage(
+                    template.canvas,
+                    tMargin, tMargin,
+                    tCenterSize, tCenterSize,
+                    0, 0,
+                    scale, scale
+                );
+                const templateData = templateCenterCtx.getImageData(0, 0, scale, scale);
+
+                // Calculate similarity with configured pipeline
+                let similarity = this.calculateSimilarityWithConfig(cellData, templateData, config);
+
+                // Boost confidence if rarity matches
+                if (detectedRarity && template.item.rarity === detectedRarity) {
+                    similarity *= 1.15;
+                }
+
+                similarity = Math.min(0.99, similarity);
+
+                if (!bestMatch || similarity > bestMatch.confidence) {
+                    bestMatch = {
+                        item: template.item,
+                        confidence: similarity,
+                        rarity: detectedRarity || undefined
+                    };
+                }
+            }
+        }
+
+        return bestMatch;
+    }
+
+    /**
+     * Calculate similarity with configurable preprocessing and metrics
+     */
+    private calculateSimilarityWithConfig(imageData1: any, imageData2: any, config: PipelineConfig): number {
+        // Apply preprocessing based on config
+        let processed1 = imageData1;
+        let processed2 = imageData2;
+
+        if (config.useContrastEnhancement) {
+            processed1 = this.enhanceContrast(processed1, 1.4);
+            processed2 = this.enhanceContrast(processed2, 1.4);
+        }
+
+        if (config.useColorNormalization) {
+            processed1 = this.normalizeColors(processed1);
+            processed2 = this.normalizeColors(processed2);
+        }
+
+        if (config.useSharpening) {
+            processed1 = this.sharpenImage(processed1, 0.5);
+            processed2 = this.sharpenImage(processed2, 0.5);
+        }
+
+        if (config.useHistogramEqualization) {
+            processed1 = this.adaptiveHistogramEqualization(processed1);
+            processed2 = this.adaptiveHistogramEqualization(processed2);
+        }
+
+        // Calculate enabled metrics
+        const scores: number[] = [];
+        const weights: number[] = [];
+
+        if (config.metrics.ssim) {
+            scores.push(this.calculateSSIM(processed1, processed2));
+            weights.push(0.40);
+        }
+
+        if (config.metrics.ncc) {
+            scores.push(this.calculateNCC(processed1, processed2));
+            weights.push(0.35);
+        }
+
+        if (config.metrics.histogram) {
+            scores.push(this.calculateHistogramSimilarity(processed1, processed2));
+            weights.push(0.25);
+        }
+
+        if (config.metrics.edge) {
+            scores.push(this.calculateEdgeSimilarity(processed1, processed2));
+            weights.push(0.20);
+        }
+
+        // Calculate weighted score
+        if (scores.length === 0) {
+            return 0;
+        }
+
+        // Normalize weights
+        const totalWeight = weights.reduce((a, b) => a + b, 0);
+        let weightedScore = 0;
+        for (let i = 0; i < scores.length; i++) {
+            weightedScore += scores[i] * (weights[i] / totalWeight);
+        }
+
+        // Agreement bonus
+        if (config.useAgreementBonus) {
+            const highScores = scores.filter(s => s > 0.5).length;
+            if (highScores >= 2) {
+                weightedScore += 0.03;
+            }
+        }
+
+        return Math.min(0.99, weightedScore);
+    }
+
+    /**
+     * Generate ablation test report
+     */
+    private generateAblationReport(): void {
+        let report = '# Ablation Test Results\n\n';
+        report += `Generated: ${new Date().toISOString()}\n\n`;
+
+        // Group results by pipeline config
+        const byConfig = new Map<string, AblationResult[]>();
+        for (const result of this.ablationResults) {
+            if (!byConfig.has(result.pipelineConfig)) {
+                byConfig.set(result.pipelineConfig, []);
+            }
+            byConfig.get(result.pipelineConfig)!.push(result);
+        }
+
+        // Summary table
+        report += '## Summary by Configuration\n\n';
+        report += '| Config | Avg F1 | Avg Precision | Avg Recall | Avg Time | Δ from Baseline |\n';
+        report += '|--------|--------|---------------|------------|----------|----------------|\n';
+
+        // Calculate stats for each config
+        const configStats: Array<{
+            name: string;
+            avgF1: number;
+            avgPrecision: number;
+            avgRecall: number;
+            avgTime: number;
+        }> = [];
+
+        for (const [configName, results] of byConfig) {
+            const avgF1 = results.reduce((s, r) => s + r.metrics.f1Score, 0) / results.length;
+            const avgPrecision = results.reduce((s, r) => s + r.metrics.precision, 0) / results.length;
+            const avgRecall = results.reduce((s, r) => s + r.metrics.recall, 0) / results.length;
+            const avgTime = results.reduce((s, r) => s + r.metrics.totalTime, 0) / results.length;
+
+            configStats.push({ name: configName, avgF1, avgPrecision, avgRecall, avgTime });
+        }
+
+        // Find baseline for delta calculation
+        const baseline = configStats.find(s => s.name === 'baseline-all-on');
+        const baselineF1 = baseline?.avgF1 || configStats[0]?.avgF1 || 0;
+
+        // Sort by F1 score descending
+        configStats.sort((a, b) => b.avgF1 - a.avgF1);
+
+        for (const stats of configStats) {
+            const delta = stats.avgF1 - baselineF1;
+            const deltaStr = delta >= 0 ? `+${(delta * 100).toFixed(1)}%` : `${(delta * 100).toFixed(1)}%`;
+            const isBaseline = stats.name === 'baseline-all-on';
+
+            report += `| ${stats.name} | ${(stats.avgF1 * 100).toFixed(1)}% | ${(stats.avgPrecision * 100).toFixed(1)}% | ${(stats.avgRecall * 100).toFixed(1)}% | ${stats.avgTime.toFixed(0)}ms | ${isBaseline ? '-' : deltaStr} |\n`;
+        }
+
+        report += '\n';
+
+        // Recommendations
+        report += '## Analysis\n\n';
+
+        const bestConfig = configStats[0];
+        const worstConfig = configStats[configStats.length - 1];
+
+        report += `### Best Configuration: ${bestConfig.name}\n`;
+        report += `- F1 Score: ${(bestConfig.avgF1 * 100).toFixed(1)}%\n`;
+        report += `- Time: ${bestConfig.avgTime.toFixed(0)}ms\n\n`;
+
+        report += `### Worst Configuration: ${worstConfig.name}\n`;
+        report += `- F1 Score: ${(worstConfig.avgF1 * 100).toFixed(1)}%\n`;
+        report += `- Time: ${worstConfig.avgTime.toFixed(0)}ms\n\n`;
+
+        // Component impact analysis
+        report += '### Component Impact Analysis\n\n';
+        report += 'Components sorted by impact when disabled (negative = component helps, positive = component hurts):\n\n';
+
+        const impacts: Array<{ component: string; impact: number }> = [];
+
+        for (const stats of configStats) {
+            if (stats.name.startsWith('no-')) {
+                const component = stats.name.replace('no-', '');
+                const impact = stats.avgF1 - baselineF1;
+                impacts.push({ component, impact });
+            }
+        }
+
+        impacts.sort((a, b) => a.impact - b.impact);
+
+        for (const { component, impact } of impacts) {
+            const emoji = impact < -0.01 ? '🟢' : impact > 0.01 ? '🔴' : '⚪';
+            const impactStr = impact >= 0 ? `+${(impact * 100).toFixed(1)}%` : `${(impact * 100).toFixed(1)}%`;
+            report += `${emoji} **${component}**: ${impactStr} (${impact < 0 ? 'helps' : impact > 0 ? 'hurts' : 'neutral'})\n`;
+        }
+
+        report += '\n';
+
+        // Detailed results per test case
+        report += '## Detailed Results by Test Case\n\n';
+
+        const testCases = [...new Set(this.ablationResults.map(r => r.testCase))];
+
+        for (const testCase of testCases) {
+            report += `### ${testCase}\n\n`;
+            report += '| Config | F1 | Precision | Recall | Time |\n';
+            report += '|--------|-----|-----------|--------|------|\n';
+
+            const results = this.ablationResults
+                .filter(r => r.testCase === testCase)
+                .sort((a, b) => b.metrics.f1Score - a.metrics.f1Score);
+
+            for (const result of results) {
+                report += `| ${result.pipelineConfig} | ${(result.metrics.f1Score * 100).toFixed(1)}% | ${(result.metrics.precision * 100).toFixed(1)}% | ${(result.metrics.recall * 100).toFixed(1)}% | ${result.metrics.totalTime.toFixed(0)}ms |\n`;
+            }
+
+            report += '\n';
+        }
+
+        // Save report
+        const reportPath = path.join(this.config.outputPath, 'ablation-report.md');
+        fs.mkdirSync(this.config.outputPath, { recursive: true });
+        fs.writeFileSync(reportPath, report);
+
+        console.log(`\n📄 Ablation report saved to: ${reportPath}`);
+
+        // Save JSON results
+        const jsonPath = path.join(this.config.outputPath, 'ablation-results.json');
+        fs.writeFileSync(jsonPath, JSON.stringify({
+            summary: configStats,
+            impacts,
+            results: this.ablationResults,
+        }, null, 2));
+
+        console.log(`📄 JSON results saved to: ${jsonPath}`);
+
+        // Print summary to console
+        console.log('\n📊 Ablation Summary:');
+        console.log(`   Best: ${bestConfig.name} (F1: ${(bestConfig.avgF1 * 100).toFixed(1)}%)`);
+        console.log(`   Worst: ${worstConfig.name} (F1: ${(worstConfig.avgF1 * 100).toFixed(1)}%)`);
+
+        if (impacts.length > 0) {
+            console.log('\n   Component Impact (when disabled):');
+            for (const { component, impact } of impacts.slice(0, 5)) {
+                const emoji = impact < -0.01 ? '🟢' : impact > 0.01 ? '🔴' : '⚪';
+                const verb = impact < 0 ? 'helps' : impact > 0 ? 'hurts' : 'neutral';
+                console.log(`   ${emoji} ${component}: ${verb} (${(impact * 100).toFixed(1)}%)`);
+            }
+        }
     }
 
     /**
@@ -917,6 +1671,15 @@ class OfflineCVRunner {
             return null;
         }
 
+        // P3.3: Validate spacing against resolution-expected icon size
+        // Allow 50% tolerance from expected icon size
+        const expectedParams = this.getGridParamsForResolution(width, hotbarRegion.bottomY);
+        const expectedIconSize = expectedParams.iconSize + expectedParams.spacing;
+        const sizeRatio = modeSpacing / expectedIconSize;
+
+        // If detected spacing is way off from expected (not within 50-150%), reduce confidence
+        const isReasonableSize = sizeRatio >= 0.5 && sizeRatio <= 1.5;
+
         // Find first edge that starts consistent sequence
         let startX = edges[0];
         for (let i = 0; i < edges.length - 1; i++) {
@@ -939,20 +1702,30 @@ class OfflineCVRunner {
             }
         }
 
-        // Calculate confidence
+        // Calculate confidence - penalize if size is unreasonable
         const expectedEdges = columns;
         const actualConsistentEdges = modeCount + 1;
-        const confidence = Math.min(1, actualConsistentEdges / Math.max(3, expectedEdges));
+        let confidence = Math.min(1, actualConsistentEdges / Math.max(3, expectedEdges));
+
+        // P3.3: Apply size reasonableness penalty
+        if (!isReasonableSize) {
+            confidence *= 0.5;
+        }
 
         // Determine rows based on hotbar height
         const bandHeight = hotbarRegion.bottomY - hotbarRegion.topY;
-        const rows = Math.max(1, Math.round(bandHeight / modeSpacing));
+        const rows = Math.max(1, Math.min(3, Math.round(bandHeight / modeSpacing)));
+
+        // P3.3: Clamp cell dimensions to reasonable range
+        const clampedCellSize = isReasonableSize
+            ? modeSpacing
+            : Math.max(30, Math.min(100, modeSpacing));
 
         return {
             startX,
             startY: hotbarRegion.topY,
-            cellWidth: modeSpacing,
-            cellHeight: modeSpacing,
+            cellWidth: clampedCellSize,
+            cellHeight: clampedCellSize,
             columns,
             rows,
             confidence,
@@ -980,7 +1753,7 @@ class OfflineCVRunner {
     }
 
     /**
-     * Load item templates from game data
+     * Load item templates from game data at multiple scales
      */
     private async loadTemplates(): Promise<void> {
         if (templateCache.size > 0) return;
@@ -996,10 +1769,10 @@ class OfflineCVRunner {
         const items = itemsData?.items || [];
 
         if (this.config.verbose) {
-            console.log(`   Loading ${items.length} item templates...`);
+            console.log(`   Loading ${items.length} item templates at ${TEMPLATE_SCALES.length} scales...`);
         }
 
-        // Load each item's image as template
+        // Load each item's image as template at multiple scales
         for (const item of items) {
             if (!item.image) continue;
 
@@ -1010,24 +1783,33 @@ class OfflineCVRunner {
 
                 const img = await loadImage(imagePath);
 
-                // Normalize template to standard size for consistent matching
-                const canvas = createCanvas(STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
-                const ctx = canvas.getContext('2d');
+                // Create templates at each scale
+                const scaleMap = new Map<number, TemplateData>();
 
-                // Draw with scaling to standard size
-                ctx.drawImage(
-                    img,
-                    0, 0, img.width, img.height,  // Source
-                    0, 0, STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE  // Dest
-                );
+                for (const scale of TEMPLATE_SCALES) {
+                    const canvas = createCanvas(scale, scale);
+                    const ctx = canvas.getContext('2d');
 
-                const templateData = {
-                    item,
-                    canvas,
-                    ctx,
-                    width: STANDARD_TEMPLATE_SIZE,
-                    height: STANDARD_TEMPLATE_SIZE,
-                };
+                    // Draw with scaling
+                    ctx.drawImage(
+                        img,
+                        0, 0, img.width, img.height,  // Source
+                        0, 0, scale, scale  // Dest
+                    );
+
+                    scaleMap.set(scale, {
+                        item,
+                        canvas,
+                        ctx,
+                        width: scale,
+                        height: scale,
+                    });
+                }
+
+                multiScaleTemplates.set(item.id, scaleMap);
+
+                // Also store default scale in legacy cache for compatibility
+                const templateData = scaleMap.get(DEFAULT_TEMPLATE_SIZE)!;
 
                 templateCache.set(item.id, templateData);
 
@@ -1051,31 +1833,82 @@ class OfflineCVRunner {
     }
 
     /**
+     * Resolution-aware grid parameters
+     * P3.1: Tuned for specific resolution categories
+     */
+    private getGridParamsForResolution(width: number, height: number): {
+        iconSize: number;
+        spacing: number;
+        bottomMargin: number;
+        sideMargin: number;
+        maxRows: number;
+    } {
+        // Detect resolution category
+        const isUltrawide = width / height > 1.9;
+        const is4K = height >= 2000;
+        const is1440p = height >= 1400 && height < 2000;
+        const is1080p = height >= 1000 && height < 1400;
+        const is720p = height < 1000;
+
+        // Resolution-specific tuning
+        if (is4K) {
+            return {
+                iconSize: 80,
+                spacing: 8,
+                bottomMargin: 40,
+                sideMargin: width * 0.15,
+                maxRows: 3,
+            };
+        } else if (is1440p) {
+            return {
+                iconSize: 64,
+                spacing: 6,
+                bottomMargin: 32,
+                sideMargin: width * 0.15,
+                maxRows: 3,
+            };
+        } else if (is1080p) {
+            return {
+                iconSize: 52,
+                spacing: 5,
+                bottomMargin: 26,
+                sideMargin: width * 0.18,
+                maxRows: 3,
+            };
+        } else { // 720p and below
+            return {
+                iconSize: 40,
+                spacing: 4,
+                bottomMargin: 20,
+                sideMargin: width * 0.20,
+                maxRows: 2,
+            };
+        }
+    }
+
+    /**
      * Static fallback grid detection when dynamic detection fails
-     * Uses fixed formulas based on resolution
+     * P3.1: Uses resolution-aware parameters
      */
     private detectGridPositionsStatic(width: number, height: number): Array<{ x: number; y: number; width: number; height: number }> {
-        // Grid parameters - tuned for game's UI layout
-        const iconSize = Math.round(40 * (height / 720));
-        const spacing = Math.round(4 * (height / 720));
+        const params = this.getGridParamsForResolution(width, height);
+        const { iconSize, spacing, bottomMargin, sideMargin, maxRows } = params;
 
         const positions: Array<{ x: number; y: number; width: number; height: number }> = [];
-
         const rowHeight = iconSize + spacing;
-        const bottomMargin = Math.round(20 * (height / 720));
 
-        const rowYPositions = [
-            height - bottomMargin - iconSize,                    // Row 1 (bottom)
-            height - bottomMargin - iconSize - rowHeight,        // Row 2
-            height - bottomMargin - iconSize - rowHeight * 2,    // Row 3
-        ];
+        // Generate row Y positions from bottom up
+        const rowYPositions: number[] = [];
+        for (let row = 0; row < maxRows; row++) {
+            rowYPositions.push(height - bottomMargin - iconSize - row * rowHeight);
+        }
 
-        const sideMargin = Math.round(width * 0.20);
         const usableWidth = width - sideMargin * 2;
         const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
 
         for (const rowY of rowYPositions) {
-            if (rowY < height * 0.75) break;
+            // Only include rows in the bottom portion of screen
+            if (rowY < height * 0.70) break;
 
             // Calculate centered start position
             const totalWidth = maxItemsPerRow * (iconSize + spacing);
@@ -1097,18 +1930,15 @@ class OfflineCVRunner {
 
     /**
      * Check if a cell is empty or not an item slot
-     * Uses variance, color distribution, and edge detection
+     * Simple variance and darkness check - permissive to avoid missing items
      */
     private isEmptyCell(imageData: any): boolean {
         const pixels = imageData.data;
-        const { width, height } = imageData;
 
         let sum = 0, sumSq = 0, count = 0;
-        let sumR = 0, sumG = 0, sumB = 0;
-        let edgeCount = 0;
 
-        // Sample pixels and track color/variance
-        for (let i = 0; i < pixels.length; i += 4) {
+        // Sample pixels (every 4th for speed)
+        for (let i = 0; i < pixels.length; i += 16) {
             const r = pixels[i];
             const g = pixels[i + 1];
             const b = pixels[i + 2];
@@ -1116,47 +1946,15 @@ class OfflineCVRunner {
 
             sum += gray;
             sumSq += gray * gray;
-            sumR += r;
-            sumG += g;
-            sumB += b;
             count++;
         }
 
         const mean = sum / count;
         const variance = sumSq / count - mean * mean;
-        const avgR = sumR / count;
-        const avgG = sumG / count;
-        const avgB = sumB / count;
 
-        // Check 1: Low variance = empty/uniform
-        if (variance < 300) return true;
-
-        // Check 2: Very dark cells (background) - avg < 40
-        if (mean < 40) return true;
-
-        // Check 3: Sky/terrain colors (high saturation single channel)
-        const maxChannel = Math.max(avgR, avgG, avgB);
-        const minChannel = Math.min(avgR, avgG, avgB);
-        const saturation = maxChannel > 0 ? (maxChannel - minChannel) / maxChannel : 0;
-
-        // If very saturated but low variance, likely terrain/sky
-        if (saturation > 0.5 && variance < 800) return true;
-
-        // Check 4: Check for item-like edges (items have distinct borders)
-        // Sample a few pixels along edges to detect item border
-        let borderVariance = 0;
-        const borderSamples = Math.min(width, 10);
-        for (let x = 0; x < borderSamples; x++) {
-            const topIdx = x * 4;
-            const bottomIdx = ((height - 1) * width + x) * 4;
-            const diff = Math.abs(pixels[topIdx] - pixels[bottomIdx]);
-            borderVariance += diff;
-        }
-        borderVariance /= borderSamples;
-
-        // Items typically have consistent borders, terrain doesn't
-        // If border variance is too high or too low, likely not an item
-        if (borderVariance > 100) return true; // Jagged edges = terrain
+        // Only reject very uniform or very dark cells
+        if (variance < 150) return true;  // Very uniform = empty
+        if (mean < 30) return true;       // Very dark = background
 
         return false;
     }
@@ -1236,8 +2034,8 @@ class OfflineCVRunner {
     }
 
     /**
-     * Find best matching template for a cell
-     * Uses rarity-based filtering when possible for speed
+     * Find best matching template for a cell using multi-scale matching
+     * Tries all template scales and picks the best match
      */
     private async findBestMatch(
         cellImageData: any,
@@ -1246,77 +2044,91 @@ class OfflineCVRunner {
         // Try to detect rarity from border
         const detectedRarity = this.detectRarityFromBorder(cellImageData);
 
-        // Get candidate templates - filter by rarity if detected
-        let candidates: TemplateData[];
+        // Get candidate item IDs - filter by rarity if detected
+        let candidateIds: string[];
         if (detectedRarity && templatesByRarity.has(detectedRarity)) {
-            candidates = templatesByRarity.get(detectedRarity)!;
+            candidateIds = templatesByRarity.get(detectedRarity)!.map(t => t.item.id);
         } else {
             // Fall back to all templates
-            candidates = Array.from(templateCache.values());
+            candidateIds = Array.from(templateCache.keys());
         }
 
         let bestMatch: { item: GameItem; confidence: number; rarity?: string } | null = null;
 
         // Extract center region of cell (ignore edges that might have background)
-        // 20% margin matches real detector for consistency
         const margin = Math.round(cellImageData.width * 0.20);
         const centerWidth = cellImageData.width - margin * 2;
         const centerHeight = cellImageData.height - margin * 2;
 
-        // Create canvas at standard template size for consistent comparison
-        const cellCanvas = createCanvas(STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
-        const cellCtx = cellCanvas.getContext('2d');
-
-        // First, put the cell image data on a temp canvas so we can use drawImage
+        // Put cell image data on a temp canvas for scaling
         const tempCanvas = createCanvas(cellImageData.width, cellImageData.height);
         const tempCtx = tempCanvas.getContext('2d');
         tempCtx.putImageData(cellImageData, 0, 0);
 
-        // Draw center region of cell, scaled to standard template size
-        cellCtx.drawImage(
-            tempCanvas,
-            margin, margin,  // Source x, y (center crop)
-            centerWidth, centerHeight,  // Source size
-            0, 0,  // Dest x, y
-            STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE  // Dest size (standard)
-        );
-        const cellData = cellCtx.getImageData(0, 0, STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
+        // Pre-create cell data at each scale
+        const cellDataByScale = new Map<number, any>();
+        for (const scale of TEMPLATE_SCALES) {
+            const cellCanvas = createCanvas(scale, scale);
+            const cellCtx = cellCanvas.getContext('2d');
 
-        for (const template of candidates) {
-            // Templates are already at standard size, just extract center region
-            const tMargin = Math.round(STANDARD_TEMPLATE_SIZE * 0.15);
-            const tCenterSize = STANDARD_TEMPLATE_SIZE - tMargin * 2;
-
-            const templateCenterCanvas = createCanvas(STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
-            const templateCenterCtx = templateCenterCanvas.getContext('2d');
-
-            // Draw template center region, scaled back to full standard size
-            templateCenterCtx.drawImage(
-                template.canvas,
-                tMargin, tMargin,  // Source x, y
-                tCenterSize, tCenterSize,  // Source size
+            // Draw center region of cell, scaled to this template size
+            cellCtx.drawImage(
+                tempCanvas,
+                margin, margin,  // Source x, y (center crop)
+                centerWidth, centerHeight,  // Source size
                 0, 0,  // Dest x, y
-                STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE  // Dest size
+                scale, scale  // Dest size
             );
-            const templateData = templateCenterCtx.getImageData(0, 0, STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
+            cellDataByScale.set(scale, cellCtx.getImageData(0, 0, scale, scale));
+        }
 
-            // Calculate similarity using combined methods on standardized images
-            let similarity = this.calculateCombinedSimilarity(cellData, templateData);
+        // Try each candidate at each scale
+        for (const itemId of candidateIds) {
+            const scaleMap = multiScaleTemplates.get(itemId);
+            if (!scaleMap) continue;
 
-            // Boost confidence if rarity matches
-            if (detectedRarity && template.item.rarity === detectedRarity) {
-                similarity *= 1.15; // 15% boost for rarity match
-            }
+            // Try each scale and keep the best
+            for (const scale of TEMPLATE_SCALES) {
+                const template = scaleMap.get(scale);
+                if (!template) continue;
 
-            // Clamp to max 0.99
-            similarity = Math.min(0.99, similarity);
+                const cellData = cellDataByScale.get(scale);
+                if (!cellData) continue;
 
-            if (!bestMatch || similarity > bestMatch.confidence) {
-                bestMatch = {
-                    item: template.item,
-                    confidence: similarity,
-                    rarity: detectedRarity || undefined
-                };
+                // Extract center region of template
+                const tMargin = Math.round(scale * 0.15);
+                const tCenterSize = scale - tMargin * 2;
+
+                const templateCenterCanvas = createCanvas(scale, scale);
+                const templateCenterCtx = templateCenterCanvas.getContext('2d');
+
+                templateCenterCtx.drawImage(
+                    template.canvas,
+                    tMargin, tMargin,
+                    tCenterSize, tCenterSize,
+                    0, 0,
+                    scale, scale
+                );
+                const templateData = templateCenterCtx.getImageData(0, 0, scale, scale);
+
+                // Calculate similarity
+                let similarity = this.calculateCombinedSimilarity(cellData, templateData);
+
+                // Boost confidence if rarity matches
+                if (detectedRarity && template.item.rarity === detectedRarity) {
+                    similarity *= 1.15;
+                }
+
+                // Clamp to max 0.99
+                similarity = Math.min(0.99, similarity);
+
+                if (!bestMatch || similarity > bestMatch.confidence) {
+                    bestMatch = {
+                        item: template.item,
+                        confidence: similarity,
+                        rarity: detectedRarity || undefined
+                    };
+                }
             }
         }
 
@@ -1355,6 +2167,93 @@ class OfflineCVRunner {
             data[i+2] = Math.round((data[i+2] - minB) / rangeB * 255);
         }
         return { data, width: imageData.width, height: imageData.height };
+    }
+
+    /**
+     * Sharpen image using unsharp mask technique
+     * Enhances edges for better template matching
+     */
+    private sharpenImage(imageData: any, strength: number = 0.5): any {
+        const { width, height, data: src } = imageData;
+        const data = new Uint8ClampedArray(src);
+
+        // Simple 3x3 sharpen kernel applied via convolution
+        // kernel: [0, -s, 0], [-s, 1+4s, -s], [0, -s, 0]
+        const s = strength;
+
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                const idx = (y * width + x) * 4;
+
+                for (let c = 0; c < 3; c++) {
+                    const center = src[idx + c];
+                    const top = src[idx - width * 4 + c];
+                    const bottom = src[idx + width * 4 + c];
+                    const left = src[idx - 4 + c];
+                    const right = src[idx + 4 + c];
+
+                    // Apply sharpening kernel
+                    const sharpened = center * (1 + 4 * s) - s * (top + bottom + left + right);
+                    data[idx + c] = Math.min(255, Math.max(0, Math.round(sharpened)));
+                }
+            }
+        }
+
+        return { data, width, height };
+    }
+
+    /**
+     * Local adaptive histogram equalization (simplified CLAHE)
+     * Better than global equalization for varying lighting conditions
+     */
+    private adaptiveHistogramEqualization(imageData: any): any {
+        const { width, height, data: src } = imageData;
+        const data = new Uint8ClampedArray(src);
+
+        // Work on grayscale luminance
+        const gray = new Float32Array(width * height);
+        for (let i = 0, j = 0; i < src.length; i += 4, j++) {
+            gray[j] = 0.299 * src[i] + 0.587 * src[i + 1] + 0.114 * src[i + 2];
+        }
+
+        // Build global histogram
+        const histogram = new Array(256).fill(0);
+        for (let i = 0; i < gray.length; i++) {
+            histogram[Math.floor(gray[i])]++;
+        }
+
+        // Build CDF (cumulative distribution function)
+        const cdf = new Array(256);
+        cdf[0] = histogram[0];
+        for (let i = 1; i < 256; i++) {
+            cdf[i] = cdf[i - 1] + histogram[i];
+        }
+
+        // Find min non-zero CDF value
+        let cdfMin = 0;
+        for (let i = 0; i < 256; i++) {
+            if (cdf[i] > 0) {
+                cdfMin = cdf[i];
+                break;
+            }
+        }
+
+        // Apply histogram equalization
+        const totalPixels = width * height;
+        const scale = 255 / (totalPixels - cdfMin);
+
+        for (let i = 0, j = 0; i < src.length; i += 4, j++) {
+            const oldGray = Math.floor(gray[j]);
+            const newGray = Math.round((cdf[oldGray] - cdfMin) * scale);
+
+            // Apply proportionally to each channel
+            const ratio = oldGray > 0 ? newGray / oldGray : 1;
+            data[i] = Math.min(255, Math.max(0, Math.round(src[i] * ratio)));
+            data[i + 1] = Math.min(255, Math.max(0, Math.round(src[i + 1] * ratio)));
+            data[i + 2] = Math.min(255, Math.max(0, Math.round(src[i + 2] * ratio)));
+        }
+
+        return { data, width, height };
     }
 
     /**
@@ -1522,35 +2421,35 @@ class OfflineCVRunner {
 
     /**
      * Combined similarity score using multiple methods
-     * Uses preprocessing (contrast + normalization) and multiple similarity metrics
-     * Scientific testing showed +41.8% F1 improvement with this approach
+     * Optimized preprocessing for speed while maintaining accuracy
      */
     private calculateCombinedSimilarity(imageData1: any, imageData2: any): number {
-        // Apply preprocessing (scientifically validated: +41.8% F1 improvement)
-        let processed1 = this.enhanceContrast(imageData1);
+        // Lightweight preprocessing (skip heavy operations for speed)
+        // Just contrast + normalization (proven effective, fast)
+        let processed1 = this.enhanceContrast(imageData1, 1.4);
         processed1 = this.normalizeColors(processed1);
 
-        let processed2 = this.enhanceContrast(imageData2);
+        let processed2 = this.enhanceContrast(imageData2, 1.4);
         processed2 = this.normalizeColors(processed2);
 
-        // Calculate multiple similarity metrics
+        // Calculate similarity metrics (skip edge similarity for speed)
+        const ssim = this.calculateSSIM(processed1, processed2);
         const ncc = this.calculateNCC(processed1, processed2);
         const histogram = this.calculateHistogramSimilarity(processed1, processed2);
-        const ssim = this.calculateSSIM(processed1, processed2);
-        const edges = this.calculateEdgeSimilarity(processed1, processed2);
 
-        // Use the best method as base
-        const maxScore = Math.max(ncc, histogram, ssim, edges);
+        // Weighted combination optimized for accuracy
+        const weights = { ssim: 0.40, ncc: 0.35, histogram: 0.25 };
+        const weightedScore =
+            ssim * weights.ssim +
+            ncc * weights.ncc +
+            histogram * weights.histogram;
 
-        // Bonus if multiple methods agree
+        // Bonus if methods agree
         let agreementBonus = 0;
-        const threshold = 0.1;
-        if (Math.abs(ncc - maxScore) < threshold) agreementBonus += 0.02;
-        if (Math.abs(histogram - maxScore) < threshold) agreementBonus += 0.02;
-        if (Math.abs(ssim - maxScore) < threshold) agreementBonus += 0.02;
-        if (Math.abs(edges - maxScore) < threshold) agreementBonus += 0.02;
+        const highScores = [ssim, ncc, histogram].filter(s => s > 0.5).length;
+        if (highScores >= 2) agreementBonus = 0.03;
 
-        return Math.min(0.99, maxScore + agreementBonus);
+        return Math.min(0.99, weightedScore + agreementBonus);
     }
 
     /**
@@ -1841,6 +2740,8 @@ async function main() {
         strategies: ['current', 'optimized', 'fast', 'accurate', 'balanced'],
         parallel: false,
         verbose: false,
+        ablationMode: false,
+        ablationQuick: false,
     };
 
     // Simple argument parsing
@@ -1855,6 +2756,11 @@ async function main() {
             config.strategies = args[++i].split(',');
         } else if (arg === '--verbose' || arg === '-v') {
             config.verbose = true;
+        } else if (arg === '--ablation' || arg === '-a') {
+            config.ablationMode = true;
+        } else if (arg === '--ablation-quick' || arg === '-aq') {
+            config.ablationMode = true;
+            config.ablationQuick = true;
         } else if (arg === '--help' || arg === '-h') {
             printHelp();
             process.exit(0);
@@ -1890,6 +2796,8 @@ Options:
   --output <path>        Path to output directory (default: test-results)
   --strategies <list>    Comma-separated list of strategies to test (default: all)
   --verbose, -v          Verbose output
+  --ablation, -a         Run ablation tests (toggle pipeline components on/off)
+  --ablation-quick, -aq  Run quick ablation tests (subset of configs for faster testing)
   --help, -h             Show this help message
 
 Examples:
@@ -1899,8 +2807,33 @@ Examples:
   # Run specific strategies
   bun run tests/offline-cv-runner.ts --strategies current,optimized
 
+  # Run full ablation tests (tests all pipeline component combinations)
+  bun run tests/offline-cv-runner.ts --ablation
+
+  # Run quick ablation tests (key components only, ~6 configs)
+  bun run tests/offline-cv-runner.ts --ablation-quick -v
+
   # Custom paths with verbose output
   bun run tests/offline-cv-runner.ts --test-cases ./my-tests --output ./results -v
+
+Ablation Testing:
+  Ablation mode systematically toggles individual pipeline components on/off
+  to identify which components help vs hurt detection accuracy.
+
+  Full ablation tests (~18 configs):
+    - baseline-all-on: All features enabled
+    - minimal: Only basic SSIM metric
+    - no-<component>: Each component disabled individually
+    - <metric>-only: Single metric tests
+    - with-<feature>: Additional features enabled
+
+  Quick ablation tests (~6 configs):
+    - baseline-all-on, minimal, and key component toggles
+
+  Results include:
+    - Component impact analysis (which features help/hurt)
+    - Sorted ranking by F1 score
+    - Delta from baseline for each configuration
 `);
 }
 
