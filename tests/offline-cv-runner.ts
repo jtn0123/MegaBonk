@@ -238,6 +238,10 @@ const templateCache = new Map<string, TemplateData>();
 const templatesByRarity = new Map<string, TemplateData[]>();
 let itemsData: ItemsData | null = null;
 
+// Standard template size for consistent matching
+// 64x64 is a good balance between detail and memory
+const STANDARD_TEMPLATE_SIZE = 64;
+
 // Name-to-ID lookup map (populated from items.json)
 // Fixes critical bug: ground truth used hyphens but item IDs use underscores
 const itemNameToId = new Map<string, string>();
@@ -402,11 +406,22 @@ class OfflineCVRunner {
 
         const groundTruthData = JSON.parse(fs.readFileSync(groundTruthPath, 'utf-8'));
 
-        // Convert ground truth to test cases, skipping metadata entries and non-existent files
+        // Convert ground truth to test cases, skipping metadata entries, template sources, and non-existent files
+        let skippedTemplateSource = 0;
         this.testCases = Object.entries(groundTruthData)
-            .filter(([imageName]) => {
+            .filter(([imageName, data]: [string, any]) => {
                 // Skip metadata entries (starting with _)
                 if (imageName.startsWith('_')) {
+                    return false;
+                }
+
+                // Skip template_source images - these are for template extraction, not accuracy testing
+                // They typically have 75-116 items which overwhelms the detection system
+                if (data.difficulty === 'template_source') {
+                    skippedTemplateSource++;
+                    if (this.config.verbose) {
+                        console.log(`Skipping template_source image: ${imageName}`);
+                    }
                     return false;
                 }
 
@@ -445,8 +460,9 @@ class OfflineCVRunner {
                 };
             });
 
-        if (this.config.verbose) {
-            console.log(`Loaded ${this.testCases.length} test cases`);
+        console.log(`Loaded ${this.testCases.length} test cases`);
+        if (skippedTemplateSource > 0) {
+            console.log(`   (Excluded ${skippedTemplateSource} template_source images from accuracy testing)`);
         }
     }
 
@@ -530,6 +546,11 @@ class OfflineCVRunner {
             const emoji = passed ? '✅' : '❌';
             const f1Pct = (metrics.f1Score * 100).toFixed(1);
             console.log(`   ${emoji} ${strategyName}: F1=${f1Pct}%, Time=${totalTime.toFixed(0)}ms, Detections=${detections.length}`);
+
+            // Debug logging when verbose
+            if (this.config.verbose) {
+                this.printDetectionDebug(detections, testCase.groundTruth, metrics);
+            }
 
 
         } catch (error) {
@@ -988,16 +1009,24 @@ class OfflineCVRunner {
                 if (!fs.existsSync(imagePath)) continue;
 
                 const img = await loadImage(imagePath);
-                const canvas = createCanvas(img.width, img.height);
+
+                // Normalize template to standard size for consistent matching
+                const canvas = createCanvas(STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
                 const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
+
+                // Draw with scaling to standard size
+                ctx.drawImage(
+                    img,
+                    0, 0, img.width, img.height,  // Source
+                    0, 0, STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE  // Dest
+                );
 
                 const templateData = {
                     item,
                     canvas,
                     ctx,
-                    width: img.width,
-                    height: img.height,
+                    width: STANDARD_TEMPLATE_SIZE,
+                    height: STANDARD_TEMPLATE_SIZE,
                 };
 
                 templateCache.set(item.id, templateData);
@@ -1234,40 +1263,45 @@ class OfflineCVRunner {
         const centerWidth = cellImageData.width - margin * 2;
         const centerHeight = cellImageData.height - margin * 2;
 
-        // Create center-cropped version of cell
-        const centerCanvas = createCanvas(centerWidth, centerHeight);
-        const centerCtx = centerCanvas.getContext('2d');
+        // Create canvas at standard template size for consistent comparison
+        const cellCanvas = createCanvas(STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
+        const cellCtx = cellCanvas.getContext('2d');
 
-        // Copy center region (need to manually copy pixels since we have ImageData)
-        const centerData = centerCtx.createImageData(centerWidth, centerHeight);
-        for (let y = 0; y < centerHeight; y++) {
-            for (let x = 0; x < centerWidth; x++) {
-                const srcIdx = ((y + margin) * cellImageData.width + (x + margin)) * 4;
-                const dstIdx = (y * centerWidth + x) * 4;
-                centerData.data[dstIdx] = cellImageData.data[srcIdx];
-                centerData.data[dstIdx + 1] = cellImageData.data[srcIdx + 1];
-                centerData.data[dstIdx + 2] = cellImageData.data[srcIdx + 2];
-                centerData.data[dstIdx + 3] = cellImageData.data[srcIdx + 3];
-            }
-        }
+        // First, put the cell image data on a temp canvas so we can use drawImage
+        const tempCanvas = createCanvas(cellImageData.width, cellImageData.height);
+        const tempCtx = tempCanvas.getContext('2d');
+        tempCtx.putImageData(cellImageData, 0, 0);
+
+        // Draw center region of cell, scaled to standard template size
+        cellCtx.drawImage(
+            tempCanvas,
+            margin, margin,  // Source x, y (center crop)
+            centerWidth, centerHeight,  // Source size
+            0, 0,  // Dest x, y
+            STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE  // Dest size (standard)
+        );
+        const cellData = cellCtx.getImageData(0, 0, STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
 
         for (const template of candidates) {
-            // Resize template to center region size
-            const resizedCanvas = createCanvas(centerWidth, centerHeight);
-            const resizedCtx = resizedCanvas.getContext('2d');
-            // Draw template center region (also cropped)
-            const tMargin = Math.round(template.width * 0.15);
-            resizedCtx.drawImage(
+            // Templates are already at standard size, just extract center region
+            const tMargin = Math.round(STANDARD_TEMPLATE_SIZE * 0.15);
+            const tCenterSize = STANDARD_TEMPLATE_SIZE - tMargin * 2;
+
+            const templateCenterCanvas = createCanvas(STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
+            const templateCenterCtx = templateCenterCanvas.getContext('2d');
+
+            // Draw template center region, scaled back to full standard size
+            templateCenterCtx.drawImage(
                 template.canvas,
                 tMargin, tMargin,  // Source x, y
-                template.width - tMargin * 2, template.height - tMargin * 2,  // Source w, h
+                tCenterSize, tCenterSize,  // Source size
                 0, 0,  // Dest x, y
-                centerWidth, centerHeight  // Dest w, h
+                STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE  // Dest size
             );
-            const templateData = resizedCtx.getImageData(0, 0, centerWidth, centerHeight);
+            const templateData = templateCenterCtx.getImageData(0, 0, STANDARD_TEMPLATE_SIZE, STANDARD_TEMPLATE_SIZE);
 
-            // Calculate similarity using combined methods on center regions
-            let similarity = this.calculateCombinedSimilarity(centerData, templateData);
+            // Calculate similarity using combined methods on standardized images
+            let similarity = this.calculateCombinedSimilarity(cellData, templateData);
 
             // Boost confidence if rarity matches
             if (detectedRarity && template.item.rarity === detectedRarity) {
@@ -1594,6 +1628,76 @@ class OfflineCVRunner {
             f1Score,
             accuracy,
         };
+    }
+
+    /**
+     * Print detailed debug info for detection comparison
+     */
+    private printDetectionDebug(
+        detections: Array<{ id: string; name: string; confidence: number }>,
+        groundTruth: TestCase['groundTruth'],
+        metrics: { truePositives: number; falsePositives: number; falseNegatives: number }
+    ): void {
+        // Count detected items by ID
+        const detectedCounts = new Map<string, { count: number; name: string; avgConf: number }>();
+        for (const d of detections) {
+            const existing = detectedCounts.get(d.id);
+            if (existing) {
+                existing.count++;
+                existing.avgConf = (existing.avgConf * (existing.count - 1) + d.confidence) / existing.count;
+            } else {
+                detectedCounts.set(d.id, { count: 1, name: d.name, avgConf: d.confidence });
+            }
+        }
+
+        // Count expected items by ID
+        const expectedCounts = new Map<string, { count: number; name: string }>();
+        for (const item of groundTruth.items) {
+            expectedCounts.set(item.id, { count: item.count, name: item.name });
+        }
+
+        // Find true positives, false positives, false negatives
+        const truePositiveItems: string[] = [];
+        const falsePositiveItems: string[] = [];
+        const falseNegativeItems: string[] = [];
+
+        for (const [id, data] of detectedCounts) {
+            const expected = expectedCounts.get(id);
+            if (expected) {
+                const matched = Math.min(data.count, expected.count);
+                if (matched > 0) {
+                    truePositiveItems.push(`${data.name} (${matched}/${expected.count}, conf=${(data.avgConf * 100).toFixed(0)}%)`);
+                }
+                if (data.count > expected.count) {
+                    falsePositiveItems.push(`${data.name} (+${data.count - expected.count} extra)`);
+                }
+            } else {
+                falsePositiveItems.push(`${data.name} (x${data.count}, conf=${(data.avgConf * 100).toFixed(0)}%)`);
+            }
+        }
+
+        for (const [id, data] of expectedCounts) {
+            const detected = detectedCounts.get(id);
+            if (!detected) {
+                falseNegativeItems.push(`${data.name} (x${data.count} missed)`);
+            } else if (detected.count < data.count) {
+                falseNegativeItems.push(`${data.name} (${data.count - detected.count} missed)`);
+            }
+        }
+
+        console.log(`      📊 TP=${metrics.truePositives}, FP=${metrics.falsePositives}, FN=${metrics.falseNegatives}`);
+
+        if (truePositiveItems.length > 0) {
+            console.log(`      ✓ Correct: ${truePositiveItems.slice(0, 5).join(', ')}${truePositiveItems.length > 5 ? ` (+${truePositiveItems.length - 5} more)` : ''}`);
+        }
+
+        if (falsePositiveItems.length > 0) {
+            console.log(`      ✗ Wrong: ${falsePositiveItems.slice(0, 5).join(', ')}${falsePositiveItems.length > 5 ? ` (+${falsePositiveItems.length - 5} more)` : ''}`);
+        }
+
+        if (falseNegativeItems.length > 0) {
+            console.log(`      ○ Missed: ${falseNegativeItems.slice(0, 5).join(', ')}${falseNegativeItems.length > 5 ? ` (+${falseNegativeItems.length - 5} more)` : ''}`);
+        }
     }
 
     /**
