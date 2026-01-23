@@ -37,9 +37,19 @@ import { getMetricsCollector } from './metrics.ts';
 // Integration imports for scoring, voting, ensemble, and active learning
 import { getThresholdForRarity, getScoringConfig } from './scoring-config.ts';
 import { combineVotes, type TemplateVote } from './voting.ts';
-import { selectStrategiesForImage, getStrategy, type StrategyId } from './ensemble-detector.ts';
+import {
+    selectStrategiesForImage,
+    getStrategy,
+    combineStrategyDetections,
+    getEnsembleConfig,
+    type StrategyId,
+    type StrategyDetection,
+    type EnsembleResult,
+} from './ensemble-detector.ts';
 import { getResolutionTier } from './resolution-profiles.ts';
 import { findUncertainDetections, shouldPromptForLearning } from './active-learning.ts';
+import { shouldSkipTemplate, recordMatchResult, getTemplateRanking } from './template-ranking.ts';
+import { detectCount, hasCountOverlay } from './count-detection.ts';
 
 // ========================================
 // Configuration
@@ -70,6 +80,98 @@ function getDynamicMinConfidence(width?: number, height?: number, rarity?: strin
     }
 
     return baseThreshold;
+}
+
+/**
+ * Run ensemble detection with multiple strategies
+ * Combines results from different strategies for better accuracy
+ */
+async function runEnsembleDetection(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    items: Item[],
+    cell: ROI,
+    progressCallback?: (progress: number, status: string) => void
+): Promise<EnsembleResult | null> {
+    const strategies = selectStrategiesForImage(width, height);
+    const config = getEnsembleConfig();
+    const strategyDetections: StrategyDetection[] = [];
+
+    // Run each strategy
+    for (const strategyId of strategies) {
+        const strategy = getStrategy(strategyId);
+        const threshold = strategy.minConfidence ?? getDynamicMinConfidence(width, height);
+
+        // Extract cell image data
+        const cellData = ctx.getImageData(cell.x, cell.y, cell.width, cell.height);
+
+        // Match against templates
+        const itemTemplates = getItemTemplates();
+        let bestMatch: { itemId: string; confidence: number; templateId: string } | null = null;
+
+        for (const [itemId, template] of itemTemplates) {
+            // Check template ranking - skip poor performers if enabled
+            if (strategy.templates.skipPoorPerformers && shouldSkipTemplate(`${itemId}_primary`)) {
+                continue;
+            }
+
+            const similarity = matchTemplate(ctx, cell, template, itemId);
+
+            if (similarity > threshold && (!bestMatch || similarity > bestMatch.confidence)) {
+                bestMatch = {
+                    itemId,
+                    confidence: similarity,
+                    templateId: `${itemId}_primary`,
+                };
+            }
+        }
+
+        if (bestMatch) {
+            strategyDetections.push({
+                strategyId,
+                itemId: bestMatch.itemId,
+                confidence: bestMatch.confidence * strategy.weight,
+                position: { x: cell.x, y: cell.y, width: cell.width, height: cell.height },
+                templateId: bestMatch.templateId,
+            });
+
+            // Early exit if confidence is very high
+            if (bestMatch.confidence >= config.earlyExitThreshold) {
+                break;
+            }
+        }
+    }
+
+    if (strategyDetections.length === 0) {
+        return null;
+    }
+
+    // Combine strategy results
+    return combineStrategyDetections(
+        strategyDetections,
+        { x: cell.x, y: cell.y, width: cell.width, height: cell.height },
+        config
+    );
+}
+
+/**
+ * Check if template should be used based on ranking
+ */
+function shouldUseTemplate(templateId: string, itemId: string): boolean {
+    // Check if template is in skip list
+    if (shouldSkipTemplate(templateId)) {
+        return false;
+    }
+
+    // Get ranking info
+    const ranking = getTemplateRanking(templateId);
+    if (ranking && ranking.successRate < 0.3 && ranking.matchCount > 10) {
+        // Skip templates with very low success rate after sufficient data
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -1108,15 +1210,23 @@ function findClosestTemplateSize(targetSize: number): number {
 /**
  * Match a screenshot cell against an item template
  * Returns similarity score (0-1, higher is better)
- * Returns 0 if template resizing fails
+ * Returns 0 if template resizing fails or template should be skipped
  * Uses pre-generated multi-scale templates when available, falls back to cache
+ * Integrates template ranking to skip poor performers
  */
 function matchTemplate(
     screenshotCtx: CanvasRenderingContext2D,
     cell: ROI,
     template: TemplateData,
-    itemId?: string
+    itemId?: string,
+    skipRankingCheck: boolean = false
 ): number {
+    // Check template ranking - skip if it's a known poor performer
+    const templateId = itemId ? `${itemId}_primary` : 'unknown';
+    if (!skipRankingCheck && itemId && !shouldUseTemplate(templateId, itemId)) {
+        return 0;
+    }
+
     // Extract icon region from screenshot (exclude count area)
     const iconRegion = extractIconRegion(screenshotCtx, cell);
 
@@ -2204,6 +2314,26 @@ export async function detectItemsWithCV(
             })
             .filter((d): d is CVDetectionResult => d !== null);
         metrics.recordValidationTime(performance.now() - validationStartTime);
+
+        // Detect item counts (stack sizes like x2, x3, x5)
+        if (progressCallback) {
+            progressCallback(98, 'Detecting item counts...');
+        }
+        const imageData = ctx.getImageData(0, 0, width, height);
+        for (const detection of boostedDetections) {
+            if (detection.boundingBox) {
+                const { x, y, width: cellW, height: cellH } = detection.boundingBox;
+                // Quick check if count overlay might exist
+                if (hasCountOverlay(imageData, x, y, cellW, cellH, height)) {
+                    const countResult = detectCount(imageData, x, y, cellW, cellH, height);
+                    if (countResult.count > 1 && countResult.confidence > 0.5) {
+                        // Add count to detection metadata
+                        (detection as any).stackCount = countResult.count;
+                        (detection as any).countConfidence = countResult.confidence;
+                    }
+                }
+            }
+        }
 
         if (progressCallback) {
             progressCallback(100, 'Smart detection complete');

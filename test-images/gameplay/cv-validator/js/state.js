@@ -54,6 +54,15 @@ export const state = {
 
     // Modal state
     currentZoom: 1,
+
+    // Debug/metrics state
+    detectionResults: [], // Alias for lastDetections for debug panel
+    currentImageInfo: null, // Image info for debug panel
+    detectionRuns: 0,
+    avgDetectionTime: 0,
+    cacheHits: 0,
+    cacheMisses: 0,
+    twoPhaseSuccessRate: 0,
 };
 
 // Reset detection-related state (called when switching images)

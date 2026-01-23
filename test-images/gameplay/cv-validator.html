@@ -79,6 +79,7 @@
         <button id="export-validated" disabled>Export JSON</button>
         <button id="toggle-grid-calibration">Grid Calibration &#x25BC;</button>
         <button id="toggle-ablation" class="toggle-ablation-btn">Ablation Testing &#x25BC;</button>
+        <button id="toggle-debug" class="toggle-debug-btn">Debug Panel &#x25BC;</button>
     </div>
 
     <!-- File System Status Indicator -->
@@ -435,6 +436,120 @@
                                 </thead>
                                 <tbody id="ablation-results-body"></tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Debug Visualization Panel -->
+                <div class="debug-panel" id="debug-panel" style="display: none;">
+                    <div class="debug-header">
+                        <h3><span class="icon">📊</span> Debug Visualization</h3>
+                        <button id="export-debug-data" class="export-btn">Export JSON</button>
+                    </div>
+                    <div class="debug-body">
+                        <!-- Confidence Distribution -->
+                        <div class="debug-section">
+                            <h4>Confidence Distribution</h4>
+                            <div class="confidence-histogram" id="confidence-histogram">
+                                <div class="histogram-bars">
+                                    <div class="histogram-bar" data-range="0.3-0.4"><span class="bar-fill" style="height: 0%"></span><span class="bar-label">0.3</span></div>
+                                    <div class="histogram-bar" data-range="0.4-0.5"><span class="bar-fill" style="height: 0%"></span><span class="bar-label">0.4</span></div>
+                                    <div class="histogram-bar" data-range="0.5-0.6"><span class="bar-fill" style="height: 0%"></span><span class="bar-label">0.5</span></div>
+                                    <div class="histogram-bar" data-range="0.6-0.7"><span class="bar-fill" style="height: 0%"></span><span class="bar-label">0.6</span></div>
+                                    <div class="histogram-bar" data-range="0.7-0.8"><span class="bar-fill" style="height: 0%"></span><span class="bar-label">0.7</span></div>
+                                    <div class="histogram-bar" data-range="0.8-0.9"><span class="bar-fill" style="height: 0%"></span><span class="bar-label">0.8</span></div>
+                                    <div class="histogram-bar" data-range="0.9-1.0"><span class="bar-fill" style="height: 0%"></span><span class="bar-label">0.9</span></div>
+                                </div>
+                                <div class="histogram-stats">
+                                    <span>Mean: <b id="conf-mean">--</b></span>
+                                    <span>Median: <b id="conf-median">--</b></span>
+                                    <span>Uncertain: <b id="conf-uncertain">--</b></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Detection Config -->
+                        <div class="debug-section">
+                            <h4>Detection Config</h4>
+                            <div class="debug-config">
+                                <div class="config-item">
+                                    <span class="label">Resolution Tier:</span>
+                                    <span class="value" id="debug-tier">--</span>
+                                </div>
+                                <div class="config-item">
+                                    <span class="label">Dynamic Threshold:</span>
+                                    <span class="value" id="debug-threshold">--</span>
+                                </div>
+                                <div class="config-item">
+                                    <span class="label">Strategies:</span>
+                                    <span class="value" id="debug-strategies">--</span>
+                                </div>
+                                <div class="config-item">
+                                    <span class="label">Scoring Weights:</span>
+                                    <span class="value" id="debug-weights">--</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Per-Rarity Breakdown -->
+                        <div class="debug-section">
+                            <h4>Per-Rarity Accuracy</h4>
+                            <div class="rarity-breakdown" id="rarity-breakdown">
+                                <div class="rarity-row common"><span class="rarity-name">Common</span><span class="rarity-stats" id="rarity-common">--</span></div>
+                                <div class="rarity-row uncommon"><span class="rarity-name">Uncommon</span><span class="rarity-stats" id="rarity-uncommon">--</span></div>
+                                <div class="rarity-row rare"><span class="rarity-name">Rare</span><span class="rarity-stats" id="rarity-rare">--</span></div>
+                                <div class="rarity-row epic"><span class="rarity-name">Epic</span><span class="rarity-stats" id="rarity-epic">--</span></div>
+                                <div class="rarity-row legendary"><span class="rarity-name">Legendary</span><span class="rarity-stats" id="rarity-legendary">--</span></div>
+                            </div>
+                        </div>
+
+                        <!-- Uncertain Detections (Active Learning) -->
+                        <div class="debug-section">
+                            <h4>Uncertain Detections <span class="uncertain-badge" id="uncertain-count">0</span></h4>
+                            <p class="section-hint">Click to verify or correct</p>
+                            <div class="uncertain-list" id="uncertain-list">
+                                <p class="no-uncertain">No uncertain detections</p>
+                            </div>
+                        </div>
+
+                        <!-- Active Learning Stats -->
+                        <div class="debug-section">
+                            <h4>Active Learning <span class="learning-badge" id="learning-badge">Session</span></h4>
+                            <div class="learning-stats" id="learning-stats">
+                                <div class="stat-row">
+                                    <span class="stat-label">Corrections this session:</span>
+                                    <span class="stat-value" id="session-corrections">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Verifications this session:</span>
+                                    <span class="stat-value" id="session-verifications">0</span>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">Labels/min:</span>
+                                    <span class="stat-value" id="labels-per-minute">0</span>
+                                </div>
+                            </div>
+
+                            <h5>Common Confusions</h5>
+                            <div class="confusion-list" id="confusion-list">
+                                <p class="no-data">No confusion data yet</p>
+                            </div>
+
+                            <h5>Error-Prone Items</h5>
+                            <div class="error-prone-list" id="error-prone-list">
+                                <p class="no-data">No error-prone items detected</p>
+                            </div>
+                        </div>
+
+                        <!-- Metrics History -->
+                        <div class="debug-section">
+                            <h4>Session Metrics</h4>
+                            <div class="metrics-history">
+                                <div class="metric-row"><span>Total Runs:</span><span id="metrics-runs">0</span></div>
+                                <div class="metric-row"><span>Avg Detection Time:</span><span id="metrics-time">--</span></div>
+                                <div class="metric-row"><span>Cache Hit Rate:</span><span id="metrics-cache">--</span></div>
+                                <div class="metric-row"><span>Two-Phase Success:</span><span id="metrics-twophase">--</span></div>
+                            </div>
                         </div>
                     </div>
                 </div>
