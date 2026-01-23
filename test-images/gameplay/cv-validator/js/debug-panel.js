@@ -12,6 +12,19 @@ import {
 } from './active-learning.js';
 import { getSessionTemplateCount } from './cv-detection.js';
 
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
 // Panel state
 let isDebugPanelOpen = false;
 let onSlotClickCallback = null;
@@ -136,9 +149,12 @@ function updateConfidenceHistogram(results) {
         : '--';
     const uncertain = confidences.filter(c => c >= 0.5 && c <= 0.7).length;
 
-    document.getElementById('conf-mean').textContent = mean;
-    document.getElementById('conf-median').textContent = median;
-    document.getElementById('conf-uncertain').textContent = uncertain;
+    const confMean = document.getElementById('conf-mean');
+    const confMedian = document.getElementById('conf-median');
+    const confUncertain = document.getElementById('conf-uncertain');
+    if (confMean) confMean.textContent = mean;
+    if (confMedian) confMedian.textContent = median;
+    if (confUncertain) confUncertain.textContent = uncertain;
 }
 
 /**
@@ -167,47 +183,23 @@ function updateDetectionConfig(imageInfo) {
     // Scoring weights
     const weights = 'SSIM=0.35, NCC=0.25, Hist=0.25, Edge=0.15';
 
-    document.getElementById('debug-tier').textContent = tier;
-    document.getElementById('debug-threshold').textContent = threshold;
-    document.getElementById('debug-strategies').textContent = strategies;
-    document.getElementById('debug-weights').textContent = weights;
+    const debugTier = document.getElementById('debug-tier');
+    const debugThreshold = document.getElementById('debug-threshold');
+    const debugStrategies = document.getElementById('debug-strategies');
+    const debugWeights = document.getElementById('debug-weights');
+    if (debugTier) debugTier.textContent = tier;
+    if (debugThreshold) debugThreshold.textContent = threshold;
+    if (debugStrategies) debugStrategies.textContent = strategies;
+    if (debugWeights) debugWeights.textContent = weights;
 }
 
 /**
  * Update per-rarity accuracy breakdown
+ * Uses calculateRarityAccuracy for the calculation
  */
 function updateRarityBreakdown(results, groundTruth) {
     const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
-    const stats = {};
-
-    // Initialize stats
-    for (const r of rarities) {
-        stats[r] = { detected: 0, correct: 0, total: 0 };
-    }
-
-    // Count ground truth by rarity
-    const gtItems = groundTruth.items || [];
-    for (const item of gtItems) {
-        const rarity = item.rarity?.toLowerCase() || 'common';
-        if (stats[rarity]) {
-            stats[rarity].total++;
-        }
-    }
-
-    // Count detections by rarity
-    for (const result of results) {
-        const rarity = result.entity?.rarity?.toLowerCase() || 'common';
-        if (stats[rarity]) {
-            stats[rarity].detected++;
-            // Check if correct (simplified)
-            const isCorrect = gtItems.some(gt =>
-                gt.itemId === result.entity?.id || gt.name === result.entity?.name
-            );
-            if (isCorrect) {
-                stats[rarity].correct++;
-            }
-        }
-    }
+    const stats = calculateRarityAccuracy(results, groundTruth);
 
     // Update display
     for (const rarity of rarities) {
@@ -217,7 +209,7 @@ function updateRarityBreakdown(results, groundTruth) {
             if (s.total === 0) {
                 el.textContent = '0 items';
             } else {
-                const accuracy = s.total > 0 ? ((s.correct / s.total) * 100).toFixed(0) : 0;
+                const accuracy = ((s.accuracy) * 100).toFixed(0);
                 el.textContent = `${s.correct}/${s.total} (${accuracy}%)`;
             }
         }
@@ -261,7 +253,7 @@ function updateUncertainDetections(results) {
         const item = document.createElement('div');
         item.className = 'uncertain-item clickable';
         item.innerHTML = `
-            <span class="item-name">${u.entity?.name || 'Unknown'}</span>
+            <span class="item-name">${escapeHtml(u.entity?.name) || 'Unknown'}</span>
             <span class="item-conf">${(u.confidence * 100).toFixed(1)}%</span>
             <span class="item-slot">Slot ${u.slotIndex ?? '?'}</span>
             <span class="uncertainty-score" title="Uncertainty score">${(u.uncertaintyScore * 100).toFixed(0)}%</span>
@@ -308,9 +300,9 @@ function updateActiveLearningStats() {
         } else {
             confusionList.innerHTML = pairs.map(p => `
                 <div class="confusion-item">
-                    <span class="detected">${p.detected}</span>
+                    <span class="detected">${escapeHtml(p.detected)}</span>
                     <span class="arrow">→</span>
-                    <span class="actual">${p.actual}</span>
+                    <span class="actual">${escapeHtml(p.actual)}</span>
                     <span class="count">(${p.count}x)</span>
                 </div>
             `).join('');
@@ -326,7 +318,7 @@ function updateActiveLearningStats() {
         } else {
             errorProneList.innerHTML = items.map(i => `
                 <div class="error-prone-item">
-                    <span class="item-name">${i.item}</span>
+                    <span class="item-name">${escapeHtml(i.item)}</span>
                     <span class="error-count">${i.errorCount} errors</span>
                 </div>
             `).join('');
@@ -346,14 +338,19 @@ function updateSessionMetrics() {
     const cacheMisses = state.cacheMisses || 0;
     const twoPhaseSuccess = state.twoPhaseSuccessRate || 0;
 
-    document.getElementById('metrics-runs').textContent = runs;
-    document.getElementById('metrics-time').textContent = avgTime > 0 ? `${avgTime.toFixed(0)}ms` : '--';
+    const metricsRuns = document.getElementById('metrics-runs');
+    const metricsTime = document.getElementById('metrics-time');
+    const metricsCache = document.getElementById('metrics-cache');
+    const metricsTwophase = document.getElementById('metrics-twophase');
+
+    if (metricsRuns) metricsRuns.textContent = runs;
+    if (metricsTime) metricsTime.textContent = avgTime > 0 ? `${avgTime.toFixed(0)}ms` : '--';
 
     const cacheRate = (cacheHits + cacheMisses) > 0
         ? ((cacheHits / (cacheHits + cacheMisses)) * 100).toFixed(0) + '%'
         : '--';
-    document.getElementById('metrics-cache').textContent = cacheRate;
-    document.getElementById('metrics-twophase').textContent = twoPhaseSuccess > 0
+    if (metricsCache) metricsCache.textContent = cacheRate;
+    if (metricsTwophase) metricsTwophase.textContent = twoPhaseSuccess > 0
         ? `${(twoPhaseSuccess * 100).toFixed(0)}%`
         : '--';
 }
@@ -372,12 +369,18 @@ function updateRecommendations(results, groundTruth) {
 
     if (!container) return;
 
+    // Check for empty/no detection results
+    if (!results || results.length === 0) {
+        container.innerHTML = '<p class="no-data">Run detection to see recommendations</p>';
+        return;
+    }
+
     const recommendations = [];
 
     // Get error-prone items
     const errorProne = getErrorProneItems(3);
     if (errorProne.length > 0) {
-        const itemNames = errorProne.map(i => i.item).join(', ');
+        const itemNames = errorProne.map(i => escapeHtml(i.item)).join(', ');
         recommendations.push({
             type: 'warning',
             icon: '⚠️',
@@ -511,8 +514,4 @@ function exportDebugData() {
     URL.revokeObjectURL(url);
 }
 
-// Export for use in main.js
-export default {
-    initDebugPanel,
-    updateDebugPanel,
-};
+// Named exports are used by main.js: import { initDebugPanel, updateDebugPanel } from './debug-panel.js';

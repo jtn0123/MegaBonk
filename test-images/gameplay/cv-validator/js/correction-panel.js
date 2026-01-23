@@ -330,7 +330,7 @@ async function addCropAsSessionTemplate(itemId, validationType, originalConfiden
 // Apply/Cancel Corrections
 // ========================================
 
-function applyCorrection() {
+async function applyCorrection() {
     if (state.currentCorrectionSlot === null || state.selectedCorrectionItem === null) return;
 
     const slotData = state.detectionsBySlot.get(state.currentCorrectionSlot);
@@ -360,7 +360,7 @@ function applyCorrection() {
         );
 
         // Add as session template (corrected from empty)
-        addCropAsSessionTemplate(itemId, 'corrected_from_empty', 0);
+        await addCropAsSessionTemplate(itemId, 'corrected_from_empty', 0);
     } else {
         const originalName = slotData.detection.item.name;
         const originalConfidence = slotData.detection.confidence;
@@ -378,7 +378,7 @@ function applyCorrection() {
             log(`Verified slot ${state.currentCorrectionSlot} as correct: "${originalName}"`, LOG_LEVELS.SUCCESS);
 
             // Add as session template (verified)
-            addCropAsSessionTemplate(itemId, 'verified', originalConfidence);
+            await addCropAsSessionTemplate(itemId, 'verified', originalConfidence);
         } else {
             // Store correction
             state.corrections.set(state.currentCorrectionSlot, {
@@ -394,7 +394,7 @@ function applyCorrection() {
             );
 
             // Add as session template (corrected)
-            addCropAsSessionTemplate(itemId, 'corrected', originalConfidence);
+            await addCropAsSessionTemplate(itemId, 'corrected', originalConfidence);
         }
     }
 
@@ -402,7 +402,7 @@ function applyCorrection() {
     closeCorrectionPanel();
 }
 
-function markAsCorrect() {
+async function markAsCorrect() {
     if (state.currentCorrectionSlot === null) return;
 
     const slotData = state.detectionsBySlot.get(state.currentCorrectionSlot);
@@ -430,7 +430,7 @@ function markAsCorrect() {
     log(`Verified slot ${state.currentCorrectionSlot} as correct: "${originalName}"`, LOG_LEVELS.SUCCESS);
 
     // Add as session template (verified)
-    addCropAsSessionTemplate(itemId, 'verified', originalConfidence);
+    await addCropAsSessionTemplate(itemId, 'verified', originalConfidence);
 
     if (onCorrectionApplied) onCorrectionApplied();
     closeCorrectionPanel();

@@ -140,13 +140,19 @@ export const presetManager = {
                     // File preset doesn't exist in localStorage, add it
                     localData.presets[key] = preset;
                     merged = true;
-                    console.log(`Imported preset from file: ${key}`);
+                    // Use debug level for verbose import logging
+                    if (typeof console.debug === 'function') {
+                        console.debug(`[PresetManager] Imported preset from file: ${key}`);
+                    }
                 }
             }
 
             if (merged) {
                 this.save(localData);
-                console.log('File presets merged into localStorage');
+                // Use debug level for verbose import logging
+                if (typeof console.debug === 'function') {
+                    console.debug('[PresetManager] File presets merged into localStorage');
+                }
             }
 
             this._filePresetsLoaded = true;

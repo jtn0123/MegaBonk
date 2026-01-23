@@ -6,7 +6,7 @@
 
 import { CONFIG } from './config.js';
 import { state } from './state.js';
-import { log } from './utils.js';
+import { log, LOG_LEVELS } from './utils.js';
 
 // Import from shared CV library (built from TypeScript)
 // Falls back to local implementations if library not available
@@ -39,10 +39,10 @@ async function loadSharedLibrary() {
         // Path relative to cv-validator directory
         sharedLibrary = await import('../../../../dist/cv-library/cv-library.js');
         useSharedLibrary = true;
-        log('Loaded shared CV library with enhanced detection');
+        log('Loaded shared CV library with enhanced detection', LOG_LEVELS.SUCCESS);
         return true;
     } catch (err) {
-        log(`Shared CV library not available, using local NCC: ${err.message}`);
+        log(`Shared CV library not available, using local NCC: ${err.message}`, LOG_LEVELS.WARNING);
         useSharedLibrary = false;
         return false;
     }
@@ -582,7 +582,7 @@ export function getTrainingDataStats() {
  */
 export function addSessionTemplate(itemId, imageData, metadata = {}) {
     if (!useSharedLibrary || !sharedLibrary?.addSessionTemplate) {
-        log('Session templates require shared CV library');
+        log('Session templates require shared CV library', LOG_LEVELS.WARNING);
         return false;
     }
     sharedLibrary.addSessionTemplate(itemId, imageData, metadata);
@@ -622,12 +622,26 @@ export function clearSessionTemplates() {
 /**
  * Extract ImageData from a crop data URL for adding as template
  * @param {string} dataURL - Base64 data URL of the crop
+ * @param {number} timeoutMs - Timeout in milliseconds (default 5000)
  * @returns {Promise<ImageData|null>}
  */
-export function dataURLToImageData(dataURL) {
+export function dataURLToImageData(dataURL, timeoutMs = 5000) {
     return new Promise((resolve) => {
+        let resolved = false;
+
+        const timeoutId = setTimeout(() => {
+            if (!resolved) {
+                resolved = true;
+                log('dataURLToImageData timed out', LOG_LEVELS.WARNING);
+                resolve(null);
+            }
+        }, timeoutMs);
+
         const img = new Image();
         img.onload = () => {
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(timeoutId);
             const canvas = document.createElement('canvas');
             canvas.width = img.width;
             canvas.height = img.height;
@@ -635,7 +649,12 @@ export function dataURLToImageData(dataURL) {
             ctx.drawImage(img, 0, 0);
             resolve(ctx.getImageData(0, 0, img.width, img.height));
         };
-        img.onerror = () => resolve(null);
+        img.onerror = () => {
+            if (resolved) return;
+            resolved = true;
+            clearTimeout(timeoutId);
+            resolve(null);
+        };
         img.src = dataURL;
     });
 }
