@@ -2648,3 +2648,412 @@ button:disabled {
 .live-metric.recall .value {
     color: var(--warning);
 }
+
+/* ========================================
+ * Debug Visualization Panel
+ * ======================================== */
+
+.toggle-debug-btn {
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(59, 130, 246, 0.2));
+    border-color: #10b981;
+}
+
+.toggle-debug-btn:hover {
+    border-color: #10b981;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.3), rgba(59, 130, 246, 0.3));
+}
+
+.toggle-debug-btn.active {
+    background: linear-gradient(135deg, #10b981, #3b82f6);
+    border-color: #10b981;
+    color: white;
+}
+
+.debug-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    margin-bottom: 16px;
+}
+
+.debug-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(59, 130, 246, 0.1));
+}
+
+.debug-header h3 {
+    margin: 0;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.debug-header .icon {
+    font-size: 16px;
+}
+
+.debug-header .export-btn {
+    padding: 4px 12px;
+    font-size: 12px;
+    background: var(--bg-card);
+}
+
+.debug-body {
+    padding: 16px;
+    display: grid;
+    gap: 16px;
+}
+
+.debug-section {
+    background: var(--bg-card);
+    border-radius: 6px;
+    padding: 12px;
+}
+
+.debug-section h4 {
+    margin: 0 0 12px 0;
+    font-size: 12px;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Confidence Histogram */
+.confidence-histogram {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.histogram-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    height: 60px;
+    padding-bottom: 20px;
+    position: relative;
+}
+
+.histogram-bar {
+    flex: 1;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    position: relative;
+}
+
+.histogram-bar .bar-fill {
+    width: 100%;
+    background: linear-gradient(180deg, #10b981, #059669);
+    border-radius: 2px 2px 0 0;
+    transition: height 0.3s ease;
+    min-height: 2px;
+}
+
+.histogram-bar .bar-label {
+    position: absolute;
+    bottom: -18px;
+    font-size: 10px;
+    color: var(--text-secondary);
+}
+
+.histogram-stats {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.histogram-stats b {
+    color: var(--text-primary);
+    font-family: monospace;
+}
+
+/* Detection Config */
+.debug-config {
+    display: grid;
+    gap: 8px;
+}
+
+.config-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.config-item .label {
+    color: var(--text-secondary);
+}
+
+.config-item .value {
+    font-family: monospace;
+    color: var(--cyan);
+}
+
+/* Rarity Breakdown */
+.rarity-breakdown {
+    display: grid;
+    gap: 6px;
+}
+
+.rarity-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.rarity-row.common { background: rgba(156, 163, 175, 0.2); }
+.rarity-row.uncommon { background: rgba(34, 197, 94, 0.2); }
+.rarity-row.rare { background: rgba(59, 130, 246, 0.2); }
+.rarity-row.epic { background: rgba(168, 85, 247, 0.2); }
+.rarity-row.legendary { background: rgba(245, 158, 11, 0.2); }
+
+.rarity-name {
+    font-weight: 500;
+}
+
+.rarity-stats {
+    font-family: monospace;
+}
+
+/* Uncertain Detections */
+.uncertain-badge {
+    background: var(--warning);
+    color: black;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.uncertain-list {
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.uncertain-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    background: rgba(245, 158, 11, 0.1);
+    border-radius: 4px;
+    margin-bottom: 4px;
+    font-size: 12px;
+}
+
+.uncertain-item .item-name {
+    flex: 1;
+}
+
+.uncertain-item .item-conf {
+    font-family: monospace;
+    color: var(--warning);
+    margin: 0 8px;
+}
+
+.uncertain-item .item-slot {
+    color: var(--text-secondary);
+    font-size: 10px;
+}
+
+.no-uncertain {
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-align: center;
+    padding: 12px;
+}
+
+.more-uncertain {
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-align: center;
+    margin-top: 4px;
+}
+
+/* Clickable uncertain items */
+.uncertain-item.clickable {
+    cursor: pointer;
+    transition: background 0.15s, transform 0.1s;
+}
+
+.uncertain-item.clickable:hover {
+    background: rgba(233, 69, 96, 0.15);
+    transform: translateX(2px);
+}
+
+.uncertain-item .uncertainty-score {
+    font-size: 10px;
+    color: var(--warning);
+    margin-left: auto;
+    padding: 2px 6px;
+    background: rgba(255, 193, 7, 0.2);
+    border-radius: 3px;
+}
+
+.uncertain-badge.warning {
+    background: var(--warning);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.section-hint {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin: -6px 0 8px 0;
+    font-style: italic;
+}
+
+/* Active Learning Stats */
+.learning-badge {
+    background: var(--accent);
+    color: var(--text-primary);
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+}
+
+.learning-stats {
+    display: grid;
+    gap: 6px;
+    margin-bottom: 16px;
+}
+
+.stat-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    padding: 4px 0;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+}
+
+.stat-value {
+    font-family: monospace;
+    color: var(--cyan);
+}
+
+.debug-section h5 {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin: 12px 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+}
+
+/* Confusion List */
+.confusion-list {
+    display: grid;
+    gap: 6px;
+}
+
+.confusion-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.confusion-item .detected {
+    color: var(--error);
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.confusion-item .arrow {
+    color: var(--text-secondary);
+}
+
+.confusion-item .actual {
+    color: var(--success);
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.confusion-item .count {
+    color: var(--text-secondary);
+    margin-left: auto;
+    font-size: 10px;
+}
+
+/* Error-prone items */
+.error-prone-list {
+    display: grid;
+    gap: 6px;
+}
+
+.error-prone-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+    font-size: 11px;
+}
+
+.error-prone-item .item-name {
+    color: var(--warning);
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.error-prone-item .error-count {
+    color: var(--error);
+    font-size: 10px;
+}
+
+.no-data {
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-align: center;
+    padding: 8px;
+    font-style: italic;
+}
+
+/* Metrics History */
+.metrics-history {
+    display: grid;
+    gap: 6px;
+}
+
+.metric-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+}
+
+.metric-row span:last-child {
+    font-family: monospace;
+    color: var(--cyan);
+}

@@ -79,6 +79,15 @@ import {
     runBatchAblation,
 } from './ablation-panel.js';
 import { getAblationResults } from './pipeline-config.js';
+import { initDebugPanel, updateDebugPanel } from './debug-panel.js';
+import {
+    getPrioritySlots,
+    calculateUncertaintyScore,
+    getSuggestedCorrections,
+    getSessionStats,
+    getConfusionPairs,
+    getErrorProneItems,
+} from './active-learning.js';
 
 // ========================================
 // DOM Element References
@@ -1724,6 +1733,24 @@ async function handleRunDetection() {
             time: elapsed,
         });
 
+        // Update debug panel state and refresh
+        state.detectionResults = detections.map(d => ({
+            confidence: d.confidence,
+            entity: d.item,
+            slotIndex: d.slotIndex,
+        }));
+        state.currentImageInfo = {
+            width: state.currentImage.width,
+            height: state.currentImage.height,
+            path: state.currentImagePath,
+        };
+        state.groundTruth = { items: truthItems };
+        state.detectionRuns = (state.detectionRuns || 0) + 1;
+        state.avgDetectionTime = state.avgDetectionTime
+            ? (state.avgDetectionTime * (state.detectionRuns - 1) + elapsed) / state.detectionRuns
+            : elapsed;
+        updateDebugPanel();
+
         // Draw overlay
         drawOverlay(
             elements.overlayCanvas,
@@ -2036,6 +2063,11 @@ async function init() {
             log(`Ablation config changed: ${pipelineConfig.name}`);
             handleRunDetection();
         }
+    });
+
+    // Initialize debug visualization panel
+    initDebugPanel({
+        onSlotClick: openCorrectionPanel,
     });
 
     // Enable batch ablation button when we have test images
