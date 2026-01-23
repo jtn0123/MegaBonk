@@ -34,6 +34,12 @@ import { calculateEnhancedSimilarity } from './similarity.ts';
 import { getTrainingTemplatesForItem, isTrainingDataLoaded } from './training.ts';
 import type { TrainingTemplate } from './training.ts';
 import { getMetricsCollector } from './metrics.ts';
+// Integration imports for scoring, voting, ensemble, and active learning
+import { getThresholdForRarity, getScoringConfig } from './scoring-config.ts';
+import { combineVotes, type TemplateVote } from './voting.ts';
+import { selectStrategiesForImage, getStrategy, type StrategyId } from './ensemble-detector.ts';
+import { getResolutionTier } from './resolution-profiles.ts';
+import { findUncertainDetections, shouldPromptForLearning } from './active-learning.ts';
 
 // ========================================
 // Configuration
@@ -41,6 +47,30 @@ import { getMetricsCollector } from './metrics.ts';
 
 /** Base path for worker scripts - can be overridden for subdirectory deployments */
 let workerBasePath = '';
+
+/**
+ * Get dynamic minimum confidence threshold based on resolution and scoring config
+ * Uses scoring-config.ts for rarity-aware thresholds
+ */
+function getDynamicMinConfidence(width?: number, height?: number, rarity?: string): number {
+    // Get base threshold from scoring config (rarity-aware)
+    const baseThreshold = getThresholdForRarity(rarity);
+
+    // Adjust based on resolution tier if dimensions provided
+    if (width && height) {
+        const tier = getResolutionTier(width, height);
+        // Lower threshold for low-res (harder to match), higher for high-res
+        const tierAdjustment = {
+            low: -0.05,      // 720p: more lenient
+            medium: 0,       // 1080p: baseline
+            high: 0.02,      // 1440p: slightly stricter
+            ultra: 0.03,     // 4K: stricter (clearer images)
+        };
+        return Math.max(0.35, Math.min(0.75, baseThreshold + tierAdjustment[tier]));
+    }
+
+    return baseThreshold;
+}
 
 /**
  * Set the base path for worker scripts
@@ -668,7 +698,8 @@ async function detectIconsWithTwoPhase(
         progressCallback?: (progress: number, status: string) => void;
     } = {}
 ): Promise<{ detections: CVDetectionResult[]; gridUsed: boolean; grid: GridParameters | null }> {
-    const { minConfidence = 0.65, progressCallback } = options;
+    // Use dynamic threshold based on resolution (width/height available from ctx)
+    const { minConfidence = getDynamicMinConfidence(width, height), progressCallback } = options;
     const metrics = getMetricsCollector();
     const gridStartTime = performance.now();
 
@@ -1134,7 +1165,7 @@ function matchTemplate(
 
 /**
  * Match using multiple templates (primary + training data)
- * Returns aggregated similarity score with voting bonus
+ * Uses voting.ts module for intelligent score aggregation
  */
 function matchTemplateMulti(
     screenshotCtx: CanvasRenderingContext2D,
@@ -1154,52 +1185,37 @@ function matchTemplateMulti(
     // Extract icon region for matching against training templates
     const iconRegion = extractIconRegion(screenshotCtx, cell);
 
-    // Match against training templates - store raw scores and weights separately
-    const trainingResults: Array<{ rawScore: number; weight: number }> = [];
-    for (const trainingTpl of trainingTemplates) {
+    // Build votes array for voting module
+    const votes: TemplateVote[] = [
+        {
+            templateId: `primary_${itemId}`,
+            itemId,
+            confidence: primaryScore,
+        },
+    ];
+
+    // Match against training templates
+    for (let i = 0; i < trainingTemplates.length; i++) {
+        const trainingTpl = trainingTemplates[i];
         // Resize training template to match icon region size
         const resizedTraining = resizeImageData(trainingTpl.imageData, iconRegion.width, iconRegion.height);
         if (!resizedTraining) continue;
 
         const rawScore = calculateSimilarity(iconRegion, resizedTraining);
-        trainingResults.push({ rawScore, weight: trainingTpl.weight });
+        votes.push({
+            templateId: `training_${itemId}_${i}`,
+            itemId,
+            confidence: rawScore,
+        });
     }
 
-    if (trainingResults.length === 0) {
+    // Use voting module to combine scores
+    const votingResult = combineVotes(votes);
+    if (!votingResult) {
         return primaryScore;
     }
 
-    // Aggregation strategy:
-    // 1. Compare all RAW scores to find best match
-    // 2. Apply weight to the winning score
-    // 3. Add voting bonus for multiple high-confidence matches
-    const primaryWeight = 1.5;
-
-    // Collect all raw scores for comparison (fair comparison without weights)
-    const allRawScores = [primaryScore, ...trainingResults.map(t => t.rawScore)];
-    const maxRawScore = Math.max(...allRawScores);
-
-    // Determine which template won and apply its weight
-    let finalBaseScore: number;
-    if (primaryScore === maxRawScore) {
-        // Primary template won - apply primary weight bonus
-        finalBaseScore = primaryScore * Math.min(1.0, primaryWeight * 0.7); // Scaled bonus, max 1.0
-    } else {
-        // A training template won - find which one and apply its weight
-        const winningTraining = trainingResults.find(t => t.rawScore === maxRawScore);
-        const weight = winningTraining?.weight || 1.0;
-        finalBaseScore = maxRawScore * Math.min(1.0, weight * 0.85); // Scaled bonus, max 1.0
-    }
-
-    // Voting bonus: count how many templates exceed threshold (using raw scores)
-    const threshold = 0.5;
-    const votesAboveThreshold = allRawScores.filter(s => s > threshold).length;
-    const votingBonus = Math.min(0.08, votesAboveThreshold * 0.015); // Up to 8% bonus
-
-    // Final score with voting bonus, capped at 0.99
-    const finalScore = Math.min(0.99, finalBaseScore + votingBonus);
-
-    return finalScore;
+    return votingResult.confidence;
 }
 
 /**
@@ -1637,9 +1653,9 @@ async function detectIconsWithSlidingWindow(
         multiScale?: boolean; // Enable multi-scale matching
     } = {}
 ): Promise<CVDetectionResult[]> {
-    // Confidence threshold raised to 0.65 after fixing windowed SSIM
-    // Higher threshold reduces false positives while maintaining good recall
-    const { stepSize = 12, minConfidence = 0.65, regionOfInterest, progressCallback, multiScale = true } = options;
+    // Use dynamic threshold based on resolution and scoring config
+    const dynamicThreshold = getDynamicMinConfidence(width, height);
+    const { stepSize = 12, minConfidence = dynamicThreshold, regionOfInterest, progressCallback, multiScale = true } = options;
 
     const detections: CVDetectionResult[] = [];
     const iconSizes = getAdaptiveIconSizes(width, height);
@@ -1826,7 +1842,7 @@ async function detectEquipmentRegion(
     // Use sliding window on equipment region with smaller step for precision
     const equipmentDetections = await detectIconsWithSlidingWindow(ctx, width, height, items, {
         stepSize: 8,
-        minConfidence: 0.65, // Raised threshold after SSIM fix
+        minConfidence: getDynamicMinConfidence(width, height), // Dynamic threshold
         regionOfInterest: equipmentROI,
     });
 
@@ -2013,6 +2029,18 @@ export async function detectItemsWithCV(
         const resolution = detectResolution(width, height);
         metrics.startRun(width, height, resolution.category);
 
+        // Select optimal detection strategies based on resolution
+        const selectedStrategies = selectStrategiesForImage(width, height);
+        const resolutionTier = getResolutionTier(width, height);
+        logger.info({
+            operation: 'cv.strategy_selection',
+            data: {
+                resolutionTier,
+                selectedStrategies,
+                dynamicThreshold: getDynamicMinConfidence(width, height),
+            },
+        });
+
         if (progressCallback) {
             progressCallback(15, 'Analyzing image structure...');
         }
@@ -2067,7 +2095,7 @@ export async function detectItemsWithCV(
         }
 
         const twoPhaseResult = await detectIconsWithTwoPhase(ctx, width, height, items, {
-            minConfidence: 0.65,
+            minConfidence: getDynamicMinConfidence(width, height),
             progressCallback,
         });
 
@@ -2121,7 +2149,7 @@ export async function detectItemsWithCV(
 
             hotbarDetections = await detectIconsWithSlidingWindow(ctx, width, height, items, {
                 stepSize: 10,
-                minConfidence: 0.65,
+                minConfidence: getDynamicMinConfidence(width, height),
                 regionOfInterest: hotbarROI,
                 progressCallback,
             });
@@ -2205,6 +2233,23 @@ export async function detectItemsWithCV(
 
         // Cache results for future use
         cacheResults(imageHash, boostedDetections);
+
+        // Active learning: flag uncertain detections for potential user feedback
+        const uncertainDetections = findUncertainDetections(boostedDetections);
+        if (uncertainDetections.length > 0 && shouldPromptForLearning(boostedDetections)) {
+            logger.info({
+                operation: 'cv.active_learning.uncertain_found',
+                data: {
+                    uncertainCount: uncertainDetections.length,
+                    totalDetections: boostedDetections.length,
+                    topUncertain: uncertainDetections.slice(0, 3).map(u => ({
+                        item: u.detection.entity.name,
+                        confidence: u.detection.confidence.toFixed(2),
+                        reason: u.reason,
+                    })),
+                },
+            });
+        }
 
         // End metrics run
         metrics.endRun(performance.now() - runStartTime);
@@ -2293,4 +2338,54 @@ export async function detectItemCounts(imageDataUrl: string, cells: ROI[]): Prom
     }
 
     return counts;
+}
+
+// ========================================
+// Metrics Export for UI/Debugging
+// ========================================
+
+/**
+ * Get CV detection metrics for UI display
+ * Returns run history and aggregated stats
+ */
+export function getCVMetrics(): {
+    runs: ReturnType<typeof getMetricsCollector>['getRuns'] extends () => infer R ? R : never;
+    aggregated: ReturnType<typeof getMetricsCollector>['getAggregatedMetrics'] extends () => infer R ? R : never;
+    enabled: boolean;
+} {
+    const collector = getMetricsCollector();
+    return {
+        runs: collector.getRuns(),
+        aggregated: collector.getAggregatedMetrics(),
+        enabled: collector.isEnabled(),
+    };
+}
+
+/**
+ * Get current detection configuration for debugging
+ */
+export function getDetectionConfig(width?: number, height?: number): {
+    dynamicThreshold: number;
+    resolutionTier: string;
+    selectedStrategies: StrategyId[];
+    scoringConfig: ReturnType<typeof getScoringConfig>;
+} {
+    const tier = width && height ? getResolutionTier(width, height) : 'medium';
+    const strategies = width && height ? selectStrategiesForImage(width, height) : ['default' as StrategyId];
+
+    return {
+        dynamicThreshold: getDynamicMinConfidence(width, height),
+        resolutionTier: tier,
+        selectedStrategies: strategies,
+        scoringConfig: getScoringConfig(),
+    };
+}
+
+/**
+ * Get uncertain detections from last run for active learning UI
+ */
+export function getUncertainDetectionsFromResults(
+    detections: CVDetectionResult[]
+): ReturnType<typeof findUncertainDetections> {
+    return findUncertainDetections(detections);
 }
