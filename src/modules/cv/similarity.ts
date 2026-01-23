@@ -5,6 +5,13 @@
 // Based on scientific testing showing +41.8% F1 improvement
 
 import { applyAdaptivePreprocessing, type SceneAnalysis, analyzeScene } from './adaptive-preprocessing.ts';
+import {
+    getScoringConfig,
+    calculateWeightedScore,
+    passesThreshold,
+    getThresholdForRarity,
+    type ScoringConfig,
+} from './scoring-config.ts';
 
 /**
  * Simple image data interface for cross-module compatibility
@@ -408,6 +415,25 @@ export function calculateEdgeSimilarity(imageData1: SimpleImageData, imageData2:
 // ========================================
 
 /**
+ * Detailed similarity result with metric breakdown
+ */
+export interface SimilarityResult {
+    /** Final combined score */
+    score: number;
+    /** Individual metric scores */
+    metrics: {
+        ncc: number;
+        ssim: number;
+        histogram: number;
+        edge: number;
+    };
+    /** Whether score passes threshold for given rarity */
+    passesThreshold: boolean;
+    /** Threshold that was applied */
+    threshold: number;
+}
+
+/**
  * Combined similarity score using multiple methods
  * Uses preprocessing (contrast + normalization) and multiple similarity metrics
  * Scientific testing showed +41.8% F1 improvement with this approach
@@ -422,30 +448,51 @@ export function calculateCombinedSimilarity(imageData1: SimpleImageData, imageDa
     const histogram = calculateHistogramSimilarity(processed1, processed2);
     // Use windowed SSIM for better local structure comparison
     const ssim = calculateWindowedSSIM(processed1, processed2);
-    const edges = calculateEdgeSimilarity(processed1, processed2);
+    const edge = calculateEdgeSimilarity(processed1, processed2);
 
-    // Weighted combination instead of just max
-    // SSIM and edges are more reliable for icon matching
-    const weights = {
-        ncc: 0.2,
-        histogram: 0.2,
-        ssim: 0.35, // Higher weight - windowed SSIM captures local structure well
-        edges: 0.25, // Higher weight - edges are robust to color variations
+    // Use configurable weights from scoring-config
+    return calculateWeightedScore(ncc, ssim, histogram, edge);
+}
+
+/**
+ * Combined similarity with detailed metric breakdown
+ * Returns all metric scores for analysis and debugging
+ */
+export function calculateDetailedSimilarity(
+    imageData1: SimpleImageData,
+    imageData2: SimpleImageData,
+    rarity?: string
+): SimilarityResult {
+    // Apply preprocessing
+    const processed1 = preprocessImage(imageData1);
+    const processed2 = preprocessImage(imageData2);
+
+    // Calculate all metrics
+    const metrics = {
+        ncc: calculateNCC(processed1, processed2),
+        ssim: calculateWindowedSSIM(processed1, processed2),
+        histogram: calculateHistogramSimilarity(processed1, processed2),
+        edge: calculateEdgeSimilarity(processed1, processed2),
     };
 
-    const weightedScore =
-        ncc * weights.ncc + histogram * weights.histogram + ssim * weights.ssim + edges * weights.edges;
+    // Calculate weighted score using config
+    const score = calculateWeightedScore(metrics.ncc, metrics.ssim, metrics.histogram, metrics.edge);
+    const threshold = getThresholdForRarity(rarity);
 
-    // Bonus if multiple methods agree (all above a threshold)
-    const scores = [ncc, histogram, ssim, edges];
-    const agreementThreshold = 0.6;
-    const methodsAboveThreshold = scores.filter(s => s >= agreementThreshold).length;
+    return {
+        score,
+        metrics,
+        passesThreshold: score >= threshold,
+        threshold,
+    };
+}
 
-    // Award bonus based on method agreement
-    // 2 methods agree = 0.02, 3 agree = 0.04, 4 agree = 0.06
-    const agreementBonus = Math.max(0, (methodsAboveThreshold - 1) * 0.02);
-
-    return Math.min(0.99, weightedScore + agreementBonus);
+/**
+ * Check if similarity score passes threshold for a specific rarity
+ * Useful for filtering detections by rarity-specific thresholds
+ */
+export function similarityPassesThreshold(score: number, rarity?: string): boolean {
+    return passesThreshold(score, rarity);
 }
 
 /**
@@ -482,29 +529,51 @@ export function calculateAdaptiveSimilarity(
     const ncc = calculateNCC(processed1, processed2);
     const histogram = calculateHistogramSimilarity(processed1, processed2);
     const ssim = calculateWindowedSSIM(processed1, processed2);
-    const edges = calculateEdgeSimilarity(processed1, processed2);
+    const edge = calculateEdgeSimilarity(processed1, processed2);
 
-    // Weighted combination
-    const weights = {
-        ncc: 0.2,
-        histogram: 0.2,
-        ssim: 0.35,
-        edges: 0.25,
+    // Use configurable weights from scoring-config
+    return calculateWeightedScore(ncc, ssim, histogram, edge);
+}
+
+/**
+ * Calculate similarity with adaptive preprocessing and rarity awareness
+ * Returns detailed result with metric breakdown
+ */
+export function calculateAdaptiveDetailedSimilarity(
+    imageData1: SimpleImageData,
+    imageData2: SimpleImageData,
+    rarity?: string,
+    options?: PreprocessOptions
+): SimilarityResult {
+    let processed1: SimpleImageData;
+    let processed2: SimpleImageData;
+
+    if (options?.useAdaptive) {
+        processed1 = applyAdaptivePreprocessing(imageData1);
+        processed2 = applyAdaptivePreprocessing(imageData2);
+    } else {
+        processed1 = preprocessImage(imageData1);
+        processed2 = preprocessImage(imageData2);
+    }
+
+    // Calculate all metrics
+    const metrics = {
+        ncc: calculateNCC(processed1, processed2),
+        ssim: calculateWindowedSSIM(processed1, processed2),
+        histogram: calculateHistogramSimilarity(processed1, processed2),
+        edge: calculateEdgeSimilarity(processed1, processed2),
     };
 
-    const weightedScore =
-        ncc * weights.ncc +
-        histogram * weights.histogram +
-        ssim * weights.ssim +
-        edges * weights.edges;
+    // Calculate weighted score using config
+    const score = calculateWeightedScore(metrics.ncc, metrics.ssim, metrics.histogram, metrics.edge);
+    const threshold = getThresholdForRarity(rarity);
 
-    // Agreement bonus
-    const scores = [ncc, histogram, ssim, edges];
-    const agreementThreshold = 0.6;
-    const methodsAboveThreshold = scores.filter(s => s >= agreementThreshold).length;
-    const agreementBonus = Math.max(0, (methodsAboveThreshold - 1) * 0.02);
-
-    return Math.min(0.99, weightedScore + agreementBonus);
+    return {
+        score,
+        metrics,
+        passesThreshold: score >= threshold,
+        threshold,
+    };
 }
 
 /**

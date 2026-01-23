@@ -288,3 +288,53 @@ export type {
     SkipListEntry,
     RankingConfig,
 } from './template-ranking.ts';
+
+// Scoring Configuration
+export {
+    DEFAULT_SCORING_CONFIG,
+    PRECISION_SCORING_CONFIG,
+    RECALL_SCORING_CONFIG,
+    FAST_SCORING_CONFIG,
+    setScoringConfig,
+    getScoringConfig,
+    getThresholdForRarity,
+    calculateWeightedScore,
+    passesThreshold,
+    getConfidenceGrade,
+    describeScoringConfig,
+    mergeWithDefaults,
+} from './scoring-config.ts';
+export type {
+    MetricWeights,
+    AgreementConfig,
+    RarityThresholds,
+    ScoringConfig,
+} from './scoring-config.ts';
+
+// Weighted Voting
+export {
+    combineVotes,
+    majorityVote,
+    thresholdVote,
+    ensembleVote,
+    setVotingConfig,
+    getVotingConfig,
+    describeVotingResult,
+    DEFAULT_VOTING_CONFIG,
+    STRICT_VOTING_CONFIG,
+    LENIENT_VOTING_CONFIG,
+} from './voting.ts';
+export type {
+    TemplateVote,
+    VotingResult,
+    VoteAggregate,
+    VotingConfig,
+} from './voting.ts';
+
+// Similarity (advanced functions)
+export {
+    calculateDetailedSimilarity,
+    calculateAdaptiveDetailedSimilarity,
+    similarityPassesThreshold,
+} from './similarity.ts';
+export type { SimilarityResult } from './similarity.ts';
