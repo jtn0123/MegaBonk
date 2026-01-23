@@ -4,6 +4,8 @@
 // Advanced similarity methods for template matching
 // Based on scientific testing showing +41.8% F1 improvement
 
+import { applyAdaptivePreprocessing, type SceneAnalysis, analyzeScene } from './adaptive-preprocessing.ts';
+
 /**
  * Simple image data interface for cross-module compatibility
  */
@@ -11,6 +13,16 @@ interface SimpleImageData {
     data: Uint8ClampedArray | number[];
     width: number;
     height: number;
+}
+
+/**
+ * Preprocessing options
+ */
+export interface PreprocessOptions {
+    /** Use adaptive preprocessing based on scene analysis */
+    useAdaptive?: boolean;
+    /** Pre-computed scene analysis (avoids re-analyzing) */
+    sceneAnalysis?: SceneAnalysis;
 }
 
 // ========================================
@@ -442,4 +454,62 @@ export function calculateCombinedSimilarity(imageData1: SimpleImageData, imageDa
  */
 export function calculateEnhancedSimilarity(imageData1: ImageData, imageData2: ImageData): number {
     return calculateCombinedSimilarity(imageData1, imageData2);
+}
+
+/**
+ * Calculate similarity with adaptive preprocessing
+ * Uses scene analysis to determine optimal preprocessing parameters
+ */
+export function calculateAdaptiveSimilarity(
+    imageData1: SimpleImageData,
+    imageData2: SimpleImageData,
+    options?: PreprocessOptions
+): number {
+    let processed1: SimpleImageData;
+    let processed2: SimpleImageData;
+
+    if (options?.useAdaptive) {
+        // Use adaptive preprocessing
+        processed1 = applyAdaptivePreprocessing(imageData1);
+        processed2 = applyAdaptivePreprocessing(imageData2);
+    } else {
+        // Use standard preprocessing
+        processed1 = preprocessImage(imageData1);
+        processed2 = preprocessImage(imageData2);
+    }
+
+    // Calculate multiple similarity metrics
+    const ncc = calculateNCC(processed1, processed2);
+    const histogram = calculateHistogramSimilarity(processed1, processed2);
+    const ssim = calculateWindowedSSIM(processed1, processed2);
+    const edges = calculateEdgeSimilarity(processed1, processed2);
+
+    // Weighted combination
+    const weights = {
+        ncc: 0.2,
+        histogram: 0.2,
+        ssim: 0.35,
+        edges: 0.25,
+    };
+
+    const weightedScore =
+        ncc * weights.ncc +
+        histogram * weights.histogram +
+        ssim * weights.ssim +
+        edges * weights.edges;
+
+    // Agreement bonus
+    const scores = [ncc, histogram, ssim, edges];
+    const agreementThreshold = 0.6;
+    const methodsAboveThreshold = scores.filter(s => s >= agreementThreshold).length;
+    const agreementBonus = Math.max(0, (methodsAboveThreshold - 1) * 0.02);
+
+    return Math.min(0.99, weightedScore + agreementBonus);
+}
+
+/**
+ * Analyze scene and return analysis for reuse
+ */
+export function getSceneAnalysis(imageData: SimpleImageData): SceneAnalysis {
+    return analyzeScene(imageData);
 }

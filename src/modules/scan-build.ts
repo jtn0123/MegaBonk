@@ -241,8 +241,8 @@ function displayUploadedImage(): void {
     }
 
     // Re-attach clear button listener
-    const clearBtn = document.getElementById('scan-clear-image');
-    clearBtn?.addEventListener('click', clearUploadedImage);
+    const clearBtnElement = document.getElementById('scan-clear-image');
+    clearBtnElement?.addEventListener('click', clearUploadedImage);
 }
 
 /**
