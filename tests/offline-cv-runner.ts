@@ -238,6 +238,10 @@ const templateCache = new Map<string, TemplateData>();
 const templatesByRarity = new Map<string, TemplateData[]>();
 let itemsData: ItemsData | null = null;
 
+// Name-to-ID lookup map (populated from items.json)
+// Fixes critical bug: ground truth used hyphens but item IDs use underscores
+const itemNameToId = new Map<string, string>();
+
 // Try to load canvas module (optional dependency)
 let createCanvas: any;
 let loadImage: any;
@@ -290,21 +294,59 @@ interface TestCase {
 }
 
 /**
+ * Initialize name-to-ID lookup from items.json
+ * Must be called before convertItemsArray
+ */
+function initializeNameToIdLookup(): void {
+    if (itemNameToId.size > 0) return; // Already initialized
+
+    const itemsPath = path.join(__dirname, '../data/items.json');
+    if (!fs.existsSync(itemsPath)) {
+        console.warn('⚠️ items.json not found for name lookup');
+        return;
+    }
+
+    const data = JSON.parse(fs.readFileSync(itemsPath, 'utf-8'));
+    const items = data?.items || [];
+
+    for (const item of items) {
+        if (item.name && item.id) {
+            // Store both exact name and lowercase for flexible matching
+            itemNameToId.set(item.name, item.id);
+            itemNameToId.set(item.name.toLowerCase(), item.id);
+        }
+    }
+
+    console.log(`   ✓ Initialized name-to-ID lookup with ${itemNameToId.size / 2} items`);
+}
+
+/**
  * Convert simple item name array to structured format with counts
  * e.g., ["Wrench", "Wrench", "Ice Crystal"] -> [{id: "wrench", name: "Wrench", count: 2}, ...]
+ * Uses actual item IDs from items.json instead of generating them
  */
 function convertItemsArray(items: string[]): Array<{ id: string; name: string; count: number }> {
+    // Ensure lookup is initialized
+    initializeNameToIdLookup();
+
     const itemCounts = new Map<string, number>();
 
     for (const item of items) {
         itemCounts.set(item, (itemCounts.get(item) || 0) + 1);
     }
 
-    return Array.from(itemCounts.entries()).map(([name, count]) => ({
-        id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-        name,
-        count,
-    }));
+    return Array.from(itemCounts.entries()).map(([name, count]) => {
+        // Look up actual ID from items.json
+        let id = itemNameToId.get(name) || itemNameToId.get(name.toLowerCase());
+
+        // Fallback: generate ID with underscores (matching items.json format)
+        if (!id) {
+            id = name.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+            console.warn(`   ⚠️ Unknown item "${name}", using generated ID: ${id}`);
+        }
+
+        return { id, name, count };
+    });
 }
 
 /**
@@ -557,8 +599,8 @@ class OfflineCVRunner {
 
         // Note: Offline runner produces lower similarity scores than browser version
         // because it lacks multi-scale templates and training data optimizations.
-        // Use 0.50 threshold (vs 0.65 in browser) to compensate.
-        const CONFIDENCE_THRESHOLD = 0.50;
+        // Use 0.40 threshold to improve recall while accepting some false positives.
+        const CONFIDENCE_THRESHOLD = 0.40;
 
         // Process each grid cell
         for (const cell of gridPositions) {
