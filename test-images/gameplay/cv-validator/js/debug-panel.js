@@ -10,6 +10,7 @@ import {
     getErrorProneItems,
     calculateUncertaintyScore,
 } from './active-learning.js';
+import { getSessionTemplateCount } from './cv-detection.js';
 
 // Panel state
 let isDebugPanelOpen = false;
@@ -78,6 +79,9 @@ export function updateDebugPanel() {
 
     // Update active learning stats
     updateActiveLearningStats();
+
+    // Update recommendations
+    updateRecommendations(results, groundTruth);
 }
 
 /**
@@ -352,6 +356,129 @@ function updateSessionMetrics() {
     document.getElementById('metrics-twophase').textContent = twoPhaseSuccess > 0
         ? `${(twoPhaseSuccess * 100).toFixed(0)}%`
         : '--';
+}
+
+/**
+ * Update recommendations based on detection results
+ */
+function updateRecommendations(results, groundTruth) {
+    const container = document.getElementById('recommendations-list');
+    const templateCountEl = document.getElementById('session-template-count');
+
+    // Update session template count
+    if (templateCountEl) {
+        templateCountEl.textContent = getSessionTemplateCount();
+    }
+
+    if (!container) return;
+
+    const recommendations = [];
+
+    // Get error-prone items
+    const errorProne = getErrorProneItems(3);
+    if (errorProne.length > 0) {
+        const itemNames = errorProne.map(i => i.item).join(', ');
+        recommendations.push({
+            type: 'warning',
+            icon: '⚠️',
+            text: `<strong>${errorProne.length} items</strong> need more training data: ${itemNames}`,
+            action: null,
+        });
+    }
+
+    // Check for low-confidence detections
+    const lowConf = results.filter(r => r.confidence >= 0.5 && r.confidence < 0.65);
+    if (lowConf.length > 0) {
+        recommendations.push({
+            type: 'info',
+            icon: '💡',
+            text: `<strong>${lowConf.length} detections</strong> have borderline confidence (50-65%). Consider verifying these.`,
+            action: null,
+        });
+    }
+
+    // Check rarity-specific accuracy issues
+    const rarityStats = calculateRarityAccuracy(results, groundTruth);
+    const lowAccuracyRarities = Object.entries(rarityStats)
+        .filter(([_, stats]) => stats.total >= 2 && stats.accuracy < 0.7)
+        .map(([rarity]) => rarity);
+
+    if (lowAccuracyRarities.length > 0) {
+        recommendations.push({
+            type: 'info',
+            icon: '🎯',
+            text: `Consider adjusting thresholds for <strong>${lowAccuracyRarities.join(', ')}</strong> items (accuracy below 70%)`,
+            action: null,
+        });
+    }
+
+    // Session templates feedback
+    const sessionCount = getSessionTemplateCount();
+    if (sessionCount > 0) {
+        recommendations.push({
+            type: 'success',
+            icon: '✓',
+            text: `<strong>${sessionCount} templates</strong> added this session. These improve detection accuracy immediately.`,
+            action: null,
+        });
+    }
+
+    // Render recommendations
+    if (recommendations.length === 0) {
+        container.innerHTML = '<p class="no-data">No recommendations - detection looks good!</p>';
+    } else {
+        container.innerHTML = recommendations.map(rec => `
+            <div class="recommendation-item ${rec.type}">
+                <span class="rec-icon">${rec.icon}</span>
+                <span class="rec-text">${rec.text}</span>
+                ${rec.action ? `<span class="rec-action">${rec.action}</span>` : ''}
+            </div>
+        `).join('');
+    }
+}
+
+/**
+ * Calculate per-rarity accuracy
+ */
+function calculateRarityAccuracy(results, groundTruth) {
+    const stats = {};
+    const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+
+    for (const r of rarities) {
+        stats[r] = { total: 0, correct: 0, accuracy: 0 };
+    }
+
+    const gtItems = groundTruth?.items || [];
+
+    // Count ground truth by rarity
+    for (const item of gtItems) {
+        const rarity = item.rarity?.toLowerCase() || 'common';
+        if (stats[rarity]) {
+            stats[rarity].total++;
+        }
+    }
+
+    // Count correct detections by rarity
+    for (const result of results) {
+        const rarity = result.entity?.rarity?.toLowerCase() || 'common';
+        if (stats[rarity]) {
+            const isCorrect = gtItems.some(gt =>
+                gt.itemId === result.entity?.id || gt.name === result.entity?.name
+            );
+            if (isCorrect) {
+                stats[rarity].correct++;
+            }
+        }
+    }
+
+    // Calculate accuracy
+    for (const rarity of rarities) {
+        if (stats[rarity].total > 0) {
+            stats[rarity].accuracy = stats[rarity].correct / stats[rarity].total;
+        }
+    }
+
+    return stats;
 }
 
 /**

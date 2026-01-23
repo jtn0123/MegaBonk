@@ -70,6 +70,11 @@ let trainingIndex: TrainingIndex | null = null;
 const availableSources = new Set<string>();
 const enabledSources = new Set<string>();
 
+// Session templates - added during this session via corrections/exports
+// These are immediately available for detection without running import script
+const sessionTemplates = new Map<string, TrainingTemplate[]>();
+let sessionTemplateCount = 0;
+
 // Base path for training data (relative to app root)
 // Can be overridden with setTrainingDataBasePath() for library consumers
 let trainingDataBasePath = '/data/training-data/';
@@ -101,14 +106,93 @@ export function getTrainingIndex(): TrainingIndex | null {
 
 export function getTrainingTemplatesForItem(itemId: string): TrainingTemplate[] {
     const templates = trainingTemplates.get(itemId) || [];
+    const sessionTpls = sessionTemplates.get(itemId) || [];
+
+    // Combine loaded templates with session templates
+    let combined: TrainingTemplate[];
 
     // If no sources are enabled or all sources are enabled, return all
     if (enabledSources.size === 0 || enabledSources.size === availableSources.size) {
-        return templates;
+        combined = [...templates, ...sessionTpls];
+    } else {
+        // Filter by enabled sources (session templates always included)
+        combined = [
+            ...templates.filter(t => enabledSources.has(t.sourceImage)),
+            ...sessionTpls,
+        ];
     }
 
-    // Filter by enabled sources
-    return templates.filter(t => enabledSources.has(t.sourceImage));
+    return combined;
+}
+
+// ========================================
+// Session Template Management
+// ========================================
+
+/**
+ * Add a template to the session pool (immediately available for detection)
+ * @param itemId The item ID this template represents
+ * @param imageData The ImageData of the cropped icon
+ * @param metadata Additional metadata about the template
+ */
+export function addSessionTemplate(
+    itemId: string,
+    imageData: ImageData,
+    metadata: {
+        resolution?: string;
+        validationType?: 'corrected' | 'verified' | 'corrected_from_empty';
+        sourceImage?: string;
+        originalConfidence?: number;
+    } = {}
+): void {
+    const template: TrainingTemplate = {
+        imageData,
+        weight: getTemplateWeight(metadata.validationType || 'corrected'),
+        resolution: metadata.resolution || 'unknown',
+        validationType: metadata.validationType || 'corrected',
+        sourceImage: metadata.sourceImage || `session_${Date.now()}`,
+    };
+
+    if (!sessionTemplates.has(itemId)) {
+        sessionTemplates.set(itemId, []);
+    }
+    sessionTemplates.get(itemId)!.push(template);
+    sessionTemplateCount++;
+
+    logger.info({
+        operation: 'cv.training.session_template_added',
+        data: { itemId, sessionCount: sessionTemplateCount, validationType: metadata.validationType },
+    });
+}
+
+/**
+ * Get the count of session templates added this session
+ */
+export function getSessionTemplateCount(): number {
+    return sessionTemplateCount;
+}
+
+/**
+ * Get session templates for a specific item
+ */
+export function getSessionTemplatesForItem(itemId: string): TrainingTemplate[] {
+    return sessionTemplates.get(itemId) || [];
+}
+
+/**
+ * Clear all session templates (e.g., on page reload)
+ */
+export function clearSessionTemplates(): void {
+    sessionTemplates.clear();
+    sessionTemplateCount = 0;
+    logger.info({ operation: 'cv.training.session_templates_cleared' });
+}
+
+/**
+ * Get all items that have session templates
+ */
+export function getSessionTemplateItems(): string[] {
+    return Array.from(sessionTemplates.keys());
 }
 
 // ========================================

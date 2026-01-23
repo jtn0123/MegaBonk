@@ -568,3 +568,74 @@ export function getTrainingDataStats() {
     }
     return sharedLibrary.getTrainingStats();
 }
+
+// ========================================
+// Session Template Management (Real-time Learning)
+// ========================================
+
+/**
+ * Add a training template to the current session
+ * Templates added here are immediately available for detection
+ * @param {string} itemId - The item ID (e.g., "sword_of_flames")
+ * @param {ImageData} imageData - The ImageData of the cropped icon
+ * @param {Object} metadata - Additional metadata
+ */
+export function addSessionTemplate(itemId, imageData, metadata = {}) {
+    if (!useSharedLibrary || !sharedLibrary?.addSessionTemplate) {
+        log('Session templates require shared CV library');
+        return false;
+    }
+    sharedLibrary.addSessionTemplate(itemId, imageData, metadata);
+    return true;
+}
+
+/**
+ * Get the count of session templates added this session
+ */
+export function getSessionTemplateCount() {
+    if (!useSharedLibrary || !sharedLibrary?.getSessionTemplateCount) {
+        return 0;
+    }
+    return sharedLibrary.getSessionTemplateCount();
+}
+
+/**
+ * Get items that have session templates
+ */
+export function getSessionTemplateItems() {
+    if (!useSharedLibrary || !sharedLibrary?.getSessionTemplateItems) {
+        return [];
+    }
+    return sharedLibrary.getSessionTemplateItems();
+}
+
+/**
+ * Clear all session templates
+ */
+export function clearSessionTemplates() {
+    if (!useSharedLibrary || !sharedLibrary?.clearSessionTemplates) {
+        return;
+    }
+    sharedLibrary.clearSessionTemplates();
+}
+
+/**
+ * Extract ImageData from a crop data URL for adding as template
+ * @param {string} dataURL - Base64 data URL of the crop
+ * @returns {Promise<ImageData|null>}
+ */
+export function dataURLToImageData(dataURL) {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            resolve(ctx.getImageData(0, 0, img.width, img.height));
+        };
+        img.onerror = () => resolve(null);
+        img.src = dataURL;
+    });
+}

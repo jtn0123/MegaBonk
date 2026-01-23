@@ -5,8 +5,9 @@
 
 import { CONFIG, CSS_CLASSES } from './config.js';
 import { state } from './state.js';
-import { log, LOG_LEVELS, filterItems } from './utils.js';
+import { log, LOG_LEVELS, filterItems, showToast } from './utils.js';
 import { getAllItems } from './data-loader.js';
+import { addSessionTemplate, dataURLToImageData, getSessionTemplateCount } from './cv-detection.js';
 
 // DOM element references (set during init)
 let elements = {};
@@ -279,6 +280,53 @@ function selectCorrectionItem(itemName) {
 }
 
 // ========================================
+// Session Template Helper
+// ========================================
+
+/**
+ * Add the current crop as a session template for real-time learning
+ * @param {string} itemId - The item ID to associate with this template
+ * @param {string} validationType - 'corrected', 'verified', or 'corrected_from_empty'
+ * @param {number} originalConfidence - The original detection confidence
+ */
+async function addCropAsSessionTemplate(itemId, validationType, originalConfidence = 0) {
+    // Get the crop data URL from either detection or empty cell
+    const slotData = state.detectionsBySlot.get(state.currentCorrectionSlot);
+    const emptyData = state.emptyCells.get(state.currentCorrectionSlot);
+    const cropDataURL = slotData?.cropDataURL || emptyData?.cropDataURL;
+
+    if (!cropDataURL || !itemId) {
+        return;
+    }
+
+    // Convert the crop data URL to ImageData
+    const imageData = await dataURLToImageData(cropDataURL);
+    if (!imageData) {
+        log('Failed to convert crop to ImageData', LOG_LEVELS.WARNING);
+        return;
+    }
+
+    // Get resolution info
+    const resolution = state.currentImage
+        ? `${state.currentImage.width}x${state.currentImage.height}`
+        : 'unknown';
+
+    // Add as session template
+    const success = addSessionTemplate(itemId, imageData, {
+        resolution,
+        validationType,
+        sourceImage: state.currentImagePath || 'session',
+        originalConfidence,
+    });
+
+    if (success) {
+        const count = getSessionTemplateCount();
+        log(`Session template added for "${itemId}" (${count} total)`, LOG_LEVELS.SUCCESS);
+        showToast(`Template added for "${itemId}" (${count} total)`, 2000);
+    }
+}
+
+// ========================================
 // Apply/Cancel Corrections
 // ========================================
 
@@ -289,6 +337,12 @@ function applyCorrection() {
     const emptyData = state.emptyCells.get(state.currentCorrectionSlot);
 
     if (!slotData && !emptyData) return;
+
+    // Convert item name to item ID for templates
+    const itemId = state.selectedCorrectionItem
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, '_');
 
     if (state.currentSlotIsEmpty) {
         // Correcting an empty slot to have an item
@@ -304,26 +358,33 @@ function applyCorrection() {
             `Corrected empty slot ${state.currentCorrectionSlot} \u2192 "${state.selectedCorrectionItem}"`,
             LOG_LEVELS.SUCCESS
         );
+
+        // Add as session template (corrected from empty)
+        addCropAsSessionTemplate(itemId, 'corrected_from_empty', 0);
     } else {
         const originalName = slotData.detection.item.name;
+        const originalConfidence = slotData.detection.confidence;
 
         // If correcting to same item, treat as verified
         if (state.selectedCorrectionItem === originalName) {
             state.corrections.set(state.currentCorrectionSlot, {
                 original: {
                     name: originalName,
-                    confidence: slotData.detection.confidence,
+                    confidence: originalConfidence,
                 },
                 corrected: originalName,
                 verified: true,
             });
             log(`Verified slot ${state.currentCorrectionSlot} as correct: "${originalName}"`, LOG_LEVELS.SUCCESS);
+
+            // Add as session template (verified)
+            addCropAsSessionTemplate(itemId, 'verified', originalConfidence);
         } else {
             // Store correction
             state.corrections.set(state.currentCorrectionSlot, {
                 original: {
                     name: originalName,
-                    confidence: slotData.detection.confidence,
+                    confidence: originalConfidence,
                 },
                 corrected: state.selectedCorrectionItem,
             });
@@ -331,6 +392,9 @@ function applyCorrection() {
                 `Corrected slot ${state.currentCorrectionSlot}: "${originalName}" \u2192 "${state.selectedCorrectionItem}"`,
                 LOG_LEVELS.SUCCESS
             );
+
+            // Add as session template (corrected)
+            addCropAsSessionTemplate(itemId, 'corrected', originalConfidence);
         }
     }
 
@@ -345,18 +409,28 @@ function markAsCorrect() {
     if (!slotData) return;
 
     const originalName = slotData.detection.item.name;
+    const originalConfidence = slotData.detection.confidence;
+
+    // Convert item name to item ID for templates
+    const itemId = originalName
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .replace(/\s+/g, '_');
 
     // Store as verified correct (special marker)
     state.corrections.set(state.currentCorrectionSlot, {
         original: {
             name: originalName,
-            confidence: slotData.detection.confidence,
+            confidence: originalConfidence,
         },
         corrected: originalName, // Same as original means verified
         verified: true,
     });
 
     log(`Verified slot ${state.currentCorrectionSlot} as correct: "${originalName}"`, LOG_LEVELS.SUCCESS);
+
+    // Add as session template (verified)
+    addCropAsSessionTemplate(itemId, 'verified', originalConfidence);
 
     if (onCorrectionApplied) onCorrectionApplied();
     closeCorrectionPanel();

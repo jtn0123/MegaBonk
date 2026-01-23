@@ -3057,3 +3057,99 @@ button:disabled {
     font-family: monospace;
     color: var(--cyan);
 }
+
+/* Recommendations Section */
+.recommendations-section {
+    border-top: 1px solid var(--border);
+    padding-top: 12px;
+    margin-top: 8px;
+}
+
+.recommendations-list {
+    display: grid;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.recommendation-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 6px;
+    font-size: 12px;
+    border-left: 3px solid transparent;
+}
+
+.recommendation-item.warning {
+    border-left-color: var(--warning);
+    background: rgba(255, 193, 7, 0.05);
+}
+
+.recommendation-item.info {
+    border-left-color: var(--cyan);
+    background: rgba(0, 188, 212, 0.05);
+}
+
+.recommendation-item.success {
+    border-left-color: var(--success);
+    background: rgba(76, 175, 80, 0.05);
+}
+
+.recommendation-item .rec-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+}
+
+.recommendation-item .rec-text {
+    flex: 1;
+    line-height: 1.4;
+}
+
+.recommendation-item .rec-text strong {
+    color: var(--text-primary);
+}
+
+.recommendation-item .rec-action {
+    font-size: 10px;
+    color: var(--accent);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.recommendation-item .rec-action:hover {
+    text-decoration: underline;
+}
+
+/* Session Templates Info */
+.session-templates-info {
+    padding: 10px;
+    background: rgba(233, 69, 96, 0.08);
+    border-radius: 6px;
+    border: 1px solid rgba(233, 69, 96, 0.2);
+}
+
+.template-counter {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    margin-bottom: 4px;
+}
+
+.template-counter .icon {
+    font-size: 16px;
+}
+
+.template-counter strong {
+    color: var(--accent);
+    font-size: 16px;
+}
+
+.template-hint {
+    font-size: 10px;
+    color: var(--text-secondary);
+    margin: 0;
+    font-style: italic;
+}
