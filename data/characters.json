@@ -284,7 +284,7 @@
         "Blood Magic weapon"
       ],
       "synergies_items": [
-        "bloody Cleaver",
+        "Bloody Cleaver",
         "Demonic Blade",
         "Chonkplate"
       ],
@@ -297,7 +297,7 @@
         "Blood Magic",
         "Fast weapons"
       ],
-      "build_tips": "Attack speed = more heals. bloody Cleaver is core. Unkillable.",
+      "build_tips": "Attack speed = more heals. Bloody Cleaver is core. Unkillable.",
       "image": "images/characters/vlad.png"
     },
     {
@@ -695,8 +695,8 @@
         "Passive doesn't help combat"
       ],
       "synergies_items": [
-        "golden Glove",
-        "golden Sneakers"
+        "Golden Glove",
+        "Golden Sneakers"
       ],
       "synergies_tomes": [
         "gold",
@@ -775,7 +775,7 @@
       ],
       "synergies_items": [
         "Skuleg",
-        "cursed Grabbies"
+        "Cursed Grabbies"
       ],
       "synergies_tomes": [
         "cursed",

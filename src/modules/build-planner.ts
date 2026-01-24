@@ -824,9 +824,18 @@ export function updateBuildAnalysis(): void {
         }
     }
 
+    // Check item synergies with weapon (items use 'synergies' field, not 'synergies_weapons')
     currentBuild.items.forEach((item: Item) => {
-        if (currentBuild.weapon && item.synergies_weapons?.includes(currentBuild.weapon.name)) {
-            synergies.push(`✓ ${escapeHtml(item.name)} works great with ${escapeHtml(currentBuild.weapon.name)}`);
+        if (currentBuild.weapon) {
+            const itemSynergies = item.synergies || [];
+            const hasWeaponSynergy = itemSynergies.some(
+                (syn: string) =>
+                    syn.toLowerCase().includes(currentBuild.weapon!.name.toLowerCase()) ||
+                    currentBuild.weapon!.name.toLowerCase().includes(syn.toLowerCase())
+            );
+            if (hasWeaponSynergy) {
+                synergies.push(`✓ ${escapeHtml(item.name)} works great with ${escapeHtml(currentBuild.weapon.name)}`);
+            }
         }
     });
 
