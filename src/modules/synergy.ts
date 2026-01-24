@@ -66,10 +66,18 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
     }
 
     // Item-Weapon synergies
+    // Note: Items use 'synergies' field which may contain weapon names
     if (currentBuild.weapon) {
         const weapon = currentBuild.weapon;
         currentBuild.items.forEach((item: Item) => {
-            if (item.synergies_weapons?.includes(weapon.name)) {
+            // Check if item.synergies contains the weapon name (items don't have synergies_weapons)
+            const itemSynergies = item.synergies || [];
+            const hasWeaponSynergy = itemSynergies.some(
+                (syn: string) =>
+                    syn.toLowerCase().includes(weapon.name.toLowerCase()) ||
+                    weapon.name.toLowerCase().includes(syn.toLowerCase())
+            );
+            if (hasWeaponSynergy) {
                 synergies.push({
                     type: 'item-weapon',
                     message: `${item.name} works great with ${weapon.name}`,
@@ -81,10 +89,19 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
     }
 
     // Item-Character synergies
+    // Note: character.synergies_items contains item NAMES, not IDs
     if (currentBuild.character) {
         const character = currentBuild.character;
         currentBuild.items.forEach((item: Item) => {
-            if (character.synergies_items?.includes(item.id)) {
+            const charSynergies = character.synergies_items || [];
+            // Check both exact name match and partial match for flexibility
+            const hasCharSynergy = charSynergies.some(
+                (syn: string) =>
+                    syn === item.name ||
+                    syn.toLowerCase().includes(item.name.toLowerCase()) ||
+                    item.name.toLowerCase().includes(syn.toLowerCase())
+            );
+            if (hasCharSynergy) {
                 synergies.push({
                     type: 'item-character',
                     message: `${item.name} synergizes with ${character.name}`,

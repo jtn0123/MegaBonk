@@ -144,11 +144,21 @@ export function calculateNCC(imageData1: SimpleImageData, imageData2: SimpleImag
     const mean2 = sum2 / count;
 
     const numerator = sumProduct / count - mean1 * mean2;
-    const denominator = Math.sqrt((sumSquare1 / count - mean1 * mean1) * (sumSquare2 / count - mean2 * mean2));
+    // Note: variance can become slightly negative due to floating-point precision errors
+    // This causes Math.sqrt to return NaN, so we need to handle this case
+    const variance1 = sumSquare1 / count - mean1 * mean1;
+    const variance2 = sumSquare2 / count - mean2 * mean2;
+    const product = variance1 * variance2;
+    // Handle negative product (floating-point error) or zero variance
+    if (product <= 0) return 0;
+    const denominator = Math.sqrt(product);
 
-    if (denominator === 0) return 0;
+    // Check for NaN (can occur from floating-point edge cases) or zero denominator
+    if (denominator === 0 || !Number.isFinite(denominator)) return 0;
 
-    return (numerator / denominator + 1) / 2;
+    const result = (numerator / denominator + 1) / 2;
+    // Ensure result is in valid range [0, 1]
+    return Math.max(0, Math.min(1, result));
 }
 
 /**
