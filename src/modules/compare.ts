@@ -19,6 +19,14 @@ import { getState, setState } from './store.ts';
 // Flag to prevent double-close race condition
 let isModalClosing = false;
 
+/**
+ * Reset internal state for testing
+ * @internal - Only exported for test isolation
+ */
+export function __resetCompareState(): void {
+    isModalClosing = false;
+}
+
 // ========================================
 // Exported Functions
 // ========================================
@@ -253,21 +261,23 @@ export async function closeCompareModal(): Promise<void> {
 
     isModalClosing = true;
 
-    // Destroy compare chart before closing to prevent memory leak
-    // Dynamically import to access chartInstances
-    try {
-        const { chartInstances } = await import('./charts.ts');
-        const instances = chartInstances as Record<string, any>;
-        if (instances && instances['compare-scaling-chart']) {
-            instances['compare-scaling-chart'].destroy();
-            delete instances['compare-scaling-chart'];
-        }
-    } catch {
-        // Chart module not loaded yet, nothing to clean up
-    }
-
+    // Update UI immediately (don't block on chart cleanup)
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true'); // Hide from screen readers
+
+    // Destroy compare chart asynchronously to prevent memory leak
+    // Using fire-and-forget pattern to avoid blocking modal close
+    import('./charts.ts')
+        .then(({ chartInstances }) => {
+            const instances = chartInstances as Record<string, any>;
+            if (instances && instances['compare-scaling-chart']) {
+                instances['compare-scaling-chart'].destroy();
+                delete instances['compare-scaling-chart'];
+            }
+        })
+        .catch(() => {
+            // Chart module not loaded yet, nothing to clean up
+        });
     setTimeout(() => {
         modal.style.display = 'none';
         isModalClosing = false; // Reset flag after close animation completes

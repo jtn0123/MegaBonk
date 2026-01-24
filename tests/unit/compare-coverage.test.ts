@@ -107,6 +107,7 @@ import {
     updateCompareDisplay,
     clearCompare,
     getCompareItems,
+    __resetCompareState,
 } from '../../src/modules/compare';
 import { ToastManager } from '../../src/modules/toast';
 import { getState, setState } from '../../src/modules/store';

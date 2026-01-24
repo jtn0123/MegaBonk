@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CV Analytics Dashboard - MegaBonk</title>
     <link rel="stylesheet" href="cv-validator/styles/base.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             padding: 20px;
@@ -21,13 +22,28 @@
             margin-bottom: 24px;
         }
 
-        .nav-links {
-            margin-bottom: 20px;
+        .page-nav {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            padding: 8px;
+            background: var(--bg-panel);
+            border-radius: 6px;
         }
 
-        .nav-links a {
-            color: var(--accent);
-            margin-right: 16px;
+        .page-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .page-nav a:hover {
+            color: var(--text-primary);
+            background: var(--bg-card);
         }
 
         .dashboard-grid {
@@ -250,16 +266,85 @@
             color: var(--accent);
             font-weight: 600;
         }
+
+        /* Confusion heatmap styles */
+        .confusion-heatmap-container {
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .confusion-heatmap {
+            display: grid;
+            gap: 2px;
+            font-size: 10px;
+            min-width: fit-content;
+        }
+
+        .heatmap-row {
+            display: contents;
+        }
+
+        .heatmap-header {
+            background: var(--bg-primary);
+            padding: 6px 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 80px;
+        }
+
+        .heatmap-header.row-label {
+            text-align: right;
+            padding-right: 10px;
+        }
+
+        .heatmap-cell {
+            padding: 6px 8px;
+            text-align: center;
+            border-radius: 2px;
+            cursor: default;
+            min-width: 40px;
+        }
+
+        .heatmap-cell.diagonal {
+            background: rgba(45, 74, 111, 0.3);
+            color: var(--text-secondary);
+        }
+
+        .heatmap-legend {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 16px;
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .legend-scale {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .legend-box {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+        }
     </style>
 </head>
 <body>
     <h1>CV Analytics Dashboard</h1>
     <p class="header-info">Training data coverage, accuracy metrics, and confusion analysis</p>
 
-    <div class="nav-links">
-        <a href="cv-validator.html">&larr; Back to Validator</a>
-        <a href="training-validator.html">Training Data Viewer</a>
-    </div>
+    <nav class="page-nav">
+        <a href="cv-validator.html">🔍 Validator</a>
+        <a href="cv-performance.html">⚡ Performance</a>
+        <a href="training-validator.html">🎯 Training Data</a>
+    </nav>
 
     <div class="actions">
         <button onclick="loadAnalytics()" class="primary">Refresh Data</button>
@@ -294,16 +379,22 @@
             </div>
         </div>
 
-        <!-- Coverage by Source -->
+        <!-- Coverage by Source - Chart -->
         <div class="section">
             <h2>Samples by Source</h2>
-            <div id="source-breakdown" class="resolution-breakdown"></div>
+            <div class="chart-wrapper small">
+                <canvas id="source-chart"></canvas>
+            </div>
+            <div id="source-breakdown" class="resolution-breakdown" style="margin-top: 16px;"></div>
         </div>
 
-        <!-- Coverage by Resolution -->
+        <!-- Coverage by Resolution - Chart -->
         <div class="section">
             <h2>Samples by Resolution</h2>
-            <div id="resolution-breakdown" class="resolution-breakdown"></div>
+            <div class="chart-wrapper small">
+                <canvas id="resolution-chart"></canvas>
+            </div>
+            <div id="resolution-breakdown" class="resolution-breakdown" style="margin-top: 16px;"></div>
         </div>
 
         <!-- Items with Low Coverage -->
@@ -325,9 +416,18 @@
             </div>
         </div>
 
-        <!-- Commonly Confused Items -->
+        <!-- Confusion Matrix Heatmap -->
         <div class="section">
-            <h2>Common Misclassifications</h2>
+            <h2>Confusion Matrix</h2>
+            <p style="color: var(--text-secondary); margin-bottom: 16px;">
+                Visual heatmap of misclassifications. Darker cells indicate more frequent confusions.
+            </p>
+            <div id="confusion-heatmap" class="confusion-heatmap-container"></div>
+        </div>
+
+        <!-- Commonly Confused Items - Table -->
+        <div class="section">
+            <h2>Common Misclassifications (Table)</h2>
             <p style="color: var(--text-secondary); margin-bottom: 16px;">Items frequently confused with each other (from correction history)</p>
             <div class="table-container">
                 <table id="confusion-table">
@@ -375,6 +475,10 @@
         let trainingIndex = null;
         let validatedExports = [];
         let itemsData = null;
+
+        // Chart instances
+        let sourceChart = null;
+        let resolutionChart = null;
 
         // Load all analytics data
         async function loadAnalytics() {
@@ -519,16 +623,19 @@
             avgEl.textContent = avgSamples;
             avgEl.className = 'stat-value ' + (avgSamples >= 5 ? 'good' : avgSamples >= 2 ? 'warning' : 'bad');
 
-            // Source breakdown
+            // Source breakdown with chart
             renderSourceBreakdown();
 
-            // Resolution breakdown
+            // Resolution breakdown with chart
             renderResolutionBreakdown(resolutions);
 
             // Low coverage items
             renderLowCoverageTable(allItemNames, items);
 
-            // Confusion analysis
+            // Confusion heatmap
+            renderConfusionHeatmap();
+
+            // Confusion table
             renderConfusionTable();
 
             // All items table
@@ -537,25 +644,92 @@
 
         function renderSourceBreakdown() {
             const container = document.getElementById('source-breakdown');
+            const canvas = document.getElementById('source-chart');
             const sources = trainingIndex?.sources || {};
 
-            container.innerHTML = '';
+            // Destroy existing chart
+            if (sourceChart) {
+                sourceChart.destroy();
+                sourceChart = null;
+            }
 
-            for (const [source, data] of Object.entries(sources)) {
+            const sourceEntries = Object.entries(sources).sort((a, b) => (b[1].sample_count || 0) - (a[1].sample_count || 0));
+
+            if (sourceEntries.length === 0) {
+                canvas.parentElement.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📁</div>
+                        <h3>No Source Data</h3>
+                        <p>Import validated screenshots to see source breakdown.</p>
+                    </div>
+                `;
+                container.innerHTML = '';
+                return;
+            }
+
+            // Create bar chart
+            const ctx = canvas.getContext('2d');
+            const colors = ['#e94560', '#4ade80', '#06b6d4', '#fbbf24', '#a855f7', '#f97316'];
+
+            sourceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: sourceEntries.map(([name]) => name),
+                    datasets: [{
+                        label: 'Samples',
+                        data: sourceEntries.map(([, data]) => data.sample_count || 0),
+                        backgroundColor: sourceEntries.map((_, i) => colors[i % colors.length] + '80'),
+                        borderColor: sourceEntries.map((_, i) => colors[i % colors.length]),
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(22, 33, 62, 0.95)',
+                            titleColor: '#e0e0e0',
+                            bodyColor: '#a0a0a0',
+                            borderColor: '#2d4a6f',
+                            borderWidth: 1
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(45, 74, 111, 0.3)' },
+                            ticks: { color: '#a0a0a0' }
+                        },
+                        y: {
+                            grid: { display: false },
+                            ticks: { color: '#e0e0e0' }
+                        }
+                    }
+                }
+            });
+
+            // Also render tags
+            container.innerHTML = '';
+            for (const [source, data] of sourceEntries) {
                 const tag = document.createElement('div');
                 tag.className = 'resolution-tag';
                 tag.innerHTML = `${escapeHtml(source)}: <span class="count">${data.sample_count || 0}</span>`;
                 container.appendChild(tag);
             }
-
-            if (container.children.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-secondary);">No source data available</p>';
-            }
         }
 
         function renderResolutionBreakdown(resolutions) {
             const container = document.getElementById('resolution-breakdown');
+            const canvas = document.getElementById('resolution-chart');
             const items = trainingIndex?.items || {};
+
+            // Destroy existing chart
+            if (resolutionChart) {
+                resolutionChart.destroy();
+                resolutionChart = null;
+            }
 
             // Count samples per resolution
             const resCounts = {};
@@ -566,17 +740,72 @@
                 }
             }
 
-            container.innerHTML = '';
+            const resEntries = Object.entries(resCounts).sort((a, b) => b[1] - a[1]);
 
-            for (const [res, count] of Object.entries(resCounts).sort((a, b) => b[1] - a[1])) {
+            if (resEntries.length === 0) {
+                canvas.parentElement.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📐</div>
+                        <h3>No Resolution Data</h3>
+                        <p>Resolution data will appear after importing validated screenshots.</p>
+                    </div>
+                `;
+                container.innerHTML = '';
+                return;
+            }
+
+            // Create doughnut chart
+            const ctx = canvas.getContext('2d');
+            const colors = ['#e94560', '#4ade80', '#06b6d4', '#fbbf24', '#a855f7', '#f97316', '#10b981', '#8b5cf6'];
+
+            resolutionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: resEntries.map(([res]) => res),
+                    datasets: [{
+                        data: resEntries.map(([, count]) => count),
+                        backgroundColor: resEntries.map((_, i) => colors[i % colors.length] + '80'),
+                        borderColor: resEntries.map((_, i) => colors[i % colors.length]),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                color: '#e0e0e0',
+                                padding: 12,
+                                usePointStyle: true
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(22, 33, 62, 0.95)',
+                            titleColor: '#e0e0e0',
+                            bodyColor: '#a0a0a0',
+                            borderColor: '#2d4a6f',
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = ((context.parsed / total) * 100).toFixed(1);
+                                    return `${context.label}: ${context.parsed} (${pct}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Also render tags
+            container.innerHTML = '';
+            for (const [res, count] of resEntries) {
                 const tag = document.createElement('div');
                 tag.className = 'resolution-tag';
                 tag.innerHTML = `${escapeHtml(res)}: <span class="count">${count}</span>`;
                 container.appendChild(tag);
-            }
-
-            if (container.children.length === 0) {
-                container.innerHTML = '<p style="color: var(--text-secondary);">No resolution data available</p>';
             }
         }
 
@@ -630,6 +859,122 @@
             if (coverageData.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; color: var(--text-secondary);">All items have sufficient coverage!</td></tr>';
             }
+        }
+
+        function renderConfusionHeatmap() {
+            const container = document.getElementById('confusion-heatmap');
+
+            // Analyze validated exports for corrections
+            const confusions = new Map();
+            const allItems = new Set();
+
+            for (const exp of validatedExports) {
+                for (const slot of Object.values(exp.slots || {})) {
+                    if (slot.was_corrected && slot.original_detection && slot.item) {
+                        const detected = slot.original_detection;
+                        const actual = slot.item;
+                        const key = `${detected}|${actual}`;
+                        const current = confusions.get(key) || { detected, actual, count: 0 };
+                        current.count++;
+                        confusions.set(key, current);
+                        allItems.add(detected);
+                        allItems.add(actual);
+                    }
+                }
+            }
+
+            if (confusions.size === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔍</div>
+                        <h3>No Confusion Data Yet</h3>
+                        <p>Confusion data is collected from validated screenshots where corrections were made.</p>
+                        <p>Complete some validations with corrections to see the heatmap.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // Get top items involved in confusions (limit to 10 for readability)
+            const itemCounts = new Map();
+            for (const item of allItems) {
+                itemCounts.set(item, 0);
+            }
+            for (const conf of confusions.values()) {
+                itemCounts.set(conf.detected, (itemCounts.get(conf.detected) || 0) + conf.count);
+                itemCounts.set(conf.actual, (itemCounts.get(conf.actual) || 0) + conf.count);
+            }
+
+            const topItems = [...itemCounts.entries()]
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 10)
+                .map(([item]) => item);
+
+            // Find max confusion count for intensity scaling
+            const maxCount = Math.max(...[...confusions.values()].map(c => c.count), 1);
+
+            // Build the heatmap grid
+            const cols = topItems.length + 1; // +1 for row labels
+            let html = `<div class="confusion-heatmap" style="grid-template-columns: 100px repeat(${topItems.length}, 1fr);">`;
+
+            // Header row (column labels)
+            html += '<div class="heatmap-header"></div>'; // Empty corner cell
+            for (const item of topItems) {
+                const shortName = item.length > 12 ? item.slice(0, 10) + '...' : item;
+                html += `<div class="heatmap-header" title="${escapeHtml(item)}">${escapeHtml(shortName)}</div>`;
+            }
+
+            // Data rows
+            for (const rowItem of topItems) {
+                const shortRowName = rowItem.length > 12 ? rowItem.slice(0, 10) + '...' : rowItem;
+                html += `<div class="heatmap-header row-label" title="${escapeHtml(rowItem)}">${escapeHtml(shortRowName)}</div>`;
+
+                for (const colItem of topItems) {
+                    if (rowItem === colItem) {
+                        // Diagonal - self confusion doesn't make sense
+                        html += '<div class="heatmap-cell diagonal">-</div>';
+                    } else {
+                        const key = `${rowItem}|${colItem}`;
+                        const conf = confusions.get(key);
+                        const count = conf?.count || 0;
+
+                        // Calculate intensity (0-5 scale)
+                        const intensity = count === 0 ? 0 : Math.min(5, Math.ceil((count / maxCount) * 5));
+
+                        html += `<div class="heatmap-cell intensity-${intensity}" title="${escapeHtml(rowItem)} → ${escapeHtml(colItem)}: ${count}">${count || ''}</div>`;
+                    }
+                }
+            }
+
+            html += '</div>';
+
+            // Add legend
+            html += `
+                <div class="heatmap-legend">
+                    <span>Confusion frequency:</span>
+                    <div class="legend-scale">
+                        <div class="legend-box intensity-0"></div>
+                        <span>None</span>
+                    </div>
+                    <div class="legend-scale">
+                        <div class="legend-box intensity-1"></div>
+                        <span>Low</span>
+                    </div>
+                    <div class="legend-scale">
+                        <div class="legend-box intensity-3"></div>
+                        <span>Medium</span>
+                    </div>
+                    <div class="legend-scale">
+                        <div class="legend-box intensity-5"></div>
+                        <span>High</span>
+                    </div>
+                </div>
+                <p style="margin-top: 12px; font-size: 11px; color: var(--text-secondary);">
+                    Rows = Detected as | Columns = Actually was
+                </p>
+            `;
+
+            container.innerHTML = html;
         }
 
         function renderConfusionTable() {

@@ -48,6 +48,30 @@ h2 {
     gap: 6px;
 }
 
+.page-nav {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 12px;
+    padding: 8px;
+    background: var(--bg-panel);
+    border-radius: 6px;
+}
+
+.page-nav a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    padding: 4px 10px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.page-nav a:hover {
+    color: var(--text-primary);
+    background: var(--bg-card);
+}
+
 h3 {
     margin-bottom: 6px;
     font-size: 13px;
@@ -59,3 +83,105 @@ h3 {
 .rarity-rare { background: #3b82f6; }
 .rarity-epic { background: #a855f7; }
 .rarity-legendary { background: #f59e0b; }
+
+/* Status colors for tables */
+.status-good { background: rgba(74, 222, 128, 0.15); }
+.status-warning { background: rgba(251, 191, 36, 0.15); }
+.status-bad { background: rgba(248, 113, 113, 0.15); }
+
+tr.status-good:hover { background: rgba(74, 222, 128, 0.25); }
+tr.status-warning:hover { background: rgba(251, 191, 36, 0.25); }
+tr.status-bad:hover { background: rgba(248, 113, 113, 0.25); }
+
+/* Chart containers */
+.chart-wrapper {
+    position: relative;
+    height: 300px;
+    margin: 20px 0;
+}
+
+.chart-wrapper.small {
+    height: 200px;
+}
+
+/* Sparkline container */
+.sparkline {
+    display: inline-block;
+    width: 60px;
+    height: 20px;
+    vertical-align: middle;
+}
+
+/* Empty states */
+.empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-state .icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-state h3 {
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.empty-state p {
+    font-size: 13px;
+    margin-bottom: 16px;
+}
+
+.empty-state .action-hint {
+    background: var(--bg-card);
+    padding: 12px 16px;
+    border-radius: 6px;
+    display: inline-block;
+    font-family: monospace;
+    font-size: 12px;
+}
+
+/* Last updated timestamp */
+.last-updated {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: right;
+    margin-bottom: 12px;
+}
+
+.last-updated .timestamp {
+    color: var(--cyan);
+}
+
+/* Heatmap cell colors for confusion matrix */
+.heatmap-cell {
+    padding: 8px;
+    text-align: center;
+    border-radius: 3px;
+    font-size: 11px;
+    transition: transform 0.15s;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.1);
+    z-index: 1;
+}
+
+.heatmap-cell.intensity-0, .legend-box.intensity-0 { background: rgba(74, 222, 128, 0.1); }
+.heatmap-cell.intensity-1, .legend-box.intensity-1 { background: rgba(251, 191, 36, 0.2); }
+.heatmap-cell.intensity-2, .legend-box.intensity-2 { background: rgba(251, 191, 36, 0.4); }
+.heatmap-cell.intensity-3, .legend-box.intensity-3 { background: rgba(248, 113, 113, 0.3); }
+.heatmap-cell.intensity-4, .legend-box.intensity-4 { background: rgba(248, 113, 113, 0.5); }
+.heatmap-cell.intensity-5, .legend-box.intensity-5 { background: rgba(248, 113, 113, 0.7); }
+
+/* Legend box base style */
+.legend-box {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    display: inline-block;
+}

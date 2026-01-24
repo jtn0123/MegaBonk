@@ -98,12 +98,17 @@ export function fuzzyMatchScore(searchTerm: string, text: string, fieldName: str
  * Whitelist approach prevents prototype pollution attacks
  */
 const ALLOWED_FILTER_KEYS = new Set([
+    // Entity properties
     'tier',
     'rarity',
+    'type',
+    'name',
+    'id',
+    // Item properties
     'damage',
+    'hp',
     'stacks_well',
     'one_and_done',
-    'type',
     'stat',
     'priority',
     'tags',
@@ -111,6 +116,19 @@ const ALLOWED_FILTER_KEYS = new Set([
     'effect',
     'scaling_type',
     'graph_type',
+    'multiplier',
+    'base_effect',
+    'formula',
+    // Character/Weapon properties
+    'attack_speed',
+    'movement_speed',
+    'crit_chance',
+    'crit_damage',
+    'armor',
+    'evasion',
+    // Tome properties
+    'stat_affected',
+    'value_per_level',
 ]);
 
 /**

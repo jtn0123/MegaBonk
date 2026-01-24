@@ -302,13 +302,12 @@ export async function loadAllData(): Promise<void> {
         allData = newData;
 
         // Invalidate build stats cache when data changes
-        // Using dynamic import to avoid circular dependency
-        try {
-            const { invalidateBuildStatsCache } = await import('./build-planner.ts');
-            invalidateBuildStatsCache();
-        } catch {
-            // Build planner not loaded yet, cache will be empty anyway
-        }
+        // Using fire-and-forget dynamic import to avoid blocking and circular dependency
+        import('./build-planner.ts')
+            .then(({ invalidateBuildStatsCache }) => invalidateBuildStatsCache())
+            .catch(() => {
+                // Build planner not loaded yet, cache will be empty anyway
+            });
 
         // Run comprehensive validation
         const validationResult = validateAllData(allData);

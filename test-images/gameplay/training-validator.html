@@ -35,8 +35,12 @@
 
         .header-info {
             color: var(--text-secondary);
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
+
+        .page-nav { display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; padding: 8px; background: var(--bg-panel); border-radius: 6px; }
+        .page-nav a { color: var(--text-secondary); text-decoration: none; font-size: 13px; padding: 4px 10px; border-radius: 4px; transition: all 0.2s; }
+        .page-nav a:hover { color: var(--text-primary); background: var(--bg-card); }
 
         .controls {
             display: flex;
@@ -319,6 +323,11 @@
 <body>
     <h1>Training Data Validator</h1>
     <p class="header-info">Validate training crops against reference icons to catch regressions</p>
+    <nav class="page-nav">
+        <a href="cv-validator.html">🔍 Validator</a>
+        <a href="cv-analytics.html">📊 Analytics</a>
+        <a href="cv-performance.html">⚡ Performance</a>
+    </nav>
 
     <div class="controls">
         <select id="filter-item">

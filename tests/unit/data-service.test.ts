@@ -27,7 +27,7 @@ vi.mock('../../src/modules/logger.ts', () => ({
 vi.mock('../../src/modules/data-validation.ts', () => ({
     validateAllData: vi.fn(() => ({ valid: true, errors: [], warnings: [] })),
     logValidationResults: vi.fn(),
-    validateWithZod: vi.fn(),
+    validateWithZod: vi.fn(() => ({ valid: true, errors: [] })),
 }));
 
 vi.mock('../../src/modules/events.ts', () => ({

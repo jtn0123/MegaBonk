@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CV Performance Tracker - MegaBonk</title>
     <link rel="stylesheet" href="cv-validator/styles/base.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         body {
             padding: 20px;
@@ -15,8 +16,9 @@
         h1 { margin-bottom: 8px; }
         .header-info { color: var(--text-secondary); margin-bottom: 24px; }
 
-        .nav-links { margin-bottom: 20px; }
-        .nav-links a { color: var(--accent); margin-right: 16px; }
+        .page-nav { display: flex; justify-content: center; gap: 16px; margin-bottom: 16px; padding: 8px; background: var(--bg-panel); border-radius: 6px; }
+        .page-nav a { color: var(--text-secondary); text-decoration: none; font-size: 13px; padding: 4px 10px; border-radius: 4px; transition: all 0.2s; }
+        .page-nav a:hover { color: var(--text-primary); background: var(--bg-card); }
 
         .actions {
             display: flex;
@@ -222,10 +224,11 @@
     <h1>CV Performance Tracker</h1>
     <p class="header-info">Track detection accuracy improvements over time</p>
 
-    <div class="nav-links">
-        <a href="cv-validator.html">&larr; Back to Validator</a>
-        <a href="cv-analytics.html">Training Analytics</a>
-    </div>
+    <nav class="page-nav">
+        <a href="cv-validator.html">🔍 Validator</a>
+        <a href="cv-analytics.html">📊 Analytics</a>
+        <a href="training-validator.html">🎯 Training Data</a>
+    </nav>
 
     <div class="actions">
         <div class="run-btn-container">
@@ -239,6 +242,10 @@
     </div>
 
     <pre id="run-output"></pre>
+
+    <div class="last-updated" id="last-updated" style="display: none;">
+        Last updated: <span class="timestamp" id="update-timestamp">--</span>
+    </div>
 
     <div id="loading" class="loading">Loading performance data...</div>
 
@@ -278,10 +285,12 @@
             </div>
         </div>
 
-        <!-- F1 Score Over Time -->
+        <!-- F1 Score Over Time - Chart.js Line Chart -->
         <div class="section">
-            <h2>F1 Score History</h2>
-            <div class="bar-chart" id="f1-chart"></div>
+            <h2>Performance Trends</h2>
+            <div class="chart-wrapper">
+                <canvas id="trend-chart"></canvas>
+            </div>
         </div>
 
         <!-- Per-Image Performance -->
@@ -331,6 +340,7 @@
 
         let benchmarkHistory = { runs: [] };
         let testResults = [];
+        let trendChart = null; // Chart.js instance
 
         async function loadData() {
             const loading = document.getElementById('loading');
@@ -414,14 +424,44 @@
             // Render baseline comparison
             renderBaselineComparison(latestMetrics);
 
-            // Render F1 chart
-            renderF1Chart();
+            // Render trend chart (Chart.js)
+            renderTrendChart();
 
-            // Render per-image table
+            // Render per-image table with color coding
             renderPerImageTable();
 
-            // Render recent runs
+            // Render recent runs with color coding
             renderRecentRuns();
+
+            // Update timestamp
+            updateLastUpdated();
+        }
+
+        function updateLastUpdated() {
+            const container = document.getElementById('last-updated');
+            const timestamp = document.getElementById('update-timestamp');
+            container.style.display = 'block';
+
+            if (benchmarkHistory.runs.length > 0) {
+                const lastRun = benchmarkHistory.runs[benchmarkHistory.runs.length - 1];
+                const date = new Date(lastRun.timestamp);
+                const now = new Date();
+                const diffMs = now - date;
+                const diffMins = Math.floor(diffMs / 60000);
+
+                if (diffMins < 1) {
+                    timestamp.textContent = 'just now';
+                } else if (diffMins < 60) {
+                    timestamp.textContent = `${diffMins} minute${diffMins === 1 ? '' : 's'} ago`;
+                } else if (diffMins < 1440) {
+                    const hours = Math.floor(diffMins / 60);
+                    timestamp.textContent = `${hours} hour${hours === 1 ? '' : 's'} ago`;
+                } else {
+                    timestamp.textContent = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+                }
+            } else {
+                timestamp.textContent = 'no data';
+            }
         }
 
         function updateStatCard(valueId, value, prevValue, trendId) {
@@ -495,33 +535,128 @@
             `;
         }
 
-        function renderF1Chart() {
-            const container = document.getElementById('f1-chart');
-            container.innerHTML = '';
+        function renderTrendChart() {
+            const canvas = document.getElementById('trend-chart');
+            const runs = benchmarkHistory.runs.slice(-20); // Last 20 runs
 
-            const runs = benchmarkHistory.runs.slice(-15); // Last 15 runs
+            // Destroy existing chart if present
+            if (trendChart) {
+                trendChart.destroy();
+                trendChart = null;
+            }
+
             if (runs.length === 0) {
-                container.innerHTML = '<p style="text-align: center; color: var(--text-secondary);">No benchmark data yet</p>';
+                // Show empty state
+                canvas.parentElement.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📈</div>
+                        <h3>No Benchmark Data Yet</h3>
+                        <p>Run your first benchmark to see performance trends over time.</p>
+                        <div class="action-hint">npm run test:cv:offline</div>
+                    </div>
+                `;
                 return;
             }
 
-            const maxF1 = Math.max(...runs.map(r => r.metrics.f1), 0.1);
+            const labels = runs.map(r => {
+                const d = new Date(r.timestamp);
+                return `${d.getMonth() + 1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`;
+            });
 
-            for (const run of runs) {
-                const height = (run.metrics.f1 / maxF1) * 180;
-                const date = new Date(run.timestamp);
-                const label = `${date.getMonth() + 1}/${date.getDate()}`;
-
-                const group = document.createElement('div');
-                group.className = 'bar-group';
-                group.innerHTML = `
-                    <div class="bar" style="height: ${Math.max(4, height)}px;">
-                        <span class="bar-value">${(run.metrics.f1 * 100).toFixed(1)}%</span>
-                    </div>
-                    <span class="bar-label">${label}</span>
-                `;
-                container.appendChild(group);
-            }
+            const ctx = canvas.getContext('2d');
+            trendChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'F1 Score',
+                            data: runs.map(r => (r.metrics.f1 * 100).toFixed(1)),
+                            borderColor: '#e94560',
+                            backgroundColor: 'rgba(233, 69, 96, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                        },
+                        {
+                            label: 'Precision',
+                            data: runs.map(r => (r.metrics.precision * 100).toFixed(1)),
+                            borderColor: '#4ade80',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                        },
+                        {
+                            label: 'Recall',
+                            data: runs.map(r => (r.metrics.recall * 100).toFixed(1)),
+                            borderColor: '#06b6d4',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            tension: 0.3,
+                            pointRadius: 3,
+                            pointHoverRadius: 5,
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                color: '#e0e0e0',
+                                usePointStyle: true,
+                                padding: 20
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(22, 33, 62, 0.95)',
+                            titleColor: '#e0e0e0',
+                            bodyColor: '#a0a0a0',
+                            borderColor: '#2d4a6f',
+                            borderWidth: 1,
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(45, 74, 111, 0.3)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0',
+                                maxRotation: 45
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            grid: {
+                                color: 'rgba(45, 74, 111, 0.3)'
+                            },
+                            ticks: {
+                                color: '#a0a0a0',
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         function renderPerImageTable() {
@@ -549,10 +684,15 @@
                     ? data.latest - data.f1Scores[data.f1Scores.length - 2]
                     : 0;
 
+                // Color coding based on F1 score
+                const statusClass = data.latest >= 0.8 ? 'status-good' :
+                                   data.latest >= 0.5 ? 'status-warning' : 'status-bad';
+
                 const row = document.createElement('tr');
+                row.className = statusClass;
                 row.innerHTML = `
                     <td title="${escapeHtml(image)}">${escapeHtml(shortName)}</td>
-                    <td>${(data.latest * 100).toFixed(1)}%</td>
+                    <td><strong>${(data.latest * 100).toFixed(1)}%</strong></td>
                     <td>
                         ${trend > 0.01 ? '<span class="trend-arrow up">↑</span>' :
                           trend < -0.01 ? '<span class="trend-arrow down">↓</span>' : '→'}
@@ -564,7 +704,17 @@
             }
 
             if (sorted.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No per-image data</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5">
+                            <div class="empty-state">
+                                <div class="icon">🖼️</div>
+                                <h3>No Per-Image Data</h3>
+                                <p>Run the CV test suite to see individual image performance.</p>
+                                <div class="action-hint">npm run test:cv:offline</div>
+                            </div>
+                        </td>
+                    </tr>`;
             }
         }
 
@@ -576,12 +726,18 @@
 
             for (const run of runs) {
                 const date = new Date(run.timestamp);
+
+                // Color coding based on F1 score
+                const statusClass = run.metrics.f1 >= 0.8 ? 'status-good' :
+                                   run.metrics.f1 >= 0.5 ? 'status-warning' : 'status-bad';
+
                 const row = document.createElement('tr');
+                row.className = statusClass;
                 row.innerHTML = `
                     <td>${escapeHtml(date.toLocaleDateString())} ${escapeHtml(date.toLocaleTimeString())}</td>
                     <td>${escapeHtml(run.mode || 'full')}</td>
                     <td>${run.imageCount}</td>
-                    <td>${(run.metrics.f1 * 100).toFixed(1)}%</td>
+                    <td><strong>${(run.metrics.f1 * 100).toFixed(1)}%</strong></td>
                     <td>${(run.metrics.precision * 100).toFixed(1)}%</td>
                     <td>${(run.metrics.recall * 100).toFixed(1)}%</td>
                     <td>${run.timing?.totalMs || '--'}ms</td>
@@ -590,7 +746,17 @@
             }
 
             if (runs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No runs yet</td></tr>';
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <div class="icon">🚀</div>
+                                <h3>No Benchmark Runs Yet</h3>
+                                <p>Click "Run Benchmark Now" or use the command line to start.</p>
+                                <div class="action-hint">npm run test:cv:offline</div>
+                            </div>
+                        </td>
+                    </tr>`;
             }
         }
 
