@@ -102,7 +102,7 @@ export function startFeedbackSession(imageDataUrl: string, imageWidth: number, i
     } catch (e) {
         logger.warn({
             operation: 'feedback.session_save_failed',
-            error: { message: (e as Error).message },
+            error: { name: (e as Error).name, message: (e as Error).message },
         });
     }
 
@@ -130,7 +130,7 @@ export function getCurrentSession(): FeedbackSession | null {
     } catch (e) {
         logger.warn({
             operation: 'feedback.session_restore_failed',
-            error: { message: (e as Error).message },
+            error: { name: (e as Error).name, message: (e as Error).message },
         });
     }
 
@@ -228,7 +228,7 @@ export async function addCorrection(
         } catch (e) {
             logger.warn({
                 operation: 'feedback.crop_extraction_failed',
-                error: { message: (e as Error).message },
+                error: { name: (e as Error).name, message: (e as Error).message },
             });
         }
     }

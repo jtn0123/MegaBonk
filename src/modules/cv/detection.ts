@@ -48,7 +48,7 @@ import {
 } from './ensemble-detector.ts';
 import { getResolutionTier } from './resolution-profiles.ts';
 import { findUncertainDetections, shouldPromptForLearning } from './active-learning.ts';
-import { shouldSkipTemplate, recordMatchResult, getTemplateRanking } from './template-ranking.ts';
+import { shouldSkipTemplate, getTemplateRanking } from './template-ranking.ts';
 import { detectCount, hasCountOverlay } from './count-detection.ts';
 
 // ========================================
@@ -71,10 +71,10 @@ function getDynamicMinConfidence(width?: number, height?: number, rarity?: strin
         const tier = getResolutionTier(width, height);
         // Lower threshold for low-res (harder to match), higher for high-res
         const tierAdjustment = {
-            low: -0.05,      // 720p: more lenient
-            medium: 0,       // 1080p: baseline
-            high: 0.02,      // 1440p: slightly stricter
-            ultra: 0.03,     // 4K: stricter (clearer images)
+            low: -0.05, // 720p: more lenient
+            medium: 0, // 1080p: baseline
+            high: 0.02, // 1440p: slightly stricter
+            ultra: 0.03, // 4K: stricter (clearer images)
         };
         return Math.max(0.35, Math.min(0.75, baseThreshold + tierAdjustment[tier]));
     }
@@ -85,14 +85,15 @@ function getDynamicMinConfidence(width?: number, height?: number, rarity?: strin
 /**
  * Run ensemble detection with multiple strategies
  * Combines results from different strategies for better accuracy
+ * @internal Reserved for future ensemble-based detection enhancements
  */
-async function runEnsembleDetection(
+export async function runEnsembleDetection(
     ctx: CanvasRenderingContext2D,
     width: number,
     height: number,
-    items: Item[],
+    _items: Item[],
     cell: ROI,
-    progressCallback?: (progress: number, status: string) => void
+    _progressCallback?: (progress: number, status: string) => void
 ): Promise<EnsembleResult | null> {
     const strategies = selectStrategiesForImage(width, height);
     const config = getEnsembleConfig();
@@ -102,9 +103,6 @@ async function runEnsembleDetection(
     for (const strategyId of strategies) {
         const strategy = getStrategy(strategyId);
         const threshold = strategy.minConfidence ?? getDynamicMinConfidence(width, height);
-
-        // Extract cell image data
-        const cellData = ctx.getImageData(cell.x, cell.y, cell.width, cell.height);
 
         // Match against templates
         const itemTemplates = getItemTemplates();
@@ -158,7 +156,7 @@ async function runEnsembleDetection(
 /**
  * Check if template should be used based on ranking
  */
-function shouldUseTemplate(templateId: string, itemId: string): boolean {
+function shouldUseTemplate(templateId: string, _itemId: string): boolean {
     // Check if template is in skip list
     if (shouldSkipTemplate(templateId)) {
         return false;
@@ -166,8 +164,8 @@ function shouldUseTemplate(templateId: string, itemId: string): boolean {
 
     // Get ranking info
     const ranking = getTemplateRanking(templateId);
-    if (ranking && ranking.successRate < 0.3 && ranking.matchCount > 10) {
-        // Skip templates with very low success rate after sufficient data
+    if (ranking && ranking.successRate < 0.3 && !ranking.shouldSkip) {
+        // Skip templates with very low success rate (ranking system ensures enough data)
         return false;
     }
 
@@ -498,7 +496,11 @@ export function detectHotbarRegion(
         }
 
         // Prefer lower on screen (hotbar is at very bottom)
-        const yPosition = windowSlice[0].y / height;
+        const firstStrip = windowSlice[0];
+        const lastStrip = windowSlice[windowSlice.length - 1];
+        if (!firstStrip || !lastStrip) continue;
+
+        const yPosition = firstStrip.y / height;
         if (yPosition > 0.88) {
             score += 30;
         } else if (yPosition > 0.82) {
@@ -507,8 +509,8 @@ export function detectHotbarRegion(
 
         if (score > bestScore) {
             bestScore = score;
-            bestBandStart = windowSlice[0].y;
-            bestBandEnd = windowSlice[windowSlice.length - 1].y + stripHeight;
+            bestBandStart = firstStrip.y;
+            bestBandEnd = lastStrip.y + stripHeight;
         }
     }
 
@@ -617,7 +619,11 @@ function filterByConsistentSpacing(edges: number[]): number[] {
     // Calculate gaps
     const gaps: Array<{ gap: number; fromIdx: number; toIdx: number }> = [];
     for (let i = 1; i < edges.length; i++) {
-        const gap = edges[i] - edges[i - 1];
+        const current = edges[i];
+        const previous = edges[i - 1];
+        if (current === undefined || previous === undefined) continue;
+
+        const gap = current - previous;
         if (gap > 20 && gap < 120) {
             gaps.push({ gap, fromIdx: i - 1, toIdx: i });
         }
@@ -681,7 +687,7 @@ interface GridParameters {
 function inferGridFromEdges(
     edges: number[],
     hotbarRegion: { topY: number; bottomY: number },
-    width: number
+    _width: number
 ): GridParameters | null {
     if (edges.length < 2) {
         return null;
@@ -690,7 +696,11 @@ function inferGridFromEdges(
     // Calculate spacings between edges
     const spacings: number[] = [];
     for (let i = 1; i < edges.length; i++) {
-        const spacing = edges[i] - edges[i - 1];
+        const current = edges[i];
+        const previous = edges[i - 1];
+        if (current === undefined || previous === undefined) continue;
+
+        const spacing = current - previous;
         if (spacing > 20 && spacing < 120) {
             spacings.push(spacing);
         }
@@ -724,24 +734,29 @@ function inferGridFromEdges(
     }
 
     // Find the first edge that starts a consistent sequence
-    let startX = edges[0];
+    let startX = edges[0] ?? 0;
     for (let i = 0; i < edges.length - 1; i++) {
-        const gap = edges[i + 1] - edges[i];
+        const current = edges[i];
+        const next = edges[i + 1];
+        if (current === undefined || next === undefined) continue;
+
+        const gap = next - current;
         if (Math.abs(gap - modeSpacing) <= tolerance) {
-            startX = edges[i];
+            startX = current;
             break;
         }
     }
 
     // Count consistent columns
     let columns = 1;
-    let lastEdge = startX;
+    let lastEdgeX = startX;
     for (let i = 0; i < edges.length; i++) {
-        if (edges[i] <= lastEdge) continue;
-        const gap = edges[i] - lastEdge;
+        const edgeX = edges[i];
+        if (edgeX === undefined || edgeX <= lastEdgeX) continue;
+        const gap = edgeX - lastEdgeX;
         if (Math.abs(gap - modeSpacing) <= tolerance) {
             columns++;
-            lastEdge = edges[i];
+            lastEdgeX = edgeX;
         }
     }
 
@@ -860,6 +875,7 @@ async function detectIconsWithTwoPhase(
 
     for (let i = 0; i < gridCells.length; i++) {
         const cell = gridCells[i];
+        if (!cell) continue; // TypeScript guard
 
         // Update progress
         if (progressCallback && i % 5 === 0) {
@@ -1021,7 +1037,11 @@ export function detectIconScale(ctx: CanvasRenderingContext2D, width: number, he
     // Compute spacings between edges
     const spacings: number[] = [];
     for (let i = 1; i < edges.length; i++) {
-        const spacing = edges[i] - edges[i - 1];
+        const current = edges[i];
+        const previous = edges[i - 1];
+        if (current === undefined || previous === undefined) continue;
+
+        const spacing = current - previous;
         // Valid icon sizes are between 25 and 100 pixels
         if (spacing >= 25 && spacing <= 100) {
             spacings.push(spacing);
@@ -1193,7 +1213,7 @@ export function resizeImageData(imageData: ImageData, targetWidth: number, targe
  * Find the closest pre-generated template size
  */
 function findClosestTemplateSize(targetSize: number): number {
-    let closest = COMMON_ICON_SIZES[0];
+    let closest: number = COMMON_ICON_SIZES[0] ?? 48;
     let minDiff = Math.abs(targetSize - closest);
 
     for (const size of COMMON_ICON_SIZES) {
@@ -1307,6 +1327,7 @@ function matchTemplateMulti(
     // Match against training templates
     for (let i = 0; i < trainingTemplates.length; i++) {
         const trainingTpl = trainingTemplates[i];
+        if (!trainingTpl) continue; // TypeScript guard
         // Resize training template to match icon region size
         const resizedTraining = resizeImageData(trainingTpl.imageData, iconRegion.width, iconRegion.height);
         if (!resizedTraining) continue;
@@ -1546,8 +1567,9 @@ function calculateAdaptiveTolerance(spacings: number[], expectedIconSize: number
 
 /**
  * Check if a value fits within a grid with given spacing
+ * @internal Reserved for future grid validation enhancements
  */
-function fitsGrid(value: number, gridStart: number, spacing: number, tolerance: number): boolean {
+export function fitsGrid(value: number, gridStart: number, spacing: number, tolerance: number): boolean {
     if (spacing <= 0) return true;
     const offset = (value - gridStart) % spacing;
     return offset <= tolerance || offset >= spacing - tolerance;
@@ -1565,18 +1587,25 @@ function clusterByY(
 
     // Sort by Y
     const sorted = [...positions].sort((a, b) => a.y - b.y);
+    const firstItem = sorted[0];
+    if (!firstItem) return [];
+
     const rows: Array<Array<{ x: number; y: number; detection: CVDetectionResult }>> = [];
-    let currentRow: typeof positions = [sorted[0]];
+    let currentRow: typeof positions = [firstItem];
 
     for (let i = 1; i < sorted.length; i++) {
-        const yDiff = sorted[i].y - sorted[i - 1].y;
+        const current = sorted[i];
+        const previous = sorted[i - 1];
+        if (!current || !previous) continue;
+
+        const yDiff = current.y - previous.y;
         if (yDiff <= yTolerance) {
             // Same row
-            currentRow.push(sorted[i]);
+            currentRow.push(current);
         } else {
             // New row
             rows.push(currentRow);
-            currentRow = [sorted[i]];
+            currentRow = [current];
         }
     }
     rows.push(currentRow);
@@ -1627,7 +1656,11 @@ export function verifyGridPattern(detections: CVDetectionResult[], expectedIconS
         if (row.length < 2) continue;
         const sortedRow = [...row].sort((a, b) => a.x - b.x);
         for (let i = 1; i < sortedRow.length; i++) {
-            const gap = sortedRow[i].x - sortedRow[i - 1].x;
+            const current = sortedRow[i];
+            const previous = sortedRow[i - 1];
+            if (!current || !previous) continue;
+
+            const gap = current.x - previous.x;
             if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) {
                 allXSpacings.push(gap);
             }
@@ -1646,7 +1679,11 @@ export function verifyGridPattern(detections: CVDetectionResult[], expectedIconS
             .sort((a, b) => a - b);
 
         for (let i = 1; i < rowCenters.length; i++) {
-            const gap = rowCenters[i] - rowCenters[i - 1];
+            const current = rowCenters[i];
+            const previous = rowCenters[i - 1];
+            if (current === undefined || previous === undefined) continue;
+
+            const gap = current - previous;
             if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) {
                 ySpacings.push(gap);
             }
@@ -1668,10 +1705,6 @@ export function verifyGridPattern(detections: CVDetectionResult[], expectedIconS
     const yTolerance = calculateAdaptiveTolerance(ySpacings, expectedIconSize, yMode.stdDev);
     const tolerance = Math.max(xTolerance, yTolerance);
 
-    // Find grid origin (leftmost, topmost detection)
-    const minX = Math.min(...positions.map(p => p.x));
-    const minY = Math.min(...positions.map(p => p.y));
-
     // Phase 4: Filter detections using row-aware validation
     // Instead of strict grid origin check, verify that items are consistently spaced
     const filtered: typeof positions = [];
@@ -1683,11 +1716,18 @@ export function verifyGridPattern(detections: CVDetectionResult[], expectedIconS
         const sortedRow = [...row].sort((a, b) => a.x - b.x);
 
         // Always include the first item in each row
-        filtered.push(sortedRow[0]);
+        const firstInRow = sortedRow[0];
+        if (firstInRow) {
+            filtered.push(firstInRow);
+        }
 
         // Check remaining items: they should be at consistent spacing from previous
         for (let i = 1; i < sortedRow.length; i++) {
-            const gap = sortedRow[i].x - sortedRow[i - 1].x;
+            const current = sortedRow[i];
+            const previous = sortedRow[i - 1];
+            if (!current || !previous) continue;
+
+            const gap = current.x - previous.x;
 
             // Accept if gap is close to expected spacing (within tolerance)
             const isConsistentSpacing = Math.abs(gap - xSpacing) <= tolerance;
@@ -1698,7 +1738,7 @@ export function verifyGridPattern(detections: CVDetectionResult[], expectedIconS
                 Math.abs((gap % xSpacing) - xSpacing) <= tolerance;
 
             if (isConsistentSpacing || isMultipleSpacing) {
-                filtered.push(sortedRow[i]);
+                filtered.push(current);
             }
         }
     }
@@ -1765,7 +1805,13 @@ async function detectIconsWithSlidingWindow(
 ): Promise<CVDetectionResult[]> {
     // Use dynamic threshold based on resolution and scoring config
     const dynamicThreshold = getDynamicMinConfidence(width, height);
-    const { stepSize = 12, minConfidence = dynamicThreshold, regionOfInterest, progressCallback, multiScale = true } = options;
+    const {
+        stepSize = 12,
+        minConfidence = dynamicThreshold,
+        regionOfInterest,
+        progressCallback,
+        multiScale = true,
+    } = options;
 
     const detections: CVDetectionResult[] = [];
     const iconSizes = getAdaptiveIconSizes(width, height);
@@ -2298,7 +2344,6 @@ export async function detectItemsWithCV(
         // Validate detections with border rarity check (stronger validation)
         // Filter out null results (rejected by strict rarity validation)
         const validationStartTime = performance.now();
-        const beforeValidation = boostedDetections.length;
         boostedDetections = boostedDetections
             .map(detection => {
                 const validated = validateWithBorderRarity(detection, ctx, false);
@@ -2321,15 +2366,19 @@ export async function detectItemsWithCV(
         }
         const imageData = ctx.getImageData(0, 0, width, height);
         for (const detection of boostedDetections) {
-            if (detection.boundingBox) {
-                const { x, y, width: cellW, height: cellH } = detection.boundingBox;
+            if (detection.position) {
+                const { x, y, width: cellW, height: cellH } = detection.position;
                 // Quick check if count overlay might exist
                 if (hasCountOverlay(imageData, x, y, cellW, cellH, height)) {
                     const countResult = detectCount(imageData, x, y, cellW, cellH, height);
                     if (countResult.count > 1 && countResult.confidence > 0.5) {
                         // Add count to detection metadata
-                        (detection as any).stackCount = countResult.count;
-                        (detection as any).countConfidence = countResult.confidence;
+                        (
+                            detection as CVDetectionResult & { stackCount?: number; countConfidence?: number }
+                        ).stackCount = countResult.count;
+                        (
+                            detection as CVDetectionResult & { stackCount?: number; countConfidence?: number }
+                        ).countConfidence = countResult.confidence;
                     }
                 }
             }
@@ -2365,17 +2414,29 @@ export async function detectItemsWithCV(
         cacheResults(imageHash, boostedDetections);
 
         // Active learning: flag uncertain detections for potential user feedback
-        const uncertainDetections = findUncertainDetections(boostedDetections);
-        if (uncertainDetections.length > 0 && shouldPromptForLearning(boostedDetections)) {
+        // Convert CVDetectionResult to DetectionForFeedback format
+        const feedbackDetections = boostedDetections
+            .filter(d => d.position) // Need position for feedback
+            .map(d => ({
+                detectedItemId: d.entity.id,
+                detectedItemName: d.entity.name,
+                confidence: d.confidence,
+                x: d.position!.x,
+                y: d.position!.y,
+                width: d.position!.width,
+                height: d.position!.height,
+            }));
+        const uncertainDetections = findUncertainDetections(feedbackDetections);
+        if (uncertainDetections.length > 0 && shouldPromptForLearning(feedbackDetections)) {
             logger.info({
                 operation: 'cv.active_learning.uncertain_found',
                 data: {
                     uncertainCount: uncertainDetections.length,
                     totalDetections: boostedDetections.length,
                     topUncertain: uncertainDetections.slice(0, 3).map(u => ({
-                        item: u.detection.entity.name,
+                        item: u.detection.detectedItemName,
                         confidence: u.detection.confidence.toFixed(2),
-                        reason: u.reason,
+                        alternatives: u.alternatives.length,
                     })),
                 },
             });
@@ -2494,7 +2555,10 @@ export function getCVMetrics(): {
 /**
  * Get current detection configuration for debugging
  */
-export function getDetectionConfig(width?: number, height?: number): {
+export function getDetectionConfig(
+    width?: number,
+    height?: number
+): {
     dynamicThreshold: number;
     resolutionTier: string;
     selectedStrategies: StrategyId[];
@@ -2517,5 +2581,17 @@ export function getDetectionConfig(width?: number, height?: number): {
 export function getUncertainDetectionsFromResults(
     detections: CVDetectionResult[]
 ): ReturnType<typeof findUncertainDetections> {
-    return findUncertainDetections(detections);
+    // Convert CVDetectionResult to DetectionForFeedback format
+    const feedbackDetections = detections
+        .filter(d => d.position)
+        .map(d => ({
+            detectedItemId: d.entity.id,
+            detectedItemName: d.entity.name,
+            confidence: d.confidence,
+            x: d.position!.x,
+            y: d.position!.y,
+            width: d.position!.width,
+            height: d.position!.height,
+        }));
+    return findUncertainDetections(feedbackDetections);
 }

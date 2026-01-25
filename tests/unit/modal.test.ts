@@ -195,12 +195,10 @@ describe('Modal Module - Actual Implementation', () => {
         });
 
         it('should be callable multiple times without error', () => {
-            closeModal();
-            closeModal();
-            closeModal();
-
-            // Should not throw
-            expect(true).toBe(true);
+            // Call multiple times to verify idempotency
+            expect(() => closeModal()).not.toThrow();
+            expect(() => closeModal()).not.toThrow();
+            expect(() => closeModal()).not.toThrow();
         });
     });
 
@@ -740,10 +738,8 @@ describe('Modal Module - Actual Implementation', () => {
                 bubbles: true,
             });
 
-            document.dispatchEvent(tabEvent);
-
-            // Should not throw
-            expect(true).toBe(true);
+            // Verify Tab key handling doesn't throw
+            expect(() => document.dispatchEvent(tabEvent)).not.toThrow();
 
             vi.useRealTimers();
         });
@@ -761,10 +757,8 @@ describe('Modal Module - Actual Implementation', () => {
                 bubbles: true,
             });
 
-            document.dispatchEvent(shiftTabEvent);
-
-            // Should not throw
-            expect(true).toBe(true);
+            // Verify Shift+Tab key handling doesn't throw
+            expect(() => document.dispatchEvent(shiftTabEvent)).not.toThrow();
 
             vi.useRealTimers();
         });
@@ -784,10 +778,8 @@ describe('Modal Module - Actual Implementation', () => {
                 bubbles: true,
             });
 
-            document.dispatchEvent(tabEvent);
-
-            // Should not throw
-            expect(true).toBe(true);
+            // Verify Tab after modal close doesn't throw
+            expect(() => document.dispatchEvent(tabEvent)).not.toThrow();
 
             vi.useRealTimers();
         });

@@ -345,8 +345,7 @@ export function initConfidenceSlider(): void {
             currentConfidenceThreshold = parseInt(slider.value, 10) / 100;
             valueDisplay.textContent = `${slider.value}%`;
 
-            // Update debug options
-            setDebugOptions({ confidenceThreshold: currentConfidenceThreshold });
+            // Note: confidenceThreshold is managed locally, not in debug options
 
             logger.debug({
                 operation: 'debug_ui.threshold_changed',
@@ -496,7 +495,7 @@ export function updateRequestViewer(): void {
     html += '<hr><h4>Recent Requests</h4>';
 
     stats.recentRequests.reverse().forEach(req => {
-        const statusClass = req.status === 0 ? 'error' : req.status >= 400 ? 'warning' : 'success';
+        const statusClass = (req.status ?? 0) === 0 ? 'error' : (req.status ?? 0) >= 400 ? 'warning' : 'success';
         html += `
             <div class="debug-log-entry ${statusClass}">
                 <span class="debug-log-time">${req.durationMs || 0}ms</span>

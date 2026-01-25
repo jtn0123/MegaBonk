@@ -5,13 +5,7 @@
 // Based on scientific testing showing +41.8% F1 improvement
 
 import { applyAdaptivePreprocessing, type SceneAnalysis, analyzeScene } from './adaptive-preprocessing.ts';
-import {
-    getScoringConfig,
-    calculateWeightedScore,
-    passesThreshold,
-    getThresholdForRarity,
-    type ScoringConfig,
-} from './scoring-config.ts';
+import { calculateWeightedScore, passesThreshold, getThresholdForRarity } from './scoring-config.ts';
 
 /**
  * Simple image data interface for cross-module compatibility
@@ -263,8 +257,8 @@ export function calculateWindowedSSIM(img1: SimpleImageData, img2: SimpleImageDa
             for (let dy = 0; dy < windowSize; dy++) {
                 for (let dx = 0; dx < windowSize; dx++) {
                     const idx = (wy + dy) * width + (wx + dx);
-                    mean1 += gray1[idx];
-                    mean2 += gray2[idx];
+                    mean1 += gray1[idx] ?? 0;
+                    mean2 += gray2[idx] ?? 0;
                 }
             }
             mean1 /= windowPixels;
@@ -277,8 +271,8 @@ export function calculateWindowedSSIM(img1: SimpleImageData, img2: SimpleImageDa
             for (let dy = 0; dy < windowSize; dy++) {
                 for (let dx = 0; dx < windowSize; dx++) {
                     const idx = (wy + dy) * width + (wx + dx);
-                    const d1 = gray1[idx] - mean1;
-                    const d2 = gray2[idx] - mean2;
+                    const d1 = (gray1[idx] ?? 0) - mean1;
+                    const d2 = (gray2[idx] ?? 0) - mean2;
                     var1 += d1 * d1;
                     var2 += d2 * d2;
                     covar += d1 * d2;
@@ -331,7 +325,7 @@ export function calculateHistogramSimilarity(imageData1: SimpleImageData, imageD
         const gBin = Math.min(bins - 1, Math.floor((pixels1[i + 1] ?? 0) / binSize));
         const bBin = Math.min(bins - 1, Math.floor((pixels1[i + 2] ?? 0) / binSize));
         const idx = rBin * bins * bins + gBin * bins + bBin;
-        hist1[idx]++;
+        hist1[idx] = (hist1[idx] ?? 0) + 1;
         count1++;
     }
 
@@ -341,7 +335,7 @@ export function calculateHistogramSimilarity(imageData1: SimpleImageData, imageD
         const gBin = Math.min(bins - 1, Math.floor((pixels2[i + 1] ?? 0) / binSize));
         const bBin = Math.min(bins - 1, Math.floor((pixels2[i + 2] ?? 0) / binSize));
         const idx = rBin * bins * bins + gBin * bins + bBin;
-        hist2[idx]++;
+        hist2[idx] = (hist2[idx] ?? 0) + 1;
         count2++;
     }
 
@@ -349,14 +343,14 @@ export function calculateHistogramSimilarity(imageData1: SimpleImageData, imageD
 
     // Normalize histograms
     for (let i = 0; i < hist1.length; i++) {
-        hist1[i] /= count1;
-        hist2[i] /= count2;
+        hist1[i] = (hist1[i] ?? 0) / count1;
+        hist2[i] = (hist2[i] ?? 0) / count2;
     }
 
     // Calculate intersection (similarity)
     let intersection = 0;
     for (let i = 0; i < hist1.length; i++) {
-        intersection += Math.min(hist1[i], hist2[i]);
+        intersection += Math.min(hist1[i] ?? 0, hist2[i] ?? 0);
     }
 
     return intersection;

@@ -441,10 +441,9 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
-            await loadPromise;
 
-            // Should complete without error
-            expect(true).toBe(true);
+            // Should complete without error - verify promise resolves successfully
+            await expect(loadPromise).resolves.not.toThrow();
         });
 
         it('should not call loadBuildFromURL if function is not available', async () => {
@@ -452,10 +451,9 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
-            await loadPromise;
 
-            // Should complete without error
-            expect(true).toBe(true);
+            // Should complete without error - verify promise resolves successfully
+            await expect(loadPromise).resolves.not.toThrow();
         });
 
         it('should not call initAdvisor if function is not available', async () => {
@@ -463,10 +461,9 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
-            await loadPromise;
 
-            // Should complete without error
-            expect(true).toBe(true);
+            // Should complete without error - verify promise resolves successfully
+            await expect(loadPromise).resolves.not.toThrow();
         });
 
         it('should not call initScanBuild if function is not available', async () => {
@@ -474,10 +471,9 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
-            await loadPromise;
 
-            // Should complete without error
-            expect(true).toBe(true);
+            // Should complete without error - verify promise resolves successfully
+            await expect(loadPromise).resolves.not.toThrow();
         });
 
         it('should show warning toast if validation has many errors', async () => {
@@ -698,10 +694,9 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
-            await loadPromise;
 
-            // Should not throw
-            expect(true).toBe(true);
+            // Should complete without throwing validation errors
+            await expect(loadPromise).resolves.not.toThrow();
         });
 
         it('should fail validation for changelog without patches array', async () => {
@@ -806,9 +801,9 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
-            await loadPromise;
 
-            expect(true).toBe(true);
+            // Should complete without throwing even when overlay is missing
+            await expect(loadPromise).resolves.not.toThrow();
         });
 
         it('should handle missing version element', async () => {
@@ -824,9 +819,9 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
-            await loadPromise;
 
-            expect(true).toBe(true);
+            // Should complete without throwing even when version element is missing
+            await expect(loadPromise).resolves.not.toThrow();
         });
 
         it('should handle missing last-updated element', async () => {
@@ -842,9 +837,9 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
-            await loadPromise;
 
-            expect(true).toBe(true);
+            // Should complete without throwing even when last-updated element is missing
+            await expect(loadPromise).resolves.not.toThrow();
         });
 
         it('should handle items without version field', async () => {
@@ -939,9 +934,9 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
-            await loadPromise;
 
-            expect(true).toBe(true);
+            // Should handle empty arrays without throwing
+            await expect(loadPromise).resolves.not.toThrow();
         });
     });
 });

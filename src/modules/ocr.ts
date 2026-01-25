@@ -661,7 +661,7 @@ function preprocessForDigits(canvas: HTMLCanvasElement): HTMLCanvasElement {
     // Convert to grayscale and apply high contrast
     for (let i = 0; i < data.length; i += 4) {
         // Grayscale using luminosity method
-        const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+        const gray = 0.299 * (data[i] ?? 0) + 0.587 * (data[i + 1] ?? 0) + 0.114 * (data[i + 2] ?? 0);
 
         // Apply contrast enhancement
         const contrast = 2.0;
@@ -713,7 +713,7 @@ export async function detectStackCount(imageDataUrl: string): Promise<StackCount
         // Configure for single word/digits mode
         await worker.setParameters({
             tessedit_char_whitelist: '0123456789x×X',
-            tessedit_pageseg_mode: '8', // PSM 8 = Single word
+            tessedit_pageseg_mode: 8 as unknown as import('tesseract.js').PSM, // PSM 8 = Single word
         });
 
         const result = (await worker.recognize(processedCanvas.toDataURL())) as TesseractResult;
@@ -721,7 +721,7 @@ export async function detectStackCount(imageDataUrl: string): Promise<StackCount
         // Reset parameters for future calls
         await worker.setParameters({
             tessedit_char_whitelist: '',
-            tessedit_pageseg_mode: '3', // Default: auto page segmentation
+            tessedit_pageseg_mode: 3 as unknown as import('tesseract.js').PSM, // Default: auto page segmentation
         });
 
         const rawText = result.data.text.trim();
@@ -800,6 +800,8 @@ export async function __resetForTesting(): Promise<void> {
 // ========================================
 // Global Assignments
 // ========================================
+// Window interface extensions are in types/index.ts
+
 window.initOCR = initOCR;
 window.terminateOCRWorker = terminateOCRWorker;
 window.isOCRWorkerActive = isOCRWorkerActive;

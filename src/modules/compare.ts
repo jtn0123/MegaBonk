@@ -8,6 +8,7 @@ import { allData } from './data-service.ts';
 import { safeGetElementById, safeQuerySelector, safeQuerySelectorAll, escapeHtml } from './utils.ts';
 import { MAX_COMPARE_ITEMS } from './constants.ts';
 import { getState, setState } from './store.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // State
@@ -238,7 +239,13 @@ export async function openCompareModal(): Promise<void> {
                     }
                 } catch (error) {
                     // Chart module failed to load - modal still works, just without chart
-                    console.warn('[compare] Failed to load chart module:', error);
+                    logger.warn({
+                        operation: 'compare.load_chart',
+                        error: {
+                            name: (error as Error).name,
+                            message: (error as Error).message,
+                        },
+                    });
                 }
             });
         }

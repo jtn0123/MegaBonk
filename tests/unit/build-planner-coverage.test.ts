@@ -720,18 +720,16 @@ describe('build-planner.ts coverage tests', () => {
             const tomeCheckbox = document.querySelector('.tome-checkbox') as HTMLInputElement;
             tomeCheckbox.checked = true;
 
-            updateBuildAnalysis();
-            // Just verify no error
-            expect(true).toBe(true);
+            // Verify updateBuildAnalysis handles checked tomes without error
+            expect(() => updateBuildAnalysis()).not.toThrow();
         });
 
         it('should collect checked items', () => {
             const itemCheckbox = document.querySelector('.item-checkbox') as HTMLInputElement;
             itemCheckbox.checked = true;
 
-            updateBuildAnalysis();
-            // Just verify no error
-            expect(true).toBe(true);
+            // Verify updateBuildAnalysis handles checked items without error
+            expect(() => updateBuildAnalysis()).not.toThrow();
         });
 
         it('should handle missing synergies display', () => {
@@ -787,17 +785,15 @@ describe('build-planner.ts coverage tests', () => {
         it('should handle character selection change', () => {
             setupBuildPlannerEvents();
             const charSelect = document.getElementById('build-character') as HTMLSelectElement;
-            charSelect.dispatchEvent(new Event('change'));
-            // Just verify no error
-            expect(true).toBe(true);
+            // Verify character change event doesn't throw
+            expect(() => charSelect.dispatchEvent(new Event('change'))).not.toThrow();
         });
 
         it('should handle weapon selection change', () => {
             setupBuildPlannerEvents();
             const weaponSelect = document.getElementById('build-weapon') as HTMLSelectElement;
-            weaponSelect.dispatchEvent(new Event('change'));
-            // Just verify no error
-            expect(true).toBe(true);
+            // Verify weapon change event doesn't throw
+            expect(() => weaponSelect.dispatchEvent(new Event('change'))).not.toThrow();
         });
 
         it('should handle missing DOM elements gracefully', () => {

@@ -88,12 +88,12 @@ export const DEFAULT_SCORING_CONFIG: ScoringConfig = {
     },
     baseThreshold: 0.45,
     rarityThresholds: {
-        common: 0.0,      // No adjustment
-        uncommon: 0.0,    // No adjustment
-        rare: 0.0,        // No adjustment
-        epic: -0.02,      // Slightly lower (more lenient)
+        common: 0.0, // No adjustment
+        uncommon: 0.0, // No adjustment
+        rare: 0.0, // No adjustment
+        epic: -0.02, // Slightly lower (more lenient)
         legendary: -0.03, // Lower threshold (gold borders are distinctive)
-        unknown: 0.05,    // Higher threshold when uncertain
+        unknown: 0.05, // Higher threshold when uncertain
     },
     minConfidence: 0.35,
     maxConfidence: 0.99,
@@ -105,14 +105,14 @@ export const DEFAULT_SCORING_CONFIG: ScoringConfig = {
  */
 export const PRECISION_SCORING_CONFIG: ScoringConfig = {
     weights: {
-        ssim: 0.40,
-        ncc: 0.20,
+        ssim: 0.4,
+        ncc: 0.2,
         histogram: 0.25,
         edge: 0.15,
     },
     agreement: {
         enabled: true,
-        threshold: 0.60,
+        threshold: 0.6,
         minMetricsForBonus: 3,
         bonusPerMetric: 0.015,
         maxBonus: 0.045,
@@ -136,14 +136,14 @@ export const PRECISION_SCORING_CONFIG: ScoringConfig = {
  */
 export const RECALL_SCORING_CONFIG: ScoringConfig = {
     weights: {
-        ssim: 0.30,
-        ncc: 0.30,
+        ssim: 0.3,
+        ncc: 0.3,
         histogram: 0.25,
         edge: 0.15,
     },
     agreement: {
         enabled: true,
-        threshold: 0.50,
+        threshold: 0.5,
         minMetricsForBonus: 2,
         bonusPerMetric: 0.025,
         maxBonus: 0.075,
@@ -157,7 +157,7 @@ export const RECALL_SCORING_CONFIG: ScoringConfig = {
         legendary: -0.05,
         unknown: 0.02,
     },
-    minConfidence: 0.30,
+    minConfidence: 0.3,
     maxConfidence: 0.99,
 };
 
@@ -167,19 +167,19 @@ export const RECALL_SCORING_CONFIG: ScoringConfig = {
  */
 export const FAST_SCORING_CONFIG: ScoringConfig = {
     weights: {
-        ssim: 0.50,
-        ncc: 0.50,
-        histogram: 0.0,  // Skip histogram
-        edge: 0.0,       // Skip edge
+        ssim: 0.5,
+        ncc: 0.5,
+        histogram: 0.0, // Skip histogram
+        edge: 0.0, // Skip edge
     },
     agreement: {
-        enabled: false,  // Disable for speed
+        enabled: false, // Disable for speed
         threshold: 0.55,
         minMetricsForBonus: 2,
         bonusPerMetric: 0.0,
         maxBonus: 0.0,
     },
-    baseThreshold: 0.50,
+    baseThreshold: 0.5,
     rarityThresholds: {
         common: 0.0,
         uncommon: 0.0,
@@ -188,7 +188,7 @@ export const FAST_SCORING_CONFIG: ScoringConfig = {
         legendary: 0.0,
         unknown: 0.05,
     },
-    minConfidence: 0.40,
+    minConfidence: 0.4,
     maxConfidence: 0.99,
 };
 
@@ -229,12 +229,7 @@ export function getThresholdForRarity(rarity?: string): number {
 /**
  * Calculate weighted similarity score
  */
-export function calculateWeightedScore(
-    ncc: number,
-    ssim: number,
-    histogram: number,
-    edge: number
-): number {
+export function calculateWeightedScore(ncc: number, ssim: number, histogram: number, edge: number): number {
     const config = activeConfig;
     const w = config.weights;
 
@@ -247,7 +242,7 @@ export function calculateWeightedScore(
         const weights = [w.ncc, w.ssim, w.histogram, w.edge];
 
         // Only count metrics that are enabled (weight > 0)
-        const enabledScores = scores.filter((_, i) => weights[i] > 0);
+        const enabledScores = scores.filter((_, i) => (weights[i] ?? 0) > 0);
         const aboveThreshold = enabledScores.filter(s => s >= config.agreement.threshold).length;
 
         if (aboveThreshold >= config.agreement.minMetricsForBonus) {
@@ -280,11 +275,11 @@ export function getConfidenceGrade(score: number): {
 } {
     if (score >= 0.85) {
         return { grade: 'A', label: 'Excellent', color: '#4CAF50' };
-    } else if (score >= 0.70) {
+    } else if (score >= 0.7) {
         return { grade: 'B', label: 'Good', color: '#8BC34A' };
     } else if (score >= 0.55) {
         return { grade: 'C', label: 'Fair', color: '#FFC107' };
-    } else if (score >= 0.40) {
+    } else if (score >= 0.4) {
         return { grade: 'D', label: 'Poor', color: '#FF9800' };
     } else {
         return { grade: 'F', label: 'Fail', color: '#F44336' };
@@ -298,10 +293,12 @@ export function describeScoringConfig(): string {
     const config = activeConfig;
     const w = config.weights;
 
-    return `Weights: SSIM=${w.ssim}, NCC=${w.ncc}, Hist=${w.histogram}, Edge=${w.edge}\n` +
+    return (
+        `Weights: SSIM=${w.ssim}, NCC=${w.ncc}, Hist=${w.histogram}, Edge=${w.edge}\n` +
         `Agreement: ${config.agreement.enabled ? 'ON' : 'OFF'} (threshold=${config.agreement.threshold})\n` +
         `Base threshold: ${config.baseThreshold}\n` +
-        `Rarity adjustments: Common=${config.rarityThresholds.common}, Legendary=${config.rarityThresholds.legendary}`;
+        `Rarity adjustments: Common=${config.rarityThresholds.common}, Legendary=${config.rarityThresholds.legendary}`
+    );
 }
 
 /**

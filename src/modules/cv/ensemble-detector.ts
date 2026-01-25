@@ -4,21 +4,14 @@
 // Combines multiple detection strategies for improved accuracy
 // Uses voting and confidence aggregation
 
-import { getProfileForResolution, type StrategyProfile } from './resolution-profiles.ts';
-import { getScoringConfig, passesThreshold } from './scoring-config.ts';
-import { combineVotes, type TemplateVote, type VotingResult } from './voting.ts';
-import { shouldSkipTemplate, recordMatchResult } from './template-ranking.ts';
+import { getProfileForResolution } from './resolution-profiles.ts';
+import { passesThreshold } from './scoring-config.ts';
+import { combineVotes, type TemplateVote } from './voting.ts';
 
 /**
  * Detection strategy identifier
  */
-export type StrategyId =
-    | 'default'
-    | 'high-precision'
-    | 'high-recall'
-    | 'edge-focused'
-    | 'color-focused'
-    | 'fast';
+export type StrategyId = 'default' | 'high-precision' | 'high-recall' | 'edge-focused' | 'color-focused' | 'fast';
 
 /**
  * Strategy configuration
@@ -156,8 +149,8 @@ export const HIGH_PRECISION_STRATEGY: DetectionStrategy = {
     },
     metricWeights: {
         ssim: 0.45,
-        ncc: 0.20,
-        histogram: 0.20,
+        ncc: 0.2,
+        histogram: 0.2,
         edge: 0.15,
     },
     templates: {
@@ -183,8 +176,8 @@ export const HIGH_RECALL_STRATEGY: DetectionStrategy = {
         edgeEnhance: false,
     },
     metricWeights: {
-        ssim: 0.30,
-        ncc: 0.30,
+        ssim: 0.3,
+        ncc: 0.3,
         histogram: 0.25,
         edge: 0.15,
     },
@@ -237,8 +230,8 @@ export const COLOR_FOCUSED_STRATEGY: DetectionStrategy = {
         edgeEnhance: false,
     },
     metricWeights: {
-        ssim: 0.20,
-        ncc: 0.20,
+        ssim: 0.2,
+        ncc: 0.2,
         histogram: 0.45,
         edge: 0.15,
     },
@@ -257,7 +250,7 @@ export const FAST_STRATEGY: DetectionStrategy = {
     name: 'Fast',
     description: 'Quick detection with minimal processing',
     weight: 0.7,
-    minConfidence: 0.50,
+    minConfidence: 0.5,
     preprocessing: {
         contrastEnhance: false,
         contrastFactor: 1.0,
@@ -265,8 +258,8 @@ export const FAST_STRATEGY: DetectionStrategy = {
         edgeEnhance: false,
     },
     metricWeights: {
-        ssim: 0.50,
-        ncc: 0.50,
+        ssim: 0.5,
+        ncc: 0.5,
         histogram: 0.0,
         edge: 0.0,
     },
@@ -296,7 +289,7 @@ export const DEFAULT_ENSEMBLE_CONFIG: EnsembleConfig = {
     strategies: ['default', 'high-precision', 'edge-focused'],
     minAgreement: 2,
     combineMethod: 'voting',
-    earlyExitThreshold: 0.90,
+    earlyExitThreshold: 0.9,
     parallel: true,
 };
 
@@ -329,7 +322,7 @@ export const FAST_ENSEMBLE_CONFIG: EnsembleConfig = {
     strategies: ['fast'],
     minAgreement: 1,
     combineMethod: 'max',
-    earlyExitThreshold: 0.80,
+    earlyExitThreshold: 0.8,
     parallel: false,
 };
 
@@ -458,9 +451,7 @@ export function combineStrategyDetections(
     }
 
     // Find best strategy
-    const bestDet = winnerDetections.reduce((best, d) =>
-        d.confidence > best.confidence ? d : best
-    );
+    const bestDet = winnerDetections.reduce((best, d) => (d.confidence > best.confidence ? d : best));
 
     return {
         itemId: winnerItemId,
@@ -537,9 +528,7 @@ export function describeEnsembleConfig(config: EnsembleConfig = activeConfig): s
 /**
  * Get recommended ensemble config based on use case
  */
-export function getRecommendedConfig(
-    useCase: 'scanning' | 'verification' | 'training' | 'fast'
-): EnsembleConfig {
+export function getRecommendedConfig(useCase: 'scanning' | 'verification' | 'training' | 'fast'): EnsembleConfig {
     switch (useCase) {
         case 'scanning':
             return DEFAULT_ENSEMBLE_CONFIG;

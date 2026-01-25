@@ -43,11 +43,54 @@ const CONFIG = {
     BASE_RESOLUTION: 720,
 
     // Grid calibration presets
+    // NOTE: These are tuned for the hotbar at the bottom of the screen
+    // yOffset is distance from bottom of screen to bottom of icon grid
     CALIBRATION_PRESETS: {
-        '1280x720': { xOffset: 0, yOffset: 92, iconWidth: 40, iconHeight: 40, xSpacing: 4, ySpacing: 4, iconsPerRow: 22 },
-        '1280x800': { xOffset: 0, yOffset: 102, iconWidth: 44, iconHeight: 44, xSpacing: 5, ySpacing: 5, iconsPerRow: 22 },
-        '1920x1080': { xOffset: 0, yOffset: 138, iconWidth: 60, iconHeight: 60, xSpacing: 6, ySpacing: 6, iconsPerRow: 22 },
-        '2560x1440': { xOffset: -3, yOffset: 184, iconWidth: 78, iconHeight: 80, xSpacing: 11, ySpacing: 4, iconsPerRow: 22 },
+        '1280x720': {
+            xOffset: -115,
+            yOffset: 30,
+            iconWidth: 36,
+            iconHeight: 36,
+            xSpacing: 4,
+            ySpacing: 4,
+            iconsPerRow: 14,
+        },
+        '1280x800': {
+            xOffset: -115,
+            yOffset: 34,
+            iconWidth: 40,
+            iconHeight: 40,
+            xSpacing: 5,
+            ySpacing: 5,
+            iconsPerRow: 14,
+        },
+        '1600x900': {
+            xOffset: -115,
+            yOffset: 38,
+            iconWidth: 45,
+            iconHeight: 45,
+            xSpacing: 5,
+            ySpacing: 5,
+            iconsPerRow: 14,
+        },
+        '1920x1080': {
+            xOffset: -122,
+            yOffset: 57,
+            iconWidth: 48,
+            iconHeight: 48,
+            xSpacing: 6,
+            ySpacing: 6,
+            iconsPerRow: 14,
+        },
+        '2560x1440': {
+            xOffset: -130,
+            yOffset: 60,
+            iconWidth: 64,
+            iconHeight: 64,
+            xSpacing: 8,
+            ySpacing: 8,
+            iconsPerRow: 14,
+        },
     },
 };
 
@@ -56,7 +99,10 @@ const CONFIG = {
 // ========================================
 
 function nameToId(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_|_$/g, '');
 }
 
 function getCalibrationForResolution(width, height) {
@@ -105,7 +151,8 @@ function calculateGridPositions(imageWidth, imageHeight, calibration, itemCount)
 function calculateNCC(imgData1, imgData2) {
     if (imgData1.length !== imgData2.length) return 0;
 
-    let sum1 = 0, sum2 = 0;
+    let sum1 = 0,
+        sum2 = 0;
     const n = imgData1.length / 4; // RGBA
 
     // Calculate means
@@ -117,7 +164,9 @@ function calculateNCC(imgData1, imgData2) {
     const mean2 = sum2 / n;
 
     // Calculate NCC
-    let numerator = 0, denom1 = 0, denom2 = 0;
+    let numerator = 0,
+        denom1 = 0,
+        denom2 = 0;
     for (let i = 0; i < imgData1.length; i += 4) {
         const v1 = (imgData1[i] + imgData1[i + 1] + imgData1[i + 2]) / 3 - mean1;
         const v2 = (imgData2[i] + imgData2[i + 1] + imgData2[i + 2]) / 3 - mean2;
@@ -128,6 +177,103 @@ function calculateNCC(imgData1, imgData2) {
 
     const denom = Math.sqrt(denom1 * denom2);
     return denom > 0 ? numerator / denom : 0;
+}
+
+// SSIM (Structural Similarity Index) - more robust than NCC
+function calculateSSIM(imgData1, imgData2) {
+    if (imgData1.length !== imgData2.length) return 0;
+    const n = imgData1.length / 4;
+    if (n === 0) return 0;
+
+    // Convert to grayscale and calculate stats
+    let mean1 = 0,
+        mean2 = 0;
+    const gray1 = [],
+        gray2 = [];
+
+    for (let i = 0; i < imgData1.length; i += 4) {
+        const g1 = (imgData1[i] + imgData1[i + 1] + imgData1[i + 2]) / 3;
+        const g2 = (imgData2[i] + imgData2[i + 1] + imgData2[i + 2]) / 3;
+        gray1.push(g1);
+        gray2.push(g2);
+        mean1 += g1;
+        mean2 += g2;
+    }
+
+    mean1 /= n;
+    mean2 /= n;
+
+    let var1 = 0,
+        var2 = 0,
+        covar = 0;
+    for (let i = 0; i < n; i++) {
+        const d1 = gray1[i] - mean1;
+        const d2 = gray2[i] - mean2;
+        var1 += d1 * d1;
+        var2 += d2 * d2;
+        covar += d1 * d2;
+    }
+
+    var1 /= n;
+    var2 /= n;
+    covar /= n;
+
+    const C1 = (0.01 * 255) ** 2;
+    const C2 = (0.03 * 255) ** 2;
+
+    const ssim = ((2 * mean1 * mean2 + C1) * (2 * covar + C2)) / ((mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2));
+
+    return Math.max(0, Math.min(1, ssim));
+}
+
+// Color histogram similarity
+function calculateHistogramSimilarity(imgData1, imgData2) {
+    if (imgData1.length !== imgData2.length) return 0;
+
+    // Build RGB histograms with 16 bins per channel
+    const bins = 16;
+    const hist1 = { r: new Array(bins).fill(0), g: new Array(bins).fill(0), b: new Array(bins).fill(0) };
+    const hist2 = { r: new Array(bins).fill(0), g: new Array(bins).fill(0), b: new Array(bins).fill(0) };
+
+    for (let i = 0; i < imgData1.length; i += 4) {
+        const bin1r = Math.min(bins - 1, Math.floor((imgData1[i] / 256) * bins));
+        const bin1g = Math.min(bins - 1, Math.floor((imgData1[i + 1] / 256) * bins));
+        const bin1b = Math.min(bins - 1, Math.floor((imgData1[i + 2] / 256) * bins));
+        hist1.r[bin1r]++;
+        hist1.g[bin1g]++;
+        hist1.b[bin1b]++;
+
+        const bin2r = Math.min(bins - 1, Math.floor((imgData2[i] / 256) * bins));
+        const bin2g = Math.min(bins - 1, Math.floor((imgData2[i + 1] / 256) * bins));
+        const bin2b = Math.min(bins - 1, Math.floor((imgData2[i + 2] / 256) * bins));
+        hist2.r[bin2r]++;
+        hist2.g[bin2g]++;
+        hist2.b[bin2b]++;
+    }
+
+    // Calculate histogram intersection (normalized)
+    const n = imgData1.length / 4;
+    let intersection = 0;
+    for (let i = 0; i < bins; i++) {
+        intersection += Math.min(hist1.r[i], hist2.r[i]);
+        intersection += Math.min(hist1.g[i], hist2.g[i]);
+        intersection += Math.min(hist1.b[i], hist2.b[i]);
+    }
+
+    return intersection / (n * 3);
+}
+
+// Combined similarity score (weighted average of metrics)
+function calculateCombinedScore(imgData1, imgData2) {
+    const ncc = calculateNCC(imgData1, imgData2);
+    const ssim = calculateSSIM(imgData1, imgData2);
+    const hist = calculateHistogramSimilarity(imgData1, imgData2);
+
+    // Weight: SSIM (most robust), Histogram (color), NCC (structure)
+    // NCC can be negative, normalize it to [0, 1]
+    const nccNorm = (ncc + 1) / 2;
+
+    return 0.4 * ssim + 0.35 * hist + 0.25 * nccNorm;
 }
 
 // ========================================
@@ -209,7 +355,7 @@ class SimpleCVEngine {
             let bestScore = 0;
 
             for (const [itemId, template] of this.templates) {
-                const score = calculateNCC(cropData, template.imageData);
+                const score = calculateCombinedScore(cropData, template.imageData);
                 if (score > bestScore) {
                     bestScore = score;
                     bestMatch = template.item;
@@ -243,12 +389,9 @@ class SimpleCVEngine {
         const falsePositives = detections.filter(d => d.item && !d.correct).length;
         const falseNegatives = detections.filter(d => !d.item || !d.correct).length;
 
-        const precision = truePositives + falsePositives > 0
-            ? truePositives / (truePositives + falsePositives) : 0;
-        const recall = truePositives + falseNegatives > 0
-            ? truePositives / (truePositives + falseNegatives) : 0;
-        const f1 = precision + recall > 0
-            ? 2 * (precision * recall) / (precision + recall) : 0;
+        const precision = truePositives + falsePositives > 0 ? truePositives / (truePositives + falsePositives) : 0;
+        const recall = truePositives + falseNegatives > 0 ? truePositives / (truePositives + falseNegatives) : 0;
+        const f1 = precision + recall > 0 ? (2 * (precision * recall)) / (precision + recall) : 0;
 
         return {
             imagePath,
@@ -368,13 +511,17 @@ async function runBenchmark(options = {}) {
         results.push(result);
 
         const m = result.metrics;
-        console.log(`F1=${(m.f1 * 100).toFixed(1)}% P=${(m.precision * 100).toFixed(1)}% R=${(m.recall * 100).toFixed(1)}% (${result.timing.totalMs}ms)`);
+        console.log(
+            `F1=${(m.f1 * 100).toFixed(1)}% P=${(m.precision * 100).toFixed(1)}% R=${(m.recall * 100).toFixed(1)}% (${result.timing.totalMs}ms)`
+        );
 
         if (verbose) {
             // Show incorrect detections
             const incorrect = result.detections.filter(d => !d.correct);
             for (const d of incorrect.slice(0, 5)) {
-                console.log(`  Slot ${d.slot}: detected "${d.item}" but was "${d.groundTruth}" (${(d.confidence * 100).toFixed(0)}%)`);
+                console.log(
+                    `  Slot ${d.slot}: detected "${d.item}" but was "${d.groundTruth}" (${(d.confidence * 100).toFixed(0)}%)`
+                );
             }
         }
     }
@@ -390,29 +537,34 @@ async function runBenchmark(options = {}) {
         totalFalseNegatives: results.reduce((s, r) => s + r.metrics.falseNegatives, 0),
     };
 
-    aggregate.precision = aggregate.totalTruePositives + aggregate.totalFalsePositives > 0
-        ? aggregate.totalTruePositives / (aggregate.totalTruePositives + aggregate.totalFalsePositives) : 0;
-    aggregate.recall = aggregate.totalTruePositives + aggregate.totalFalseNegatives > 0
-        ? aggregate.totalTruePositives / (aggregate.totalTruePositives + aggregate.totalFalseNegatives) : 0;
-    aggregate.f1 = aggregate.precision + aggregate.recall > 0
-        ? 2 * (aggregate.precision * aggregate.recall) / (aggregate.precision + aggregate.recall) : 0;
-    aggregate.accuracy = aggregate.totalItems > 0
-        ? aggregate.totalTruePositives / aggregate.totalItems : 0;
+    aggregate.precision =
+        aggregate.totalTruePositives + aggregate.totalFalsePositives > 0
+            ? aggregate.totalTruePositives / (aggregate.totalTruePositives + aggregate.totalFalsePositives)
+            : 0;
+    aggregate.recall =
+        aggregate.totalTruePositives + aggregate.totalFalseNegatives > 0
+            ? aggregate.totalTruePositives / (aggregate.totalTruePositives + aggregate.totalFalseNegatives)
+            : 0;
+    aggregate.f1 =
+        aggregate.precision + aggregate.recall > 0
+            ? (2 * (aggregate.precision * aggregate.recall)) / (aggregate.precision + aggregate.recall)
+            : 0;
+    aggregate.accuracy = aggregate.totalItems > 0 ? aggregate.totalTruePositives / aggregate.totalItems : 0;
 
     // Per-image averages
-    aggregate.avgF1 = results.length > 0
-        ? results.reduce((s, r) => s + r.metrics.f1, 0) / results.length : 0;
-    aggregate.avgPrecision = results.length > 0
-        ? results.reduce((s, r) => s + r.metrics.precision, 0) / results.length : 0;
-    aggregate.avgRecall = results.length > 0
-        ? results.reduce((s, r) => s + r.metrics.recall, 0) / results.length : 0;
+    aggregate.avgF1 = results.length > 0 ? results.reduce((s, r) => s + r.metrics.f1, 0) / results.length : 0;
+    aggregate.avgPrecision =
+        results.length > 0 ? results.reduce((s, r) => s + r.metrics.precision, 0) / results.length : 0;
+    aggregate.avgRecall = results.length > 0 ? results.reduce((s, r) => s + r.metrics.recall, 0) / results.length : 0;
 
     console.log('');
     console.log('Aggregate Results');
     console.log('-----------------');
     console.log(`Images:      ${aggregate.imageCount}`);
     console.log(`Total items: ${aggregate.totalItems}`);
-    console.log(`TP/FP/FN:    ${aggregate.totalTruePositives}/${aggregate.totalFalsePositives}/${aggregate.totalFalseNegatives}`);
+    console.log(
+        `TP/FP/FN:    ${aggregate.totalTruePositives}/${aggregate.totalFalsePositives}/${aggregate.totalFalseNegatives}`
+    );
     console.log(`Accuracy:    ${(aggregate.accuracy * 100).toFixed(1)}%`);
     console.log(`Precision:   ${(aggregate.precision * 100).toFixed(1)}%`);
     console.log(`Recall:      ${(aggregate.recall * 100).toFixed(1)}%`);

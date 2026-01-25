@@ -44,7 +44,7 @@ type ProgressCallback = (progress: ScanProgress) => void;
 // State
 // ========================================
 
-let allData: AllGameData = {};
+// Note: Game data stored by initCV and initOCR, no need to duplicate here
 let isInitialized = false;
 let templatesLoaded = false;
 let presetsLoaded = false;
@@ -62,8 +62,6 @@ let currentDetectedBuild: DetectedBuild | null = null;
  */
 export async function initBuildPlannerScan(gameData: AllGameData): Promise<void> {
     if (isInitialized) return;
-
-    allData = gameData;
 
     // Initialize CV and OCR modules
     initCV(gameData);
@@ -332,8 +330,7 @@ async function detectBuildFromImage(imageData: string, onProgress?: ProgressCall
             const ctx = canvas.getContext('2d');
             if (ctx) {
                 ctx.drawImage(img, 0, 0);
-                const imageDataObj = ctx.getImageData(0, 0, width, height);
-                const autoResult = await autoDetectGrid(imageDataObj);
+                const autoResult = await autoDetectGrid(ctx, width, height);
                 if (autoResult.success && autoResult.calibration) {
                     logger.info({
                         operation: 'build_planner_scan.auto_grid_success',
@@ -371,13 +368,23 @@ async function detectBuildFromImage(imageData: string, onProgress?: ProgressCall
 
     // Run CV detection
     report(50, 'Running icon recognition...');
-    let cvResults: { entity: Item | Tome | Character | Weapon; confidence: number; type: string }[] = [];
+    let cvResults: Array<{
+        entity: Item | Tome | Character | Weapon;
+        confidence: number;
+        type: string;
+        method: 'template_match' | 'icon_similarity' | 'hybrid';
+    }> = [];
 
     if (templatesLoaded || isCVFullyLoaded()) {
         try {
-            cvResults = await detectItemsWithCV(imageData, (progress, status) => {
+            const rawCvResults = await detectItemsWithCV(imageData, (progress, status) => {
                 report(50 + progress * 0.4, status);
             });
+            // Add method property to match CVDetectionResult type
+            cvResults = rawCvResults.map(r => ({
+                ...r,
+                method: 'template_match' as const,
+            }));
         } catch (error) {
             logger.warn({
                 operation: 'build_planner_scan.cv_failed',
@@ -397,14 +404,21 @@ async function detectBuildFromImage(imageData: string, onProgress?: ProgressCall
         rawText: `cv_detected_${cv.entity.name}`,
     }));
 
-    // Combine and aggregate
+    // Combine and aggregate - pass CV results as CVDetectionResult[]
+    const cvItemResults = cvResults
+        .filter(r => r.type === 'item')
+        .map(r => ({ ...r, type: r.type as 'item' | 'tome' | 'character' | 'weapon' }));
+    const cvTomeResults = cvResults
+        .filter(r => r.type === 'tome')
+        .map(r => ({ ...r, type: r.type as 'item' | 'tome' | 'character' | 'weapon' }));
+
     const combinedItems = combineDetections(
         [...ocrResults.items, ...cvAsOCR.filter(r => r.type === 'item')],
-        cvResults.filter(r => r.type === 'item')
+        cvItemResults
     );
     const combinedTomes = combineDetections(
         [...ocrResults.tomes, ...cvAsOCR.filter(r => r.type === 'tome')],
-        cvResults.filter(r => r.type === 'tome')
+        cvTomeResults
     );
 
     const aggregatedItems = aggregateDuplicates(combinedItems);

@@ -604,11 +604,11 @@ describe('filters.ts coverage tests', () => {
         });
 
         it('should hide rarity filter for non-items tabs', () => {
-            updateFilters('weapons');
+            // Verify updateFilters for weapons doesn't throw
+            expect(() => updateFilters('weapons')).not.toThrow();
             const rarityFilter = document.getElementById('rarityFilter');
-            const label = document.querySelector('label[for="rarityFilter"]');
-            // The filter is hidden via display style or similar
-            expect(true).toBe(true); // Just verify no error
+            // Verify filter element still exists in DOM (behavior depends on implementation)
+            expect(rarityFilter).toBeDefined();
         });
 
         it('should handle missing filter elements gracefully', () => {
@@ -617,18 +617,18 @@ describe('filters.ts coverage tests', () => {
         });
 
         it('should update filters for tomes tab', () => {
-            updateFilters('tomes');
-            expect(true).toBe(true);
+            // Verify updateFilters for tomes doesn't throw
+            expect(() => updateFilters('tomes')).not.toThrow();
         });
 
         it('should update filters for characters tab', () => {
-            updateFilters('characters');
-            expect(true).toBe(true);
+            // Verify updateFilters for characters doesn't throw
+            expect(() => updateFilters('characters')).not.toThrow();
         });
 
         it('should update filters for shrines tab', () => {
-            updateFilters('shrines');
-            expect(true).toBe(true);
+            // Verify updateFilters for shrines doesn't throw
+            expect(() => updateFilters('shrines')).not.toThrow();
         });
     });
 

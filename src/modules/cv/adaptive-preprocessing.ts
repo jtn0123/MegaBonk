@@ -74,7 +74,9 @@ export function analyzeScene(imageData: SimpleImageData): SceneAnalysis {
 
     // Calculate brightness statistics
     let sumBrightness = 0;
-    let sumR = 0, sumG = 0, sumB = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
     let sumSaturation = 0;
     const brightnessValues: number[] = [];
 
@@ -97,9 +99,7 @@ export function analyzeScene(imageData: SimpleImageData): SceneAnalysis {
         const lightness = (max + min) / 2;
         let saturation = 0;
         if (max !== min) {
-            saturation = lightness > 127
-                ? (max - min) / (510 - max - min)
-                : (max - min) / (max + min);
+            saturation = lightness > 127 ? (max - min) / (510 - max - min) : (max - min) / (max + min);
         }
         sumSaturation += saturation * 100;
     }
@@ -147,11 +147,11 @@ export function analyzeScene(imageData: SimpleImageData): SceneAnalysis {
     // Detect environment hint from dominant colors
     let environmentHint: 'normal' | 'hell' | 'snow' | 'dark' | 'bright' = 'normal';
     if (avgR > avgG * 1.5 && avgR > avgB * 1.5) {
-        environmentHint = 'hell';  // Red dominant = hell biome
+        environmentHint = 'hell'; // Red dominant = hell biome
     } else if (avgBrightness > 180 && avgSaturation < 30) {
-        environmentHint = 'snow';  // Bright and desaturated = snow
+        environmentHint = 'snow'; // Bright and desaturated = snow
     } else if (avgBrightness < 50) {
-        environmentHint = 'dark';  // Very dark = crypt or night
+        environmentHint = 'dark'; // Very dark = crypt or night
     } else if (avgBrightness > 200) {
         environmentHint = 'bright';
     }
@@ -181,7 +181,7 @@ function estimateNoiseLevel(imageData: SimpleImageData, avgBrightness: number): 
     // Sample local 2x2 neighborhoods and measure variance
     let totalLocalVar = 0;
     let sampleCount = 0;
-    const step = 4;  // Sample every 4th position
+    const step = 4; // Sample every 4th position
 
     for (let y = 0; y < height - 2; y += step) {
         for (let x = 0; x < width - 2; x += step) {
@@ -217,14 +217,15 @@ function estimateNoiseLevel(imageData: SimpleImageData, avgBrightness: number): 
 /**
  * Detect heavy visual effects (particles, explosions, etc)
  */
-function detectHeavyEffects(imageData: SimpleImageData, avgSaturation: number): boolean {
+function detectHeavyEffects(imageData: SimpleImageData, _avgSaturation: number): boolean {
     const pixels = imageData.data;
     const pixelCount = pixels.length / 4;
 
     // Count highly saturated bright pixels (likely effects)
     let effectPixels = 0;
 
-    for (let i = 0; i < pixels.length; i += 16) {  // Sample every 4th pixel
+    for (let i = 0; i < pixels.length; i += 16) {
+        // Sample every 4th pixel
         const r = pixels[i] ?? 0;
         const g = pixels[i + 1] ?? 0;
         const b = pixels[i + 2] ?? 0;
@@ -232,7 +233,7 @@ function detectHeavyEffects(imageData: SimpleImageData, avgSaturation: number): 
         const brightness = (r + g + b) / 3;
         const max = Math.max(r, g, b);
         const min = Math.min(r, g, b);
-        const saturation = max > 0 ? (max - min) / max * 100 : 0;
+        const saturation = max > 0 ? ((max - min) / max) * 100 : 0;
 
         // Bright, highly saturated pixels indicate effects
         if (brightness > 200 && saturation > 60) {
@@ -241,7 +242,7 @@ function detectHeavyEffects(imageData: SimpleImageData, avgSaturation: number): 
     }
 
     const effectRatio = effectPixels / (pixelCount / 4);
-    return effectRatio > 0.05;  // >5% effect pixels
+    return effectRatio > 0.05; // >5% effect pixels
 }
 
 /**
@@ -249,7 +250,7 @@ function detectHeavyEffects(imageData: SimpleImageData, avgSaturation: number): 
  */
 export function getPreprocessConfig(scene: SceneAnalysis): PreprocessConfig {
     const config: PreprocessConfig = {
-        contrastFactor: 1.5,  // Default from ablation testing
+        contrastFactor: 1.5, // Default from ablation testing
         normalizeColors: true,
         sharpeningFactor: 0,
         reduceNoise: false,
@@ -259,25 +260,25 @@ export function getPreprocessConfig(scene: SceneAnalysis): PreprocessConfig {
     // Adjust based on brightness
     switch (scene.brightnessLevel) {
         case 'dark':
-            config.contrastFactor = 1.3;  // Less aggressive contrast for dark scenes
-            config.brightnessAdjust = 20;  // Slight brightness boost
+            config.contrastFactor = 1.3; // Less aggressive contrast for dark scenes
+            config.brightnessAdjust = 20; // Slight brightness boost
             break;
         case 'bright':
             config.contrastFactor = 1.4;
-            config.brightnessAdjust = -10;  // Slight brightness reduction
+            config.brightnessAdjust = -10; // Slight brightness reduction
             break;
         case 'normal':
-            config.contrastFactor = 1.5;  // Standard contrast
+            config.contrastFactor = 1.5; // Standard contrast
             break;
     }
 
     // Adjust based on existing contrast
     switch (scene.contrastLevel) {
         case 'low':
-            config.contrastFactor *= 1.2;  // Boost contrast more for low-contrast scenes
+            config.contrastFactor *= 1.2; // Boost contrast more for low-contrast scenes
             break;
         case 'high':
-            config.contrastFactor *= 0.85;  // Reduce contrast enhancement for high-contrast scenes
+            config.contrastFactor *= 0.85; // Reduce contrast enhancement for high-contrast scenes
             break;
     }
 
@@ -285,20 +286,20 @@ export function getPreprocessConfig(scene: SceneAnalysis): PreprocessConfig {
     switch (scene.noiseLevel) {
         case 'high':
             config.reduceNoise = true;
-            config.sharpeningFactor = 0;  // Don't sharpen noisy images
+            config.sharpeningFactor = 0; // Don't sharpen noisy images
             break;
         case 'medium':
-            config.sharpeningFactor = 0.2;  // Light sharpening
+            config.sharpeningFactor = 0.2; // Light sharpening
             break;
         case 'low':
-            config.sharpeningFactor = 0.4;  // More sharpening for clean images
+            config.sharpeningFactor = 0.4; // More sharpening for clean images
             break;
     }
 
     // Handle heavy effects (particles, explosions)
     if (scene.hasHeavyEffects) {
-        config.normalizeColors = false;  // Don't normalize when effects distort colors
-        config.contrastFactor = 1.2;  // Less aggressive contrast
+        config.normalizeColors = false; // Don't normalize when effects distort colors
+        config.contrastFactor = 1.2; // Less aggressive contrast
     }
 
     // Environment-specific adjustments
@@ -310,7 +311,7 @@ export function getPreprocessConfig(scene: SceneAnalysis): PreprocessConfig {
         case 'snow':
             // Bright scenes with low saturation
             config.brightnessAdjust = -15;
-            config.contrastFactor = 1.6;  // Need more contrast
+            config.contrastFactor = 1.6; // Need more contrast
             break;
         case 'dark':
             config.brightnessAdjust = 25;
@@ -429,9 +430,12 @@ function reduceNoise(imageData: SimpleImageData): SimpleImageData {
 function normalizeColorsAdaptive(imageData: SimpleImageData): SimpleImageData {
     const data = new Uint8ClampedArray(imageData.data);
 
-    let minR = 255, maxR = 0;
-    let minG = 255, maxG = 0;
-    let minB = 255, maxB = 0;
+    let minR = 255,
+        maxR = 0;
+    let minG = 255,
+        maxG = 0;
+    let minB = 255,
+        maxB = 0;
 
     for (let i = 0; i < data.length; i += 4) {
         minR = Math.min(minR, data[i] ?? 0);
@@ -503,9 +507,11 @@ function sharpenImage(imageData: SimpleImageData, factor: number): SimpleImageDa
  * Export scene analysis for debugging/logging
  */
 export function describeScene(scene: SceneAnalysis): string {
-    return `Brightness: ${scene.brightnessLevel} (${scene.brightness.toFixed(0)}), ` +
+    return (
+        `Brightness: ${scene.brightnessLevel} (${scene.brightness.toFixed(0)}), ` +
         `Contrast: ${scene.contrastLevel} (${scene.contrast.toFixed(0)}), ` +
         `Noise: ${scene.noiseLevel}, ` +
         `Environment: ${scene.environmentHint}` +
-        (scene.hasHeavyEffects ? ', Heavy effects detected' : '');
+        (scene.hasHeavyEffects ? ', Heavy effects detected' : '')
+    );
 }

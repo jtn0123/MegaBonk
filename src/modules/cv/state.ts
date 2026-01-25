@@ -104,8 +104,8 @@ class LRUCache<K, V> {
 }
 
 // Resized template cache using LRU (key = templateId_width_height, value = ImageData)
-const resizedTemplateCache = new LRUCache<string, ImageData>(500);
-const MAX_RESIZED_CACHE_SIZE = 500; // Keep up to 500 resized variants
+const RESIZED_CACHE_SIZE = 500;
+const resizedTemplateCache = new LRUCache<string, ImageData>(RESIZED_CACHE_SIZE);
 
 // Multi-scale template variants (pre-generated at common sizes for faster matching)
 // Key: itemId, Value: Map of size -> ImageData

@@ -30,6 +30,13 @@ let selectedWeapon: Weapon | null = null;
 let templatesLoaded: boolean = false;
 let templatesLoadError: Error | null = null;
 
+// Event listener cleanup - use AbortController for easy cleanup
+let eventAbortController: AbortController | null = null;
+
+// File upload debounce - prevents race conditions from rapid uploads
+let uploadDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+let pendingUploadId = 0; // Track upload sequence to ignore stale results
+
 // Callbacks for when build state is updated
 type BuildStateCallback = (state: {
     character: Character | null;
@@ -106,32 +113,50 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
 }
 
 /**
+ * Cleanup event listeners to prevent memory leaks
+ */
+export function cleanupEventListeners(): void {
+    if (eventAbortController) {
+        eventAbortController.abort();
+        eventAbortController = null;
+    }
+}
+
+/**
  * Setup event listeners for scan build UI
+ * Uses AbortController for easy cleanup to prevent memory leaks
  */
 function setupEventListeners(): void {
+    // Clean up any existing listeners first
+    cleanupEventListeners();
+
+    // Create new AbortController for this batch of listeners
+    eventAbortController = new AbortController();
+    const { signal } = eventAbortController;
+
     // Upload/Camera button
     const uploadBtn = document.getElementById('scan-upload-btn');
-    uploadBtn?.addEventListener('click', handleUploadClick);
+    uploadBtn?.addEventListener('click', handleUploadClick, { signal });
 
     // File input change
     const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
-    fileInput?.addEventListener('change', handleFileSelect);
+    fileInput?.addEventListener('change', handleFileSelect, { signal });
 
     // Clear image button
     const clearBtn = document.getElementById('scan-clear-image');
-    clearBtn?.addEventListener('click', clearUploadedImage);
+    clearBtn?.addEventListener('click', clearUploadedImage, { signal });
 
     // Apply to advisor button
     const applyBtn = document.getElementById('scan-apply-to-advisor');
-    applyBtn?.addEventListener('click', applyToAdvisor);
+    applyBtn?.addEventListener('click', applyToAdvisor, { signal });
 
     // Auto-detect button (OCR)
     const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
-    autoDetectBtn?.addEventListener('click', handleAutoDetect);
+    autoDetectBtn?.addEventListener('click', handleAutoDetect, { signal });
 
     // Hybrid detect button (OCR + CV)
     const hybridDetectBtn = document.getElementById('scan-hybrid-detect-btn');
-    hybridDetectBtn?.addEventListener('click', handleHybridDetect);
+    hybridDetectBtn?.addEventListener('click', handleHybridDetect, { signal });
 }
 
 /**
@@ -143,7 +168,7 @@ function handleUploadClick(): void {
 }
 
 /**
- * Handle file selection
+ * Handle file selection with debouncing to prevent race conditions
  */
 async function handleFileSelect(e: Event): Promise<void> {
     const input = e.target as HTMLInputElement;
@@ -163,10 +188,39 @@ async function handleFileSelect(e: Event): Promise<void> {
         return;
     }
 
+    // Clear any pending upload debounce
+    if (uploadDebounceTimer) {
+        clearTimeout(uploadDebounceTimer);
+        uploadDebounceTimer = null;
+    }
+
+    // Increment upload ID to track this specific upload
+    pendingUploadId++;
+    const currentUploadId = pendingUploadId;
+
+    // Debounce file reads to prevent race conditions from rapid uploads
+    uploadDebounceTimer = setTimeout(() => {
+        processFileUpload(file, currentUploadId);
+    }, 100); // 100ms debounce
+}
+
+/**
+ * Process file upload after debounce
+ */
+function processFileUpload(file: File, uploadId: number): void {
     try {
         // Read file as data URL
         const reader = new FileReader();
         reader.onload = event => {
+            // Check if this upload is still the current one (race condition guard)
+            if (uploadId !== pendingUploadId) {
+                logger.info({
+                    operation: 'scan_build.upload_superseded',
+                    data: { uploadId, currentId: pendingUploadId },
+                });
+                return;
+            }
+
             const result = event.target?.result;
             if (typeof result === 'string') {
                 uploadedImage = result;
@@ -178,7 +232,10 @@ async function handleFileSelect(e: Event): Promise<void> {
             }
         };
         reader.onerror = () => {
-            ToastManager.error('Failed to read image file');
+            // Only show error if this is still the current upload
+            if (uploadId === pendingUploadId) {
+                ToastManager.error('Failed to read image file');
+            }
         };
         reader.readAsDataURL(file);
 
@@ -188,6 +245,7 @@ async function handleFileSelect(e: Event): Promise<void> {
                 fileName: file.name,
                 fileSize: file.size,
                 fileType: file.type,
+                uploadId,
             },
         });
     } catch (error) {
@@ -198,7 +256,9 @@ async function handleFileSelect(e: Event): Promise<void> {
                 message: (error as Error).message,
             },
         });
-        ToastManager.error('Failed to upload image');
+        if (uploadId === pendingUploadId) {
+            ToastManager.error('Failed to upload image');
+        }
     }
 }
 
@@ -240,9 +300,14 @@ function displayUploadedImage(): void {
         autoDetectArea.style.display = 'block';
     }
 
-    // Re-attach clear button listener
-    const clearBtnElement = document.getElementById('scan-clear-image');
-    clearBtnElement?.addEventListener('click', clearUploadedImage);
+    // Attach clear button listener using same abort controller for cleanup
+    // Note: Uses the existing signal so it gets cleaned up with other listeners
+    if (eventAbortController) {
+        clearBtn.addEventListener('click', clearUploadedImage, { signal: eventAbortController.signal });
+    } else {
+        // Fallback if called before setupEventListeners
+        clearBtn.addEventListener('click', clearUploadedImage);
+    }
 }
 
 /**
@@ -1174,6 +1239,16 @@ export function getScanState(): ScanState {
  * Reset module state for testing
  */
 export function __resetForTesting(): void {
+    // Clean up event listeners to prevent memory leaks
+    cleanupEventListeners();
+
+    // Clear any pending upload debounce
+    if (uploadDebounceTimer) {
+        clearTimeout(uploadDebounceTimer);
+        uploadDebounceTimer = null;
+    }
+    pendingUploadId = 0;
+
     allData = {};
     uploadedImage = null;
     selectedItems = new Map();

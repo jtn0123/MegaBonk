@@ -22,8 +22,8 @@ export type VariantType =
     | 'dark'
     | 'high_contrast'
     | 'low_contrast'
-    | 'warm'    // Reddish (hell biome)
-    | 'cool';   // Bluish (snow biome)
+    | 'warm' // Reddish (hell biome)
+    | 'cool'; // Bluish (snow biome)
 
 /**
  * Template variant metadata
@@ -62,7 +62,7 @@ export interface VariantConfig {
 export const DEFAULT_VARIANT_CONFIG: VariantConfig = {
     generateBrightness: true,
     generateContrast: true,
-    generateColorTemp: false,  // Disabled by default - adds overhead
+    generateColorTemp: false, // Disabled by default - adds overhead
     brightAdjust: 30,
     darkAdjust: -25,
     highContrastFactor: 1.3,
@@ -165,7 +165,7 @@ function adjustBrightness(imageData: SimpleImageData, amount: number): SimpleIma
     const data = new Uint8ClampedArray(imageData.data);
 
     for (let i = 0; i < data.length; i += 4) {
-        data[i] = clamp((data[i] ?? 0) + amount);       // R
+        data[i] = clamp((data[i] ?? 0) + amount); // R
         data[i + 1] = clamp((data[i + 1] ?? 0) + amount); // G
         data[i + 2] = clamp((data[i + 2] ?? 0) + amount); // B
         // Alpha unchanged
@@ -199,7 +199,7 @@ function adjustColorTemperature(imageData: SimpleImageData, shift: number): Simp
     for (let i = 0; i < data.length; i += 4) {
         // Warm: increase R, decrease B
         // Cool: decrease R, increase B
-        data[i] = clamp((data[i] ?? 0) + shift);       // R
+        data[i] = clamp((data[i] ?? 0) + shift); // R
         // G stays relatively unchanged
         data[i + 2] = clamp((data[i + 2] ?? 0) - shift); // B
     }
@@ -243,11 +243,7 @@ export function getRecommendedVariant(sceneType: string): VariantType {
  * Score a template variant against a cell image
  * Returns how well the variant matches the cell's characteristics
  */
-export function scoreVariantMatch(
-    variant: TemplateVariant,
-    cellBrightness: number,
-    cellContrast: number
-): number {
+export function scoreVariantMatch(variant: TemplateVariant, cellBrightness: number, cellContrast: number): number {
     // Base score
     let score = 1.0;
 
@@ -289,7 +285,9 @@ export function selectBestVariants(
     }
 
     // Always include original
-    const selected: TemplateVariant[] = [variants[0]];
+    const original = variants[0];
+    if (!original) return [];
+    const selected: TemplateVariant[] = [original];
 
     // Get recommended variant for scene
     const recommendedType = sceneType ? getRecommendedVariant(sceneType) : 'original';
@@ -304,9 +302,7 @@ export function selectBestVariants(
     const remaining = variants.filter(v => !selected.includes(v));
     while (selected.length < maxVariants && remaining.length > 0) {
         // Prefer contrast variants next
-        const contrast = remaining.find(v =>
-            v.type === 'high_contrast' || v.type === 'low_contrast'
-        );
+        const contrast = remaining.find(v => v.type === 'high_contrast' || v.type === 'low_contrast');
         if (contrast) {
             selected.push(contrast);
             remaining.splice(remaining.indexOf(contrast), 1);
@@ -314,9 +310,7 @@ export function selectBestVariants(
         }
 
         // Then brightness variants
-        const brightness = remaining.find(v =>
-            v.type === 'bright' || v.type === 'dark'
-        );
+        const brightness = remaining.find(v => v.type === 'bright' || v.type === 'dark');
         if (brightness) {
             selected.push(brightness);
             remaining.splice(remaining.indexOf(brightness), 1);

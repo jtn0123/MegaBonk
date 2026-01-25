@@ -509,7 +509,7 @@ export function detectBorderRarity(imageData: ImageData): string | null {
 
         const rarity = detectRarityAtPixel(r, g, b);
         if (rarity) {
-            rarityVotes[rarity]++;
+            rarityVotes[rarity] = (rarityVotes[rarity] ?? 0) + 1;
         }
         totalPixels++;
     }

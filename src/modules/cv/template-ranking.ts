@@ -76,11 +76,11 @@ export interface RankingConfig {
  */
 export const DEFAULT_RANKING_CONFIG: RankingConfig = {
     minUsageCount: 5,
-    skipThreshold: 0.1,        // Skip if <10% success rate
+    skipThreshold: 0.1, // Skip if <10% success rate
     minConfidenceForSuccess: 0.5,
     successRateWeight: 0.7,
     confidenceWeight: 0.3,
-    timeDecay: 0.95,           // 5% decay per day
+    timeDecay: 0.95, // 5% decay per day
 };
 
 // Storage
@@ -144,8 +144,7 @@ export function recordMatchResult(
     }
 
     // Update average confidence (running average)
-    perf.avgConfidence =
-        (perf.avgConfidence * (perf.usageCount - 1) + confidence) / perf.usageCount;
+    perf.avgConfidence = (perf.avgConfidence * (perf.usageCount - 1) + confidence) / perf.usageCount;
 
     // Track confusion
     if (!success && confusedWith) {
@@ -360,19 +359,15 @@ function updateCacheIfNeeded(): void {
  * Calculate ranking for a template
  */
 function calculateRanking(perf: TemplatePerformance): TemplateRanking {
-    const successRate = perf.usageCount > 0
-        ? perf.successCount / perf.usageCount
-        : 0;
+    const successRate = perf.usageCount > 0 ? perf.successCount / perf.usageCount : 0;
 
     // Apply time decay
     const daysSinceUpdate = (Date.now() - perf.lastUpdated) / (1000 * 60 * 60 * 24);
     const decayFactor = Math.pow(config.timeDecay, daysSinceUpdate);
 
     // Calculate rank score
-    const rankScore = (
-        successRate * config.successRateWeight +
-        perf.avgConfidence * config.confidenceWeight
-    ) * decayFactor;
+    const rankScore =
+        (successRate * config.successRateWeight + perf.avgConfidence * config.confidenceWeight) * decayFactor;
 
     return {
         templateId: perf.templateId,
@@ -395,13 +390,16 @@ function invalidateCache(): void {
  * Export performance data for persistence
  */
 export function exportPerformanceData(): {
-    performance: Array<TemplatePerformance & { confusionItems: Array<[string, number]> }>;
+    performance: Array<Omit<TemplatePerformance, 'confusionItems'> & { confusionItems: Array<[string, number]> }>;
     skipList: SkipListEntry[];
 } {
-    const performance = Array.from(performanceData.values()).map(p => ({
-        ...p,
-        confusionItems: Array.from(p.confusionItems.entries()),
-    }));
+    const performance = Array.from(performanceData.values()).map(p => {
+        const { confusionItems, ...rest } = p;
+        return {
+            ...rest,
+            confusionItems: Array.from(confusionItems.entries()),
+        };
+    });
 
     return {
         performance,
@@ -413,7 +411,7 @@ export function exportPerformanceData(): {
  * Import performance data from persistence
  */
 export function importPerformanceData(data: {
-    performance: Array<TemplatePerformance & { confusionItems: Array<[string, number]> }>;
+    performance: Array<Omit<TemplatePerformance, 'confusionItems'> & { confusionItems: Array<[string, number]> }>;
     skipList: SkipListEntry[];
 }): void {
     performanceData.clear();

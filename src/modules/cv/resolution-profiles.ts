@@ -96,7 +96,7 @@ export const LOW_RES_PROFILE: StrategyProfile = {
     maxHotbarRows: 2,
     iconsPerRow: { min: 6, max: 12, typical: 10 },
     templateScales: [0.75, 0.85, 1.0],
-    minConfidence: 0.40,
+    minConfidence: 0.4,
     nmsThreshold: 0.35,
     cellMarginPercent: 8,
     borderMarginPercent: 6,
@@ -185,7 +185,7 @@ export const STRATEGY_PROFILES: Record<ResolutionTier, StrategyProfile> = {
 /**
  * Get resolution tier from image dimensions
  */
-export function getResolutionTier(width: number, height: number): ResolutionTier {
+export function getResolutionTier(_width: number, height: number): ResolutionTier {
     if (height <= 800) return 'low';
     if (height <= 1200) return 'medium';
     if (height <= 1800) return 'high';
@@ -298,9 +298,14 @@ export function interpolateProfile(width: number, height: number): StrategyProfi
             min: lerp(baseProfile.countTextHeight.min, nextProfile.countTextHeight.min),
             max: lerp(baseProfile.countTextHeight.max, nextProfile.countTextHeight.max),
         },
-        cellMarginPercent: baseProfile.cellMarginPercent + (nextProfile.cellMarginPercent - baseProfile.cellMarginPercent) * blendFactor,
-        borderMarginPercent: baseProfile.borderMarginPercent + (nextProfile.borderMarginPercent - baseProfile.borderMarginPercent) * blendFactor,
-        minConfidence: baseProfile.minConfidence + (nextProfile.minConfidence - baseProfile.minConfidence) * blendFactor,
+        cellMarginPercent:
+            baseProfile.cellMarginPercent +
+            (nextProfile.cellMarginPercent - baseProfile.cellMarginPercent) * blendFactor,
+        borderMarginPercent:
+            baseProfile.borderMarginPercent +
+            (nextProfile.borderMarginPercent - baseProfile.borderMarginPercent) * blendFactor,
+        minConfidence:
+            baseProfile.minConfidence + (nextProfile.minConfidence - baseProfile.minConfidence) * blendFactor,
         scanStep: blendFactor > 0.5 ? nextProfile.scanStep : baseProfile.scanStep,
     };
 }
@@ -341,7 +346,10 @@ export function validateIconSize(detectedSize: number, height: number): boolean 
 /**
  * Get recommended scan region for hotbar detection
  */
-export function getHotbarScanRegion(width: number, height: number): {
+export function getHotbarScanRegion(
+    width: number,
+    height: number
+): {
     xStart: number;
     xEnd: number;
     yStart: number;

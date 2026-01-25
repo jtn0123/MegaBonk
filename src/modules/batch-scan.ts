@@ -61,7 +61,7 @@ type ProgressCallback = (progress: BatchProgress) => void;
 // State
 // ========================================
 
-let allData: AllGameData = {};
+// Note: gameData is stored by initCV and initOCR, no need to store here
 let isInitialized = false;
 let batchResults: BatchDetectionResult[] = [];
 
@@ -75,7 +75,6 @@ let batchResults: BatchDetectionResult[] = [];
 export function initBatchScan(gameData: AllGameData): void {
     if (isInitialized) return;
 
-    allData = gameData;
     initCV(gameData);
     initOCR(gameData);
 
@@ -166,11 +165,21 @@ async function detectBuildFromImage(imageData: string): Promise<BatchDetectionRe
     }
 
     // Run CV detection
-    let cvResults: Array<{ entity: Item | Tome | Character | Weapon; confidence: number; type: string }> = [];
+    let cvResults: Array<{
+        entity: Item | Tome | Character | Weapon;
+        confidence: number;
+        type: string;
+        method: 'template_match' | 'icon_similarity' | 'hybrid';
+    }> = [];
 
     if (isCVFullyLoaded()) {
         try {
-            cvResults = await detectItemsWithCV(imageData);
+            const rawCvResults = await detectItemsWithCV(imageData);
+            // Add method property to match CVDetectionResult type
+            cvResults = rawCvResults.map(r => ({
+                ...r,
+                method: 'template_match' as const,
+            }));
         } catch (error) {
             logger.warn({
                 operation: 'batch_scan.cv_failed',
@@ -187,14 +196,21 @@ async function detectBuildFromImage(imageData: string): Promise<BatchDetectionRe
         rawText: `cv_detected_${cv.entity.name}`,
     }));
 
-    // Combine and aggregate
+    // Combine and aggregate - pass CV results as CVDetectionResult[]
+    const cvItemResults = cvResults
+        .filter(r => r.type === 'item')
+        .map(r => ({ ...r, type: r.type as 'item' | 'tome' | 'character' | 'weapon' }));
+    const cvTomeResults = cvResults
+        .filter(r => r.type === 'tome')
+        .map(r => ({ ...r, type: r.type as 'item' | 'tome' | 'character' | 'weapon' }));
+
     const combinedItems = combineDetections(
         [...ocrResults.items, ...cvAsOCR.filter(r => r.type === 'item')],
-        cvResults.filter(r => r.type === 'item')
+        cvItemResults
     );
     const combinedTomes = combineDetections(
         [...ocrResults.tomes, ...cvAsOCR.filter(r => r.type === 'tome')],
-        cvResults.filter(r => r.type === 'tome')
+        cvTomeResults
     );
 
     const aggregatedItems = aggregateDuplicates(combinedItems);
@@ -276,6 +292,9 @@ export async function processBatch(
         const file = validFiles[i];
         const result = batchResults[i];
 
+        // Skip if file or result is undefined (should never happen, but satisfies TypeScript)
+        if (!file || !result) continue;
+
         onProgress?.({
             total: validFiles.length,
             completed: i,
@@ -292,13 +311,14 @@ export async function processBatch(
             result.thumbnail = await generateThumbnail(result.imageDataUrl);
 
             // Detect build
-            result.detectedBuild = await detectBuildFromImage(result.imageDataUrl);
+            const detectedBuild = await detectBuildFromImage(result.imageDataUrl);
+            result.detectedBuild = detectedBuild;
 
-            // Calculate stats
-            const totalItems = result.detectedBuild.items.reduce((sum, i) => sum + i.count, 0);
+            // Calculate stats (detectedBuild is guaranteed to exist from detectBuildFromImage)
+            const totalItems = detectedBuild?.items.reduce((sum, item) => sum + item.count, 0) ?? 0;
             const allConfidences = [
-                ...result.detectedBuild.items.map(i => i.confidence),
-                ...result.detectedBuild.tomes.map(t => t.confidence),
+                ...(detectedBuild?.items.map(item => item.confidence) ?? []),
+                ...(detectedBuild?.tomes.map(t => t.confidence) ?? []),
             ];
             const avgConfidence =
                 allConfidences.length > 0 ? allConfidences.reduce((sum, c) => sum + c, 0) / allConfidences.length : 0;

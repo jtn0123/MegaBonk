@@ -170,7 +170,7 @@ export interface DebugVisualizationOptions {
     gridCellSize: number;
 }
 
-const defaultOptions: DebugVisualizationOptions = {
+export const defaultDebugOptions: DebugVisualizationOptions = {
     showGrid: true,
     showConfidenceHeatmap: false,
     showMatchingSteps: false,

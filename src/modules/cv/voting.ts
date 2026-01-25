@@ -4,7 +4,7 @@
 // Combines scores from multiple templates using ensemble voting
 // Improves accuracy by reducing false positives from individual matches
 
-import { getScoringConfig, passesThreshold } from './scoring-config.ts';
+import { passesThreshold } from './scoring-config.ts';
 import { getTemplateRanking } from './template-ranking.ts';
 
 /**
@@ -147,13 +147,13 @@ function getTemplateWeight(templateId: string, config: VotingConfig): number {
     // Base weight from success rate
     let weight = 0.5 + ranking.successRate * 0.5; // Range: 0.5 to 1.0
 
-    // Boost for templates with more data (more reliable)
-    const dataBonus = Math.min(ranking.matchCount / 100, 0.2); // Up to 0.2 bonus
+    // Boost for templates with higher rank scores (more reliable)
+    const dataBonus = Math.min(ranking.rankScore / 100, 0.2); // Up to 0.2 bonus
     weight += dataBonus;
 
-    // Apply confusion penalty
-    if (ranking.confusionRate > 0) {
-        weight -= ranking.confusionRate * config.confusionPenalty;
+    // Penalty for templates that should be skipped
+    if (ranking.shouldSkip) {
+        weight *= 0.5; // Halve weight for skip-listed templates
     }
 
     return Math.max(0.1, Math.min(1.5, weight)); // Clamp to reasonable range
@@ -173,7 +173,8 @@ function aggregateVotes(votes: TemplateVote[], config: VotingConfig): Map<string
         if (existing) {
             existing.voteCount++;
             existing.totalWeight += templateWeight;
-            existing.avgConfidence = (existing.avgConfidence * (existing.voteCount - 1) + vote.confidence) / existing.voteCount;
+            existing.avgConfidence =
+                (existing.avgConfidence * (existing.voteCount - 1) + vote.confidence) / existing.voteCount;
             existing.maxConfidence = Math.max(existing.maxConfidence, vote.confidence);
             existing.weightedConfidence += weightedScore;
         } else {
@@ -341,12 +342,8 @@ export function majorityVote(votes: TemplateVote[]): { itemId: string; voteCount
  * Only considers votes that pass the threshold
  */
 export function thresholdVote(votes: TemplateVote[], rarity?: string): VotingResult | null {
-    const scoringConfig = getScoringConfig();
-
     // Filter votes that pass threshold
-    const passingVotes = votes.filter(vote =>
-        passesThreshold(vote.confidence, vote.rarity ?? rarity)
-    );
+    const passingVotes = votes.filter(vote => passesThreshold(vote.confidence, vote.rarity ?? rarity));
 
     if (passingVotes.length === 0) {
         return null;

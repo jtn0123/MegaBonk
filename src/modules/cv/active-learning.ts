@@ -214,7 +214,7 @@ export function getCurrentUncertainDetection(): UncertainDetection | null {
     if (!currentSession || currentSession.currentIndex >= currentSession.uncertainDetections.length) {
         return null;
     }
-    return currentSession.uncertainDetections[currentSession.currentIndex];
+    return currentSession.uncertainDetections[currentSession.currentIndex] ?? null;
 }
 
 /**

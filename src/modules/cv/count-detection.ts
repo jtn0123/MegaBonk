@@ -4,7 +4,7 @@
 // Detects stack counts (x2, x3, x5, etc.) on item icons
 // Uses digit recognition and pattern matching
 
-import { getCountTextRegion, getProfileForResolution } from './resolution-profiles.ts';
+import { getCountTextRegion } from './resolution-profiles.ts';
 
 /**
  * Simple image data interface
@@ -202,8 +202,9 @@ function extractRegion(
 /**
  * Convert region to binary (black/white) image
  * Count text is typically light on dark or white on transparent
+ * @internal Reserved for future digit recognition enhancements
  */
-function binarize(imageData: SimpleImageData, threshold: number = 128): boolean[][] {
+export function binarize(imageData: SimpleImageData, threshold: number = 128): boolean[][] {
     const result: boolean[][] = [];
 
     for (let y = 0; y < imageData.height; y++) {
@@ -257,17 +258,19 @@ function resizeBinary(binary: boolean[][], targetWidth: number, targetHeight: nu
     const srcWidth = binary[0]?.length ?? 0;
 
     if (srcWidth === 0 || srcHeight === 0) {
-        return Array(targetHeight).fill(null).map(() => Array(targetWidth).fill(false));
+        return Array(targetHeight)
+            .fill(null)
+            .map(() => Array(targetWidth).fill(false));
     }
 
     const result: boolean[][] = [];
 
     for (let y = 0; y < targetHeight; y++) {
         const row: boolean[] = [];
-        const srcY = Math.floor(y * srcHeight / targetHeight);
+        const srcY = Math.floor((y * srcHeight) / targetHeight);
 
         for (let x = 0; x < targetWidth; x++) {
-            const srcX = Math.floor(x * srcWidth / targetWidth);
+            const srcX = Math.floor((x * srcWidth) / targetWidth);
             row.push(binary[srcY]?.[srcX] ?? false);
         }
         result.push(row);
@@ -310,20 +313,27 @@ function matchPattern(binary: boolean[][], pattern: number[][]): number {
 function findComponents(binary: boolean[][]): { x: number; y: number; width: number; height: number }[] {
     const height = binary.length;
     const width = binary[0]?.length ?? 0;
-    const visited = Array(height).fill(null).map(() => Array(width).fill(false));
+    const visited = Array(height)
+        .fill(null)
+        .map(() => Array(width).fill(false));
     const components: { x: number; y: number; width: number; height: number }[] = [];
 
     for (let startY = 0; startY < height; startY++) {
         for (let startX = 0; startX < width; startX++) {
             if (binary[startY]?.[startX] && !visited[startY]?.[startX]) {
                 // BFS to find component bounds
-                let minX = startX, maxX = startX;
-                let minY = startY, maxY = startY;
+                let minX = startX,
+                    maxX = startX;
+                let minY = startY,
+                    maxY = startY;
                 const queue: [number, number][] = [[startX, startY]];
-                if (visited[startY]) visited[startY][startX] = true;
+                const visitedRow = visited[startY];
+                if (visitedRow) visitedRow[startX] = true;
 
                 while (queue.length > 0) {
-                    const [x, y] = queue.shift()!;
+                    const coord = queue.shift()!;
+                    const x = coord[0];
+                    const y = coord[1];
 
                     minX = Math.min(minX, x);
                     maxX = Math.max(maxX, x);
@@ -331,9 +341,15 @@ function findComponents(binary: boolean[][]): { x: number; y: number; width: num
                     maxY = Math.max(maxY, y);
 
                     // Check neighbors
-                    for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-                        const nx = x + dx;
-                        const ny = y + dy;
+                    const neighbors = [
+                        [-1, 0],
+                        [1, 0],
+                        [0, -1],
+                        [0, 1],
+                    ] as const;
+                    for (const delta of neighbors) {
+                        const nx = x + delta[0];
+                        const ny = y + delta[1];
 
                         if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
                             if (binary[ny]?.[nx] && !visited[ny]?.[nx]) {
@@ -364,13 +380,7 @@ function findComponents(binary: boolean[][]): { x: number; y: number; width: num
 /**
  * Extract sub-region from binary image
  */
-function extractBinaryRegion(
-    binary: boolean[][],
-    x: number,
-    y: number,
-    width: number,
-    height: number
-): boolean[][] {
+function extractBinaryRegion(binary: boolean[][], x: number, y: number, width: number, height: number): boolean[][] {
     const result: boolean[][] = [];
 
     for (let dy = 0; dy < height; dy++) {

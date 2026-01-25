@@ -5,7 +5,7 @@
 // Ported from cv-validator/js/auto-grid-detection.js
 // ========================================
 
-import { rgbToHsl, matchesRarityColor, detectRarityAtPixel } from './color.ts';
+import { detectRarityAtPixel } from './color.ts';
 
 // ========================================
 // Types and Interfaces
@@ -208,15 +208,20 @@ export interface AutoDetectionResult {
 }
 
 /**
+ * Field comparison result
+ */
+export interface FieldComparison {
+    auto: number;
+    preset: number;
+    diff: number;
+    isClose: boolean;
+}
+
+/**
  * Preset comparison result
  */
 export interface PresetComparison {
-    [field: string]: {
-        auto: number;
-        preset: number;
-        diff: number;
-        isClose: boolean;
-    };
+    fields: Record<string, FieldComparison>;
     matchScore: number;
     totalDiff: number;
     recommendation: string;
@@ -374,7 +379,11 @@ export function detectHotbarBand(ctx: CanvasRenderingContext2D, width: number, h
         }
 
         // Prefer lower on screen (hotbar is at very bottom)
-        const yPosition = windowSlice[0].y / height;
+        const firstStrip = windowSlice[0];
+        const lastStrip = windowSlice[windowSlice.length - 1];
+        if (!firstStrip || !lastStrip) continue;
+
+        const yPosition = firstStrip.y / height;
         if (yPosition > 0.88) {
             score += 25;
         } else if (yPosition > 0.82) {
@@ -383,8 +392,8 @@ export function detectHotbarBand(ctx: CanvasRenderingContext2D, width: number, h
 
         if (score > bestScore) {
             bestScore = score;
-            bestBandStart = windowSlice[0].y;
-            bestBandEnd = windowSlice[windowSlice.length - 1].y + stripHeight;
+            bestBandStart = firstStrip.y;
+            bestBandEnd = lastStrip.y + stripHeight;
         }
     }
 
@@ -529,12 +538,18 @@ function clusterEdgesByX(edges: RawEdge[], tolerance: number): CellEdge[] {
     // Sort by X position
     const sorted = [...edges].sort((a, b) => a.x - b.x);
 
+    const firstEdge = sorted[0];
+    if (!firstEdge) return []; // TypeScript guard
+
     const clusters: RawEdge[][] = [];
-    let currentCluster: RawEdge[] = [sorted[0]];
+    let currentCluster: RawEdge[] = [firstEdge];
 
     for (let i = 1; i < sorted.length; i++) {
         const edge = sorted[i];
         const lastEdge = currentCluster[currentCluster.length - 1];
+
+        // Skip if edge or lastEdge is undefined (shouldn't happen, but satisfies TypeScript)
+        if (!edge || !lastEdge) continue;
 
         if (edge.x - lastEdge.x <= tolerance) {
             // Same cluster
@@ -602,7 +617,11 @@ function filterBySpacingConsistency(edges: CellEdge[]): CellEdge[] {
     // Calculate all gaps between consecutive edges
     const gaps: Array<{ gap: number; fromIdx: number; toIdx: number }> = [];
     for (let i = 1; i < edges.length; i++) {
-        const gap = edges[i].x - edges[i - 1].x;
+        const current = edges[i];
+        const previous = edges[i - 1];
+        if (!current || !previous) continue;
+
+        const gap = current.x - previous.x;
         if (gap > 0 && gap < 150) {
             // Reasonable gap range
             gaps.push({ gap, fromIdx: i - 1, toIdx: i });
@@ -685,7 +704,11 @@ export function calculateIconMetrics(cellEdges: CellEdge[], width: number, bandR
     // Calculate gaps between consecutive edges (this is icon width + spacing)
     const gaps: number[] = [];
     for (let i = 1; i < cellEdges.length; i++) {
-        const gap = cellEdges[i].x - cellEdges[i - 1].x;
+        const current = cellEdges[i];
+        const previous = cellEdges[i - 1];
+        if (!current || !previous) continue;
+
+        const gap = current.x - previous.x;
         // Filter reasonable gaps (20-100px for icon + spacing)
         if (gap >= 20 && gap <= 100) {
             gaps.push(gap);
@@ -718,8 +741,8 @@ export function calculateIconMetrics(cellEdges: CellEdge[], width: number, bandR
 
     // Calculate how many icons fit
     const totalGridWidth = cellEdges.length * gapMode;
-    const startX = cellEdges[0].x;
-    const centerOffset = Math.round((width - totalGridWidth) / 2) - startX;
+    const firstCellX = cellEdges[0]?.x ?? 0;
+    const centerOffset = Math.round((width - totalGridWidth) / 2) - firstCellX;
 
     return {
         iconWidth: Math.round(iconWidth),
@@ -730,7 +753,7 @@ export function calculateIconMetrics(cellEdges: CellEdge[], width: number, bandR
         borderWidth: avgBorderWidth,
         confidence: gaps.length / (cellEdges.length - 1),
         detectedCells: cellEdges.length,
-        firstCellX: cellEdges[0].x,
+        firstCellX,
         centerOffset,
         debug: { gaps, gapMode },
     };
@@ -749,7 +772,7 @@ function findMode(values: number[], tolerance: number = 2): number {
     }
 
     let maxCount = 0;
-    let mode = values[0];
+    let mode = values[0] ?? 0;
 
     for (const [value, count] of counts) {
         if (count > maxCount) {
@@ -764,7 +787,7 @@ function findMode(values: number[], tolerance: number = 2): number {
 /**
  * Get default metrics based on resolution
  */
-function getDefaultMetrics(width: number, bandRegion: BandRegion): IconMetrics {
+function getDefaultMetrics(_width: number, bandRegion: BandRegion): IconMetrics {
     const height = bandRegion.bottomY;
     const scale = height / config.baseResolution;
 
@@ -1119,9 +1142,18 @@ export function compareWithPreset(
         return null;
     }
 
-    const fields = ['iconWidth', 'iconHeight', 'xSpacing', 'ySpacing', 'xOffset', 'yOffset', 'iconsPerRow', 'numRows'];
+    const fieldNames = [
+        'iconWidth',
+        'iconHeight',
+        'xSpacing',
+        'ySpacing',
+        'xOffset',
+        'yOffset',
+        'iconsPerRow',
+        'numRows',
+    ];
 
-    const comparison: Record<string, { auto: number; preset: number; diff: number; isClose: boolean }> = {};
+    const fields: Record<string, FieldComparison> = {};
     let totalDiff = 0;
     let matchingFields = 0;
 
@@ -1137,15 +1169,15 @@ export function compareWithPreset(
         numRows: 1,
     };
 
-    for (const field of fields) {
-        const autoVal = (autoCalibration as Record<string, number>)[field] || 0;
-        const presetVal = (presetCalibration as Record<string, number>)[field] || 0;
+    for (const field of fieldNames) {
+        const autoVal = (autoCalibration as unknown as Record<string, number>)[field] ?? 0;
+        const presetVal = (presetCalibration as unknown as Record<string, number>)[field] ?? 0;
         const diff = Math.abs(autoVal - presetVal);
 
-        const tolerance = tolerances[field] || 5;
+        const tolerance = tolerances[field] ?? 5;
         const isClose = diff <= tolerance;
 
-        comparison[field] = {
+        fields[field] = {
             auto: autoVal,
             preset: presetVal,
             diff,
@@ -1156,17 +1188,17 @@ export function compareWithPreset(
         if (isClose) matchingFields++;
     }
 
-    const matchScore = (matchingFields / fields.length) * 100;
+    const matchScore = (matchingFields / fieldNames.length) * 100;
 
     return {
-        ...comparison,
+        fields,
         matchScore,
         totalDiff,
         recommendation:
             matchScore >= 70
                 ? 'Auto-detection matches preset well'
                 : 'Auto-detection differs significantly from preset',
-    } as PresetComparison;
+    };
 }
 
 // ========================================

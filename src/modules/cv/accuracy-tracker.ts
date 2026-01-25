@@ -187,6 +187,8 @@ export function getAccuracySummary(): AccuracySummary | null {
     }
 
     const lastRun = benchmarkHistory.runs[benchmarkHistory.runs.length - 1];
+    if (!lastRun) return null; // TypeScript guard (runs.length > 0 guarantees this)
+
     const recentRuns = benchmarkHistory.runs.slice(-5);
     const olderRuns = benchmarkHistory.runs.slice(-10, -5);
 
@@ -206,7 +208,7 @@ export function getAccuracySummary(): AccuracySummary | null {
     const weakItems: { itemId: string; itemName: string; f1: number }[] = [];
     const strongItems: { itemId: string; itemName: string; f1: number }[] = [];
 
-    if (lastRun.perItem) {
+    if (lastRun?.perItem) {
         const itemMetrics = Object.values(lastRun.perItem);
         itemMetrics.sort((a, b) => a.f1 - b.f1);
 
@@ -279,7 +281,7 @@ export function analyzeTrends(): TrendAnalysis | null {
     const lastRun = recentRuns[recentRuns.length - 1];
     const olderRun = olderRuns[olderRuns.length - 1];
 
-    if (lastRun.perItem && olderRun?.perItem) {
+    if (lastRun?.perItem && olderRun?.perItem) {
         for (const [itemId, currentMetrics] of Object.entries(lastRun.perItem)) {
             const olderMetrics = olderRun.perItem[itemId];
             if (olderMetrics) {
@@ -314,7 +316,7 @@ export function getWeakItems(threshold: number = 0.5): ItemAccuracyMetrics[] {
     }
 
     const lastRun = benchmarkHistory.runs[benchmarkHistory.runs.length - 1];
-    if (!lastRun.perItem) {
+    if (!lastRun?.perItem) {
         return [];
     }
 
@@ -335,7 +337,7 @@ export function getPerImageMetrics(): ImageAccuracyMetrics[] {
     const previousRun =
         benchmarkHistory.runs.length > 1 ? benchmarkHistory.runs[benchmarkHistory.runs.length - 2] : null;
 
-    if (!lastRun.perImage) {
+    if (!lastRun?.perImage) {
         return [];
     }
 
@@ -400,7 +402,7 @@ export function getLastRun(): BenchmarkRun | null {
     if (!benchmarkHistory || benchmarkHistory.runs.length === 0) {
         return null;
     }
-    return benchmarkHistory.runs[benchmarkHistory.runs.length - 1];
+    return benchmarkHistory.runs[benchmarkHistory.runs.length - 1] ?? null;
 }
 
 /**

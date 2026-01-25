@@ -87,26 +87,28 @@ export interface WeaponUpgrade {
 
 /**
  * Weapon interface
+ * Note: JSON uses snake_case (base_damage) not camelCase (baseDamage)
  */
 export interface Weapon {
     id: string;
     name: string;
     description: string;
     tier: Tier;
-    rarity: Rarity;
+    rarity?: Rarity; // Optional - not present in weapons.json
     image?: string;
-    baseDamage: number;
-    attackSpeed: number;
+    baseDamage?: number; // Optional - legacy, use base_damage
+    attackSpeed?: number; // Optional - not in JSON
     range?: number;
     upgrades?: WeaponUpgrade[];
     scaling?: Scaling;
     tags?: string[];
-    // Build planner properties (snake_case from JSON)
+    // JSON properties (snake_case)
     base_damage?: number;
     base_projectile_count?: number;
     attack_pattern?: string;
     upgradeable_stats?: string[] | string;
-    unlock_requirement?: string;
+    unlock_requirement?: string | null;
+    unlock_cost_silver?: number;
     unlocked_by_default?: boolean;
     best_for?: string[];
     synergies_items?: string[];
@@ -120,21 +122,29 @@ export interface Weapon {
 
 /**
  * Tome interface
+ * Note: JSON uses stat_affected/value_per_level, not effect/stackable
  */
 export interface Tome {
     id: string;
     name: string;
     description: string;
     tier: Tier;
-    rarity: Rarity;
+    rarity?: Rarity; // Optional - not present in tomes.json
     image?: string;
-    effect: string;
+    effect?: string; // Optional - not in JSON, use stat_affected
     priority?: number;
-    stackable?: boolean;
+    stackable?: boolean; // Optional - not in JSON
     tags?: string[];
-    // Build planner properties
+    // JSON properties (snake_case)
     stat_affected?: string;
     value_per_level?: string | number;
+    max_level?: number;
+    unlocked_by_default?: boolean;
+    unlock_requirement?: string | null;
+    unlock_cost_silver?: number;
+    synergies_items?: string[];
+    synergies_weapons?: string[];
+    synergies_characters?: string[];
     // Modal properties
     notes?: string;
     recommended_for?: string[];
@@ -152,38 +162,41 @@ export interface CharacterStats {
 
 /**
  * Character interface
+ * Note: JSON uses passive_ability, not passive; no baseStats in JSON
  */
 export interface Character {
     id: string;
     name: string;
-    description: string;
+    description?: string; // Optional - not present in characters.json
     tier: Tier;
-    rarity: Rarity;
+    rarity?: Rarity; // Optional - not present in characters.json
     image?: string;
-    baseStats: CharacterStats;
-    passive: string;
-    startingWeapon?: string;
+    baseStats?: CharacterStats; // Optional - not in JSON
+    passive?: string; // Optional - legacy, use passive_ability
+    startingWeapon?: string; // Optional - legacy, use starting_weapon
     tags?: string[];
-    // Build planner properties
+    // JSON properties (snake_case)
     passive_ability?: string;
-    synergies_weapons?: string[];
-    synergies_items?: string[];
-    // Modal properties
     passive_description?: string;
     starting_weapon?: string;
+    synergies_weapons?: string[];
+    synergies_items?: string[];
+    synergies_tomes?: string[];
     playstyle?: string;
     base_hp?: number;
     base_damage?: number;
-    unlock_requirement?: string;
+    unlock_requirement?: string | null;
+    unlock_cost_silver?: number;
+    unlocked_by_default?: boolean;
     best_for?: string[];
     strengths?: string[];
     weaknesses?: string[];
-    synergies_tomes?: string[];
     build_tips?: string;
 }
 
 /**
  * Shrine interface
+ * Note: JSON uses description + activation/reward, not effect
  */
 export interface Shrine {
     id: string;
@@ -191,16 +204,17 @@ export interface Shrine {
     description: string;
     tier: Tier;
     image?: string;
-    effect: string;
+    effect?: string; // Optional - not in JSON, use description
     cost?: number | string;
     tags?: string[];
-    type?: 'stat_upgrade' | 'combat' | 'utility' | 'risk_reward';
-    // Modal properties
+    type?: 'stat_upgrade' | 'stat_upgrade_legendary' | 'combat' | 'utility' | 'risk_reward';
+    // JSON properties
     icon?: string;
     reusable?: boolean;
     reward?: string;
     activation?: string;
     spawn_count?: string;
+    map_icon?: string;
     best_for?: string[];
     synergies_items?: string[];
     strategy?: string;
@@ -399,43 +413,50 @@ export interface StoredMetric {
 
 /**
  * Type guard to check if entity is an Item
+ * Items have rarity + tier but NOT weapon/tome/character/shrine specific fields
  */
 export function isItem(entity: Entity | ChangelogPatch): entity is Item {
     return (
         'rarity' in entity &&
         'tier' in entity &&
-        !('baseDamage' in entity) &&
-        !('effect' in entity) &&
-        !('baseStats' in entity)
+        !('base_damage' in entity) &&
+        !('attack_pattern' in entity) &&
+        !('stat_affected' in entity) &&
+        !('passive_ability' in entity) &&
+        !('activation' in entity)
     );
 }
 
 /**
  * Type guard to check if entity is a Weapon
+ * Weapons have base_damage or attack_pattern (from JSON)
  */
 export function isWeapon(entity: Entity | ChangelogPatch): entity is Weapon {
-    return 'baseDamage' in entity || 'attackSpeed' in entity;
+    return 'base_damage' in entity || 'attack_pattern' in entity;
 }
 
 /**
  * Type guard to check if entity is a Tome
+ * Tomes have stat_affected or value_per_level (from JSON)
  */
 export function isTome(entity: Entity | ChangelogPatch): entity is Tome {
-    return 'effect' in entity && 'stackable' in entity;
+    return 'stat_affected' in entity || 'value_per_level' in entity;
 }
 
 /**
  * Type guard to check if entity is a Character
+ * Characters have passive_ability (from JSON)
  */
 export function isCharacter(entity: Entity | ChangelogPatch): entity is Character {
-    return 'baseStats' in entity || 'passive' in entity;
+    return 'passive_ability' in entity;
 }
 
 /**
  * Type guard to check if entity is a Shrine
+ * Shrines have activation or reward fields (from JSON)
  */
 export function isShrine(entity: Entity | ChangelogPatch): entity is Shrine {
-    return 'effect' in entity && !('stackable' in entity) && !('baseDamage' in entity);
+    return 'activation' in entity || 'reward' in entity;
 }
 
 /**
@@ -555,6 +576,8 @@ declare global {
 
         // OCR functions (from ocr.ts)
         initOCR?: (gameData: AllGameData) => void;
+        terminateOCRWorker?: () => Promise<void>;
+        isOCRWorkerActive?: () => boolean;
 
         // Scan build functions (from scan-build.ts, scan-build-enhanced.ts)
         initScanBuild?: (gameData: AllGameData) => void;
