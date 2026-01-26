@@ -121,19 +121,19 @@ MegaBonk/
 │   └── stats.json          # Game mechanics formulas + breakpoints
 ├── src/
 │   ├── index.html          # Main interface with tabs
+│   ├── script.ts           # Main entry point (TypeScript)
 │   ├── styles.css          # Complete styling system
-│   ├── script.js           # Full app logic (1000+ lines)
+│   ├── modules/            # 57+ TypeScript modules (features, CV, UI)
 │   ├── manifest.json       # PWA manifest for mobile install
-│   ├── sw.js               # Service worker for offline support
-│   ├── libs/
-│   │   └── chart.min.js    # Chart.js (local, no internet needed)
 │   └── icons/              # App icons for mobile
+├── tests/                  # 136+ test files (unit, e2e, integration)
+├── scripts/                # Build and utility scripts
 ├── docs/
 │   ├── UPDATE_GUIDE.md     # Maintenance instructions
 │   ├── DATA_FORMAT.md      # JSON schema reference
 │   └── SOURCES.md          # Data sources
 ├── serve.py                # One-click launch server
-├── PLAN.md                 # Design documentation
+├── CLAUDE.md               # AI assistant instructions
 └── README.md               # This file
 ```
 
@@ -250,10 +250,12 @@ Detailed instructions in `docs/UPDATE_GUIDE.md`.
 ## 🛠️ Technical Details
 
 ### Technologies
-- **HTML5** - Semantic, accessible markup
-- **CSS3** - Modern styling with Grid/Flexbox
-- **Vanilla JavaScript** - No framework dependencies
-- **Chart.js** - Beautiful interactive graphs
+- **TypeScript** - Type-safe codebase compiled via Vite
+- **HTML5/CSS3** - Semantic markup with Grid/Flexbox
+- **Vite** - Fast dev server and build tool
+- **Chart.js** - Interactive scaling graphs
+- **Tesseract.js** - OCR for screenshot scanning
+- **Vitest/Playwright** - Comprehensive test suite
 - **JSON** - Human-readable data storage
 
 ### Browser Support
@@ -262,11 +264,18 @@ Detailed instructions in `docs/UPDATE_GUIDE.md`.
 - ✅ Safari (latest)
 - ✅ Mobile browsers
 
-### No Installation Required
-- No Node.js
-- No build process
-- No package managers
-- Just open and use!
+### For Users
+- Open the hosted version or `dist/index.html` directly - no installation needed
+
+### For Developers
+```bash
+bun install              # Install dependencies (bun recommended)
+bun run dev              # Start dev server at http://localhost:8000
+bun run test:unit        # Run tests
+bun run build            # Production build
+```
+
+**Note:** Development requires Node.js 20+ or Bun. See `CLAUDE.md` for full setup instructions.
 
 ## 📝 Contributing
 

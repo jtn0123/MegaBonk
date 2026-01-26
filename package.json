@@ -59,7 +59,7 @@
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
     "test:check-cleanup": "node scripts/check-test-cleanup.js",
-    "prepare": "husky",
+    "prepare": "husky || true",
     "import:training": "node scripts/import-training-data.js",
     "training:extract-gt": "node scripts/extract-ground-truth-crops.js",
     "training:consolidate": "node scripts/consolidate-training-data.js",
