@@ -35,11 +35,7 @@ describe('Data File Metadata', () => {
     describe('Version Consistency', () => {
         it('should have matching versions across core data files', () => {
             // All data files should have the same version for consistency
-            const versions = [
-                weapons.version,
-                tomes.version,
-                characters.version,
-            ];
+            const versions = [weapons.version, tomes.version, characters.version];
 
             // Check that weapon/tome/character versions match
             expect(new Set(versions).size).toBe(1);
@@ -166,10 +162,11 @@ describe('Cross-Reference Validation', () => {
             const invalidStartingWeapons = [];
 
             characters.characters.forEach(char => {
-                if (!weaponNames.has(char.starting_weapon)) {
+                // starting_weapon now uses snake_case IDs
+                if (!weaponIds.has(char.starting_weapon)) {
                     invalidStartingWeapons.push({
                         character: char.name,
-                        weapon: char.starting_weapon
+                        weapon: char.starting_weapon,
                     });
                 }
             });
@@ -190,7 +187,7 @@ describe('Cross-Reference Validation', () => {
                     if (!charNames.has(syn)) {
                         invalid.push({
                             weapon: weapon.name,
-                            reference: syn
+                            reference: syn,
                         });
                     }
                 });
@@ -201,18 +198,16 @@ describe('Cross-Reference Validation', () => {
     });
 
     describe('Character Synergies', () => {
-        it('character synergies_weapons should reference valid weapon names', () => {
+        it('character synergies_weapons should reference valid weapon IDs', () => {
             const invalid = [];
 
             characters.characters.forEach(char => {
                 (char.synergies_weapons || []).forEach(syn => {
-                    // Skip generic references
-                    if (syn.includes('weapons') || syn.includes('All ') || syn.includes('Fast ')) return;
-
-                    if (!weaponNames.has(syn)) {
+                    // synergies_weapons now uses snake_case IDs
+                    if (!weaponIds.has(syn)) {
                         invalid.push({
                             character: char.name,
-                            reference: syn
+                            reference: syn,
                         });
                     }
                 });
@@ -223,18 +218,16 @@ describe('Cross-Reference Validation', () => {
     });
 
     describe('Tome Synergies', () => {
-        it('tome synergies_weapons should reference valid weapon names or generic terms', () => {
+        it('tome synergies_weapons should reference valid weapon IDs', () => {
             const invalid = [];
 
             tomes.tomes.forEach(tome => {
                 (tome.synergies_weapons || []).forEach(syn => {
-                    // Skip generic references
-                    if (syn.includes('weapons') || syn.includes('All ') || syn.includes('Melee') || syn.includes('Ranged')) return;
-
-                    if (!weaponNames.has(syn)) {
+                    // synergies_weapons now uses snake_case IDs
+                    if (!weaponIds.has(syn)) {
                         invalid.push({
                             tome: tome.name,
-                            reference: syn
+                            reference: syn,
                         });
                     }
                 });
@@ -369,7 +362,7 @@ describe('Item Scaling Data Integrity', () => {
             if (item.one_and_done === true && item.stacking_behavior !== 'no_benefit') {
                 inconsistent.push({
                     item: item.name,
-                    stacking_behavior: item.stacking_behavior
+                    stacking_behavior: item.stacking_behavior,
                 });
             }
         });

@@ -1364,25 +1364,41 @@
   },
   "steam-community/steam_9523736771606982326_5D4E.jpg": {
     "character": "Unknown",
-    "level": 0,
+    "level": 3,
     "resolution": "2560x1440",
-    "items": [],
-    "notes": "GAMEPLAY - Useful for CV testing. Resolution 2560x1440. Needs manual item labeling.",
-    "difficulty": "hard",
-    "_auto_generated": true,
-    "_needs_labeling": true,
-    "ui_state": "gameplay"
+    "biome": "forest",
+    "ui_state": "gameplay",
+    "language": "russian",
+    "items": [
+      "Campfire"
+    ],
+    "notes": "VERY EARLY GAME - Level 3, Forest biome, Russian. Fighting goblin swarm. Only 1 item (Campfire) visible. Good for testing early game detection.",
+    "difficulty": "easy"
   },
   "steam-community/steam_12854080431615774772_CCA.jpg": {
     "character": "Unknown",
-    "level": 0,
+    "level": 25,
     "resolution": "2560x1440",
-    "items": [],
-    "notes": "GAMEPLAY - Useful for CV testing. Resolution 2560x1440. Needs manual item labeling.",
-    "difficulty": "hard",
-    "_auto_generated": true,
-    "_needs_labeling": true,
-    "ui_state": "gameplay"
+    "biome": "forest",
+    "ui_state": "gameplay",
+    "language": "russian",
+    "items": [
+      "Wrench",
+      "Forbidden Juice",
+      "Oats",
+      "Oats",
+      "Oats",
+      "Dragonfire",
+      "Ice Cube",
+      "Spicy Meatball",
+      "Medkit",
+      "Key",
+      "Feathers",
+      "Moldy Cheese",
+      "Ghost"
+    ],
+    "notes": "Forest biome, Russian ('Найди портал к боссу'). Level 25, mid-early game. Combat with skeletons. 13 items visible.",
+    "difficulty": "easy"
   },
   "steam-community/steam_17623692109138166876_B4B.jpg": {
     "character": "Unknown",
@@ -1462,15 +1478,16 @@
     "ui_state": "gameplay"
   },
   "steam-community/steam_16677517744360461122_D43.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Ninja",
+    "level": 126,
     "resolution": "2560x1440",
+    "ui_state": "end_game_summary",
+    "language": "english",
+    "kills": 16913,
+    "time_alive": "36:53",
     "items": [],
-    "notes": "GAMEPLAY - Useful for CV testing. Resolution 2560x1440. Needs manual item labeling.",
-    "difficulty": "hard",
-    "_auto_generated": true,
-    "_needs_labeling": true,
-    "ui_state": "gameplay"
+    "notes": "END GAME SUMMARY - Ninja character, Level 126. English. +50 Silver. Many items visible with stack counts.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_10108479826528152008_B40.jpg": {
     "character": "Unknown",
@@ -1576,15 +1593,16 @@
     "_needs_labeling": true
   },
   "steam-community/steam_17011981285748501183_936.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Ninja",
+    "level": 107,
     "resolution": "2560x1440",
+    "ui_state": "end_game_summary",
+    "language": "english",
+    "kills": 18083,
+    "time_alive": "34:24",
     "items": [],
-    "notes": "END GAME SUMMARY - Excellent for template extraction. Clear item icons with stack counts. Resolution 2560x1440. Needs manual item labeling.",
-    "difficulty": "template_source",
-    "_auto_generated": true,
-    "_needs_labeling": true,
-    "ui_state": "end_game_summary"
+    "notes": "END GAME SUMMARY - Ninja character, Level 107. English. 2 Unlocks, +53 Silver. Quests: Frostwalker, Crimson Ninja. Many items visible.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_17308731572906866100_E0D.jpg": {
     "character": "Unknown",
