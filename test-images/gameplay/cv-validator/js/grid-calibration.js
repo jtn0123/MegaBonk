@@ -103,6 +103,9 @@ export function initGridCalibration(domElements, callbacks) {
     if (elements.exportAllPresetsBtn) {
         elements.exportAllPresetsBtn.addEventListener('click', exportAllPresets);
     }
+    if (elements.markVerifiedBtn) {
+        elements.markVerifiedBtn.addEventListener('click', markAsVerified);
+    }
 }
 
 // ========================================
@@ -165,14 +168,30 @@ export function autoLoadPresetForResolution(width, height) {
         // Apply exact preset
         presetManager.applyPreset(status.preset);
         syncUIToState();
-        updatePresetStatus(status.message, 'exact');
+        updatePresetStatus(status.message, status.isVerified ? 'verified' : 'exact');
         log(`Auto-loaded preset for ${width}x${height}`, LOG_LEVELS.SUCCESS);
         return true;
     } else if (status.type === 'scaled') {
-        // Found aspect ratio match - we could scale, but for now just notify
+        // Found aspect ratio match with verified preset - apply scaled values
+        presetManager.applyPreset(status.preset);
+        syncUIToState();
         updatePresetStatus(status.message, 'scaled');
         log(`Found scaled preset match: ${status.message}`, LOG_LEVELS.INFO);
-        return false;
+        return true;
+    } else if (status.type === 'interpolated') {
+        // Apply interpolated calibration from verified anchors
+        state.calibration = { ...status.calibration };
+        syncUIToState();
+        updatePresetStatus(status.message, 'interpolated');
+        log(`Applied interpolated calibration: ${status.message}`, LOG_LEVELS.INFO);
+        return true;
+    } else if (status.type === 'nearest') {
+        // Apply nearest preset as fallback
+        presetManager.applyPreset(status.preset);
+        syncUIToState();
+        updatePresetStatus(status.message, 'nearest');
+        log(`Applied nearest preset: ${status.message}`, LOG_LEVELS.WARNING);
+        return true;
     } else {
         updatePresetStatus(status.message, 'default');
         return false;
@@ -237,6 +256,44 @@ function deleteCurrentPreset() {
 }
 
 /**
+ * Mark current calibration as verified (promoted to master preset)
+ * This saves the current calibration with source: 'verified'
+ */
+function markAsVerified() {
+    if (!state.currentImage) {
+        showToast('No image loaded');
+        return;
+    }
+
+    const { width, height } = state.currentImage;
+    const key = `${width}x${height}`;
+
+    // Get current calibration
+    const calibration = { ...state.calibration };
+
+    // Save with verified source
+    const data = presetManager.load();
+    data.presets[key] = {
+        name: `${height}p`,
+        resolution: { width, height },
+        calibration,
+        lastModified: new Date().toISOString(),
+        source: 'verified',
+        verifiedFrom: state.currentImagePath || 'manual',
+        notes: `Verified on ${new Date().toLocaleDateString()}`,
+    };
+    presetManager.save(data);
+
+    // Export to file for persistence
+    presetManager.exportToFile();
+
+    showToast(`Marked ${key} as VERIFIED - place grid-presets.json in data/`);
+    updatePresetStatus(`Verified preset: ${height}p ✓`, 'verified');
+    log(`Marked ${key} as verified master preset`, LOG_LEVELS.SUCCESS);
+    log(`Downloaded grid-presets.json - move to data/ for persistence`, LOG_LEVELS.INFO);
+}
+
+/**
  * Export all presets to a JSON file for backup/sharing
  */
 export function exportAllPresets() {
@@ -267,15 +324,30 @@ function updatePresetStatus(message, type = 'default') {
     // Update badge
     if (elements.presetBadge) {
         elements.presetBadge.className = 'preset-badge';
-        if (type === 'exact') {
-            elements.presetBadge.textContent = 'Exact match';
-            elements.presetBadge.classList.add('exact');
-        } else if (type === 'scaled') {
-            elements.presetBadge.textContent = 'Scaled';
-            elements.presetBadge.classList.add('scaled');
-        } else {
-            elements.presetBadge.textContent = 'Default';
-            elements.presetBadge.classList.add('default');
+        switch (type) {
+            case 'verified':
+                elements.presetBadge.textContent = 'Verified ✓';
+                elements.presetBadge.classList.add('verified');
+                break;
+            case 'exact':
+                elements.presetBadge.textContent = 'Exact match';
+                elements.presetBadge.classList.add('exact');
+                break;
+            case 'scaled':
+                elements.presetBadge.textContent = 'Scaled';
+                elements.presetBadge.classList.add('scaled');
+                break;
+            case 'interpolated':
+                elements.presetBadge.textContent = 'Interpolated';
+                elements.presetBadge.classList.add('interpolated');
+                break;
+            case 'nearest':
+                elements.presetBadge.textContent = 'Nearest';
+                elements.presetBadge.classList.add('nearest');
+                break;
+            default:
+                elements.presetBadge.textContent = 'Default';
+                elements.presetBadge.classList.add('default');
         }
     }
 

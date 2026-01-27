@@ -792,6 +792,18 @@ button:disabled {
     color: #000;
 }
 
+.preset-controls .verified-btn {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border: 1px solid #22c55e;
+    color: #fff;
+    font-weight: 600;
+}
+
+.preset-controls .verified-btn:hover {
+    background: linear-gradient(135deg, #16a34a, #15803d);
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+}
+
 /* ========================================
  * File System Status Bar
  * ======================================== */
@@ -1631,6 +1643,12 @@ button:disabled {
     font-weight: bold;
 }
 
+.preset-badge.verified {
+    background: rgba(74, 222, 128, 0.3);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
 .preset-badge.exact {
     background: rgba(74, 222, 128, 0.2);
     color: var(--success);
@@ -1639,6 +1657,16 @@ button:disabled {
 .preset-badge.scaled {
     background: rgba(6, 182, 212, 0.2);
     color: var(--cyan);
+}
+
+.preset-badge.interpolated {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+}
+
+.preset-badge.nearest {
+    background: rgba(251, 191, 36, 0.2);
+    color: var(--warning);
 }
 
 .preset-badge.default {

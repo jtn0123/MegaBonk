@@ -211,9 +211,31 @@ describe('Keyboard Shortcuts Module', () => {
                 expect(clickSpy).toHaveBeenCalled();
             });
 
-            // Tabs 6-8 tests skipped: minimal DOM fixture only includes tabs 1-5.
-            // The tab navigation mechanism is proven by the tests above.
-            it.skip('should switch to build-planner tab on key 6 - not in minimal DOM fixture', () => {});
+            it('should switch to build-planner tab on key 6', () => {
+                const tabBtn = document.querySelector('[data-tab="build-planner"]');
+                const clickSpy = vi.spyOn(tabBtn, 'click');
+
+                const event = new KeyboardEvent('keydown', {
+                    key: '6',
+                    bubbles: true,
+                });
+                document.dispatchEvent(event);
+
+                expect(clickSpy).toHaveBeenCalled();
+            });
+
+            it('should switch to calculator tab on key 7', () => {
+                const tabBtn = document.querySelector('[data-tab="calculator"]');
+                const clickSpy = vi.spyOn(tabBtn, 'click');
+
+                const event = new KeyboardEvent('keydown', {
+                    key: '7',
+                    bubbles: true,
+                });
+                document.dispatchEvent(event);
+
+                expect(clickSpy).toHaveBeenCalled();
+            });
 
             it('should not trigger tab switch with Ctrl modifier', () => {
                 const tabBtn = document.querySelector('[data-tab="items"]');

@@ -206,6 +206,7 @@ const elements = {
     modifiedFields: document.getElementById('modified-fields'),
     savePresetBtn: document.getElementById('save-preset'),
     loadPresetBtn: document.getElementById('load-preset'),
+    markVerifiedBtn: document.getElementById('mark-verified'),
     deletePresetBtn: document.getElementById('delete-preset'),
     exportAllPresetsBtn: document.getElementById('export-all-presets'),
     reloadPresetsBtn: document.getElementById('reload-presets'),

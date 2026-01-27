@@ -354,30 +354,145 @@ export const presetManager = {
         return nearest;
     },
 
+    // Get only verified presets (source === 'verified')
+    getVerifiedPresets() {
+        const data = this.load();
+        if (!data.presets || typeof data.presets !== 'object') {
+            return [];
+        }
+
+        return Object.entries(data.presets)
+            .filter(([_key, preset]) => preset.source === 'verified')
+            .map(([key, preset]) => ({
+                key,
+                preset,
+                pixels: preset.resolution.width * preset.resolution.height,
+            }))
+            .sort((a, b) => a.pixels - b.pixels); // Sort by pixel count ascending
+    },
+
+    // Calculate calibration by interpolating between two nearest verified presets
+    calculateCalibrationByInterpolation(width, height) {
+        // Validate input parameters
+        if (!Number.isFinite(width) || !Number.isFinite(height)) {
+            console.warn('[interpolate] Invalid dimensions:', width, height);
+            return null;
+        }
+        if (width <= 0 || height <= 0) {
+            console.warn('[interpolate] Dimensions must be positive:', width, height);
+            return null;
+        }
+
+        const verifiedPresets = this.getVerifiedPresets();
+
+        // Need at least 2 verified presets to interpolate
+        if (verifiedPresets.length < 2) {
+            console.warn('[interpolate] Need at least 2 verified presets for interpolation');
+            return null;
+        }
+
+        const targetPixels = width * height;
+
+        // Find the two nearest verified presets (one below, one above if possible)
+        let lower = null;
+        let upper = null;
+
+        for (const p of verifiedPresets) {
+            if (p.pixels <= targetPixels) {
+                lower = p;
+            } else if (!upper) {
+                upper = p;
+                break;
+            }
+        }
+
+        // Edge cases: target is outside the range of verified presets
+        if (!lower) {
+            // Target is smaller than all verified presets - use two smallest
+            lower = verifiedPresets[0];
+            upper = verifiedPresets[1];
+        } else if (!upper) {
+            // Target is larger than all verified presets - use two largest
+            lower = verifiedPresets[verifiedPresets.length - 2];
+            upper = verifiedPresets[verifiedPresets.length - 1];
+        }
+
+        // Calculate interpolation factor (0 = lower, 1 = upper)
+        const range = upper.pixels - lower.pixels;
+        const t = range > 0 ? (targetPixels - lower.pixels) / range : 0.5;
+
+        // Clamp t to [0, 1] for edge cases
+        const tClamped = Math.max(0, Math.min(1, t));
+
+        // Interpolate each calibration parameter
+        const lowerCal = lower.preset.calibration;
+        const upperCal = upper.preset.calibration;
+
+        const lerp = (a, b, t) => Math.round(a + (b - a) * t);
+
+        const interpolatedCalibration = {
+            xOffset: lerp(lowerCal.xOffset, upperCal.xOffset, tClamped),
+            yOffset: lerp(lowerCal.yOffset, upperCal.yOffset, tClamped),
+            iconWidth: lerp(lowerCal.iconWidth, upperCal.iconWidth, tClamped),
+            iconHeight: lerp(lowerCal.iconHeight, upperCal.iconHeight, tClamped),
+            xSpacing: lerp(lowerCal.xSpacing, upperCal.xSpacing, tClamped),
+            ySpacing: lerp(lowerCal.ySpacing, upperCal.ySpacing, tClamped),
+            iconsPerRow: lerp(lowerCal.iconsPerRow, upperCal.iconsPerRow, tClamped),
+            numRows: lerp(lowerCal.numRows, upperCal.numRows, tClamped),
+        };
+
+        return {
+            calibration: interpolatedCalibration,
+            lowerPreset: lower.preset,
+            upperPreset: upper.preset,
+            lowerKey: lower.key,
+            upperKey: upper.key,
+            interpolationFactor: tClamped,
+            source: 'interpolated',
+        };
+    },
+
     // Get preset status string for display
     getStatusForResolution(width, height) {
         // 1. Check exact match
         const exact = this.getPresetForResolution(width, height);
         if (exact) {
+            const sourceLabel = exact.source === 'verified' ? ' ✓' : '';
             return {
                 type: 'exact',
-                message: `Using preset: ${exact.name}`,
+                message: `Using preset: ${exact.name}${sourceLabel}`,
                 preset: exact,
+                isVerified: exact.source === 'verified',
             };
         }
 
-        // 2. Check aspect ratio match with scaling
+        // 2. Check aspect ratio match with scaling (only if verified)
         const aspectMatch = this.findByAspectRatio(width, height);
-        if (aspectMatch) {
+        if (aspectMatch && aspectMatch.preset.source === 'verified') {
             return {
                 type: 'scaled',
-                message: `Using scaled preset: ${aspectMatch.preset.name} (${aspectMatch.scaleFactor.toFixed(2)}x)`,
+                message: `Using scaled verified preset: ${aspectMatch.preset.name} (${aspectMatch.scaleFactor.toFixed(2)}x)`,
                 preset: aspectMatch.preset,
                 scaleFactor: aspectMatch.scaleFactor,
+                isVerified: true,
             };
         }
 
-        // 3. Find nearest resolution by pixel count (new fallback)
+        // 3. Try interpolation between verified presets
+        const interpolated = this.calculateCalibrationByInterpolation(width, height);
+        if (interpolated) {
+            return {
+                type: 'interpolated',
+                message: `Interpolated: ${interpolated.lowerKey} ↔ ${interpolated.upperKey} (${(interpolated.interpolationFactor * 100).toFixed(0)}%)`,
+                calibration: interpolated.calibration,
+                lowerPreset: interpolated.lowerPreset,
+                upperPreset: interpolated.upperPreset,
+                interpolationFactor: interpolated.interpolationFactor,
+                isVerified: false,
+            };
+        }
+
+        // 4. Find nearest resolution by pixel count (fallback for non-verified)
         const nearest = this.findNearestResolution(width, height);
         if (nearest) {
             return {
@@ -386,14 +501,16 @@ export const presetManager = {
                 preset: nearest.preset,
                 scaleFactor: nearest.scaleFactor,
                 sourceKey: nearest.key,
+                isVerified: nearest.preset.source === 'verified',
             };
         }
 
-        // 4. Default fallback
+        // 5. Default fallback
         return {
             type: 'default',
             message: 'No preset - using defaults',
             preset: null,
+            isVerified: false,
         };
     },
 };

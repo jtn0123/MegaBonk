@@ -185,10 +185,9 @@ describe('changelog.ts - Edge Cases', () => {
         });
     });
 
-    describe.skip('parseChangelogLinks', () => {
-        // Note: These tests are skipped due to vi.mock complexities with data-service.allData
-        // The parseChangelogLinks function works correctly in practice, but the mock doesn't properly
-        // propagate allData to findEntityInData in the test environment
+    describe('parseChangelogLinks', () => {
+        // Note: These tests were previously skipped due to vi.mock complexities.
+        // Fixed by ensuring data-service mock is properly set up before imports.
         it('should parse entity link with valid syntax', () => {
             const text = 'Fixed [[item:test-item|Test Item]]';
             const result = parseChangelogLinks(text);
