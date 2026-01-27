@@ -47,6 +47,25 @@ export const CONFIG = {
     // High confidence override: don't skip cells with strong matches
     HIGH_CONFIDENCE_OVERRIDE: 0.7,
 
+    // Empty cell detection - additional methods (Idea #1, #2, #3, #7)
+    // #1: Confidence threshold - discard matches below this after template matching
+    EMPTY_CELL_MIN_CONFIDENCE: 0.5,
+    // #2: Saturation check - low saturation cells are likely empty (grey backgrounds)
+    EMPTY_CELL_MAX_SATURATION: 0.15,
+    // #3: Histogram width - cells with few distinct colors are likely empty
+    EMPTY_CELL_MIN_HISTOGRAM_BINS: 5,
+    // #7: Center/edge ratio - uniform cells (no icon in center) are likely empty
+    EMPTY_CELL_MIN_CENTER_EDGE_RATIO: 1.5,
+
+    // Toggle which empty detection methods are active
+    EMPTY_DETECTION_METHODS: {
+        useVariance: true, // Existing method (variance + edge density)
+        useConfidenceThreshold: true, // #1: Post-match confidence filter
+        useSaturation: true, // #2: Low saturation = empty (good for grey backgrounds)
+        useHistogram: false, // #3: Few colors = empty (experimental)
+        useCenterEdge: false, // #7: Uniform = empty (experimental)
+    },
+
     // Template matching
     TEMPLATE_MARGIN_PERCENT: 0.15,
     TOP_MATCHES_COUNT: 5,

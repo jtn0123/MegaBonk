@@ -400,11 +400,202 @@ export function calculateColorVariance(imageData: ImageData): number {
     return varianceSum / count;
 }
 
-// Empty cell detection constants
-const EMPTY_CELL_VARIANCE_THRESHOLD = 250; // Lower than before (was 500) to avoid false negatives
+// ========================================
+// Empty Cell Detection Constants
+// ========================================
+
 const EMPTY_CELL_MEAN_THRESHOLD = 40; // Very dark cells are empty
-const EMPTY_CELL_EDGE_THRESHOLD = 0.03; // 3% edges = empty
-const INVENTORY_BG_COLOR = { r: 40, g: 35, b: 30, tolerance: 25 };
+
+// New detection method thresholds (Ideas #1, #2, #3, #7)
+export const EMPTY_DETECTION_CONFIG = {
+    // #1: Confidence threshold - discard matches below this after template matching
+    MIN_CONFIDENCE: 0.5,
+    // #2: Saturation check - low saturation cells are likely empty (grey backgrounds)
+    MAX_SATURATION: 0.15,
+    // #3: Histogram width - cells with few distinct colors are likely empty
+    MIN_HISTOGRAM_BINS: 5,
+    // #7: Center/edge ratio - uniform cells (no icon in center) are likely empty
+    MIN_CENTER_EDGE_RATIO: 1.5,
+
+    // Toggle which methods are active
+    methods: {
+        useVariance: true, // Existing method (variance + edge density)
+        useConfidenceThreshold: true, // #1: Post-match confidence filter
+        useSaturation: true, // #2: Low saturation = empty (good for grey backgrounds)
+        useHistogram: false, // #3: Few colors = empty (experimental)
+        useCenterEdge: false, // #7: Uniform = empty (experimental)
+    },
+};
+
+// ========================================
+// New Empty Detection Methods (#1, #2, #3, #7)
+// ========================================
+
+/**
+ * #2: Calculate average color saturation (HSL-based)
+ * Returns value from 0 (grayscale) to 1 (fully saturated)
+ *
+ * Why it works: Item icons have vibrant colors (high saturation)
+ * while stone/brick backgrounds are grey (low saturation)
+ */
+export function calculateAverageSaturation(imageData: ImageData): number {
+    const pixels = imageData.data;
+    let totalSaturation = 0;
+    let count = 0;
+
+    // Sample every 4th pixel for performance
+    for (let i = 0; i < pixels.length; i += 16) {
+        const r = pixels[i] ?? 0;
+        const g = pixels[i + 1] ?? 0;
+        const b = pixels[i + 2] ?? 0;
+
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+
+        // Saturation formula (HSL-based)
+        // Saturation = 0 when max == min (pure grey)
+        let saturation = 0;
+        if (max !== min) {
+            const lightness = (max + min) / 2;
+            if (lightness <= 127.5) {
+                saturation = (max - min) / (max + min);
+            } else {
+                saturation = (max - min) / (510 - max - min);
+            }
+        }
+
+        totalSaturation += saturation;
+        count++;
+    }
+
+    return count > 0 ? totalSaturation / count : 0;
+}
+
+/**
+ * #3: Calculate color histogram width (number of distinct color bins)
+ * Returns count of occupied bins (0-512)
+ *
+ * Why it works: Item icons have multiple distinct colors (outline, fill, highlights)
+ * while backgrounds have few colors (grey variations)
+ */
+export function calculateHistogramWidth(imageData: ImageData): number {
+    const pixels = imageData.data;
+    const bins = new Set<number>();
+
+    // Sample every 4th pixel for performance
+    for (let i = 0; i < pixels.length; i += 16) {
+        const r = pixels[i] ?? 0;
+        const g = pixels[i + 1] ?? 0;
+        const b = pixels[i + 2] ?? 0;
+
+        // Quantize to 32 bins (5 bits per channel → 8 levels each)
+        // This gives 8*8*8 = 512 possible unique bins
+        const rBin = Math.floor(r / 32);
+        const gBin = Math.floor(g / 32);
+        const bBin = Math.floor(b / 32);
+        const binIndex = (rBin << 6) | (gBin << 3) | bBin;
+
+        bins.add(binIndex);
+    }
+
+    return bins.size;
+}
+
+/**
+ * #7: Calculate center vs edge variance ratio
+ * Returns ratio of center variance to edge variance
+ *
+ * Why it works: Item icons are centered, so center region should be
+ * more detailed than edges. Uniform backgrounds have ratio ~1.0
+ */
+export function calculateCenterEdgeRatio(imageData: ImageData): number {
+    const pixels = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+
+    // Define center region (inner 50%) and edge region (outer 25% ring)
+    const marginX = Math.floor(width * 0.25);
+    const marginY = Math.floor(height * 0.25);
+
+    // Calculate variance for center region
+    let centerSumR = 0,
+        centerSumG = 0,
+        centerSumB = 0;
+    let centerSumSqR = 0,
+        centerSumSqG = 0,
+        centerSumSqB = 0;
+    let centerCount = 0;
+
+    // Calculate variance for edge region
+    let edgeSumR = 0,
+        edgeSumG = 0,
+        edgeSumB = 0;
+    let edgeSumSqR = 0,
+        edgeSumSqG = 0,
+        edgeSumSqB = 0;
+    let edgeCount = 0;
+
+    for (let y = 0; y < height; y += 2) {
+        for (let x = 0; x < width; x += 2) {
+            const idx = (y * width + x) * 4;
+            const r = pixels[idx] ?? 0;
+            const g = pixels[idx + 1] ?? 0;
+            const b = pixels[idx + 2] ?? 0;
+
+            // Check if this pixel is in center or edge region
+            const inCenterX = x >= marginX && x < width - marginX;
+            const inCenterY = y >= marginY && y < height - marginY;
+
+            if (inCenterX && inCenterY) {
+                // Center region
+                centerSumR += r;
+                centerSumG += g;
+                centerSumB += b;
+                centerSumSqR += r * r;
+                centerSumSqG += g * g;
+                centerSumSqB += b * b;
+                centerCount++;
+            } else {
+                // Edge region
+                edgeSumR += r;
+                edgeSumG += g;
+                edgeSumB += b;
+                edgeSumSqR += r * r;
+                edgeSumSqG += g * g;
+                edgeSumSqB += b * b;
+                edgeCount++;
+            }
+        }
+    }
+
+    // Calculate variances
+    if (centerCount === 0 || edgeCount === 0) return 1.0;
+
+    const centerMeanR = centerSumR / centerCount;
+    const centerMeanG = centerSumG / centerCount;
+    const centerMeanB = centerSumB / centerCount;
+    const centerVariance =
+        centerSumSqR / centerCount -
+        centerMeanR * centerMeanR +
+        (centerSumSqG / centerCount - centerMeanG * centerMeanG) +
+        (centerSumSqB / centerCount - centerMeanB * centerMeanB);
+
+    const edgeMeanR = edgeSumR / edgeCount;
+    const edgeMeanG = edgeSumG / edgeCount;
+    const edgeMeanB = edgeSumB / edgeCount;
+    const edgeVariance =
+        edgeSumSqR / edgeCount -
+        edgeMeanR * edgeMeanR +
+        (edgeSumSqG / edgeCount - edgeMeanG * edgeMeanG) +
+        (edgeSumSqB / edgeCount - edgeMeanB * edgeMeanB);
+
+    // Return ratio (add 1 to avoid division by zero)
+    return centerVariance / (edgeVariance + 1);
+}
+
+// ========================================
+// Existing Empty Detection Methods
+// ========================================
 
 /**
  * Calculate edge density using gradient detection
@@ -448,11 +639,11 @@ export function calculateEdgeDensity(imageData: ImageData): number {
 
 /**
  * Check if cell color matches inventory background
+ * Inventory backgrounds are typically dark, low-saturation colors.
  */
 export function isInventoryBackground(imageData: ImageData): boolean {
     const pixels = imageData.data;
-    const bg = INVENTORY_BG_COLOR;
-    let matchingPixels = 0;
+    let darkLowSatPixels = 0;
     let count = 0;
 
     const width = imageData.width;
@@ -466,27 +657,38 @@ export function isInventoryBackground(imageData: ImageData): boolean {
             const g = pixels[idx + 1] ?? 0;
             const b = pixels[idx + 2] ?? 0;
 
-            if (
-                Math.abs(r - bg.r) <= bg.tolerance &&
-                Math.abs(g - bg.g) <= bg.tolerance &&
-                Math.abs(b - bg.b) <= bg.tolerance
-            ) {
-                matchingPixels++;
+            // Check if pixel is dark and low-saturation
+            const brightness = (r + g + b) / 3;
+            const maxChannel = Math.max(r, g, b);
+            const minChannel = Math.min(r, g, b);
+            const saturation = maxChannel - minChannel;
+
+            // Dark (< 80 brightness) and low saturation (< 40 spread)
+            if (brightness < 80 && saturation < 40) {
+                darkLowSatPixels++;
             }
             count++;
         }
     }
 
-    return count > 0 && matchingPixels / count > 0.7;
+    // If >60% of center pixels are dark & low-saturation, likely empty background
+    return count > 0 && darkLowSatPixels / count > 0.6;
 }
 
 /**
  * Check if a cell is likely empty (mostly uniform background)
- * Uses multiple signals: variance, edge density, background color
- * LESS strict than before to avoid false negatives on real items
+ * Uses multiple signals: variance, edge density, background color, saturation, histogram
+ *
+ * Strategy: Be generous with empty detection (use higher variance threshold),
+ * but use edge density to rescue cells that have low variance but contain items.
+ *
+ * New methods (#2, #3, #7) provide additional detection for textured backgrounds
+ * like grey brick that fool the basic variance check.
  */
 export function isEmptyCell(imageData: ImageData): boolean {
     const pixels = imageData.data;
+    const methods = EMPTY_DETECTION_CONFIG.methods;
+
     let sumR = 0;
     let sumG = 0;
     let sumB = 0;
@@ -524,28 +726,80 @@ export function isEmptyCell(imageData: ImageData): boolean {
     const totalVariance = varianceR + varianceG + varianceB;
     const meanGray = (meanR + meanG + meanB) / 3;
 
-    // Check 1: Very dark cells are empty
+    // Check 1: Very dark cells are empty (meanGray < 40)
     if (meanGray < EMPTY_CELL_MEAN_THRESHOLD) {
         return true;
     }
 
-    // Check 2: Very low variance (truly uniform color) - MUST also pass edge check
-    if (totalVariance < EMPTY_CELL_VARIANCE_THRESHOLD) {
-        const edgeDensity = calculateEdgeDensity(imageData);
-        if (edgeDensity < EMPTY_CELL_EDGE_THRESHOLD) {
-            return true;
-        }
-        // Low variance but has edges - might be item with uniform colors
-        if (isInventoryBackground(imageData)) {
+    // ----------------------------------------
+    // Method #2: Saturation check (good for grey/brick backgrounds)
+    // Low saturation + moderate variance = likely empty textured background
+    // ----------------------------------------
+    if (methods.useSaturation) {
+        const saturation = calculateAverageSaturation(imageData);
+        // Low saturation (< 15%) combined with moderate variance = empty
+        // This catches grey brick that has variance ~400-600 but no color
+        if (saturation < EMPTY_DETECTION_CONFIG.MAX_SATURATION && totalVariance < 800) {
             return true;
         }
     }
 
-    // Check 3: Matches inventory background color pattern
-    if (totalVariance < 1000 && isInventoryBackground(imageData)) {
-        const edgeDensity = calculateEdgeDensity(imageData);
-        if (edgeDensity < EMPTY_CELL_EDGE_THRESHOLD * 2) {
+    // ----------------------------------------
+    // Method #3: Histogram width check (experimental)
+    // Few distinct colors = likely empty background
+    // ----------------------------------------
+    if (methods.useHistogram) {
+        const histWidth = calculateHistogramWidth(imageData);
+        if (histWidth < EMPTY_DETECTION_CONFIG.MIN_HISTOGRAM_BINS) {
             return true;
+        }
+    }
+
+    // ----------------------------------------
+    // Method #7: Center/edge ratio check (experimental)
+    // Uniform variance across cell = likely empty (no centered icon)
+    // ----------------------------------------
+    if (methods.useCenterEdge) {
+        const ratio = calculateCenterEdgeRatio(imageData);
+        if (ratio < EMPTY_DETECTION_CONFIG.MIN_CENTER_EDGE_RATIO) {
+            return true;
+        }
+    }
+
+    // ----------------------------------------
+    // Original variance-based checks
+    // ----------------------------------------
+    if (methods.useVariance) {
+        // Check 2: Low variance = likely empty
+        // Use higher threshold (500) to catch empty cells
+        if (totalVariance < 500) {
+            // If variance is VERY low (< 150), definitely empty - no further checks
+            if (totalVariance < 150) {
+                return true;
+            }
+
+            // For moderate variance (150-500), check if it has significant edges
+            // Items have edges (icon outlines), empty backgrounds don't
+            const edgeDensity = calculateEdgeDensity(imageData);
+
+            // Low edges (< 5%) = empty background
+            if (edgeDensity < 0.05) {
+                return true;
+            }
+
+            // Has some edges but matches inventory background = still empty
+            if (edgeDensity < 0.12 && isInventoryBackground(imageData)) {
+                return true;
+            }
+        }
+
+        // Check 3: Matches inventory background color (even with higher variance)
+        // Some empty cells have texture/noise but are clearly background
+        if (totalVariance < 800 && isInventoryBackground(imageData)) {
+            const edgeDensity = calculateEdgeDensity(imageData);
+            if (edgeDensity < 0.08) {
+                return true;
+            }
         }
     }
 

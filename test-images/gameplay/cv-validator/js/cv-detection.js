@@ -146,6 +146,176 @@ export function detectGridPositions(width, height) {
 // Empty Cell Detection (Phase 1: Per-cell analysis)
 // ========================================
 
+// ----------------------------------------
+// New Empty Detection Methods (#1, #2, #3, #7)
+// ----------------------------------------
+
+/**
+ * #2: Calculate average color saturation (HSL-based)
+ * Returns value from 0 (grayscale) to 1 (fully saturated)
+ *
+ * Why it works: Item icons have vibrant colors (high saturation)
+ * while stone/brick backgrounds are grey (low saturation)
+ */
+export function calculateAverageSaturation(imageData) {
+    const pixels = imageData.data;
+    let totalSaturation = 0;
+    let count = 0;
+
+    // Sample every 4th pixel for performance
+    for (let i = 0; i < pixels.length; i += 16) {
+        const r = pixels[i] || 0;
+        const g = pixels[i + 1] || 0;
+        const b = pixels[i + 2] || 0;
+
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+
+        // Saturation formula (HSL-based)
+        // Saturation = 0 when max == min (pure grey)
+        let saturation = 0;
+        if (max !== min) {
+            const lightness = (max + min) / 2;
+            if (lightness <= 127.5) {
+                saturation = (max - min) / (max + min);
+            } else {
+                saturation = (max - min) / (510 - max - min);
+            }
+        }
+
+        totalSaturation += saturation;
+        count++;
+    }
+
+    return count > 0 ? totalSaturation / count : 0;
+}
+
+/**
+ * #3: Calculate color histogram width (number of distinct color bins)
+ * Returns count of occupied bins (0-32)
+ *
+ * Why it works: Item icons have multiple distinct colors (outline, fill, highlights)
+ * while backgrounds have few colors (grey variations)
+ */
+export function calculateHistogramWidth(imageData) {
+    const pixels = imageData.data;
+    const bins = new Set();
+
+    // Sample every 4th pixel for performance
+    for (let i = 0; i < pixels.length; i += 16) {
+        const r = pixels[i] || 0;
+        const g = pixels[i + 1] || 0;
+        const b = pixels[i + 2] || 0;
+
+        // Quantize to 32 bins (5 bits per channel → 8 levels each)
+        // This gives 8*4 = 32 possible unique bins
+        const rBin = Math.floor(r / 32);
+        const gBin = Math.floor(g / 32);
+        const bBin = Math.floor(b / 32);
+        const binIndex = (rBin << 6) | (gBin << 3) | bBin;
+
+        bins.add(binIndex);
+    }
+
+    return bins.size;
+}
+
+/**
+ * #7: Calculate center vs edge variance ratio
+ * Returns ratio of center variance to edge variance
+ *
+ * Why it works: Item icons are centered, so center region should be
+ * more detailed than edges. Uniform backgrounds have ratio ~1.0
+ */
+export function calculateCenterEdgeRatio(imageData) {
+    const pixels = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+
+    // Define center region (inner 50%) and edge region (outer 25% ring)
+    const marginX = Math.floor(width * 0.25);
+    const marginY = Math.floor(height * 0.25);
+
+    // Calculate variance for center region
+    let centerSumR = 0,
+        centerSumG = 0,
+        centerSumB = 0;
+    let centerSumSqR = 0,
+        centerSumSqG = 0,
+        centerSumSqB = 0;
+    let centerCount = 0;
+
+    // Calculate variance for edge region
+    let edgeSumR = 0,
+        edgeSumG = 0,
+        edgeSumB = 0;
+    let edgeSumSqR = 0,
+        edgeSumSqG = 0,
+        edgeSumSqB = 0;
+    let edgeCount = 0;
+
+    for (let y = 0; y < height; y += 2) {
+        for (let x = 0; x < width; x += 2) {
+            const idx = (y * width + x) * 4;
+            const r = pixels[idx] || 0;
+            const g = pixels[idx + 1] || 0;
+            const b = pixels[idx + 2] || 0;
+
+            // Check if this pixel is in center or edge region
+            const inCenterX = x >= marginX && x < width - marginX;
+            const inCenterY = y >= marginY && y < height - marginY;
+
+            if (inCenterX && inCenterY) {
+                // Center region
+                centerSumR += r;
+                centerSumG += g;
+                centerSumB += b;
+                centerSumSqR += r * r;
+                centerSumSqG += g * g;
+                centerSumSqB += b * b;
+                centerCount++;
+            } else {
+                // Edge region
+                edgeSumR += r;
+                edgeSumG += g;
+                edgeSumB += b;
+                edgeSumSqR += r * r;
+                edgeSumSqG += g * g;
+                edgeSumSqB += b * b;
+                edgeCount++;
+            }
+        }
+    }
+
+    // Calculate variances
+    if (centerCount === 0 || edgeCount === 0) return 1.0;
+
+    const centerMeanR = centerSumR / centerCount;
+    const centerMeanG = centerSumG / centerCount;
+    const centerMeanB = centerSumB / centerCount;
+    const centerVariance =
+        centerSumSqR / centerCount -
+        centerMeanR * centerMeanR +
+        (centerSumSqG / centerCount - centerMeanG * centerMeanG) +
+        (centerSumSqB / centerCount - centerMeanB * centerMeanB);
+
+    const edgeMeanR = edgeSumR / edgeCount;
+    const edgeMeanG = edgeSumG / edgeCount;
+    const edgeMeanB = edgeSumB / edgeCount;
+    const edgeVariance =
+        edgeSumSqR / edgeCount -
+        edgeMeanR * edgeMeanR +
+        (edgeSumSqG / edgeCount - edgeMeanG * edgeMeanG) +
+        (edgeSumSqB / edgeCount - edgeMeanB * edgeMeanB);
+
+    // Return ratio (add 1 to avoid division by zero)
+    return centerVariance / (edgeVariance + 1);
+}
+
+// ----------------------------------------
+// Existing Empty Detection Methods
+// ----------------------------------------
+
 /**
  * Calculate edge density using Sobel-like gradient detection
  * Returns ratio of edge pixels to total pixels (0-1)
@@ -187,11 +357,15 @@ export function calculateEdgeDensity(imageData) {
 /**
  * Check if cell color matches inventory background
  * Returns true if cell appears to be empty inventory background
+ *
+ * Inventory backgrounds are typically dark, low-saturation colors.
+ * Rather than checking for a specific color, we check for:
+ * - Dark pixels (brightness < 80)
+ * - Low saturation (max-min channel difference < 40)
  */
 export function isInventoryBackground(imageData) {
     const pixels = imageData.data;
-    const bg = CONFIG.INVENTORY_BG_COLOR;
-    let matchingPixels = 0;
+    let darkLowSatPixels = 0;
     let count = 0;
 
     // Sample center region (avoid borders which may have item edges)
@@ -206,35 +380,38 @@ export function isInventoryBackground(imageData) {
             const g = pixels[idx + 1];
             const b = pixels[idx + 2];
 
-            // Check if pixel is within tolerance of background color
-            if (
-                Math.abs(r - bg.r) <= bg.tolerance &&
-                Math.abs(g - bg.g) <= bg.tolerance &&
-                Math.abs(b - bg.b) <= bg.tolerance
-            ) {
-                matchingPixels++;
+            // Check if pixel is dark and low-saturation
+            const brightness = (r + g + b) / 3;
+            const maxChannel = Math.max(r, g, b);
+            const minChannel = Math.min(r, g, b);
+            const saturation = maxChannel - minChannel;
+
+            // Dark (< 80 brightness) and low saturation (< 40 spread)
+            if (brightness < 80 && saturation < 40) {
+                darkLowSatPixels++;
             }
             count++;
         }
     }
 
-    // If >70% of center pixels match background, likely empty
-    return count > 0 && matchingPixels / count > 0.7;
+    // If >60% of center pixels are dark & low-saturation, likely empty background
+    return count > 0 && darkLowSatPixels / count > 0.6;
 }
 
 /**
  * Check if a cell is empty (Phase 1: per-cell analysis)
- * Uses multiple signals: variance, edge density, background color
- * LESS strict than before to avoid false negatives on real items
+ * Uses multiple signals: variance, edge density, background color, saturation, histogram
+ *
+ * Strategy: Be generous with empty detection (use higher variance threshold),
+ * but use edge density to rescue cells that have low variance but contain items.
+ *
+ * New methods (#2, #3, #7) provide additional detection for textured backgrounds
+ * like grey brick that fool the basic variance check.
  */
 export function isEmptyCell(imageData) {
-    // Use shared library if available (but our local version may be better tuned)
-    // Disabled: we want to use our improved local implementation
-    // if (useSharedLibrary && sharedLibrary?.isEmptyCell) {
-    //     return sharedLibrary.isEmptyCell(imageData);
-    // }
-
     const pixels = imageData.data;
+    const methods = CONFIG.EMPTY_DETECTION_METHODS;
+
     let sumR = 0,
         sumG = 0,
         sumB = 0;
@@ -272,31 +449,80 @@ export function isEmptyCell(imageData) {
     const totalVariance = varianceR + varianceG + varianceB;
     const meanGray = (meanR + meanG + meanB) / 3;
 
-    // Check 1: Very dark cells are empty
+    // Check 1: Very dark cells are empty (meanGray < 40)
     if (meanGray < CONFIG.EMPTY_CELL_MEAN_THRESHOLD) {
         return true;
     }
 
-    // Check 2: Very low variance (truly uniform color) - MUST also pass edge check
-    if (totalVariance < CONFIG.EMPTY_CELL_VARIANCE_THRESHOLD) {
-        // Additional confirmation: check edge density
-        const edgeDensity = calculateEdgeDensity(imageData);
-        if (edgeDensity < CONFIG.EMPTY_CELL_EDGE_THRESHOLD) {
-            return true;
-        }
-        // Low variance but has edges - might be an item with uniform colors
-        // Also check if it matches inventory background specifically
-        if (isInventoryBackground(imageData)) {
+    // ----------------------------------------
+    // Method #2: Saturation check (good for grey/brick backgrounds)
+    // Low saturation + moderate variance = likely empty textured background
+    // ----------------------------------------
+    if (methods.useSaturation) {
+        const saturation = calculateAverageSaturation(imageData);
+        // Low saturation (< 15%) combined with moderate variance = empty
+        // This catches grey brick that has variance ~400-600 but no color
+        if (saturation < CONFIG.EMPTY_CELL_MAX_SATURATION && totalVariance < 800) {
             return true;
         }
     }
 
-    // Check 3: Matches inventory background color pattern
-    // Only if variance is reasonably low (< 1000) to avoid matching colorful items
-    if (totalVariance < 1000 && isInventoryBackground(imageData)) {
-        const edgeDensity = calculateEdgeDensity(imageData);
-        if (edgeDensity < CONFIG.EMPTY_CELL_EDGE_THRESHOLD * 2) {
+    // ----------------------------------------
+    // Method #3: Histogram width check (experimental)
+    // Few distinct colors = likely empty background
+    // ----------------------------------------
+    if (methods.useHistogram) {
+        const histWidth = calculateHistogramWidth(imageData);
+        if (histWidth < CONFIG.EMPTY_CELL_MIN_HISTOGRAM_BINS) {
             return true;
+        }
+    }
+
+    // ----------------------------------------
+    // Method #7: Center/edge ratio check (experimental)
+    // Uniform variance across cell = likely empty (no centered icon)
+    // ----------------------------------------
+    if (methods.useCenterEdge) {
+        const ratio = calculateCenterEdgeRatio(imageData);
+        if (ratio < CONFIG.EMPTY_CELL_MIN_CENTER_EDGE_RATIO) {
+            return true;
+        }
+    }
+
+    // ----------------------------------------
+    // Original variance-based checks
+    // ----------------------------------------
+    if (methods.useVariance) {
+        // Check 2: Low variance = likely empty
+        // Use higher threshold (500) to catch empty cells
+        if (totalVariance < 500) {
+            // If variance is VERY low (< 150), definitely empty - no further checks
+            if (totalVariance < 150) {
+                return true;
+            }
+
+            // For moderate variance (150-500), check if it has significant edges
+            // Items have edges (icon outlines), empty backgrounds don't
+            const edgeDensity = calculateEdgeDensity(imageData);
+
+            // Low edges (< 5%) = empty background
+            if (edgeDensity < 0.05) {
+                return true;
+            }
+
+            // Has some edges but matches inventory background = still empty
+            if (edgeDensity < 0.12 && isInventoryBackground(imageData)) {
+                return true;
+            }
+        }
+
+        // Check 3: Matches inventory background color (even with higher variance)
+        // Some empty cells have texture/noise but are clearly background
+        if (totalVariance < 800 && isInventoryBackground(imageData)) {
+            const edgeDensity = calculateEdgeDensity(imageData);
+            if (edgeDensity < 0.08) {
+                return true;
+            }
         }
     }
 
@@ -310,13 +536,14 @@ export function isEmptyCell(imageData) {
 /**
  * Apply MegaBonk inventory fill pattern knowledge to improve empty detection
  *
- * Fill pattern:
+ * MegaBonk Inventory Fill Pattern:
  * - Row 0 (bottom): Items fill from CENTER, expand LEFT and RIGHT
- * - Row 1+: Items fill from LEFT to RIGHT
+ * - Once you hit 3 consecutive empties on either edge → ALL remaining cells are empty
+ * - This includes cells in rows 1 and 2 (above the bottom row)
  *
- * Logic:
- * - If we find N consecutive empty cells, assume rest of row is empty
- * - Exception: cells with high match confidence should not be skipped
+ * Key Rule:
+ * - If row 0 is not full (items at both edges) → rows 1+ are COMPLETELY empty
+ * - If row N is not full → rows N+1 and above are COMPLETELY empty
  *
  * @param {Array} cells - Array of { cell, cellData, isEmpty } objects
  * @param {number} numRows - Number of rows in grid
@@ -331,89 +558,115 @@ export function applyInventoryFillPattern(cells, numRows, iconsPerRow) {
     // Group cells by row
     const rows = [];
     for (let r = 0; r < numRows; r++) {
-        rows[r] = cells.filter(c => c.cell.row === r);
+        rows[r] = cells.filter(c => c.cell.row === r).sort((a, b) => a.cell.col - b.cell.col);
     }
 
-    // Process each row
-    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+    // Process row 0 first (center-fill pattern)
+    let row0LeftBound = 0; // leftmost column with items
+    let row0RightBound = iconsPerRow - 1; // rightmost column with items
+    let row0Full = false;
+
+    if (rows[0] && rows[0].length > 0) {
+        const centerCol = Math.floor(iconsPerRow / 2);
+
+        // Find left edge (scan from center going left)
+        let consecutiveEmpty = 0;
+        for (let col = centerCol - 1; col >= 0; col--) {
+            const cell = rows[0].find(c => c.cell.col === col);
+            if (!cell || cell.isEmpty) {
+                consecutiveEmpty++;
+                if (consecutiveEmpty >= threshold) {
+                    row0LeftBound = col + threshold; // First item position
+                    break;
+                }
+            } else {
+                consecutiveEmpty = 0;
+            }
+        }
+
+        // Find right edge (scan from center going right)
+        consecutiveEmpty = 0;
+        for (let col = centerCol; col < iconsPerRow; col++) {
+            const cell = rows[0].find(c => c.cell.col === col);
+            if (!cell || cell.isEmpty) {
+                consecutiveEmpty++;
+                if (consecutiveEmpty >= threshold) {
+                    row0RightBound = col - threshold; // Last item position
+                    break;
+                }
+            } else {
+                consecutiveEmpty = 0;
+            }
+        }
+
+        // Check if row 0 is full (items at both edges)
+        row0Full = row0LeftBound === 0 && row0RightBound === iconsPerRow - 1;
+
+        // Mark row 0 cells outside bounds as empty
+        for (const c of rows[0]) {
+            if (c.cell.col < row0LeftBound || c.cell.col > row0RightBound) {
+                c.isEmpty = true;
+                c.fillPatternEmpty = true;
+            }
+        }
+
+        log(`[FillPattern] Row 0: bounds [${row0LeftBound}-${row0RightBound}], full=${row0Full}`, LOG_LEVELS.INFO);
+    }
+
+    // Process rows 1+ (only have items if row 0 is full)
+    for (let rowIdx = 1; rowIdx < rows.length; rowIdx++) {
         const rowCells = rows[rowIdx];
         if (!rowCells || rowCells.length === 0) continue;
 
-        // Sort by column position
-        rowCells.sort((a, b) => a.cell.col - b.cell.col);
-
-        if (rowIdx === 0) {
-            // Row 0: Center-fill pattern
-            // Find center of the row
-            const centerCol = Math.floor(iconsPerRow / 2);
-
-            // Scan LEFT from center: after N consecutive empties, rest is empty
-            let consecutiveEmptyLeft = 0;
-            let leftCutoff = -1;
-            for (let i = rowCells.length - 1; i >= 0; i--) {
-                const c = rowCells[i];
-                if (c.cell.col >= centerCol) continue; // Only process left side
-
-                if (c.isEmpty) {
-                    consecutiveEmptyLeft++;
-                    if (consecutiveEmptyLeft >= threshold && leftCutoff < 0) {
-                        leftCutoff = c.cell.col;
-                    }
-                } else {
-                    consecutiveEmptyLeft = 0;
-                }
-            }
-
-            // Scan RIGHT from center: after N consecutive empties, rest is empty
-            let consecutiveEmptyRight = 0;
-            let rightCutoff = iconsPerRow;
+        if (!row0Full) {
+            // Row 0 not full → this entire row is empty
             for (const c of rowCells) {
-                if (c.cell.col < centerCol) continue; // Only process right side
-
-                if (c.isEmpty) {
-                    consecutiveEmptyRight++;
-                    if (consecutiveEmptyRight >= threshold && rightCutoff === iconsPerRow) {
-                        rightCutoff = c.cell.col - threshold + 1;
-                    }
-                } else {
-                    consecutiveEmptyRight = 0;
-                }
+                c.isEmpty = true;
+                c.fillPatternEmpty = true;
             }
-
-            // Mark cells outside cutoffs as empty (unless they have high confidence)
-            for (const c of rowCells) {
-                if (leftCutoff >= 0 && c.cell.col < leftCutoff) {
-                    c.isEmpty = true;
-                    c.fillPatternEmpty = true;
-                }
-                if (c.cell.col >= rightCutoff) {
-                    c.isEmpty = true;
-                    c.fillPatternEmpty = true;
-                }
-            }
+            log(`[FillPattern] Row ${rowIdx}: ALL EMPTY (row 0 not full)`, LOG_LEVELS.INFO);
         } else {
-            // Row 1+: Left-to-right fill pattern
-            // After N consecutive empties, rest of row is empty
+            // Row 0 is full → this row fills left-to-right
+            // Find the edge (3 consecutive empties)
+            let cutoff = iconsPerRow;
             let consecutiveEmpty = 0;
-            let cutoffCol = iconsPerRow;
 
             for (const c of rowCells) {
                 if (c.isEmpty) {
                     consecutiveEmpty++;
-                    if (consecutiveEmpty >= threshold && cutoffCol === iconsPerRow) {
-                        cutoffCol = c.cell.col - threshold + 1;
+                    if (consecutiveEmpty >= threshold) {
+                        cutoff = c.cell.col - threshold + 1;
+                        break;
                     }
                 } else {
                     consecutiveEmpty = 0;
                 }
             }
 
-            // Mark cells after cutoff as empty
+            // Mark everything after cutoff as empty
             for (const c of rowCells) {
-                if (c.cell.col >= cutoffCol) {
+                if (c.cell.col >= cutoff) {
                     c.isEmpty = true;
                     c.fillPatternEmpty = true;
                 }
+            }
+
+            // If this row is not full, all rows above are empty too
+            const rowFull = cutoff === iconsPerRow;
+            log(`[FillPattern] Row ${rowIdx}: cutoff=${cutoff}, full=${rowFull}`, LOG_LEVELS.INFO);
+
+            if (!rowFull) {
+                // Mark all remaining rows as empty
+                for (let futureRow = rowIdx + 1; futureRow < rows.length; futureRow++) {
+                    if (rows[futureRow]) {
+                        for (const c of rows[futureRow]) {
+                            c.isEmpty = true;
+                            c.fillPatternEmpty = true;
+                        }
+                        log(`[FillPattern] Row ${futureRow}: ALL EMPTY (row ${rowIdx} not full)`, LOG_LEVELS.INFO);
+                    }
+                }
+                break; // No need to process more rows
             }
         }
     }
@@ -651,12 +904,24 @@ export async function runDetection(imageData, width, height, threshold, progress
     log(`Scanning ${gridPositions.length} grid positions using ${detectionMethod} (${trainingStatus})...`);
 
     let processedCells = 0;
-    const nonEmptyCells = [];
 
-    // First pass: find non-empty cells, track empty ones
+    // First pass: classify all cells as empty or not
+    const allCells = [];
     for (const cell of gridPositions) {
         const cellData = ctx.getImageData(cell.x, cell.y, cell.width, cell.height);
-        if (!isEmptyCell(cellData)) {
+        const isEmpty = isEmptyCell(cellData);
+        allCells.push({ cell, cellData, isEmpty });
+    }
+
+    // Apply inventory fill pattern to improve empty detection
+    // This uses game knowledge: items fill from center in row 0, left-to-right in upper rows
+    // If row 0 isn't full, upper rows are completely empty
+    applyInventoryFillPattern(allCells, state.calibration.numRows, state.calibration.iconsPerRow);
+
+    // Now separate into empty and non-empty based on updated isEmpty flags
+    const nonEmptyCells = [];
+    for (const { cell, cellData, isEmpty, fillPatternEmpty } of allCells) {
+        if (!isEmpty) {
             nonEmptyCells.push({ cell, cellData });
         } else {
             // Track empty cells so they can be corrected if wrongly classified
@@ -664,11 +929,12 @@ export async function runDetection(imageData, width, height, threshold, progress
             state.emptyCells.set(cell.slotIndex, {
                 position: cell,
                 cropDataURL: cropDataURL,
+                fillPatternEmpty: fillPatternEmpty || false, // Track if marked empty by fill pattern
             });
         }
     }
 
-    log(`Found ${nonEmptyCells.length} non-empty cells`);
+    log(`Found ${nonEmptyCells.length} non-empty cells (after fill pattern analysis)`);
 
     // Second pass: match templates and track top alternatives
     for (const { cell, cellData } of nonEmptyCells) {
@@ -742,12 +1008,33 @@ export async function runDetection(imageData, width, height, threshold, progress
         const topMatches = allMatches.slice(0, CONFIG.TOP_MATCHES_COUNT);
         const bestMatch = topMatches[0];
 
+        // Generate crop data URL for display (needed for both detection and empty tracking)
+        const cropDataURL = imageDataToDataURL(cellData);
+
+        // ----------------------------------------
+        // Method #1: Confidence threshold post-filter
+        // If best match is below minimum confidence, this cell is actually empty
+        // This catches textured backgrounds that passed the pre-filter
+        // ----------------------------------------
+        if (CONFIG.EMPTY_DETECTION_METHODS.useConfidenceThreshold) {
+            if (!bestMatch || bestMatch.confidence < CONFIG.EMPTY_CELL_MIN_CONFIDENCE) {
+                // Reclassify as empty - nothing matched well
+                state.emptyCells.set(cell.slotIndex, {
+                    position: cell,
+                    cropDataURL: cropDataURL,
+                    reclassifiedEmpty: true, // Flag to indicate this was reclassified
+                    bestMatchConfidence: bestMatch?.confidence || 0,
+                });
+                log(
+                    `[Slot ${cell.slotIndex}] Reclassified as EMPTY (best match ${bestMatch?.item?.name || 'none'} at ${((bestMatch?.confidence || 0) * 100).toFixed(0)}% < ${(CONFIG.EMPTY_CELL_MIN_CONFIDENCE * 100).toFixed(0)}% threshold)`
+                );
+                continue; // Skip to next cell
+            }
+        }
+
         // Store detection data for this slot
         if (bestMatch && bestMatch.confidence >= threshold) {
             detections.push(bestMatch);
-
-            // Generate crop data URL for display
-            const cropDataURL = imageDataToDataURL(cellData);
 
             // Store slot data with alternatives and crop
             state.detectionsBySlot.set(cell.slotIndex, {
