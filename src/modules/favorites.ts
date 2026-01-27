@@ -62,10 +62,26 @@ function saveFavorites(): void {
         const favorites = getState('favorites');
         localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     } catch (error) {
-        // localStorage may be unavailable in some contexts (private browsing, etc.)
-        console.debug('[favorites] localStorage unavailable for saving favorites:', (error as Error).message);
-        if (typeof ToastManager !== 'undefined') {
-            ToastManager.error('Failed to save favorite');
+        const err = error as Error;
+        // Distinguish between different localStorage errors for better user feedback
+        if (err.name === 'QuotaExceededError') {
+            // Storage is full - suggest clearing cache
+            console.debug('[favorites] localStorage quota exceeded:', err.message);
+            if (typeof ToastManager !== 'undefined') {
+                ToastManager.error('Storage full. Try clearing browser cache to save favorites.');
+            }
+        } else if (err.name === 'SecurityError') {
+            // Private browsing or cookies disabled
+            console.debug('[favorites] localStorage blocked (private browsing?):', err.message);
+            if (typeof ToastManager !== 'undefined') {
+                ToastManager.warning('Favorites disabled in private browsing mode');
+            }
+        } else {
+            // Other errors (general unavailability)
+            console.debug('[favorites] localStorage unavailable:', err.message);
+            if (typeof ToastManager !== 'undefined') {
+                ToastManager.error('Failed to save favorite');
+            }
         }
     }
 }

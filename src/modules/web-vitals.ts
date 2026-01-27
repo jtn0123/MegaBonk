@@ -7,6 +7,7 @@
 
 import { onCLS, onFCP, onLCP, onTTFB, onINP, type Metric as WebVitalsMetric } from 'web-vitals';
 import type { MetricName, MetricRating, StoredMetric } from '../types/index.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // Type Definitions
@@ -206,7 +207,10 @@ export function initWebVitals(): void {
         onTTFB(handleMetric);
         onINP(handleMetric); // Replaces deprecated FID metric
 
-        console.log('[Web Vitals] Monitoring initialized');
+        logger.info({
+            operation: 'webvitals.init',
+            data: { status: 'initialized' },
+        });
 
         // Log summary after page load
         window.addEventListener('load', () => {
@@ -215,7 +219,11 @@ export function initWebVitals(): void {
             }, 3000); // Wait 3s for metrics to be collected
         });
     } catch (error) {
-        console.error('[Web Vitals] Failed to initialize:', error);
+        const err = error as Error;
+        logger.error({
+            operation: 'webvitals.init',
+            error: { name: err.name, message: err.message },
+        });
     }
 }
 

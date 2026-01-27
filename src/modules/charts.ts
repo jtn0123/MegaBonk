@@ -147,7 +147,9 @@ export let chartInstances: Record<string, Chart> = {};
 export function applyHyperbolicScaling(values: number[], constant: number = 1.0): number[] {
     return values.map((v: number) => {
         const internal = v / 100;
-        const actual = internal / (constant + internal);
+        const denominator = constant + internal;
+        // Guard against division by zero
+        const actual = denominator !== 0 ? internal / denominator : 0;
         return Math.round(actual * 10000) / 100; // Round to 2 decimal places
     });
 }

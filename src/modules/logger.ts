@@ -5,6 +5,15 @@
 // One comprehensive event per operation instead of many sparse logs
 // ========================================
 
+// Vite import.meta.env type (subset of fields we use)
+interface ViteImportMeta {
+    env?: {
+        PROD?: boolean;
+        DEV?: boolean;
+        MODE?: string;
+    };
+}
+
 // ========================================
 // Log Levels
 // ========================================
@@ -614,7 +623,7 @@ class Logger {
     private isProduction(): boolean {
         // Vite sets import.meta.env.PROD
         try {
-            return (import.meta as any).env?.PROD === true;
+            return (import.meta as ViteImportMeta).env?.PROD === true;
         } catch {
             return false;
         }

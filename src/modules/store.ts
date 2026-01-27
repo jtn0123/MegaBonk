@@ -4,6 +4,7 @@
 // ========================================
 
 import type { AllGameData, Entity, Build, FavoritesState } from '../types/index.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // Type Definitions
@@ -158,7 +159,12 @@ export function setState<K extends keyof AppState>(key: K, value: AppState[K]): 
             try {
                 callback(value);
             } catch (error) {
-                console.error(`Store subscriber error for key "${key}":`, error);
+                const err = error as Error;
+                logger.error({
+                    operation: 'store.subscriber_error',
+                    error: { name: err.name, message: err.message },
+                    data: { key },
+                });
             }
         });
     }
@@ -310,7 +316,12 @@ export function batchUpdate(updates: Partial<AppState>): void {
                 try {
                     callback(state[key]);
                 } catch (error) {
-                    console.error(`Store subscriber error for key "${key}":`, error);
+                    const err = error as Error;
+                    logger.error({
+                        operation: 'store.subscriber_error',
+                        error: { name: err.name, message: err.message },
+                        data: { key },
+                    });
                 }
             });
         }

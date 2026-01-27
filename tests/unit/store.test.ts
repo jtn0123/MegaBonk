@@ -5,6 +5,20 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
+// Mock the logger module - use vi.hoisted to ensure mock functions are available before import
+const { mockLoggerError } = vi.hoisted(() => ({
+    mockLoggerError: vi.fn(),
+}));
+
+vi.mock('../../src/modules/logger.ts', () => ({
+    logger: {
+        error: mockLoggerError,
+        info: vi.fn(),
+        warn: vi.fn(),
+        debug: vi.fn(),
+    },
+}));
+
 import {
     getState,
     setState,
@@ -221,7 +235,6 @@ describe('Store Module', () => {
                 throw new Error('Test error');
             });
             const successCallback = vi.fn();
-            const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             subscribe('currentTab', errorCallback);
             subscribe('currentTab', successCallback);
@@ -229,13 +242,11 @@ describe('Store Module', () => {
             // Should not throw
             expect(() => setState('currentTab', 'weapons')).not.toThrow();
 
-            // Error should be logged
-            expect(consoleErrorSpy).toHaveBeenCalled();
+            // Error should be logged via logger
+            expect(mockLoggerError).toHaveBeenCalled();
 
             // Other subscriber should still be called
             expect(successCallback).toHaveBeenCalledWith('weapons');
-
-            consoleErrorSpy.mockRestore();
         });
 
         it('should clean up subscriber Set when all unsubscribed', () => {
@@ -425,7 +436,6 @@ describe('Store Module', () => {
                 throw new Error('Test error');
             });
             const successCallback = vi.fn();
-            const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
             subscribe('currentTab', errorCallback);
             subscribe('compareItems', successCallback);
@@ -435,10 +445,8 @@ describe('Store Module', () => {
                 compareItems: ['test'],
             })).not.toThrow();
 
-            expect(consoleErrorSpy).toHaveBeenCalled();
+            expect(mockLoggerError).toHaveBeenCalled();
             expect(successCallback).toHaveBeenCalledWith(['test']);
-
-            consoleErrorSpy.mockRestore();
         });
 
         it('should handle empty batch update', () => {

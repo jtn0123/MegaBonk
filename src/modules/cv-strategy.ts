@@ -6,6 +6,7 @@
 // ========================================
 
 import type { Item } from '../types/index.ts';
+import { logger } from './logger.ts';
 
 /**
  * Strategy configuration for CV detection
@@ -522,9 +523,15 @@ export function recordCorrection(detectedItem: Item, actualItem: Item, confidenc
     }
 
     // Log confusion event for debugging
-    console.debug(
-        `[CV Confusion] ${detectedItem.id} confused with ${actualItem.id} (count: ${newCount}, confidence: ${confidence.toFixed(3)})`
-    );
+    logger.debug({
+        operation: 'cv.confusion',
+        data: {
+            detectedId: detectedItem.id,
+            actualId: actualItem.id,
+            count: newCount,
+            confidence: Number(confidence.toFixed(3)),
+        },
+    });
 }
 
 /**
@@ -672,7 +679,13 @@ export function importFeedbackCorrections(json: string): void {
             }
         });
 
-        console.debug(`[CV] Imported ${imported.length} corrections, ${confusionMatrix.size} confusion pairs`);
+        logger.debug({
+            operation: 'cv.import_corrections',
+            data: {
+                correctionsCount: imported.length,
+                confusionPairsCount: confusionMatrix.size,
+            },
+        });
     } catch (error) {
         throw new Error('Failed to import feedback corrections: ' + (error as Error).message);
     }

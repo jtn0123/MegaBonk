@@ -228,8 +228,8 @@ export function setupKeyboardShortcuts(): void {
             return;
         }
 
-        // Tab navigation (1-8)
-        if (e.key >= '1' && e.key <= '8' && !e.ctrlKey && !e.metaKey) {
+        // Tab navigation (1-9)
+        if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey) {
             e.preventDefault();
             const tabs = [
                 'items',
@@ -239,6 +239,7 @@ export function setupKeyboardShortcuts(): void {
                 'shrines',
                 'build-planner',
                 'calculator',
+                'advisor',
                 'changelog',
             ];
             const tabIndex = parseInt(e.key) - 1;

@@ -67,6 +67,7 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
 
     // Item-Weapon synergies
     // Note: Items may use 'synergies' or 'synergies_weapons' field
+    // Use strict matching by ID or exact name to prevent false positives
     if (currentBuild.weapon) {
         const weapon = currentBuild.weapon;
         currentBuild.items.forEach((item: Item) => {
@@ -74,11 +75,9 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
             const itemSynergies = item.synergies || [];
             const itemSynergiesWeapons = item.synergies_weapons || [];
             const allSynergies = [...itemSynergies, ...itemSynergiesWeapons];
+            // Strict matching: exact ID or exact name (case-insensitive)
             const hasWeaponSynergy = allSynergies.some(
-                (syn: string) =>
-                    syn.toLowerCase() === weapon.name.toLowerCase() ||
-                    syn.toLowerCase().includes(weapon.name.toLowerCase()) ||
-                    weapon.name.toLowerCase().includes(syn.toLowerCase())
+                (syn: string) => syn === weapon.id || syn.toLowerCase() === weapon.name.toLowerCase()
             );
             if (hasWeaponSynergy) {
                 synergies.push({
@@ -92,18 +91,15 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
     }
 
     // Item-Character synergies
-    // Note: character.synergies_items may contain item names OR IDs
+    // Note: character.synergies_items should contain item IDs (snake_case)
+    // Use strict matching to prevent false positives
     if (currentBuild.character) {
         const character = currentBuild.character;
         currentBuild.items.forEach((item: Item) => {
             const charSynergies = character.synergies_items || [];
-            // Check by ID, exact name match, and partial match for flexibility
+            // Strict matching: exact ID or exact name (case-insensitive)
             const hasCharSynergy = charSynergies.some(
-                (syn: string) =>
-                    syn === item.id ||
-                    syn === item.name ||
-                    syn.toLowerCase().includes(item.name.toLowerCase()) ||
-                    item.name.toLowerCase().includes(syn.toLowerCase())
+                (syn: string) => syn === item.id || syn.toLowerCase() === item.name.toLowerCase()
             );
             if (hasCharSynergy) {
                 synergies.push({

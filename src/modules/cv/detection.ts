@@ -2,6 +2,15 @@
 // CV Main Detection Logic
 // ========================================
 
+/**
+ * Tesseract.js recognize options interface
+ * Only includes the options we use
+ */
+interface TesseractRecognizeOptions {
+    tessedit_pageseg_mode?: number; // PSM mode (8 = SINGLE_WORD)
+    tessedit_char_whitelist?: string; // Character whitelist
+}
+
 import type { Item } from '../../types/index.ts';
 import { logger } from '../logger.ts';
 import { detectResolution } from '../test-utils.ts';
@@ -2508,10 +2517,11 @@ export async function detectItemCounts(imageDataUrl: string, cells: ROI[]): Prom
             // OCR just this tiny region
             // PSM 8 = SINGLE_WORD mode (optimized for single word recognition)
             // Using numeric value directly since Tesseract.PSM may not be accessible via dynamic import
-            const result = await Tesseract.recognize(countCanvas.toDataURL(), 'eng', {
+            const ocrOptions: TesseractRecognizeOptions = {
                 tessedit_pageseg_mode: 8, // PSM.SINGLE_WORD
                 tessedit_char_whitelist: '0123456789x×', // Only allow digits and count prefixes
-            } as any);
+            };
+            const result = await Tesseract.recognize(countCanvas.toDataURL(), 'eng', ocrOptions);
 
             const text = result.data.text.trim();
 

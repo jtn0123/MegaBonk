@@ -62,45 +62,41 @@ describe('Bug #2: Character synergies_items uses names but code checks IDs - FIX
     const itemsData = loadJsonFile('items.json');
     const synergyCode = loadSourceFile('synergy.ts');
 
-    it('should confirm synergy.ts now uses name matching for character synergies', () => {
-        // FIXED: The code now uses name matching instead of ID matching
-        expect(synergyCode).toContain('syn === item.name');
+    it('should confirm synergy.ts now uses ID matching for character synergies', () => {
+        // FIXED: The code now uses strict ID matching (syn === item.id)
+        expect(synergyCode).toContain('syn === item.id');
     });
 
-    it('should confirm character synergies_items contains NAMES not IDs', () => {
+    it('should confirm character synergies_items contains IDs (FIXED)', () => {
         // Get first character with synergies_items
         const charWithSynergies = charactersData.characters.find(
             (c: any) => c.synergies_items && c.synergies_items.length > 0
         );
 
         if (charWithSynergies) {
-            // Check if any synergy is a valid item ID (lowercase with underscores)
+            // Check if synergies are valid item IDs (lowercase with underscores)
             const synergies = charWithSynergies.synergies_items as string[];
             const itemIds = itemsData.items.map((i: any) => i.id);
-            const itemNames = itemsData.items.map((i: any) => i.name);
 
-            // Synergies should match names, NOT ids
-            const matchesNames = synergies.some((s: string) =>
-                itemNames.includes(s) || s.includes('items') || s.includes('luck')
-            );
+            // FIXED: Synergies should now match IDs (snake_case)
             const matchesIds = synergies.filter((s: string) => itemIds.includes(s));
 
-            expect(matchesNames).toBe(true);
-            // Most synergies should NOT match item IDs (which are snake_case)
-            expect(matchesIds.length).toBeLessThan(synergies.length);
+            // Most synergies should match item IDs now
+            expect(matchesIds.length).toBe(synergies.length);
         }
     });
 
-    it('should confirm CL4NK synergies now work with name matching', () => {
+    it('should confirm CL4NK synergies use proper IDs (FIXED)', () => {
         const cl4nk = charactersData.characters.find((c: any) => c.id === 'cl4nk');
         expect(cl4nk).toBeDefined();
-        expect(cl4nk.synergies_items).toContain('Forbidden Juice');
-        expect(cl4nk.synergies_items).toContain('Giant Fork');
+        // FIXED: Now uses snake_case IDs instead of display names
+        expect(cl4nk.synergies_items).toContain('forbidden_juice');
+        expect(cl4nk.synergies_items).toContain('giant_fork');
 
-        // Item names are properly stored
-        const forbiddenJuice = itemsData.items.find((i: any) => i.name === 'Forbidden Juice');
+        // Verify the IDs correspond to real items
+        const forbiddenJuice = itemsData.items.find((i: any) => i.id === 'forbidden_juice');
         expect(forbiddenJuice).toBeDefined();
-        // Now the synergy will match because code uses name matching
+        expect(forbiddenJuice.name).toBe('Forbidden Juice');
     });
 });
 
@@ -156,9 +152,9 @@ describe('Bug #6: Character-to-item synergy detection completely fails', () => {
             }
         });
 
-        // Due to the bug, most synergies won't match because they contain names like
-        // "Forbidden Juice" but code looks for IDs like "forbidden_juice"
-        expect(matchCount).toBeLessThan(10); // Very few matches expected
+        // FIXED: Synergies now use IDs like "forbidden_juice" which match item.id
+        // Most synergies should now match since we've converted to proper IDs
+        expect(matchCount).toBeGreaterThan(50); // Most matches expected now that bug is fixed
     });
 });
 
@@ -166,28 +162,27 @@ describe('Bug #6: Character-to-item synergy detection completely fails', () => {
 // BUG CATEGORY 2: DATA INTEGRITY BUGS
 // ========================================
 
-describe('Bug #7: Character synergies reference items with inconsistent casing - FIXED', () => {
+describe('Bug #7: Character synergies reference items with consistent IDs - FIXED', () => {
     const charactersData = loadJsonFile('characters.json');
     const itemsData = loadJsonFile('items.json');
 
-    it('should confirm all character synergies now have correct casing', () => {
-        const itemNamesExact = itemsData.items.map((i: any) => i.name);
-        const casingIssues: { char: string; ref: string }[] = [];
+    it('should confirm all character synergies now use proper item IDs', () => {
+        const itemIds = itemsData.items.map((i: any) => i.id);
+        const invalidRefs: { char: string; ref: string }[] = [];
 
         charactersData.characters.forEach((char: any) => {
             if (char.synergies_items) {
                 char.synergies_items.forEach((syn: string) => {
-                    // Check for exact match
-                    if (!itemNamesExact.includes(syn) && !syn.includes('items') && !syn.includes('luck') && !syn.includes('evasion')) {
-                        // May be a casing or spelling issue
-                        casingIssues.push({ char: char.name, ref: syn });
+                    // Check for ID match (synergies should now use snake_case IDs)
+                    if (!itemIds.includes(syn)) {
+                        invalidRefs.push({ char: char.name, ref: syn });
                     }
                 });
             }
         });
 
-        // FIXED: All casing issues have been corrected
-        expect(casingIssues.length).toBe(0);
+        // FIXED: All synergies now use proper item IDs (snake_case)
+        expect(invalidRefs.length).toBe(0);
     });
 });
 

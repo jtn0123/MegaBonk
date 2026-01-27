@@ -57,12 +57,18 @@ const TAB_SWITCH_DEBOUNCE_MS = 100; // Minimum time between tab switches
 let scrollListenerCleanup: (() => void) | null = null;
 let resizeListenerCleanup: (() => void) | null = null;
 
+// Track modal close timing to prevent double-handling from click+touchend events
+// Module-scoped to persist across setupEventListeners() calls
+let lastModalCloseTime = 0;
+const MODAL_CLOSE_DEBOUNCE_MS = 300;
+
 /**
  * Reset internal timers for testing purposes
  * @internal
  */
 export function __resetTimersForTesting(): void {
     lastTabSwitchTime = 0;
+    lastModalCloseTime = 0;
 }
 
 /**
@@ -734,10 +740,7 @@ export function setupEventListeners(): void {
 
     // Click/touch outside modal to close - handle backdrop clicks
     // Check if click is inside modal but outside modal-content (the backdrop area)
-    // Use a timestamp to prevent double-handling from both click and touchend events
-    let lastModalCloseTime = 0;
-    const MODAL_CLOSE_DEBOUNCE_MS = 300;
-
+    // Uses module-scoped lastModalCloseTime to prevent double-handling
     const handleModalBackdropInteraction = (e: MouseEvent | TouchEvent): void => {
         // Prevent double-handling: on mobile, both touchend and click can fire for same tap
         const now = Date.now();

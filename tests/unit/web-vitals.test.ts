@@ -13,6 +13,21 @@ vi.mock('web-vitals', () => ({
     onINP: vi.fn(),
 }));
 
+// Mock the logger module - use vi.hoisted to ensure mock functions are available before import
+const { mockLoggerInfo, mockLoggerError } = vi.hoisted(() => ({
+    mockLoggerInfo: vi.fn(),
+    mockLoggerError: vi.fn(),
+}));
+
+vi.mock('../../src/modules/logger.ts', () => ({
+    logger: {
+        info: mockLoggerInfo,
+        error: mockLoggerError,
+        warn: vi.fn(),
+        debug: vi.fn(),
+    },
+}));
+
 import { getRating, getMetrics, logSummary, initWebVitals, createPerformanceBadge, THRESHOLDS } from '../../src/modules/web-vitals.ts';
 import { onCLS, onFCP, onLCP, onTTFB, onINP } from 'web-vitals';
 
@@ -202,7 +217,12 @@ describe('Web Vitals Module', () => {
 
         it('should log initialization message', () => {
             initWebVitals();
-            expect(console.log).toHaveBeenCalledWith('[Web Vitals] Monitoring initialized');
+            expect(mockLoggerInfo).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'webvitals.init',
+                    data: { status: 'initialized' },
+                })
+            );
         });
 
         it('should add a load event listener for summary', () => {
@@ -219,9 +239,14 @@ describe('Web Vitals Module', () => {
 
             initWebVitals();
 
-            expect(console.error).toHaveBeenCalledWith(
-                '[Web Vitals] Failed to initialize:',
-                expect.any(Error)
+            expect(mockLoggerError).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'webvitals.init',
+                    error: expect.objectContaining({
+                        name: 'Error',
+                        message: 'Test error',
+                    }),
+                })
             );
         });
     });

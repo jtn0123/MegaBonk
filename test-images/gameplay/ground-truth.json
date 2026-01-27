@@ -1632,33 +1632,39 @@
   },
   "steam-community/steam_11744968364201432853_53C.jpg": {
     "character": "Unknown",
-    "level": 0,
+    "level": 37,
     "resolution": "1920x1080",
+    "ui_state": "gameplay",
+    "language": "english",
+    "biome": "desert",
     "items": [],
-    "notes": "AUTO-SCRAPED from Steam Community. Resolution 1920x1080. View image to determine UI state and label items.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true
+    "notes": "BOSS FIGHT - Desert biome, English. Level 37. Boss Lil' Anubis (13.8K/19.7K HP, Easy x1.21).",
+    "difficulty": "medium"
   },
   "steam-community/steam_12254563756922763772_FF1.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Vlad",
+    "level": 1165,
     "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "language": "english",
+    "kills": 247408,
+    "time_alive": "60:49",
+    "unlocks": 5,
     "items": [],
-    "notes": "AUTO-SCRAPED from Steam Community. Resolution 1920x1080. View image to determine UI state and label items.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true
+    "notes": "END GAME SUMMARY - Vlad Level 1165. English. Quests: Bloody Cleaver, Dark Vlad, Wizard's Hat, Burnt Vlad, Gold Vlad.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_18203103357117472368_422.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Cubehead",
+    "level": 1690,
     "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "language": "russian",
+    "kills": 480260,
+    "time_alive": "72:27",
     "items": [],
-    "notes": "AUTO-SCRAPED from Steam Community. Resolution 1920x1080. View image to determine UI state and label items.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true
+    "notes": "END GAME SUMMARY - Cubehead (Кубоголовый) Level 1690. Russian.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_17011981285748501183_936.jpg": {
     "character": "Ninja",
@@ -1676,32 +1682,37 @@
   },
   "steam-community/steam_17308731572906866100_E0D.jpg": {
     "character": "Unknown",
-    "level": 0,
+    "level": 1086,
     "resolution": "1920x1080",
+    "ui_state": "gameplay",
+    "language": "english",
+    "biome": "hell",
     "items": [],
-    "notes": "AUTO-SCRAPED from Steam Community. Resolution 1920x1080. View image to determine UI state and label items.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true
+    "notes": "GAMEPLAY - Hell/Crypt biome, English. Level 1086. Boss Cooked (x3.8 difficulty). Stats panel visible. Heavy combat.",
+    "difficulty": "hard"
   },
   "steam-community/steam_14312019810958976833_DF6.jpg": {
     "character": "Unknown",
-    "level": 0,
+    "level": 65,
     "resolution": "1920x1080",
+    "ui_state": "gameplay",
+    "language": "english",
+    "biome": "ocean",
     "items": [],
-    "notes": "AUTO-SCRAPED from Steam Community. Resolution 1920x1080. View image to determine UI state and label items.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true
+    "notes": "BOSS FIGHT - Ocean biome, English. Level 65. Boss Cooked (x6.37 difficulty). Heavy combat with damage numbers.",
+    "difficulty": "medium"
   },
   "steam-community/steam_12801119694037967193_804.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Dicehead",
+    "level": 1475,
     "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "language": "portuguese",
+    "kills": 326448,
+    "time_alive": "65:30",
+    "unlocks": 2,
     "items": [],
-    "notes": "AUTO-SCRAPED from Steam Community. Resolution 1920x1080. View image to determine UI state and label items.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true
+    "notes": "END GAME SUMMARY - Dicehead (CabeçaDado) Level 1475. Portuguese. Quests: Chapéu Kevin, Cartola beeeem longa.",
+    "difficulty": "template_source"
   }
 }
