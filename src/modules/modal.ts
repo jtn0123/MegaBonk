@@ -74,6 +74,9 @@ let focusableElements: Element[] = [];
 let firstFocusableElement: Element | null | undefined = null;
 let lastFocusableElement: Element | null | undefined = null;
 
+// MutationObserver for cleanup on abnormal modal removal
+let modalObserver: MutationObserver | null = null;
+
 /**
  * Handle Tab key press for focus trap
  * @param e - Keyboard event
@@ -133,10 +136,43 @@ function activateFocusTrap(modal: HTMLElement): void {
 
     focusTrapActive = true;
     document.addEventListener('keydown', handleFocusTrap);
+
+    // Setup MutationObserver to cleanup if modal is removed abnormally
+    // This prevents state leaks if modal closes without calling deactivateFocusTrap
+    if (modalObserver) {
+        modalObserver.disconnect();
+    }
+    modalObserver = new MutationObserver(mutations => {
+        for (const mutation of mutations) {
+            // Check if modal was removed from DOM
+            if (mutation.type === 'childList') {
+                for (const removed of mutation.removedNodes) {
+                    if (removed === modal || (removed instanceof Element && removed.contains(modal))) {
+                        deactivateFocusTrap();
+                        return;
+                    }
+                }
+            }
+            // Check if modal display was set to none or active class removed
+            if (mutation.type === 'attributes' && mutation.target === modal) {
+                const modalEl = modal as HTMLElement;
+                if (modalEl.style.display === 'none' || !modalEl.classList.contains('active')) {
+                    deactivateFocusTrap();
+                    return;
+                }
+            }
+        }
+    });
+
+    // Observe the modal's parent and the modal itself for changes
+    if (modal.parentNode) {
+        modalObserver.observe(modal.parentNode, { childList: true });
+    }
+    modalObserver.observe(modal, { attributes: true, attributeFilter: ['style', 'class'] });
 }
 
 /**
- * Deactivate focus trap
+ * Deactivate focus trap and cleanup all associated state
  */
 function deactivateFocusTrap(): void {
     focusTrapActive = false;
@@ -144,6 +180,12 @@ function deactivateFocusTrap(): void {
     focusableElements = [];
     firstFocusableElement = null;
     lastFocusableElement = null;
+
+    // Cleanup MutationObserver
+    if (modalObserver) {
+        modalObserver.disconnect();
+        modalObserver = null;
+    }
 }
 
 /**
