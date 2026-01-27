@@ -359,10 +359,12 @@ function renderItemModal(data: Item): string {
 
         const { getEffectiveStackCap, createScalingChart } = chartModule;
 
-        if (hasScalingTracks) {
+        if (hasScalingTracks && data.scaling_tracks) {
             // Initialize with first track
-            const firstTrackKey = Object.keys(data.scaling_tracks!)[0];
-            const firstTrack = firstTrackKey ? data.scaling_tracks![firstTrackKey] : undefined;
+            const trackKeys = Object.keys(data.scaling_tracks);
+            if (trackKeys.length === 0) return; // Guard against empty scaling_tracks
+            const firstTrackKey = trackKeys[0];
+            const firstTrack = firstTrackKey ? data.scaling_tracks[firstTrackKey] : undefined;
             const effectiveCap = getEffectiveStackCap(data);
             const chartOptions: ChartOptions = {
                 scalingFormulaType: data.scaling_formula_type || 'linear',

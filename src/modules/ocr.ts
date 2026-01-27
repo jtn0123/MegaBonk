@@ -424,6 +424,8 @@ function detectEntitiesFromText<T extends EntityWithId>(
 
     for (const segment of segments) {
         const results = fuseInstance.search(segment);
+        // Guard against empty results array before accessing first element
+        if (results.length === 0) continue;
         const match = results[0];
         const score = match?.score;
 
@@ -496,6 +498,8 @@ export function detectCharacterFromText(text: string): DetectionResult | null {
     if (!characterFuse) return null;
 
     const results = characterFuse.search(text);
+    // Guard against empty results array
+    if (results.length === 0) return null;
     const match = results[0];
     const score = match?.score;
 
@@ -525,6 +529,8 @@ export function detectWeaponFromText(text: string): DetectionResult | null {
     if (!weaponFuse) return null;
 
     const results = weaponFuse.search(text);
+    // Guard against empty results array
+    if (results.length === 0) return null;
     const match = results[0];
     const score = match?.score;
 

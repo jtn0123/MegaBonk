@@ -98,7 +98,8 @@ function calculateItemSimilarity(item1: Item, item2: Item): { score: number; rea
 
     if (sharedKeywords.length > 0) {
         score += Math.min(sharedKeywords.length * 0.1, 0.3);
-        reasons.push(`Similar effects (${sharedKeywords[0]})`);
+        // Safe access: length check guarantees sharedKeywords[0] exists
+        reasons.push(`Similar effects (${sharedKeywords[0] ?? 'shared'})`);
     }
 
     // Same scaling type
