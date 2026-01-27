@@ -95,57 +95,8 @@ describe('Keyboard Shortcuts Module', () => {
         });
     });
 
-    describe('showShortcutsModal()', () => {
-        // Note: showShortcutsModal() uses addEventListener with { signal } option
-        // which jsdom doesn't support. These tests are skipped and functionality
-        // is tested via E2E tests instead.
-        // The setupKeyboardShortcuts() tests below verify that the ? key triggers
-        // the modal (which tests the exported function indirectly).
-
-        it.skip('should create modal element - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should add modal class - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should include modal header - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should include close button - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should include all shortcut categories - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should display category titles - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should display shortcut keys in kbd elements - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should display shortcut descriptions - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should include tip in footer - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should toggle modal when called twice - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-
-        it.skip('should add show class via requestAnimationFrame - skipped due to jsdom AbortSignal limitation', () => {
-            // showShortcutsModal uses addEventListener with { signal } which jsdom doesn't support
-        });
-    });
+    // Note: showShortcutsModal tests are in a later describe block (line ~632)
+    // These duplicate stubs have been removed since the AbortSignal issue is now fixed.
 
     describe('setupKeyboardShortcuts()', () => {
         beforeEach(() => {
@@ -532,7 +483,7 @@ describe('Keyboard Shortcuts Module', () => {
                 if (modal) modal.remove();
             });
 
-            it.skip('should show shortcuts modal on ? key - skipped due to jsdom AbortSignal limitation', () => {
+            it('should show shortcuts modal on ? key', () => {
                 const event = new KeyboardEvent('keydown', {
                     key: '?',
                     bubbles: true,
@@ -542,7 +493,7 @@ describe('Keyboard Shortcuts Module', () => {
                 expect(document.getElementById('shortcuts-modal')).not.toBeNull();
             });
 
-            it.skip('should show shortcuts modal on Shift+? key - skipped due to jsdom AbortSignal limitation', () => {
+            it('should show shortcuts modal on Shift+? key', () => {
                 const event = new KeyboardEvent('keydown', {
                     key: '?',
                     shiftKey: true,
