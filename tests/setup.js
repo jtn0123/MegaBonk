@@ -87,6 +87,10 @@ beforeEach(async () => {
     global.MouseEvent = dom.window.MouseEvent;
     global.InputEvent = dom.window.InputEvent;
 
+    // Expose AbortController and AbortSignal from jsdom for proper signal support
+    global.AbortController = dom.window.AbortController;
+    global.AbortSignal = dom.window.AbortSignal;
+
     // Mock fetch
     global.fetch = vi.fn();
 

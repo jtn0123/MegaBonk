@@ -66,14 +66,17 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
     }
 
     // Item-Weapon synergies
-    // Note: Items use 'synergies' field which may contain weapon names
+    // Note: Items may use 'synergies' or 'synergies_weapons' field
     if (currentBuild.weapon) {
         const weapon = currentBuild.weapon;
         currentBuild.items.forEach((item: Item) => {
-            // Check if item.synergies contains the weapon name (items don't have synergies_weapons)
+            // Check both synergies and synergies_weapons fields
             const itemSynergies = item.synergies || [];
-            const hasWeaponSynergy = itemSynergies.some(
+            const itemSynergiesWeapons = item.synergies_weapons || [];
+            const allSynergies = [...itemSynergies, ...itemSynergiesWeapons];
+            const hasWeaponSynergy = allSynergies.some(
                 (syn: string) =>
+                    syn.toLowerCase() === weapon.name.toLowerCase() ||
                     syn.toLowerCase().includes(weapon.name.toLowerCase()) ||
                     weapon.name.toLowerCase().includes(syn.toLowerCase())
             );
@@ -89,14 +92,15 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
     }
 
     // Item-Character synergies
-    // Note: character.synergies_items contains item NAMES, not IDs
+    // Note: character.synergies_items may contain item names OR IDs
     if (currentBuild.character) {
         const character = currentBuild.character;
         currentBuild.items.forEach((item: Item) => {
             const charSynergies = character.synergies_items || [];
-            // Check both exact name match and partial match for flexibility
+            // Check by ID, exact name match, and partial match for flexibility
             const hasCharSynergy = charSynergies.some(
                 (syn: string) =>
+                    syn === item.id ||
                     syn === item.name ||
                     syn.toLowerCase().includes(item.name.toLowerCase()) ||
                     item.name.toLowerCase().includes(syn.toLowerCase())

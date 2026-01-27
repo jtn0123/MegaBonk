@@ -43,7 +43,7 @@ export const CONFIG = {
     // Inventory background color (dark brown-gray)
     INVENTORY_BG_COLOR: { r: 40, g: 35, b: 30, tolerance: 25 },
     // Inventory fill pattern: after N consecutive empties, assume row is done
-    CONSECUTIVE_EMPTY_THRESHOLD: 3,
+    CONSECUTIVE_EMPTY_THRESHOLD: 2,
     // High confidence override: don't skip cells with strong matches
     HIGH_CONFIDENCE_OVERRIDE: 0.7,
 

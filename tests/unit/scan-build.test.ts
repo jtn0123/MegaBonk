@@ -901,8 +901,8 @@ describe('scan-build - Auto Detection Flow', () => {
 
         fileInput.dispatchEvent(new Event('change'));
 
-        // Trigger FileReader onload
-        await new Promise(resolve => setTimeout(resolve, 10));
+        // Wait for debounce (100ms) + buffer time before triggering FileReader onload
+        await new Promise(resolve => setTimeout(resolve, 150));
         if (mockFileReader.onload) {
             mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
         }
@@ -1714,7 +1714,8 @@ describe('scan-build - Selection Summary', () => {
         Object.defineProperty(fileInput, 'files', { value: [validFile] });
 
         fileInput.dispatchEvent(new Event('change'));
-        await new Promise(resolve => setTimeout(resolve, 10));
+        // Wait for debounce (100ms) + buffer time
+        await new Promise(resolve => setTimeout(resolve, 150));
         if (mockFileReader.onload) {
             mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
         }
@@ -1747,7 +1748,8 @@ describe('scan-build - Selection Summary', () => {
         Object.defineProperty(fileInput, 'files', { value: [validFile] });
 
         fileInput.dispatchEvent(new Event('change'));
-        await new Promise(resolve => setTimeout(resolve, 10));
+        // Wait for debounce (100ms) + buffer time
+        await new Promise(resolve => setTimeout(resolve, 150));
         if (mockFileReader.onload) {
             mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
         }

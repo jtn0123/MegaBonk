@@ -137,6 +137,7 @@ describe('compare.ts coverage tests', () => {
         document.body.innerHTML = '';
         mockCompareItems = [];
         vi.clearAllMocks();
+        __resetCompareState(); // Reset compare module state between tests
     });
 
     describe('toggleCompareItem', () => {

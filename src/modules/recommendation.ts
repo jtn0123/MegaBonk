@@ -198,15 +198,18 @@ function calculateSynergyScore(
     }
 
     // Check synergies with weapon
-    // Note: Items use 'synergies' field which may contain weapon names (not 'synergies_weapons')
+    // Note: Items may use 'synergies' or 'synergies_weapons' field
     if (build.weapon && choice.type === 'item') {
         const item = entity as Item;
         const itemSynergies = item.synergies || [];
+        const itemSynergiesWeapons = item.synergies_weapons || [];
+        const allWeaponSynergies = [...itemSynergies, ...itemSynergiesWeapons];
         const weapon = build.weapon;
 
         if (
-            itemSynergies.some(
+            allWeaponSynergies.some(
                 s =>
+                    s.toLowerCase() === weapon.name.toLowerCase() ||
                     s.toLowerCase().includes(weapon.name.toLowerCase()) ||
                     weapon.name.toLowerCase().includes(s.toLowerCase())
             )

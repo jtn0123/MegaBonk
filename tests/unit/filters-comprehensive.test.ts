@@ -326,11 +326,11 @@ describe('filters module', () => {
         });
 
         describe('shrines filtering', () => {
-            // Shrines need 'effect' property to pass isShrine type guard
+            // Shrines need 'activation' or 'reward' property to pass isShrine type guard
             const mockShrines = [
-                { id: 's1', name: 'Shrine of Power', type: 'stat_upgrade', effect: 'Increases power' },
-                { id: 's2', name: 'Shrine of Combat', type: 'combat', effect: 'Boosts combat' },
-                { id: 's3', name: 'Shrine of Utility', type: 'utility', effect: 'Provides utility' },
+                { id: 's1', name: 'Shrine of Power', type: 'stat_upgrade', activation: 'passive', reward: 'power boost' },
+                { id: 's2', name: 'Shrine of Combat', type: 'combat', activation: 'touch', reward: 'combat bonus' },
+                { id: 's3', name: 'Shrine of Utility', type: 'utility', activation: 'interact', reward: 'utility bonus' },
             ];
 
             beforeEach(() => {

@@ -23,7 +23,7 @@ async function main() {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./tests/setup.js'],
-    include: ['tests/unit/**/*.test.js', 'tests/integration/**/*.test.js'],
+    include: ['tests/unit/**/*.test.{js,ts}', 'tests/integration/**/*.test.{js,ts}'],
     testTimeout: 10000,
     hookTimeout: 10000,
   };
