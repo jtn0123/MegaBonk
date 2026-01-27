@@ -336,9 +336,8 @@ describe('events-comprehensive', () => {
     // Build Planner Change Events
     // ========================================
     describe('Build Planner Change Events', () => {
-        // These tests are skipped because dynamic imports in source code
-        // don't use mocks in the same way as static imports.
-        // The functionality is tested through e2e tests instead.
+        // Skipped: dynamic imports in event handlers don't use vi.mock properly
+        // The updateBuildAnalysis function is imported dynamically in the handler
         it.skip('should call updateBuildAnalysis when tome checkbox changes', async () => {
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
@@ -372,8 +371,7 @@ describe('events-comprehensive', () => {
     // Remove from Comparison Button Tests
     // ========================================
     describe('Remove from Comparison Button', () => {
-        // Skipped: dynamic import mocking doesn't work the same as static imports
-        it.skip('should call toggleCompareItem and updateCompareDisplay', async () => {
+        it('should call toggleCompareItem and updateCompareDisplay', async () => {
             const btn = document.createElement('button');
             btn.className = 'remove-compare-btn';
             btn.dataset.removeId = 'item-to-remove';
@@ -412,8 +410,7 @@ describe('events-comprehensive', () => {
     // Keyboard Event Edge Cases
     // ========================================
     describe('Keyboard Event Edge Cases', () => {
-        // Skipped: dynamic import mocking doesn't work the same as static imports
-        it.skip('should handle Enter key on breakpoint card', async () => {
+        it('should handle Enter key on breakpoint card', async () => {
             const card = document.createElement('div');
             card.className = 'breakpoint-card';
             card.dataset.item = 'test-item';
@@ -431,8 +428,7 @@ describe('events-comprehensive', () => {
             expect(mockQuickCalc).toHaveBeenCalledWith('test-item', 200);
         });
 
-        // Skipped: dynamic import mocking doesn't work the same as static imports
-        it.skip('should handle Space key on breakpoint card', async () => {
+        it('should handle Space key on breakpoint card', async () => {
             const card = document.createElement('div');
             card.className = 'breakpoint-card';
             card.dataset.item = 'test-item';

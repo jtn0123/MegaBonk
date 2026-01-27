@@ -82,7 +82,8 @@ export function parseChangelogLinks(text: string): string {
     if (!text) return '';
 
     // Pattern: [[type:id|Display Text]]
-    const linkPattern = /\[\[(\w+):(\w+)\|([^\]]+)\]\]/g;
+    // Note: ID allows word characters and hyphens, and can be empty for graceful handling
+    const linkPattern = /\[\[(\w+):([\w-]*)\|([^\]]+)\]\]/g;
 
     return text.replace(linkPattern, (_match: string, type: string, id: string, label: string): string => {
         // Validate entity type

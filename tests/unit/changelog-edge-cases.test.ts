@@ -400,8 +400,7 @@ describe('changelog.ts - Edge Cases', () => {
             expect(result).toContain('&lt;script&gt;');
         });
 
-        it.skip('should parse entity links in raw notes', () => {
-            // Skipped due to parseChangelogLinks mock issues
+        it('should parse entity links in raw notes', () => {
             const result = renderChangesSections(undefined, 'Fixed [[item:test-item|Test Item]]');
 
             expect(result).toContain('entity-link');
