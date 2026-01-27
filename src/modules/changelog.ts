@@ -136,8 +136,10 @@ export function formatCategoryName(category: string): string {
  */
 export function formatChangelogDate(dateStr: string): string {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    // Bug fix #6: Validate date is valid before formatting
+    // Parse as UTC to avoid timezone inconsistencies across browsers
+    // YYYY-MM-DD format is parsed as UTC midnight when using explicit UTC parsing
+    const date = new Date(dateStr + 'T00:00:00Z');
+    // Validate date is valid before formatting
     if (isNaN(date.getTime())) {
         return 'Invalid Date';
     }
@@ -145,6 +147,7 @@ export function formatChangelogDate(dateStr: string): string {
         year: 'numeric',
         month: 'short',
         day: 'numeric',
+        timeZone: 'UTC', // Ensure consistent display regardless of local timezone
     });
 }
 

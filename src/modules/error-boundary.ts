@@ -198,6 +198,8 @@ export function withErrorBoundary<TArgs extends unknown[], TReturn>(
                             },
                             data: { phase: 'fallback_failed', recoveryAttempted: true, recoverySucceeded: false },
                         });
+                        // Re-throw fallback error so caller knows recovery failed
+                        throw fErr;
                     }
                 }
 

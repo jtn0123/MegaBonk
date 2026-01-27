@@ -137,11 +137,13 @@ function detectBuildArchetype(build: BuildState): BuildArchetype {
 
     scores.sort((a, b) => b.count - a.count);
 
-    const dominant = scores[0];
-
-    if (!dominant) {
+    // Guard against empty scores array before accessing first element
+    if (scores.length === 0) {
         return { type: 'mixed', strength: 0 };
     }
+
+    // Safe: length check above guarantees scores[0] exists
+    const dominant = scores[0]!;
 
     const strength = dominant.count / total;
 
