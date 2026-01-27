@@ -63,6 +63,10 @@ export const state = {
     cacheHits: 0,
     cacheMisses: 0,
     twoPhaseSuccessRate: 0,
+
+    // Resolution scanning state
+    imageResolutions: {}, // Cached resolution data: { "path": { width, height }, ... }
+    resolutionScanComplete: false,
 };
 
 // Reset detection-related state (called when switching images)
@@ -111,6 +115,13 @@ export const presetManager = {
         }
     },
 
+    // Force reload presets from grid-presets.json file
+    async reloadPresetsFromFile() {
+        this._filePresetsLoaded = false; // Reset flag to force reload
+        await this.loadFromFile();
+        console.log('[PresetManager] Presets reloaded from file');
+    },
+
     // Load presets from grid-presets.json file and merge with localStorage
     async loadFromFile() {
         if (this._filePresetsLoaded) return;
@@ -136,13 +147,21 @@ export const presetManager = {
             let merged = false;
 
             for (const [key, preset] of Object.entries(fileData.presets)) {
-                if (!localData.presets[key]) {
-                    // File preset doesn't exist in localStorage, add it
+                const localPreset = localData.presets[key];
+                // Add new presets OR update if file version is newer
+                if (
+                    !localPreset ||
+                    (preset.lastModified &&
+                        (!localPreset.lastModified ||
+                            new Date(preset.lastModified) > new Date(localPreset.lastModified)))
+                ) {
                     localData.presets[key] = preset;
                     merged = true;
                     // Use debug level for verbose import logging
                     if (typeof console.debug === 'function') {
-                        console.debug(`[PresetManager] Imported preset from file: ${key}`);
+                        console.debug(
+                            `[PresetManager] ${localPreset ? 'Updated' : 'Imported'} preset from file: ${key}`
+                        );
                     }
                 }
             }
@@ -289,8 +308,55 @@ export const presetManager = {
         return false;
     },
 
+    // Find nearest resolution by total pixel count
+    findNearestResolution(width, height) {
+        // Validate input parameters
+        if (!Number.isFinite(width) || !Number.isFinite(height)) {
+            console.warn('[findNearestResolution] Invalid dimensions:', width, height);
+            return null;
+        }
+        if (width <= 0 || height <= 0) {
+            console.warn('[findNearestResolution] Dimensions must be positive:', width, height);
+            return null;
+        }
+
+        const data = this.load();
+
+        // Validate presets collection exists
+        if (!data.presets || typeof data.presets !== 'object') {
+            return null;
+        }
+
+        const presetEntries = Object.entries(data.presets);
+        if (presetEntries.length === 0) {
+            return null;
+        }
+
+        const targetPixels = width * height;
+        let nearest = null;
+        let nearestDiff = Infinity;
+
+        for (const [key, preset] of presetEntries) {
+            // Validate preset structure
+            if (!preset?.resolution?.width || !preset?.resolution?.height) {
+                continue;
+            }
+
+            const presetPixels = preset.resolution.width * preset.resolution.height;
+            const diff = Math.abs(targetPixels - presetPixels);
+
+            if (diff < nearestDiff) {
+                nearestDiff = diff;
+                nearest = { key, preset, scaleFactor: height / preset.resolution.height };
+            }
+        }
+
+        return nearest;
+    },
+
     // Get preset status string for display
     getStatusForResolution(width, height) {
+        // 1. Check exact match
         const exact = this.getPresetForResolution(width, height);
         if (exact) {
             return {
@@ -300,6 +366,7 @@ export const presetManager = {
             };
         }
 
+        // 2. Check aspect ratio match with scaling
         const aspectMatch = this.findByAspectRatio(width, height);
         if (aspectMatch) {
             return {
@@ -310,6 +377,19 @@ export const presetManager = {
             };
         }
 
+        // 3. Find nearest resolution by pixel count (new fallback)
+        const nearest = this.findNearestResolution(width, height);
+        if (nearest) {
+            return {
+                type: 'nearest',
+                message: `Using nearest preset: ${nearest.preset.name} (${nearest.scaleFactor.toFixed(2)}x scale)`,
+                preset: nearest.preset,
+                scaleFactor: nearest.scaleFactor,
+                sourceKey: nearest.key,
+            };
+        }
+
+        // 4. Default fallback
         return {
             type: 'default',
             message: 'No preset - using defaults',
