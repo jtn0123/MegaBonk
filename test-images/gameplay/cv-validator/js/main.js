@@ -31,6 +31,7 @@ import {
     setEnabledSources,
     enableAllSources,
     getSourceSampleCounts,
+    scanImageResolutions,
 } from './data-loader.js';
 import { runDetection, loadSharedLibrary, setDetectionOptions, getDetectionOptions } from './cv-detection.js';
 import {
@@ -47,6 +48,7 @@ import {
     initGridCalibration,
     updateResolutionInfo,
     autoLoadPresetForResolution,
+    applyImageCalibration,
     getCalibrationForExport,
     wasPresetModified,
     getPresetName,
@@ -206,6 +208,7 @@ const elements = {
     loadPresetBtn: document.getElementById('load-preset'),
     deletePresetBtn: document.getElementById('delete-preset'),
     exportAllPresetsBtn: document.getElementById('export-all-presets'),
+    reloadPresetsBtn: document.getElementById('reload-presets'),
 
     // Advanced settings
     toggleAdvancedBtn: document.getElementById('toggle-advanced'),
@@ -220,6 +223,7 @@ const elements = {
 
     // Auto-detect grid
     autoDetectBtn: document.getElementById('auto-detect-btn'),
+    detectWithAutoGridBtn: document.getElementById('detect-with-auto-grid'),
     autoDetectStatus: document.getElementById('auto-detect-status'),
     autoDetectProgress: document.getElementById('auto-detect-progress'),
     autoDetectProgressFill: document.getElementById('auto-detect-progress-fill'),
@@ -1014,6 +1018,11 @@ function initAutoDetect() {
         elements.applyAutoDetectBtn.addEventListener('click', applyAutoDetectedCalibration);
     }
 
+    // Combined detect with auto-grid button
+    if (elements.detectWithAutoGridBtn) {
+        elements.detectWithAutoGridBtn.addEventListener('click', runDetectionWithAutoGrid);
+    }
+
     // Toggle comparison view
     if (elements.toggleComparisonBtn) {
         elements.toggleComparisonBtn.addEventListener('click', () => {
@@ -1063,6 +1072,12 @@ async function handleAutoDetect() {
             if (result.reasons && result.reasons.length > 0) {
                 const formattedReasons = formatFailureReasons(result.reasons);
                 log(`Detection warnings: ${formattedReasons.join(', ')}`, LOG_LEVELS.WARNING);
+            }
+
+            // Auto-apply if confidence is high enough (>=60%)
+            if (result.confidence >= 0.6) {
+                applyAutoDetectedCalibration();
+                log('Grid auto-detected and applied (confidence >= 60%)', LOG_LEVELS.SUCCESS);
             }
         } else {
             // Clear stale cache on failure
@@ -1220,6 +1235,63 @@ function applyAutoDetectedCalibration() {
     updateGridDisplay();
 
     log('Applied auto-detected calibration', LOG_LEVELS.SUCCESS);
+}
+
+/**
+ * Combined function: auto-detect grid, apply if successful, then run detection
+ * Single-click workflow for convenience
+ */
+async function runDetectionWithAutoGrid() {
+    if (!state.currentImage) {
+        log('No image loaded', LOG_LEVELS.WARNING);
+        return;
+    }
+
+    log('Running auto-grid detection then item detection...', LOG_LEVELS.INFO);
+
+    // Step 1: Auto-detect grid
+    const autoResult = await autoDetectGrid(
+        state.currentImage.ctx,
+        state.currentImage.width,
+        state.currentImage.height
+    );
+
+    // Step 2: Apply if successful (lower threshold for combined workflow)
+    if (autoResult.success && autoResult.confidence >= 0.5) {
+        Object.assign(state.calibration, autoResult.calibration);
+        syncUIToState();
+        updateGridDisplay();
+        lastAutoDetectResult = autoResult;
+        log(
+            `Auto-grid applied: ${autoResult.calibration.iconsPerRow}x${autoResult.calibration.numRows} grid, ${Math.round(autoResult.confidence * 100)}% confidence`,
+            LOG_LEVELS.SUCCESS
+        );
+    } else {
+        log('Auto-grid detection failed or low confidence, using current calibration', LOG_LEVELS.WARNING);
+    }
+
+    // Step 3: Run detection with (possibly new) calibration
+    await handleRunDetection();
+}
+
+/**
+ * Reload presets from grid-presets.json file and re-apply for current resolution
+ */
+async function handleReloadPresets() {
+    try {
+        await presetManager.reloadPresetsFromFile();
+
+        // Re-apply preset for current resolution if we have an image loaded
+        if (state.currentImage) {
+            const { width, height } = state.currentImage;
+            autoLoadPresetForResolution(width, height);
+            updateGridDisplay();
+        }
+
+        log('Presets reloaded from file', LOG_LEVELS.SUCCESS);
+    } catch (error) {
+        log(`Failed to reload presets: ${error.message}`, LOG_LEVELS.ERROR);
+    }
 }
 
 function toggleAutoDetectOverlay() {
@@ -1641,9 +1713,18 @@ async function handleImageSelect(e) {
         // Auto-load preset for this resolution
         autoLoadPresetForResolution(state.currentImage.width, state.currentImage.height);
 
-        // Enable auto-detect button
+        // Check for per-image calibration override in ground truth
+        const groundTruthData = getGroundTruthForImage(imagePath);
+        if (applyImageCalibration(groundTruthData)) {
+            log(`Using custom grid calibration for ${imagePath}`, LOG_LEVELS.SUCCESS);
+        }
+
+        // Enable auto-detect buttons
         if (elements.autoDetectBtn) {
             elements.autoDetectBtn.disabled = false;
+        }
+        if (elements.detectWithAutoGridBtn) {
+            elements.detectWithAutoGridBtn.disabled = false;
         }
         // Hide previous auto-detect results
         if (elements.autoDetectResults) {
@@ -1934,8 +2015,50 @@ async function init() {
 
     if (state.itemsData) {
         await loadAllTemplates();
+
+        // Show initial dropdown (simple list) while scanning resolutions
         populateImageSelect(elements.imageSelect);
         populateItemReference();
+
+        // Scan image resolutions in the background for grouped dropdown
+        scanImageResolutionsAsync();
+    }
+
+    /**
+     * Async function to scan image resolutions and update dropdown
+     * Runs after initial load to avoid blocking the UI
+     */
+    async function scanImageResolutionsAsync() {
+        // Add scanning indicator to dropdown
+        const scanningOption = document.createElement('option');
+        scanningOption.disabled = true;
+        scanningOption.textContent = '--- Scanning image resolutions... ---';
+        scanningOption.id = 'scanning-indicator';
+        if (elements.imageSelect.options.length > 0) {
+            elements.imageSelect.insertBefore(scanningOption, elements.imageSelect.options[1]);
+        }
+
+        try {
+            // Scan resolutions with progress callback
+            await scanImageResolutions((current, total) => {
+                scanningOption.textContent = `--- Scanning resolutions: ${current}/${total} ---`;
+            });
+
+            // Remove scanning indicator and repopulate with grouped dropdown
+            const indicator = document.getElementById('scanning-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+            populateImageSelect(elements.imageSelect);
+            log('Dropdown updated with resolution groups', LOG_LEVELS.SUCCESS);
+        } catch (error) {
+            log(`Resolution scan failed: ${error.message}`, LOG_LEVELS.WARNING);
+            // Remove scanning indicator on error
+            const indicator = document.getElementById('scanning-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
     }
 
     // Initialize modules
@@ -2190,6 +2313,11 @@ async function init() {
 
     // Auto-detect grid handlers
     initAutoDetect();
+
+    // Reload presets button
+    if (elements.reloadPresetsBtn) {
+        elements.reloadPresetsBtn.addEventListener('click', handleReloadPresets);
+    }
 
     // Advanced settings toggle
     elements.toggleAdvancedBtn.addEventListener('click', toggleAdvancedSettings);

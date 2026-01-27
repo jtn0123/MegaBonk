@@ -1,5 +1,5 @@
 {
-  "_instructions": "Ground truth labels for CV testing. Add new screenshots to pc-1080p/ folder and create matching entries here.",
+  "_instructions": "Ground truth labels for CV testing. Add new screenshots to pc-screenshots/ folder and create matching entries here.",
 
   "_accuracy_targets": {
     "baseline": "Early game, clean UI should achieve >80% accuracy",
@@ -9,17 +9,17 @@
   },
 
   "_how_to_add_images": {
-    "1": "Save screenshot to test-images/gameplay/pc-1080p/",
+    "1": "Save screenshot to test-images/gameplay/pc-screenshots/",
     "2": "Name it: level_[NUM]_[LANG]_[BIOME].jpg",
     "3": "Add entry below with same filename as key",
     "4": "List all visible items in the items array",
     "5": "Run: npm run test:cv:offline to verify"
   },
 
-  "pc-1080p/level_21_english_desert_scorpion.jpg": {
+  "pc-screenshots/level_21_english_desert_scorpion.jpg": {
     "character": "Unknown",
     "level": 21,
-    "resolution": "1280x800",
+    "resolution": "1920x1080",
     "items": [
       "Wrench",
       "Wrench",
@@ -49,10 +49,10 @@
     "difficulty": "easy"
   },
 
-  "pc-1080p/level_33_english_forest_early.jpg": {
+  "pc-screenshots/level_33_english_forest_early.jpg": {
     "character": "Unknown",
     "level": 33,
-    "resolution": "1280x720",
+    "resolution": "1600x900",
     "items": [
       "Forbidden Juice",
       "Oats",
@@ -70,10 +70,10 @@
     "difficulty": "easy"
   },
 
-  "pc-1080p/level_52_spanish_ocean.jpg": {
+  "pc-screenshots/level_52_spanish_ocean.jpg": {
     "character": "Unknown",
     "level": 52,
-    "resolution": "1280x720",
+    "resolution": "2560x1440",
     "items": [
       "Ice Cube",
       "Ice Cube",
@@ -107,10 +107,10 @@
     "difficulty": "medium"
   },
 
-  "pc-1080p/level_66_russian_desert.jpg": {
+  "pc-screenshots/level_66_russian_desert.jpg": {
     "character": "Unknown",
     "level": 66,
-    "resolution": "1280x720",
+    "resolution": "1280x800",
     "items": [
       "Ice Crystal",
       "Forbidden Juice",
@@ -147,10 +147,10 @@
     "difficulty": "medium"
   },
 
-  "pc-1080p/level_75_portuguese_hell_final.jpg": {
+  "pc-screenshots/level_75_portuguese_hell_final.jpg": {
     "character": "Unknown",
     "level": 75,
-    "resolution": "1280x720",
+    "resolution": "2560x1440",
     "items": [
       "Wrench",
       "Beer",
@@ -197,10 +197,21 @@
     "difficulty": "hard"
   },
 
-  "pc-1080p/level_108_english_snow_boss.jpg": {
+  "pc-screenshots/level_108_english_snow_boss.jpg": {
     "character": "Unknown",
     "level": 108,
-    "resolution": "1280x720",
+    "resolution": "2560x1440",
+    "grid_calibration": {
+      "xOffset": -3,
+      "yOffset": -4,
+      "iconWidth": 39,
+      "iconHeight": 40,
+      "xSpacing": 11,
+      "ySpacing": 4,
+      "iconsPerRow": 22,
+      "numRows": 1,
+      "totalItems": 20
+    },
     "items": [
       "Medkit",
       "Wrench",
@@ -234,10 +245,10 @@
     "difficulty": "medium"
   },
 
-  "pc-1080p/level_112_russian_crypt_boss.jpg": {
+  "pc-screenshots/level_112_russian_crypt_boss.jpg": {
     "character": "Unknown",
     "level": 112,
-    "resolution": "1280x800",
+    "resolution": "1920x1080",
     "items": [
       "Cursed Doll",
       "Wrench",
@@ -280,10 +291,10 @@
     "difficulty": "hard"
   },
 
-  "pc-1080p/level_281_turkish_hell.jpg": {
+  "pc-screenshots/level_281_turkish_hell.jpg": {
     "character": "Unknown",
     "level": 281,
-    "resolution": "1280x800",
+    "resolution": "1920x1080",
     "items": [
       "Forbidden Juice",
       "Moldy Cheese",
@@ -317,10 +328,21 @@
     "difficulty": "hard"
   },
 
-  "pc-1080p/level_803_russian_stress_test.jpg": {
+  "pc-screenshots/level_803_russian_stress_test.jpg": {
     "character": "Unknown",
     "level": 803,
-    "resolution": "1280x800",
+    "resolution": "1920x1080",
+    "grid_calibration": {
+      "xOffset": -3,
+      "yOffset": -4,
+      "iconWidth": 44,
+      "iconHeight": 43,
+      "xSpacing": 6,
+      "ySpacing": 7,
+      "iconsPerRow": 24,
+      "numRows": 3,
+      "totalItems": 72
+    },
     "items": [
       "Feathers",
       "Forbidden Juice",
@@ -380,7 +402,7 @@
     "difficulty": "extreme"
   },
 
-  "pc-1080p/level_60_russian_ocean_chadbark.jpg": {
+  "pc-screenshots/level_60_russian_ocean_chadbark.jpg": {
     "character": "Unknown",
     "level": 60,
     "resolution": "1456x816",
@@ -425,7 +447,7 @@
     "difficulty": "medium"
   },
 
-  "pc-1080p/level_38_english_forest_stats.jpg": {
+  "pc-screenshots/level_38_english_forest_stats.jpg": {
     "character": "Unknown",
     "level": 38,
     "resolution": "1456x816",
@@ -467,7 +489,7 @@
     "difficulty": "medium"
   },
 
-  "pc-1080p/level_112_russian_crypt_v2.jpg": {
+  "pc-screenshots/level_112_russian_crypt_v2.jpg": {
     "character": "Unknown",
     "level": 112,
     "resolution": "1456x816",
@@ -521,7 +543,7 @@
     "difficulty": "hard"
   },
 
-  "pc-1080p/level_5_russian_inventory_chest.jpg": {
+  "pc-screenshots/level_5_russian_inventory_chest.jpg": {
     "character": "Unknown",
     "level": 5,
     "resolution": "1456x816",
@@ -549,7 +571,7 @@
     "difficulty": "easy"
   },
 
-  "pc-1080p/level_281_turkish_hell_v2.jpg": {
+  "pc-screenshots/level_281_turkish_hell_v2.jpg": {
     "character": "Unknown",
     "level": 281,
     "resolution": "1456x816",

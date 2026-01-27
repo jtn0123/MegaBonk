@@ -20,6 +20,32 @@ button:hover {
     border-color: var(--accent);
 }
 
+/* Optgroup styling for image select dropdown */
+select optgroup {
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--bg-card);
+    padding-top: 8px;
+}
+
+select optgroup option {
+    font-weight: normal;
+    color: var(--text-primary);
+    padding-left: 12px;
+}
+
+/* Indicator for images with custom calibration */
+select option[data-custom-override="true"] {
+    color: var(--cyan);
+}
+
+/* Scanning indicator styling */
+#scanning-indicator {
+    color: var(--warning);
+    font-style: italic;
+    text-align: center;
+}
+
 button.primary {
     background: var(--accent);
     border-color: var(--accent);
@@ -2108,6 +2134,32 @@ button:disabled {
 }
 
 .auto-detect-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Combined detect with auto-grid button */
+.detect-with-auto-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    border: none;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.detect-with-auto-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.detect-with-auto-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
 }

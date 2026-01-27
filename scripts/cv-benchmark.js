@@ -39,7 +39,9 @@ const CONFIG = {
     TEMPLATES_PATH: path.join(__dirname, '..', 'src', 'images', 'items'),
 
     // Detection settings
-    DEFAULT_THRESHOLD: 0.45,
+    // Note: With current static templates, max similarity is ~25-30%
+    // Training data crops would yield better results
+    DEFAULT_THRESHOLD: 0.45, // Restored - need template replacement to improve
     BASE_RESOLUTION: 720,
 
     // Grid calibration presets
@@ -74,11 +76,11 @@ const CONFIG = {
             iconsPerRow: 14,
         },
         '1920x1080': {
-            xOffset: -122,
-            yOffset: 57,
-            iconWidth: 48,
-            iconHeight: 48,
-            xSpacing: 6,
+            xOffset: 10, // Positive offset - items are right of center
+            yOffset: 35, // Items are lower in screen
+            iconWidth: 58, // Icons appear larger than 48
+            iconHeight: 58,
+            xSpacing: 12, // More spacing between icons
             ySpacing: 6,
             iconsPerRow: 14,
         },
@@ -320,7 +322,7 @@ class SimpleCVEngine {
         console.log(`Loaded ${this.templates.size} templates`);
     }
 
-    async detectItems(imagePath, groundTruthItems, threshold = CONFIG.DEFAULT_THRESHOLD) {
+    async detectItems(imagePath, groundTruthItems, threshold = CONFIG.DEFAULT_THRESHOLD, diagnosticMode = false) {
         const fullPath = path.join(CONFIG.IMAGES_BASE_PATH, imagePath);
         if (!fs.existsSync(fullPath)) {
             return { error: `Image not found: ${fullPath}` };
@@ -340,6 +342,7 @@ class SimpleCVEngine {
 
         const detections = [];
         const startTime = Date.now();
+        const diagnosticData = [];
 
         for (let i = 0; i < positions.length && i < groundTruthItems.length; i++) {
             const pos = positions[i];
@@ -353,13 +356,36 @@ class SimpleCVEngine {
             // Match against templates
             let bestMatch = null;
             let bestScore = 0;
+            const allScores = [];
 
             for (const [itemId, template] of this.templates) {
-                const score = calculateCombinedScore(cropData, template.imageData);
+                const ncc = calculateNCC(cropData, template.imageData);
+                const ssim = calculateSSIM(cropData, template.imageData);
+                const hist = calculateHistogramSimilarity(cropData, template.imageData);
+                const nccNorm = (ncc + 1) / 2;
+                const score = 0.4 * ssim + 0.35 * hist + 0.25 * nccNorm;
+
+                allScores.push({ itemId, name: template.item.name, ncc, nccNorm, ssim, hist, score });
+
                 if (score > bestScore) {
                     bestScore = score;
                     bestMatch = template.item;
                 }
+            }
+
+            // Sort scores for diagnostic output
+            allScores.sort((a, b) => b.score - a.score);
+
+            if (diagnosticMode) {
+                diagnosticData.push({
+                    slot: i,
+                    groundTruth: groundTruthItems[i],
+                    position: pos,
+                    topMatches: allScores.slice(0, 5),
+                    bestScore,
+                    threshold,
+                    passesThreshold: bestScore >= threshold,
+                });
             }
 
             if (bestMatch && bestScore >= threshold) {
@@ -378,6 +404,7 @@ class SimpleCVEngine {
                     confidence: bestScore,
                     groundTruth: groundTruthItems[i],
                     correct: false,
+                    bestMatchedItem: bestMatch?.name,
                 });
             }
         }
@@ -412,6 +439,7 @@ class SimpleCVEngine {
                 perItemMs: elapsed / groundTruthItems.length,
             },
             threshold,
+            diagnosticData: diagnosticMode ? diagnosticData : undefined,
         };
     }
 }
@@ -452,7 +480,7 @@ function addBenchmarkRun(history, runData) {
 // ========================================
 
 async function runBenchmark(options = {}) {
-    const { quick, imagePath, verbose } = options;
+    const { quick, imagePath, verbose, diagnostic } = options;
 
     console.log('CV Benchmark Runner');
     console.log('===================');
@@ -501,7 +529,7 @@ async function runBenchmark(options = {}) {
 
         process.stdout.write(`Processing ${imgPath}... `);
 
-        const result = await engine.detectItems(imgPath, data.items);
+        const result = await engine.detectItems(imgPath, data.items, CONFIG.DEFAULT_THRESHOLD, diagnostic);
 
         if (result.error) {
             console.log(`ERROR: ${result.error}`);
@@ -520,9 +548,30 @@ async function runBenchmark(options = {}) {
             const incorrect = result.detections.filter(d => !d.correct);
             for (const d of incorrect.slice(0, 5)) {
                 console.log(
-                    `  Slot ${d.slot}: detected "${d.item}" but was "${d.groundTruth}" (${(d.confidence * 100).toFixed(0)}%)`
+                    `  Slot ${d.slot}: detected "${d.item || d.bestMatchedItem}" but was "${d.groundTruth}" (${(d.confidence * 100).toFixed(0)}%)`
                 );
             }
+        }
+
+        if (diagnostic && result.diagnosticData) {
+            console.log('\n  === DIAGNOSTIC DATA ===');
+            for (const slot of result.diagnosticData.slice(0, 3)) {
+                console.log(`  Slot ${slot.slot}: Expected "${slot.groundTruth}"`);
+                console.log(
+                    `    Position: x=${slot.position.x}, y=${slot.position.y}, ${slot.position.width}x${slot.position.height}`
+                );
+                console.log(
+                    `    Best score: ${(slot.bestScore * 100).toFixed(1)}% (threshold: ${(slot.threshold * 100).toFixed(0)}%)`
+                );
+                console.log(`    Top 5 matches:`);
+                for (const match of slot.topMatches) {
+                    const marker = match.name === slot.groundTruth ? ' ← EXPECTED' : '';
+                    console.log(
+                        `      ${match.name}: ${(match.score * 100).toFixed(1)}% (SSIM=${(match.ssim * 100).toFixed(0)}%, Hist=${(match.hist * 100).toFixed(0)}%, NCC=${(match.nccNorm * 100).toFixed(0)}%)${marker}`
+                    );
+                }
+            }
+            console.log('');
         }
     }
 
@@ -704,6 +753,112 @@ async function compareToLast() {
 // Main
 // ========================================
 
+async function extractCrops(imagePath) {
+    console.log('Extracting crops for visual inspection...\n');
+
+    // Load ground truth
+    const groundTruth = JSON.parse(fs.readFileSync(CONFIG.GROUND_TRUTH_PATH, 'utf8'));
+    const imageEntries = Object.entries(groundTruth).filter(([key]) => key.includes(imagePath));
+
+    if (imageEntries.length === 0) {
+        console.error(`No images matching: ${imagePath}`);
+        process.exit(1);
+    }
+
+    const [imgPath, data] = imageEntries[0];
+    const fullPath = path.join(CONFIG.IMAGES_BASE_PATH, imgPath);
+
+    if (!fs.existsSync(fullPath)) {
+        console.error(`Image not found: ${fullPath}`);
+        process.exit(1);
+    }
+
+    const image = await loadImage(fullPath);
+    const width = image.width;
+    const height = image.height;
+
+    console.log(`Image: ${imgPath}`);
+    console.log(`Actual resolution: ${width}x${height}`);
+    console.log(`Ground truth resolution: ${data.resolution}`);
+    console.log(`Items: ${data.items.length}\n`);
+
+    const calibration = getCalibrationForResolution(width, height);
+    console.log(
+        `Calibration: icon=${calibration.iconWidth}x${calibration.iconHeight}, spacing=${calibration.xSpacing}x${calibration.ySpacing}`
+    );
+    console.log(
+        `Grid: xOffset=${calibration.xOffset}, yOffset=${calibration.yOffset}, iconsPerRow=${calibration.iconsPerRow}\n`
+    );
+
+    const positions = calculateGridPositions(width, height, calibration, data.items.length);
+
+    const canvas = createCanvas(width, height);
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(image, 0, 0);
+
+    // Create output directory
+    const outputDir = path.join(__dirname, '..', 'test-images', 'debug-crops');
+    if (!fs.existsSync(outputDir)) {
+        fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    // Extract and save first 5 crops
+    for (let i = 0; i < Math.min(5, positions.length); i++) {
+        const pos = positions[i];
+        const expectedItem = data.items[i];
+
+        // Save crop at original size
+        const cropCanvas = createCanvas(pos.width, pos.height);
+        const cropCtx = cropCanvas.getContext('2d');
+        cropCtx.drawImage(canvas, pos.x, pos.y, pos.width, pos.height, 0, 0, pos.width, pos.height);
+
+        const cropFile = path.join(outputDir, `crop_${i}_${nameToId(expectedItem)}_${pos.x}_${pos.y}.png`);
+        const buffer = cropCanvas.toBuffer('image/png');
+        fs.writeFileSync(cropFile, buffer);
+
+        console.log(`Slot ${i}: "${expectedItem}" at (${pos.x}, ${pos.y}) ${pos.width}x${pos.height} → ${cropFile}`);
+    }
+
+    // Save a strip of the bottom area for debugging
+    console.log('\nSaving bottom strip for reference...');
+    const stripHeight = 100;
+    const stripCanvas = createCanvas(width, stripHeight);
+    const stripCtx = stripCanvas.getContext('2d');
+    stripCtx.drawImage(canvas, 0, height - stripHeight, width, stripHeight, 0, 0, width, stripHeight);
+    const stripFile = path.join(outputDir, `bottom_strip_${width}x${height}.png`);
+    fs.writeFileSync(stripFile, stripCanvas.toBuffer('image/png'));
+    console.log(`Bottom strip: ${stripFile}`);
+
+    // Also save a template for comparison
+    console.log('\nSaving template comparison...');
+    const engine = new SimpleCVEngine();
+    await engine.loadTemplates();
+
+    for (let i = 0; i < Math.min(3, data.items.length); i++) {
+        const expectedItem = data.items[i];
+        const expectedId = nameToId(expectedItem);
+
+        // Find the template
+        for (const [templateId, template] of engine.templates) {
+            if (templateId === expectedId) {
+                // Reconstruct template from stored imageData
+                const templateCanvas = createCanvas(40, 40);
+                const templateCtx = templateCanvas.getContext('2d');
+                const imgData = templateCtx.createImageData(40, 40);
+                imgData.data.set(template.imageData);
+                templateCtx.putImageData(imgData, 0, 0);
+
+                const templateFile = path.join(outputDir, `template_${templateId}.png`);
+                fs.writeFileSync(templateFile, templateCanvas.toBuffer('image/png'));
+                console.log(`Template "${expectedItem}": ${templateFile}`);
+                break;
+            }
+        }
+    }
+
+    console.log(`\nCrops saved to: ${outputDir}`);
+}
+
 async function main() {
     const args = process.argv.slice(2);
 
@@ -711,10 +866,15 @@ async function main() {
         await showHistory();
     } else if (args.includes('--compare')) {
         await compareToLast();
+    } else if (args.includes('--extract')) {
+        const imageIdx = args.indexOf('--image');
+        const imagePath = imageIdx !== -1 ? args[imageIdx + 1] : 'level_33';
+        await extractCrops(imagePath);
     } else {
         const options = {
             quick: args.includes('--quick'),
             verbose: args.includes('--verbose') || args.includes('-v'),
+            diagnostic: args.includes('--diagnostic') || args.includes('-d'),
         };
 
         const imageIdx = args.indexOf('--image');

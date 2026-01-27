@@ -393,3 +393,39 @@ export function getPresetName() {
 
     return preset?.name || null;
 }
+
+// ========================================
+// Per-Image Calibration Override
+// ========================================
+
+/**
+ * Apply per-image calibration from ground truth data if available.
+ * This overrides the resolution-based preset.
+ *
+ * @param {Object} groundTruthData - The ground truth entry for the image
+ * @returns {boolean} - True if per-image calibration was applied
+ */
+export function applyImageCalibration(groundTruthData) {
+    if (!groundTruthData?.grid_calibration) {
+        return false;
+    }
+
+    const cal = groundTruthData.grid_calibration;
+
+    // Apply the per-image calibration to state
+    if (cal.xOffset !== undefined) state.calibration.xOffset = cal.xOffset;
+    if (cal.yOffset !== undefined) state.calibration.yOffset = cal.yOffset;
+    if (cal.iconWidth !== undefined) state.calibration.iconWidth = cal.iconWidth;
+    if (cal.iconHeight !== undefined) state.calibration.iconHeight = cal.iconHeight;
+    if (cal.xSpacing !== undefined) state.calibration.xSpacing = cal.xSpacing;
+    if (cal.ySpacing !== undefined) state.calibration.ySpacing = cal.ySpacing;
+    if (cal.iconsPerRow !== undefined) state.calibration.iconsPerRow = cal.iconsPerRow;
+    if (cal.numRows !== undefined) state.calibration.numRows = cal.numRows;
+    if (cal.totalItems !== undefined) state.calibration.totalItems = cal.totalItems;
+
+    // Sync the UI to reflect the new state
+    syncUIToState();
+
+    log('Applied per-image grid calibration from ground truth', LOG_LEVELS.INFO);
+    return true;
+}

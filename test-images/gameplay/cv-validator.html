@@ -13,9 +13,11 @@
     <h1>CV Validation Tool</h1>
     <p class="header-info">Compare CV detection results against ground truth labels</p>
     <nav class="page-nav">
+        <a href="cv-validator.html" class="active">🔍 Validator</a>
         <a href="cv-analytics.html">📊 Analytics</a>
         <a href="cv-performance.html">⚡ Performance</a>
         <a href="training-validator.html">🎯 Training Data</a>
+        <a href="quick-test.html">🧪 Quick Test</a>
     </nav>
 
     <div class="controls">
@@ -216,6 +218,7 @@
                             <button id="load-preset">Load Preset</button>
                             <button id="delete-preset">Delete</button>
                             <button id="export-all-presets" title="Export all presets to JSON file">Export All</button>
+                            <button id="reload-presets" title="Reload presets from grid-presets.json file">Reload</button>
                         </div>
                     </div>
 
@@ -224,6 +227,9 @@
                         <div class="auto-detect-header">
                             <button id="auto-detect-btn" class="auto-detect-btn" disabled>
                                 <span class="auto-detect-icon">🔍</span> Auto-Detect Grid
+                            </button>
+                            <button id="detect-with-auto-grid" class="detect-with-auto-btn" disabled title="Auto-detect grid, apply, then run item detection">
+                                <span class="auto-detect-icon">⚡</span> Detect (Auto-Grid)
                             </button>
                             <span class="auto-detect-status" id="auto-detect-status"></span>
                         </div>

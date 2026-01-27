@@ -534,6 +534,360 @@
         "threshold": 0.45,
         "templateCount": 80
       }
+    },
+    {
+      "id": "run_1769351373760",
+      "timestamp": "2026-01-25T14:29:33.760Z",
+      "mode": "quick",
+      "imageCount": 3,
+      "totalItems": 40,
+      "metrics": {
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "avgF1": 0
+      },
+      "timing": {
+        "totalMs": 124,
+        "avgPerImageMs": 41.333333333333336
+      },
+      "perImage": [
+        {
+          "image": "pc-1080p/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 26,
+            "perItemMs": 2.1666666666666665
+          }
+        },
+        {
+          "image": "pc-1080p/level_33_english_forest_early.jpg",
+          "resolution": "1600x900",
+          "itemCount": 10,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 10,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 17,
+            "perItemMs": 1.7
+          }
+        },
+        {
+          "image": "pc-1080p/level_52_spanish_ocean.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 34,
+            "perItemMs": 1.8888888888888888
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.45,
+        "templateCount": 80
+      }
+    },
+    {
+      "id": "run_1769351444536",
+      "timestamp": "2026-01-25T14:30:44.536Z",
+      "mode": "quick",
+      "imageCount": 3,
+      "totalItems": 40,
+      "metrics": {
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "avgF1": 0
+      },
+      "timing": {
+        "totalMs": 123,
+        "avgPerImageMs": 41
+      },
+      "perImage": [
+        {
+          "image": "pc-1080p/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 27,
+            "perItemMs": 2.25
+          }
+        },
+        {
+          "image": "pc-1080p/level_33_english_forest_early.jpg",
+          "resolution": "1600x900",
+          "itemCount": 10,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 10,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 19,
+            "perItemMs": 1.9
+          }
+        },
+        {
+          "image": "pc-1080p/level_52_spanish_ocean.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 34,
+            "perItemMs": 1.8888888888888888
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.45,
+        "templateCount": 80
+      }
+    },
+    {
+      "id": "run_1769351756464",
+      "timestamp": "2026-01-25T14:35:56.464Z",
+      "mode": "quick",
+      "imageCount": 3,
+      "totalItems": 40,
+      "metrics": {
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "avgF1": 0
+      },
+      "timing": {
+        "totalMs": 131,
+        "avgPerImageMs": 43.666666666666664
+      },
+      "perImage": [
+        {
+          "image": "pc-1080p/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 29,
+            "perItemMs": 2.4166666666666665
+          }
+        },
+        {
+          "image": "pc-1080p/level_33_english_forest_early.jpg",
+          "resolution": "1600x900",
+          "itemCount": 10,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 10,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 21,
+            "perItemMs": 2.1
+          }
+        },
+        {
+          "image": "pc-1080p/level_52_spanish_ocean.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 35,
+            "perItemMs": 1.9444444444444444
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.45,
+        "templateCount": 80
+      }
+    },
+    {
+      "id": "run_1769351779742",
+      "timestamp": "2026-01-25T14:36:19.742Z",
+      "mode": "single",
+      "imageCount": 1,
+      "totalItems": 12,
+      "metrics": {
+        "accuracy": 0.08333333333333333,
+        "precision": 0.08333333333333333,
+        "recall": 0.08333333333333333,
+        "f1": 0.08333333333333333,
+        "avgF1": 0.08333333333333333
+      },
+      "timing": {
+        "totalMs": 44,
+        "avgPerImageMs": 44
+      },
+      "perImage": [
+        {
+          "image": "pc-1080p/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 1,
+            "falsePositives": 11,
+            "falseNegatives": 11,
+            "precision": 0.08333333333333333,
+            "recall": 0.08333333333333333,
+            "f1": 0.08333333333333333,
+            "accuracy": 0.08333333333333333
+          },
+          "timing": {
+            "totalMs": 31,
+            "perItemMs": 2.5833333333333335
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.22,
+        "templateCount": 80
+      }
+    },
+    {
+      "id": "run_1769479511355",
+      "timestamp": "2026-01-27T02:05:11.355Z",
+      "mode": "quick",
+      "imageCount": 3,
+      "totalItems": 40,
+      "metrics": {
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "avgF1": 0
+      },
+      "timing": {
+        "totalMs": 126,
+        "avgPerImageMs": 42
+      },
+      "perImage": [
+        {
+          "image": "pc-screenshots/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 27,
+            "perItemMs": 2.25
+          }
+        },
+        {
+          "image": "pc-screenshots/level_33_english_forest_early.jpg",
+          "resolution": "1600x900",
+          "itemCount": 10,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 10,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 19,
+            "perItemMs": 1.9
+          }
+        },
+        {
+          "image": "pc-screenshots/level_52_spanish_ocean.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0
+          },
+          "timing": {
+            "totalMs": 33,
+            "perItemMs": 1.8333333333333333
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.45,
+        "templateCount": 80
+      }
     }
   ]
 }

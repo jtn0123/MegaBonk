@@ -2,9 +2,67 @@ import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import pkg from './package.json' with { type: 'json' };
+import { resolve } from 'path';
+import { createReadStream, existsSync, statSync } from 'fs';
+
+// Simple MIME type lookup
+const mimeTypes = {
+    '.html': 'text/html',
+    '.js': 'application/javascript',
+    '.mjs': 'application/javascript',
+    '.css': 'text/css',
+    '.json': 'application/json',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif': 'image/gif',
+    '.webp': 'image/webp',
+    '.svg': 'image/svg+xml',
+    '.ico': 'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2': 'font/woff2',
+};
+function getMimeType(filePath) {
+    const ext = filePath.substring(filePath.lastIndexOf('.'));
+    return mimeTypes[ext] || 'application/octet-stream';
+}
 
 // Use package version for cache versioning
 const cacheVersion = `megabonk-v${pkg.version}`;
+
+// Plugin to serve test-images and data directories from project root in dev
+function serveProjectRoot() {
+    const projectRoot = resolve(import.meta.dirname);
+    const servedPaths = ['/test-images/', '/data/', '/dist/', '/src/'];
+
+    return {
+        name: 'serve-project-root',
+        configureServer(server) {
+            server.middlewares.use((req, res, next) => {
+                const url = req.url?.split('?')[0];
+                if (!url || !servedPaths.some(p => url.startsWith(p))) {
+                    return next();
+                }
+
+                const filePath = resolve(projectRoot, '.' + url);
+
+                if (!existsSync(filePath)) {
+                    return next();
+                }
+
+                const stat = statSync(filePath);
+                if (stat.isDirectory()) {
+                    return next();
+                }
+
+                const mimeType = getMimeType(filePath);
+                res.setHeader('Content-Type', mimeType);
+                res.setHeader('Cache-Control', 'no-cache');
+                createReadStream(filePath).pipe(res);
+            });
+        },
+    };
+}
 
 export default defineConfig({
     root: 'src',
@@ -52,6 +110,7 @@ export default defineConfig({
         },
     },
     plugins: [
+        serveProjectRoot(),
         viteStaticCopy({
             targets: [
                 { src: '../data', dest: '.' },

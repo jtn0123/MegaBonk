@@ -16,6 +16,31 @@
         h1 {
             color: #4ecdc4;
         }
+        .page-nav {
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 16px;
+            padding: 8px;
+            background: #16213e;
+            border-radius: 6px;
+        }
+        .page-nav a {
+            color: #888;
+            text-decoration: none;
+            font-size: 13px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .page-nav a:hover {
+            color: #eee;
+            background: #1a1a2e;
+        }
+        .page-nav a.active {
+            color: #4ecdc4;
+            background: #1a1a2e;
+        }
         .drop-zone {
             border: 3px dashed #4ecdc4;
             border-radius: 10px;
@@ -109,6 +134,13 @@
 </head>
 <body>
     <h1>🎮 Quick Screenshot Testing</h1>
+    <nav class="page-nav">
+        <a href="cv-validator.html">🔍 Validator</a>
+        <a href="cv-analytics.html">📊 Analytics</a>
+        <a href="cv-performance.html">⚡ Performance</a>
+        <a href="training-validator.html">🎯 Training Data</a>
+        <a href="quick-test.html" class="active">🧪 Quick Test</a>
+    </nav>
 
     <div class="instructions">
         <h3>How to Save Screenshots from Chat:</h3>
