@@ -3,6 +3,7 @@
  * Grid detection, similarity matching, template matching
  * Now uses shared CV library for enhanced detection
  * ======================================== */
+/* global setTimeout, clearTimeout, Image */
 
 import { CONFIG } from './config.js';
 import { state } from './state.js';
@@ -81,9 +82,10 @@ export function detectGridPositions(width, height) {
 
     const rowHeight = iconH + spacingY;
 
-    // Apply manual Y offset for calibration (scaled to image size)
-    // Rebased: slider 0 = old -100 (typical position), slider +100 = old 0
-    const scaledYOffset = Math.round((cal.yOffset - 100) * scale);
+    // Apply manual offsets for calibration (scaled to image size)
+    // yOffset: positive values shift grid DOWN, negative values shift UP
+    // Direct scaling: yOffset in preset is pixels at 720p base resolution
+    const scaledYOffset = Math.round(cal.yOffset * scale);
     const scaledXOffset = Math.round(cal.xOffset * scale);
     const firstRowY = Math.round(height * CONFIG.ITEM_BAR_BOTTOM_PERCENT) - iconH + scaledYOffset;
 
@@ -141,16 +143,97 @@ export function detectGridPositions(width, height) {
 }
 
 // ========================================
-// Empty Cell Detection
+// Empty Cell Detection (Phase 1: Per-cell analysis)
 // ========================================
 
-export function isEmptyCell(imageData) {
-    // Use shared library if available
-    if (useSharedLibrary && sharedLibrary?.isEmptyCell) {
-        return sharedLibrary.isEmptyCell(imageData);
+/**
+ * Calculate edge density using Sobel-like gradient detection
+ * Returns ratio of edge pixels to total pixels (0-1)
+ */
+export function calculateEdgeDensity(imageData) {
+    const pixels = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    let edgePixels = 0;
+    let totalPixels = 0;
+
+    // Simple gradient detection: compare each pixel to neighbors
+    // Sample every 2nd pixel for performance
+    for (let y = 1; y < height - 1; y += 2) {
+        for (let x = 1; x < width - 1; x += 2) {
+            const idx = (y * width + x) * 4;
+
+            // Get grayscale values
+            const center = (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
+            const right = (pixels[idx + 4] + pixels[idx + 5] + pixels[idx + 6]) / 3;
+            const bottom = (pixels[idx + width * 4] + pixels[idx + width * 4 + 1] + pixels[idx + width * 4 + 2]) / 3;
+
+            // Calculate gradient magnitude
+            const gradX = Math.abs(right - center);
+            const gradY = Math.abs(bottom - center);
+            const gradient = gradX + gradY;
+
+            // Threshold for edge detection (30 is ~12% of 255)
+            if (gradient > 30) {
+                edgePixels++;
+            }
+            totalPixels++;
+        }
     }
 
-    // Fallback to local implementation - uses RGB variance (matches TypeScript version)
+    return totalPixels > 0 ? edgePixels / totalPixels : 0;
+}
+
+/**
+ * Check if cell color matches inventory background
+ * Returns true if cell appears to be empty inventory background
+ */
+export function isInventoryBackground(imageData) {
+    const pixels = imageData.data;
+    const bg = CONFIG.INVENTORY_BG_COLOR;
+    let matchingPixels = 0;
+    let count = 0;
+
+    // Sample center region (avoid borders which may have item edges)
+    const width = imageData.width;
+    const height = imageData.height;
+    const margin = Math.floor(Math.min(width, height) * 0.2);
+
+    for (let y = margin; y < height - margin; y += 2) {
+        for (let x = margin; x < width - margin; x += 2) {
+            const idx = (y * width + x) * 4;
+            const r = pixels[idx];
+            const g = pixels[idx + 1];
+            const b = pixels[idx + 2];
+
+            // Check if pixel is within tolerance of background color
+            if (
+                Math.abs(r - bg.r) <= bg.tolerance &&
+                Math.abs(g - bg.g) <= bg.tolerance &&
+                Math.abs(b - bg.b) <= bg.tolerance
+            ) {
+                matchingPixels++;
+            }
+            count++;
+        }
+    }
+
+    // If >70% of center pixels match background, likely empty
+    return count > 0 && matchingPixels / count > 0.7;
+}
+
+/**
+ * Check if a cell is empty (Phase 1: per-cell analysis)
+ * Uses multiple signals: variance, edge density, background color
+ * LESS strict than before to avoid false negatives on real items
+ */
+export function isEmptyCell(imageData) {
+    // Use shared library if available (but our local version may be better tuned)
+    // Disabled: we want to use our improved local implementation
+    // if (useSharedLibrary && sharedLibrary?.isEmptyCell) {
+    //     return sharedLibrary.isEmptyCell(imageData);
+    // }
+
     const pixels = imageData.data;
     let sumR = 0,
         sumG = 0,
@@ -160,7 +243,7 @@ export function isEmptyCell(imageData) {
         sumSqB = 0;
     let count = 0;
 
-    // Sample every 4th pixel for performance (matches TS version)
+    // Sample every 4th pixel for performance
     for (let i = 0; i < pixels.length; i += 16) {
         const r = pixels[i] || 0;
         const g = pixels[i + 1] || 0;
@@ -187,11 +270,155 @@ export function isEmptyCell(imageData) {
     const varianceB = sumSqB / count - meanB * meanB;
 
     const totalVariance = varianceR + varianceG + varianceB;
-
-    // Low RGB variance = uniform color = likely empty (threshold 500 matches TS version)
-    // Also check for very dark cells
     const meanGray = (meanR + meanG + meanB) / 3;
-    return totalVariance < 500 || meanGray < CONFIG.EMPTY_CELL_MEAN_THRESHOLD;
+
+    // Check 1: Very dark cells are empty
+    if (meanGray < CONFIG.EMPTY_CELL_MEAN_THRESHOLD) {
+        return true;
+    }
+
+    // Check 2: Very low variance (truly uniform color) - MUST also pass edge check
+    if (totalVariance < CONFIG.EMPTY_CELL_VARIANCE_THRESHOLD) {
+        // Additional confirmation: check edge density
+        const edgeDensity = calculateEdgeDensity(imageData);
+        if (edgeDensity < CONFIG.EMPTY_CELL_EDGE_THRESHOLD) {
+            return true;
+        }
+        // Low variance but has edges - might be an item with uniform colors
+        // Also check if it matches inventory background specifically
+        if (isInventoryBackground(imageData)) {
+            return true;
+        }
+    }
+
+    // Check 3: Matches inventory background color pattern
+    // Only if variance is reasonably low (< 1000) to avoid matching colorful items
+    if (totalVariance < 1000 && isInventoryBackground(imageData)) {
+        const edgeDensity = calculateEdgeDensity(imageData);
+        if (edgeDensity < CONFIG.EMPTY_CELL_EDGE_THRESHOLD * 2) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+// ========================================
+// Empty Cell Detection (Phase 2: Inventory Fill Pattern)
+// ========================================
+
+/**
+ * Apply MegaBonk inventory fill pattern knowledge to improve empty detection
+ *
+ * Fill pattern:
+ * - Row 0 (bottom): Items fill from CENTER, expand LEFT and RIGHT
+ * - Row 1+: Items fill from LEFT to RIGHT
+ *
+ * Logic:
+ * - If we find N consecutive empty cells, assume rest of row is empty
+ * - Exception: cells with high match confidence should not be skipped
+ *
+ * @param {Array} cells - Array of { cell, cellData, isEmpty } objects
+ * @param {number} numRows - Number of rows in grid
+ * @param {number} iconsPerRow - Icons per row
+ * @returns {Array} - Updated cells with optimized isEmpty flags
+ */
+export function applyInventoryFillPattern(cells, numRows, iconsPerRow) {
+    if (!cells || cells.length === 0) return cells;
+
+    const threshold = CONFIG.CONSECUTIVE_EMPTY_THRESHOLD;
+
+    // Group cells by row
+    const rows = [];
+    for (let r = 0; r < numRows; r++) {
+        rows[r] = cells.filter(c => c.cell.row === r);
+    }
+
+    // Process each row
+    for (let rowIdx = 0; rowIdx < rows.length; rowIdx++) {
+        const rowCells = rows[rowIdx];
+        if (!rowCells || rowCells.length === 0) continue;
+
+        // Sort by column position
+        rowCells.sort((a, b) => a.cell.col - b.cell.col);
+
+        if (rowIdx === 0) {
+            // Row 0: Center-fill pattern
+            // Find center of the row
+            const centerCol = Math.floor(iconsPerRow / 2);
+
+            // Scan LEFT from center: after N consecutive empties, rest is empty
+            let consecutiveEmptyLeft = 0;
+            let leftCutoff = -1;
+            for (let i = rowCells.length - 1; i >= 0; i--) {
+                const c = rowCells[i];
+                if (c.cell.col >= centerCol) continue; // Only process left side
+
+                if (c.isEmpty) {
+                    consecutiveEmptyLeft++;
+                    if (consecutiveEmptyLeft >= threshold && leftCutoff < 0) {
+                        leftCutoff = c.cell.col;
+                    }
+                } else {
+                    consecutiveEmptyLeft = 0;
+                }
+            }
+
+            // Scan RIGHT from center: after N consecutive empties, rest is empty
+            let consecutiveEmptyRight = 0;
+            let rightCutoff = iconsPerRow;
+            for (const c of rowCells) {
+                if (c.cell.col < centerCol) continue; // Only process right side
+
+                if (c.isEmpty) {
+                    consecutiveEmptyRight++;
+                    if (consecutiveEmptyRight >= threshold && rightCutoff === iconsPerRow) {
+                        rightCutoff = c.cell.col - threshold + 1;
+                    }
+                } else {
+                    consecutiveEmptyRight = 0;
+                }
+            }
+
+            // Mark cells outside cutoffs as empty (unless they have high confidence)
+            for (const c of rowCells) {
+                if (leftCutoff >= 0 && c.cell.col < leftCutoff) {
+                    c.isEmpty = true;
+                    c.fillPatternEmpty = true;
+                }
+                if (c.cell.col >= rightCutoff) {
+                    c.isEmpty = true;
+                    c.fillPatternEmpty = true;
+                }
+            }
+        } else {
+            // Row 1+: Left-to-right fill pattern
+            // After N consecutive empties, rest of row is empty
+            let consecutiveEmpty = 0;
+            let cutoffCol = iconsPerRow;
+
+            for (const c of rowCells) {
+                if (c.isEmpty) {
+                    consecutiveEmpty++;
+                    if (consecutiveEmpty >= threshold && cutoffCol === iconsPerRow) {
+                        cutoffCol = c.cell.col - threshold + 1;
+                    }
+                } else {
+                    consecutiveEmpty = 0;
+                }
+            }
+
+            // Mark cells after cutoff as empty
+            for (const c of rowCells) {
+                if (c.cell.col >= cutoffCol) {
+                    c.isEmpty = true;
+                    c.fillPatternEmpty = true;
+                }
+            }
+        }
+    }
+
+    return cells;
 }
 
 // ========================================
@@ -626,7 +853,7 @@ export function clearSessionTemplates() {
  * @returns {Promise<ImageData|null>}
  */
 export function dataURLToImageData(dataURL, timeoutMs = 5000) {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
         let resolved = false;
 
         const timeoutId = setTimeout(() => {

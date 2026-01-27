@@ -35,8 +35,17 @@ export const CONFIG = {
     MIN_ROW_HEIGHT_PERCENT: 0.5,
 
     // Empty cell detection
-    EMPTY_CELL_VARIANCE_THRESHOLD: 300,
+    // Lower variance threshold (was 500) - only truly uniform cells are empty
+    EMPTY_CELL_VARIANCE_THRESHOLD: 250,
     EMPTY_CELL_MEAN_THRESHOLD: 40,
+    // Edge density: cells with < 3% edges are likely empty backgrounds
+    EMPTY_CELL_EDGE_THRESHOLD: 0.03,
+    // Inventory background color (dark brown-gray)
+    INVENTORY_BG_COLOR: { r: 40, g: 35, b: 30, tolerance: 25 },
+    // Inventory fill pattern: after N consecutive empties, assume row is done
+    CONSECUTIVE_EMPTY_THRESHOLD: 3,
+    // High confidence override: don't skip cells with strong matches
+    HIGH_CONFIDENCE_OVERRIDE: 0.7,
 
     // Template matching
     TEMPLATE_MARGIN_PERCENT: 0.15,

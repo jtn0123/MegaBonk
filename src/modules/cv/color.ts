@@ -400,9 +400,90 @@ export function calculateColorVariance(imageData: ImageData): number {
     return varianceSum / count;
 }
 
+// Empty cell detection constants
+const EMPTY_CELL_VARIANCE_THRESHOLD = 250; // Lower than before (was 500) to avoid false negatives
+const EMPTY_CELL_MEAN_THRESHOLD = 40; // Very dark cells are empty
+const EMPTY_CELL_EDGE_THRESHOLD = 0.03; // 3% edges = empty
+const INVENTORY_BG_COLOR = { r: 40, g: 35, b: 30, tolerance: 25 };
+
+/**
+ * Calculate edge density using gradient detection
+ * Returns ratio of edge pixels to total pixels (0-1)
+ */
+export function calculateEdgeDensity(imageData: ImageData): number {
+    const pixels = imageData.data;
+    const width = imageData.width;
+    const height = imageData.height;
+    let edgePixels = 0;
+    let totalPixels = 0;
+
+    // Simple gradient detection: compare each pixel to neighbors
+    for (let y = 1; y < height - 1; y += 2) {
+        for (let x = 1; x < width - 1; x += 2) {
+            const idx = (y * width + x) * 4;
+
+            // Get grayscale values
+            const center = ((pixels[idx] ?? 0) + (pixels[idx + 1] ?? 0) + (pixels[idx + 2] ?? 0)) / 3;
+            const right = ((pixels[idx + 4] ?? 0) + (pixels[idx + 5] ?? 0) + (pixels[idx + 6] ?? 0)) / 3;
+            const bottom =
+                ((pixels[idx + width * 4] ?? 0) +
+                    (pixels[idx + width * 4 + 1] ?? 0) +
+                    (pixels[idx + width * 4 + 2] ?? 0)) /
+                3;
+
+            // Calculate gradient magnitude
+            const gradX = Math.abs(right - center);
+            const gradY = Math.abs(bottom - center);
+            const gradient = gradX + gradY;
+
+            if (gradient > 30) {
+                edgePixels++;
+            }
+            totalPixels++;
+        }
+    }
+
+    return totalPixels > 0 ? edgePixels / totalPixels : 0;
+}
+
+/**
+ * Check if cell color matches inventory background
+ */
+export function isInventoryBackground(imageData: ImageData): boolean {
+    const pixels = imageData.data;
+    const bg = INVENTORY_BG_COLOR;
+    let matchingPixels = 0;
+    let count = 0;
+
+    const width = imageData.width;
+    const height = imageData.height;
+    const margin = Math.floor(Math.min(width, height) * 0.2);
+
+    for (let y = margin; y < height - margin; y += 2) {
+        for (let x = margin; x < width - margin; x += 2) {
+            const idx = (y * width + x) * 4;
+            const r = pixels[idx] ?? 0;
+            const g = pixels[idx + 1] ?? 0;
+            const b = pixels[idx + 2] ?? 0;
+
+            if (
+                Math.abs(r - bg.r) <= bg.tolerance &&
+                Math.abs(g - bg.g) <= bg.tolerance &&
+                Math.abs(b - bg.b) <= bg.tolerance
+            ) {
+                matchingPixels++;
+            }
+            count++;
+        }
+    }
+
+    return count > 0 && matchingPixels / count > 0.7;
+}
+
 /**
  * Check if a cell is likely empty (mostly uniform background)
- * Empty cells have low color variance
+ * Uses multiple signals: variance, edge density, background color
+ * LESS strict than before to avoid false negatives on real items
  */
 export function isEmptyCell(imageData: ImageData): boolean {
     const pixels = imageData.data;
@@ -429,6 +510,8 @@ export function isEmptyCell(imageData: ImageData): boolean {
         count++;
     }
 
+    if (count === 0) return true;
+
     // Calculate variance for each channel
     const meanR = sumR / count;
     const meanG = sumG / count;
@@ -439,12 +522,34 @@ export function isEmptyCell(imageData: ImageData): boolean {
     const varianceB = sumSquareB / count - meanB * meanB;
 
     const totalVariance = varianceR + varianceG + varianceB;
+    const meanGray = (meanR + meanG + meanB) / 3;
 
-    // Low variance = uniform color = likely empty
-    // Threshold: < 500 is very uniform (empty cell or solid background)
-    const EMPTY_THRESHOLD = 500;
+    // Check 1: Very dark cells are empty
+    if (meanGray < EMPTY_CELL_MEAN_THRESHOLD) {
+        return true;
+    }
 
-    return totalVariance < EMPTY_THRESHOLD;
+    // Check 2: Very low variance (truly uniform color) - MUST also pass edge check
+    if (totalVariance < EMPTY_CELL_VARIANCE_THRESHOLD) {
+        const edgeDensity = calculateEdgeDensity(imageData);
+        if (edgeDensity < EMPTY_CELL_EDGE_THRESHOLD) {
+            return true;
+        }
+        // Low variance but has edges - might be item with uniform colors
+        if (isInventoryBackground(imageData)) {
+            return true;
+        }
+    }
+
+    // Check 3: Matches inventory background color pattern
+    if (totalVariance < 1000 && isInventoryBackground(imageData)) {
+        const edgeDensity = calculateEdgeDensity(imageData);
+        if (edgeDensity < EMPTY_CELL_EDGE_THRESHOLD * 2) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 /**
