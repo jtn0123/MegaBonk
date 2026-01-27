@@ -85,35 +85,7 @@ const initialState: AppState = {
 let state: AppState = { ...initialState };
 
 // Deep clone initial state for reset
-const deepCloneInitialState = (): AppState => ({
-    currentTab: 'items',
-    filteredData: [],
-    allData: {
-        items: undefined,
-        weapons: undefined,
-        tomes: undefined,
-        characters: undefined,
-        shrines: undefined,
-        stats: undefined,
-        changelog: undefined,
-    },
-    currentBuild: {
-        character: null,
-        weapon: null,
-        tomes: [],
-        items: [],
-        name: '',
-        notes: '',
-    },
-    compareItems: [],
-    favorites: {
-        items: [],
-        weapons: [],
-        tomes: [],
-        characters: [],
-        shrines: [],
-    },
-});
+const deepCloneInitialState = (): AppState => structuredClone(initialState);
 
 // Subscribers map: key -> Set of callbacks
 const subscribers = new Map<keyof AppState, Set<Subscriber<any>>>();

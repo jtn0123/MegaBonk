@@ -268,7 +268,7 @@ export async function handleEnhancedHybridDetect(imageDataUrl: string): Promise<
                 type: r.type,
                 entity: r.entity,
                 confidence: r.confidence,
-                count: (r as any).count || 1,
+                count: r.count,
             })),
             tomes: aggregatedTomes.map(r => ({
                 type: r.type,

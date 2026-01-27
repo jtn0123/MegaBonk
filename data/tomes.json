@@ -1,6 +1,6 @@
 {
-  "version": "1.0.18",
-  "last_updated": "2026-01-08",
+  "version": "1.0.21",
+  "last_updated": "2026-01-26",
   "total_tomes": 23,
   "tomes": [
     {
@@ -25,9 +25,7 @@
         "Beefy Ring",
         "Demonic Soul"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "Ogre",
         "All damage dealers"
@@ -63,10 +61,10 @@
         "Giant Fork"
       ],
       "synergies_weapons": [
-        "Bow",
-        "Revolver",
-        "Sniper Rifle",
-        "Katana"
+        "bow",
+        "revolver",
+        "sniper_rifle",
+        "katana"
       ],
       "synergies_characters": [
         "CL4NK",
@@ -103,9 +101,8 @@
         "Big Bonk"
       ],
       "synergies_weapons": [
-        "Revolver",
-        "Bow",
-        "All weapons"
+        "revolver",
+        "bow"
       ],
       "synergies_characters": [
         "Bandit",
@@ -143,8 +140,7 @@
         "Demonic Blood"
       ],
       "synergies_weapons": [
-        "Aura",
-        "Melee weapons"
+        "aura"
       ],
       "synergies_characters": [
         "Sir Oofie",
@@ -181,10 +177,7 @@
         "Turbo Skates",
         "Coward's Cloak"
       ],
-      "synergies_weapons": [
-        "Ranged weapons",
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "Calcium",
         "Tony McZoom"
@@ -219,10 +212,10 @@
         "Size-scaling items"
       ],
       "synergies_weapons": [
-        "Axe",
-        "Tornado",
-        "Black Hole",
-        "Aura"
+        "axe",
+        "tornado",
+        "black_hole",
+        "aura"
       ],
       "synergies_characters": [
         "Noelle"
@@ -254,9 +247,7 @@
         "Golden Shield",
         "Defensive items"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "All characters"
       ],
@@ -288,9 +279,7 @@
         "Holy Book",
         "Campfire"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "All characters"
       ],
@@ -323,9 +312,7 @@
         "Slippery Ring",
         "Phantom Shroud"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "Ninja"
       ],
@@ -358,9 +345,8 @@
         "Power Gloves"
       ],
       "synergies_weapons": [
-        "Sword",
-        "Tornado",
-        "Ranged weapons"
+        "sword",
+        "tornado"
       ],
       "synergies_characters": [
         "All ranged characters"
@@ -395,9 +381,8 @@
         "Backpack"
       ],
       "synergies_weapons": [
-        "Bow",
-        "Revolver",
-        "All projectile weapons"
+        "bow",
+        "revolver"
       ],
       "synergies_characters": [
         "All characters"
@@ -430,9 +415,8 @@
         "Projectile items"
       ],
       "synergies_weapons": [
-        "Bow",
-        "Revolver",
-        "All projectile weapons"
+        "bow",
+        "revolver"
       ],
       "synergies_characters": [
         "All characters"
@@ -467,9 +451,9 @@
         "Status effect items"
       ],
       "synergies_weapons": [
-        "Axe",
-        "Poison Flask",
-        "Frostwalker"
+        "axe",
+        "poison_flask",
+        "frostwalker"
       ],
       "synergies_characters": [
         "All characters"
@@ -504,8 +488,7 @@
         "Armor items"
       ],
       "synergies_weapons": [
-        "Aura",
-        "Melee weapons"
+        "aura"
       ],
       "synergies_characters": [
         "Sir Oofie",
@@ -541,8 +524,7 @@
         "Chonkplate"
       ],
       "synergies_weapons": [
-        "Blood Magic",
-        "Fast attack weapons"
+        "blood_magic"
       ],
       "synergies_characters": [
         "Vlad"
@@ -577,9 +559,8 @@
         "Cactus"
       ],
       "synergies_weapons": [
-        "Aura",
-        "Aegis",
-        "Melee weapons"
+        "aura",
+        "aegis"
       ],
       "synergies_characters": [
         "Athena"
@@ -614,9 +595,7 @@
         "Echo Shard",
         "Sucky Magnet"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "Spaceman",
         "All characters"
@@ -649,9 +628,7 @@
         "Clover",
         "Luck items"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "Fox",
         "All characters"
@@ -683,9 +660,7 @@
         "Golden Glove",
         "Golden Sneakers"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "Robinette"
       ],
@@ -713,9 +688,7 @@
         "Long-term farming"
       ],
       "synergies_items": [],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "All characters"
       ],
@@ -747,9 +720,7 @@
         "Sucky Magnet",
         "Shattered Knowledge"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "All characters"
       ],
@@ -781,9 +752,7 @@
         "Skuleg",
         "Cursed Grabbies"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "Sir Chadwell"
       ],
@@ -815,9 +784,7 @@
         "Dice",
         "RNG items"
       ],
-      "synergies_weapons": [
-        "All weapons"
-      ],
+      "synergies_weapons": [],
       "synergies_characters": [
         "Dicehead"
       ],

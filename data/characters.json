@@ -1,12 +1,12 @@
 {
-  "version": "1.0.18",
-  "last_updated": "2026-01-08",
+  "version": "1.0.21",
+  "last_updated": "2026-01-26",
   "characters": [
     {
       "id": "fox",
       "name": "Fox",
       "tier": "A",
-      "starting_weapon": "Firestaff",
+      "starting_weapon": "firestaff",
       "passive_ability": "Gain 2% luck per level",
       "passive_description": "Increases item rarity with each level. Better drops throughout the run.",
       "unlock_requirement": null,
@@ -36,8 +36,8 @@
         "xp"
       ],
       "synergies_weapons": [
-        "Firestaff",
-        "Dragon's Breath"
+        "firestaff",
+        "dragons_breath"
       ],
       "build_tips": "Focus on leveling fast with xp tome. Better items = better run. luck compounds over time.",
       "image": "images/characters/fox.png"
@@ -46,7 +46,7 @@
       "id": "sir_oofie",
       "name": "Sir Oofie",
       "tier": "S",
-      "starting_weapon": "Sword",
+      "starting_weapon": "sword",
       "passive_ability": "Gain 1% armor per level",
       "passive_description": "Becomes incredibly tanky. armor reduces damage with hyperbolic scaling.",
       "unlock_requirement": null,
@@ -79,9 +79,9 @@
         "thorns"
       ],
       "synergies_weapons": [
-        "Sword",
-        "Aura",
-        "Aegis"
+        "sword",
+        "aura",
+        "aegis"
       ],
       "build_tips": "Stack hp and armor. Add thorns for passive damage. Unkillable late game.",
       "image": "images/characters/sir_oofie.png"
@@ -90,7 +90,7 @@
       "id": "cl4nk",
       "name": "CL4NK",
       "tier": "SS",
-      "starting_weapon": "Revolver",
+      "starting_weapon": "revolver",
       "passive_ability": "Gain 1% Crit Chance per level",
       "passive_description": "Guaranteed crit scaling leading to Overcrit. One of the strongest characters.",
       "unlock_requirement": "Complete Forest Tier 1",
@@ -123,10 +123,10 @@
         "cooldown"
       ],
       "synergies_weapons": [
-        "Revolver",
-        "Sniper Rifle",
-        "Bow",
-        "Katana"
+        "revolver",
+        "sniper_rifle",
+        "bow",
+        "katana"
       ],
       "build_tips": "Get to 100%+ crit for Overcrit. Stack crit damage. Exponential scaling.",
       "image": "images/characters/cl4nk.png"
@@ -135,7 +135,7 @@
       "id": "calcium",
       "name": "Calcium",
       "tier": "A",
-      "starting_weapon": "Bone",
+      "starting_weapon": "bone",
       "passive_ability": "Speed accumulates over time, halved when damaged. damage scales with speed.",
       "passive_description": "Speed ramps up infinitely if you don't get hit. High skill, high reward.",
       "unlock_requirement": "Kill 1,000 Skeletons",
@@ -168,8 +168,7 @@
         "damage"
       ],
       "synergies_weapons": [
-        "Bone",
-        "Ranged weapons"
+        "bone"
       ],
       "build_tips": "Don't get hit! Speed = damage. evasion helps maintain stacks.",
       "image": "images/characters/calcium.png"
@@ -178,7 +177,7 @@
       "id": "ogre",
       "name": "Ogre",
       "tier": "S",
-      "starting_weapon": "Axe",
+      "starting_weapon": "axe",
       "passive_ability": "Gain 1.5% damage per level",
       "passive_description": "Straight damage scaling. Simple and effective.",
       "unlock_requirement": "Kill 15,000 Goblins",
@@ -210,8 +209,7 @@
         "duration"
       ],
       "synergies_weapons": [
-        "Axe",
-        "All weapons"
+        "axe"
       ],
       "build_tips": "Pure offense. size + damage on Axe is devastating.",
       "image": "images/characters/ogre.png"
@@ -220,7 +218,7 @@
       "id": "bush",
       "name": "Bush",
       "tier": "S",
-      "starting_weapon": "Sniper Rifle",
+      "starting_weapon": "sniper_rifle",
       "passive_ability": "Gain 1% Crit damage per level",
       "passive_description": "Crit damage scaling. Pairs perfectly with crit chance sources.",
       "unlock_requirement": "Defeat Bush in Forest",
@@ -251,9 +249,9 @@
         "damage"
       ],
       "synergies_weapons": [
-        "Sniper Rifle",
-        "Revolver",
-        "Bow"
+        "sniper_rifle",
+        "revolver",
+        "bow"
       ],
       "build_tips": "Stack crit chance. Bush provides crit damage. Huge crits.",
       "image": "images/characters/bush.png"
@@ -262,7 +260,7 @@
       "id": "vlad",
       "name": "Vlad",
       "tier": "S",
-      "starting_weapon": "Blood Magic",
+      "starting_weapon": "blood_magic",
       "passive_ability": "Gain 1% Lifesteal per level",
       "passive_description": "Sustains through combat with lifesteal. Very hard to kill.",
       "unlock_requirement": "Complete Desert Tier 2",
@@ -294,8 +292,7 @@
         "damage"
       ],
       "synergies_weapons": [
-        "Blood Magic",
-        "Fast weapons"
+        "blood_magic"
       ],
       "build_tips": "Attack speed = more heals. Bloody Cleaver is core. Unkillable.",
       "image": "images/characters/vlad.png"
@@ -304,7 +301,7 @@
       "id": "bandit",
       "name": "Bandit",
       "tier": "S",
-      "starting_weapon": "Dexecutioner",
+      "starting_weapon": "dexecutioner",
       "passive_ability": "Gain 1% Attack Speed per level",
       "passive_description": "Attack speed scaling. More attacks = more damage and procs.",
       "unlock_requirement": "Defeat Bandit in Desert",
@@ -336,8 +333,7 @@
         "damage"
       ],
       "synergies_weapons": [
-        "Revolver",
-        "All fast weapons"
+        "revolver"
       ],
       "build_tips": "Stack attack speed. Proc items trigger constantly. High DPS.",
       "image": "images/characters/bandit.png"
@@ -346,7 +342,7 @@
       "id": "ninja",
       "name": "Ninja",
       "tier": "A",
-      "starting_weapon": "Katana",
+      "starting_weapon": "katana",
       "passive_ability": "Execute enemies while evading them",
       "passive_description": "Execute mechanic on evasion. High skill, high reward.",
       "unlock_requirement": "Complete Desert Tier 1",
@@ -377,8 +373,8 @@
         "precision"
       ],
       "synergies_weapons": [
-        "Katana",
-        "Dexecutioner"
+        "katana",
+        "dexecutioner"
       ],
       "build_tips": "Stack evasion. Execute on dodge. High risk, high reward.",
       "image": "images/characters/ninja.png"
@@ -387,7 +383,7 @@
       "id": "athena",
       "name": "Athena",
       "tier": "A",
-      "starting_weapon": "Aegis",
+      "starting_weapon": "aegis",
       "passive_ability": "Higher damage at lower hp. Gains thorns.",
       "passive_description": "Risk/reward damage scaling. thorns for tanky builds.",
       "unlock_requirement": "thorns Tome to level 9",
@@ -419,8 +415,8 @@
         "hp"
       ],
       "synergies_weapons": [
-        "Aegis",
-        "Aura"
+        "aegis",
+        "aura"
       ],
       "build_tips": "Stay low hp for damage. Tank with armor. thorns for reflect.",
       "image": "images/characters/athena.png"
@@ -429,7 +425,7 @@
       "id": "megachad",
       "name": "Megachad",
       "tier": "B",
-      "starting_weapon": "Aura",
+      "starting_weapon": "aura",
       "passive_ability": "Flex to stop damage. cooldown -0.2s per level.",
       "passive_description": "Invulnerability frames. Active defense mechanic.",
       "unlock_requirement": "damage Tome to level 7",
@@ -460,7 +456,7 @@
         "damage"
       ],
       "synergies_weapons": [
-        "Aura"
+        "aura"
       ],
       "build_tips": "Time your flex. size for Aura coverage. Skill-intensive.",
       "image": "images/characters/megachad.png"
@@ -469,7 +465,7 @@
       "id": "monke",
       "name": "Monke",
       "tier": "B",
-      "starting_weapon": "Bananarang",
+      "starting_weapon": "bananarang",
       "passive_ability": "Climb walls. +2 Max hp per level.",
       "passive_description": "Mobility + hp scaling. Fun but not top tier.",
       "unlock_requirement": "Release Monke in Forest",
@@ -500,7 +496,7 @@
         "damage"
       ],
       "synergies_weapons": [
-        "Bananarang"
+        "bananarang"
       ],
       "build_tips": "Stack hp for Beefy Ring. Wall climb for positioning.",
       "image": "images/characters/monke.png"
@@ -509,7 +505,7 @@
       "id": "spaceman",
       "name": "Spaceman",
       "tier": "A",
-      "starting_weapon": "Black Hole",
+      "starting_weapon": "black_hole",
       "passive_ability": "Gain 1% xp Gain per level",
       "passive_description": "Faster leveling. Black Hole crowd control.",
       "unlock_requirement": "Complete 6 Challenges",
@@ -541,7 +537,7 @@
         "duration"
       ],
       "synergies_weapons": [
-        "Black Hole"
+        "black_hole"
       ],
       "build_tips": "Level fast. Black Hole with size is amazing. xp snowball.",
       "image": "images/characters/spaceman.png"
@@ -550,7 +546,7 @@
       "id": "noelle",
       "name": "Noelle",
       "tier": "A",
-      "starting_weapon": "Frostwalker",
+      "starting_weapon": "frostwalker",
       "passive_ability": "Gain 1% size per level",
       "passive_description": "size scaling. Huge AoE potential.",
       "unlock_requirement": "Duplicate Ice Crystal 3x via Microwave",
@@ -581,10 +577,10 @@
         "duration"
       ],
       "synergies_weapons": [
-        "Frostwalker",
-        "Axe",
-        "Tornado",
-        "Black Hole"
+        "frostwalker",
+        "axe",
+        "tornado",
+        "black_hole"
       ],
       "build_tips": "size scaling is insane. Axe with size clears screens.",
       "image": "images/characters/noelle.png"
@@ -593,7 +589,7 @@
       "id": "amog",
       "name": "Amog",
       "tier": "A",
-      "starting_weapon": "Poison Flask",
+      "starting_weapon": "poison_flask",
       "passive_ability": "Poisoned enemies explode, poisoning nearby foes",
       "passive_description": "Poison chain reactions. DoT specialist.",
       "unlock_requirement": "Poison 50,000 enemies",
@@ -624,7 +620,7 @@
         "damage"
       ],
       "synergies_weapons": [
-        "Poison Flask"
+        "poison_flask"
       ],
       "build_tips": "Stack poison chance. Chain explosions clear screens.",
       "image": "images/characters/amog.png"
@@ -633,7 +629,7 @@
       "id": "tony_mczoom",
       "name": "Tony McZoom",
       "tier": "B",
-      "starting_weapon": "Wireless Dagger",
+      "starting_weapon": "wireless_dagger",
       "passive_ability": "Charge electric attack via movement",
       "passive_description": "Movement-based attack. Unique mechanic.",
       "unlock_requirement": "Complete 2 Challenges",
@@ -664,8 +660,8 @@
         "damage"
       ],
       "synergies_weapons": [
-        "Wireless Dagger",
-        "Lightning Staff"
+        "wireless_dagger",
+        "lightning_staff"
       ],
       "build_tips": "Keep moving. Movement = damage. Electric synergies.",
       "image": "images/characters/tony_mczoom.png"
@@ -674,7 +670,7 @@
       "id": "robinette",
       "name": "Robinette",
       "tier": "C",
-      "starting_weapon": "Bow",
+      "starting_weapon": "bow",
       "passive_ability": "Gain 1% gold Gain per level",
       "passive_description": "More gold for shop purchases. Utility passive.",
       "unlock_requirement": "Complete Forest Tier 2",
@@ -703,7 +699,7 @@
         "luck"
       ],
       "synergies_weapons": [
-        "Bow"
+        "bow"
       ],
       "build_tips": "Farm gold. Buy shop items. Utility character.",
       "image": "images/characters/robinette.png"
@@ -712,7 +708,7 @@
       "id": "birdo",
       "name": "Birdo",
       "tier": "B",
-      "starting_weapon": "Tornado",
+      "starting_weapon": "tornado",
       "passive_ability": "Hold Jump to float. +1% Airborne damage per level.",
       "passive_description": "Airborne damage scaling. Mobility + damage.",
       "unlock_requirement": "Kill 100 enemies with Tornado",
@@ -743,7 +739,7 @@
         "size"
       ],
       "synergies_weapons": [
-        "Tornado"
+        "tornado"
       ],
       "build_tips": "Stay airborne. Scarf doubles damage. Tornado with size.",
       "image": "images/characters/birdo.png"
@@ -752,7 +748,7 @@
       "id": "sir_chadwell",
       "name": "Sir Chadwell",
       "tier": "A",
-      "starting_weapon": "Corrupted Sword",
+      "starting_weapon": "corrupted_sword",
       "passive_ability": "Gain 1% Difficulty per level",
       "passive_description": "Increases difficulty for better rewards. Challenge mode.",
       "unlock_requirement": "Complete Forest Tier 3",
@@ -783,7 +779,7 @@
         "hp"
       ],
       "synergies_weapons": [
-        "Corrupted Sword"
+        "corrupted_sword"
       ],
       "build_tips": "High difficulty = high reward. Dangerous but profitable.",
       "image": "images/characters/sir_chadwell.png"
@@ -792,7 +788,7 @@
       "id": "dicehead",
       "name": "Dicehead",
       "tier": "B",
-      "starting_weapon": "Dice",
+      "starting_weapon": "dice",
       "passive_ability": "Gain a random stat per level",
       "passive_description": "Pure RNG. Random stats each level. Fun chaos.",
       "unlock_requirement": "Complete 100 Quests",
@@ -822,7 +818,7 @@
         "chaos"
       ],
       "synergies_weapons": [
-        "Dice"
+        "dice"
       ],
       "build_tips": "Embrace chaos. Every run is different. Fun but inconsistent.",
       "image": "images/characters/dicehead.png"

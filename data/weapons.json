@@ -1,6 +1,6 @@
 {
-  "version": "1.0.18",
-  "last_updated": "2026-01-08",
+  "version": "1.0.21",
+  "last_updated": "2026-01-26",
   "total_weapons": 29,
   "weapons": [
     {
@@ -24,10 +24,10 @@
         "Crit builds"
       ],
       "synergies_items": [
-        "Forbidden Juice",
-        "Grandma's Secret Tonic",
-        "Boss Buster",
-        "Tactical Glasses"
+        "forbidden_juice",
+        "grandmas_secret_tonic",
+        "boss_buster",
+        "tactical_glasses"
       ],
       "synergies_tomes": [
         "precision",
@@ -76,10 +76,10 @@
         "Multi-target"
       ],
       "synergies_items": [
-        "Forbidden Juice",
-        "Backpack",
-        "Overpowered Lamp",
-        "Big Bonk"
+        "forbidden_juice",
+        "backpack",
+        "overpowered_lamp",
+        "big_bonk"
       ],
       "synergies_tomes": [
         "precision",
@@ -127,9 +127,9 @@
         "Beginner-friendly"
       ],
       "synergies_items": [
-        "Forbidden Juice",
-        "Grandma's Secret Tonic",
-        "Giant Fork"
+        "forbidden_juice",
+        "grandmas_secret_tonic",
+        "giant_fork"
       ],
       "synergies_tomes": [
         "precision",
@@ -175,9 +175,9 @@
         "AoE clear"
       ],
       "synergies_items": [
-        "Lightning Orb",
-        "Thunder Mitts",
-        "Overpowered Lamp"
+        "lightning_orb",
+        "thunder_mitts",
+        "overpowered_lamp"
       ],
       "synergies_tomes": [
         "damage",
@@ -220,9 +220,7 @@
         "Fire synergy"
       ],
       "synergies_items": [
-        "Dragonfire",
-        "size increases",
-        "duration items"
+        "dragonfire"
       ],
       "synergies_tomes": [
         "damage",
@@ -263,9 +261,7 @@
         "size scaling"
       ],
       "synergies_items": [
-        "Holy Book",
-        "size items",
-        "hp items"
+        "holy_book"
       ],
       "synergies_tomes": [
         "damage",
@@ -310,9 +306,7 @@
         "Beginners"
       ],
       "synergies_items": [
-        "Brass Knuckles",
-        "size items",
-        "knockback items"
+        "brass_knuckles"
       ],
       "synergies_tomes": [
         "damage",
@@ -357,9 +351,7 @@
         "Screen coverage"
       ],
       "synergies_items": [
-        "size items",
-        "duration items",
-        "Backpack"
+        "backpack"
       ],
       "synergies_tomes": [
         "size",
@@ -404,10 +396,7 @@
         "Crowd control",
         "knockback"
       ],
-      "synergies_items": [
-        "size items",
-        "knockback items"
-      ],
+      "synergies_items": [],
       "synergies_tomes": [
         "size",
         "damage",
@@ -450,11 +439,7 @@
         "size builds",
         "Enemy grouping"
       ],
-      "synergies_items": [
-        "size items",
-        "duration items",
-        "AoE items"
-      ],
+      "synergies_items": [],
       "synergies_tomes": [
         "size",
         "duration",
@@ -498,9 +483,8 @@
         "Boss damage"
       ],
       "synergies_items": [
-        "Joe's Dagger",
-        "Boss Buster",
-        "Crit items"
+        "joes_dagger",
+        "boss_buster"
       ],
       "synergies_tomes": [
         "damage",
@@ -546,9 +530,9 @@
         "Versatile builds"
       ],
       "synergies_items": [
-        "Forbidden Juice",
-        "Grandma's Secret Tonic",
-        "Giant Fork"
+        "forbidden_juice",
+        "grandmas_secret_tonic",
+        "giant_fork"
       ],
       "synergies_tomes": [
         "precision",
@@ -592,9 +576,9 @@
         "Vlad character"
       ],
       "synergies_items": [
-        "bloody Cleaver",
-        "Demonic Blade",
-        "Chonkplate"
+        "bloody_cleaver",
+        "demonic_blade",
+        "chonkplate"
       ],
       "synergies_tomes": [
         "bloody",
@@ -637,9 +621,8 @@
         "Crowd clear"
       ],
       "synergies_items": [
-        "Slutty Cannon",
-        "Spicy Meatball",
-        "Explosive items"
+        "slutty_cannon",
+        "spicy_meatball"
       ],
       "synergies_tomes": [
         "damage",
@@ -683,9 +666,9 @@
         "duration scaling"
       ],
       "synergies_items": [
-        "Moldy Cheese",
-        "Toxic Barrel",
-        "Gas Mask"
+        "moldy_cheese",
+        "toxic_barrel",
+        "gas_mask"
       ],
       "synergies_tomes": [
         "duration",
@@ -727,8 +710,8 @@
         "Ice synergy"
       ],
       "synergies_items": [
-        "Ice Cube",
-        "Ice Crystal"
+        "ice_cube",
+        "ice_crystal"
       ],
       "synergies_tomes": [
         "duration",
@@ -771,9 +754,8 @@
         "Sir Oofie"
       ],
       "synergies_items": [
-        "Spiky Shield",
-        "Mirror",
-        "armor items"
+        "spiky_shield",
+        "mirror"
       ],
       "synergies_tomes": [
         "armor",
@@ -818,8 +800,7 @@
         "Beginner-friendly"
       ],
       "synergies_items": [
-        "Dragonfire",
-        "Explosive items"
+        "dragonfire"
       ],
       "synergies_tomes": [
         "damage",
@@ -862,9 +843,9 @@
         "Late game"
       ],
       "synergies_items": [
-        "Clover",
-        "Credit Card (Green)",
-        "Forbidden Juice"
+        "clover",
+        "credit_card_green",
+        "forbidden_juice"
       ],
       "synergies_tomes": [
         "luck",
@@ -910,9 +891,9 @@
         "Persistent damage"
       ],
       "synergies_items": [
-        "bloody Cleaver",
-        "Demonic Blade",
-        "Chonkplate"
+        "bloody_cleaver",
+        "demonic_blade",
+        "chonkplate"
       ],
       "synergies_tomes": [
         "duration",
@@ -958,9 +939,9 @@
         "Burst damage"
       ],
       "synergies_items": [
-        "Backpack",
-        "Forbidden Juice",
-        "Brass Knuckles"
+        "backpack",
+        "forbidden_juice",
+        "brass_knuckles"
       ],
       "synergies_tomes": [
         "damage",
@@ -1003,10 +984,7 @@
         "Area denial",
         "Choke points"
       ],
-      "synergies_items": [
-        "duration items",
-        "Explosive items"
-      ],
+      "synergies_items": [],
       "synergies_tomes": [
         "duration",
         "damage"
@@ -1051,8 +1029,7 @@
         "Close defense"
       ],
       "synergies_items": [
-        "size items",
-        "Power Gloves"
+        "power_gloves"
       ],
       "synergies_tomes": [
         "knockback",
@@ -1096,10 +1073,7 @@
         "Spaceman",
         "Positional damage"
       ],
-      "synergies_items": [
-        "duration items",
-        "size items"
-      ],
+      "synergies_items": [],
       "synergies_tomes": [
         "duration",
         "damage",
@@ -1143,8 +1117,8 @@
         "Tight spaces"
       ],
       "synergies_items": [
-        "Backpack",
-        "Echo Shard"
+        "backpack",
+        "echo_shard"
       ],
       "synergies_tomes": [
         "damage",
@@ -1187,9 +1161,9 @@
         "Boss killing"
       ],
       "synergies_items": [
-        "Forbidden Juice",
-        "Giant Fork",
-        "Gym Sauce"
+        "forbidden_juice",
+        "giant_fork",
+        "gym_sauce"
       ],
       "synergies_tomes": [
         "damage",
@@ -1234,9 +1208,9 @@
         "Tony McZoom"
       ],
       "synergies_items": [
-        "Backpack",
-        "Echo Shard",
-        "Overpowered Lamp"
+        "backpack",
+        "echo_shard",
+        "overpowered_lamp"
       ],
       "synergies_tomes": [
         "damage",
@@ -1278,9 +1252,9 @@
         "Risk takers"
       ],
       "synergies_items": [
-        "Gamer Goggles",
-        "Speed Boi",
-        "Beer"
+        "gamer_goggles",
+        "speed_boi",
+        "beer"
       ],
       "synergies_tomes": [
         "damage",
@@ -1324,9 +1298,8 @@
         "Movement builds"
       ],
       "synergies_items": [
-        "Turbo Socks",
-        "Dragonfire",
-        "duration items"
+        "turbo_socks",
+        "dragonfire"
       ],
       "synergies_tomes": [
         "duration",

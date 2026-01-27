@@ -2009,6 +2009,13 @@ async function detectEquipmentRegion(
 // Worker-based Detection
 // ========================================
 
+/** Result from template matching worker */
+interface WorkerMatchResult {
+    itemId: string;
+    similarity: number;
+    position: ROI;
+}
+
 /**
  * Detect items using Web Workers for parallel processing (optional)
  * Offloads template matching to workers to avoid blocking UI
@@ -2060,7 +2067,7 @@ async function detectItemsWithWorkers(
 
         // Send batches to workers and collect results
         const batchPromises = batches.map((batch, batchIndex) => {
-            return new Promise<any[]>(resolve => {
+            return new Promise<WorkerMatchResult[]>(resolve => {
                 const worker = workers[batchIndex % workerCount];
 
                 // Prepare cell data

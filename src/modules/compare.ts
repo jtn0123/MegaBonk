@@ -276,7 +276,7 @@ export async function closeCompareModal(): Promise<void> {
     // Using fire-and-forget pattern to avoid blocking modal close
     import('./charts.ts')
         .then(({ chartInstances }) => {
-            const instances = chartInstances as Record<string, any>;
+            const instances = chartInstances as Record<string, { destroy: () => void }>;
             if (instances && instances['compare-scaling-chart']) {
                 instances['compare-scaling-chart'].destroy();
                 delete instances['compare-scaling-chart'];

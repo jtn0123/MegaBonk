@@ -116,10 +116,7 @@ export function getTrainingTemplatesForItem(itemId: string): TrainingTemplate[] 
         combined = [...templates, ...sessionTpls];
     } else {
         // Filter by enabled sources (session templates always included)
-        combined = [
-            ...templates.filter(t => enabledSources.has(t.sourceImage)),
-            ...sessionTpls,
-        ];
+        combined = [...templates.filter(t => enabledSources.has(t.sourceImage)), ...sessionTpls];
     }
 
     return combined;
@@ -573,12 +570,15 @@ export function getTrainingDataVersion(): TrainingDataVersion | null {
 export function logTrainingDataVersion(): void {
     const version = getTrainingDataVersion();
     if (version) {
-        console.log(`[CV Training] Version ${version.version}`);
-        console.log(`  - Total samples: ${version.totalSamples}`);
-        console.log(`  - Items: ${version.itemCount}`);
-        console.log(
-            `  - Sources: ${version.sources.verified} verified, ${version.sources.corrected} corrected, ${version.sources.corrected_from_empty} from empty`
-        );
-        console.log(`  - Updated: ${version.updatedAt}`);
+        logger.info({
+            operation: 'cv.training.version_info',
+            data: {
+                version: version.version,
+                totalSamples: version.totalSamples,
+                itemCount: version.itemCount,
+                sources: version.sources,
+                updatedAt: version.updatedAt,
+            },
+        });
     }
 }

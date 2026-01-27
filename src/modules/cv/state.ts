@@ -4,6 +4,7 @@
 
 import type { AllGameData, Item } from '../../types/index.ts';
 import type { CVDetectionResult, TemplateData, GridPreset, GridPresetsFile } from './types.ts';
+import { logger } from '../logger.ts';
 
 // ========================================
 // Module State
@@ -267,17 +268,29 @@ export async function loadGridPresets(): Promise<GridPresetsFile | null> {
     try {
         const response = await fetch('data/grid-presets.json');
         if (!response.ok) {
-            console.warn(`Grid presets not found (${response.status})`);
+            logger.warn({
+                operation: 'cv.state.grid_presets_not_found',
+                data: { status: response.status },
+            });
             gridPresetsLoaded = true;
             return null;
         }
 
         gridPresets = await response.json();
         gridPresetsLoaded = true;
-        console.log(`Loaded ${Object.keys(gridPresets?.presets || {}).length} grid presets`);
+        logger.info({
+            operation: 'cv.state.grid_presets_loaded',
+            data: { presetCount: Object.keys(gridPresets?.presets || {}).length },
+        });
         return gridPresets;
     } catch (e) {
-        console.warn('Failed to load grid presets:', e);
+        logger.warn({
+            operation: 'cv.state.grid_presets_load_error',
+            error: {
+                name: (e as Error).name,
+                message: (e as Error).message,
+            },
+        });
         gridPresetsLoaded = true;
         return null;
     }
