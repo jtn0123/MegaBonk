@@ -169,10 +169,10 @@ function calculateSynergyScore(
     const entity = choice.entity;
     const entityName = entity.name;
 
-    // Check synergies with character
+    // Check synergies with character (use optional chaining for defensive access)
     if (build.character) {
-        const charSynergies = build.character.synergies_items || [];
-        const charWeaponSynergies = build.character.synergies_weapons || [];
+        const charSynergies = build.character?.synergies_items ?? [];
+        const charWeaponSynergies = build.character?.synergies_weapons ?? [];
 
         if (
             choice.type === 'item' &&
@@ -203,8 +203,8 @@ function calculateSynergyScore(
     // Note: Items may use 'synergies' or 'synergies_weapons' field
     if (build.weapon && choice.type === 'item') {
         const item = entity as Item;
-        const itemSynergies = item.synergies || [];
-        const itemSynergiesWeapons = item.synergies_weapons || [];
+        const itemSynergies = item?.synergies ?? [];
+        const itemSynergiesWeapons = item?.synergies_weapons ?? [];
         const allWeaponSynergies = [...itemSynergies, ...itemSynergiesWeapons];
         const weapon = build.weapon;
 
@@ -223,7 +223,8 @@ function calculateSynergyScore(
 
     // Check synergies with existing items
     for (const buildItem of build.items) {
-        const itemSynergies = (entity as Item).synergies || [];
+        const itemEntity = entity as Item;
+        const itemSynergies = itemEntity?.synergies ?? [];
 
         if (
             itemSynergies.some(
@@ -237,7 +238,7 @@ function calculateSynergyScore(
         }
 
         // Check for anti-synergies
-        const antiSyns = (entity as Item).anti_synergies || (entity as Item).antiSynergies || [];
+        const antiSyns = itemEntity?.anti_synergies ?? itemEntity?.antiSynergies ?? [];
         if (
             antiSyns.some(
                 s =>

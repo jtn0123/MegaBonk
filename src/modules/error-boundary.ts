@@ -178,8 +178,12 @@ export function withErrorBoundary<TArgs extends unknown[], TReturn>(
                 }
 
                 // Show user notification if not silent
-                if (!silent && typeof ToastManager !== 'undefined') {
-                    ToastManager.error(`An error occurred in ${moduleName}. Some features may not work correctly.`);
+                if (!silent) {
+                    try {
+                        ToastManager.error(`An error occurred in ${moduleName}. Some features may not work correctly.`);
+                    } catch {
+                        // ToastManager not initialized yet, fail silently
+                    }
                 }
 
                 // Execute fallback
@@ -283,8 +287,10 @@ export async function safeModuleInit<T = unknown>(
 
             if (required) {
                 // Show critical error
-                if (typeof ToastManager !== 'undefined') {
+                try {
                     ToastManager.error(`Critical error: ${moduleName} failed to load. Please refresh the page.`);
+                } catch {
+                    // ToastManager not initialized yet, fail silently
                 }
             }
         },

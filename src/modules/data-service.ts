@@ -58,9 +58,11 @@ function safeGetElementById(id: string): HTMLElement | null {
     return document.getElementById(id);
 }
 
-// Global data storage - now uses centralized store
-// Keep local reference for backwards compatibility with modules that import allData
-let allData: AllGameData = getState('allData');
+// Global data storage - uses centralized store as single source of truth
+// Export getter for backwards compatibility with modules that import allData
+function getCurrentData(): AllGameData {
+    return getState('allData');
+}
 
 // ========================================
 // Data Validation
@@ -296,21 +298,28 @@ export async function loadAllData(): Promise<void> {
             }
         }
 
-        // Update both store and local reference for backwards compatibility
+        // Update store as single source of truth
         const newData = { items, weapons, tomes, characters, shrines, stats, changelog };
         setState('allData', newData);
-        allData = newData;
 
         // Invalidate build stats cache when data changes
-        // Using fire-and-forget dynamic import to avoid blocking and circular dependency
+        // Using dynamic import to avoid blocking and circular dependency
         import('./build-planner.ts')
             .then(({ invalidateBuildStatsCache }) => invalidateBuildStatsCache())
-            .catch(() => {
-                // Build planner not loaded yet, cache will be empty anyway
+            .catch(error => {
+                // Log the error for debugging - build planner might not be loaded yet
+                logger.debug({
+                    operation: 'data.cache_invalidation',
+                    data: {
+                        module: 'build-planner',
+                        reason: 'module_not_loaded',
+                        error: (error as Error).message,
+                    },
+                });
             });
 
         // Run comprehensive validation
-        const validationResult = validateAllData(allData);
+        const validationResult = validateAllData(newData);
         logValidationResults(validationResult);
 
         // Log data load wide event
@@ -371,14 +380,14 @@ export async function loadAllData(): Promise<void> {
         // Note: initAdvisor is a global function from advisor.ts
         const windowWithAdvisor = window as Window & { initAdvisor?: (data: AllGameData) => void };
         if (typeof windowWithAdvisor.initAdvisor === 'function') {
-            windowWithAdvisor.initAdvisor(allData);
+            windowWithAdvisor.initAdvisor(newData);
         }
 
         // Initialize scan build module
         // Note: initScanBuild is a global function from scan-build.ts
         const windowWithScanBuild = window as Window & { initScanBuild?: (data: AllGameData) => void };
         if (typeof windowWithScanBuild.initScanBuild === 'function') {
-            windowWithScanBuild.initScanBuild(allData);
+            windowWithScanBuild.initScanBuild(newData);
         }
     } catch (error) {
         const loadDuration = Math.round(performance.now() - loadStartTime);
@@ -406,7 +415,7 @@ export async function loadAllData(): Promise<void> {
  * Get data array for a specific tab
  */
 export function getDataForTab(tabName: string): Entity[] | ChangelogPatch[] {
-    return getDataForTabFromData(allData, tabName);
+    return getDataForTabFromData(getCurrentData(), tabName);
 }
 
 /**
@@ -441,5 +450,13 @@ export function getAllData(): AllGameData {
     return getState('allData');
 }
 
-// Export allData object for direct access if needed
-export { allData };
+// Export allData getter for backwards compatibility
+// Uses Object.defineProperty to create a getter that always returns current store value
+export const allData: AllGameData = new Proxy({} as AllGameData, {
+    get(_target, prop) {
+        return getCurrentData()[prop as keyof AllGameData];
+    },
+    set() {
+        throw new Error('allData is read-only. Use setState("allData", data) to update.');
+    },
+});

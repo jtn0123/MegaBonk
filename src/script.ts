@@ -59,8 +59,10 @@ function setupErrorTracking(): void {
         });
 
         // Show user-friendly error message
-        if (typeof ToastManager !== 'undefined') {
+        try {
             ToastManager.error('Something went wrong. The error has been logged.');
+        } catch {
+            // ToastManager not initialized yet, fail silently
         }
 
         // Return false to let browser handle error as well
@@ -81,8 +83,10 @@ function setupErrorTracking(): void {
         });
 
         // Show user-friendly error message
-        if (typeof ToastManager !== 'undefined') {
+        try {
             ToastManager.error('An error occurred. Please try again.');
+        } catch {
+            // ToastManager not initialized yet, fail silently
         }
 
         // Prevent default browser error handling

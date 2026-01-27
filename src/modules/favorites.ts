@@ -4,6 +4,7 @@
 
 import type { EntityType } from '../types/index.ts';
 import { getState, setState, type FavoritesState } from './store.ts';
+import { ToastManager } from './toast.ts';
 
 // Re-export type for backwards compatibility
 export type { FavoritesState } from './store.ts';
@@ -16,6 +17,9 @@ export type { FavoritesState } from './store.ts';
 
 const FAVORITES_KEY = 'megabonk_favorites';
 
+// Track localStorage availability to prevent repeated failed operations
+let localStorageAvailable: boolean | null = null;
+
 // ========================================
 // State
 // ========================================
@@ -24,14 +28,53 @@ const FAVORITES_KEY = 'megabonk_favorites';
 // No local copy - always read from store for proper test isolation
 
 // ========================================
+// Helper Functions
+// ========================================
+
+/**
+ * Check if localStorage is available
+ * Uses a test write/read/delete cycle to verify functionality
+ * Caches result to avoid repeated checks
+ */
+function isLocalStorageAvailable(): boolean {
+    if (localStorageAvailable !== null) {
+        return localStorageAvailable;
+    }
+
+    try {
+        const testKey = '__megabonk_storage_test__';
+        localStorage.setItem(testKey, 'test');
+        const result = localStorage.getItem(testKey);
+        localStorage.removeItem(testKey);
+        localStorageAvailable = result === 'test';
+        return localStorageAvailable;
+    } catch {
+        localStorageAvailable = false;
+        return false;
+    }
+}
+
+// ========================================
 // Exported Functions
 // ========================================
 
 /**
  * Load favorites from localStorage
- * @returns True if favorites were loaded successfully, false otherwise
+ * @returns True if favorites were loaded successfully (including when no favorites are stored),
+ *          false if localStorage is unavailable
  */
 export function loadFavorites(): boolean {
+    // First check if localStorage is available
+    if (!isLocalStorageAvailable()) {
+        console.debug('[favorites] localStorage unavailable - favorites will not persist');
+        try {
+            ToastManager.warning('Favorites will not be saved in this browser mode.');
+        } catch {
+            // ToastManager not initialized yet, fail silently
+        }
+        return false;
+    }
+
     try {
         const stored = localStorage.getItem(FAVORITES_KEY);
         if (stored) {
@@ -42,13 +85,15 @@ export function loadFavorites(): boolean {
                 return true;
             }
         }
-        return true; // No favorites stored is not an error
+        // No favorites stored, but localStorage is available - this is success
+        return true;
     } catch (error) {
-        // localStorage may be unavailable in some contexts (private browsing, etc.)
-        console.debug('[favorites] localStorage unavailable for loading favorites:', (error as Error).message);
-        // Show user feedback for load failures (matching save failure behavior)
-        if (typeof ToastManager !== 'undefined') {
+        // Parse error or other issue
+        console.debug('[favorites] Failed to parse stored favorites:', (error as Error).message);
+        try {
             ToastManager.warning('Could not load saved favorites. Using fresh list.');
+        } catch {
+            // ToastManager not initialized yet, fail silently
         }
         return false;
     }
@@ -58,30 +103,33 @@ export function loadFavorites(): boolean {
  * Save favorites to localStorage
  */
 function saveFavorites(): void {
+    // Skip if localStorage is known to be unavailable
+    if (!isLocalStorageAvailable()) {
+        return;
+    }
+
     try {
         const favorites = getState('favorites');
         localStorage.setItem(FAVORITES_KEY, JSON.stringify(favorites));
     } catch (error) {
         const err = error as Error;
         // Distinguish between different localStorage errors for better user feedback
-        if (err.name === 'QuotaExceededError') {
-            // Storage is full - suggest clearing cache
-            console.debug('[favorites] localStorage quota exceeded:', err.message);
-            if (typeof ToastManager !== 'undefined') {
+        try {
+            if (err.name === 'QuotaExceededError') {
+                // Storage is full - suggest clearing cache
+                console.debug('[favorites] localStorage quota exceeded:', err.message);
                 ToastManager.error('Storage full. Try clearing browser cache to save favorites.');
-            }
-        } else if (err.name === 'SecurityError') {
-            // Private browsing or cookies disabled
-            console.debug('[favorites] localStorage blocked (private browsing?):', err.message);
-            if (typeof ToastManager !== 'undefined') {
+            } else if (err.name === 'SecurityError') {
+                // Private browsing or cookies disabled
+                console.debug('[favorites] localStorage blocked (private browsing?):', err.message);
                 ToastManager.warning('Favorites disabled in private browsing mode');
-            }
-        } else {
-            // Other errors (general unavailability)
-            console.debug('[favorites] localStorage unavailable:', err.message);
-            if (typeof ToastManager !== 'undefined') {
+            } else {
+                // Other errors (general unavailability)
+                console.debug('[favorites] localStorage unavailable:', err.message);
                 ToastManager.error('Failed to save favorite');
             }
+        } catch {
+            // ToastManager not initialized yet, fail silently
         }
     }
 }
@@ -150,7 +198,9 @@ export function clearAllFavorites(): void {
         shrines: [],
     });
     saveFavorites();
-    if (typeof ToastManager !== 'undefined') {
+    try {
         ToastManager.success('All favorites cleared');
+    } catch {
+        // ToastManager not initialized yet, fail silently
     }
 }

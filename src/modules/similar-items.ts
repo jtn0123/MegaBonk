@@ -10,6 +10,38 @@ import { logger } from './logger.ts';
 import type { Item, Weapon, Tome, Character, Entity, EntityType } from '../types/index.ts';
 
 // ========================================
+// Type Guards
+// ========================================
+
+/**
+ * Type guard to check if entity is an Item
+ */
+function isItem(entity: Entity): entity is Item {
+    return entity && typeof entity === 'object' && 'base_effect' in entity;
+}
+
+/**
+ * Type guard to check if entity is a Weapon
+ */
+function isWeapon(entity: Entity): entity is Weapon {
+    return entity && typeof entity === 'object' && 'attack_pattern' in entity;
+}
+
+/**
+ * Type guard to check if entity is a Tome
+ */
+function isTome(entity: Entity): entity is Tome {
+    return entity && typeof entity === 'object' && 'stat_affected' in entity;
+}
+
+/**
+ * Type guard to check if entity is a Character
+ */
+function isCharacter(entity: Entity): entity is Character {
+    return entity && typeof entity === 'object' && 'passive_ability' in entity;
+}
+
+// ========================================
 // Types
 // ========================================
 
@@ -31,14 +63,31 @@ interface SimilarityConfig {
 
 const DEFAULT_CONFIG: SimilarityConfig = {
     maxResults: 5,
-    minScore: 0.2
+    minScore: 0.2,
 };
 
 // Stat keywords for matching
 const STAT_KEYWORDS = [
-    'damage', 'crit', 'attack speed', 'hp', 'health', 'armor', 'defence',
-    'dodge', 'knockback', 'pierce', 'burn', 'freeze', 'poison', 'lifesteal',
-    'area', 'range', 'projectile', 'explosion', 'chain', 'bounce'
+    'damage',
+    'crit',
+    'attack speed',
+    'hp',
+    'health',
+    'armor',
+    'defence',
+    'dodge',
+    'knockback',
+    'pierce',
+    'burn',
+    'freeze',
+    'poison',
+    'lifesteal',
+    'area',
+    'range',
+    'projectile',
+    'explosion',
+    'chain',
+    'bounce',
 ];
 
 // ========================================
@@ -47,6 +96,7 @@ const STAT_KEYWORDS = [
 
 /**
  * Calculate similarity score between two items
+ * Optimized with early exit checks for performance
  */
 function calculateItemSimilarity(item1: Item, item2: Item): { score: number; reasons: string[] } {
     if (item1.id === item2.id) return { score: 0, reasons: [] };
@@ -54,14 +104,30 @@ function calculateItemSimilarity(item1: Item, item2: Item): { score: number; rea
     let score = 0;
     const reasons: string[] = [];
 
+    // Early exit: items with completely different tiers and rarities are unlikely to be similar
+    const tierMatch = item1.tier === item2.tier;
+    const rarityMatch = item1.rarity === item2.rarity;
+
+    // If neither tier nor rarity matches, only continue if there might be effect synergy
+    if (!tierMatch && !rarityMatch) {
+        const effect1 = (item1.base_effect || '').toLowerCase();
+        const effect2 = (item2.base_effect || '').toLowerCase();
+
+        // Quick check: if no shared keywords, return early with 0 score
+        const hasSharedKeyword = STAT_KEYWORDS.some(keyword => effect1.includes(keyword) && effect2.includes(keyword));
+        if (!hasSharedKeyword && !item1.synergies?.some(s => item2.synergies?.includes(s))) {
+            return { score: 0, reasons: [] };
+        }
+    }
+
     // Same tier - high relevance
-    if (item1.tier === item2.tier) {
+    if (tierMatch) {
         score += 0.25;
         reasons.push(`Same tier (${item1.tier})`);
     }
 
     // Same rarity
-    if (item1.rarity === item2.rarity) {
+    if (rarityMatch) {
         score += 0.15;
         reasons.push(`Same rarity`);
     }
@@ -92,9 +158,7 @@ function calculateItemSimilarity(item1: Item, item2: Item): { score: number; rea
     const effect1 = (item1.base_effect || '').toLowerCase();
     const effect2 = (item2.base_effect || '').toLowerCase();
 
-    const sharedKeywords = STAT_KEYWORDS.filter(
-        keyword => effect1.includes(keyword) && effect2.includes(keyword)
-    );
+    const sharedKeywords = STAT_KEYWORDS.filter(keyword => effect1.includes(keyword) && effect2.includes(keyword));
 
     if (sharedKeywords.length > 0) {
         score += Math.min(sharedKeywords.length * 0.1, 0.3);
@@ -112,21 +176,34 @@ function calculateItemSimilarity(item1: Item, item2: Item): { score: number; rea
 
 /**
  * Calculate similarity score between two weapons
+ * Optimized with early exit checks for performance
  */
 function calculateWeaponSimilarity(weapon1: Weapon, weapon2: Weapon): { score: number; reasons: string[] } {
     if (weapon1.id === weapon2.id) return { score: 0, reasons: [] };
+
+    // Early exit: weapons with different tier AND playstyle are unlikely to be similar
+    const tierMatch = weapon1.tier === weapon2.tier;
+    const playstyleMatch = weapon1.playstyle === weapon2.playstyle;
+
+    if (!tierMatch && !playstyleMatch) {
+        // Check if they share any best_for tags before continuing
+        const sharedBestFor = weapon1.best_for?.some(b => weapon2.best_for?.includes(b));
+        if (!sharedBestFor) {
+            return { score: 0, reasons: [] };
+        }
+    }
 
     let score = 0;
     const reasons: string[] = [];
 
     // Same tier
-    if (weapon1.tier === weapon2.tier) {
+    if (tierMatch) {
         score += 0.3;
         reasons.push(`Same tier (${weapon1.tier})`);
     }
 
     // Similar playstyle
-    if (weapon1.playstyle === weapon2.playstyle) {
+    if (playstyleMatch) {
         score += 0.25;
         reasons.push(`Same playstyle`);
     }
@@ -136,9 +213,7 @@ function calculateWeaponSimilarity(weapon1: Weapon, weapon2: Weapon): { score: n
     const pattern2 = (weapon2.attack_pattern || '').toLowerCase();
 
     const patternKeywords = ['melee', 'ranged', 'projectile', 'aoe', 'single target', 'multi-hit'];
-    const sharedPatterns = patternKeywords.filter(
-        k => pattern1.includes(k) && pattern2.includes(k)
-    );
+    const sharedPatterns = patternKeywords.filter(k => pattern1.includes(k) && pattern2.includes(k));
 
     if (sharedPatterns.length > 0) {
         score += 0.2;
@@ -159,37 +234,46 @@ function calculateWeaponSimilarity(weapon1: Weapon, weapon2: Weapon): { score: n
 
 /**
  * Calculate similarity score between two tomes
+ * Optimized with early exit checks for performance
  */
 function calculateTomeSimilarity(tome1: Tome, tome2: Tome): { score: number; reasons: string[] } {
     if (tome1.id === tome2.id) return { score: 0, reasons: [] };
+
+    // Early exit: tomes with different tier AND different stat category are unlikely to be similar
+    const tierMatch = tome1.tier === tome2.tier;
+    const statMatch = tome1.stat_affected === tome2.stat_affected;
+    const priorityDiff = Math.abs((tome1.priority || 0) - (tome2.priority || 0));
+
+    if (!tierMatch && !statMatch && priorityDiff > 2) {
+        return { score: 0, reasons: [] };
+    }
 
     let score = 0;
     const reasons: string[] = [];
 
     // Same tier
-    if (tome1.tier === tome2.tier) {
+    if (tierMatch) {
         score += 0.25;
         reasons.push(`Same tier (${tome1.tier})`);
     }
 
     // Similar priority
-    const priorityDiff = Math.abs((tome1.priority || 0) - (tome2.priority || 0));
     if (priorityDiff <= 1) {
         score += 0.2;
         reasons.push(`Similar priority`);
     }
 
     // Same stat affected
-    if (tome1.stat_affected && tome1.stat_affected === tome2.stat_affected) {
+    if (statMatch && tome1.stat_affected) {
         score += 0.35;
         reasons.push(`Same stat (${tome1.stat_affected})`);
     }
 
     // Similar stat category
     const statCategories: Record<string, string[]> = {
-        'offensive': ['damage', 'crit', 'attack speed'],
-        'defensive': ['hp', 'armor', 'dodge'],
-        'utility': ['movement', 'cooldown', 'experience']
+        offensive: ['damage', 'crit', 'attack speed'],
+        defensive: ['hp', 'armor', 'dodge'],
+        utility: ['movement', 'cooldown', 'experience'],
     };
 
     for (const [category, stats] of Object.entries(statCategories)) {
@@ -209,21 +293,34 @@ function calculateTomeSimilarity(tome1: Tome, tome2: Tome): { score: number; rea
 
 /**
  * Calculate similarity score between two characters
+ * Optimized with early exit checks for performance
  */
 function calculateCharacterSimilarity(char1: Character, char2: Character): { score: number; reasons: string[] } {
     if (char1.id === char2.id) return { score: 0, reasons: [] };
+
+    // Early exit: characters with different tier AND playstyle are unlikely to be similar
+    const tierMatch = char1.tier === char2.tier;
+    const playstyleMatch = char1.playstyle === char2.playstyle;
+
+    if (!tierMatch && !playstyleMatch) {
+        // Check for shared synergy items before continuing
+        const sharedSynergies = char1.synergies_items?.some(s => char2.synergies_items?.includes(s));
+        if (!sharedSynergies) {
+            return { score: 0, reasons: [] };
+        }
+    }
 
     let score = 0;
     const reasons: string[] = [];
 
     // Same tier
-    if (char1.tier === char2.tier) {
+    if (tierMatch) {
         score += 0.25;
         reasons.push(`Same tier (${char1.tier})`);
     }
 
     // Same playstyle
-    if (char1.playstyle === char2.playstyle) {
+    if (playstyleMatch) {
         score += 0.35;
         reasons.push(`Same playstyle`);
     }
@@ -242,9 +339,7 @@ function calculateCharacterSimilarity(char1: Character, char2: Character): { sco
     const passive2 = (char2.passive_description || '').toLowerCase();
 
     const passiveKeywords = ['damage', 'crit', 'hp', 'speed', 'armor', 'lifesteal'];
-    const sharedPassive = passiveKeywords.filter(
-        k => passive1.includes(k) && passive2.includes(k)
-    );
+    const sharedPassive = passiveKeywords.filter(k => passive1.includes(k) && passive2.includes(k));
 
     if (sharedPassive.length > 0) {
         score += 0.15;
@@ -261,11 +356,7 @@ function calculateCharacterSimilarity(char1: Character, char2: Character): { sco
 /**
  * Find similar items for a given item
  */
-export function findSimilarItems(
-    type: EntityType,
-    id: string,
-    config: Partial<SimilarityConfig> = {}
-): SimilarItem[] {
+export function findSimilarItems(type: EntityType, id: string, config: Partial<SimilarityConfig> = {}): SimilarItem[] {
     const { maxResults, minScore } = { ...DEFAULT_CONFIG, ...config };
 
     let sourceEntity: Entity | undefined;
@@ -279,7 +370,10 @@ export function findSimilarItems(
         }
         case 'weapons': {
             sourceEntity = allData.weapons?.weapons.find(w => w.id === id);
-            candidates = (allData.weapons?.weapons || []).map(w => ({ entity: w as Entity, type: 'weapons' as EntityType }));
+            candidates = (allData.weapons?.weapons || []).map(w => ({
+                entity: w as Entity,
+                type: 'weapons' as EntityType,
+            }));
             break;
         }
         case 'tomes': {
@@ -289,7 +383,10 @@ export function findSimilarItems(
         }
         case 'characters': {
             sourceEntity = allData.characters?.characters.find(c => c.id === id);
-            candidates = (allData.characters?.characters || []).map(c => ({ entity: c as Entity, type: 'characters' as EntityType }));
+            candidates = (allData.characters?.characters || []).map(c => ({
+                entity: c as Entity,
+                type: 'characters' as EntityType,
+            }));
             break;
         }
         default:
@@ -299,7 +396,7 @@ export function findSimilarItems(
     if (!sourceEntity) {
         logger.warn({
             operation: 'similar-items.find',
-            data: { type, id, reason: 'source_not_found' }
+            data: { type, id, reason: 'source_not_found' },
         });
         return [];
     }
@@ -310,18 +407,35 @@ export function findSimilarItems(
     for (const candidate of candidates) {
         let similarity: { score: number; reasons: string[] };
 
+        // Use type guards for safe type narrowing instead of unsafe casts
         switch (type) {
             case 'items':
-                similarity = calculateItemSimilarity(sourceEntity as Item, candidate.entity as Item);
+                if (isItem(sourceEntity) && isItem(candidate.entity)) {
+                    similarity = calculateItemSimilarity(sourceEntity, candidate.entity);
+                } else {
+                    continue;
+                }
                 break;
             case 'weapons':
-                similarity = calculateWeaponSimilarity(sourceEntity as Weapon, candidate.entity as Weapon);
+                if (isWeapon(sourceEntity) && isWeapon(candidate.entity)) {
+                    similarity = calculateWeaponSimilarity(sourceEntity, candidate.entity);
+                } else {
+                    continue;
+                }
                 break;
             case 'tomes':
-                similarity = calculateTomeSimilarity(sourceEntity as Tome, candidate.entity as Tome);
+                if (isTome(sourceEntity) && isTome(candidate.entity)) {
+                    similarity = calculateTomeSimilarity(sourceEntity, candidate.entity);
+                } else {
+                    continue;
+                }
                 break;
             case 'characters':
-                similarity = calculateCharacterSimilarity(sourceEntity as Character, candidate.entity as Character);
+                if (isCharacter(sourceEntity) && isCharacter(candidate.entity)) {
+                    similarity = calculateCharacterSimilarity(sourceEntity, candidate.entity);
+                } else {
+                    continue;
+                }
                 break;
             default:
                 continue;
@@ -332,15 +446,13 @@ export function findSimilarItems(
                 entity: candidate.entity,
                 type: candidate.type,
                 score: similarity.score,
-                reasons: similarity.reasons
+                reasons: similarity.reasons,
             });
         }
     }
 
     // Sort by score descending and limit results
-    return results
-        .sort((a, b) => b.score - a.score)
-        .slice(0, maxResults);
+    return results.sort((a, b) => b.score - a.score).slice(0, maxResults);
 }
 
 /**
@@ -353,18 +465,20 @@ export function renderSimilarItemsSection(type: EntityType, id: string): string 
         return '';
     }
 
-    const itemsHtml = similarItems.map(item => {
-        const imageHtml = generateEntityImage(item.entity, item.entity.name || 'Unknown', 'similar-item-image');
-        const reason = item.reasons[0] || 'Similar';
+    const itemsHtml = similarItems
+        .map(item => {
+            const imageHtml = generateEntityImage(item.entity, item.entity.name || 'Unknown', 'similar-item-image');
+            const reason = item.reasons[0] || 'Similar';
 
-        return `
+            return `
             <div class="similar-item-card" data-type="${item.type}" data-id="${item.entity.id}">
                 ${imageHtml || '<span class="similar-item-icon">📦</span>'}
                 <div class="similar-item-name">${escapeHtml(item.entity.name || 'Unknown')}</div>
                 <div class="similar-item-reason">${escapeHtml(reason)}</div>
             </div>
         `;
-    }).join('');
+        })
+        .join('');
 
     return `
         <div class="similar-items-section">
