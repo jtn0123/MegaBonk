@@ -630,29 +630,28 @@ describe('Keyboard Shortcuts Module', () => {
     });
 
     describe('showShortcutsModal()', () => {
-        // Note: showShortcutsModal() uses addEventListener with { signal: AbortController.signal }
-        // which jsdom doesn't support. These tests are skipped.
-        // The modal functionality is tested via E2E tests instead.
+        // Note: These tests were previously skipped due to jsdom AbortSignal limitation.
+        // Fixed by adding AbortController/AbortSignal to global scope in tests/setup.js
 
         afterEach(() => {
             const modal = document.getElementById('shortcuts-modal');
             if (modal) modal.remove();
         });
 
-        it.skip('should create modal with correct id - jsdom AbortSignal limitation', () => {
+        it('should create modal with correct id', () => {
             showShortcutsModal();
             const modal = document.getElementById('shortcuts-modal');
             expect(modal).not.toBeNull();
         });
 
-        it.skip('should have modal class - jsdom AbortSignal limitation', () => {
+        it('should have modal class', () => {
             showShortcutsModal();
             const modal = document.getElementById('shortcuts-modal');
             expect(modal.classList.contains('modal')).toBe(true);
             expect(modal.classList.contains('shortcuts-modal')).toBe(true);
         });
 
-        it.skip('should toggle (remove) modal when called twice - jsdom AbortSignal limitation', () => {
+        it('should toggle (remove) modal when called twice', () => {
             showShortcutsModal();
             expect(document.getElementById('shortcuts-modal')).not.toBeNull();
 
@@ -660,7 +659,7 @@ describe('Keyboard Shortcuts Module', () => {
             expect(document.getElementById('shortcuts-modal')).toBeNull();
         });
 
-        it.skip('should include modal header with title - jsdom AbortSignal limitation', () => {
+        it('should include modal header with title', () => {
             showShortcutsModal();
             const modal = document.getElementById('shortcuts-modal');
             const header = modal.querySelector('.modal-header');
@@ -668,20 +667,20 @@ describe('Keyboard Shortcuts Module', () => {
             expect(header.textContent).toContain('Keyboard Shortcuts');
         });
 
-        it.skip('should include close button - jsdom AbortSignal limitation', () => {
+        it('should include close button', () => {
             showShortcutsModal();
             const closeBtn = document.getElementById('shortcuts-modal-close');
             expect(closeBtn).not.toBeNull();
         });
 
-        it.skip('should include all shortcut categories - jsdom AbortSignal limitation', () => {
+        it('should include all shortcut categories', () => {
             showShortcutsModal();
             const modal = document.getElementById('shortcuts-modal');
             const categories = modal.querySelectorAll('.shortcuts-category');
             expect(categories.length).toBe(getAllShortcuts().length);
         });
 
-        it.skip('should display category titles - jsdom AbortSignal limitation', () => {
+        it('should display category titles', () => {
             showShortcutsModal();
             const modal = document.getElementById('shortcuts-modal');
             const titles = modal.querySelectorAll('.shortcuts-category-title');
@@ -692,7 +691,7 @@ describe('Keyboard Shortcuts Module', () => {
             expect(titleTexts).toContain('View');
         });
 
-        it.skip('should display shortcut keys in kbd elements - jsdom AbortSignal limitation', () => {
+        it('should display shortcut keys in kbd elements', () => {
             showShortcutsModal();
             const modal = document.getElementById('shortcuts-modal');
             const kbdElements = modal.querySelectorAll('kbd.shortcut-key');
@@ -705,7 +704,7 @@ describe('Keyboard Shortcuts Module', () => {
             expect(keyTexts).toContain('Escape');
         });
 
-        it.skip('should display shortcut descriptions - jsdom AbortSignal limitation', () => {
+        it('should display shortcut descriptions', () => {
             showShortcutsModal();
             const modal = document.getElementById('shortcuts-modal');
             const descriptions = modal.querySelectorAll('.shortcut-description');
@@ -716,7 +715,7 @@ describe('Keyboard Shortcuts Module', () => {
             expect(descTexts.some(d => d.includes('search'))).toBe(true);
         });
 
-        it.skip('should include tip in footer - jsdom AbortSignal limitation', () => {
+        it('should include tip in footer', () => {
             showShortcutsModal();
             const modal = document.getElementById('shortcuts-modal');
             const tip = modal.querySelector('.shortcuts-tip');
@@ -725,7 +724,7 @@ describe('Keyboard Shortcuts Module', () => {
             expect(tip.textContent).toContain('?');
         });
 
-        it.skip('should close modal when close button is clicked - jsdom AbortSignal limitation', () => {
+        it('should close modal when close button is clicked', () => {
             showShortcutsModal();
             const closeBtn = document.getElementById('shortcuts-modal-close');
 
@@ -734,7 +733,7 @@ describe('Keyboard Shortcuts Module', () => {
             expect(document.getElementById('shortcuts-modal')).toBeNull();
         });
 
-        it.skip('should close modal when backdrop is clicked - jsdom AbortSignal limitation', () => {
+        it('should close modal when backdrop is clicked', () => {
             showShortcutsModal();
             const modal = document.getElementById('shortcuts-modal');
 
@@ -749,7 +748,7 @@ describe('Keyboard Shortcuts Module', () => {
             expect(document.getElementById('shortcuts-modal')).toBeNull();
         });
 
-        it.skip('should close modal when Escape key is pressed - jsdom AbortSignal limitation', () => {
+        it('should close modal when Escape key is pressed', () => {
             showShortcutsModal();
 
             const escapeEvent = new KeyboardEvent('keydown', {
