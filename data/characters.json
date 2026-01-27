@@ -28,8 +28,7 @@
         "Passive doesn't help early game"
       ],
       "synergies_items": [
-        "Clover",
-        "luck items"
+        "clover"
       ],
       "synergies_tomes": [
         "luck",
@@ -69,9 +68,10 @@
         "Melee range"
       ],
       "synergies_items": [
-        "Spiky Shield",
-        "hp items",
-        "armor items"
+        "spiky_shield",
+        "oats",
+        "beefy_ring",
+        "chonkplate"
       ],
       "synergies_tomes": [
         "armor",
@@ -113,9 +113,9 @@
         "Fragile without defense"
       ],
       "synergies_items": [
-        "Forbidden Juice",
-        "Grandma's Secret Tonic",
-        "Giant Fork"
+        "forbidden_juice",
+        "grandmas_secret_tonic",
+        "giant_fork"
       ],
       "synergies_tomes": [
         "precision",
@@ -158,9 +158,9 @@
         "High skill floor"
       ],
       "synergies_items": [
-        "Turbo Socks",
-        "Turbo Skates",
-        "evasion items"
+        "turbo_socks",
+        "turbo_skates",
+        "slippery_ring"
       ],
       "synergies_tomes": [
         "agility",
@@ -199,9 +199,9 @@
         "One-dimensional"
       ],
       "synergies_items": [
-        "Gym Sauce",
-        "Beefy Ring",
-        "damage items"
+        "gym_sauce",
+        "beefy_ring",
+        "giant_fork"
       ],
       "synergies_tomes": [
         "damage",
@@ -240,9 +240,9 @@
         "Sniper requires aim"
       ],
       "synergies_items": [
-        "Forbidden Juice",
-        "Grandma's Secret Tonic",
-        "Boss Buster"
+        "forbidden_juice",
+        "grandmas_secret_tonic",
+        "boss_buster"
       ],
       "synergies_tomes": [
         "precision",
@@ -282,9 +282,9 @@
         "Blood Magic weapon"
       ],
       "synergies_items": [
-        "Bloody Cleaver",
-        "Demonic Blade",
-        "Chonkplate"
+        "bloody_cleaver",
+        "demonic_blade",
+        "chonkplate"
       ],
       "synergies_tomes": [
         "bloody",
@@ -323,10 +323,10 @@
         "Fragile"
       ],
       "synergies_items": [
-        "Battery",
-        "Overpowered Lamp",
-        "Big Bonk",
-        "Spicy Meatball"
+        "battery",
+        "overpowered_lamp",
+        "big_bonk",
+        "spicy_meatball"
       ],
       "synergies_tomes": [
         "cooldown",
@@ -364,9 +364,9 @@
         "High skill floor"
       ],
       "synergies_items": [
-        "Slippery Ring",
-        "Phantom Shroud",
-        "Joe's Dagger"
+        "slippery_ring",
+        "phantom_shroud",
+        "joes_dagger"
       ],
       "synergies_tomes": [
         "evasion",
@@ -405,9 +405,9 @@
         "Risky playstyle"
       ],
       "synergies_items": [
-        "Spiky Shield",
-        "Quin's Mask",
-        "Speed Boi"
+        "spiky_shield",
+        "quins_mask",
+        "speed_boi"
       ],
       "synergies_tomes": [
         "armor",
@@ -448,8 +448,9 @@
         "Aura weapon"
       ],
       "synergies_items": [
-        "size items",
-        "hp items"
+        "gym_sauce",
+        "oats",
+        "beefy_ring"
       ],
       "synergies_tomes": [
         "size",
@@ -487,9 +488,9 @@
         "Passive is just hp"
       ],
       "synergies_items": [
-        "Oats",
-        "Beefy Ring",
-        "hp items"
+        "oats",
+        "beefy_ring",
+        "chonkplate"
       ],
       "synergies_tomes": [
         "hp",
@@ -527,9 +528,9 @@
         "Black Hole requires setup"
       ],
       "synergies_items": [
-        "Time Bracelet",
-        "Echo Shard",
-        "Sucky Magnet"
+        "time_bracelet",
+        "echo_shard",
+        "sucky_magnet"
       ],
       "synergies_tomes": [
         "xp",
@@ -568,9 +569,9 @@
         "Requires size items"
       ],
       "synergies_items": [
-        "Ice Cube",
-        "Ice Crystal",
-        "size items"
+        "ice_cube",
+        "ice_crystal",
+        "gym_sauce"
       ],
       "synergies_tomes": [
         "size",
@@ -611,9 +612,9 @@
         "Slower kills"
       ],
       "synergies_items": [
-        "Moldy Cheese",
-        "Toxic Barrel",
-        "Gas Mask"
+        "moldy_cheese",
+        "toxic_barrel",
+        "gas_mask"
       ],
       "synergies_tomes": [
         "duration",
@@ -651,9 +652,9 @@
         "Wireless Dagger weapon"
       ],
       "synergies_items": [
-        "Turbo Socks",
-        "Thunder Mitts",
-        "Lightning Orb"
+        "turbo_socks",
+        "thunder_mitts",
+        "lightning_orb"
       ],
       "synergies_tomes": [
         "agility",
@@ -691,8 +692,8 @@
         "Passive doesn't help combat"
       ],
       "synergies_items": [
-        "Golden Glove",
-        "Golden Sneakers"
+        "golden_glove",
+        "golden_sneakers"
       ],
       "synergies_tomes": [
         "gold",
@@ -730,9 +731,9 @@
         "Tornado weapon"
       ],
       "synergies_items": [
-        "Scarf",
-        "Eagle Claw",
-        "Feathers"
+        "scarf",
+        "eagle_claw",
+        "feathers"
       ],
       "synergies_tomes": [
         "damage",
@@ -770,8 +771,8 @@
         "High skill required"
       ],
       "synergies_items": [
-        "Skuleg",
-        "Cursed Grabbies"
+        "skuleg",
+        "cursed_grabbies"
       ],
       "synergies_tomes": [
         "cursed",
@@ -811,8 +812,7 @@
         "Dice weapon"
       ],
       "synergies_items": [
-        "Dice items",
-        "RNG items"
+        "clover"
       ],
       "synergies_tomes": [
         "chaos"

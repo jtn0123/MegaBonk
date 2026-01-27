@@ -1446,37 +1446,46 @@
     "difficulty": "easy"
   },
   "steam-community/steam_12785333391462123138_CDD.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Dicehead",
+    "level": 2219,
     "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "language": "english",
+    "kills": 715711,
+    "time_alive": "100:14",
+    "unlocks": 6,
+    "silver": 1086,
     "items": [],
-    "notes": "GAMEPLAY - Useful for CV testing. Resolution 1920x1080. Needs manual item labeling.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true,
-    "ui_state": "gameplay"
+    "notes": "END GAME SUMMARY - Dicehead Level 2219. English. Quests: Green/Blue/Red Frog, Top hat, Looong top hat, Kevin hat.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_17850182365220706204_DF2.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Vlad",
+    "level": 123,
     "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "language": "portuguese",
+    "kills": 9376,
+    "time_alive": "23:36",
+    "unlocks": 6,
+    "silver": 45,
     "items": [],
-    "notes": "GAMEPLAY - Useful for CV testing. Resolution 1920x1080. Needs manual item labeling.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true,
-    "ui_state": "gameplay"
+    "notes": "END GAME SUMMARY - Vlad Level 123. Portuguese. Quests: Buraco Negro, Cleaver Sangrento, Dado, Foice, Skuleg, Máscara antiga.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_18331571528943706155_B0F.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Calcium",
+    "level": 2731,
     "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "language": "english",
+    "kills": 906426,
+    "time_alive": "114:41",
+    "unlocks": 4,
+    "silver": 1247,
     "items": [],
-    "notes": "GAMEPLAY - Useful for CV testing. Resolution 1920x1080. Needs manual item labeling.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true,
-    "ui_state": "gameplay"
+    "notes": "END GAME SUMMARY - Calcium Level 2731. English. Quests: Top hat, Red Frog, Looong top hat, Kevin hat.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_16677517744360461122_D43.jpg": {
     "character": "Ninja",
@@ -1536,15 +1545,18 @@
     "difficulty": "template_source"
   },
   "steam-community/steam_10108479826528152008_B40.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Amor",
+    "level": 99,
     "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "language": "russian",
+    "kills": 20188,
+    "time_alive": "42:24",
+    "unlocks": 6,
+    "silver": 96,
     "items": [],
-    "notes": "GAMEPLAY - Useful for CV testing. Resolution 1920x1080. Needs manual item labeling.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true,
-    "ui_state": "gameplay"
+    "notes": "END GAME SUMMARY - Amor Level 99. Russian. Multiple quest unlocks.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_12033859135237069361_AE1.jpg": {
     "character": "Dicehead",
@@ -1559,15 +1571,18 @@
     "difficulty": "template_source"
   },
   "steam-community/steam_15109026661211767118_7F6.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Cubehead",
+    "level": 1025,
     "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "language": "russian",
+    "kills": 258794,
+    "time_alive": "55:24",
+    "unlocks": 4,
+    "silver": 414,
     "items": [],
-    "notes": "GAMEPLAY - Useful for CV testing. Resolution 1920x1080. Needs manual item labeling.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true,
-    "ui_state": "gameplay"
+    "notes": "END GAME SUMMARY - Cubehead Level 1025. Russian. Quests: Green/Blue/Red Frog, Top Hat.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_14342364002159228091_C71.jpg": {
     "character": "Unknown",
@@ -1582,33 +1597,38 @@
   },
   "steam-community/steam_15787713334826953588_7FB.jpg": {
     "character": "Unknown",
-    "level": 0,
+    "level": 10,
     "resolution": "2560x1440",
+    "biome": "forest",
+    "ui_state": "gameplay",
+    "language": "russian",
     "items": [],
-    "notes": "AUTO-SCRAPED from Steam Community. Resolution 2560x1440. View image to determine UI state and label items.",
-    "difficulty": "hard",
-    "_auto_generated": true,
-    "_needs_labeling": true
+    "notes": "GAMEPLAY - Forest biome, Russian. Level 10, early game combat.",
+    "difficulty": "easy"
   },
   "steam-community/steam_9364473413374255433_B09A.jpg": {
     "character": "Unknown",
-    "level": 0,
+    "level": 2,
     "resolution": "2560x1440",
+    "biome": "desert",
+    "ui_state": "gameplay",
+    "language": "russian",
     "items": [],
-    "notes": "AUTO-SCRAPED from Steam Community. Resolution 2560x1440. View image to determine UI state and label items.",
-    "difficulty": "hard",
-    "_auto_generated": true,
-    "_needs_labeling": true
+    "notes": "VERY EARLY GAME - Desert biome, Russian. Level 2. Minimal items expected.",
+    "difficulty": "easy"
   },
   "steam-community/steam_15903011102958507868_175.jpg": {
-    "character": "Unknown",
-    "level": 0,
+    "character": "Fox",
+    "level": 2200,
     "resolution": "1920x1080",
+    "ui_state": "end_game_summary",
+    "language": "russian",
+    "kills": 634066,
+    "time_alive": "88:35",
+    "silver": 979,
     "items": [],
-    "notes": "AUTO-SCRAPED from Steam Community. Resolution 1920x1080. View image to determine UI state and label items.",
-    "difficulty": "medium",
-    "_auto_generated": true,
-    "_needs_labeling": true
+    "notes": "END GAME SUMMARY - Fox (Лис) Level 2200. Russian.",
+    "difficulty": "template_source"
   },
   "steam-community/steam_11744968364201432853_53C.jpg": {
     "character": "Unknown",
@@ -1648,8 +1668,10 @@
     "language": "english",
     "kills": 18083,
     "time_alive": "34:24",
+    "unlocks": 2,
+    "silver": 53,
     "items": [],
-    "notes": "END GAME SUMMARY - Ninja character, Level 107. English. 2 Unlocks, +53 Silver. Quests: Frostwalker, Crimson Ninja. Many items visible.",
+    "notes": "END GAME SUMMARY - Ninja Level 107. English. Quests: Frostwalker, Crimson Ninja.",
     "difficulty": "template_source"
   },
   "steam-community/steam_17308731572906866100_E0D.jpg": {
