@@ -44,7 +44,31 @@ function serveProjectRoot() {
                     return next();
                 }
 
-                const filePath = resolve(projectRoot, '.' + url);
+                let filePath = resolve(projectRoot, '.' + url);
+
+                // Check if URL has no extension (for .html fallback)
+                const lastDot = url.lastIndexOf('.');
+                const lastSlash = url.lastIndexOf('/');
+                const hasNoExtension = lastDot < lastSlash || lastDot === -1;
+
+                // Try .html extension if URL has no extension and .html file exists
+                // This takes priority even if a directory with the same name exists
+                if (hasNoExtension) {
+                    const htmlPath = filePath + '.html';
+                    if (existsSync(htmlPath)) {
+                        filePath = htmlPath;
+                    }
+                }
+
+                // Handle directory requests - try index.html
+                if (existsSync(filePath) && statSync(filePath).isDirectory()) {
+                    const indexPath = resolve(filePath, 'index.html');
+                    if (existsSync(indexPath)) {
+                        filePath = indexPath;
+                    } else {
+                        return next();
+                    }
+                }
 
                 if (!existsSync(filePath)) {
                     return next();
@@ -95,6 +119,7 @@ export default defineConfig({
             },
         },
     },
+    appType: 'mpa', // Disable SPA fallback so /test-images/... URLs work correctly
     server: {
         port: 8000,
         open: true,
