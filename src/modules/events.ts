@@ -218,7 +218,7 @@ export function setupEventDelegation(): void {
             // Escape key closes modals
             if (e.key === 'Escape') {
                 closeModal();
-                // Dynamic import for code splitting
+                // Dynamic import for code splitting with graceful fallback
                 import('./compare.ts')
                     .then(({ closeCompareModal }) => {
                         closeCompareModal();
@@ -228,6 +228,12 @@ export function setupEventDelegation(): void {
                             operation: 'import.compare',
                             error: { name: 'ImportError', message: err.message },
                         });
+                        // Bug fix: Fallback to hide compare modal via DOM if module fails to load
+                        const compareModal = safeGetElementById('compareModal') as HTMLElement | null;
+                        if (compareModal) {
+                            compareModal.style.display = 'none';
+                            compareModal.classList.remove('active');
+                        }
                     });
                 return;
             }
@@ -335,12 +341,19 @@ export function setupEventDelegation(): void {
     document.addEventListener(
         'click',
         (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
+            const target = e.target;
+
+            // Bug fix: Type guard to ensure target is an Element before accessing classList
+            // e.target could be Text node, Document, or other non-Element types
+            if (!(target instanceof Element)) {
+                return;
+            }
 
             // View Details button
             if (target.classList.contains('view-details-btn')) {
-                const type = target.dataset.type as EntityType | undefined;
-                const id = target.dataset.id;
+                const htmlTarget = target as HTMLElement;
+                const type = htmlTarget.dataset.type as EntityType | undefined;
+                const id = htmlTarget.dataset.id;
                 if (type && id) {
                     openDetailModal(type, id);
                 }
@@ -386,7 +399,7 @@ export function setupEventDelegation(): void {
             // Expandable text
             if (target.classList.contains('expandable-text') || target.closest('.expandable-text')) {
                 const expandable = target.classList.contains('expandable-text')
-                    ? target
+                    ? (target as HTMLElement)
                     : (target.closest('.expandable-text') as HTMLElement | null);
                 if (expandable) {
                     toggleTextExpand(expandable);
@@ -397,7 +410,7 @@ export function setupEventDelegation(): void {
             // Remove from comparison button
             if (target.classList.contains('remove-compare-btn') || target.closest('.remove-compare-btn')) {
                 const btn = target.classList.contains('remove-compare-btn')
-                    ? target
+                    ? (target as HTMLElement)
                     : (target.closest('.remove-compare-btn') as HTMLElement | null);
                 const id = btn?.dataset.removeId;
                 if (id) {
@@ -442,8 +455,9 @@ export function setupEventDelegation(): void {
             // Entity link in changelog (deep linking)
             if (target.classList.contains('entity-link')) {
                 e.preventDefault();
-                const type = target.dataset.entityType as EntityType | undefined;
-                const id = target.dataset.entityId;
+                const htmlTarget = target as HTMLElement;
+                const type = htmlTarget.dataset.entityType as EntityType | undefined;
+                const id = htmlTarget.dataset.entityId;
                 if (type && id) {
                     openDetailModal(type, id);
                 }

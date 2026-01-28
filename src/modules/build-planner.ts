@@ -77,13 +77,35 @@ type BuildTemplatesMap = Record<string, BuildTemplate>;
 // State
 // ========================================
 
-// Build planner state - now uses centralized store
-// Keep local reference for backwards compatibility
-let currentBuild: Build = getState('currentBuild');
+// Bug fix: Remove local currentBuild variable to prevent stale state.
+// Always read from the centralized store to ensure consistency.
+// Use a getter function that always returns the current store value.
 
-// Helper to update build in store and local reference
+/**
+ * Get the current build from the store (never stale)
+ * @returns Current build state
+ */
+function getCurrentBuildFromStore(): Build {
+    return getState('currentBuild');
+}
+
+// Create a proxy that always reads from the store to prevent stale references
+// This ensures any code reading currentBuild always gets the latest value
+const currentBuild: Build = new Proxy({} as Build, {
+    get(_target, prop: keyof Build) {
+        const build = getCurrentBuildFromStore();
+        return build[prop];
+    },
+    set(_target, prop: keyof Build, value: unknown) {
+        const build = { ...getCurrentBuildFromStore() };
+        (build as Record<keyof Build, unknown>)[prop] = value;
+        setState('currentBuild', build);
+        return true;
+    },
+});
+
+// Helper to update the entire build in the store
 function updateCurrentBuild(build: Build): void {
-    currentBuild = build;
     setState('currentBuild', build);
 }
 
@@ -573,7 +595,9 @@ export function setupBuildPlannerEvents(): void {
         charSelect.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement;
             const charId = target.value;
-            currentBuild.character = allData.characters?.characters.find((c: Character) => c.id === charId) || null;
+            // Bug fix: Add explicit null guard before .find() to prevent TypeError
+            const charsArray = allData.characters?.characters;
+            currentBuild.character = charsArray ? charsArray.find((c: Character) => c.id === charId) || null : null;
             updateBuildAnalysis();
         });
     }
@@ -583,7 +607,9 @@ export function setupBuildPlannerEvents(): void {
         weaponSelect.addEventListener('change', (e: Event) => {
             const target = e.target as HTMLSelectElement;
             const weaponId = target.value;
-            currentBuild.weapon = allData.weapons?.weapons.find((w: Weapon) => w.id === weaponId) || null;
+            // Bug fix: Add explicit null guard before .find() to prevent TypeError
+            const weaponsArray = allData.weapons?.weapons;
+            currentBuild.weapon = weaponsArray ? weaponsArray.find((w: Weapon) => w.id === weaponId) || null : null;
             updateBuildAnalysis();
         });
     }

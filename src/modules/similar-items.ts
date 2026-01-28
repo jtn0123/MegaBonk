@@ -362,28 +362,33 @@ export function findSimilarItems(type: EntityType, id: string, config: Partial<S
     let sourceEntity: Entity | undefined;
     let candidates: { entity: Entity; type: EntityType }[] = [];
 
+    // Bug fix: Add explicit null guards before .find() to prevent TypeError
     switch (type) {
         case 'items': {
-            sourceEntity = allData.items?.items.find(i => i.id === id);
-            candidates = (allData.items?.items || []).map(i => ({ entity: i as Entity, type: 'items' as EntityType }));
+            const itemsArray = allData.items?.items;
+            sourceEntity = itemsArray ? itemsArray.find(i => i.id === id) : undefined;
+            candidates = (itemsArray || []).map(i => ({ entity: i as Entity, type: 'items' as EntityType }));
             break;
         }
         case 'weapons': {
-            sourceEntity = allData.weapons?.weapons.find(w => w.id === id);
-            candidates = (allData.weapons?.weapons || []).map(w => ({
+            const weaponsArray = allData.weapons?.weapons;
+            sourceEntity = weaponsArray ? weaponsArray.find(w => w.id === id) : undefined;
+            candidates = (weaponsArray || []).map(w => ({
                 entity: w as Entity,
                 type: 'weapons' as EntityType,
             }));
             break;
         }
         case 'tomes': {
-            sourceEntity = allData.tomes?.tomes.find(t => t.id === id);
-            candidates = (allData.tomes?.tomes || []).map(t => ({ entity: t as Entity, type: 'tomes' as EntityType }));
+            const tomesArray = allData.tomes?.tomes;
+            sourceEntity = tomesArray ? tomesArray.find(t => t.id === id) : undefined;
+            candidates = (tomesArray || []).map(t => ({ entity: t as Entity, type: 'tomes' as EntityType }));
             break;
         }
         case 'characters': {
-            sourceEntity = allData.characters?.characters.find(c => c.id === id);
-            candidates = (allData.characters?.characters || []).map(c => ({
+            const charsArray = allData.characters?.characters;
+            sourceEntity = charsArray ? charsArray.find(c => c.id === id) : undefined;
+            candidates = (charsArray || []).map(c => ({
                 entity: c as Entity,
                 type: 'characters' as EntityType,
             }));

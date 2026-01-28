@@ -129,12 +129,31 @@ export async function loadDataFromUrls(urls: {
             fetch(urls.stats),
         ]);
 
-        const items = await itemsRes.json();
-        const weapons = await weaponsRes.json();
-        const tomes = await tomesRes.json();
-        const characters = await charsRes.json();
-        const shrines = await shrinesRes.json();
-        const stats = await statsRes.json();
+        // Bug fix: Check response.ok before parsing JSON to catch HTTP errors
+        const responses = [
+            { res: itemsRes, name: 'items', url: urls.items },
+            { res: weaponsRes, name: 'weapons', url: urls.weapons },
+            { res: tomesRes, name: 'tomes', url: urls.tomes },
+            { res: charsRes, name: 'characters', url: urls.characters },
+            { res: shrinesRes, name: 'shrines', url: urls.shrines },
+            { res: statsRes, name: 'stats', url: urls.stats },
+        ];
+
+        for (const { res, name, url } of responses) {
+            if (!res.ok) {
+                throw new Error(`Failed to load ${name} from ${url}: HTTP ${res.status} ${res.statusText}`);
+            }
+        }
+
+        // Parse JSON only after verifying all responses are OK
+        const [items, weapons, tomes, characters, shrines, stats] = await Promise.all([
+            itemsRes.json(),
+            weaponsRes.json(),
+            tomesRes.json(),
+            charsRes.json(),
+            shrinesRes.json(),
+            statsRes.json(),
+        ]);
 
         const data: AllGameData = {
             items,

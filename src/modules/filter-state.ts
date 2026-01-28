@@ -89,6 +89,27 @@ export function saveFilterState(tabName: string): void {
 }
 
 /**
+ * Validate that a filter state object has the expected types
+ * Bug fix: Prevents corrupted localStorage from causing runtime errors
+ * @param state - State object to validate
+ * @returns True if state is valid
+ */
+function isValidFilterState(state: unknown): state is FilterState {
+    if (!state || typeof state !== 'object') return false;
+    const s = state as Record<string, unknown>;
+
+    // Validate required fields are correct types
+    if (s.search !== undefined && typeof s.search !== 'string') return false;
+    if (s.favoritesOnly !== undefined && typeof s.favoritesOnly !== 'boolean') return false;
+    if (s.tierFilter !== undefined && typeof s.tierFilter !== 'string') return false;
+    if (s.sortBy !== undefined && typeof s.sortBy !== 'string') return false;
+    if (s.rarityFilter !== undefined && typeof s.rarityFilter !== 'string') return false;
+    if (s.stackingFilter !== undefined && typeof s.stackingFilter !== 'string') return false;
+
+    return true;
+}
+
+/**
  * Restore filter state for a specific tab
  * @param tabName - Tab name
  */
@@ -101,41 +122,42 @@ export function restoreFilterState(tabName: string): void {
         const allStates = getAllFilterStates();
         const state = allStates[tabName];
 
-        if (!state) return;
+        // Bug fix: Validate state structure before using it
+        if (!state || !isValidFilterState(state)) return;
 
         // Restore search input
         const searchInputEl = safeGetElementById('searchInput');
-        if (isInputElement(searchInputEl) && state.search !== undefined) {
+        if (isInputElement(searchInputEl) && typeof state.search === 'string') {
             searchInputEl.value = state.search;
         }
 
         // Restore favorites checkbox
         const favoritesOnlyEl = safeGetElementById('favoritesOnly');
-        if (isInputElement(favoritesOnlyEl) && state.favoritesOnly !== undefined) {
+        if (isInputElement(favoritesOnlyEl) && typeof state.favoritesOnly === 'boolean') {
             favoritesOnlyEl.checked = state.favoritesOnly;
         }
 
         // Restore tier filter
         const tierFilterEl = safeGetElementById('tierFilter');
-        if (isSelectElement(tierFilterEl) && state.tierFilter) {
+        if (isSelectElement(tierFilterEl) && typeof state.tierFilter === 'string') {
             tierFilterEl.value = state.tierFilter;
         }
 
         // Restore sort order
         const sortByEl = safeGetElementById('sortBy');
-        if (isSelectElement(sortByEl) && state.sortBy) {
+        if (isSelectElement(sortByEl) && typeof state.sortBy === 'string') {
             sortByEl.value = state.sortBy;
         }
 
         // Restore items-specific filters
         if (tabName === 'items') {
             const rarityFilterEl = safeGetElementById('rarityFilter');
-            if (isSelectElement(rarityFilterEl) && state.rarityFilter) {
+            if (isSelectElement(rarityFilterEl) && typeof state.rarityFilter === 'string') {
                 rarityFilterEl.value = state.rarityFilter;
             }
 
             const stackingFilterEl = safeGetElementById('stackingFilter');
-            if (isSelectElement(stackingFilterEl) && state.stackingFilter) {
+            if (isSelectElement(stackingFilterEl) && typeof state.stackingFilter === 'string') {
                 stackingFilterEl.value = state.stackingFilter;
             }
         }

@@ -76,15 +76,26 @@ export function generateResponsiveImage(
     </picture>`;
 }
 
+// Bug fix: Track if image fallback handler is already attached to prevent memory leaks
+let imageFallbackHandlerAttached = false;
+
 /**
  * Setup global image error handler for CSP compliance
  * Should be called once on page load to handle images with data-fallback attribute
+ * Bug fix: Prevents duplicate attachment if called multiple times
  */
 export function setupImageFallbackHandler(): void {
+    // Guard against duplicate attachment
+    if (imageFallbackHandlerAttached) {
+        return;
+    }
+    imageFallbackHandlerAttached = true;
+
     document.addEventListener(
         'error',
         (e: Event) => {
-            const target = e.target as HTMLElement;
+            const target = e.target;
+            // Type guard to ensure target is an image element
             if (target instanceof HTMLImageElement && target.dataset.fallback === 'true') {
                 target.style.display = 'none';
             }
