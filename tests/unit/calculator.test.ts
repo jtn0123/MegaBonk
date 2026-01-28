@@ -28,6 +28,24 @@ vi.mock('../../src/modules/registry.ts', () => ({
     getRegisteredFunctions: vi.fn(() => []),
 }));
 
+// Use vi.hoisted to create mock functions that can be used in vi.mock factory
+const { mockToastWarning, mockToastError, mockToastSuccess, mockToastInfo } = vi.hoisted(() => ({
+    mockToastWarning: vi.fn(),
+    mockToastError: vi.fn(),
+    mockToastSuccess: vi.fn(),
+    mockToastInfo: vi.fn(),
+}));
+
+// Mock ToastManager module
+vi.mock('../../src/modules/toast.ts', () => ({
+    ToastManager: {
+        warning: mockToastWarning,
+        error: mockToastError,
+        success: mockToastSuccess,
+        info: mockToastInfo,
+    },
+}));
+
 vi.mock('../../src/modules/utils.ts', () => ({
     safeSetValue: vi.fn((id: string, value: string) => {
         const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement;
@@ -94,24 +112,6 @@ vi.mock('../../src/modules/data-service.ts', () => ({
     },
 }));
 
-// Declare ToastManager globally (used in calculateBreakpoint)
-declare global {
-    var ToastManager: {
-        warning: Mock;
-        error: Mock;
-        success: Mock;
-        info: Mock;
-    };
-}
-
-// Setup ToastManager global
-globalThis.ToastManager = {
-    warning: vi.fn(),
-    error: vi.fn(),
-    success: vi.fn(),
-    info: vi.fn(),
-};
-
 // Declare switchTab globally
 (window as any).switchTab = vi.fn();
 
@@ -134,14 +134,6 @@ describe('Calculator Module - DOM Functions', () => {
             <input type="number" id="calc-target" value="">
             <div id="calc-result" style="display: none;"></div>
         `;
-
-        // Reset ToastManager mocks
-        globalThis.ToastManager = {
-            warning: vi.fn(),
-            error: vi.fn(),
-            success: vi.fn(),
-            info: vi.fn(),
-        };
 
         (window as any).switchTab = vi.fn();
     });
@@ -245,7 +237,7 @@ describe('Calculator Module - DOM Functions', () => {
 
             calculateBreakpoint();
 
-            expect(globalThis.ToastManager.warning).toHaveBeenCalledWith(
+            expect(mockToastWarning).toHaveBeenCalledWith(
                 'Please enter a valid target value'
             );
         });
@@ -259,7 +251,7 @@ describe('Calculator Module - DOM Functions', () => {
 
             calculateBreakpoint();
 
-            expect(globalThis.ToastManager.warning).toHaveBeenCalledWith(
+            expect(mockToastWarning).toHaveBeenCalledWith(
                 'Please enter a valid target value'
             );
         });
@@ -273,7 +265,7 @@ describe('Calculator Module - DOM Functions', () => {
 
             calculateBreakpoint();
 
-            expect(globalThis.ToastManager.warning).toHaveBeenCalledWith(
+            expect(mockToastWarning).toHaveBeenCalledWith(
                 'Please enter a valid target value'
             );
         });
@@ -293,7 +285,7 @@ describe('Calculator Module - DOM Functions', () => {
 
             calculateBreakpoint();
 
-            expect(globalThis.ToastManager.warning).toHaveBeenCalledWith(
+            expect(mockToastWarning).toHaveBeenCalledWith(
                 'Invalid scaling value for this item'
             );
         });
@@ -649,7 +641,7 @@ describe('Calculator Module - DOM Functions', () => {
             // Should show error toast since item doesn't exist in mock data
             calculateBreakpoint();
 
-            expect(globalThis.ToastManager.error).toHaveBeenCalled();
+            expect(mockToastError).toHaveBeenCalled();
         });
     });
 

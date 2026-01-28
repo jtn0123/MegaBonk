@@ -113,8 +113,8 @@ describe('Bug #4: recommendation.ts references non-existent synergies_weapons - 
     const recommendationCode = loadSourceFile('recommendation.ts');
 
     it('should confirm recommendation.ts now uses item.synergies for weapon matching', () => {
-        // FIXED: The code now uses item.synergies instead of synergies_weapons
-        expect(recommendationCode).toContain('const itemSynergies = item.synergies || []');
+        // FIXED: The code now uses item.synergies (with optional chaining) instead of synergies_weapons
+        expect(recommendationCode).toContain('item?.synergies ?? []');
     });
 
     it('should confirm items have synergies field for weapon matching', () => {
@@ -437,8 +437,8 @@ describe('Bug #21: anti_synergies vs antiSynergies inconsistency', () => {
     const recommendationCode = loadSourceFile('recommendation.ts');
 
     it('should confirm code checks both field names', () => {
-        // Line 234: (entity as Item).anti_synergies || (entity as Item).antiSynergies
-        expect(recommendationCode).toContain('anti_synergies || (entity as Item).antiSynergies');
+        // Code now uses optional chaining with nullish coalescing to check both field names
+        expect(recommendationCode).toContain('anti_synergies ?? itemEntity?.antiSynergies ?? []');
     });
 });
 

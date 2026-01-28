@@ -166,9 +166,10 @@ describe('data-service', () => {
                 stats: '/data/stats.json',
             };
 
-            // loadDataFromUrls doesn't check response.ok, so this will succeed
+            // loadDataFromUrls now properly checks response.ok and returns failure on HTTP errors
             const result = await loadDataFromUrls(urls);
-            expect(result.success).toBe(true);
+            expect(result.success).toBe(false);
+            expect(result.error).toBeDefined();
         });
     });
 

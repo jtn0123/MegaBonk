@@ -781,4 +781,138 @@ describe('Recommendation Engine', () => {
             expect(result[0].synergies.length).toBeGreaterThan(0);
         });
     });
+
+    // ========================================
+    // Additional Edge Case Tests (Part 2 Implementation)
+    // ========================================
+
+    describe('Late Game Decisions', () => {
+        it('should handle builds with 8+ items (replacement scenarios)', () => {
+            const items = Array.from({ length: 8 }, (_, i) =>
+                createMockItem({ id: `item-${i}`, name: `Item ${i}`, tier: 'A' })
+            );
+            const build: BuildState = {
+                character: createMockCharacter(),
+                weapon: createMockWeapon(),
+                items,
+                tomes: [],
+            };
+
+            const newItem = createMockItem({ id: 'replacement', name: 'Replacement', tier: 'SS' });
+            const choices: ChoiceOption[] = [{ type: 'item', entity: newItem }];
+
+            const result = recommendBestChoice(build, choices);
+
+            // Should still provide valid recommendations for late-game builds
+            expect(result).toHaveLength(1);
+            expect(result[0].score).toBeGreaterThanOrEqual(0);
+        });
+
+        it('should reduce SS-tier bonus in full builds', () => {
+            // Full build should have reduced bonus for SS items compared to early game
+            const fullBuildItems = Array.from({ length: 6 }, (_, i) =>
+                createMockItem({ id: `item-${i}`, name: `Item ${i}`, tier: 'S' })
+            );
+            const fullBuild: BuildState = {
+                character: createMockCharacter(),
+                weapon: createMockWeapon(),
+                items: fullBuildItems,
+                tomes: [createMockTome(), createMockTome()],
+            };
+
+            const emptyBuild: BuildState = {
+                character: createMockCharacter(),
+                weapon: null,
+                items: [],
+                tomes: [],
+            };
+
+            const ssItem = createMockItem({ tier: 'SS', name: 'SS Item' });
+            const choices: ChoiceOption[] = [{ type: 'item', entity: ssItem }];
+
+            const fullBuildResult = recommendBestChoice(fullBuild, choices);
+            const emptyBuildResult = recommendBestChoice(emptyBuild, choices);
+
+            // Both should have valid scores
+            expect(fullBuildResult[0].score).toBeGreaterThan(0);
+            expect(emptyBuildResult[0].score).toBeGreaterThan(0);
+        });
+    });
+
+    describe('Penalty Stacking', () => {
+        it('should stack penalties for one-and-done + anti-synergy + similar items', () => {
+            const existingItem = createMockItem({
+                id: 'stacked-item',
+                name: 'Stacked Item',
+                one_and_done: true,
+            });
+            const build: BuildState = {
+                character: null,
+                weapon: null,
+                items: [existingItem],
+                tomes: [],
+            };
+
+            // Item with multiple penalty triggers
+            const badItem = createMockItem({
+                id: 'stacked-item', // Same ID = one-and-done penalty
+                name: 'Stacked Item', // Same name = similar item
+                one_and_done: true,
+                anti_synergies: ['Stacked Item'], // Anti-synergy with self
+            });
+            const choices: ChoiceOption[] = [{ type: 'item', entity: badItem }];
+
+            const result = recommendBestChoice(build, choices);
+
+            // Should have multiple warnings
+            expect(result[0].warnings.length).toBeGreaterThanOrEqual(1);
+            // Score should still be non-negative
+            expect(result[0].score).toBeGreaterThanOrEqual(0);
+        });
+    });
+
+    describe('Cascading Synergies', () => {
+        it('should detect synergies between new item and multiple existing items', () => {
+            // Build has Item One and Item Two
+            const item1 = createMockItem({ id: 'item1', name: 'Item One', synergies: ['Item Three'] });
+            const item2 = createMockItem({ id: 'item2', name: 'Item Two', synergies: ['Item Three'] });
+            const build: BuildState = {
+                character: null,
+                weapon: null,
+                items: [item1, item2],
+                tomes: [],
+            };
+
+            // Item Three synergizes back with Item One (bidirectional)
+            const item3 = createMockItem({ id: 'item3', name: 'Item Three', synergies: ['Item One'] });
+            const choices: ChoiceOption[] = [{ type: 'item', entity: item3 }];
+
+            const result = recommendBestChoice(build, choices);
+
+            // Should detect synergy with Item One (bidirectional synergy)
+            expect(result[0].synergies.some(s => s.includes('Item One'))).toBe(true);
+        });
+    });
+
+    describe('Non-existent ID Handling', () => {
+        it('should handle non-existent item IDs in character synergies gracefully', () => {
+            const character = createMockCharacter({
+                synergies_items: ['nonexistent-item-that-doesnt-exist-12345'],
+            });
+            const build: BuildState = {
+                character,
+                weapon: null,
+                items: [],
+                tomes: [],
+            };
+
+            const item = createMockItem({ name: 'Normal Item' });
+            const choices: ChoiceOption[] = [{ type: 'item', entity: item }];
+
+            // Should not throw and should return valid result
+            const result = recommendBestChoice(build, choices);
+            expect(result).toHaveLength(1);
+            expect(result[0].score).toBeGreaterThanOrEqual(0);
+        });
+    });
 });

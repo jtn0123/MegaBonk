@@ -71,6 +71,8 @@ test.describe('Navigation', () => {
 
         for (const tab of tabs) {
             await page.click(`.tab-btn[data-tab="${tab}"]`);
+            // Wait for tab switch debounce (100ms) plus rendering
+            await page.waitForTimeout(150);
             await expect(page.locator(`.tab-btn[data-tab="${tab}"]`)).toHaveClass(/active/);
             await expect(page.locator(`#${tab}-tab`)).toHaveClass(/active/);
         }

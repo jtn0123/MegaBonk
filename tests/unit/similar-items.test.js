@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
-import { createMockItem, createMockWeapon, createMockTome, createMockCharacter } from '../fixtures/mock-entities.ts';
 
 // Mock the data service
 vi.mock('../../src/modules/data-service.ts', () => ({
@@ -61,9 +60,30 @@ vi.mock('../../src/modules/data-service.ts', () => ({
         },
         characters: {
             characters: [
-                { id: 'warrior', name: 'Warrior', tier: 'A', playstyle: 'tank', passive_description: 'Increased HP and armor' },
-                { id: 'berserker', name: 'Berserker', tier: 'S', playstyle: 'tank', passive_description: 'HP increases damage' },
-                { id: 'ranger', name: 'Ranger', tier: 'A', playstyle: 'ranged', passive_description: 'Increased crit at range' },
+                {
+                    id: 'warrior',
+                    name: 'Warrior',
+                    tier: 'A',
+                    playstyle: 'tank',
+                    passive_ability: 'Increased HP and armor',
+                    passive_description: 'Increased HP and armor',
+                },
+                {
+                    id: 'berserker',
+                    name: 'Berserker',
+                    tier: 'S',
+                    playstyle: 'tank',
+                    passive_ability: 'HP increases damage',
+                    passive_description: 'HP increases damage',
+                },
+                {
+                    id: 'ranger',
+                    name: 'Ranger',
+                    tier: 'A',
+                    playstyle: 'ranged',
+                    passive_ability: 'Increased crit at range',
+                    passive_description: 'Increased crit at range',
+                },
             ],
         },
     },
