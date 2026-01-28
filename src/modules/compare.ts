@@ -89,7 +89,7 @@ export async function openCompareModal(): Promise<void> {
     }
 
     const items = compareItems
-        .map((id: string) => allData.items?.items.find((item: Item) => item.id === id))
+        .map((id: string) => allData.items?.items?.find((item: Item) => item.id === id))
         .filter((item): item is Item => item !== undefined);
 
     const compareBody = safeGetElementById('compareBody');

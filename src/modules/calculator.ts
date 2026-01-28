@@ -7,6 +7,7 @@ import { safeSetValue } from './utils.ts';
 import { logger } from './logger.ts';
 import { allData } from './data-service.ts';
 import { callFunction } from './registry.ts';
+import { ToastManager } from './toast.ts';
 
 // ========================================
 // Type Definitions
@@ -169,18 +170,14 @@ export function calculateBreakpoint(): void {
     }
 
     if (isNaN(target) || target <= 0) {
-        if (typeof ToastManager !== 'undefined') {
-            ToastManager.warning('Please enter a valid target value');
-        }
+        ToastManager.warning('Please enter a valid target value');
         return;
     }
 
     // Find item
     const item = allData.items?.items?.find((i: Item) => i.id === itemId);
     if (!item || !item.scaling_per_stack || item.scaling_per_stack.length === 0) {
-        if (typeof ToastManager !== 'undefined') {
-            ToastManager.error('Item not found or has no scaling data');
-        }
+        ToastManager.error('Item not found or has no scaling data');
         return;
     }
 
@@ -191,9 +188,7 @@ export function calculateBreakpoint(): void {
     // Check for division by zero and validate perStack is a valid number
     // Handle null, undefined, NaN, non-numeric values, and zero/negative
     if (perStack === null || typeof perStack !== 'number' || !Number.isFinite(perStack) || perStack <= 0) {
-        if (typeof ToastManager !== 'undefined') {
-            ToastManager.warning('Invalid scaling value for this item');
-        }
+        ToastManager.warning('Invalid scaling value for this item');
         return;
     }
 

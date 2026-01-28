@@ -104,7 +104,11 @@ async function main() {
         totalTests += result.testsRun;
         totalFailed += result.testsFailed;
 
-        if (result.exitCode !== 0 && result.testsPassed) {
+        if (result.exitCode !== 0 && result.testsRun === 0) {
+            // Worker crashed without running any tests - treat as failure
+            totalFailed++;
+            log(`Shard ${i}: Worker crashed without running any tests!`, 'red');
+        } else if (result.exitCode !== 0 && result.testsPassed) {
             workerCrashes++;
             log(`Shard ${i}: Worker crashed but tests passed (${result.testsRun} tests)`, 'yellow');
         } else if (result.exitCode !== 0) {

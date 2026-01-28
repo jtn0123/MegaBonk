@@ -373,8 +373,8 @@ export async function loadAllData(): Promise<void> {
         // Update version info
         const versionEl = safeGetElementById('version');
         const updatedEl = safeGetElementById('last-updated');
-        if (versionEl) versionEl.textContent = `Version: ${items.version || 'Unknown'}`;
-        if (updatedEl) updatedEl.textContent = `Last Updated: ${items.last_updated || 'Unknown'}`;
+        if (versionEl) versionEl.textContent = `Version: ${items?.version || 'Unknown'}`;
+        if (updatedEl) updatedEl.textContent = `Last Updated: ${items?.last_updated || 'Unknown'}`;
 
         hideLoading();
 

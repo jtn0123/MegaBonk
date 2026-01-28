@@ -245,8 +245,8 @@ export function saveBuildToHistory(): void {
             timestamp: Date.now(),
             character: currentBuild.character?.id,
             weapon: currentBuild.weapon?.id,
-            tomes: currentBuild.tomes.map((t: Tome) => t.id),
-            items: currentBuild.items.map((i: Item) => i.id),
+            tomes: (currentBuild.tomes || []).map((t: Tome) => t.id),
+            items: (currentBuild.items || []).map((i: Item) => i.id),
         };
 
         // Add to front of history
@@ -415,8 +415,8 @@ export function loadBuildFromData(buildData: BuildData): void {
     clearBuild();
 
     // Load character - use Map for O(1) lookup
-    if (buildData.character && allData.characters) {
-        const charMap = new Map(allData.characters.characters.map((c: Character) => [c.id, c]));
+    if (buildData.character && allData.characters?.characters) {
+        const charMap = new Map((allData.characters.characters || []).map((c: Character) => [c.id, c]));
         const char = charMap.get(buildData.character);
         if (char) {
             currentBuild.character = char;
@@ -425,8 +425,8 @@ export function loadBuildFromData(buildData: BuildData): void {
     }
 
     // Load weapon - use Map for O(1) lookup
-    if (buildData.weapon && allData.weapons) {
-        const weaponMap = new Map(allData.weapons.weapons.map((w: Weapon) => [w.id, w]));
+    if (buildData.weapon && allData.weapons?.weapons) {
+        const weaponMap = new Map((allData.weapons.weapons || []).map((w: Weapon) => [w.id, w]));
         const weapon = weaponMap.get(buildData.weapon);
         if (weapon) {
             currentBuild.weapon = weapon;

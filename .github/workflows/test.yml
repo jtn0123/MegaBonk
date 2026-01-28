@@ -85,13 +85,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
         with:
-          node-version: '20'
+          bun-version: latest
 
       - name: Check test cleanup patterns
-        run: node scripts/check-test-cleanup.js
+        run: bun scripts/check-test-cleanup.js
 
   security-audit:
     name: Security Audit
@@ -101,14 +101,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Setup Node for audit
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: bun install
 
       - name: Run security audit
         run: |
@@ -137,14 +141,15 @@ jobs:
             exit 1
           fi
 
-          # Warn on high vulnerabilities
+          # Fail on high vulnerabilities
           if [ "$HIGH" -gt 0 ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "⚠️ **High severity vulnerabilities found.** Consider running \`npm audit fix\`." >> $GITHUB_STEP_SUMMARY
+            echo "❌ **High severity vulnerabilities found!** Please run \`npm audit fix\` or review manually." >> $GITHUB_STEP_SUMMARY
+            exit 1
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "✅ No critical vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          echo "✅ No critical or high vulnerabilities" >> $GITHUB_STEP_SUMMARY
 
   # Build job - needed by E2E tests
   build:
@@ -176,9 +181,9 @@ jobs:
 
       - name: Check bundle size
         run: |
-          MAIN_SIZE=$(stat -c%s dist/assets/main-*.js 2>/dev/null)
+          MAIN_SIZE=$(cat dist/assets/main-*.js 2>/dev/null | wc -c | tr -d ' ')
           MAIN_SIZE_KB=$((MAIN_SIZE / 1024))
-          CSS_SIZE=$(stat -c%s dist/assets/main-*.css 2>/dev/null || echo 0)
+          CSS_SIZE=$(cat dist/assets/main-*.css 2>/dev/null | wc -c | tr -d ' ' || echo 0)
           CSS_SIZE_KB=$((CSS_SIZE / 1024))
           TOTAL_SIZE_KB=$((MAIN_SIZE_KB + CSS_SIZE_KB))
 
