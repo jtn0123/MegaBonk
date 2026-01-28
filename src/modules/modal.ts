@@ -195,22 +195,35 @@ function deactivateFocusTrap(): void {
  */
 export async function openDetailModal(type: EntityType, id: string): Promise<void> {
     let data: ModalEntity | undefined;
+
+    // Bug fix: Add explicit null guards before .find() to prevent TypeError
+    // when data arrays are not yet loaded
     switch (type) {
-        case 'items':
-            data = allData.items?.items.find(i => i.id === id) as Item | undefined;
+        case 'items': {
+            const itemsArray = allData.items?.items;
+            data = itemsArray ? itemsArray.find(i => i.id === id) : undefined;
             break;
-        case 'weapons':
-            data = allData.weapons?.weapons.find(w => w.id === id) as Weapon | undefined;
+        }
+        case 'weapons': {
+            const weaponsArray = allData.weapons?.weapons;
+            data = weaponsArray ? weaponsArray.find(w => w.id === id) : undefined;
             break;
-        case 'tomes':
-            data = allData.tomes?.tomes.find(t => t.id === id) as Tome | undefined;
+        }
+        case 'tomes': {
+            const tomesArray = allData.tomes?.tomes;
+            data = tomesArray ? tomesArray.find(t => t.id === id) : undefined;
             break;
-        case 'characters':
-            data = allData.characters?.characters.find(c => c.id === id) as Character | undefined;
+        }
+        case 'characters': {
+            const charsArray = allData.characters?.characters;
+            data = charsArray ? charsArray.find(c => c.id === id) : undefined;
             break;
-        case 'shrines':
-            data = allData.shrines?.shrines.find(s => s.id === id) as Shrine | undefined;
+        }
+        case 'shrines': {
+            const shrinesArray = allData.shrines?.shrines;
+            data = shrinesArray ? shrinesArray.find(s => s.id === id) : undefined;
             break;
+        }
     }
 
     // Bug fix #11: Show error toast instead of failing silently

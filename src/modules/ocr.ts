@@ -38,6 +38,8 @@ async function getTesseract(): Promise<typeof import('tesseract.js')> {
 /**
  * Get or create a reusable Tesseract worker
  * Workers are expensive to create, so we reuse them
+ * Bug fix: Use mutex pattern to prevent race condition where multiple
+ * concurrent calls could create multiple workers
  */
 async function getOrCreateWorker(): Promise<Awaited<ReturnType<typeof import('tesseract.js').createWorker>>> {
     // If worker exists and is ready, return it
@@ -45,25 +47,41 @@ async function getOrCreateWorker(): Promise<Awaited<ReturnType<typeof import('te
         return activeWorker;
     }
 
-    // If initialization is in progress, wait for it
+    // Bug fix: If initialization is in progress, wait for it and return the result
+    // This prevents multiple concurrent callers from each creating their own worker
     if (workerInitPromise) {
         await workerInitPromise;
+        // After awaiting, worker should be ready (or failed)
         if (activeWorker) {
             return activeWorker;
         }
+        // If still no worker after waiting, fall through to create new one
+        // This handles the case where previous initialization failed
     }
 
-    // Create new worker
+    // Create the initialization promise BEFORE any async operations
+    // This ensures concurrent callers will see the promise and wait
     const Tesseract = await getTesseract();
 
+    // Double-check after async operation - another caller may have created the worker
+    if (activeWorker) {
+        return activeWorker;
+    }
+
+    // Create initialization promise that will be awaited by concurrent callers
     workerInitPromise = (async () => {
+        // Triple-check inside the promise to handle edge cases
+        if (activeWorker) {
+            return;
+        }
+
         logger.info({
             operation: 'ocr.worker_init',
             data: { phase: 'start' },
         });
 
         try {
-            activeWorker = await Tesseract.createWorker('eng', 1, {
+            const worker = await Tesseract.createWorker('eng', 1, {
                 logger: (info: { status: string; progress: number }) => {
                     if (info.status === 'loading tesseract core' || info.status === 'initializing api') {
                         logger.debug({
@@ -73,6 +91,14 @@ async function getOrCreateWorker(): Promise<Awaited<ReturnType<typeof import('te
                     }
                 },
             });
+
+            // Only assign if still no active worker (prevent overwriting)
+            if (!activeWorker) {
+                activeWorker = worker;
+            } else {
+                // Another caller won the race, terminate the duplicate
+                await worker.terminate();
+            }
 
             logger.info({
                 operation: 'ocr.worker_init',
@@ -91,10 +117,18 @@ async function getOrCreateWorker(): Promise<Awaited<ReturnType<typeof import('te
         }
     })();
 
-    await workerInitPromise;
-    workerInitPromise = null;
+    try {
+        await workerInitPromise;
+    } finally {
+        // Always clear the promise when done, even on error
+        workerInitPromise = null;
+    }
 
-    return activeWorker!;
+    if (!activeWorker) {
+        throw new Error('Failed to initialize OCR worker');
+    }
+
+    return activeWorker;
 }
 
 /**
