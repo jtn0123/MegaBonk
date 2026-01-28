@@ -356,13 +356,15 @@ describe('Bug #16: Calculator perStack validation missing for zero values', () =
     });
 });
 
-describe('Bug #17: Tome stat calculation multiplies by 100 incorrectly', () => {
+describe('Bug #17: Tome stat calculation (FIXED)', () => {
     const buildPlannerCode = loadSourceFile('build-planner.ts');
 
-    it('should confirm tome values are multiplied by tomeLevel * 100', () => {
-        // Line 716: stats.damage += value * tomeLevel * 100
-        // This may produce unexpectedly large numbers if value is already a percentage
-        expect(buildPlannerCode).toContain('value * tomeLevel * 100');
+    it('should confirm tome values are now multiplied correctly (value * tomeLevel)', () => {
+        // Bug fix: The old code multiplied by tomeLevel * 100, which was 100x too high
+        // New code uses value * tomeLevel, with proper handling of decimal values
+        expect(buildPlannerCode).toContain('value * tomeLevel');
+        // Verify the old buggy pattern is no longer present
+        expect(buildPlannerCode).not.toContain('value * tomeLevel * 100');
     });
 
     it('should check if tome value_per_level already includes percentage', () => {
@@ -521,16 +523,28 @@ describe('Bug #26: Null vs undefined stack_cap handling', () => {
     });
 });
 
-describe('Bug #27: scaling_per_stack array length inconsistency', () => {
+describe('Bug #27: scaling_per_stack array length (FIXED)', () => {
     const itemsData = loadJsonFile('items.json');
 
-    it('should confirm all scaling_per_stack arrays have 10 elements', () => {
-        const wrongLength = itemsData.items.filter(
-            (item: any) => item.scaling_per_stack && item.scaling_per_stack.length !== 10
+    it('should confirm scaling arrays match item stacking behavior', () => {
+        // One-and-done items should have array length 1 (no benefit from stacking)
+        // Stackable items should have array length 10 for visualization
+        const oneAndDoneItems = itemsData.items.filter(
+            (item: any) => item.one_and_done === true && item.scaling_per_stack
+        );
+        const stackableItems = itemsData.items.filter(
+            (item: any) => item.one_and_done !== true && item.scaling_per_stack
         );
 
-        // UI expects exactly 10 values for "1-10 stacks"
-        expect(wrongLength.length).toBe(0);
+        // One-and-done items should have exactly 1 value
+        oneAndDoneItems.forEach((item: any) => {
+            expect(item.scaling_per_stack.length).toBe(1);
+        });
+
+        // Stackable items should have 10 values for "1-10 stacks" visualization
+        stackableItems.forEach((item: any) => {
+            expect(item.scaling_per_stack.length).toBe(10);
+        });
     });
 });
 

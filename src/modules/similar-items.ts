@@ -145,8 +145,8 @@ function calculateItemSimilarity(item1: Item, item2: Item): { score: number; rea
         reasons.push('Both stack well');
     }
 
-    // Shared synergies
-    if (item1.synergies && item2.synergies) {
+    // Shared synergies - Bug fix: Add null guard for both arrays before filtering
+    if (item1.synergies?.length && item2.synergies?.length) {
         const shared = item1.synergies.filter(s => item2.synergies?.includes(s));
         if (shared.length > 0) {
             score += Math.min(shared.length * 0.15, 0.3);

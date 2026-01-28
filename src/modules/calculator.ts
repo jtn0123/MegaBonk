@@ -249,11 +249,16 @@ function renderResults(result: CalculatorResult): void {
     const isPercentage = result.scalingType.includes('chance') || result.scalingType.includes('percentage');
     const unit = isPercentage ? '%' : '';
 
+    // Bug fix: Trim scaling array to stack_cap to avoid showing bars beyond the cap
+    const effectiveScaling = result.stackCap
+        ? result.scalingPerStack.slice(0, result.stackCap)
+        : result.scalingPerStack;
+
     // Calculate max for bar graph normalization
-    const maxVal = result.scalingPerStack.length > 0 ? Math.max(...result.scalingPerStack) : 1;
+    const maxVal = effectiveScaling.length > 0 ? Math.max(...effectiveScaling) : 1;
     const safeMax = maxVal > 0 ? maxVal : 1;
 
-    const barGraphHTML = result.scalingPerStack
+    const barGraphHTML = effectiveScaling
         .map((val: number, idx: number) => {
             const height = (val / safeMax) * 100;
             const isTarget = idx + 1 === result.stacksNeeded;
@@ -292,7 +297,7 @@ function renderResults(result: CalculatorResult): void {
             </div>
 
             <div class="result-graph">
-                <h4>Scaling Visualization (1-10 stacks)</h4>
+                <h4>Scaling Visualization (1-${effectiveScaling.length} stacks${result.stackCap ? `, capped at ${result.stackCap}` : ''})</h4>
                 <div class="mini-bar-graph">
                     ${barGraphHTML}
                 </div>

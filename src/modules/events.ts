@@ -1056,7 +1056,7 @@ export async function switchTab(tabName: TabName): Promise<void> {
     }
 
     // Render content for the tab (will replace skeleton with actual content)
-    renderTabContent(tabName);
+    await renderTabContent(tabName);
 }
 
 /**

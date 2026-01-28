@@ -413,17 +413,19 @@ describe('build-planner.ts coverage tests', () => {
 
         it('should detect overcrit condition', () => {
             // Create a build with very high crit
+            // With the fixed tome calculation (value * tomeLevel, not value * tomeLevel * 100):
+            // Precision tome: 1% * 5 levels = 5% per tome
+            // CL4NK: +50% base crit
+            // Need enough tomes to exceed 100%: 50 + 5*n > 100, so n > 10
+            const precisionTome = mockAllData.tomes.tomes[0] as any; // Precision
             const stats = calculateBuildStats({
                 character: mockAllData.characters.characters[0] as any, // CL4NK (+50 crit)
                 weapon: null,
-                tomes: [
-                    mockAllData.tomes.tomes[0] as any, // Precision
-                    mockAllData.tomes.tomes[0] as any, // Another precision (simulated stacking)
-                ],
+                tomes: Array(12).fill(precisionTome), // 12 precision tomes = 60% + 50 base = 110%
                 items: [],
             });
 
-            // With CL4NK's +50 and multiple precision tomes, should be over 100
+            // With CL4NK's +50 and 12 precision tomes (5% each = 60%), should be 110%
             expect(stats.crit_chance).toBeGreaterThan(100);
             expect(stats.overcrit).toBe(true);
         });

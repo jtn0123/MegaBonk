@@ -340,15 +340,22 @@ describe('Build Templates Validation', () => {
 });
 
 describe('Item Scaling Data Integrity', () => {
-    it('items with scaling_per_stack should have array of 10 values', () => {
+    it('items with scaling_per_stack should have appropriate array length', () => {
         const issues = [];
 
         items.items.forEach(item => {
             if (item.scaling_per_stack && !Array.isArray(item.scaling_per_stack)) {
                 issues.push(`${item.name}: scaling_per_stack is not an array`);
             }
-            if (item.scaling_per_stack && item.scaling_per_stack.length !== 10) {
-                issues.push(`${item.name}: scaling_per_stack has ${item.scaling_per_stack.length} values, expected 10`);
+            // One-and-done items should have exactly 1 value (no stacking benefit)
+            // Stackable items should have 10 values for visualization
+            if (item.scaling_per_stack) {
+                const expectedLength = item.one_and_done === true ? 1 : 10;
+                if (item.scaling_per_stack.length !== expectedLength) {
+                    issues.push(
+                        `${item.name}: scaling_per_stack has ${item.scaling_per_stack.length} values, expected ${expectedLength}`
+                    );
+                }
             }
         });
 

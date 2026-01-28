@@ -733,22 +733,33 @@ export function calculateBuildStats(build?: Build): CalculatedBuildStats {
     buildToUse.tomes.forEach((tome: Tome) => {
         const tomeLevel = 5;
         // Safely extract numeric value from value_per_level
-        // Handles formats like "0.5%", "1.5", "+2", etc.
+        // Handles formats like:
+        // - "+0.08x (8% damage)" - decimal multiplier, needs *100 to get percentage
+        // - "+7% crit chance" - integer percentage, use as-is
+        // - "+25 Max HP" - absolute value, use as-is
         const valueStr = tome.value_per_level || '';
         const match = String(valueStr).match(/[+-]?\d+(?:\.\d+)?/);
-        const rawValue = match ? parseFloat(match[0]) : 0;
+        let rawValue = match ? parseFloat(match[0]) : 0;
         // Ensure we have a valid number, default to 0 if NaN
-        const value = Number.isFinite(rawValue) ? rawValue : 0;
-        if (tome.stat_affected === 'Damage') stats.damage += value * tomeLevel * 100;
-        else if (tome.stat_affected === 'Crit Chance' || tome.id === 'precision')
-            stats.crit_chance += value * tomeLevel * 100;
-        else if (tome.stat_affected === 'Crit Damage') stats.crit_damage += value * tomeLevel * 100;
-        else if (tome.stat_affected === 'HP' || tome.id === 'vitality') stats.hp += value * tomeLevel * 100;
+        rawValue = Number.isFinite(rawValue) ? rawValue : 0;
+
+        // Bug fix: Handle different value formats correctly
+        // Decimal values < 1 (like 0.08) represent percentages that need *100
+        // Integer values >= 1 (like 7, 25) are already the correct value
+        const value = rawValue < 1 && rawValue > 0 ? rawValue * 100 : rawValue;
+
+        // Apply tome bonus: value per level * tome level
+        if (tome.stat_affected === 'Damage') stats.damage += value * tomeLevel;
+        else if (tome.stat_affected === 'Critical Chance' || tome.id === 'precision')
+            stats.crit_chance += value * tomeLevel;
+        else if (tome.stat_affected === 'Crit Damage') stats.crit_damage += value * tomeLevel;
+        else if (tome.stat_affected === 'Max HP' || tome.id === 'vitality' || tome.id === 'hp')
+            stats.hp += value * tomeLevel;
         else if (tome.stat_affected === 'Attack Speed' || tome.id === 'cooldown')
-            stats.attack_speed += value * tomeLevel * 100;
+            stats.attack_speed += value * tomeLevel;
         else if (tome.stat_affected === 'Movement Speed' || tome.id === 'agility')
-            stats.movement_speed += value * tomeLevel * 100;
-        else if (tome.id === 'armor') stats.armor += value * tomeLevel * 100;
+            stats.movement_speed += value * tomeLevel;
+        else if (tome.stat_affected === 'Armor' || tome.id === 'armor') stats.armor += value * tomeLevel;
     });
 
     // Apply item effects using ITEM_EFFECTS constant

@@ -17,18 +17,7 @@
       "stacks_well": false,
       "stack_cap": 1,
       "formula": "Each weapon upgrade adds +1 extra to all stats",
-      "scaling_per_stack": [
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1
-      ],
+      "scaling_per_stack": [1],
       "detailed_description": "Permanently increases all weapon upgrade values by +1. This is a flat bonus that applies to every upgrade you take. Does NOT benefit from additional copies - one is enough!",
       "synergies": [
         "All weapons",
@@ -318,18 +307,7 @@
       "stacks_well": false,
       "stack_cap": 1,
       "formula": "Automatic XP collection on cooldown",
-      "scaling_per_stack": [
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1,
-        1
-      ],
+      "scaling_per_stack": [1],
       "detailed_description": "Automatically pulls all XP on screen to your location periodically. Incredibly convenient for leveling. Additional copies do NOT reduce cooldown or increase range.",
       "synergies": [
         "XP Gain items",

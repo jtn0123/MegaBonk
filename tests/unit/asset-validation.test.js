@@ -278,7 +278,7 @@ describe('Graph Data Validation', () => {
             expect(invalidGraphTypes, `Invalid graph types: ${JSON.stringify(invalidGraphTypes, null, 2)}`).toEqual([]);
         });
 
-        it('items with scaling_per_stack should have exactly 10 values', () => {
+        it('items with scaling_per_stack should have appropriate array length', () => {
             const invalidScaling = [];
 
             items.items.forEach(item => {
@@ -288,11 +288,16 @@ describe('Graph Data Validation', () => {
                             name: item.name,
                             issue: 'scaling_per_stack is not an array',
                         });
-                    } else if (item.scaling_per_stack.length !== 10) {
-                        invalidScaling.push({
-                            name: item.name,
-                            issue: `has ${item.scaling_per_stack.length} values instead of 10`,
-                        });
+                    } else {
+                        // One-and-done items should have exactly 1 value (no stacking benefit)
+                        // Stackable items should have 10 values for "1-10 stacks" visualization
+                        const expectedLength = item.one_and_done === true ? 1 : 10;
+                        if (item.scaling_per_stack.length !== expectedLength) {
+                            invalidScaling.push({
+                                name: item.name,
+                                issue: `has ${item.scaling_per_stack.length} values instead of ${expectedLength}`,
+                            });
+                        }
                     }
                 }
             });
