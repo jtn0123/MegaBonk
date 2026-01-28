@@ -281,13 +281,13 @@ export async function loadAllData(): Promise<void> {
 
     try {
         const responses = await Promise.all([
-            fetchWithRetry('../data/items.json'),
-            fetchWithRetry('../data/weapons.json'),
-            fetchWithRetry('../data/tomes.json'),
-            fetchWithRetry('../data/characters.json'),
-            fetchWithRetry('../data/shrines.json'),
-            fetchWithRetry('../data/stats.json'),
-            fetchWithRetry('../data/changelog.json'),
+            fetchWithRetry('./data/items.json'),
+            fetchWithRetry('./data/weapons.json'),
+            fetchWithRetry('./data/tomes.json'),
+            fetchWithRetry('./data/characters.json'),
+            fetchWithRetry('./data/shrines.json'),
+            fetchWithRetry('./data/stats.json'),
+            fetchWithRetry('./data/changelog.json'),
         ]);
 
         // Check for HTTP errors and parse JSON safely

@@ -954,8 +954,13 @@ export async function switchTab(tabName: TabName): Promise<void> {
 
     const previousTab = getState('currentTab');
 
-    // Don't switch if already on the same tab
-    if (previousTab === tabName) {
+    // Don't switch if already on the same tab, UNLESS it's the initial render
+    // Check if content has been rendered by looking for item cards in the container
+    const isInitialRender =
+        !document.querySelector('#itemsContainer .item-card') &&
+        !document.querySelector('#weaponsContainer .item-card') &&
+        !document.querySelector('#tomesContainer .item-card');
+    if (previousTab === tabName && !isInitialRender) {
         return;
     }
 

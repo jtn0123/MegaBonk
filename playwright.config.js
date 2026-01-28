@@ -6,11 +6,17 @@ export default defineConfig({
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
-    workers: process.env.CI ? 1 : 8, // M4 MacBook Air has 10 cores
-    reporter: [['html', { open: 'never' }]],
+    workers: process.env.CI ? 1 : 4,
+    reporter: process.env.CI ? 'github' : [['html', { open: 'never' }]],
+    timeout: 30000,
+    expect: {
+        timeout: 10000,
+    },
     use: {
-        baseURL: 'http://localhost:8000',
+        baseURL: 'http://localhost:4173',
         trace: 'on-first-retry',
+        screenshot: 'only-on-failure',
+        video: 'retain-on-failure',
     },
     projects: [
         {
@@ -18,14 +24,16 @@ export default defineConfig({
             use: { ...devices['Desktop Chrome'] },
         },
         {
-            name: 'Mobile Safari',
-            use: { ...devices['iPhone 12'] },
+            name: 'webkit',
+            use: { ...devices['Desktop Safari'] },
         },
     ],
     webServer: {
-        command: 'bun run dev',
-        url: 'http://localhost:8000',
+        command: 'npm run build && npm run preview -- --port 4173',
+        url: 'http://localhost:4173',
         reuseExistingServer: !process.env.CI,
-        timeout: 120 * 1000, // Allow time for Vite to start
+        timeout: 120 * 1000,
+        stdout: 'pipe',
+        stderr: 'pipe',
     },
 });
