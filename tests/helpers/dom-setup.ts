@@ -2,7 +2,7 @@
  * Creates a minimal DOM structure for testing specific components
  * This is useful when tests need a lighter-weight DOM than the full index.html
  */
-export function createMinimalDOM() {
+export function createMinimalDOM(): void {
     document.body.innerHTML = `
     <header>
       <span id="version"></span>
@@ -106,8 +106,10 @@ export function createMinimalDOM() {
 /**
  * Creates filter UI for items tab testing
  */
-export function createItemsFilterUI() {
+export function createItemsFilterUI(): void {
     const filtersContainer = document.getElementById('filters');
+    if (!filtersContainer) return;
+
     filtersContainer.innerHTML = `
     <label>Rarity:</label>
     <select id="rarityFilter">
@@ -145,8 +147,10 @@ export function createItemsFilterUI() {
 /**
  * Creates filter UI for weapons/tomes/characters tab testing
  */
-export function createTierFilterUI() {
+export function createTierFilterUI(): void {
     const filtersContainer = document.getElementById('filters');
+    if (!filtersContainer) return;
+
     filtersContainer.innerHTML = `
     <label>Tier:</label>
     <select id="tierFilter">
@@ -168,8 +172,10 @@ export function createTierFilterUI() {
 /**
  * Creates filter UI for shrines tab testing
  */
-export function createShrinesFilterUI() {
+export function createShrinesFilterUI(): void {
     const filtersContainer = document.getElementById('filters');
+    if (!filtersContainer) return;
+
     filtersContainer.innerHTML = `
     <label>Type:</label>
     <select id="typeFilter">
@@ -185,7 +191,7 @@ export function createShrinesFilterUI() {
 /**
  * Gets the active tab name from DOM
  */
-export function getActiveTab() {
+export function getActiveTab(): string | null {
     const activeBtn = document.querySelector('.tab-btn.active');
     return activeBtn?.getAttribute('data-tab') || null;
 }
@@ -193,6 +199,6 @@ export function getActiveTab() {
 /**
  * Gets the active tab content element
  */
-export function getActiveTabContent() {
+export function getActiveTabContent(): Element | null {
     return document.querySelector('.tab-content.active');
 }
