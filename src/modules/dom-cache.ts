@@ -132,11 +132,11 @@ export function getFiltersContainer(): HTMLElement | null {
 }
 
 /**
- * Get stats summary panel (cached)
+ * Get item count element (cached)
  * @returns HTMLElement or null
  */
-export function getStatsSummary(): HTMLElement | null {
-    return domCache.get('statsSummary') as HTMLElement | null;
+export function getItemCount(): HTMLElement | null {
+    return domCache.get('itemCount') as HTMLElement | null;
 }
 
 /**

@@ -421,6 +421,11 @@ describe('events-comprehensive', () => {
     // Keyboard Event Edge Cases
     // ========================================
     describe('Keyboard Event Edge Cases', () => {
+        afterEach(() => {
+            // Clean up any breakpoint cards added during tests
+            document.querySelectorAll('.breakpoint-card').forEach(el => el.remove());
+        });
+
         it('should handle Enter key on breakpoint card', async () => {
             const card = document.createElement('div');
             card.className = 'breakpoint-card';

@@ -73,8 +73,8 @@ test.describe('Mobile Responsive - iPhone', () => {
   });
 
   test('should display stats summary on mobile', async ({ page }) => {
-    const statsPanel = page.locator('#stats-summary');
-    await expect(statsPanel).toBeVisible();
+    const itemCount = page.locator('#item-count');
+    await expect(itemCount).toBeVisible();
   });
 });
 

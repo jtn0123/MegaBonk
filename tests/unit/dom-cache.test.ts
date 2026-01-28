@@ -5,7 +5,7 @@ import {
     getSearchInput,
     getFavoritesCheckbox,
     getFiltersContainer,
-    getStatsSummary,
+    getItemCount,
     getTabButtons,
     getTabContainer,
     getModalOverlay,
@@ -212,10 +212,10 @@ describe('DOM Cache Module', () => {
             });
         });
 
-        describe('getStatsSummary()', () => {
-            it('should return stats summary element', () => {
-                const element = getStatsSummary();
-                expect(element).toBe(document.getElementById('stats-summary'));
+        describe('getItemCount()', () => {
+            it('should return item count element', () => {
+                const element = getItemCount();
+                expect(element).toBe(document.getElementById('item-count'));
             });
         });
 

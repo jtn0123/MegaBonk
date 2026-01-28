@@ -14,9 +14,8 @@ test.describe('Items Browsing', () => {
     });
 
     test('should display stats summary', async ({ page }) => {
-        const statsPanel = page.locator('#stats-summary');
-        await expect(statsPanel).toContainText('Total Items');
-        await expect(statsPanel).toContainText('80');
+        const itemCount = page.locator('#item-count');
+        await expect(itemCount).toContainText('80 items');
     });
 
     test('should filter items by search', async ({ page }) => {
@@ -25,14 +24,13 @@ test.describe('Items Browsing', () => {
         // Wait for debounce (300ms) plus render time
         await page.waitForTimeout(500);
 
-        const itemCards = page.locator('#itemsContainer .item-card');
-        // Should only show items containing "bonk"
-        const count = await itemCards.count();
-        expect(count).toBeLessThan(80);
+        // Global search shows results across categories
+        // Check that results are shown
+        const resultsText = page.locator('#item-count');
+        await expect(resultsText).toContainText('results');
 
-        // First visible item should contain "bonk"
-        const firstItem = itemCards.first();
-        await expect(firstItem).toContainText(/bonk/i);
+        // Verify Big Bonk is in the results (using img alt text which is more reliable)
+        await expect(page.locator('img[alt="Big Bonk"]')).toBeVisible();
     });
 
     test('should filter by tier', async ({ page }) => {
@@ -79,15 +77,15 @@ test.describe('Items Browsing', () => {
         await page.fill('#searchInput', 'bonk');
         await page.waitForTimeout(500);
 
-        const filteredCount = await page.locator('#itemsContainer .item-card').count();
-        expect(filteredCount).toBeLessThan(80);
+        // Verify filtered results shown
+        await expect(page.locator('#item-count')).toContainText('results');
 
         // Clear filter
         await page.fill('#searchInput', '');
         await page.waitForTimeout(500);
 
-        const allCount = await page.locator('#itemsContainer .item-card').count();
-        expect(allCount).toBe(80);
+        // Should show all items again
+        await expect(page.locator('#item-count')).toContainText('80 items');
     });
 
     test('should open item detail modal', async ({ page }) => {
@@ -218,13 +216,10 @@ test.describe('Items Sorting', () => {
 
     test('should sort by tier', async ({ page }) => {
         await page.selectOption('#sortBy', 'tier');
-        await page.waitForTimeout(100);
+        await page.waitForTimeout(300);
 
-        // The sort changed the display order
-        const itemCards = page.locator('#itemsContainer .item-card');
-        const count = await itemCards.count();
-
-        // Verify sort was applied (count unchanged, just reordered)
-        expect(count).toBe(80);
+        // Verify items are sorted by tier (SS should come first)
+        const firstCard = page.locator('#itemsContainer .item-card').first();
+        await expect(firstCard).toContainText('SS Tier');
     });
 });
