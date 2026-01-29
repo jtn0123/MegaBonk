@@ -373,6 +373,12 @@ export function getColorCandidates(color: string): string[] {
  */
 export function calculateColorVariance(imageData: ImageData): number {
     const pixels = imageData.data;
+
+    // Guard against invalid dimensions (2.6)
+    if (!pixels || pixels.length === 0 || imageData.width <= 0 || imageData.height <= 0) {
+        return 0;
+    }
+
     let sumR = 0;
     let sumG = 0;
     let sumB = 0;
@@ -384,6 +390,8 @@ export function calculateColorVariance(imageData: ImageData): number {
         sumB += pixels[i + 2] ?? 0;
         count++;
     }
+
+    if (count === 0) return 0; // Guard against division by zero
 
     const meanR = sumR / count;
     const meanG = sumG / count;
@@ -605,6 +613,12 @@ export function calculateEdgeDensity(imageData: ImageData): number {
     const pixels = imageData.data;
     const width = imageData.width;
     const height = imageData.height;
+
+    // Guard against invalid dimensions (2.6)
+    if (!pixels || pixels.length === 0 || width <= 2 || height <= 2) {
+        return 0;
+    }
+
     let edgePixels = 0;
     let totalPixels = 0;
 

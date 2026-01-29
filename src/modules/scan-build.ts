@@ -221,6 +221,8 @@ function showUploadProgress(show: boolean, uploadId?: number): void {
         uploadBtn?.classList.add('uploading');
         if (uploadBtn) {
             uploadBtn.setAttribute('data-upload-id', String(uploadId));
+            uploadBtn.setAttribute('aria-busy', 'true');
+            uploadBtn.disabled = true;
         }
 
         // Add uploading class to area
@@ -240,10 +242,53 @@ function showUploadProgress(show: boolean, uploadId?: number): void {
         // Remove upload progress indicator
         uploadBtn?.classList.remove('uploading');
         uploadArea?.classList.remove('uploading');
+        if (uploadBtn) {
+            uploadBtn.setAttribute('aria-busy', 'false');
+            uploadBtn.disabled = false;
+        }
 
         const badge = document.getElementById('upload-progress-badge');
         badge?.remove();
     }
+}
+
+/**
+ * Show upload success state with brief animation (1.4)
+ */
+function showUploadSuccess(): void {
+    const uploadArea = document.getElementById('scan-upload-area');
+    const uploadBtn = document.getElementById('scan-upload-btn');
+    if (!uploadArea) return;
+
+    // Add success class
+    uploadArea.classList.add('scan-upload-success');
+
+    // Add success overlay flash
+    const overlay = document.createElement('div');
+    overlay.className = 'scan-upload-success-overlay';
+    uploadArea.appendChild(overlay);
+
+    // Add checkmark badge
+    let badge = document.getElementById('upload-success-badge');
+    if (!badge && uploadBtn) {
+        badge = document.createElement('div');
+        badge.id = 'upload-success-badge';
+        badge.className = 'scan-upload-success-badge';
+        badge.textContent = '✓';
+        badge.setAttribute('aria-label', 'Upload successful');
+        uploadBtn.style.position = 'relative';
+        uploadBtn.appendChild(badge);
+    }
+
+    // Clean up after animation
+    setTimeout(() => {
+        overlay.remove();
+        uploadArea.classList.remove('scan-upload-success');
+    }, 600);
+
+    setTimeout(() => {
+        badge?.remove();
+    }, 2000);
 }
 
 /**
@@ -275,6 +320,7 @@ function processFileUpload(file: File, uploadId: number): void {
                 uploadedImage = result;
                 displayUploadedImage();
                 showItemSelectionGrid();
+                showUploadSuccess(); // Show success animation (1.4)
                 ToastManager.success('Image uploaded! Now select the items you see');
             } else {
                 ToastManager.error('Failed to read image as data URL');
@@ -397,19 +443,236 @@ function showTemplateLoadingStatus(status: 'loading' | 'loaded' | 'error'): void
     }
 }
 
+// ========================================
+// Styled Confirm Dialog (1.1)
+// ========================================
+
+/**
+ * Show a styled confirmation dialog
+ * Replaces native confirm() with a themed modal that matches app styling
+ * Includes ARIA support and keyboard navigation
+ */
+function showConfirmDialog(options: {
+    title: string;
+    message: string;
+    icon?: string;
+    confirmText?: string;
+    cancelText?: string;
+    confirmDanger?: boolean;
+}): Promise<boolean> {
+    return new Promise(resolve => {
+        const {
+            title,
+            message,
+            icon = '⚠️',
+            confirmText = 'Confirm',
+            cancelText = 'Cancel',
+            confirmDanger = false,
+        } = options;
+
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.className = 'confirm-dialog-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-labelledby', 'confirm-dialog-title');
+        overlay.setAttribute('aria-describedby', 'confirm-dialog-message');
+
+        // Create dialog content
+        const dialog = document.createElement('div');
+        dialog.className = 'confirm-dialog';
+
+        const iconDiv = document.createElement('div');
+        iconDiv.className = 'confirm-dialog-icon';
+        iconDiv.textContent = icon;
+
+        const titleDiv = document.createElement('div');
+        titleDiv.className = 'confirm-dialog-title';
+        titleDiv.id = 'confirm-dialog-title';
+        titleDiv.textContent = title;
+
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'confirm-dialog-message';
+        messageDiv.id = 'confirm-dialog-message';
+        messageDiv.textContent = message;
+
+        const actionsDiv = document.createElement('div');
+        actionsDiv.className = 'confirm-dialog-actions';
+
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'confirm-dialog-cancel';
+        cancelBtn.textContent = cancelText;
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = confirmDanger ? 'confirm-dialog-confirm' : 'confirm-dialog-confirm';
+        if (!confirmDanger) {
+            confirmBtn.style.background =
+                'linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%)';
+            confirmBtn.style.color = '#000';
+        }
+        confirmBtn.textContent = confirmText;
+
+        actionsDiv.appendChild(cancelBtn);
+        actionsDiv.appendChild(confirmBtn);
+
+        dialog.appendChild(iconDiv);
+        dialog.appendChild(titleDiv);
+        dialog.appendChild(messageDiv);
+        dialog.appendChild(actionsDiv);
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+
+        // Focus the cancel button by default (safer default)
+        requestAnimationFrame(() => {
+            overlay.classList.add('active');
+            cancelBtn.focus();
+        });
+
+        // Cleanup function
+        const cleanup = (result: boolean) => {
+            overlay.classList.remove('active');
+            setTimeout(() => {
+                overlay.remove();
+            }, 200);
+            resolve(result);
+        };
+
+        // Event handlers
+        cancelBtn.addEventListener('click', () => cleanup(false));
+        confirmBtn.addEventListener('click', () => cleanup(true));
+
+        // Close on overlay click (outside dialog)
+        overlay.addEventListener('click', e => {
+            if (e.target === overlay) {
+                cleanup(false);
+            }
+        });
+
+        // Keyboard navigation
+        overlay.addEventListener('keydown', e => {
+            if (e.key === 'Escape') {
+                cleanup(false);
+            } else if (e.key === 'Tab') {
+                // Trap focus within dialog
+                const focusable = [cancelBtn, confirmBtn];
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault();
+                    last?.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault();
+                    first?.focus();
+                }
+            }
+        });
+    });
+}
+
+// ========================================
+// Detection Error State (1.2)
+// ========================================
+
+/**
+ * Display a persistent error state for detection failures
+ * Shows retry buttons and alternative method suggestions
+ */
+function displayDetectionError(
+    errorMessage: string,
+    detectionMethod: 'ocr' | 'hybrid',
+    onRetry: () => void,
+    onAlternate?: () => void
+): void {
+    const container = document.getElementById('scan-detection-info');
+    if (!container) return;
+
+    // Clear existing content
+    container.innerHTML = '';
+
+    // Create error state container
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'scan-detection-error';
+    errorDiv.setAttribute('role', 'alert');
+    errorDiv.setAttribute('aria-live', 'assertive');
+
+    // Error icon
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'scan-detection-error-icon';
+    iconDiv.textContent = '⚠️';
+    errorDiv.appendChild(iconDiv);
+
+    // Error title
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'scan-detection-error-title';
+    titleDiv.textContent = 'Detection Failed';
+    errorDiv.appendChild(titleDiv);
+
+    // Error message
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'scan-detection-error-message';
+    messageDiv.textContent = errorMessage;
+    errorDiv.appendChild(messageDiv);
+
+    // Actions container
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'scan-detection-error-actions';
+
+    // Retry button
+    const retryBtn = document.createElement('button');
+    retryBtn.className = 'scan-error-retry-btn';
+    retryBtn.textContent = '🔄 Try Again';
+    retryBtn.addEventListener('click', () => {
+        container.style.display = 'none';
+        onRetry();
+    });
+    actionsDiv.appendChild(retryBtn);
+
+    // Alternate method button
+    if (onAlternate) {
+        const alternateBtn = document.createElement('button');
+        alternateBtn.className = 'scan-error-alternate-btn';
+        alternateBtn.textContent = detectionMethod === 'ocr' ? '🔬 Try Hybrid Mode' : '📝 Try OCR Mode';
+        alternateBtn.addEventListener('click', () => {
+            container.style.display = 'none';
+            onAlternate();
+        });
+        actionsDiv.appendChild(alternateBtn);
+    }
+
+    // Manual selection tip
+    const tipBtn = document.createElement('button');
+    tipBtn.className = 'scan-error-alternate-btn';
+    tipBtn.textContent = '✏️ Select Manually';
+    tipBtn.addEventListener('click', () => {
+        container.style.display = 'none';
+        showItemSelectionGrid();
+    });
+    actionsDiv.appendChild(tipBtn);
+
+    errorDiv.appendChild(actionsDiv);
+    container.appendChild(errorDiv);
+    container.style.display = 'block';
+}
+
 /**
  * Clear uploaded image and reset state
  * #21: Adds confirmation if there are selections to prevent accidental loss
  */
-function clearUploadedImage(): void {
+async function clearUploadedImage(): Promise<void> {
     // Check if there are any selections that would be lost
     const hasSelections =
         selectedItems.size > 0 || selectedTomes.size > 0 || selectedCharacter !== null || selectedWeapon !== null;
 
     if (hasSelections) {
-        const confirmClear = confirm(
-            'You have selections that will be lost. Are you sure you want to clear the image?'
-        );
+        const confirmClear = await showConfirmDialog({
+            title: 'Clear Image?',
+            message: 'You have selections that will be lost. Are you sure you want to clear the image?',
+            icon: '🗑️',
+            confirmText: 'Clear',
+            cancelText: 'Keep',
+            confirmDanger: true,
+        });
         if (!confirmClear) {
             return;
         }
@@ -551,6 +814,14 @@ async function handleAutoDetect(): Promise<void> {
             },
         });
         ToastManager.error(`Auto-detection failed: ${(error as Error).message}`);
+
+        // Display persistent error state with retry options (1.2)
+        displayDetectionError(
+            (error as Error).message || 'Unable to detect items. Try a clearer screenshot or use Hybrid mode.',
+            'ocr',
+            () => handleAutoDetect(),
+            () => handleHybridDetect()
+        );
     } finally {
         // Always clean up progress indicator
         progressDiv.remove();
@@ -685,15 +956,34 @@ async function handleHybridDetect(): Promise<void> {
             // Store overlay URL for download button
             setLastOverlayUrl(debugOverlayUrl);
 
-            // Replace uploaded image with debug overlay
+            // Replace uploaded image with debug overlay using DOM API (1.5 - fix innerHTML)
             const imagePreview = document.getElementById('scan-image-preview');
             if (imagePreview) {
-                imagePreview.innerHTML = `
-                    <img src="${debugOverlayUrl}" alt="Debug Overlay" style="max-width: 100%; border-radius: 8px;" />
-                    <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                        Debug Mode: Green=High confidence, Orange=Medium, Red=Low
-                    </p>
-                `;
+                // Clear existing content
+                imagePreview.innerHTML = '';
+
+                // Create wrapper
+                const wrapper = document.createElement('div');
+                wrapper.className = 'scan-debug-overlay-wrapper';
+
+                // Create image via DOM API
+                const debugImg = document.createElement('img');
+                debugImg.src = debugOverlayUrl;
+                debugImg.alt = 'Debug Overlay';
+                debugImg.style.maxWidth = '100%';
+                debugImg.style.borderRadius = '8px';
+
+                // Create caption
+                const caption = document.createElement('p');
+                caption.style.textAlign = 'center';
+                caption.style.marginTop = '1rem';
+                caption.style.color = 'var(--text-secondary)';
+                caption.style.fontSize = '0.9rem';
+                caption.textContent = 'Debug Mode: Green=High confidence, Orange=Medium, Red=Low';
+
+                wrapper.appendChild(debugImg);
+                wrapper.appendChild(caption);
+                imagePreview.appendChild(wrapper);
             }
 
             ToastManager.success(
@@ -727,6 +1017,14 @@ async function handleHybridDetect(): Promise<void> {
             },
         });
         ToastManager.error(`Hybrid detection failed: ${(error as Error).message}`);
+
+        // Display persistent error state with retry options (1.2)
+        displayDetectionError(
+            (error as Error).message || 'Unable to detect items. Try a clearer screenshot or use OCR mode.',
+            'hybrid',
+            () => handleHybridDetect(),
+            () => handleAutoDetect()
+        );
     } finally {
         // Always clean up progress indicator
         progressDiv.remove();
@@ -757,9 +1055,14 @@ function createProgressIndicator(): HTMLElement {
 }
 
 /**
- * Update progress indicator
+ * Update progress indicator (1.8 - Resilient to unmounting)
  */
 function updateProgressIndicator(progressDiv: HTMLElement, progress: number, status: string): void {
+    // Guard: Check if element is still connected to DOM (1.8)
+    if (!progressDiv.isConnected) {
+        return;
+    }
+
     const textEl = progressDiv.querySelector('.scan-progress-text');
     const fillEl = progressDiv.querySelector('.scan-progress-fill') as HTMLElement;
 
@@ -768,7 +1071,7 @@ function updateProgressIndicator(progressDiv: HTMLElement, progress: number, sta
     }
 
     if (fillEl) {
-        fillEl.style.width = `${progress}%`;
+        fillEl.style.width = `${Math.min(100, Math.max(0, progress))}%`;
     }
 }
 
@@ -965,8 +1268,12 @@ function displayDetectionConfidence(results: {
         </div>`;
     }
 
+    // Paginated results - collapse items/tomes if more than 5 (1.6)
+    const ITEMS_INITIAL_LIMIT = 5;
+
     if (results.items.length > 0) {
-        html += '<div class="scan-detection-section"><strong>Items:</strong>';
+        const needsCollapse = results.items.length > ITEMS_INITIAL_LIMIT;
+        html += `<div class="scan-detection-section${needsCollapse ? ' collapsed' : ''}" data-section="items"><strong>Items:</strong>`;
         results.items.forEach(item => {
             const confClass = getConfidenceClass(item.confidence);
             html += `<div class="scan-detection-item">
@@ -974,11 +1281,17 @@ function displayDetectionConfidence(results: {
                 <span class="confidence ${confClass}">${Math.round(item.confidence * 100)}%</span>
             </div>`;
         });
+        if (needsCollapse) {
+            html += `<button class="scan-show-more-btn" data-target="items" aria-expanded="false">
+                Show ${results.items.length - ITEMS_INITIAL_LIMIT} more items ▼
+            </button>`;
+        }
         html += '</div>';
     }
 
     if (results.tomes.length > 0) {
-        html += '<div class="scan-detection-section"><strong>Tomes:</strong>';
+        const needsCollapse = results.tomes.length > ITEMS_INITIAL_LIMIT;
+        html += `<div class="scan-detection-section${needsCollapse ? ' collapsed' : ''}" data-section="tomes"><strong>Tomes:</strong>`;
         results.tomes.forEach(tome => {
             const confClass = getConfidenceClass(tome.confidence);
             html += `<div class="scan-detection-item">
@@ -986,12 +1299,36 @@ function displayDetectionConfidence(results: {
                 <span class="confidence ${confClass}">${Math.round(tome.confidence * 100)}%</span>
             </div>`;
         });
+        if (needsCollapse) {
+            html += `<button class="scan-show-more-btn" data-target="tomes" aria-expanded="false">
+                Show ${results.tomes.length - ITEMS_INITIAL_LIMIT} more tomes ▼
+            </button>`;
+        }
         html += '</div>';
     }
 
     html += '<p class="scan-detection-hint">💡 Review and adjust selections below if needed</p></div>';
     container.innerHTML = html;
     container.style.display = 'block';
+
+    // Attach event listeners for "Show More" buttons (1.6)
+    container.querySelectorAll('.scan-show-more-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const target = btn.getAttribute('data-target');
+            const section = container.querySelector(`[data-section="${target}"]`);
+            if (section) {
+                const isCollapsed = section.classList.contains('collapsed');
+                section.classList.toggle('collapsed');
+                btn.setAttribute('aria-expanded', isCollapsed ? 'true' : 'false');
+                if (isCollapsed) {
+                    btn.textContent = 'Show less ▲';
+                } else {
+                    const count = section.querySelectorAll('.scan-detection-item').length - 5;
+                    btn.textContent = `Show ${count} more ${target} ▼`;
+                }
+            }
+        });
+    });
 }
 
 /**

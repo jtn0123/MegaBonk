@@ -88,6 +88,72 @@ export function prioritizeItems(items: Item[]): { priority: Item[]; standard: It
 // Template Loading
 // ========================================
 
+// Retry configuration for template loading (2.4)
+const TEMPLATE_LOAD_MAX_RETRIES = 2;
+const TEMPLATE_LOAD_RETRY_DELAY_MS = 500;
+
+/**
+ * Sleep helper for retry delays
+ */
+function sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Load a single template image with retry logic (2.4)
+ * Retries with exponential backoff on failure
+ */
+async function loadTemplateWithRetry(
+    item: Item,
+    retries: number = TEMPLATE_LOAD_MAX_RETRIES
+): Promise<{ success: boolean; image?: HTMLImageElement }> {
+    const imagePath = item.image?.endsWith('.png')
+        ? item.image.slice(0, -4) + '.webp'
+        : item.image?.replace(/\.png$/, '.webp') || '';
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+        try {
+            // Try WebP first
+            const img = await loadImage(imagePath);
+            return { success: true, image: img };
+        } catch {
+            // Try PNG fallback on first failure of WebP
+            if (attempt === 0 && item.image) {
+                try {
+                    const pngImg = await loadImage(item.image);
+                    return { success: true, image: pngImg };
+                } catch {
+                    // Continue to retry logic
+                }
+            }
+
+            // Retry with exponential backoff
+            if (attempt < retries) {
+                const delay = TEMPLATE_LOAD_RETRY_DELAY_MS * Math.pow(2, attempt);
+                logger.debug?.({
+                    operation: 'cv.template_retry',
+                    data: { itemId: item.id, attempt: attempt + 1, delay },
+                });
+                await sleep(delay);
+            }
+        }
+    }
+
+    return { success: false };
+}
+
+/**
+ * Load an image and return a promise
+ */
+function loadImage(src: string): Promise<HTMLImageElement> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => reject(new Error(`Failed to load: ${src}`));
+        img.src = src;
+    });
+}
+
 /**
  * Load item templates progressively (priority items first)
  */
@@ -102,78 +168,38 @@ export async function loadTemplatesBatch(
         try {
             // Skip items without images
             if (!item.image) return;
-            // Try WebP first (smaller), fallback to PNG
-            // Only replace .png extension at the end of the path
-            const imagePath = item.image.endsWith('.png')
-                ? item.image.slice(0, -4) + '.webp'
-                : item.image.replace(/\.png$/, '.webp');
-            const img = new Image();
 
-            await new Promise<void>((resolve, reject) => {
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-                    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+            // Use retry logic for template loading (2.4)
+            const result = await loadTemplateWithRetry(item);
 
-                    if (!ctx) {
-                        reject(new Error('Failed to get canvas context'));
-                        return;
-                    }
+            if (!result.success || !result.image) {
+                throw new Error(`Failed to load template after retries: ${item.image}`);
+            }
 
-                    ctx.drawImage(img, 0, 0);
+            const img = result.image;
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
-                    itemTemplates.set(item.id, {
-                        image: img,
-                        canvas,
-                        ctx,
-                        width: img.width,
-                        height: img.height,
-                    });
+            if (!ctx) {
+                throw new Error('Failed to get canvas context');
+            }
 
-                    // Generate multi-scale variants for faster matching
-                    generateMultiScaleVariants(item.id, canvas, ctx);
+            ctx.drawImage(img, 0, 0);
 
-                    loaded++;
-                    resolve();
-                };
-
-                img.onerror = () => {
-                    // Try PNG fallback
-                    const pngImg = new Image();
-                    pngImg.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        canvas.width = pngImg.width;
-                        canvas.height = pngImg.height;
-                        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-
-                        if (!ctx) {
-                            reject(new Error('Failed to get canvas context'));
-                            return;
-                        }
-
-                        ctx.drawImage(pngImg, 0, 0);
-
-                        itemTemplates.set(item.id, {
-                            image: pngImg,
-                            canvas,
-                            ctx,
-                            width: pngImg.width,
-                            height: pngImg.height,
-                        });
-
-                        // Generate multi-scale variants for faster matching
-                        generateMultiScaleVariants(item.id, canvas, ctx);
-
-                        loaded++;
-                        resolve();
-                    };
-                    pngImg.onerror = () => reject(new Error(`Failed to load: ${item.image}`));
-                    pngImg.src = item.image!;
-                };
-
-                img.src = imagePath;
+            itemTemplates.set(item.id, {
+                image: img,
+                canvas,
+                ctx,
+                width: img.width,
+                height: img.height,
             });
+
+            // Generate multi-scale variants for faster matching
+            generateMultiScaleVariants(item.id, canvas, ctx);
+
+            loaded++;
         } catch (error) {
             failedIds.push(item.id);
             logger.error({

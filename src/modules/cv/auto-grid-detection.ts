@@ -278,6 +278,16 @@ export function getConfig(): AutoGridConfig {
  * Returns the Y coordinates where the item bar exists
  */
 export function detectHotbarBand(ctx: CanvasRenderingContext2D, width: number, height: number): BandRegion {
+    // Guard against invalid dimensions (2.6)
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+        return {
+            topY: 0,
+            bottomY: 0,
+            height: 0,
+            confidence: 0,
+        };
+    }
+
     // Scan bottom 30% of screen (hotbar is usually at very bottom)
     const scanStartY = Math.floor(height * 0.7);
 

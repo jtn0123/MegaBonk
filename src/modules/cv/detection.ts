@@ -28,6 +28,8 @@ import {
     COMMON_ICON_SIZES,
     CACHE_TTL,
     MAX_CACHE_SIZE,
+    generateTraceId,
+    clearTraceId,
 } from './state.ts';
 import { loadItemTemplates } from './templates.ts';
 import {
@@ -66,6 +68,96 @@ import { detectCount, hasCountOverlay } from './count-detection.ts';
 
 /** Base path for worker scripts - can be overridden for subdirectory deployments */
 let workerBasePath = '';
+
+// ========================================
+// Resolution Validation Constants (2.2)
+// ========================================
+
+/** Minimum supported image dimensions */
+const MIN_IMAGE_WIDTH = 320;
+const MIN_IMAGE_HEIGHT = 240;
+
+/** Maximum supported image dimensions (4K is reasonable max) */
+const MAX_IMAGE_WIDTH = 4096;
+const MAX_IMAGE_HEIGHT = 2160;
+
+/** Reasonable aspect ratio bounds for game screenshots */
+const MIN_ASPECT_RATIO = 1.0; // Square or wider
+const MAX_ASPECT_RATIO = 2.5; // Ultra-wide max
+
+/**
+ * Resolution validation result
+ */
+export interface ResolutionValidationResult {
+    valid: boolean;
+    error?: string;
+    width: number;
+    height: number;
+    aspectRatio: number;
+}
+
+/**
+ * Validate image resolution before processing (2.2)
+ * Rejects images that are too small, too large, or have extreme aspect ratios
+ *
+ * @param width Image width in pixels
+ * @param height Image height in pixels
+ * @returns Validation result with error message if invalid
+ */
+export function validateResolution(width: number, height: number): ResolutionValidationResult {
+    // Guard against invalid dimensions
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+        return {
+            valid: false,
+            error: `Invalid dimensions: ${width}x${height}. Dimensions must be positive numbers.`,
+            width,
+            height,
+            aspectRatio: 0,
+        };
+    }
+
+    const aspectRatio = width / height;
+
+    // Check minimum dimensions
+    if (width < MIN_IMAGE_WIDTH || height < MIN_IMAGE_HEIGHT) {
+        return {
+            valid: false,
+            error: `Image too small: ${width}x${height}. Minimum size is ${MIN_IMAGE_WIDTH}x${MIN_IMAGE_HEIGHT}.`,
+            width,
+            height,
+            aspectRatio,
+        };
+    }
+
+    // Check maximum dimensions
+    if (width > MAX_IMAGE_WIDTH || height > MAX_IMAGE_HEIGHT) {
+        return {
+            valid: false,
+            error: `Image too large: ${width}x${height}. Maximum size is ${MAX_IMAGE_WIDTH}x${MAX_IMAGE_HEIGHT}.`,
+            width,
+            height,
+            aspectRatio,
+        };
+    }
+
+    // Check aspect ratio
+    if (aspectRatio < MIN_ASPECT_RATIO || aspectRatio > MAX_ASPECT_RATIO) {
+        return {
+            valid: false,
+            error: `Unusual aspect ratio: ${aspectRatio.toFixed(2)}. Expected between ${MIN_ASPECT_RATIO} and ${MAX_ASPECT_RATIO}.`,
+            width,
+            height,
+            aspectRatio,
+        };
+    }
+
+    return {
+        valid: true,
+        width,
+        height,
+        aspectRatio,
+    };
+}
 
 /**
  * Get dynamic minimum confidence threshold based on resolution and scoring config
@@ -196,6 +288,160 @@ export function setWorkerBasePath(path: string): void {
  */
 function getWorkerPath(workerName: string): string {
     return `${workerBasePath}/workers/${workerName}`;
+}
+
+// ========================================
+// Detection Performance Timer (2.10)
+// ========================================
+
+/**
+ * Detection phase timing data
+ */
+export interface DetectionTimingPhase {
+    name: string;
+    startTime: number;
+    endTime?: number;
+    duration?: number;
+}
+
+/**
+ * Complete timing breakdown for a detection run
+ */
+export interface DetectionTiming {
+    traceId: string;
+    totalDuration: number;
+    phases: DetectionTimingPhase[];
+    startTime: number;
+    endTime: number;
+}
+
+/**
+ * Detection timer for performance timing breakdown (2.10)
+ */
+export class DetectionTimer {
+    private traceId: string;
+    private startTime: number;
+    private phases: DetectionTimingPhase[] = [];
+    private currentPhase: DetectionTimingPhase | null = null;
+
+    constructor(traceId: string) {
+        this.traceId = traceId;
+        this.startTime = performance.now();
+    }
+
+    /**
+     * Start a new phase
+     */
+    startPhase(name: string): void {
+        // End current phase if one exists
+        if (this.currentPhase) {
+            this.endPhase();
+        }
+
+        this.currentPhase = {
+            name,
+            startTime: performance.now(),
+        };
+    }
+
+    /**
+     * End the current phase
+     */
+    endPhase(): void {
+        if (!this.currentPhase) return;
+
+        this.currentPhase.endTime = performance.now();
+        this.currentPhase.duration = this.currentPhase.endTime - this.currentPhase.startTime;
+        this.phases.push(this.currentPhase);
+        this.currentPhase = null;
+    }
+
+    /**
+     * Get complete timing breakdown
+     */
+    getResults(): DetectionTiming {
+        // End any ongoing phase
+        if (this.currentPhase) {
+            this.endPhase();
+        }
+
+        const endTime = performance.now();
+        return {
+            traceId: this.traceId,
+            totalDuration: endTime - this.startTime,
+            phases: this.phases,
+            startTime: this.startTime,
+            endTime,
+        };
+    }
+
+    /**
+     * Log timing results
+     */
+    logResults(): void {
+        const results = this.getResults();
+        logger.info({
+            operation: 'cv.detection.timing',
+            data: {
+                traceId: results.traceId,
+                totalDurationMs: Math.round(results.totalDuration * 100) / 100,
+                phases: results.phases.map(p => ({
+                    name: p.name,
+                    durationMs: p.duration ? Math.round(p.duration * 100) / 100 : 0,
+                })),
+            },
+        });
+    }
+}
+
+// ========================================
+// Canvas Cleanup Helper (2.7)
+// ========================================
+
+/**
+ * Release a canvas element and its context to help garbage collection (2.7)
+ * Browsers may hold onto canvas memory until explicitly cleared
+ */
+export function releaseCanvas(canvas: HTMLCanvasElement | null): void {
+    if (!canvas) return;
+
+    // Clear the canvas
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+
+    // Set dimensions to 0 to release memory
+    canvas.width = 0;
+    canvas.height = 0;
+}
+
+/**
+ * Create a temporary canvas with automatic cleanup tracking
+ * Use with try/finally to ensure cleanup
+ */
+export function createTemporaryCanvas(
+    width: number,
+    height: number
+): {
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+    cleanup: () => void;
+} {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+    if (!ctx) {
+        throw new Error('Failed to get canvas 2D context');
+    }
+
+    return {
+        canvas,
+        ctx,
+        cleanup: () => releaseCanvas(canvas),
+    };
 }
 
 // ========================================
@@ -2169,7 +2415,13 @@ export async function detectItemsWithCV(
     const metrics = getMetricsCollector();
     const runStartTime = performance.now();
 
+    // Generate trace ID for this detection run (2.8)
+    const traceId = generateTraceId();
+    const timer = new DetectionTimer(traceId);
+
     try {
+        timer.startPhase('cache_check');
+
         // Check cache first
         const imageHash = hashImageDataUrl(imageDataUrl);
         const cachedResults = getCachedResults(imageHash);
@@ -2200,6 +2452,20 @@ export async function detectItemsWithCV(
         }
 
         const { ctx, width, height } = await loadImageToCanvas(imageDataUrl);
+
+        // Validate resolution (2.2 - Resolution Validation)
+        const resolutionValidation = validateResolution(width, height);
+        if (!resolutionValidation.valid) {
+            logger.warn({
+                operation: 'cv.resolution_validation_failed',
+                data: {
+                    width,
+                    height,
+                    error: resolutionValidation.error,
+                },
+            });
+            throw new Error(resolutionValidation.error);
+        }
 
         // Start metrics collection for this run
         const resolution = detectResolution(width, height);
@@ -2465,6 +2731,12 @@ export async function detectItemsWithCV(
         // End metrics run
         metrics.endRun(performance.now() - runStartTime);
 
+        // Log timing breakdown (2.10)
+        timer.logResults();
+
+        // Clear trace ID (2.8)
+        clearTraceId();
+
         return boostedDetections;
     } catch (error) {
         logger.error({
@@ -2473,9 +2745,14 @@ export async function detectItemsWithCV(
                 name: (error as Error).name,
                 message: (error as Error).message,
             },
+            data: { traceId },
         });
         // End metrics run even on error
         metrics.endRun(performance.now() - runStartTime);
+
+        // Clear trace ID (2.8)
+        clearTraceId();
+
         throw error;
     }
 }

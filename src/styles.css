@@ -6304,6 +6304,194 @@ button.breakpoint-card {
     margin-bottom: 0.25rem;
 }
 
+/* ========================================
+   Detection Error State (1.2)
+   ======================================== */
+.scan-detection-error {
+    margin: 1.5rem 0;
+    padding: 1.5rem;
+    background: rgba(255, 99, 71, 0.1);
+    border: 1px solid rgba(255, 99, 71, 0.4);
+    border-radius: 8px;
+    text-align: center;
+}
+
+.scan-detection-error-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.scan-detection-error-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #ff6347;
+    margin-bottom: 0.75rem;
+}
+
+.scan-detection-error-message {
+    color: var(--text-secondary);
+    margin-bottom: 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.scan-detection-error-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.scan-detection-error-actions button {
+    padding: 0.6rem 1.25rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+}
+
+.scan-error-retry-btn {
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    color: #000;
+}
+
+.scan-error-retry-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 255, 136, 0.3);
+}
+
+.scan-error-alternate-btn {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.scan-error-alternate-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* ========================================
+   Styled Confirm Dialog (1.1)
+   ======================================== */
+.confirm-dialog-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity 0.2s ease,
+        visibility 0.2s ease;
+}
+
+.confirm-dialog-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.confirm-dialog {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+}
+
+.confirm-dialog-overlay.active .confirm-dialog {
+    transform: scale(1);
+}
+
+.confirm-dialog-icon {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.confirm-dialog-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 0.75rem;
+}
+
+.confirm-dialog-message {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.confirm-dialog-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+}
+
+.confirm-dialog-actions button {
+    padding: 0.7rem 1.5rem;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+    min-width: 100px;
+}
+
+.confirm-dialog-cancel {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.confirm-dialog-cancel:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.confirm-dialog-confirm {
+    background: linear-gradient(135deg, #ff6347 0%, #ff4500 100%);
+    color: #fff;
+}
+
+.confirm-dialog-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 99, 71, 0.4);
+}
+
+/* Light theme adjustments */
+[data-theme='light'] .confirm-dialog {
+    background: var(--bg-card);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='light'] .confirm-dialog-cancel {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme='light'] .confirm-dialog-cancel:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .scan-detection-error {
+    background: rgba(255, 99, 71, 0.05);
+}
+
+[data-theme='light'] .scan-error-alternate-btn {
+    background: rgba(0, 0, 0, 0.05);
+    color: var(--text-primary);
+    border-color: rgba(0, 0, 0, 0.1) !important;
+}
+
 /* Detection stats summary */
 .scan-detection-stats {
     display: flex;
@@ -6341,6 +6529,43 @@ button.breakpoint-card {
     margin-top: 1rem;
     padding-top: 1rem;
     border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Paginated results "Show More" (1.6) */
+.scan-detection-section.collapsed .scan-detection-item:nth-child(n + 7) {
+    display: none;
+}
+
+.scan-show-more-btn {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.scan-show-more-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+}
+
+.scan-show-more-btn:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+[data-theme='light'] .scan-show-more-btn {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .scan-show-more-btn:hover {
+    background: rgba(0, 0, 0, 0.06);
 }
 
 .scan-detection-section strong {
@@ -8656,6 +8881,65 @@ button.breakpoint-card {
 .scan-upload-btn.uploading {
     position: relative;
     overflow: hidden;
+}
+
+/* Upload success state (1.4) */
+.scan-upload-success {
+    position: relative;
+}
+
+.scan-upload-success-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    animation: successPop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 2px 8px rgba(0, 255, 136, 0.4);
+}
+
+@keyframes successPop {
+    0% {
+        transform: scale(0);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.scan-upload-success-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 255, 136, 0.1);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: successFlash 0.6s ease-out;
+    pointer-events: none;
+}
+
+@keyframes successFlash {
+    0% {
+        background: rgba(0, 255, 136, 0.3);
+    }
+    100% {
+        background: rgba(0, 255, 136, 0);
+    }
 }
 
 .scan-upload-btn.uploading::after {

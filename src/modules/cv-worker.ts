@@ -249,15 +249,25 @@ self.onmessage = function(e) {
 // Worker Manager Class
 // ========================================
 
+// Worker recovery configuration (2.5)
+const MAX_WORKER_RESTART_ATTEMPTS = 3;
+const WORKER_RESTART_DELAY_MS = 500;
+
 class CVWorkerManager {
     private worker: Worker | null = null;
-    private pendingRequests: Map<string, {
-        resolve: (result: DetectionResult[]) => void;
-        reject: (error: Error) => void;
-        onProgress?: (progress: number) => void;
-    }> = new Map();
+    private pendingRequests: Map<
+        string,
+        {
+            resolve: (result: DetectionResult[]) => void;
+            reject: (error: Error) => void;
+            onProgress?: (progress: number) => void;
+        }
+    > = new Map();
     private isReady = false;
     private requestIdCounter = 0;
+    private restartAttempts = 0; // Track restart attempts for recovery (2.5)
+    private lastConfig: Partial<CVWorkerConfig> | undefined;
+    private lastTemplates: CVTemplate[] | undefined;
 
     /**
      * Initialize the CV worker
@@ -266,6 +276,10 @@ class CVWorkerManager {
         if (this.worker) {
             this.terminate();
         }
+
+        // Store config and templates for potential restart (2.5)
+        this.lastConfig = config;
+        this.lastTemplates = templates;
 
         try {
             // Create worker from blob URL
@@ -286,15 +300,16 @@ class CVWorkerManager {
                 this.pendingRequests.set(id, {
                     resolve: () => {
                         this.isReady = true;
+                        this.restartAttempts = 0; // Reset restart counter on success
                         resolve();
                     },
-                    reject
+                    reject,
                 });
 
                 this.worker?.postMessage({
                     type: 'init',
                     id,
-                    data: { config, templates }
+                    data: { config, templates },
                 });
 
                 // Timeout after 5 seconds
@@ -308,19 +323,70 @@ class CVWorkerManager {
         } catch (error) {
             logger.error({
                 operation: 'cv-worker.init',
-                error: { name: 'WorkerError', message: String(error), module: 'cv-worker' }
+                error: { name: 'WorkerError', message: String(error), module: 'cv-worker' },
             });
             throw error;
         }
     }
 
     /**
+     * Attempt to restart the worker after a failure (2.5)
+     * Uses exponential backoff and respects MAX_WORKER_RESTART_ATTEMPTS
+     */
+    private async restartWorker(): Promise<boolean> {
+        if (this.restartAttempts >= MAX_WORKER_RESTART_ATTEMPTS) {
+            logger.error({
+                operation: 'cv-worker.restart_failed',
+                error: {
+                    name: 'MaxRestartsExceeded',
+                    message: `Worker restart failed after ${MAX_WORKER_RESTART_ATTEMPTS} attempts`,
+                    module: 'cv-worker',
+                },
+            });
+            return false;
+        }
+
+        this.restartAttempts++;
+        const delay = WORKER_RESTART_DELAY_MS * Math.pow(2, this.restartAttempts - 1);
+
+        logger.warn({
+            operation: 'cv-worker.restart_attempt',
+            data: { attempt: this.restartAttempts, delay },
+        });
+
+        // Wait before attempting restart
+        await new Promise(resolve => setTimeout(resolve, delay));
+
+        try {
+            // Clean up existing worker
+            if (this.worker) {
+                this.worker.terminate();
+                this.worker = null;
+            }
+            this.isReady = false;
+
+            // Reinitialize with stored config
+            await this.init(this.lastConfig, this.lastTemplates);
+
+            logger.info({
+                operation: 'cv-worker.restart_success',
+                data: { attempt: this.restartAttempts },
+            });
+
+            return true;
+        } catch (error) {
+            logger.error({
+                operation: 'cv-worker.restart_error',
+                error: { name: 'RestartError', message: String(error), module: 'cv-worker' },
+            });
+            return this.restartWorker(); // Recursive retry
+        }
+    }
+
+    /**
      * Run detection on an image
      */
-    async detect(
-        imageData: ImageData,
-        onProgress?: (progress: number) => void
-    ): Promise<DetectionResult[]> {
+    async detect(imageData: ImageData, onProgress?: (progress: number) => void): Promise<DetectionResult[]> {
         if (!this.worker || !this.isReady) {
             throw new Error('CV Worker not initialized');
         }
@@ -332,7 +398,7 @@ class CVWorkerManager {
             this.worker?.postMessage({
                 type: 'detect',
                 id,
-                data: { imageData }
+                data: { imageData },
             });
 
             // Timeout after 30 seconds
@@ -377,7 +443,7 @@ class CVWorkerManager {
             if (type === 'progress') return;
             logger.warn({
                 operation: 'cv-worker.message',
-                data: { id, type, reason: 'no_pending_request' }
+                data: { id, type, reason: 'no_pending_request' },
             });
             return;
         }
@@ -405,19 +471,32 @@ class CVWorkerManager {
     }
 
     /**
-     * Handle worker errors
+     * Handle worker errors with recovery attempt (2.5)
      */
     private handleError(error: ErrorEvent): void {
         logger.error({
             operation: 'cv-worker.error',
-            error: { name: 'WorkerError', message: error.message, module: 'cv-worker' }
+            error: { name: 'WorkerError', message: error.message, module: 'cv-worker' },
         });
+
+        // Store pending requests before clearing
+        const pendingToRetry = new Map(this.pendingRequests);
 
         // Reject all pending requests
         for (const [id, pending] of this.pendingRequests) {
             pending.reject(new Error(`Worker error: ${error.message}`));
             this.pendingRequests.delete(id);
         }
+
+        // Attempt worker restart (2.5)
+        this.restartWorker().then(success => {
+            if (success) {
+                logger.info({
+                    operation: 'cv-worker.recovered',
+                    data: { pendingCount: pendingToRetry.size },
+                });
+            }
+        });
     }
 
     /**
@@ -457,7 +536,7 @@ export async function runCVDetection(
     if (!isWorkerSupported()) {
         logger.warn({
             operation: 'cv-worker.detect',
-            data: { reason: 'workers_not_supported', fallback: 'main_thread' }
+            data: { reason: 'workers_not_supported', fallback: 'main_thread' },
         });
         // Fallback would go here - for now just return empty
         return [];
@@ -473,7 +552,7 @@ export async function runCVDetection(
     } catch (error) {
         logger.error({
             operation: 'cv-worker.detect',
-            error: { name: 'DetectionError', message: String(error), module: 'cv-worker' }
+            error: { name: 'DetectionError', message: String(error), module: 'cv-worker' },
         });
         throw error;
     }

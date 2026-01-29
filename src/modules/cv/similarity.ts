@@ -6,6 +6,7 @@
 
 import { applyAdaptivePreprocessing, type SceneAnalysis, analyzeScene } from './adaptive-preprocessing.ts';
 import { calculateWeightedScore, passesThreshold, getThresholdForRarity } from './scoring-config.ts';
+import { logger } from '../logger.ts';
 
 /**
  * Simple image data interface for cross-module compatibility
@@ -593,4 +594,88 @@ export function calculateAdaptiveDetailedSimilarity(
  */
 export function getSceneAnalysis(imageData: SimpleImageData): SceneAnalysis {
     return analyzeScene(imageData);
+}
+
+// ========================================
+// Image Validation Functions (2.1)
+// ========================================
+
+/**
+ * Threshold for determining if an image is uniform
+ * Variance below this value indicates a solid/near-solid color image
+ */
+const UNIFORM_IMAGE_VARIANCE_THRESHOLD = 100;
+
+/**
+ * Check if an image is uniform (solid color or near-solid)
+ * Uniform images can cause misleading similarity scores
+ * Returns true if the image is too uniform to be a valid template match candidate
+ *
+ * @param imageData The image data to check
+ * @returns true if the image is uniform, false otherwise
+ */
+export function isUniformImage(imageData: SimpleImageData): boolean {
+    const data = imageData.data;
+    const pixelCount = data.length / 4;
+
+    if (pixelCount === 0) return true;
+
+    // Sample pixels for performance (every 8th pixel)
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
+    let sumSqR = 0,
+        sumSqG = 0,
+        sumSqB = 0;
+    let sampleCount = 0;
+
+    for (let i = 0; i < data.length; i += 32) {
+        // Skip 8 pixels at a time (32 bytes)
+        const r = data[i] ?? 0;
+        const g = data[i + 1] ?? 0;
+        const b = data[i + 2] ?? 0;
+
+        sumR += r;
+        sumG += g;
+        sumB += b;
+        sumSqR += r * r;
+        sumSqG += g * g;
+        sumSqB += b * b;
+        sampleCount++;
+    }
+
+    if (sampleCount === 0) return true;
+
+    // Calculate variance for each channel
+    const meanR = sumR / sampleCount;
+    const meanG = sumG / sampleCount;
+    const meanB = sumB / sampleCount;
+
+    const varianceR = sumSqR / sampleCount - meanR * meanR;
+    const varianceG = sumSqG / sampleCount - meanG * meanG;
+    const varianceB = sumSqB / sampleCount - meanB * meanB;
+
+    const totalVariance = varianceR + varianceG + varianceB;
+
+    return totalVariance < UNIFORM_IMAGE_VARIANCE_THRESHOLD;
+}
+
+/**
+ * Calculate similarity with uniform image early rejection
+ * Returns 0 immediately for uniform images to avoid misleading scores
+ */
+export function calculateSimilarityWithUniformCheck(imageData1: SimpleImageData, imageData2: SimpleImageData): number {
+    // Early rejection for uniform images
+    if (isUniformImage(imageData1) || isUniformImage(imageData2)) {
+        logger.debug?.({
+            operation: 'cv.similarity.uniform_rejection',
+            data: {
+                img1Uniform: isUniformImage(imageData1),
+                img2Uniform: isUniformImage(imageData2),
+            },
+        });
+        return 0;
+    }
+
+    return calculateCombinedSimilarity(imageData1, imageData2);
 }
