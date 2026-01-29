@@ -330,6 +330,62 @@ export function showDetailModal(img) {
 export function hideDetailModal() {
     elements.detailModal.classList.remove('show');
     state.currentDetailImage = null;
+    // Reset inline edit mode when closing
+    exitInlineEditMode();
+}
+
+// Enter inline edit mode for filename in detail modal
+export function enterInlineEditMode() {
+    const filenameH3 = document.getElementById('detail-filename');
+    const filenameInput = document.getElementById('detail-filename-input');
+    const editBtn = document.getElementById('detail-edit-name-btn');
+    const confirmBtn = document.getElementById('detail-confirm-name-btn');
+    const cancelBtn = document.getElementById('detail-cancel-name-btn');
+
+    if (!filenameH3 || !filenameInput) return;
+
+    // Hide h3, show input
+    filenameH3.classList.add('hidden');
+    filenameInput.classList.remove('hidden');
+    filenameInput.value = filenameH3.textContent;
+
+    // Hide edit button, show confirm/cancel
+    editBtn.classList.add('hidden');
+    confirmBtn.classList.remove('hidden');
+    cancelBtn.classList.remove('hidden');
+
+    // Focus and select input
+    filenameInput.focus();
+    filenameInput.select();
+}
+
+// Exit inline edit mode (cancel)
+export function exitInlineEditMode() {
+    const filenameH3 = document.getElementById('detail-filename');
+    const filenameInput = document.getElementById('detail-filename-input');
+    const editBtn = document.getElementById('detail-edit-name-btn');
+    const confirmBtn = document.getElementById('detail-confirm-name-btn');
+    const cancelBtn = document.getElementById('detail-cancel-name-btn');
+
+    if (!filenameH3 || !filenameInput) return;
+
+    // Show h3, hide input
+    filenameH3.classList.remove('hidden');
+    filenameInput.classList.add('hidden');
+
+    // Show edit button, hide confirm/cancel
+    editBtn.classList.remove('hidden');
+    confirmBtn.classList.add('hidden');
+    cancelBtn.classList.add('hidden');
+}
+
+// Update detail modal filename after successful rename
+export function updateDetailFilename(newFilename) {
+    const filenameH3 = document.getElementById('detail-filename');
+    if (filenameH3) {
+        filenameH3.textContent = newFilename;
+    }
+    exitInlineEditMode();
 }
 
 // Show rename modal

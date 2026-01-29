@@ -543,6 +543,75 @@
     font-size: 16px;
 }
 
+/* Inline Filename Edit */
+.filename-edit-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.filename-input {
+    font-size: 1.1em;
+    padding: 4px 8px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-primary);
+    flex: 1;
+    min-width: 200px;
+}
+
+.filename-input:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
+.filename-input.hidden {
+    display: none;
+}
+
+.edit-btn,
+.edit-confirm-btn,
+.edit-cancel-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1em;
+    padding: 4px 6px;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.edit-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.edit-confirm-btn {
+    color: var(--success);
+}
+
+.edit-confirm-btn:hover {
+    background: rgba(74, 222, 128, 0.2);
+}
+
+.edit-cancel-btn {
+    color: var(--error);
+}
+
+.edit-cancel-btn:hover {
+    background: rgba(248, 113, 113, 0.2);
+}
+
+.edit-confirm-btn.hidden,
+.edit-cancel-btn.hidden {
+    display: none;
+}
+
+.filename-edit-container h3.hidden {
+    display: none;
+}
+
 .modal-close {
     background: none;
     border: none;

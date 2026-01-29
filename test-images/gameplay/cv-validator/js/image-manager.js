@@ -54,6 +54,9 @@ import {
     hideFallbackModal,
     showToast,
     getElements,
+    enterInlineEditMode,
+    exitInlineEditMode,
+    updateDetailFilename,
 } from './image-manager/renderer.js';
 
 // Initialize the application
@@ -164,13 +167,6 @@ function setupEventListeners() {
 
     // Detail modal
     document.getElementById('detail-close')?.addEventListener('click', hideDetailModal);
-    document.getElementById('detail-rename-btn')?.addEventListener('click', () => {
-        const img = state.currentDetailImage; // Save reference before hideDetailModal clears it
-        if (img) {
-            hideDetailModal();
-            showRenameModal(img);
-        }
-    });
     document.getElementById('detail-delete-btn')?.addEventListener('click', () => {
         const img = state.currentDetailImage; // Save reference before hideDetailModal clears it
         if (img) {
@@ -184,6 +180,15 @@ function setupEventListeners() {
             // Open CV Validator with this image selected
             window.open(`cv-validator.html?image=${encodeURIComponent(img.path)}`, '_blank');
         }
+    });
+
+    // Inline filename edit in detail modal
+    document.getElementById('detail-edit-name-btn')?.addEventListener('click', enterInlineEditMode);
+    document.getElementById('detail-cancel-name-btn')?.addEventListener('click', exitInlineEditMode);
+    document.getElementById('detail-confirm-name-btn')?.addEventListener('click', handleInlineRenameConfirm);
+    document.getElementById('detail-filename-input')?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleInlineRenameConfirm();
+        if (e.key === 'Escape') exitInlineEditMode();
     });
 
     // Rename modal
@@ -465,6 +470,91 @@ async function handleRenameConfirm() {
         renameGroundTruthEntry(img.path, newPath);
     } else {
         updateRenameHint(result.error, true);
+    }
+}
+
+// Handle inline rename confirmation (in detail modal)
+async function handleInlineRenameConfirm() {
+    const img = state.currentDetailImage;
+    if (!img) return;
+
+    const input = document.getElementById('detail-filename-input');
+    const newFilename = input.value.trim();
+    const validation = validateFilename(newFilename);
+
+    if (!validation.valid) {
+        showToast(validation.error, 'error');
+        return;
+    }
+
+    if (newFilename === img.filename) {
+        exitInlineEditMode();
+        return;
+    }
+
+    // Build new path
+    const parts = img.path.split('/');
+    parts.pop();
+    const newPath = [...parts, newFilename].join('/');
+
+    // Check if file already exists
+    const existingImage = state.images.find(i => i.path === newPath);
+    if (existingImage) {
+        showToast('A file with this name already exists', 'error');
+        return;
+    }
+
+    // Try filesystem rename
+    const result = await renameFile(img.path, newFilename);
+
+    if (result.success) {
+        // Update ground truth
+        renameGroundTruthEntry(img.path, newPath);
+
+        // Try to save ground truth
+        const saveResult = await saveGroundTruth();
+        if (!saveResult.success && saveResult.fallback) {
+            // Show fallback for ground truth update
+            hideDetailModal();
+            showFallbackModal({
+                description:
+                    'File renamed successfully, but ground-truth.json could not be updated automatically. Download the updated file:',
+                command: `# File renamed: ${img.filename} -> ${newFilename}`,
+                showDownload: true,
+            });
+        }
+
+        // Update local state
+        const oldPath = img.path;
+        img.filename = newFilename;
+        img.path = newPath;
+
+        // Update selection if necessary
+        if (state.selectedImages.has(oldPath)) {
+            state.selectedImages.delete(oldPath);
+            state.selectedImages.add(newPath);
+        }
+
+        // Update path display in detail modal
+        document.getElementById('detail-path').textContent = newPath;
+
+        // Update filename display and exit edit mode
+        updateDetailFilename(newFilename);
+        renderGrid();
+        showToast(`Renamed to ${newFilename}`, 'success');
+    } else if (result.fallback) {
+        // Show fallback instructions
+        hideDetailModal();
+        showFallbackModal({
+            description: 'Automatic rename not available. Run this command in your terminal:',
+            command: generateRenameCommand(img.path, newPath),
+            showDownload: true,
+        });
+
+        // Still update ground truth for download
+        renameGroundTruthEntry(img.path, newPath);
+    } else {
+        showToast(result.error, 'error');
     }
 }
 
