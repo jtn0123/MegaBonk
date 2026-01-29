@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Manager - CV Validator</title>
+    <link rel="stylesheet" href="cv-validator/styles/base.css">
+    <link rel="stylesheet" href="cv-validator/styles/layout.css">
+    <link rel="stylesheet" href="cv-validator/styles/components.css">
+    <link rel="stylesheet" href="cv-validator/styles/image-manager.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Image Manager</h1>
+
+        <!-- Navigation -->
+        <nav class="page-nav">
+            <a href="cv-validator.html">🔍 Validator</a>
+            <a href="cv-analytics.html">📊 Analytics</a>
+            <a href="cv-performance.html">⚡ Performance</a>
+            <a href="training-validator.html">🎯 Training Data</a>
+            <a href="quick-test.html">🧪 Quick Test</a>
+            <a href="image-manager.html" class="active">🗂️ Image Manager</a>
+        </nav>
+
+        <!-- File System Status Bar -->
+        <div class="fs-status-bar">
+            <div class="fs-status-indicator">
+                <span class="fs-icon" id="fs-icon">📁</span>
+                <span class="fs-path" id="fs-path">No directory selected</span>
+                <span class="fs-permission" id="fs-permission"></span>
+            </div>
+            <div class="fs-actions">
+                <button class="fs-btn" id="select-directory-btn">Select Directory</button>
+                <button class="fs-btn" id="refresh-btn" disabled>Refresh</button>
+            </div>
+            <span class="fs-method" id="fs-method"></span>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="manager-toolbar">
+            <div class="toolbar-left">
+                <label class="select-all-label">
+                    <input type="checkbox" id="select-all-checkbox">
+                    <span>Select All</span>
+                </label>
+                <span class="selection-count" id="selection-count">0 selected</span>
+            </div>
+            <div class="toolbar-center">
+                <button class="toolbar-btn" id="batch-rename-btn" disabled>
+                    <span class="btn-icon">✏️</span> Batch Rename
+                </button>
+                <button class="toolbar-btn danger" id="batch-delete-btn" disabled>
+                    <span class="btn-icon">🗑️</span> Delete Selected
+                </button>
+                <button class="toolbar-btn" id="export-backup-btn" disabled>
+                    <span class="btn-icon">💾</span> Backup Ground Truth
+                </button>
+            </div>
+            <div class="toolbar-right">
+                <button class="toolbar-btn" id="find-orphans-btn" disabled>
+                    <span class="btn-icon">🔍</span> Find Orphans
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Panel -->
+        <div class="filter-panel">
+            <div class="filter-group">
+                <label>Source:</label>
+                <select id="source-filter">
+                    <option value="all">All Sources</option>
+                    <option value="pc-screenshots">pc-screenshots/</option>
+                    <option value="steam-community">steam-community/</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Status:</label>
+                <select id="status-filter">
+                    <option value="all">All Status</option>
+                    <option value="labeled">Labeled</option>
+                    <option value="unlabeled">Unlabeled</option>
+                    <option value="orphaned">Orphaned Entries</option>
+                </select>
+            </div>
+            <div class="filter-group search-group">
+                <label>Search:</label>
+                <input type="text" id="search-input" placeholder="Filter by filename...">
+            </div>
+            <div class="filter-group">
+                <label>Sort:</label>
+                <select id="sort-select">
+                    <option value="name-asc">Name (A-Z)</option>
+                    <option value="name-desc">Name (Z-A)</option>
+                    <option value="date-desc">Date (Newest)</option>
+                    <option value="date-asc">Date (Oldest)</option>
+                    <option value="items-desc">Items (Most)</option>
+                    <option value="items-asc">Items (Least)</option>
+                    <option value="status">Status</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Statistics Bar -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                <span class="stat-label">Total Images:</span>
+                <span class="stat-value" id="stat-total">0</span>
+            </div>
+            <div class="stat-item labeled">
+                <span class="stat-label">Labeled:</span>
+                <span class="stat-value" id="stat-labeled">0</span>
+            </div>
+            <div class="stat-item unlabeled">
+                <span class="stat-label">Unlabeled:</span>
+                <span class="stat-value" id="stat-unlabeled">0</span>
+            </div>
+            <div class="stat-item orphaned">
+                <span class="stat-label">Orphaned:</span>
+                <span class="stat-value" id="stat-orphaned">0</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Filtered:</span>
+                <span class="stat-value" id="stat-filtered">0</span>
+            </div>
+        </div>
+
+        <!-- Image Grid -->
+        <div class="image-grid" id="image-grid">
+            <div class="loading-message" id="loading-message">
+                <p>Select a directory to browse images</p>
+                <p class="hint">Click "Select Directory" and choose the <code>test-images/gameplay/</code> folder</p>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="empty-state" style="display: none;">
+            <p>No images match the current filters</p>
+        </div>
+    </div>
+
+    <!-- Image Detail Modal -->
+    <div class="modal" id="detail-modal">
+        <div class="modal-content detail-modal-content">
+            <div class="modal-header">
+                <h3 id="detail-filename">filename.png</h3>
+                <button class="modal-close" id="detail-close">&times;</button>
+            </div>
+            <div class="modal-body detail-body">
+                <div class="detail-preview">
+                    <img id="detail-image" src="" alt="Preview">
+                </div>
+                <div class="detail-info">
+                    <div class="info-row">
+                        <label>Path:</label>
+                        <span id="detail-path"></span>
+                    </div>
+                    <div class="info-row">
+                        <label>Resolution:</label>
+                        <span id="detail-resolution"></span>
+                    </div>
+                    <div class="info-row">
+                        <label>Status:</label>
+                        <span id="detail-status"></span>
+                    </div>
+                    <div class="info-row">
+                        <label>Items:</label>
+                        <span id="detail-items"></span>
+                    </div>
+                    <div class="info-row" id="detail-notes-row">
+                        <label>Notes:</label>
+                        <span id="detail-notes"></span>
+                    </div>
+                    <div class="info-row" id="detail-difficulty-row">
+                        <label>Difficulty:</label>
+                        <span id="detail-difficulty"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="detail-rename-btn">
+                    <span>✏️</span> Rename
+                </button>
+                <button class="btn" id="detail-open-validator-btn">
+                    <span>🔬</span> Open in Validator
+                </button>
+                <button class="btn danger" id="detail-delete-btn">
+                    <span>🗑️</span> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Rename Modal -->
+    <div class="modal" id="rename-modal">
+        <div class="modal-content rename-modal-content">
+            <div class="modal-header">
+                <h3>Rename Image</h3>
+                <button class="modal-close" id="rename-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="rename-form">
+                    <div class="form-group">
+                        <label>Current Name:</label>
+                        <span class="current-name" id="rename-current"></span>
+                    </div>
+                    <div class="form-group">
+                        <label for="rename-input">New Name:</label>
+                        <input type="text" id="rename-input" placeholder="new_filename.png">
+                    </div>
+                    <div class="form-hint" id="rename-hint"></div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn cancel" id="rename-cancel-btn">Cancel</button>
+                <button class="btn primary" id="rename-confirm-btn">Rename</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal" id="delete-modal">
+        <div class="modal-content delete-modal-content">
+            <div class="modal-header">
+                <h3>Confirm Deletion</h3>
+                <button class="modal-close" id="delete-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="delete-warning">
+                    <span class="warning-icon">⚠️</span>
+                    <p>Are you sure you want to delete the following?</p>
+                </div>
+                <div class="delete-list" id="delete-list">
+                    <!-- Files to delete will be listed here -->
+                </div>
+                <div class="delete-note">
+                    <p>This will also remove entries from <code>ground-truth.json</code></p>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn cancel" id="delete-cancel-btn">Cancel</button>
+                <button class="btn danger" id="delete-confirm-btn">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fallback Instructions Modal (for browsers without File System Access API) -->
+    <div class="modal" id="fallback-modal">
+        <div class="modal-content fallback-modal-content">
+            <div class="modal-header">
+                <h3>Manual File Operation Required</h3>
+                <button class="modal-close" id="fallback-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="fallback-description"></p>
+                <div class="fallback-commands">
+                    <label>Terminal Command:</label>
+                    <div class="command-box">
+                        <code id="fallback-command"></code>
+                        <button class="copy-btn" id="fallback-copy-btn">Copy</button>
+                    </div>
+                </div>
+                <div class="fallback-download" id="fallback-download-section" style="display: none;">
+                    <p>Download the updated ground-truth.json:</p>
+                    <button class="btn primary" id="fallback-download-btn">Download ground-truth.json</button>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn" id="fallback-done-btn">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        <span class="toast-icon" id="toast-icon"></span>
+        <span class="toast-message" id="toast-message"></span>
+    </div>
+
+    <script type="module" src="cv-validator/js/image-manager.js"></script>
+</body>
+</html>
