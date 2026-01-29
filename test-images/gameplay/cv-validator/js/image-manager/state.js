@@ -175,5 +175,6 @@ export function addOrphanedEntry(gtPath, data) {
 export function getSourceFromPath(path) {
     if (path.includes('pc-screenshots')) return 'pc-screenshots';
     if (path.includes('steam-community')) return 'steam-community';
+    if (path.includes('steam-scraped')) return 'steam-scraped';
     return 'unknown';
 }

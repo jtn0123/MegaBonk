@@ -63,34 +63,73 @@ async function init() {
     // Initialize renderer
     initRenderer();
 
-    // Check File System Access API support
+    // Load ground truth first
+    const gtResult = await loadGroundTruth();
+    if (!gtResult.success) {
+        showToast('Failed to load ground-truth.json', 'error');
+        return;
+    }
+
+    // Auto-load images from ground-truth.json (like CV validator does)
+    await loadImagesFromGroundTruth();
+
+    // Check File System Access API support for write operations
     if (isFileSystemAccessSupported()) {
         updateFileSystemStatus({
-            icon: '📁',
-            path: 'Click "Select Directory" to browse images',
-            method: 'File System Access API',
-            methodClass: 'direct',
+            icon: '📂',
+            path: 'Images loaded from ground-truth.json',
+            method: 'Read-only (Select Directory for write access)',
+            methodClass: 'readonly',
             hasAccess: false,
         });
     } else {
         updateFileSystemStatus({
-            icon: '⚠️',
-            path: 'File System Access API not supported',
+            icon: '📂',
+            path: 'Images loaded from ground-truth.json',
             method: 'Read-only mode',
-            methodClass: '',
+            methodClass: 'readonly',
             hasAccess: false,
         });
-        showToast('File operations require a supported browser (Chrome, Edge)', 'warning', 5000);
-    }
-
-    // Load ground truth
-    const gtResult = await loadGroundTruth();
-    if (!gtResult.success) {
-        showToast('Failed to load ground-truth.json', 'error');
     }
 
     // Setup event listeners
     setupEventListeners();
+}
+
+// Load images directly from ground-truth.json (no directory selection needed)
+async function loadImagesFromGroundTruth() {
+    showLoading('Loading images from ground-truth.json...');
+    resetState();
+
+    const images = [];
+    const gtPaths = Object.keys(state.groundTruth).filter(k => !k.startsWith('_'));
+
+    for (const path of gtPaths) {
+        const parts = path.split('/');
+        const filename = parts.pop();
+        const source = parts[0] || 'unknown';
+
+        images.push({
+            filename: filename,
+            path: path,
+            source: source,
+            fileHandle: null, // No file handle in read-only mode
+            lastModified: null,
+            size: null,
+            status: 'labeled',
+            itemCount: state.groundTruth[path]?.items?.length || 0,
+            groundTruthData: state.groundTruth[path],
+        });
+    }
+
+    state.images = images;
+
+    // Apply filters and render
+    applyFilters();
+    renderGrid();
+    renderStats();
+
+    showToast(`Loaded ${images.length} images from ground-truth.json`, 'success');
 }
 
 // Setup all event listeners

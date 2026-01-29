@@ -210,11 +210,11 @@ export function updateFileSystemStatus(status) {
         }
     }
 
-    // Enable/disable toolbar buttons
-    const hasAccess = status.hasAccess;
-    if (elements.refreshBtn) elements.refreshBtn.disabled = !hasAccess;
-    if (elements.exportBackupBtn) elements.exportBackupBtn.disabled = !hasAccess;
-    if (elements.findOrphansBtn) elements.findOrphansBtn.disabled = !hasAccess;
+    // Enable toolbar buttons - they work in read-only mode too (backup downloads, find orphans, etc.)
+    // Refresh only needs directory access for write operations
+    if (elements.refreshBtn) elements.refreshBtn.disabled = false;
+    if (elements.exportBackupBtn) elements.exportBackupBtn.disabled = false;
+    if (elements.findOrphansBtn) elements.findOrphansBtn.disabled = false;
 }
 
 // Show loading state
