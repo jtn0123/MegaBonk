@@ -57,6 +57,7 @@ import {
     enterInlineEditMode,
     exitInlineEditMode,
     updateDetailFilename,
+    getInlineEditFilename,
 } from './image-manager/renderer.js';
 
 // Initialize the application
@@ -478,8 +479,8 @@ async function handleInlineRenameConfirm() {
     const img = state.currentDetailImage;
     if (!img) return;
 
-    const input = document.getElementById('detail-filename-input');
-    const newFilename = input.value.trim();
+    // Get the full filename with extension preserved
+    const newFilename = getInlineEditFilename();
     const validation = validateFilename(newFilename);
 
     if (!validation.valid) {

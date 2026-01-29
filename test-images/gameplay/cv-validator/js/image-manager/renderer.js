@@ -338,16 +338,30 @@ export function hideDetailModal() {
 export function enterInlineEditMode() {
     const filenameH3 = document.getElementById('detail-filename');
     const filenameInput = document.getElementById('detail-filename-input');
+    const filenameExt = document.getElementById('detail-filename-ext');
     const editBtn = document.getElementById('detail-edit-name-btn');
     const confirmBtn = document.getElementById('detail-confirm-name-btn');
     const cancelBtn = document.getElementById('detail-cancel-name-btn');
 
     if (!filenameH3 || !filenameInput) return;
 
-    // Hide h3, show input
+    // Extract base name without extension
+    const fullFilename = filenameH3.textContent;
+    const lastDot = fullFilename.lastIndexOf('.');
+    const baseName = lastDot > 0 ? fullFilename.substring(0, lastDot) : fullFilename;
+    const extension = lastDot > 0 ? fullFilename.substring(lastDot) : '';
+
+    // Hide h3, show input and extension
     filenameH3.classList.add('hidden');
     filenameInput.classList.remove('hidden');
-    filenameInput.value = filenameH3.textContent;
+    filenameInput.value = baseName;
+    filenameInput.dataset.extension = extension;
+
+    // Show extension label
+    if (filenameExt && extension) {
+        filenameExt.textContent = extension;
+        filenameExt.classList.remove('hidden');
+    }
 
     // Hide edit button, show confirm/cancel
     editBtn.classList.add('hidden');
@@ -359,19 +373,30 @@ export function enterInlineEditMode() {
     filenameInput.select();
 }
 
+// Get the full filename from inline edit (base name + stored extension)
+export function getInlineEditFilename() {
+    const filenameInput = document.getElementById('detail-filename-input');
+    if (!filenameInput) return '';
+    const baseName = filenameInput.value.trim();
+    const extension = filenameInput.dataset.extension || '';
+    return baseName + extension;
+}
+
 // Exit inline edit mode (cancel)
 export function exitInlineEditMode() {
     const filenameH3 = document.getElementById('detail-filename');
     const filenameInput = document.getElementById('detail-filename-input');
+    const filenameExt = document.getElementById('detail-filename-ext');
     const editBtn = document.getElementById('detail-edit-name-btn');
     const confirmBtn = document.getElementById('detail-confirm-name-btn');
     const cancelBtn = document.getElementById('detail-cancel-name-btn');
 
     if (!filenameH3 || !filenameInput) return;
 
-    // Show h3, hide input
+    // Show h3, hide input and extension
     filenameH3.classList.remove('hidden');
     filenameInput.classList.add('hidden');
+    if (filenameExt) filenameExt.classList.add('hidden');
 
     // Show edit button, hide confirm/cancel
     editBtn.classList.remove('hidden');
@@ -382,9 +407,12 @@ export function exitInlineEditMode() {
 // Update detail modal filename after successful rename
 export function updateDetailFilename(newFilename) {
     const filenameH3 = document.getElementById('detail-filename');
+    const filenameExt = document.getElementById('detail-filename-ext');
     if (filenameH3) {
         filenameH3.textContent = newFilename;
     }
+    // Hide extension span before exiting (it will show full filename in h3)
+    if (filenameExt) filenameExt.classList.add('hidden');
     exitInlineEditMode();
 }
 

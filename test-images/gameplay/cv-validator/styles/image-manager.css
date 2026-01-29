@@ -571,6 +571,16 @@
     display: none;
 }
 
+.filename-ext {
+    font-size: 1.1em;
+    color: var(--text-secondary);
+    font-family: monospace;
+}
+
+.filename-ext.hidden {
+    display: none;
+}
+
 .edit-btn,
 .edit-confirm-btn,
 .edit-cancel-btn {
