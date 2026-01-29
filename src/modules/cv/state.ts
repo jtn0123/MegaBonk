@@ -121,9 +121,61 @@ export const COMMON_ICON_SIZES = [32, 38, 40, 44, 48, 55, 64, 72] as const;
 
 export const CACHE_TTL = 1000 * 60 * 15; // 15 minutes
 export const MAX_CACHE_SIZE = 50; // Maximum number of cache entries
+const CACHE_CLEANUP_INTERVAL = 1000 * 60 * 10; // 10 minutes - periodic cleanup interval
 
 // Timer for periodic cache cleanup
 let cacheCleanupTimer: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Start periodic cache cleanup to remove stale entries
+ * Prevents memory accumulation from unused cached items
+ */
+export function startPeriodicCacheCleanup(): void {
+    if (cacheCleanupTimer) return; // Already running
+
+    cacheCleanupTimer = setInterval(() => {
+        cleanupStaleCacheEntries();
+    }, CACHE_CLEANUP_INTERVAL);
+
+    logger.info({
+        operation: 'cv.state.cache_cleanup_started',
+        data: { interval: CACHE_CLEANUP_INTERVAL },
+    });
+}
+
+/**
+ * Clean up stale detection cache entries
+ * Removes entries older than CACHE_TTL
+ */
+export function cleanupStaleCacheEntries(): void {
+    const now = Date.now();
+    let removedCount = 0;
+
+    for (const [key, entry] of detectionCache.entries()) {
+        if (now - entry.timestamp > CACHE_TTL) {
+            detectionCache.delete(key);
+            removedCount++;
+        }
+    }
+
+    if (removedCount > 0) {
+        logger.info({
+            operation: 'cv.state.cache_cleanup',
+            data: { removedEntries: removedCount, remainingEntries: detectionCache.size },
+        });
+    }
+}
+
+/**
+ * Stop periodic cache cleanup
+ */
+export function stopPeriodicCacheCleanup(): void {
+    if (cacheCleanupTimer) {
+        clearInterval(cacheCleanupTimer);
+        cacheCleanupTimer = null;
+        logger.info({ operation: 'cv.state.cache_cleanup_stopped' });
+    }
+}
 
 // ========================================
 // State Getters

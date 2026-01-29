@@ -648,7 +648,14 @@
                             </div>
 
                             <!-- Detection Confidence Info -->
-                            <div id="scan-detection-info" class="scan-detection-info" style="display: none">
+                            <div
+                                id="scan-detection-info"
+                                class="scan-detection-info"
+                                style="display: none"
+                                role="status"
+                                aria-live="polite"
+                                aria-label="Detection results"
+                            >
                                 <!-- Detection results displayed here -->
                             </div>
 
@@ -657,16 +664,28 @@
                                 <div class="scan-selection-columns">
                                     <!-- Character Selection -->
                                     <div class="scan-selection-group">
-                                        <h4>👤 Select Your Character</h4>
-                                        <div id="scan-character-grid" class="scan-character-grid">
+                                        <h4 id="scan-character-label">👤 Select Your Character</h4>
+                                        <div
+                                            id="scan-character-grid"
+                                            class="scan-character-grid"
+                                            role="listbox"
+                                            aria-labelledby="scan-character-label"
+                                            tabindex="0"
+                                        >
                                             <!-- Characters loaded dynamically -->
                                         </div>
                                     </div>
 
                                     <!-- Weapon Selection -->
                                     <div class="scan-selection-group">
-                                        <h4>⚔️ Select Your Weapon</h4>
-                                        <div id="scan-weapon-grid" class="scan-weapon-grid">
+                                        <h4 id="scan-weapon-label">⚔️ Select Your Weapon</h4>
+                                        <div
+                                            id="scan-weapon-grid"
+                                            class="scan-weapon-grid"
+                                            role="listbox"
+                                            aria-labelledby="scan-weapon-label"
+                                            tabindex="0"
+                                        >
                                             <!-- Weapons loaded dynamically -->
                                         </div>
                                     </div>
@@ -674,16 +693,30 @@
 
                                 <!-- Items Grid -->
                                 <div class="scan-selection-group full-width">
-                                    <h4>📦 Select Items (tap + to add, - to remove)</h4>
-                                    <div id="scan-item-grid" class="scan-item-grid">
+                                    <h4 id="scan-item-label">📦 Select Items (tap + to add, - to remove)</h4>
+                                    <div
+                                        id="scan-item-grid"
+                                        class="scan-item-grid"
+                                        role="listbox"
+                                        aria-labelledby="scan-item-label"
+                                        aria-multiselectable="true"
+                                        tabindex="0"
+                                    >
                                         <!-- Items loaded dynamically -->
                                     </div>
                                 </div>
 
                                 <!-- Tomes Grid -->
                                 <div class="scan-selection-group full-width">
-                                    <h4>📚 Select Tomes</h4>
-                                    <div id="scan-tome-grid" class="scan-tome-grid">
+                                    <h4 id="scan-tome-label">📚 Select Tomes</h4>
+                                    <div
+                                        id="scan-tome-grid"
+                                        class="scan-tome-grid"
+                                        role="listbox"
+                                        aria-labelledby="scan-tome-label"
+                                        aria-multiselectable="true"
+                                        tabindex="0"
+                                    >
                                         <!-- Tomes loaded dynamically -->
                                     </div>
                                 </div>

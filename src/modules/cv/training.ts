@@ -88,6 +88,23 @@ export function setTrainingDataBasePath(path: string): void {
     trainingDataBasePath = path.endsWith('/') ? path : path + '/';
 }
 
+/**
+ * Validate that an item ID is safe for use in paths
+ * @param itemId The item ID to validate
+ * @returns true if the item ID is safe
+ */
+function isValidItemId(itemId: string): boolean {
+    // Check for path traversal attempts
+    if (itemId.includes('..') || itemId.includes('/') || itemId.includes('\\')) {
+        return false;
+    }
+    // Check for other potentially dangerous characters
+    if (/[<>:"|?*]/.test(itemId)) {
+        return false;
+    }
+    return itemId.length > 0 && itemId.length <= 100;
+}
+
 // ========================================
 // Getters
 // ========================================
@@ -105,6 +122,15 @@ export function getTrainingIndex(): TrainingIndex | null {
 }
 
 export function getTrainingTemplatesForItem(itemId: string): TrainingTemplate[] {
+    // Validate item ID to prevent misuse
+    if (!isValidItemId(itemId)) {
+        logger.warn({
+            operation: 'cv.training.invalid_item_id',
+            data: { itemId: itemId.slice(0, 20) }, // Truncate for logging
+        });
+        return [];
+    }
+
     const templates = trainingTemplates.get(itemId) || [];
     const sessionTpls = sessionTemplates.get(itemId) || [];
 

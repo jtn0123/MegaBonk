@@ -228,13 +228,17 @@ export async function loadImageToCanvas(
                 clearTimeout(timeoutId);
                 timeoutId = null;
             }
+            // Clear event handlers to prevent memory leaks
+            img.onload = null;
+            img.onerror = null;
         };
 
         // Set up timeout to prevent indefinite waiting
         timeoutId = setTimeout(() => {
             if (!resolved) {
                 resolved = true;
-                img.src = ''; // Cancel image loading
+                cleanup();
+                img.src = ''; // Cancel image loading and release memory
                 logger.warn({
                     operation: 'cv.load_image_timeout',
                     error: { name: 'TimeoutError', message: `Image loading timed out after ${timeoutMs}ms` },

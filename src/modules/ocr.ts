@@ -40,6 +40,7 @@ async function getTesseract(): Promise<typeof import('tesseract.js')> {
  * Workers are expensive to create, so we reuse them
  * Bug fix: Use mutex pattern to prevent race condition where multiple
  * concurrent calls could create multiple workers
+ * Bug fix: Track error state to allow retries after failed initializations
  */
 async function getOrCreateWorker(): Promise<Awaited<ReturnType<typeof import('tesseract.js').createWorker>>> {
     // If worker exists and is ready, return it
@@ -301,6 +302,9 @@ export async function extractTextFromImage(
     }
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        // Track progress interval outside try block to ensure cleanup
+        let progressInterval: ReturnType<typeof setInterval> | null = null;
+
         try {
             logger.info({
                 operation: 'ocr.extract_text',
@@ -316,7 +320,7 @@ export async function extractTextFromImage(
 
             // Progress tracking for recognition
             let lastProgress = 0;
-            const progressInterval = progressCallback
+            progressInterval = progressCallback
                 ? setInterval(() => {
                       // Simulate progress since worker.recognize doesn't have progress callback
                       if (lastProgress < 90) {
@@ -332,9 +336,10 @@ export async function extractTextFromImage(
             // Wrap with timeout to prevent indefinite waiting
             const result = (await withTimeout(recognizePromise, timeoutMs, 'OCR recognition')) as TesseractResult;
 
-            // Clear progress interval
+            // Clear progress interval on success
             if (progressInterval) {
                 clearInterval(progressInterval);
+                progressInterval = null;
             }
 
             const extractedText = result.data.text;
@@ -352,6 +357,12 @@ export async function extractTextFromImage(
 
             return extractedText;
         } catch (error) {
+            // Clear progress interval on error to prevent memory leak
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+
             lastError = error as Error;
 
             logger.warn({
@@ -376,8 +387,11 @@ export async function extractTextFromImage(
 
             // Don't sleep after the last attempt
             if (attempt < maxRetries) {
-                // Exponential backoff: 1s, 2s, 4s...
-                const backoffMs = Math.min(1000 * Math.pow(2, attempt), 8000);
+                // Exponential backoff with jitter: 1s, 2s, 4s... + random 0-50%
+                // Jitter prevents cascading failures when multiple instances retry simultaneously
+                const baseBackoff = Math.min(1000 * Math.pow(2, attempt), 8000);
+                const jitter = baseBackoff * (0.5 * Math.random());
+                const backoffMs = baseBackoff + jitter;
                 await sleep(backoffMs);
             }
         }

@@ -47,10 +47,30 @@ export interface ActiveLearningSession {
 // ========================================
 
 const CONFIG = {
-    UNCERTAINTY_THRESHOLD: 0.6, // Detections below this are uncertain
+    UNCERTAINTY_THRESHOLD: 0.6, // Detections below this are uncertain (default)
     MAX_ALTERNATIVES: 3,
     MIN_UNCERTAIN_FOR_PROMPT: 2, // Need at least this many uncertain to prompt
+    // Rarity-specific thresholds - common items need higher confidence
+    RARITY_THRESHOLDS: {
+        common: 0.65, // Common items often look similar, need higher confidence
+        uncommon: 0.6,
+        rare: 0.55,
+        epic: 0.55,
+        legendary: 0.5, // Legendary items are more distinctive
+    } as Record<string, number>,
 };
+
+/**
+ * Get uncertainty threshold based on item rarity
+ * Common items need higher confidence because they're often similar-looking
+ * @internal Exported for potential future use in rarity-aware uncertainty detection
+ */
+export function getUncertaintyThreshold(rarity?: string): number {
+    if (rarity && rarity in CONFIG.RARITY_THRESHOLDS) {
+        return CONFIG.RARITY_THRESHOLDS[rarity] ?? CONFIG.UNCERTAINTY_THRESHOLD;
+    }
+    return CONFIG.UNCERTAINTY_THRESHOLD;
+}
 
 // ========================================
 // State

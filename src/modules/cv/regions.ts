@@ -54,7 +54,16 @@ export function detectScreenType(
     }
 
     if (sampleCount === 0) {
-        // No pixels sampled, assume pause menu (fully transparent bottom)
+        // No pixels sampled - likely completely transparent or empty image
+        // Log this unusual condition for debugging
+        logger.warn({
+            operation: 'cv.detect_screen_type',
+            data: {
+                issue: 'no_pixels_sampled',
+                message: 'Bottom region appears empty/transparent',
+                screenType: 'pause_menu',
+            },
+        });
         return 'pause_menu';
     }
 

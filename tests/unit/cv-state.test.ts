@@ -23,6 +23,9 @@ import {
     resetState,
     CACHE_TTL,
     MAX_CACHE_SIZE,
+    startPeriodicCacheCleanup,
+    stopPeriodicCacheCleanup,
+    cleanupStaleCacheEntries,
 } from '../../src/modules/cv/state.ts';
 
 // ========================================
@@ -607,6 +610,152 @@ describe('CV State Module', () => {
 
             expect(getResizedTemplateCacheSize()).toBe(0);
             expect(getResizedTemplate('item1', 50, 50)).toBeUndefined();
+        });
+    });
+
+    // ========================================
+    // Periodic Cache Cleanup Tests (#8, #30)
+    // ========================================
+    describe('Periodic Cache Cleanup', () => {
+        it('should start periodic cache cleanup', () => {
+            startPeriodicCacheCleanup();
+
+            // Verify timer is set
+            expect(getCacheCleanupTimer()).not.toBeNull();
+
+            // Cleanup
+            stopPeriodicCacheCleanup();
+        });
+
+        it('should not create duplicate timers when called multiple times', () => {
+            startPeriodicCacheCleanup();
+            const timer1 = getCacheCleanupTimer();
+
+            startPeriodicCacheCleanup();
+            const timer2 = getCacheCleanupTimer();
+
+            // Should be same timer (not overwritten)
+            expect(timer1).toBe(timer2);
+
+            // Cleanup
+            stopPeriodicCacheCleanup();
+        });
+
+        it('should stop periodic cache cleanup', () => {
+            startPeriodicCacheCleanup();
+            expect(getCacheCleanupTimer()).not.toBeNull();
+
+            stopPeriodicCacheCleanup();
+            expect(getCacheCleanupTimer()).toBeNull();
+        });
+
+        it('should cleanup stale cache entries', () => {
+            const cache = getDetectionCache();
+
+            // Add fresh entry
+            cache.set('fresh', {
+                results: [],
+                timestamp: Date.now(),
+            });
+
+            // Add stale entry (older than CACHE_TTL)
+            cache.set('stale', {
+                results: [],
+                timestamp: Date.now() - CACHE_TTL - 1000,
+            });
+
+            expect(cache.size).toBe(2);
+
+            // Run cleanup
+            cleanupStaleCacheEntries();
+
+            // Stale entry should be removed
+            expect(cache.size).toBe(1);
+            expect(cache.has('fresh')).toBe(true);
+            expect(cache.has('stale')).toBe(false);
+        });
+
+        it('should not remove entries within TTL', () => {
+            const cache = getDetectionCache();
+
+            // Add entries with recent timestamps
+            cache.set('recent1', {
+                results: [],
+                timestamp: Date.now() - 1000, // 1 second ago
+            });
+            cache.set('recent2', {
+                results: [],
+                timestamp: Date.now() - 60000, // 1 minute ago
+            });
+
+            expect(cache.size).toBe(2);
+
+            cleanupStaleCacheEntries();
+
+            // Both should remain
+            expect(cache.size).toBe(2);
+        });
+
+        it('should handle empty cache gracefully', () => {
+            const cache = getDetectionCache();
+            expect(cache.size).toBe(0);
+
+            // Should not throw
+            expect(() => cleanupStaleCacheEntries()).not.toThrow();
+        });
+
+        it('should be stopped by resetState', () => {
+            startPeriodicCacheCleanup();
+            expect(getCacheCleanupTimer()).not.toBeNull();
+
+            resetState();
+
+            expect(getCacheCleanupTimer()).toBeNull();
+        });
+    });
+
+    // ========================================
+    // Cache Key Uniqueness Tests (#6, #30)
+    // ========================================
+    describe('Cache Key Uniqueness', () => {
+        it('should distinguish cache entries by key', () => {
+            const cache = getDetectionCache();
+
+            cache.set('image_a', {
+                results: [{ itemId: 'item_a' }] as any,
+                timestamp: Date.now(),
+            });
+            cache.set('image_b', {
+                results: [{ itemId: 'item_b' }] as any,
+                timestamp: Date.now(),
+            });
+
+            expect(cache.size).toBe(2);
+            expect(cache.get('image_a')?.results[0].itemId).toBe('item_a');
+            expect(cache.get('image_b')?.results[0].itemId).toBe('item_b');
+        });
+
+        it('should handle keys with similar prefixes', () => {
+            const cache = getDetectionCache();
+
+            cache.set('item_1', { results: [], timestamp: Date.now() });
+            cache.set('item_10', { results: [], timestamp: Date.now() });
+            cache.set('item_100', { results: [], timestamp: Date.now() });
+
+            expect(cache.size).toBe(3);
+            expect(cache.has('item_1')).toBe(true);
+            expect(cache.has('item_10')).toBe(true);
+            expect(cache.has('item_100')).toBe(true);
+        });
+
+        it('should handle special characters in cache keys', () => {
+            const cache = getDetectionCache();
+
+            cache.set('key-with-dashes', { results: [], timestamp: Date.now() });
+            cache.set('key_with_underscores', { results: [], timestamp: Date.now() });
+            cache.set('key.with.dots', { results: [], timestamp: Date.now() });
+
+            expect(cache.size).toBe(3);
         });
     });
 });

@@ -73,11 +73,27 @@ export function initDebugPanel(): void {
         panel.classList.toggle('active', debugModeCheckbox.checked);
     });
 
-    // Expand/collapse toggle
+    // Expand/collapse toggle - support both click and keyboard
     expandBtn.addEventListener('click', e => {
         e.stopPropagation();
         toggleExpanded(panel, panelContent);
     });
+
+    // Keyboard accessibility for expand button
+    expandBtn.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleExpanded(panel, panelContent);
+        }
+    });
+
+    // Ensure expand button is keyboard focusable
+    if (!expandBtn.hasAttribute('tabindex')) {
+        expandBtn.setAttribute('tabindex', '0');
+    }
+    expandBtn.setAttribute('role', 'button');
+    expandBtn.setAttribute('aria-expanded', String(isExpanded));
 
     // Initialize overlay options
     initOverlayOptions();
@@ -118,6 +134,12 @@ function toggleExpanded(panel: HTMLElement, content: HTMLElement): void {
     panel.classList.toggle('expanded', isExpanded);
     content.style.display = isExpanded ? 'block' : 'none';
 
+    // Update aria-expanded attribute for accessibility
+    const expandBtn = document.getElementById('debug-expand-btn');
+    if (expandBtn) {
+        expandBtn.setAttribute('aria-expanded', String(isExpanded));
+    }
+
     if (isExpanded) {
         updateStats();
         updateLogViewer();
@@ -130,6 +152,7 @@ function toggleExpanded(panel: HTMLElement, content: HTMLElement): void {
 
 /**
  * Initialize overlay option checkboxes
+ * Ensures checkbox states are synced with stored debug options on page load
  */
 function initOverlayOptions(): void {
     const options = getDebugOptions();
@@ -146,14 +169,32 @@ function initOverlayOptions(): void {
     Object.entries(optionMap).forEach(([elementId, optionKey]) => {
         const checkbox = document.getElementById(elementId) as HTMLInputElement;
         if (checkbox) {
-            // Set initial state
+            // Set initial state from stored options (ensures sync on page load)
             checkbox.checked = options[optionKey] as boolean;
 
             // Handle changes
             checkbox.addEventListener('change', () => {
                 setDebugOptions({ [optionKey]: checkbox.checked });
             });
+
+            // Add keyboard support for checkbox labels
+            const label = document.querySelector(`label[for="${elementId}"]`);
+            if (label) {
+                label.addEventListener('keydown', (e: Event) => {
+                    const keyEvent = e as KeyboardEvent;
+                    if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+                        keyEvent.preventDefault();
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event('change'));
+                    }
+                });
+            }
         }
+    });
+
+    logger.info({
+        operation: 'debug_ui.options_synced',
+        data: { options },
     });
 }
 
@@ -617,6 +658,249 @@ function downloadJson(json: string, filename: string): void {
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+}
+
+// ========================================
+// Performance Profiling (#32)
+// ========================================
+
+interface PipelineStageTimings {
+    ocrInit?: number;
+    recognition?: number;
+    templateMatching?: number;
+    colorAnalysis?: number;
+    aggregation?: number;
+    total: number;
+    [key: string]: number | undefined; // Index signature for Record compatibility
+}
+
+let lastPipelineTimings: PipelineStageTimings | null = null;
+let profilingEnabled = false;
+
+/**
+ * Enable/disable performance profiling
+ */
+export function setProfilingEnabled(enabled: boolean): void {
+    profilingEnabled = enabled;
+    logger.info({
+        operation: 'debug_ui.profiling_toggled',
+        data: { enabled },
+    });
+}
+
+/**
+ * Check if profiling is enabled
+ */
+export function isProfilingEnabled(): boolean {
+    return profilingEnabled;
+}
+
+/**
+ * Record pipeline stage timings
+ */
+export function recordPipelineTimings(timings: PipelineStageTimings): void {
+    lastPipelineTimings = timings;
+
+    if (profilingEnabled) {
+        logger.info({
+            operation: 'debug_ui.pipeline_timings',
+            data: timings,
+        });
+    }
+}
+
+/**
+ * Get last recorded pipeline timings
+ */
+export function getLastPipelineTimings(): PipelineStageTimings | null {
+    return lastPipelineTimings;
+}
+
+/**
+ * Render pipeline timing display
+ */
+export function renderPipelineTimings(): string {
+    if (!lastPipelineTimings) {
+        return '<p class="debug-log-empty">No pipeline timings recorded yet.</p>';
+    }
+
+    const t = lastPipelineTimings;
+    const stages = [
+        { name: 'OCR Init', value: t.ocrInit },
+        { name: 'Recognition', value: t.recognition },
+        { name: 'Template Match', value: t.templateMatching },
+        { name: 'Color Analysis', value: t.colorAnalysis },
+        { name: 'Aggregation', value: t.aggregation },
+    ].filter(s => s.value !== undefined);
+
+    return `
+        <div class="debug-pipeline-timings">
+            ${stages
+                .map(
+                    s => `
+                <div class="debug-timing-row">
+                    <span class="debug-timing-name">${s.name}</span>
+                    <span class="debug-timing-bar" style="width: ${Math.min(100, ((s.value ?? 0) / t.total) * 100)}%"></span>
+                    <span class="debug-timing-value">${s.value}ms</span>
+                </div>
+            `
+                )
+                .join('')}
+            <div class="debug-timing-row total">
+                <span class="debug-timing-name">Total</span>
+                <span class="debug-timing-value">${t.total}ms</span>
+            </div>
+        </div>
+    `;
+}
+
+// ========================================
+// Error Replay Capability (#33)
+// ========================================
+
+interface DebugBundle {
+    timestamp: string;
+    imageDataUrl?: string;
+    imageWidth?: number;
+    imageHeight?: number;
+    debugOptions: ReturnType<typeof getDebugOptions>;
+    logs: DebugLogEntry[];
+    breadcrumbs: ReturnType<typeof getBreadcrumbs>;
+    stats: ReturnType<typeof getStats>;
+    error?: {
+        name: string;
+        message: string;
+        stack?: string;
+    };
+}
+
+let lastDebugBundle: DebugBundle | null = null;
+
+/**
+ * Capture current debug state for error replay
+ */
+export function captureDebugBundle(
+    imageDataUrl?: string,
+    imageWidth?: number,
+    imageHeight?: number,
+    error?: Error
+): DebugBundle {
+    const bundle: DebugBundle = {
+        timestamp: new Date().toISOString(),
+        imageDataUrl,
+        imageWidth,
+        imageHeight,
+        debugOptions: getDebugOptions(),
+        logs: getLogs(),
+        breadcrumbs: getBreadcrumbs(),
+        stats: getStats(),
+    };
+
+    if (error) {
+        bundle.error = {
+            name: error.name,
+            message: error.message,
+            stack: error.stack,
+        };
+    }
+
+    lastDebugBundle = bundle;
+    return bundle;
+}
+
+/**
+ * Export debug bundle for error replay
+ */
+export function exportDebugBundle(): void {
+    if (!lastDebugBundle) {
+        logger.warn({
+            operation: 'debug_ui.export_bundle',
+            data: { reason: 'no_bundle_captured' },
+        });
+        return;
+    }
+
+    // Remove large image data for export if present
+    const exportBundle = {
+        ...lastDebugBundle,
+        imageDataUrl: lastDebugBundle.imageDataUrl ? '[truncated - use separate image file]' : undefined,
+    };
+
+    downloadJson(JSON.stringify(exportBundle, null, 2), `megabonk-debug-bundle-${Date.now()}.json`);
+
+    logger.info({
+        operation: 'debug_ui.bundle_exported',
+        data: { hasImage: !!lastDebugBundle.imageDataUrl },
+    });
+}
+
+/**
+ * Get last captured debug bundle
+ */
+export function getLastDebugBundle(): DebugBundle | null {
+    return lastDebugBundle;
+}
+
+// ========================================
+// Confidence Histogram (#34)
+// ========================================
+
+interface ConfidenceHistogram {
+    buckets: number[]; // 10 buckets: 0-10%, 10-20%, ..., 90-100%
+    total: number;
+}
+
+let confidenceHistogram: ConfidenceHistogram = { buckets: Array.from({ length: 10 }, () => 0), total: 0 };
+
+/**
+ * Record a detection confidence value
+ */
+export function recordConfidence(confidence: number): void {
+    const bucketIndex = Math.min(9, Math.floor(confidence * 10));
+    const currentValue = confidenceHistogram.buckets[bucketIndex] ?? 0;
+    confidenceHistogram.buckets[bucketIndex] = currentValue + 1;
+    confidenceHistogram.total++;
+}
+
+/**
+ * Reset confidence histogram
+ */
+export function resetConfidenceHistogram(): void {
+    confidenceHistogram = { buckets: new Array(10).fill(0), total: 0 };
+}
+
+/**
+ * Render confidence histogram as ASCII bar chart
+ */
+export function renderConfidenceHistogram(): string {
+    if (confidenceHistogram.total === 0) {
+        return '<p class="debug-log-empty">No confidence data recorded yet.</p>';
+    }
+
+    const maxCount = Math.max(...confidenceHistogram.buckets);
+    const labels = ['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'];
+
+    return `
+        <div class="debug-histogram">
+            ${confidenceHistogram.buckets
+                .map((count, i) => {
+                    const percent = maxCount > 0 ? (count / maxCount) * 100 : 0;
+                    return `
+                    <div class="debug-histogram-row">
+                        <span class="debug-histogram-label">${labels[i]}%</span>
+                        <div class="debug-histogram-bar-container">
+                            <div class="debug-histogram-bar" style="width: ${percent}%"></div>
+                        </div>
+                        <span class="debug-histogram-count">${count}</span>
+                    </div>
+                `;
+                })
+                .join('')}
+            <div class="debug-histogram-summary">
+                Total detections: ${confidenceHistogram.total}
+            </div>
+        </div>
+    `;
 }
 
 // ========================================

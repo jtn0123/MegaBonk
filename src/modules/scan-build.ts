@@ -72,6 +72,9 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
         hybridBtn.title = 'Loading item templates...';
     }
 
+    // Show loading indicator (#20 - Template Loading Status)
+    showTemplateLoadingStatus('loading');
+
     loadItemTemplates()
         .then(() => {
             templatesLoaded = true;
@@ -80,6 +83,7 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
                 hybridBtn.disabled = false;
                 hybridBtn.title = '';
             }
+            showTemplateLoadingStatus('loaded');
             logger.info({
                 operation: 'scan_build.templates_loaded',
                 data: { success: true },
@@ -92,6 +96,7 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
                 hybridBtn.disabled = false;
                 hybridBtn.title = 'Templates failed to load - reduced accuracy';
             }
+            showTemplateLoadingStatus('error');
             logger.error({
                 operation: 'scan_build.load_templates',
                 error: {
@@ -205,9 +210,49 @@ async function handleFileSelect(e: Event): Promise<void> {
 }
 
 /**
+ * Show upload in progress indicator (#23)
+ */
+function showUploadProgress(show: boolean, uploadId?: number): void {
+    const uploadBtn = document.getElementById('scan-upload-btn') as HTMLButtonElement | null;
+    const uploadArea = document.getElementById('scan-upload-area');
+
+    if (show) {
+        // Add upload progress indicator
+        uploadBtn?.classList.add('uploading');
+        if (uploadBtn) {
+            uploadBtn.setAttribute('data-upload-id', String(uploadId));
+        }
+
+        // Add uploading class to area
+        uploadArea?.classList.add('uploading');
+
+        // Show a small badge indicating upload in progress
+        let badge = document.getElementById('upload-progress-badge');
+        if (!badge && uploadArea) {
+            badge = document.createElement('div');
+            badge.id = 'upload-progress-badge';
+            badge.className = 'upload-progress-badge';
+            badge.innerHTML = '<span class="spinner-small"></span> Processing...';
+            badge.setAttribute('aria-live', 'polite');
+            uploadArea.appendChild(badge);
+        }
+    } else {
+        // Remove upload progress indicator
+        uploadBtn?.classList.remove('uploading');
+        uploadArea?.classList.remove('uploading');
+
+        const badge = document.getElementById('upload-progress-badge');
+        badge?.remove();
+    }
+}
+
+/**
  * Process file upload after debounce
  */
 function processFileUpload(file: File, uploadId: number): void {
+    // Show upload progress (#23)
+    showUploadProgress(true, uploadId);
+
     try {
         // Read file as data URL
         const reader = new FileReader();
@@ -218,8 +263,12 @@ function processFileUpload(file: File, uploadId: number): void {
                     operation: 'scan_build.upload_superseded',
                     data: { uploadId, currentId: pendingUploadId },
                 });
+                // Don't hide progress if a newer upload is in progress
                 return;
             }
+
+            // Hide upload progress
+            showUploadProgress(false);
 
             const result = event.target?.result;
             if (typeof result === 'string') {
@@ -234,6 +283,7 @@ function processFileUpload(file: File, uploadId: number): void {
         reader.onerror = () => {
             // Only show error if this is still the current upload
             if (uploadId === pendingUploadId) {
+                showUploadProgress(false);
                 ToastManager.error('Failed to read image file');
             }
         };
@@ -311,9 +361,60 @@ function displayUploadedImage(): void {
 }
 
 /**
+ * Show template loading status indicator (#20)
+ */
+function showTemplateLoadingStatus(status: 'loading' | 'loaded' | 'error'): void {
+    const hybridBtn = document.getElementById('scan-hybrid-detect-btn') as HTMLButtonElement | null;
+    if (!hybridBtn) return;
+
+    // Find or create status indicator
+    let statusIndicator = document.getElementById('template-loading-status');
+    if (!statusIndicator) {
+        statusIndicator = document.createElement('span');
+        statusIndicator.id = 'template-loading-status';
+        statusIndicator.className = 'template-loading-status';
+        statusIndicator.setAttribute('aria-live', 'polite');
+        hybridBtn.parentNode?.insertBefore(statusIndicator, hybridBtn.nextSibling);
+    }
+
+    switch (status) {
+        case 'loading':
+            statusIndicator.innerHTML = '<span class="spinner-small"></span> Loading templates...';
+            statusIndicator.className = 'template-loading-status loading';
+            break;
+        case 'loaded':
+            statusIndicator.innerHTML = '';
+            statusIndicator.className = 'template-loading-status loaded';
+            // Hide after 3 seconds
+            setTimeout(() => {
+                if (statusIndicator) statusIndicator.style.display = 'none';
+            }, 3000);
+            break;
+        case 'error':
+            statusIndicator.innerHTML = '⚠️ Templates failed to load';
+            statusIndicator.className = 'template-loading-status error';
+            break;
+    }
+}
+
+/**
  * Clear uploaded image and reset state
+ * #21: Adds confirmation if there are selections to prevent accidental loss
  */
 function clearUploadedImage(): void {
+    // Check if there are any selections that would be lost
+    const hasSelections =
+        selectedItems.size > 0 || selectedTomes.size > 0 || selectedCharacter !== null || selectedWeapon !== null;
+
+    if (hasSelections) {
+        const confirmClear = confirm(
+            'You have selections that will be lost. Are you sure you want to clear the image?'
+        );
+        if (!confirmClear) {
+            return;
+        }
+    }
+
     uploadedImage = null;
     selectedItems.clear();
     selectedTomes.clear();

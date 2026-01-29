@@ -151,7 +151,9 @@ export function calculateNCC(imageData1: SimpleImageData, imageData2: SimpleImag
     if (denominator === 0 || !Number.isFinite(denominator)) return 0;
 
     const result = (numerator / denominator + 1) / 2;
-    // Ensure result is in valid range [0, 1]
+    // Ensure result is valid and in range [0, 1]
+    // NaN can occur from edge cases with very small variances
+    if (!Number.isFinite(result)) return 0;
     return Math.max(0, Math.min(1, result));
 }
 
@@ -298,7 +300,10 @@ export function calculateWindowedSSIM(img1: SimpleImageData, img2: SimpleImageDa
     }
 
     // Average SSIM across all windows, clamped to [0, 1]
-    return Math.max(0, Math.min(1, totalSSIM / windowCount));
+    const avgSSIM = totalSSIM / windowCount;
+    // Guard against NaN from edge cases (e.g., uniform images)
+    if (!Number.isFinite(avgSSIM)) return 0;
+    return Math.max(0, Math.min(1, avgSSIM));
 }
 
 /**
@@ -409,9 +414,12 @@ export function calculateEdgeSimilarity(imageData1: SimpleImageData, imageData2:
     }
 
     const denominator = Math.sqrt(sumSq1 * sumSq2);
-    if (denominator === 0) return 0;
+    if (denominator === 0 || !Number.isFinite(denominator)) return 0;
 
-    return sumProduct / denominator;
+    const result = sumProduct / denominator;
+    // Guard against NaN from edge cases
+    if (!Number.isFinite(result)) return 0;
+    return result;
 }
 
 // ========================================
