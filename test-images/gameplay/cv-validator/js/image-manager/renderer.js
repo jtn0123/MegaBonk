@@ -5,6 +5,7 @@
  * ======================================== */
 
 import { state, toggleSelection } from './state.js';
+import { getImageResolution } from './filesystem.js';
 
 // DOM Elements
 let elements = {};
@@ -286,20 +287,67 @@ export function showLoading(message = 'Loading...') {
     if (elements.emptyState) elements.emptyState.style.display = 'none';
 }
 
+// Hide loading state
+export function hideLoading() {
+    if (elements.loadingMessage) {
+        elements.loadingMessage.style.display = 'none';
+    }
+}
+
 // Show detail modal
 export function showDetailModal(img) {
     state.currentDetailImage = img;
 
     document.getElementById('detail-filename').textContent = img.filename;
     document.getElementById('detail-path').textContent = img.path;
-    document.getElementById('detail-image').src = img.path;
 
-    const resolution = img.resolution ? `${img.resolution.width}x${img.resolution.height}` : 'Unknown';
-    document.getElementById('detail-resolution').textContent = resolution;
+    // Setup detail image with error handling for orphaned/missing files
+    const detailImg = document.getElementById('detail-image');
+    detailImg.onerror = () => {
+        // Use a placeholder SVG for broken images
+        detailImg.src =
+            'data:image/svg+xml,' +
+            encodeURIComponent(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">' +
+                    '<rect fill="#1a1a2e" width="400" height="300"/>' +
+                    '<text x="200" y="140" text-anchor="middle" fill="#666" font-family="sans-serif" font-size="16">Image file not found</text>' +
+                    '<text x="200" y="170" text-anchor="middle" fill="#888" font-family="sans-serif" font-size="12">📁 File missing from disk</text>' +
+                    '</svg>'
+            );
+    };
+    detailImg.src = img.path;
+
+    // Handle resolution - load on-demand for non-orphaned images
+    const resolutionSpan = document.getElementById('detail-resolution');
+    const isOrphaned = img.isOrphaned || img.status === 'orphaned';
+
+    if (isOrphaned) {
+        resolutionSpan.textContent = 'N/A (file missing)';
+    } else if (img.resolution) {
+        resolutionSpan.textContent = `${img.resolution.width}x${img.resolution.height}`;
+    } else {
+        // Lazy-load resolution for non-orphaned images
+        resolutionSpan.textContent = 'Loading...';
+        getImageResolution(img.path).then(res => {
+            if (res) {
+                resolutionSpan.textContent = `${res.width}x${res.height}`;
+                // Cache the resolution on the image object
+                img.resolution = res;
+            } else {
+                resolutionSpan.textContent = 'Unknown';
+            }
+        });
+    }
 
     const statusSpan = document.getElementById('detail-status');
     statusSpan.textContent = img.status;
     statusSpan.className = img.status;
+
+    // Show orphaned warning if applicable
+    const orphanedRow = document.getElementById('detail-orphaned-row');
+    if (orphanedRow) {
+        orphanedRow.style.display = isOrphaned ? 'flex' : 'none';
+    }
 
     document.getElementById('detail-items').textContent = `${img.itemCount} items`;
 

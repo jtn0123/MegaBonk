@@ -18,6 +18,7 @@ import {
     isFileSystemAccessSupported,
     requestDirectoryAccess,
     verifyPermission,
+    populateFileHandles,
     scanDirectory,
     renameFile,
     deleteFile,
@@ -44,6 +45,7 @@ import {
     renderStats,
     updateFileSystemStatus,
     showLoading,
+    hideLoading,
     hideDetailModal,
     showRenameModal,
     hideRenameModal,
@@ -285,7 +287,18 @@ async function handleSelectDirectory() {
             hasAccess: true,
         });
 
-        await refreshImages();
+        // Populate fileHandles for existing images loaded from ground-truth.json
+        showLoading('Binding file handles...');
+        const populateResult = await populateFileHandles(state.images, (count, filename) => {
+            showLoading(`Binding file handles... ${count} files (${filename})`);
+        });
+        hideLoading();
+
+        if (populateResult.success) {
+            showToast(`Write access granted (${populateResult.matched} files bound)`, 'success');
+        } else {
+            showToast('Write access granted', 'success');
+        }
     } else {
         if (result.error !== 'User cancelled directory selection') {
             showToast(result.error, 'error');
@@ -426,8 +439,8 @@ async function handleRenameConfirm() {
         return;
     }
 
-    // Try filesystem rename
-    const result = await renameFile(img.path, newFilename);
+    // Try filesystem rename (pass fileHandle if available to avoid path navigation issues)
+    const result = await renameFile(img.path, newFilename, img.fileHandle);
 
     if (result.success) {
         // Update ground truth
@@ -448,6 +461,10 @@ async function handleRenameConfirm() {
         // Update local state
         img.filename = newFilename;
         img.path = newPath;
+        // Update fileHandle if a new one was returned
+        if (result.newHandle) {
+            img.fileHandle = result.newHandle;
+        }
 
         // Update selection if necessary
         if (state.selectedImages.has(img.path)) {
@@ -505,8 +522,8 @@ async function handleInlineRenameConfirm() {
         return;
     }
 
-    // Try filesystem rename
-    const result = await renameFile(img.path, newFilename);
+    // Try filesystem rename (pass fileHandle if available to avoid path navigation issues)
+    const result = await renameFile(img.path, newFilename, img.fileHandle);
 
     if (result.success) {
         // Update ground truth
@@ -529,6 +546,10 @@ async function handleInlineRenameConfirm() {
         const oldPath = img.path;
         img.filename = newFilename;
         img.path = newPath;
+        // Update fileHandle if a new one was returned
+        if (result.newHandle) {
+            img.fileHandle = result.newHandle;
+        }
 
         // Update selection if necessary
         if (state.selectedImages.has(oldPath)) {

@@ -757,6 +757,23 @@
     word-break: break-all;
 }
 
+/* Warning row for orphaned images */
+.info-row.warning {
+    background: rgba(255, 152, 0, 0.1);
+    border-left: 3px solid var(--warning);
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.info-row.warning span {
+    color: var(--warning);
+    font-size: 0.85em;
+}
+
+.info-row.warning label {
+    color: var(--warning);
+}
+
 /* Rename Modal */
 .rename-modal-content {
     width: 450px;

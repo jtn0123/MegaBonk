@@ -60,6 +60,42 @@ export async function requestPermission() {
     }
 }
 
+// Populate fileHandles for existing images by scanning the directory
+// This is called after directory selection to bind file handles to images loaded from ground-truth.json
+export async function populateFileHandles(images, progressCallback) {
+    if (!state.directoryHandle) {
+        return { success: false, error: 'No directory handle' };
+    }
+
+    const subdirs = ['pc-screenshots', 'steam-community', 'steam-scraped'];
+    let matched = 0;
+
+    for (const subdir of subdirs) {
+        try {
+            const subdirHandle = await state.directoryHandle.getDirectoryHandle(subdir);
+
+            for await (const entry of subdirHandle.values()) {
+                if (entry.kind === 'file') {
+                    const path = `${subdir}/${entry.name}`;
+                    // Find matching image and update its fileHandle
+                    const img = images.find(i => i.path === path);
+                    if (img) {
+                        img.fileHandle = entry;
+                        matched++;
+                        if (progressCallback) {
+                            progressCallback(matched, entry.name);
+                        }
+                    }
+                }
+            }
+        } catch (err) {
+            console.warn(`Subdirectory ${subdir} not found:`, err.message);
+        }
+    }
+
+    return { success: true, matched };
+}
+
 // Scan directory for images
 // This list should match all directories containing test screenshots for CV
 export async function scanDirectory(progressCallback) {
@@ -123,24 +159,34 @@ function isImageFile(filename) {
 
 // Get file handle for a specific path
 async function getFileHandle(path) {
-    if (!state.directoryHandle) return null;
+    if (!state.directoryHandle) {
+        console.error('[getFileHandle] No directory handle set');
+        return null;
+    }
 
     const parts = path.split('/');
     const filename = parts.pop();
     let currentHandle = state.directoryHandle;
 
+    console.log('[getFileHandle] Navigating path:', path);
+    console.log('[getFileHandle] Starting from directory:', state.directoryHandle.name);
+
     // Navigate to subdirectory
     for (const part of parts) {
         try {
+            console.log(`[getFileHandle] Getting directory: ${part}`);
             currentHandle = await currentHandle.getDirectoryHandle(part);
-        } catch {
+        } catch (err) {
+            console.error(`[getFileHandle] Failed to get directory '${part}':`, err.message);
             return null;
         }
     }
 
     try {
+        console.log(`[getFileHandle] Getting file: ${filename}`);
         return await currentHandle.getFileHandle(filename);
-    } catch {
+    } catch (err) {
+        console.error(`[getFileHandle] Failed to get file '${filename}':`, err.message);
         return null;
     }
 }
@@ -165,7 +211,8 @@ async function getDirectoryHandleForPath(path) {
 }
 
 // Rename a file
-export async function renameFile(oldPath, newFilename) {
+// existingFileHandle: Optional file handle to use instead of navigating by path
+export async function renameFile(oldPath, newFilename, existingFileHandle = null) {
     if (!state.directoryHandle) {
         return { success: false, error: 'No directory access', fallback: true };
     }
@@ -174,9 +221,19 @@ export async function renameFile(oldPath, newFilename) {
         return { success: false, error: 'File System Access API not supported', fallback: true };
     }
 
+    // Verify permission is still valid before attempting rename
+    const hasPermission = await verifyPermission();
+    if (!hasPermission) {
+        console.log('[renameFile] Permission expired, requesting again...');
+        const granted = await requestPermission();
+        if (!granted) {
+            return { success: false, error: 'Permission denied', fallback: true };
+        }
+    }
+
     try {
-        // Get the old file handle
-        const oldHandle = await getFileHandle(oldPath);
+        // Use existing file handle if provided, otherwise navigate by path
+        const oldHandle = existingFileHandle || (await getFileHandle(oldPath));
         if (!oldHandle) {
             return { success: false, error: 'File not found' };
         }
