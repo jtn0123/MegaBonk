@@ -52,11 +52,71 @@ export function initRenderer() {
         deleteModal: document.getElementById('delete-modal'),
         fallbackModal: document.getElementById('fallback-modal'),
 
+        // Fullscreen
+        fullscreenOverlay: document.getElementById('fullscreen-overlay'),
+        fullscreenImage: document.getElementById('fullscreen-image'),
+        fullscreenClose: document.getElementById('fullscreen-close'),
+
         // Toast
         toast: document.getElementById('toast'),
         toastIcon: document.getElementById('toast-icon'),
         toastMessage: document.getElementById('toast-message'),
     };
+
+    // Setup fullscreen handlers
+    setupFullscreenHandlers();
+}
+
+// Setup fullscreen image handlers
+function setupFullscreenHandlers() {
+    // Click on detail preview to open fullscreen
+    const detailPreview = document.querySelector('.detail-preview');
+    if (detailPreview) {
+        detailPreview.addEventListener('click', () => {
+            const detailImage = document.getElementById('detail-image');
+            if (detailImage && detailImage.src) {
+                showFullscreen(detailImage.src);
+            }
+        });
+    }
+
+    // Close fullscreen on button click
+    if (elements.fullscreenClose) {
+        elements.fullscreenClose.addEventListener('click', hideFullscreen);
+    }
+
+    // Close fullscreen on overlay click
+    if (elements.fullscreenOverlay) {
+        elements.fullscreenOverlay.addEventListener('click', e => {
+            if (e.target === elements.fullscreenOverlay || e.target === elements.fullscreenImage) {
+                hideFullscreen();
+            }
+        });
+    }
+
+    // Close fullscreen on Escape key
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && elements.fullscreenOverlay?.classList.contains('show')) {
+            hideFullscreen();
+        }
+    });
+}
+
+// Show fullscreen image
+function showFullscreen(src) {
+    if (elements.fullscreenImage) {
+        elements.fullscreenImage.src = src;
+    }
+    if (elements.fullscreenOverlay) {
+        elements.fullscreenOverlay.classList.add('show');
+    }
+}
+
+// Hide fullscreen image
+function hideFullscreen() {
+    if (elements.fullscreenOverlay) {
+        elements.fullscreenOverlay.classList.remove('show');
+    }
 }
 
 // Render the image grid
