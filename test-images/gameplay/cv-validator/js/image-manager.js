@@ -165,21 +165,24 @@ function setupEventListeners() {
     // Detail modal
     document.getElementById('detail-close')?.addEventListener('click', hideDetailModal);
     document.getElementById('detail-rename-btn')?.addEventListener('click', () => {
-        if (state.currentDetailImage) {
+        const img = state.currentDetailImage; // Save reference before hideDetailModal clears it
+        if (img) {
             hideDetailModal();
-            showRenameModal(state.currentDetailImage);
+            showRenameModal(img);
         }
     });
     document.getElementById('detail-delete-btn')?.addEventListener('click', () => {
-        if (state.currentDetailImage) {
+        const img = state.currentDetailImage; // Save reference before hideDetailModal clears it
+        if (img) {
             hideDetailModal();
-            showDeleteModal([state.currentDetailImage.path]);
+            showDeleteModal([img.path]);
         }
     });
     document.getElementById('detail-open-validator-btn')?.addEventListener('click', () => {
-        if (state.currentDetailImage) {
+        const img = state.currentDetailImage; // Save reference in case modal state changes
+        if (img) {
             // Open CV Validator with this image selected
-            window.open(`cv-validator.html?image=${encodeURIComponent(state.currentDetailImage.path)}`, '_blank');
+            window.open(`cv-validator.html?image=${encodeURIComponent(img.path)}`, '_blank');
         }
     });
 
