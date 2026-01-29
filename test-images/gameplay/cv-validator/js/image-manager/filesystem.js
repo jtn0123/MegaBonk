@@ -61,13 +61,15 @@ export async function requestPermission() {
 }
 
 // Scan directory for images
+// This list should match all directories containing test screenshots for CV
 export async function scanDirectory(progressCallback) {
     if (!state.directoryHandle) {
         return { success: false, error: 'No directory handle' };
     }
 
     const images = [];
-    const subdirs = ['pc-screenshots', 'steam-community'];
+    // Include all image folders that the CV system uses
+    const subdirs = ['pc-screenshots', 'steam-community', 'steam-scraped'];
 
     for (const subdir of subdirs) {
         try {
