@@ -24,12 +24,11 @@ test.describe('Items Browsing', () => {
         // Wait for debounce (300ms) plus render time
         await page.waitForTimeout(500);
 
-        // Global search shows results across categories
-        // Check that results are shown
+        // Check that filtered results are shown (format: "X/80 items")
         const resultsText = page.locator('#item-count');
-        await expect(resultsText).toContainText('results');
+        await expect(resultsText).toContainText('/80 items');
 
-        // Verify Big Bonk is in the results (using img alt text which is more reliable)
+        // Verify Big Bonk is in the filtered results
         await expect(page.locator('img[alt="Big Bonk"]')).toBeVisible();
     });
 
@@ -77,8 +76,8 @@ test.describe('Items Browsing', () => {
         await page.fill('#searchInput', 'bonk');
         await page.waitForTimeout(500);
 
-        // Verify filtered results shown
-        await expect(page.locator('#item-count')).toContainText('results');
+        // Verify filtered results shown (format: "X/80 items")
+        await expect(page.locator('#item-count')).toContainText('/80 items');
 
         // Clear filter
         await page.fill('#searchInput', '');

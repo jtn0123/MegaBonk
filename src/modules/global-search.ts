@@ -53,8 +53,9 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
     ];
 
     // Score thresholds for early termination within field search
-    const EXACT_MATCH_SCORE = 2000;
-    const STARTS_WITH_SCORE = 1500;
+    // These are boosted to account for name field bonus (+1000) in fuzzy-match.ts
+    const EXACT_MATCH_SCORE = 3000; // 2000 base + 1000 name bonus
+    const STARTS_WITH_SCORE = 2500; // 1500 base + 1000 name bonus
     // MAX_GLOBAL_SEARCH_RESULTS and MAX_SEARCH_RESULTS_PER_TYPE imported from constants.ts
 
     // Define data sources with their types

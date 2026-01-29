@@ -208,7 +208,18 @@
                         placeholder="🔍 Search... (Try: tier:SS or damage:>100)"
                         aria-label="Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100"
                         title="Advanced search: Use tier:SS, rarity:legendary, or damage:>100 syntax"
+                        aria-expanded="false"
+                        aria-haspopup="listbox"
+                        aria-controls="searchResultsDropdown"
+                        autocomplete="off"
                     />
+                    <div
+                        id="searchResultsDropdown"
+                        class="search-results-dropdown"
+                        role="listbox"
+                        aria-label="Search results"
+                        hidden
+                    ></div>
                 </div>
 
                 <span id="item-count" class="item-count" aria-live="polite">0 items</span>

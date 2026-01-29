@@ -42,6 +42,7 @@ import { addToSearchHistory } from './search-history.ts';
 import { saveFilterState } from './filter-state.ts';
 import { fuzzyMatchScore, parseAdvancedSearch, matchesAdvancedFilters } from './fuzzy-match.ts';
 import { globalSearch } from './global-search.ts';
+import { showSearchDropdown, hideSearchDropdown } from './search-dropdown.ts';
 
 // ========================================
 // Type Definitions
@@ -350,28 +351,37 @@ function logFilterEvent(
 }
 
 /**
- * Handle search input - performs global search across all tabs
+ * Handle search input - renders results in main content area
+ * Shows current tab's matches first, then other tabs' matches
  */
 export function handleSearch(): void {
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
     const searchQuery = searchInput?.value || '';
+    const trimmedQuery = searchQuery.trim();
 
-    if (searchQuery.trim().length >= 2) {
-        addToSearchHistory(searchQuery.trim());
-    }
-
-    if (searchQuery.trim()) {
-        const allData = getState('allData');
-        if (allData && window.renderGlobalSearchResults) {
-            const results = globalSearch(searchQuery.trim(), allData);
-            window.renderGlobalSearchResults(results);
-            return;
-        }
+    // Add to search history for queries >= 2 chars
+    if (trimmedQuery.length >= 2) {
+        addToSearchHistory(trimmedQuery);
     }
 
     const currentTab = getState('currentTab');
-    if (window.renderTabContent && currentTab) {
-        window.renderTabContent(currentTab);
+
+    // Hide the dropdown (we're using main content area instead)
+    hideSearchDropdown();
+
+    // For queries >= 2 chars, show global search results in main content
+    if (trimmedQuery.length >= 2) {
+        const allData = getState('allData');
+        if (allData && window.renderGlobalSearchResults) {
+            const results = globalSearch(trimmedQuery, allData);
+            // Render results in main content area with current tab prioritized
+            window.renderGlobalSearchResults(results, currentTab, trimmedQuery);
+        }
+    } else {
+        // No search or short query - render normal tab content
+        if (window.renderTabContent && currentTab) {
+            window.renderTabContent(currentTab);
+        }
     }
 
     if (currentTab) {
@@ -385,6 +395,9 @@ export function handleSearch(): void {
 export function clearFilters(): void {
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
     if (searchInput) searchInput.value = '';
+
+    // Hide the search dropdown
+    hideSearchDropdown();
 
     safeQuerySelectorAll('#filters select').forEach(el => {
         const select = el as HTMLSelectElement;

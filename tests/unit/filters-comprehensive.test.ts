@@ -450,11 +450,12 @@ describe('filters module', () => {
             expect(addToSearchHistory).not.toHaveBeenCalled();
         });
 
-        it('should call renderGlobalSearchResults when search has results', async () => {
+        it('should render global search results in main content when search has results', async () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = 'test';
 
             (window as any).renderGlobalSearchResults = vi.fn();
+            (window as any).renderTabContent = vi.fn();
 
             const { getState } = await import('../../src/modules/store.ts');
             vi.mocked(getState).mockImplementation((key: string) => {
@@ -465,7 +466,12 @@ describe('filters module', () => {
 
             handleSearch();
 
+            // New behavior: renders results in main content area via renderGlobalSearchResults
             expect((window as any).renderGlobalSearchResults).toHaveBeenCalled();
+            // First argument should be results array, second should be current tab, third should be query
+            const call = (window as any).renderGlobalSearchResults.mock.calls[0];
+            expect(call[1]).toBe('items'); // currentTab
+            expect(call[2]).toBe('test'); // searchQuery
         });
 
         it('should save filter state after search', async () => {

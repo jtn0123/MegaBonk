@@ -498,11 +498,21 @@ describe('filters.ts coverage tests', () => {
             expect(history).not.toContain('a');
         });
 
-        it('should call renderGlobalSearchResults when allData and function exist', () => {
+        it('should render global search results in main content when search has results', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = 'fire';
             handleSearch();
+            // New behavior: renders results in main content area via renderGlobalSearchResults
             expect((window as any).renderGlobalSearchResults).toHaveBeenCalled();
+            // First argument should be results array, second should be current tab
+            const call = (window as any).renderGlobalSearchResults.mock.calls[0];
+            expect(call[1]).toBe('items'); // currentTab
+            expect(call[2]).toBe('fire'); // searchQuery
+            // Dropdown should be hidden (we use main content now)
+            const dropdown = document.getElementById('searchResultsDropdown');
+            if (dropdown) {
+                expect(dropdown.hidden).toBe(true);
+            }
         });
 
         it('should call renderTabContent when search is empty', () => {

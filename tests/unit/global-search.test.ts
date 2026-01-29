@@ -213,21 +213,43 @@ describe('Global Search Functionality', () => {
     });
 
     describe('fuzzyMatchScore()', () => {
-        it('should give exact match highest score', () => {
-            const result = fuzzyMatchScore('test', 'test', 'name');
+        // Note: 'name' field gets +1000 bonus, use 'description' for base scores
+        it('should give exact match highest score (base)', () => {
+            // Use 'description' to test base score without name bonus
+            const result = fuzzyMatchScore('test', 'test', 'description');
             expect(result.score).toBe(2000);
             expect(result.matchType).toBe('exact');
         });
 
-        it('should give starts_with high score', () => {
-            const result = fuzzyMatchScore('test', 'testing', 'name');
+        it('should give exact match with name bonus', () => {
+            const result = fuzzyMatchScore('test', 'test', 'name');
+            expect(result.score).toBe(3000); // 2000 base + 1000 name bonus
+            expect(result.matchType).toBe('exact');
+        });
+
+        it('should give starts_with high score (base)', () => {
+            // Use 'description' to test base score without name bonus
+            const result = fuzzyMatchScore('test', 'testing', 'description');
             expect(result.score).toBe(1500);
             expect(result.matchType).toBe('starts_with');
         });
 
-        it('should give contains medium score', () => {
-            const result = fuzzyMatchScore('test', 'a test case', 'name');
+        it('should give starts_with with name bonus', () => {
+            const result = fuzzyMatchScore('test', 'testing', 'name');
+            expect(result.score).toBe(2500); // 1500 base + 1000 name bonus
+            expect(result.matchType).toBe('starts_with');
+        });
+
+        it('should give contains medium score (base)', () => {
+            // Use 'description' to test base score without name bonus
+            const result = fuzzyMatchScore('test', 'a test case', 'description');
             expect(result.score).toBe(1000);
+            expect(result.matchType).toBe('contains');
+        });
+
+        it('should give contains with name bonus', () => {
+            const result = fuzzyMatchScore('test', 'a test case', 'name');
+            expect(result.score).toBe(2000); // 1000 base + 1000 name bonus
             expect(result.matchType).toBe('contains');
         });
 

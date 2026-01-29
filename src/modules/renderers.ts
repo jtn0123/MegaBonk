@@ -545,10 +545,21 @@ const MAX_RESULTS_PER_TYPE = 10;
 
 /**
  * Render global search results grouped by type
+ * Prioritizes the current tab's results at the top
  * @param {GlobalSearchResult[]} results - Search results sorted by score
+ * @param {string} currentTab - Current active tab for prioritization
+ * @param {string} searchQuery - The search query for display
  */
-export function renderGlobalSearchResults(results: GlobalSearchResult[]): void {
-    const container = safeGetElementById('itemsContainer');
+export function renderGlobalSearchResults(
+    results: GlobalSearchResult[],
+    currentTab?: string,
+    searchQuery?: string
+): void {
+    // Get the main content container - use the currently active tab panel's container
+    const activeTabPanel = document.querySelector('.tab-content.active');
+    const container =
+        (activeTabPanel?.querySelector('.items-grid, .items-container') as HTMLElement | null) ||
+        safeGetElementById('itemsContainer');
     if (!container) return;
 
     // Update stats to show global search mode
@@ -565,7 +576,7 @@ export function renderGlobalSearchResults(results: GlobalSearchResult[]): void {
             <div class="empty-state">
                 <span class="empty-icon">🔍</span>
                 <h3>No Results Found</h3>
-                <p>Try a different search term</p>
+                <p>Try a different search term${searchQuery ? ` for "${searchQuery}"` : ''}</p>
             </div>
         `;
         return;
@@ -581,28 +592,39 @@ export function renderGlobalSearchResults(results: GlobalSearchResult[]): void {
         }
     }
 
-    // Render each group
-    const typeOrder: EntityType[] = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
+    // Determine type order - prioritize current tab if it's a searchable entity type
+    const baseTypeOrder: EntityType[] = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
+    let typeOrder: EntityType[];
 
+    if (currentTab && baseTypeOrder.includes(currentTab as EntityType)) {
+        // Put current tab first, then others in original order
+        const currentTabType = currentTab as EntityType;
+        typeOrder = [currentTabType, ...baseTypeOrder.filter(t => t !== currentTabType)];
+    } else {
+        typeOrder = baseTypeOrder;
+    }
+
+    // Render each group
     for (const type of typeOrder) {
         const typeResults = grouped.get(type);
         if (!typeResults || typeResults.length === 0) continue;
 
         const { label, icon } = TYPE_LABELS[type];
+        const isCurrentTab = type === currentTab;
 
         // Create section header
         const sectionHeader = document.createElement('div');
-        sectionHeader.className = 'global-search-section-header';
+        sectionHeader.className = `global-search-section-header${isCurrentTab ? ' current-tab-section' : ''}`;
         sectionHeader.innerHTML = `
             <span class="section-icon">${icon}</span>
-            <span class="section-title">${label}</span>
+            <span class="section-title">${label}${isCurrentTab ? ' (Current Tab)' : ''}</span>
             <span class="section-count">(${typeResults.length})</span>
         `;
         container.appendChild(sectionHeader);
 
         // Create section container for results
         const sectionContainer = document.createElement('div');
-        sectionContainer.className = 'global-search-section';
+        sectionContainer.className = `global-search-section${isCurrentTab ? ' current-tab-results' : ''}`;
         sectionContainer.dataset.type = type;
 
         // Render each result

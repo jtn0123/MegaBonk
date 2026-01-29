@@ -23,7 +23,11 @@ export function createMinimalDOM(): void {
 
     <nav class="controls">
       <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search..." />
+        <input type="text" id="searchInput" placeholder="Search..."
+               aria-expanded="false" aria-haspopup="listbox"
+               aria-controls="searchResultsDropdown" autocomplete="off" />
+        <div id="searchResultsDropdown" class="search-results-dropdown"
+             role="listbox" aria-label="Search results" hidden></div>
       </div>
       <div class="filters" id="filters"></div>
     </nav>

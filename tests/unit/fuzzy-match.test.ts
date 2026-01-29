@@ -31,57 +31,79 @@ describe('fuzzy-match module', () => {
     // fuzzyMatchScore Tests
     // ========================================
     describe('fuzzyMatchScore', () => {
+        // Note: 'name' field gets +1000 bonus, 'description' field uses base scores
         describe('exact matches', () => {
             it('should return highest score (2000) for exact match', () => {
-                const result = fuzzyMatchScore('sword', 'sword', 'name');
+                // Use 'description' field to test base score without name bonus
+                const result = fuzzyMatchScore('sword', 'sword', 'description');
                 expect(result.score).toBe(2000);
                 expect(result.matchType).toBe('exact');
-                expect(result.field).toBe('name');
+                expect(result.field).toBe('description');
             });
 
             it('should be case insensitive for exact matches', () => {
-                const result = fuzzyMatchScore('SWORD', 'sword', 'name');
+                const result = fuzzyMatchScore('SWORD', 'sword', 'description');
                 expect(result.score).toBe(2000);
                 expect(result.matchType).toBe('exact');
             });
 
             it('should handle mixed case exact matches', () => {
-                const result = fuzzyMatchScore('SwoRd', 'sWoRD', 'name');
+                const result = fuzzyMatchScore('SwoRd', 'sWoRD', 'description');
                 expect(result.score).toBe(2000);
+                expect(result.matchType).toBe('exact');
+            });
+
+            it('should apply name field bonus (+1000) for exact match', () => {
+                const result = fuzzyMatchScore('sword', 'sword', 'name');
+                expect(result.score).toBe(3000); // 2000 base + 1000 name bonus
                 expect(result.matchType).toBe('exact');
             });
         });
 
         describe('starts_with matches', () => {
             it('should return 1500 for starts_with match', () => {
-                const result = fuzzyMatchScore('fire', 'fire sword', 'name');
+                // Use 'description' field to test base score without name bonus
+                const result = fuzzyMatchScore('fire', 'fire sword', 'description');
                 expect(result.score).toBe(1500);
                 expect(result.matchType).toBe('starts_with');
             });
 
             it('should be case insensitive for starts_with', () => {
-                const result = fuzzyMatchScore('FIRE', 'fire sword', 'name');
+                const result = fuzzyMatchScore('FIRE', 'fire sword', 'description');
                 expect(result.score).toBe(1500);
+                expect(result.matchType).toBe('starts_with');
+            });
+
+            it('should apply name field bonus (+1000) for starts_with match', () => {
+                const result = fuzzyMatchScore('fire', 'fire sword', 'name');
+                expect(result.score).toBe(2500); // 1500 base + 1000 name bonus
                 expect(result.matchType).toBe('starts_with');
             });
         });
 
         describe('contains matches', () => {
             it('should return 1000 for contains match', () => {
-                const result = fuzzyMatchScore('sword', 'fire sword of doom', 'name');
+                // Use 'description' field to test base score without name bonus
+                const result = fuzzyMatchScore('sword', 'fire sword of doom', 'description');
                 expect(result.score).toBe(1000);
                 expect(result.matchType).toBe('contains');
             });
 
             it('should be case insensitive for contains', () => {
-                const result = fuzzyMatchScore('SWORD', 'fire sword of doom', 'name');
+                const result = fuzzyMatchScore('SWORD', 'fire sword of doom', 'description');
                 expect(result.score).toBe(1000);
                 expect(result.matchType).toBe('contains');
             });
 
             it('should match at end of string', () => {
-                const result = fuzzyMatchScore('doom', 'fire sword of doom', 'name');
+                const result = fuzzyMatchScore('doom', 'fire sword of doom', 'description');
                 expect(result.score).toBe(1000);
+                expect(result.matchType).toBe('contains');
+            });
+
+            it('should apply name field bonus (+1000) for contains match', () => {
+                const result = fuzzyMatchScore('sword', 'fire sword of doom', 'name');
+                expect(result.score).toBe(2000); // 1000 base + 1000 name bonus
                 expect(result.matchType).toBe('contains');
             });
         });
@@ -184,25 +206,29 @@ describe('fuzzy-match module', () => {
             });
 
             it('should handle special characters in search', () => {
-                const result = fuzzyMatchScore('fire+ice', 'fire+ice effect', 'name');
+                // Use 'description' field to test base score without name bonus
+                const result = fuzzyMatchScore('fire+ice', 'fire+ice effect', 'description');
                 expect(result.score).toBe(1500);
                 expect(result.matchType).toBe('starts_with');
             });
 
             it('should handle unicode characters', () => {
-                const result = fuzzyMatchScore('épée', 'épée de feu', 'name');
+                // Use 'description' field to test base score without name bonus
+                const result = fuzzyMatchScore('épée', 'épée de feu', 'description');
                 expect(result.score).toBe(1500);
                 expect(result.matchType).toBe('starts_with');
             });
 
             it('should handle very long inputs', () => {
                 const longText = 'a'.repeat(10000);
-                const result = fuzzyMatchScore('a', longText, 'name');
+                // Use 'description' field to test base score without name bonus
+                const result = fuzzyMatchScore('a', longText, 'description');
                 expect(result.score).toBe(1500); // starts_with
             });
 
             it('should trim whitespace from inputs', () => {
-                const result = fuzzyMatchScore('  fire  ', '  fire  ', 'name');
+                // Use 'description' field to test base score without name bonus
+                const result = fuzzyMatchScore('  fire  ', '  fire  ', 'description');
                 expect(result.score).toBe(2000);
                 expect(result.matchType).toBe('exact');
             });

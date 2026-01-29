@@ -28,6 +28,18 @@ export interface AdvancedSearchCriteria {
 // Fuzzy Search Algorithm
 // ========================================
 
+// ========================================
+// Score Constants
+// ========================================
+
+// Base scores for match types
+const SCORE_EXACT = 2000;
+const SCORE_STARTS_WITH = 1500;
+const SCORE_CONTAINS = 1000;
+
+// Bonus for name field matches (ensures "Big Bonk" appears before items with "bonk" in description)
+const NAME_FIELD_BONUS = 1000;
+
 /**
  * Calculate fuzzy match score between search term and text
  * Returns both score and match type for UX context
@@ -51,19 +63,23 @@ export function fuzzyMatchScore(searchTerm: string, text: string, fieldName: str
         return { score: 0, matchType: 'none', field: fieldName };
     }
 
+    // Apply bonus for name field matches
+    const isNameField = fieldName === 'name';
+    const fieldBonus = isNameField ? NAME_FIELD_BONUS : 0;
+
     // Exact match gets highest score
     if (text === searchTerm) {
-        return { score: 2000, matchType: 'exact', field: fieldName };
+        return { score: SCORE_EXACT + fieldBonus, matchType: 'exact', field: fieldName };
     }
 
     // Starts with search term (very relevant)
     if (text.startsWith(searchTerm)) {
-        return { score: 1500, matchType: 'starts_with', field: fieldName };
+        return { score: SCORE_STARTS_WITH + fieldBonus, matchType: 'starts_with', field: fieldName };
     }
 
     // Contains search term (substring match)
     if (text.includes(searchTerm)) {
-        return { score: 1000, matchType: 'contains', field: fieldName };
+        return { score: SCORE_CONTAINS + fieldBonus, matchType: 'contains', field: fieldName };
     }
 
     // Calculate fuzzy match score (character sequence)

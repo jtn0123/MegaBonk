@@ -593,7 +593,7 @@ declare global {
         // Note: These use string for flexibility with both TabName and general strings
         switchTab?: (tabId: string) => void;
         renderTabContent?: (tabId: string) => void;
-        renderGlobalSearchResults?: (results: unknown[]) => void;
+        renderGlobalSearchResults?: (results: unknown[], currentTab?: string, searchQuery?: string) => void;
 
         // Filter functions (from filters.ts)
         clearFilters?: () => void;

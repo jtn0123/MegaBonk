@@ -15,6 +15,12 @@ import { closeModal, openDetailModal } from './modal.ts';
 import { toggleFavorite } from './favorites.ts';
 import { clearFilters, handleSearch, updateFilters, restoreFilterState, saveFilterState } from './filters.ts';
 import { showSearchHistoryDropdown } from './search-history.ts';
+import {
+    handleDropdownKeyboard,
+    isSearchDropdownVisible,
+    hideSearchDropdown,
+    setupDropdownClickHandlers,
+} from './search-dropdown.ts';
 // Charts module loaded on demand during tab switch
 import { renderTabContent } from './renderers.ts';
 import { getState, setState, type TabName } from './store.ts';
@@ -215,8 +221,25 @@ export function setupEventDelegation(): void {
     document.addEventListener(
         'keydown',
         (e: KeyboardEvent) => {
-            // Escape key closes modals
+            // Handle search dropdown keyboard navigation first (when dropdown is visible)
+            // This takes precedence when the search input is focused and dropdown is open
+            const target = e.target as HTMLElement;
+            const isSearchInputFocused = target.id === 'searchInput';
+
+            if (isSearchInputFocused && isSearchDropdownVisible()) {
+                // Let the dropdown handle Arrow keys, Enter, and Escape
+                if (handleDropdownKeyboard(e)) {
+                    return; // Event was handled by dropdown
+                }
+            }
+
+            // Escape key closes modals (and dropdown if visible)
             if (e.key === 'Escape') {
+                // Close search dropdown first if it's visible
+                if (isSearchDropdownVisible()) {
+                    hideSearchDropdown();
+                    return;
+                }
                 closeModal();
                 // Dynamic import for code splitting with graceful fallback
                 import('./compare.ts')
@@ -713,11 +736,16 @@ export function setupEventListeners(): void {
     if (searchInput) {
         searchInput.addEventListener('input', debounce(handleSearch, 300), getListenerOptions());
 
-        // Show search history on focus
+        // Show search history on focus (if no current query)
+        // Or re-show search dropdown if there's already a query
         searchInput.addEventListener(
             'focus',
             () => {
-                if (typeof showSearchHistoryDropdown === 'function') {
+                const currentQuery = searchInput.value.trim();
+                if (currentQuery.length >= 2) {
+                    // Re-trigger search to show dropdown with current query
+                    handleSearch();
+                } else if (typeof showSearchHistoryDropdown === 'function') {
                     showSearchHistoryDropdown(searchInput, handleSearch);
                 }
             },
@@ -827,6 +855,9 @@ export function setupEventListeners(): void {
 
     // Setup event delegation for dynamic elements
     setupEventDelegation();
+
+    // Setup search dropdown click handlers
+    setupDropdownClickHandlers();
 }
 
 // ========================================
