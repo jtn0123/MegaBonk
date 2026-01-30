@@ -23,6 +23,18 @@ export {
     nonMaxSuppression,
     getAdaptiveIconSizes,
     extractCountRegion,
+    // Additional exports for browser testing and advanced usage
+    detectHotbarRegion,
+    detectIconEdges,
+    detectIconScale,
+    resizeImageData,
+    fitsGrid,
+    verifyGridPattern,
+    runEnsembleDetection,
+    setWorkerBasePath,
+    getCVMetrics,
+    getDetectionConfig,
+    getUncertainDetectionsFromResults,
 } from './detection.ts';
 
 // Aggregation

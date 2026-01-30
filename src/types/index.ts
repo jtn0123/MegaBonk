@@ -574,6 +574,61 @@ declare global {
         ) => Promise<unknown>;
         resetEnhancedCVState?: () => void;
 
+        // Additional CV detection functions (for browser testing and advanced usage)
+        detectItemsWithCV?: (
+            imageDataUrl: string,
+            progressCallback?: (progress: number, status: string) => void,
+            useWorkers?: boolean
+        ) => Promise<unknown[]>;
+        detectGridPositions?: (width: number, height: number, gridSize?: number) => unknown[];
+        detectItemCounts?: (imageDataUrl: string, cells: unknown[]) => Promise<Map<string, number>>;
+        loadImageToCanvas?: (
+            imageDataUrl: string,
+            timeoutMs?: number
+        ) => Promise<{ canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; width: number; height: number }>;
+        calculateSimilarity?: (imageData1: ImageData, imageData2: ImageData) => number;
+        calculateIoU?: (box1: unknown, box2: unknown) => number;
+        nonMaxSuppression?: (detections: unknown[], iouThreshold?: number) => unknown[];
+        getAdaptiveIconSizes?: (width: number, height: number) => number[];
+        extractCountRegion?: (cell: unknown) => unknown;
+        detectHotbarRegion?: (
+            ctx: CanvasRenderingContext2D,
+            width: number,
+            height: number
+        ) => { topY: number; bottomY: number; confidence: number };
+        detectIconEdges?: (ctx: CanvasRenderingContext2D, width: number, bandRegion: unknown) => number[];
+        detectIconScale?: (
+            ctx: CanvasRenderingContext2D,
+            width: number,
+            height: number
+        ) => { iconSize: number; confidence: number; method: string };
+        resizeImageData?: (imageData: ImageData, targetWidth: number, targetHeight: number) => ImageData | null;
+        fitsGrid?: (value: number, gridStart: number, spacing: number, tolerance: number) => boolean;
+        verifyGridPattern?: (detections: unknown[], expectedIconSize: number) => unknown;
+        runEnsembleDetection?: (
+            ctx: CanvasRenderingContext2D,
+            width: number,
+            height: number,
+            items: unknown[],
+            cell: unknown
+        ) => Promise<unknown>;
+        getCVMetrics?: () => unknown;
+        getDetectionConfig?: (width?: number, height?: number) => unknown;
+
+        // CV color functions
+        extractDominantColors?: (imageData: ImageData) => string[];
+        getDominantColor?: (imageData: ImageData) => string;
+        calculateColorVariance?: (imageData: ImageData) => number;
+        isEmptyCell?: (imageData: ImageData) => boolean;
+        detectBorderRarity?: (imageData: ImageData) => string | null;
+
+        // CV region functions
+        detectUIRegions?: (ctx: CanvasRenderingContext2D, width: number, height: number) => unknown;
+        detectScreenType?: (ctx: CanvasRenderingContext2D, width: number, height: number) => string;
+
+        // CV cache functions
+        clearDetectionCache?: () => void;
+
         // OCR functions (from ocr.ts)
         initOCR?: (gameData: AllGameData) => void;
         terminateOCRWorker?: () => Promise<void>;
