@@ -1765,3 +1765,1191 @@ describe('scan-build - Selection Summary', () => {
         expect(applyBtn?.style.display).toBe('block');
     });
 });
+
+// ========================================
+// cleanupEventListeners Tests
+// ========================================
+describe('scan-build - cleanupEventListeners', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should be callable without initialization', async () => {
+        const { cleanupEventListeners } = await import('../../src/modules/scan-build.ts');
+        expect(() => cleanupEventListeners()).not.toThrow();
+    });
+
+    it('should clean up event listeners after initialization', async () => {
+        const { initScanBuild, cleanupEventListeners } = await import('../../src/modules/scan-build.ts');
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        // Cleanup should not throw
+        expect(() => cleanupEventListeners()).not.toThrow();
+    });
+
+    it('should allow re-initialization after cleanup', async () => {
+        const { initScanBuild, cleanupEventListeners } = await import('../../src/modules/scan-build.ts');
+        const gameData = createMockGameData();
+        
+        initScanBuild(gameData);
+        cleanupEventListeners();
+        
+        // Re-initialize should work
+        expect(() => initScanBuild(gameData)).not.toThrow();
+    });
+});
+
+// ========================================
+// __resetForTesting Tests
+// ========================================
+describe('scan-build - __resetForTesting', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should reset module state', async () => {
+        const { initScanBuild, getScanState, __resetForTesting } = await import('../../src/modules/scan-build.ts');
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        // Reset state
+        __resetForTesting();
+
+        const state = getScanState();
+        expect(state.character).toBeNull();
+        expect(state.weapon).toBeNull();
+        expect(state.items).toEqual([]);
+        expect(state.tomes).toEqual([]);
+    });
+
+    it('should allow re-initialization after reset', async () => {
+        const { initScanBuild, __resetForTesting } = await import('../../src/modules/scan-build.ts');
+        const gameData = createMockGameData();
+        
+        initScanBuild(gameData);
+        __resetForTesting();
+        
+        expect(() => initScanBuild(gameData)).not.toThrow();
+        expect(initOCR).toHaveBeenCalled();
+    });
+});
+
+// ========================================
+// Item Count Increment/Decrement Tests
+// ========================================
+describe('scan-build - Item Count Controls', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should increment item count when + button clicked', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        // Simulate image upload
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+            expect(itemCard).not.toBeNull();
+        });
+
+        // Find and click increment button
+        const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+        const incrementBtn = itemCard.querySelectorAll('.scan-count-btn')[1] as HTMLElement; // Second button is +
+        const countDisplay = itemCard.querySelector('.scan-count-display') as HTMLElement;
+
+        expect(countDisplay.textContent).toBe('0');
+        incrementBtn.click();
+        expect(countDisplay.textContent).toBe('1');
+        expect(itemCard.classList.contains('selected')).toBe(true);
+    });
+
+    it('should decrement item count when - button clicked', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+            expect(itemCard).not.toBeNull();
+        });
+
+        const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+        const decrementBtn = itemCard.querySelectorAll('.scan-count-btn')[0] as HTMLElement;
+        const incrementBtn = itemCard.querySelectorAll('.scan-count-btn')[1] as HTMLElement;
+        const countDisplay = itemCard.querySelector('.scan-count-display') as HTMLElement;
+
+        // Increment twice
+        incrementBtn.click();
+        incrementBtn.click();
+        expect(countDisplay.textContent).toBe('2');
+
+        // Decrement once
+        decrementBtn.click();
+        expect(countDisplay.textContent).toBe('1');
+        expect(itemCard.classList.contains('selected')).toBe(true);
+    });
+
+    it('should not go below zero', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+            expect(itemCard).not.toBeNull();
+        });
+
+        const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+        const decrementBtn = itemCard.querySelectorAll('.scan-count-btn')[0] as HTMLElement;
+        const countDisplay = itemCard.querySelector('.scan-count-display') as HTMLElement;
+
+        // Try to decrement from zero
+        decrementBtn.click();
+        expect(countDisplay.textContent).toBe('0');
+        expect(itemCard.classList.contains('selected')).toBe(false);
+    });
+
+    it('should remove selection when count goes to zero', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+            expect(itemCard).not.toBeNull();
+        });
+
+        const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+        const decrementBtn = itemCard.querySelectorAll('.scan-count-btn')[0] as HTMLElement;
+        const incrementBtn = itemCard.querySelectorAll('.scan-count-btn')[1] as HTMLElement;
+        const countDisplay = itemCard.querySelector('.scan-count-display') as HTMLElement;
+
+        // Add item
+        incrementBtn.click();
+        expect(itemCard.classList.contains('selected')).toBe(true);
+
+        // Remove item
+        decrementBtn.click();
+        expect(countDisplay.textContent).toBe('0');
+        expect(itemCard.classList.contains('selected')).toBe(false);
+    });
+
+    it('should update getScanState with item counts', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+            expect(itemCard).not.toBeNull();
+        });
+
+        const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+        const incrementBtn = itemCard.querySelectorAll('.scan-count-btn')[1] as HTMLElement;
+
+        incrementBtn.click();
+        incrementBtn.click();
+
+        const state = getScanState();
+        expect(state.items.length).toBe(1);
+        expect(state.items[0].count).toBe(2);
+    });
+});
+
+// ========================================
+// FileReader Error Handling Tests
+// ========================================
+describe('scan-build - FileReader Error Handling', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should handle FileReader error', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            onerror: null as any,
+            result: null,
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        // Trigger error
+        if (mockFileReader.onerror) {
+            mockFileReader.onerror(new Error('Read failed'));
+        }
+
+        await vi.waitFor(() => {
+            expect(ToastManager.error).toHaveBeenCalledWith('Failed to read image file');
+        });
+    });
+
+    it('should handle non-string FileReader result', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            onerror: null as any,
+            result: null, // Non-string result
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: null } } as any);
+        }
+
+        await vi.waitFor(() => {
+            expect(ToastManager.error).toHaveBeenCalledWith('Failed to read image as data URL');
+        });
+    });
+});
+
+// ========================================
+// Template Loading Success Tests
+// ========================================
+describe('scan-build - Template Loading', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should log successful template loading', async () => {
+        vi.mocked(loadItemTemplates).mockResolvedValue(undefined);
+
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        await vi.waitFor(() => {
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'scan_build.templates_loaded',
+                    data: { success: true },
+                })
+            );
+        });
+    });
+
+    it('should enable hybrid detect button after templates load', async () => {
+        vi.mocked(loadItemTemplates).mockResolvedValue(undefined);
+
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const hybridBtn = document.getElementById('scan-hybrid-detect-btn') as HTMLButtonElement;
+
+        await vi.waitFor(() => {
+            expect(hybridBtn.disabled).toBe(false);
+            expect(hybridBtn.title).toBe('');
+        });
+    });
+
+    it('should disable hybrid detect button while templates loading', () => {
+        // Make templates take a long time
+        vi.mocked(loadItemTemplates).mockReturnValue(new Promise(() => {}));
+
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const hybridBtn = document.getElementById('scan-hybrid-detect-btn') as HTMLButtonElement;
+        expect(hybridBtn.disabled).toBe(true);
+        expect(hybridBtn.title).toBe('Loading item templates...');
+    });
+
+    it('should show warning state when templates fail', async () => {
+        vi.mocked(loadItemTemplates).mockRejectedValue(new Error('Load failed'));
+
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const hybridBtn = document.getElementById('scan-hybrid-detect-btn') as HTMLButtonElement;
+
+        await vi.waitFor(() => {
+            expect(hybridBtn.disabled).toBe(false);
+            expect(hybridBtn.title).toBe('Templates failed to load - reduced accuracy');
+        });
+    });
+});
+
+// ========================================
+// Hybrid Detection with Template States
+// ========================================
+describe('scan-build - Hybrid Detection Template States', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should warn when templates still loading', async () => {
+        // Make templates take a long time
+        vi.mocked(loadItemTemplates).mockReturnValue(new Promise(() => {}));
+
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        // Setup image upload
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const hybridDetectBtn = document.getElementById('scan-hybrid-detect-btn');
+        hybridDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            expect(ToastManager.info).toHaveBeenCalledWith('Item templates are still loading. Please wait a moment and try again.');
+        });
+    });
+
+    it('should show warning when templates failed and running hybrid', async () => {
+        // Make templates fail
+        vi.mocked(loadItemTemplates).mockRejectedValue(new Error('Load failed'));
+
+        const gameData = createMockGameData();
+        const mockItem = createMockItem('wrench', 'Wrench');
+
+        vi.mocked(autoDetectFromImage).mockResolvedValue({
+            items: [{ type: 'item', entity: mockItem, confidence: 0.85, rawText: 'Wrench' }],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+        vi.mocked(detectItemsWithCV).mockResolvedValue([]);
+
+        initScanBuild(gameData);
+
+        // Wait for template load to fail
+        await vi.waitFor(() => {
+            expect(logger.error).toHaveBeenCalledWith(
+                expect.objectContaining({ operation: 'scan_build.load_templates' })
+            );
+        });
+
+        vi.clearAllMocks();
+
+        // Setup image upload
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const hybridDetectBtn = document.getElementById('scan-hybrid-detect-btn');
+        hybridDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            expect(ToastManager.warning).toHaveBeenCalledWith('Item templates failed to load. Detection accuracy may be reduced.');
+        });
+    });
+});
+
+// ========================================
+// Detection Confidence Display Tests
+// ========================================
+describe('scan-build - Detection Confidence Display', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should display high confidence items correctly', async () => {
+        const gameData = createMockGameData();
+        const mockItem = createMockItem('wrench', 'Wrench');
+
+        vi.mocked(autoDetectFromImage).mockResolvedValue({
+            items: [{ type: 'item', entity: mockItem, confidence: 0.95, rawText: 'Wrench' }],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        initScanBuild(gameData);
+
+        // Setup image upload
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
+        autoDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            const detectionInfo = document.getElementById('scan-detection-info');
+            expect(detectionInfo?.innerHTML).toContain('confidence-high');
+            expect(detectionInfo?.innerHTML).toContain('95%');
+        });
+    });
+
+    it('should display medium confidence items correctly', async () => {
+        const gameData = createMockGameData();
+        const mockItem = createMockItem('wrench', 'Wrench');
+
+        vi.mocked(autoDetectFromImage).mockResolvedValue({
+            items: [{ type: 'item', entity: mockItem, confidence: 0.65, rawText: 'Wrench' }],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
+        autoDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            const detectionInfo = document.getElementById('scan-detection-info');
+            expect(detectionInfo?.innerHTML).toContain('confidence-medium');
+            expect(detectionInfo?.innerHTML).toContain('65%');
+        });
+    });
+
+    it('should display low confidence warning when many low confidence items', async () => {
+        const gameData = createMockGameData();
+        const mockItem1 = createMockItem('wrench', 'Wrench');
+        const mockItem2 = createMockItem('battery', 'Battery');
+        const mockItem3 = createMockItem('banana', 'Banana');
+
+        vi.mocked(autoDetectFromImage).mockResolvedValue({
+            items: [
+                { type: 'item', entity: mockItem1, confidence: 0.3, rawText: 'Wrench' },
+                { type: 'item', entity: mockItem2, confidence: 0.25, rawText: 'Battery' },
+                { type: 'item', entity: mockItem3, confidence: 0.4, rawText: 'Banana' },
+            ],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
+        autoDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            const detectionInfo = document.getElementById('scan-detection-info');
+            expect(detectionInfo?.innerHTML).toContain('scan-low-confidence-warning');
+            expect(detectionInfo?.innerHTML).toContain('Many low-confidence detections');
+        });
+    });
+
+    it('should display tome detections', async () => {
+        const gameData = createMockGameData();
+        const mockTome = createMockTome('tome_strength', 'Tome of Strength');
+
+        vi.mocked(autoDetectFromImage).mockResolvedValue({
+            items: [],
+            tomes: [{ type: 'tome', entity: mockTome, confidence: 0.88, rawText: 'Tome of Strength' }],
+            character: null,
+            weapon: null,
+        });
+
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
+        autoDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            const detectionInfo = document.getElementById('scan-detection-info');
+            expect(detectionInfo?.innerHTML).toContain('Tomes:');
+            expect(detectionInfo?.innerHTML).toContain('Tome of Strength');
+            expect(detectionInfo?.innerHTML).toContain('88%');
+        });
+    });
+
+    it('should display character and weapon detections', async () => {
+        const gameData = createMockGameData();
+        const mockCharacter = createMockCharacter('clank', 'CL4NK');
+        const mockWeapon = createMockWeapon('hammer', 'Hammer');
+
+        vi.mocked(autoDetectFromImage).mockResolvedValue({
+            items: [],
+            tomes: [],
+            character: { type: 'character', entity: mockCharacter, confidence: 0.92, rawText: 'CL4NK' },
+            weapon: { type: 'weapon', entity: mockWeapon, confidence: 0.78, rawText: 'Hammer' },
+        });
+
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
+        autoDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            const detectionInfo = document.getElementById('scan-detection-info');
+            expect(detectionInfo?.innerHTML).toContain('Character:');
+            expect(detectionInfo?.innerHTML).toContain('CL4NK');
+            expect(detectionInfo?.innerHTML).toContain('Weapon:');
+            expect(detectionInfo?.innerHTML).toContain('Hammer');
+        });
+    });
+});
+
+// ========================================
+// CV Fallback Scenarios Tests
+// ========================================
+describe('scan-build - CV Fallback Scenarios', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should fall back to CV when OCR returns empty and CV finds items', async () => {
+        const gameData = createMockGameData();
+        const mockItem = createMockItem('wrench', 'Wrench');
+
+        // OCR returns empty
+        vi.mocked(autoDetectFromImage).mockResolvedValue({
+            items: [],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        // CV returns results
+        vi.mocked(detectItemsWithCV).mockResolvedValue([
+            { type: 'item', entity: mockItem, confidence: 0.75 },
+        ]);
+
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
+        autoDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            expect(detectItemsWithCV).toHaveBeenCalled();
+            expect(ToastManager.success).toHaveBeenCalledWith('Detected 1 items via icon matching');
+        });
+    });
+
+    it('should log CV fallback failure', async () => {
+        const gameData = createMockGameData();
+
+        // OCR returns empty
+        vi.mocked(autoDetectFromImage).mockResolvedValue({
+            items: [],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        // CV throws error
+        vi.mocked(detectItemsWithCV).mockRejectedValue(new Error('CV failed'));
+
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
+        autoDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            expect(logger.warn).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'scan_build.cv_fallback_failed',
+                })
+            );
+        });
+    });
+
+    it('should show info toast when both OCR and CV find nothing', async () => {
+        const gameData = createMockGameData();
+
+        // OCR returns empty
+        vi.mocked(autoDetectFromImage).mockResolvedValue({
+            items: [],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        // CV also returns empty
+        vi.mocked(detectItemsWithCV).mockResolvedValue([]);
+
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
+        autoDetectBtn?.click();
+
+        await vi.waitFor(() => {
+            expect(ToastManager.info).toHaveBeenCalledWith('No items detected. Try Hybrid mode or a clearer screenshot.');
+        });
+    });
+});
+
+// ========================================
+// Selection Summary with Items and Tomes Tests
+// ========================================
+describe('scan-build - Selection Summary Full State', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should show weapon in summary', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const weaponGrid = document.getElementById('scan-weapon-grid');
+            const weaponCard = weaponGrid?.querySelector('.scan-entity-card') as HTMLElement;
+            weaponCard?.click();
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const summary = document.getElementById('scan-selection-summary');
+        expect(summary?.innerHTML).toContain('⚔️');
+    });
+
+    it('should show items in summary', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+            const incrementBtn = itemCard.querySelectorAll('.scan-count-btn')[1] as HTMLElement;
+            incrementBtn.click();
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const summary = document.getElementById('scan-selection-summary');
+        expect(summary?.innerHTML).toContain('📦 Items:');
+    });
+
+    it('should show tomes in summary', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const tomeCard = document.querySelector('.scan-tome-card') as HTMLElement;
+            tomeCard?.click();
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const summary = document.getElementById('scan-selection-summary');
+        expect(summary?.innerHTML).toContain('📚 Tomes:');
+    });
+});
+
+// ========================================
+// Apply to Advisor with Full State Tests
+// ========================================
+describe('scan-build - Apply to Advisor Full State', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+        setupDOM();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        document.body.innerHTML = '';
+        delete (window as any).applyScannedBuild;
+    });
+
+    it('should include items with counts in callback', async () => {
+        const gameData = createMockGameData();
+        const callback = vi.fn();
+        initScanBuild(gameData, callback);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const itemCard = document.querySelector('.scan-item-card') as HTMLElement;
+            const incrementBtn = itemCard.querySelectorAll('.scan-count-btn')[1] as HTMLElement;
+            incrementBtn.click();
+            incrementBtn.click();
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const applyBtn = document.getElementById('scan-apply-to-advisor') as HTMLElement;
+        applyBtn?.click();
+
+        await vi.waitFor(() => {
+            expect(callback).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    items: expect.arrayContaining([
+                        expect.objectContaining({ name: 'Wrench' }),
+                    ]),
+                })
+            );
+            // Items are expanded by count (2 clicks = 2 items in array)
+            const callArgs = callback.mock.calls[0][0];
+            expect(callArgs.items.length).toBe(2);
+        });
+    });
+
+    it('should include tomes in callback', async () => {
+        const gameData = createMockGameData();
+        const callback = vi.fn();
+        initScanBuild(gameData, callback);
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const tomeCard = document.querySelector('.scan-tome-card') as HTMLElement;
+            tomeCard?.click();
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const applyBtn = document.getElementById('scan-apply-to-advisor') as HTMLElement;
+        applyBtn?.click();
+
+        await vi.waitFor(() => {
+            expect(callback).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    tomes: expect.arrayContaining([
+                        expect.objectContaining({ name: 'Tome of Strength' }),
+                    ]),
+                })
+            );
+        });
+    });
+
+    it('should scroll to advisor section after apply', async () => {
+        const gameData = createMockGameData();
+        initScanBuild(gameData);
+
+        const advisorSection = document.getElementById('advisor-current-build-section');
+        const scrollSpy = vi.spyOn(advisorSection!, 'scrollIntoView');
+
+        const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
+        const mockFileReader = {
+            readAsDataURL: vi.fn(),
+            onload: null as any,
+            result: 'data:image/png;base64,fake',
+        };
+        vi.spyOn(window, 'FileReader').mockImplementation(() => mockFileReader as any);
+
+        const validFile = new File(['fake'], 'test.png', { type: 'image/png' });
+        Object.defineProperty(validFile, 'size', { value: 1024 });
+        Object.defineProperty(fileInput, 'files', { value: [validFile] });
+
+        fileInput.dispatchEvent(new Event('change'));
+        await new Promise(resolve => setTimeout(resolve, 150));
+        if (mockFileReader.onload) {
+            mockFileReader.onload({ target: { result: 'data:image/png;base64,fake' } } as any);
+        }
+
+        await vi.waitFor(() => {
+            const charCard = document.querySelector('.scan-entity-card') as HTMLElement;
+            charCard?.click();
+        });
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+
+        const applyBtn = document.getElementById('scan-apply-to-advisor') as HTMLElement;
+        applyBtn?.click();
+
+        await new Promise(resolve => setTimeout(resolve, 200));
+
+        expect(scrollSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' });
+    });
+});

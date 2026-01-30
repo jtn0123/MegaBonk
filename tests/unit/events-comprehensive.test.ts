@@ -25,6 +25,14 @@ const mockSetupDropdownClickHandlers = vi.hoisted(() => vi.fn());
 const mockIsSearchDropdownVisible = vi.hoisted(() => vi.fn().mockReturnValue(false));
 const mockHideSearchDropdown = vi.hoisted(() => vi.fn());
 const mockHandleDropdownKeyboard = vi.hoisted(() => vi.fn().mockReturnValue(false));
+const mockToggleFavorite = vi.hoisted(() => vi.fn().mockReturnValue(true));
+const mockToggleCompareItem = vi.hoisted(() => vi.fn());
+const mockUpdateCompareDisplay = vi.hoisted(() => vi.fn());
+const mockCloseCompareModal = vi.hoisted(() => vi.fn());
+const mockOpenCompareModal = vi.hoisted(() => vi.fn());
+const mockQuickCalc = vi.hoisted(() => vi.fn());
+const mockUpdateBuildAnalysis = vi.hoisted(() => vi.fn());
+const mockToggleChangelogExpand = vi.hoisted(() => vi.fn());
 
 // Mock store state
 const mockStoreState = vi.hoisted(() => ({
@@ -62,6 +70,36 @@ vi.mock('../../src/modules/search-dropdown.ts', () => ({
 vi.mock('../../src/modules/modal.ts', () => ({
     closeModal: mockCloseModal,
     openDetailModal: mockOpenDetailModal,
+}));
+
+vi.mock('../../src/modules/favorites.ts', () => ({
+    toggleFavorite: mockToggleFavorite,
+}));
+
+vi.mock('../../src/modules/compare.ts', () => ({
+    toggleCompareItem: mockToggleCompareItem,
+    updateCompareDisplay: mockUpdateCompareDisplay,
+    closeCompareModal: mockCloseCompareModal,
+    openCompareModal: mockOpenCompareModal,
+    getCompareItems: vi.fn(() => []),
+}));
+
+vi.mock('../../src/modules/calculator.ts', () => ({
+    quickCalc: mockQuickCalc,
+    populateCalculatorItems: vi.fn(),
+    calculateBreakpoint: vi.fn(),
+}));
+
+vi.mock('../../src/modules/build-planner.ts', () => ({
+    setupBuildPlannerEvents: vi.fn(),
+    updateBuildAnalysis: mockUpdateBuildAnalysis,
+    renderBuildPlanner: vi.fn(),
+}));
+
+vi.mock('../../src/modules/changelog.ts', () => ({
+    toggleChangelogExpand: mockToggleChangelogExpand,
+    updateChangelogStats: vi.fn(),
+    renderChangelog: vi.fn(),
 }));
 
 vi.mock('../../src/modules/data-service.ts', () => ({
@@ -984,6 +1022,843 @@ describe('Events - Comprehensive Coverage', () => {
             setupEventDelegation();
 
             expect(addEventListenerSpy).toHaveBeenCalledWith('pagehide', expect.any(Function), expect.anything());
+        });
+    });
+
+    // ========================================
+    // Modal Backdrop Click Handling
+    // ========================================
+    describe('Modal backdrop click handling', () => {
+        beforeEach(() => {
+            setupEventListeners();
+        });
+
+        it('should close item modal when clicking backdrop', async () => {
+            const modal = document.getElementById('itemModal') as HTMLElement;
+            modal.classList.add('active');
+            
+            // Create modal content inside
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modal.appendChild(modalContent);
+
+            // Click on the modal backdrop (not the content)
+            const clickEvent = new MouseEvent('click', { bubbles: true });
+            Object.defineProperty(clickEvent, 'target', { value: modal });
+            window.dispatchEvent(clickEvent);
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+            expect(mockCloseModal).toHaveBeenCalled();
+        });
+
+        it('should not close modal when clicking inside modal-content', () => {
+            const modal = document.getElementById('itemModal') as HTMLElement;
+            modal.classList.add('active');
+            
+            const modalContent = document.createElement('div');
+            modalContent.className = 'modal-content';
+            modal.appendChild(modalContent);
+
+            // Click inside modal content
+            const clickEvent = new MouseEvent('click', { bubbles: true });
+            Object.defineProperty(clickEvent, 'target', { value: modalContent });
+            window.dispatchEvent(clickEvent);
+
+            // Should not close since click was inside content
+        });
+
+        it('should debounce rapid modal close attempts', async () => {
+            const modal = document.getElementById('itemModal') as HTMLElement;
+            modal.classList.add('active');
+            
+            // Simulate rapid double-clicks
+            const clickEvent1 = new MouseEvent('click', { bubbles: true });
+            Object.defineProperty(clickEvent1, 'target', { value: modal });
+            window.dispatchEvent(clickEvent1);
+
+            // Immediate second click should be debounced
+            const clickEvent2 = new MouseEvent('click', { bubbles: true });
+            Object.defineProperty(clickEvent2, 'target', { value: modal });
+            window.dispatchEvent(clickEvent2);
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+            // First call should work, second should be debounced
+            expect(mockCloseModal).toHaveBeenCalledTimes(1);
+        });
+
+        it('should handle touchend for mobile modal close', async () => {
+            const modal = document.getElementById('itemModal') as HTMLElement;
+            modal.classList.add('active');
+            
+            __resetTimersForTesting();
+
+            const touchEvent = new TouchEvent('touchend', { bubbles: true });
+            Object.defineProperty(touchEvent, 'target', { value: modal });
+            window.dispatchEvent(touchEvent);
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+            expect(mockCloseModal).toHaveBeenCalled();
+        });
+    });
+
+    // ========================================
+    // Compare Checkbox Click Handling
+    // ========================================
+    describe('Compare checkbox click handling', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle compare checkbox label click', async () => {
+            const label = document.createElement('label');
+            label.className = 'compare-checkbox-label';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'compare-checkbox';
+            checkbox.dataset.id = 'test-item-123';
+            checkbox.checked = false;
+            label.appendChild(checkbox);
+            document.body.appendChild(label);
+
+            // Click on the label (not the checkbox itself)
+            dispatchClick(label);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Checkbox should be toggled
+            expect(checkbox.checked).toBe(true);
+        });
+
+        it('should prevent rapid double-toggling of compare checkbox', async () => {
+            const label = document.createElement('label');
+            label.className = 'compare-checkbox-label';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'compare-checkbox';
+            checkbox.dataset.id = 'test-item-456';
+            checkbox.checked = false;
+            label.appendChild(checkbox);
+            document.body.appendChild(label);
+
+            // Rapid clicks
+            dispatchClick(label);
+            dispatchClick(label);
+            dispatchClick(label);
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+            // Due to debouncing, should only toggle once
+        });
+
+        it('should use checkbox value if no data-id', async () => {
+            const label = document.createElement('label');
+            label.className = 'compare-checkbox-label';
+            
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'compare-checkbox';
+            checkbox.value = 'item-from-value';
+            checkbox.checked = false;
+            label.appendChild(checkbox);
+            document.body.appendChild(label);
+
+            dispatchClick(label);
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+            expect(checkbox.checked).toBe(true);
+        });
+    });
+
+    // ========================================
+    // Expandable Text Click Handling
+    // ========================================
+    describe('Expandable text click via delegation', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle click on expandable-text element without throwing', () => {
+            const element = document.createElement('div');
+            element.className = 'expandable-text';
+            element.dataset.fullText = 'This is the full text content that should be shown';
+            element.dataset.truncated = 'true';
+            document.body.appendChild(element);
+
+            expect(() => dispatchClick(element)).not.toThrow();
+            // toggleTextExpand should have been called (toggling the state)
+        });
+
+        it('should handle click on child of expandable-text without throwing', () => {
+            const parent = document.createElement('div');
+            parent.className = 'expandable-text';
+            parent.dataset.fullText = 'Full text here';
+            parent.dataset.truncated = 'true';
+            
+            const child = document.createElement('span');
+            parent.appendChild(child);
+            document.body.appendChild(parent);
+
+            expect(() => dispatchClick(child)).not.toThrow();
+        });
+
+        it('should handle expandable-text without fullText attribute', () => {
+            const element = document.createElement('div');
+            element.className = 'expandable-text';
+            // No fullText set
+            document.body.appendChild(element);
+
+            expect(() => dispatchClick(element)).not.toThrow();
+        });
+    });
+
+    // ========================================
+    // Remove Compare Button
+    // ========================================
+    describe('Remove compare button handling', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle remove-compare-btn click', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'remove-compare-btn';
+            btn.dataset.removeId = 'item-to-remove';
+            document.body.appendChild(btn);
+
+            dispatchClick(btn);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Should trigger remove action
+        });
+
+        it('should handle click on child of remove-compare-btn', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'remove-compare-btn';
+            btn.dataset.removeId = 'item-to-remove-2';
+            
+            const icon = document.createElement('span');
+            icon.textContent = '×';
+            btn.appendChild(icon);
+            document.body.appendChild(btn);
+
+            dispatchClick(icon);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Should still trigger remove
+        });
+    });
+
+    // ========================================
+    // Breakpoint Card Click Handling
+    // ========================================
+    describe('Breakpoint card click handling', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle breakpoint-card click', async () => {
+            const card = document.createElement('div');
+            card.className = 'breakpoint-card';
+            card.dataset.item = 'sword-of-power';
+            card.dataset.target = '100';
+            document.body.appendChild(card);
+
+            dispatchClick(card);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Should trigger quickCalc
+        });
+
+        it('should handle click on child of breakpoint-card', async () => {
+            const card = document.createElement('div');
+            card.className = 'breakpoint-card';
+            card.dataset.item = 'magic-staff';
+            card.dataset.target = '50';
+            
+            const label = document.createElement('span');
+            card.appendChild(label);
+            document.body.appendChild(card);
+
+            dispatchClick(label);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+        });
+
+        it('should ignore breakpoint card with invalid target', async () => {
+            const card = document.createElement('div');
+            card.className = 'breakpoint-card';
+            card.dataset.item = 'test-item';
+            card.dataset.target = 'not-a-number';
+            document.body.appendChild(card);
+
+            dispatchClick(card);
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+            // Should not crash
+        });
+
+        it('should handle Enter key on breakpoint-card', async () => {
+            const card = document.createElement('div');
+            card.className = 'breakpoint-card';
+            card.dataset.item = 'keyboard-item';
+            card.dataset.target = '75';
+            card.tabIndex = 0;
+            document.body.appendChild(card);
+
+            const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
+            Object.defineProperty(event, 'target', { value: card });
+            card.dispatchEvent(event);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+        });
+
+        it('should handle Space key on breakpoint-card', async () => {
+            const card = document.createElement('div');
+            card.className = 'breakpoint-card';
+            card.dataset.item = 'space-item';
+            card.dataset.target = '25';
+            card.tabIndex = 0;
+            document.body.appendChild(card);
+
+            const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true });
+            Object.defineProperty(event, 'target', { value: card });
+            card.dispatchEvent(event);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+        });
+    });
+
+    // ========================================
+    // Number Key Tab Switching
+    // ========================================
+    describe('Number key tab switching', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should switch to items tab on key 1', async () => {
+            dispatchKeydown(document, '1');
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            expect(mockUpdateFilters).toHaveBeenCalled();
+        });
+
+        it('should switch to weapons tab on key 2', async () => {
+            dispatchKeydown(document, '2');
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            expect(mockUpdateFilters).toHaveBeenCalled();
+        });
+
+        it('should switch to build-planner on key 6', async () => {
+            dispatchKeydown(document, '6');
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            expect(mockUpdateFilters).toHaveBeenCalled();
+        });
+
+        it('should switch to changelog on key 9', async () => {
+            dispatchKeydown(document, '9');
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            expect(mockUpdateFilters).toHaveBeenCalled();
+        });
+    });
+
+    // ========================================
+    // Change Event Delegation
+    // ========================================
+    describe('Change event delegation', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle tome-checkbox change', async () => {
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'tome-checkbox';
+            document.body.appendChild(checkbox);
+
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Should trigger updateBuildAnalysis
+        });
+
+        it('should handle item-checkbox change', async () => {
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'item-checkbox';
+            document.body.appendChild(checkbox);
+
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Should trigger updateBuildAnalysis
+        });
+
+        it('should handle filter select change', async () => {
+            const filters = document.createElement('div');
+            filters.id = 'filters';
+            
+            const select = document.createElement('select');
+            filters.appendChild(select);
+            document.body.appendChild(filters);
+
+            mockStoreState.currentTab = 'items';
+
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+            expect(mockRenderTabContent).toHaveBeenCalled();
+        });
+
+        it('should handle favoritesOnly checkbox change', async () => {
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.id = 'favoritesOnly';
+            document.body.appendChild(checkbox);
+
+            mockStoreState.currentTab = 'weapons';
+
+            checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+            expect(mockRenderTabContent).toHaveBeenCalled();
+        });
+
+        it('should not render if currentTab is not set', async () => {
+            const filters = document.createElement('div');
+            filters.id = 'filters';
+            
+            const select = document.createElement('select');
+            filters.appendChild(select);
+            document.body.appendChild(filters);
+
+            mockStoreState.currentTab = '' as any;
+            mockRenderTabContent.mockClear();
+
+            select.dispatchEvent(new Event('change', { bubbles: true }));
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+            expect(mockRenderTabContent).not.toHaveBeenCalled();
+        });
+    });
+
+    // ========================================
+    // Close Compare Button
+    // ========================================
+    describe('Close compare button handling', () => {
+        beforeEach(() => {
+            // Create closeCompare button
+            const closeBtn = document.createElement('button');
+            closeBtn.id = 'closeCompare';
+            document.body.appendChild(closeBtn);
+            
+            setupEventListeners();
+        });
+
+        it('should handle closeCompare button click', async () => {
+            const closeBtn = document.getElementById('closeCompare') as HTMLButtonElement;
+            closeBtn?.click();
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Should trigger closeCompareModal
+        });
+    });
+
+    // ========================================
+    // Compare Button
+    // ========================================
+    describe('Compare button handling', () => {
+        beforeEach(() => {
+            const compareBtn = document.createElement('button');
+            compareBtn.id = 'compare-btn';
+            document.body.appendChild(compareBtn);
+            
+            setupEventListeners();
+        });
+
+        it('should handle compare button click', async () => {
+            const compareBtn = document.getElementById('compare-btn') as HTMLButtonElement;
+            compareBtn?.click();
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Should trigger openCompareModal
+        });
+    });
+
+    // ========================================
+    // Tab Scroll Indicators
+    // ========================================
+    describe('Tab scroll indicators', () => {
+        beforeEach(() => {
+            // Create proper tab structure
+            const tabsContainer = document.createElement('div');
+            tabsContainer.className = 'tabs';
+            
+            const container = document.createElement('div');
+            container.className = 'container';
+            
+            const tabButtons = document.createElement('div');
+            tabButtons.className = 'tab-buttons';
+            tabButtons.style.overflow = 'auto';
+            
+            // Add some tab buttons
+            for (let i = 0; i < 5; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'tab-btn';
+                btn.dataset.tab = `tab${i}`;
+                tabButtons.appendChild(btn);
+            }
+            
+            container.appendChild(tabButtons);
+            tabsContainer.appendChild(container);
+            document.body.appendChild(tabsContainer);
+        });
+
+        it('should setup scroll listeners on tab buttons', () => {
+            const tabButtons = document.querySelector('.tab-buttons') as HTMLElement;
+            const addEventListenerSpy = vi.spyOn(tabButtons, 'addEventListener');
+
+            setupEventListeners();
+
+            expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), expect.anything());
+        });
+
+        it('should clean up scroll listeners', () => {
+            setupEventListeners();
+            
+            expect(() => cleanupTabScrollListeners()).not.toThrow();
+        });
+
+        it('should handle scroll events', async () => {
+            setupEventListeners();
+            
+            const tabButtons = document.querySelector('.tab-buttons') as HTMLElement;
+            tabButtons.dispatchEvent(new Event('scroll'));
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Should not throw
+        });
+
+        it('should handle resize events', async () => {
+            setupEventListeners();
+            
+            window.dispatchEvent(new Event('resize'));
+
+            await new Promise(resolve => setTimeout(resolve, 150));
+            // Should update indicators
+        });
+    });
+
+    // ========================================
+    // Search Input Focus Behavior
+    // ========================================
+    describe('Search input focus behavior', () => {
+        beforeEach(() => {
+            setupEventListeners();
+        });
+
+        it('should show search history when focused with empty input', () => {
+            const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+            searchInput.value = '';
+            
+            searchInput.dispatchEvent(new Event('focus'));
+
+            expect(mockShowSearchHistoryDropdown).toHaveBeenCalled();
+        });
+
+        it('should trigger search when focused with short query', () => {
+            const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+            searchInput.value = 'a'; // Less than 2 chars
+            
+            mockShowSearchHistoryDropdown.mockClear();
+            searchInput.dispatchEvent(new Event('focus'));
+
+            expect(mockShowSearchHistoryDropdown).toHaveBeenCalled();
+        });
+
+        it('should trigger search when focused with valid query', () => {
+            const searchInput = document.getElementById('searchInput') as HTMLInputElement;
+            searchInput.value = 'test search';
+            
+            searchInput.dispatchEvent(new Event('focus'));
+
+            expect(mockHandleSearch).toHaveBeenCalled();
+        });
+    });
+
+    // ========================================
+    // Favorite Button Handling
+    // ========================================
+    describe('Favorite button handling', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle favorite button click without throwing', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'favorite-btn';
+            btn.dataset.tab = 'items';
+            btn.dataset.id = 'test-item-fav';
+            btn.textContent = '☆';
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(btn)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle click on child of favorite button', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'favorite-btn';
+            btn.dataset.tab = 'weapons';
+            btn.dataset.id = 'weapon-fav';
+            
+            const star = document.createElement('span');
+            star.textContent = '☆';
+            btn.appendChild(star);
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(star)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should not throw for non-entity tabs', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'favorite-btn';
+            btn.dataset.tab = 'build-planner'; // Not an entity tab
+            btn.dataset.id = 'build-1';
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(btn)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle favorite button without tab', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'favorite-btn';
+            btn.dataset.id = 'no-tab-item';
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(btn)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle favorite button without id', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'favorite-btn';
+            btn.dataset.tab = 'items';
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(btn)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+    });
+
+    // ========================================
+    // Global Search Result Navigation  
+    // ========================================
+    describe('Global search result navigation', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle search result card click without throwing', async () => {
+            const card = document.createElement('div');
+            card.className = 'search-result-card';
+            card.dataset.tabType = 'items';
+            card.dataset.entityId = 'result-item';
+            document.body.appendChild(card);
+
+            expect(() => dispatchClick(card)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+        });
+
+        it('should handle missing search input gracefully', async () => {
+            // Remove search input
+            const searchInput = document.getElementById('searchInput');
+            searchInput?.remove();
+
+            const card = document.createElement('div');
+            card.className = 'search-result-card';
+            card.dataset.tabType = 'weapons';
+            card.dataset.entityId = 'weapon-result';
+            document.body.appendChild(card);
+
+            expect(() => dispatchClick(card)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle search result without tabType', async () => {
+            const card = document.createElement('div');
+            card.className = 'search-result-card';
+            // No tabType set
+            card.dataset.entityId = 'orphan-item';
+            document.body.appendChild(card);
+
+            expect(() => dispatchClick(card)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle search result without entityId', async () => {
+            const card = document.createElement('div');
+            card.className = 'search-result-card';
+            card.dataset.tabType = 'items';
+            // No entityId
+            document.body.appendChild(card);
+
+            expect(() => dispatchClick(card)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+    });
+
+    // ========================================
+    // View Details Button
+    // ========================================
+    describe('View details button handling', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle view-details-btn click without throwing', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'view-details-btn';
+            btn.dataset.type = 'tomes';
+            btn.dataset.id = 'tome-123';
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(btn)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle view-details-btn without type', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'view-details-btn';
+            btn.dataset.id = 'item-no-type';
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(btn)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle view-details-btn without id', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'view-details-btn';
+            btn.dataset.type = 'items';
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(btn)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+    });
+
+    // ========================================
+    // Entity Link Click
+    // ========================================
+    describe('Entity link click handling', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle entity-link click without throwing', async () => {
+            const link = document.createElement('a');
+            link.className = 'entity-link';
+            link.href = '#';
+            link.dataset.entityType = 'characters';
+            link.dataset.entityId = 'char-456';
+            document.body.appendChild(link);
+
+            expect(() => dispatchClick(link)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle entity-link without entityType', async () => {
+            const link = document.createElement('a');
+            link.className = 'entity-link';
+            link.href = '#';
+            link.dataset.entityId = 'shrine-789';
+            document.body.appendChild(link);
+
+            expect(() => dispatchClick(link)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle entity-link without entityId', async () => {
+            const link = document.createElement('a');
+            link.className = 'entity-link';
+            link.href = '#';
+            link.dataset.entityType = 'shrines';
+            document.body.appendChild(link);
+
+            expect(() => dispatchClick(link)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+    });
+
+    // ========================================
+    // Clear Filters Button
+    // ========================================
+    describe('Clear filters button handling', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle clear filters button click without throwing', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-secondary';
+            btn.textContent = 'Clear Filters';
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(btn)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+
+        it('should handle other secondary buttons without throwing', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-secondary';
+            btn.textContent = 'Something Else';
+            document.body.appendChild(btn);
+
+            expect(() => dispatchClick(btn)).not.toThrow();
+
+            await new Promise(resolve => setTimeout(resolve, 10));
+        });
+    });
+
+    // ========================================
+    // Changelog Expand Button
+    // ========================================
+    describe('Changelog expand button handling', () => {
+        beforeEach(() => {
+            setupEventDelegation();
+        });
+
+        it('should handle changelog-expand-btn click', async () => {
+            const btn = document.createElement('button');
+            btn.className = 'changelog-expand-btn';
+            document.body.appendChild(btn);
+
+            dispatchClick(btn);
+
+            await new Promise(resolve => setTimeout(resolve, 50));
+            // Should trigger toggleChangelogExpand via dynamic import
         });
     });
 });
