@@ -11,18 +11,32 @@ import {
     getTemplatesByColor,
     isTemplatesLoaded,
     isPriorityTemplatesLoaded,
+    isStandardTemplatesLoading,
+    setStandardTemplatesLoading,
     getDetectionCache,
     getResizedTemplate,
     setResizedTemplate,
     getResizedTemplateCacheSize,
+    getMultiScaleTemplates,
+    getMultiScaleTemplate,
+    setMultiScaleTemplate,
+    hasMultiScaleTemplates,
+    getMultiScaleTemplateCount,
     getCacheCleanupTimer,
     setAllData,
     setTemplatesLoaded,
     setPriorityTemplatesLoaded,
     setCacheCleanupTimer,
     resetState,
+    loadGridPresets,
+    getPresetForResolution,
+    findPresetByAspectRatio,
+    getAllGridPresets,
+    isGridPresetsLoaded,
+    scaleCalibrationToResolution,
     CACHE_TTL,
     MAX_CACHE_SIZE,
+    COMMON_ICON_SIZES,
 } from '../../src/modules/cv/state.ts';
 
 // ========================================
@@ -607,6 +621,498 @@ describe('CV State Module', () => {
 
             expect(getResizedTemplateCacheSize()).toBe(0);
             expect(getResizedTemplate('item1', 50, 50)).toBeUndefined();
+        });
+    });
+
+    // ========================================
+    // isStandardTemplatesLoading / setStandardTemplatesLoading Tests
+    // ========================================
+    describe('isStandardTemplatesLoading / setStandardTemplatesLoading', () => {
+        it('should return false by default', () => {
+            expect(isStandardTemplatesLoading()).toBe(false);
+        });
+
+        it('should return true after setting to true', () => {
+            setStandardTemplatesLoading(true);
+            expect(isStandardTemplatesLoading()).toBe(true);
+        });
+
+        it('should return false after setting to false', () => {
+            setStandardTemplatesLoading(true);
+            setStandardTemplatesLoading(false);
+            expect(isStandardTemplatesLoading()).toBe(false);
+        });
+
+        it('should be reset by resetState', () => {
+            setStandardTemplatesLoading(true);
+            resetState();
+            expect(isStandardTemplatesLoading()).toBe(false);
+        });
+    });
+
+    // ========================================
+    // COMMON_ICON_SIZES Constant Tests
+    // ========================================
+    describe('COMMON_ICON_SIZES', () => {
+        it('should contain expected icon sizes', () => {
+            expect(COMMON_ICON_SIZES).toContain(32);
+            expect(COMMON_ICON_SIZES).toContain(48);
+            expect(COMMON_ICON_SIZES).toContain(64);
+        });
+
+        it('should be a readonly tuple', () => {
+            expect(Array.isArray(COMMON_ICON_SIZES)).toBe(true);
+            expect(COMMON_ICON_SIZES.length).toBeGreaterThan(0);
+        });
+
+        it('should have sizes in ascending order', () => {
+            for (let i = 1; i < COMMON_ICON_SIZES.length; i++) {
+                expect(COMMON_ICON_SIZES[i]).toBeGreaterThan(COMMON_ICON_SIZES[i - 1]);
+            }
+        });
+    });
+
+    // ========================================
+    // Multi-Scale Template Tests
+    // ========================================
+    describe('Multi-Scale Templates', () => {
+        const createMockImageData = (width: number, height: number) => ({
+            width,
+            height,
+            data: new Uint8ClampedArray(width * height * 4),
+        }) as unknown as ImageData;
+
+        describe('getMultiScaleTemplates', () => {
+            it('should return empty Map by default', () => {
+                const templates = getMultiScaleTemplates();
+                expect(templates).toBeInstanceOf(Map);
+                expect(templates.size).toBe(0);
+            });
+
+            it('should return same Map instance', () => {
+                const map1 = getMultiScaleTemplates();
+                const map2 = getMultiScaleTemplates();
+                expect(map1).toBe(map2);
+            });
+        });
+
+        describe('setMultiScaleTemplate / getMultiScaleTemplate', () => {
+            it('should return undefined for non-existent template', () => {
+                const result = getMultiScaleTemplate('nonexistent', 32);
+                expect(result).toBeUndefined();
+            });
+
+            it('should set and get multi-scale template', () => {
+                const mockImageData = createMockImageData(32, 32);
+                setMultiScaleTemplate('sword', 32, mockImageData);
+
+                const result = getMultiScaleTemplate('sword', 32);
+                expect(result).toBe(mockImageData);
+            });
+
+            it('should store multiple sizes for same item', () => {
+                const small = createMockImageData(32, 32);
+                const medium = createMockImageData(48, 48);
+                const large = createMockImageData(64, 64);
+
+                setMultiScaleTemplate('sword', 32, small);
+                setMultiScaleTemplate('sword', 48, medium);
+                setMultiScaleTemplate('sword', 64, large);
+
+                expect(getMultiScaleTemplate('sword', 32)).toBe(small);
+                expect(getMultiScaleTemplate('sword', 48)).toBe(medium);
+                expect(getMultiScaleTemplate('sword', 64)).toBe(large);
+            });
+
+            it('should store templates for different items', () => {
+                const swordImg = createMockImageData(32, 32);
+                const shieldImg = createMockImageData(32, 32);
+
+                setMultiScaleTemplate('sword', 32, swordImg);
+                setMultiScaleTemplate('shield', 32, shieldImg);
+
+                expect(getMultiScaleTemplate('sword', 32)).toBe(swordImg);
+                expect(getMultiScaleTemplate('shield', 32)).toBe(shieldImg);
+            });
+
+            it('should return undefined for item with templates but wrong size', () => {
+                setMultiScaleTemplate('sword', 32, createMockImageData(32, 32));
+                expect(getMultiScaleTemplate('sword', 64)).toBeUndefined();
+            });
+        });
+
+        describe('hasMultiScaleTemplates', () => {
+            it('should return false for non-existent item', () => {
+                expect(hasMultiScaleTemplates('nonexistent')).toBe(false);
+            });
+
+            it('should return true after adding template', () => {
+                setMultiScaleTemplate('sword', 32, createMockImageData(32, 32));
+                expect(hasMultiScaleTemplates('sword')).toBe(true);
+            });
+
+            it('should return false for item with empty size map', () => {
+                // Manually set an empty map (edge case)
+                getMultiScaleTemplates().set('empty_item', new Map());
+                expect(hasMultiScaleTemplates('empty_item')).toBe(false);
+            });
+        });
+
+        describe('getMultiScaleTemplateCount', () => {
+            it('should return 0 when no templates', () => {
+                expect(getMultiScaleTemplateCount()).toBe(0);
+            });
+
+            it('should count all templates across all items', () => {
+                setMultiScaleTemplate('sword', 32, createMockImageData(32, 32));
+                setMultiScaleTemplate('sword', 48, createMockImageData(48, 48));
+                setMultiScaleTemplate('shield', 32, createMockImageData(32, 32));
+
+                expect(getMultiScaleTemplateCount()).toBe(3);
+            });
+
+            it('should update count after adding more templates', () => {
+                setMultiScaleTemplate('item1', 32, createMockImageData(32, 32));
+                expect(getMultiScaleTemplateCount()).toBe(1);
+
+                setMultiScaleTemplate('item2', 32, createMockImageData(32, 32));
+                expect(getMultiScaleTemplateCount()).toBe(2);
+            });
+        });
+
+        describe('resetState clears multi-scale templates', () => {
+            it('should clear all multi-scale templates', () => {
+                setMultiScaleTemplate('sword', 32, createMockImageData(32, 32));
+                setMultiScaleTemplate('shield', 48, createMockImageData(48, 48));
+
+                resetState();
+
+                expect(getMultiScaleTemplates().size).toBe(0);
+                expect(getMultiScaleTemplateCount()).toBe(0);
+                expect(hasMultiScaleTemplates('sword')).toBe(false);
+            });
+        });
+    });
+
+    // ========================================
+    // Grid Presets Tests
+    // ========================================
+    describe('Grid Presets', () => {
+        describe('isGridPresetsLoaded', () => {
+            it('should return false by default', () => {
+                expect(isGridPresetsLoaded()).toBe(false);
+            });
+
+            it('should be reset by resetState', () => {
+                // We can't directly set gridPresetsLoaded, but resetState should reset it
+                resetState();
+                expect(isGridPresetsLoaded()).toBe(false);
+            });
+        });
+
+        describe('getAllGridPresets', () => {
+            it('should return empty object when no presets loaded', () => {
+                const presets = getAllGridPresets();
+                expect(presets).toEqual({});
+            });
+        });
+
+        describe('getPresetForResolution', () => {
+            it('should return null when no presets loaded', () => {
+                const result = getPresetForResolution(1920, 1080);
+                expect(result).toBeNull();
+            });
+        });
+
+        describe('findPresetByAspectRatio', () => {
+            it('should return null when no presets loaded', () => {
+                const result = findPresetByAspectRatio(1920, 1080);
+                expect(result).toBeNull();
+            });
+
+            it('should return null for invalid dimensions (zero width)', () => {
+                const result = findPresetByAspectRatio(0, 1080);
+                expect(result).toBeNull();
+            });
+
+            it('should return null for invalid dimensions (zero height)', () => {
+                const result = findPresetByAspectRatio(1920, 0);
+                expect(result).toBeNull();
+            });
+
+            it('should return null for invalid dimensions (negative)', () => {
+                const result = findPresetByAspectRatio(-1920, 1080);
+                expect(result).toBeNull();
+            });
+
+            it('should return null for NaN dimensions', () => {
+                const result = findPresetByAspectRatio(NaN, 1080);
+                expect(result).toBeNull();
+            });
+
+            it('should return null for Infinity dimensions', () => {
+                const result = findPresetByAspectRatio(Infinity, 1080);
+                expect(result).toBeNull();
+            });
+        });
+
+        describe('loadGridPresets', () => {
+            it('should handle fetch failure gracefully', async () => {
+                global.fetch = vi.fn().mockResolvedValue({
+                    ok: false,
+                    status: 404,
+                });
+
+                const result = await loadGridPresets();
+                expect(result).toBeNull();
+                expect(isGridPresetsLoaded()).toBe(true);
+            });
+
+            it('should handle fetch error gracefully', async () => {
+                global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
+
+                // Reset state first to clear any cached presets
+                resetState();
+
+                const result = await loadGridPresets();
+                expect(result).toBeNull();
+                expect(isGridPresetsLoaded()).toBe(true);
+            });
+
+            it('should load and cache presets on success', async () => {
+                const mockPresets = {
+                    presets: {
+                        '1920x1080': {
+                            resolution: { width: 1920, height: 1080 },
+                            calibration: {
+                                xOffset: 10,
+                                yOffset: 20,
+                                iconWidth: 64,
+                                iconHeight: 64,
+                                xSpacing: 8,
+                                ySpacing: 8,
+                                iconsPerRow: 10,
+                                numRows: 5,
+                            },
+                        },
+                    },
+                };
+
+                global.fetch = vi.fn().mockResolvedValue({
+                    ok: true,
+                    json: () => Promise.resolve(mockPresets),
+                });
+
+                // Reset to clear cached state
+                resetState();
+
+                const result = await loadGridPresets();
+                expect(result).toEqual(mockPresets);
+                expect(isGridPresetsLoaded()).toBe(true);
+            });
+
+            it('should return cached presets on subsequent calls', async () => {
+                const mockPresets = {
+                    presets: {
+                        '1920x1080': {
+                            resolution: { width: 1920, height: 1080 },
+                            calibration: {},
+                        },
+                    },
+                };
+
+                global.fetch = vi.fn().mockResolvedValue({
+                    ok: true,
+                    json: () => Promise.resolve(mockPresets),
+                });
+
+                resetState();
+
+                // First call
+                await loadGridPresets();
+
+                // Second call should return cached
+                const result = await loadGridPresets();
+                expect(result).toEqual(mockPresets);
+                expect(global.fetch).toHaveBeenCalledTimes(1); // Only called once
+            });
+        });
+
+        describe('getPresetForResolution with loaded presets', () => {
+            beforeEach(async () => {
+                const mockPresets = {
+                    presets: {
+                        '1920x1080': {
+                            resolution: { width: 1920, height: 1080 },
+                            calibration: {
+                                xOffset: 10,
+                                yOffset: 20,
+                                iconWidth: 64,
+                                iconHeight: 64,
+                                xSpacing: 8,
+                                ySpacing: 8,
+                                iconsPerRow: 10,
+                                numRows: 5,
+                            },
+                        },
+                        '1280x720': {
+                            resolution: { width: 1280, height: 720 },
+                            calibration: {
+                                xOffset: 5,
+                                yOffset: 10,
+                                iconWidth: 48,
+                                iconHeight: 48,
+                                xSpacing: 6,
+                                ySpacing: 6,
+                                iconsPerRow: 10,
+                                numRows: 5,
+                            },
+                        },
+                    },
+                };
+
+                global.fetch = vi.fn().mockResolvedValue({
+                    ok: true,
+                    json: () => Promise.resolve(mockPresets),
+                });
+
+                resetState();
+                await loadGridPresets();
+            });
+
+            it('should return preset for exact resolution match', () => {
+                const result = getPresetForResolution(1920, 1080);
+                expect(result).not.toBeNull();
+                expect(result?.resolution.width).toBe(1920);
+            });
+
+            it('should return null for non-matching resolution', () => {
+                const result = getPresetForResolution(2560, 1440);
+                expect(result).toBeNull();
+            });
+        });
+
+        describe('findPresetByAspectRatio with loaded presets', () => {
+            beforeEach(async () => {
+                const mockPresets = {
+                    presets: {
+                        '1920x1080': {
+                            resolution: { width: 1920, height: 1080 },
+                            calibration: {},
+                        },
+                        '1280x720': {
+                            resolution: { width: 1280, height: 720 },
+                            calibration: {},
+                        },
+                    },
+                };
+
+                global.fetch = vi.fn().mockResolvedValue({
+                    ok: true,
+                    json: () => Promise.resolve(mockPresets),
+                });
+
+                resetState();
+                await loadGridPresets();
+            });
+
+            it('should find best matching preset by aspect ratio', () => {
+                // 16:9 aspect ratio should match 1920x1080 or 1280x720
+                const result = findPresetByAspectRatio(3840, 2160);
+                expect(result).not.toBeNull();
+            });
+
+            it('should prefer closer resolution when aspect ratios match', () => {
+                // Closer to 1920x1080
+                const result = findPresetByAspectRatio(1600, 900);
+                expect(result).not.toBeNull();
+            });
+        });
+
+        describe('scaleCalibrationToResolution', () => {
+            it('should scale calibration values proportionally', () => {
+                const calibration = {
+                    xOffset: 100,
+                    yOffset: 200,
+                    iconWidth: 64,
+                    iconHeight: 64,
+                    xSpacing: 8,
+                    ySpacing: 8,
+                    iconsPerRow: 10,
+                    numRows: 5,
+                };
+
+                // Scale from 1080 to 2160 (2x)
+                const scaled = scaleCalibrationToResolution(calibration, 1080, 2160);
+
+                expect(scaled.xOffset).toBe(200); // 100 * 2
+                expect(scaled.yOffset).toBe(400); // 200 * 2
+                expect(scaled.iconWidth).toBe(128); // 64 * 2
+                expect(scaled.iconHeight).toBe(128); // 64 * 2
+                expect(scaled.xSpacing).toBe(16); // 8 * 2
+                expect(scaled.ySpacing).toBe(16); // 8 * 2
+                // These should NOT scale
+                expect(scaled.iconsPerRow).toBe(10);
+                expect(scaled.numRows).toBe(5);
+            });
+
+            it('should scale down correctly', () => {
+                const calibration = {
+                    xOffset: 200,
+                    yOffset: 400,
+                    iconWidth: 128,
+                    iconHeight: 128,
+                    xSpacing: 16,
+                    ySpacing: 16,
+                    iconsPerRow: 10,
+                    numRows: 5,
+                };
+
+                // Scale from 2160 to 1080 (0.5x)
+                const scaled = scaleCalibrationToResolution(calibration, 2160, 1080);
+
+                expect(scaled.xOffset).toBe(100);
+                expect(scaled.yOffset).toBe(200);
+                expect(scaled.iconWidth).toBe(64);
+                expect(scaled.iconHeight).toBe(64);
+            });
+
+            it('should handle fractional scaling with rounding', () => {
+                const calibration = {
+                    xOffset: 10,
+                    yOffset: 10,
+                    iconWidth: 33,
+                    iconHeight: 33,
+                    xSpacing: 7,
+                    ySpacing: 7,
+                    iconsPerRow: 10,
+                    numRows: 5,
+                };
+
+                // Scale by 1.5x
+                const scaled = scaleCalibrationToResolution(calibration, 100, 150);
+
+                expect(scaled.xOffset).toBe(15); // 10 * 1.5 = 15
+                expect(scaled.iconWidth).toBe(50); // 33 * 1.5 = 49.5 → 50
+                expect(scaled.xSpacing).toBe(11); // 7 * 1.5 = 10.5 → 11
+            });
+
+            it('should return same values when scaling 1:1', () => {
+                const calibration = {
+                    xOffset: 100,
+                    yOffset: 200,
+                    iconWidth: 64,
+                    iconHeight: 64,
+                    xSpacing: 8,
+                    ySpacing: 8,
+                    iconsPerRow: 10,
+                    numRows: 5,
+                };
+
+                const scaled = scaleCalibrationToResolution(calibration, 1080, 1080);
+
+                expect(scaled).toEqual(calibration);
+            });
         });
     });
 });
