@@ -8,6 +8,12 @@ import {
     setState,
     subscribe,
     resetStore,
+    clearSubscribers,
+    enableWindowSync,
+    disableWindowSync,
+    isWindowSyncEnabled,
+    getFullState,
+    batchUpdate,
     type AppState,
     type TabName,
 } from '../../src/modules/store.ts';
@@ -16,10 +22,13 @@ describe('State Store', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         resetStore();
+        clearSubscribers();
+        enableWindowSync(); // Ensure consistent state for tests
     });
 
     afterEach(() => {
         resetStore();
+        clearSubscribers();
     });
 
     // ========================================
@@ -310,6 +319,410 @@ describe('State Store', () => {
             
             // Should not throw, other subscribers should still be called
             expect(() => setState('currentTab', 'weapons')).not.toThrow();
+        });
+
+        it('should continue calling other subscribers after one throws', () => {
+            const errorCallback = vi.fn().mockImplementation(() => {
+                throw new Error('Subscriber error');
+            });
+            const normalCallback = vi.fn();
+            
+            subscribe('currentTab', errorCallback);
+            subscribe('currentTab', normalCallback);
+            
+            setState('currentTab', 'weapons');
+            
+            // Both should have been called - normal callback should still work
+            expect(errorCallback).toHaveBeenCalledWith('weapons');
+            expect(normalCallback).toHaveBeenCalledWith('weapons');
+        });
+    });
+
+    // ========================================
+    // clearSubscribers Tests
+    // ========================================
+    describe('clearSubscribers', () => {
+        it('should remove all subscribers', () => {
+            const callback1 = vi.fn();
+            const callback2 = vi.fn();
+            
+            subscribe('currentTab', callback1);
+            subscribe('compareItems', callback2);
+            
+            clearSubscribers();
+            
+            setState('currentTab', 'weapons');
+            setState('compareItems', ['item1']);
+            
+            expect(callback1).not.toHaveBeenCalled();
+            expect(callback2).not.toHaveBeenCalled();
+        });
+
+        it('should allow new subscriptions after clearing', () => {
+            const callback = vi.fn();
+            
+            subscribe('currentTab', callback);
+            clearSubscribers();
+            
+            const newCallback = vi.fn();
+            subscribe('currentTab', newCallback);
+            
+            setState('currentTab', 'tomes');
+            
+            expect(callback).not.toHaveBeenCalled();
+            expect(newCallback).toHaveBeenCalledWith('tomes');
+        });
+
+        it('should handle clearing when no subscribers exist', () => {
+            expect(() => clearSubscribers()).not.toThrow();
+        });
+    });
+
+    // ========================================
+    // Window Sync Tests
+    // ========================================
+    describe('window sync', () => {
+        it('should start with window sync enabled', () => {
+            enableWindowSync(); // Reset to known state
+            expect(isWindowSyncEnabled()).toBe(true);
+        });
+
+        it('should disable window sync', () => {
+            disableWindowSync();
+            expect(isWindowSyncEnabled()).toBe(false);
+        });
+
+        it('should enable window sync', () => {
+            disableWindowSync();
+            enableWindowSync();
+            expect(isWindowSyncEnabled()).toBe(true);
+        });
+
+        it('should sync currentTab to window when enabled', () => {
+            enableWindowSync();
+            setState('currentTab', 'weapons');
+            expect(window.currentTab).toBe('weapons');
+        });
+
+        it('should sync filteredData to window when enabled', () => {
+            enableWindowSync();
+            const data = [{ id: 'test', name: 'Test' }];
+            setState('filteredData', data as any);
+            expect(window.filteredData).toEqual(data);
+        });
+
+        it('should sync allData to window when enabled', () => {
+            enableWindowSync();
+            const allData = {
+                items: [{ id: 'item1' }] as any,
+                weapons: undefined,
+                tomes: undefined,
+                characters: undefined,
+                shrines: undefined,
+                stats: undefined,
+                changelog: undefined,
+            };
+            setState('allData', allData);
+            expect(window.allData).toEqual(allData);
+        });
+
+        it('should sync currentBuild to window when enabled', () => {
+            enableWindowSync();
+            const build = {
+                character: null,
+                weapon: null,
+                tomes: [],
+                items: [],
+                name: 'Test',
+                notes: '',
+            };
+            setState('currentBuild', build);
+            expect(window.currentBuild).toEqual(build);
+        });
+
+        it('should sync compareItems to window when enabled', () => {
+            enableWindowSync();
+            setState('compareItems', ['a', 'b', 'c']);
+            expect(window.compareItems).toEqual(['a', 'b', 'c']);
+        });
+
+        it('should sync favorites to window when enabled', () => {
+            enableWindowSync();
+            const favorites = {
+                items: ['x'],
+                weapons: ['y'],
+                tomes: [],
+                characters: [],
+                shrines: [],
+            };
+            setState('favorites', favorites);
+            expect(window.favorites).toEqual(favorites);
+        });
+
+        it('should not sync to window when disabled', () => {
+            disableWindowSync();
+            // Store initial window values
+            const initialTab = window.currentTab;
+            
+            setState('currentTab', 'changelog');
+            
+            // Window should not have been updated (or at least should reflect old state)
+            // Note: In jsdom, window properties may persist, so we check it wasn't updated
+            expect(window.currentTab).toBe(initialTab);
+        });
+
+        it('should sync all state to window when enabling', () => {
+            disableWindowSync();
+            setState('currentTab', 'advisor');
+            setState('compareItems', ['test1', 'test2']);
+            
+            enableWindowSync();
+            
+            expect(window.currentTab).toBe('advisor');
+            expect(window.compareItems).toEqual(['test1', 'test2']);
+        });
+
+        it('should sync state to window on resetStore when enabled', () => {
+            enableWindowSync();
+            setState('currentTab', 'weapons');
+            
+            resetStore();
+            
+            expect(window.currentTab).toBe('items');
+            expect(window.compareItems).toEqual([]);
+        });
+    });
+
+    // ========================================
+    // getFullState Tests
+    // ========================================
+    describe('getFullState', () => {
+        it('should return a copy of the entire state', () => {
+            const fullState = getFullState();
+            
+            expect(fullState).toHaveProperty('currentTab');
+            expect(fullState).toHaveProperty('filteredData');
+            expect(fullState).toHaveProperty('allData');
+            expect(fullState).toHaveProperty('currentBuild');
+            expect(fullState).toHaveProperty('compareItems');
+            expect(fullState).toHaveProperty('favorites');
+        });
+
+        it('should reflect current state values', () => {
+            setState('currentTab', 'shrines');
+            setState('compareItems', ['item1', 'item2']);
+            
+            const fullState = getFullState();
+            
+            expect(fullState.currentTab).toBe('shrines');
+            expect(fullState.compareItems).toEqual(['item1', 'item2']);
+        });
+
+        it('should return a shallow copy', () => {
+            const fullState1 = getFullState();
+            const fullState2 = getFullState();
+            
+            // They should be different objects
+            expect(fullState1).not.toBe(fullState2);
+            
+            // But contain the same values
+            expect(fullState1.currentTab).toBe(fullState2.currentTab);
+        });
+
+        it('should not allow modifying internal state', () => {
+            const fullState = getFullState();
+            fullState.currentTab = 'changelog';
+            
+            // Internal state should be unchanged
+            expect(getState('currentTab')).toBe('items');
+        });
+    });
+
+    // ========================================
+    // batchUpdate Tests
+    // ========================================
+    describe('batchUpdate', () => {
+        it('should update multiple state values', () => {
+            batchUpdate({
+                currentTab: 'weapons',
+                compareItems: ['a', 'b'],
+            });
+            
+            expect(getState('currentTab')).toBe('weapons');
+            expect(getState('compareItems')).toEqual(['a', 'b']);
+        });
+
+        it('should notify subscribers for each changed key', () => {
+            const tabCallback = vi.fn();
+            const itemsCallback = vi.fn();
+            
+            subscribe('currentTab', tabCallback);
+            subscribe('compareItems', itemsCallback);
+            
+            batchUpdate({
+                currentTab: 'tomes',
+                compareItems: ['x'],
+            });
+            
+            expect(tabCallback).toHaveBeenCalledWith('tomes');
+            expect(itemsCallback).toHaveBeenCalledWith(['x']);
+        });
+
+        it('should only notify subscribers once per key', () => {
+            const callback = vi.fn();
+            subscribe('currentTab', callback);
+            
+            batchUpdate({
+                currentTab: 'calculator',
+            });
+            
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it('should handle empty updates', () => {
+            const callback = vi.fn();
+            subscribe('currentTab', callback);
+            
+            batchUpdate({});
+            
+            expect(callback).not.toHaveBeenCalled();
+        });
+
+        it('should skip undefined values', () => {
+            setState('currentTab', 'weapons');
+            
+            batchUpdate({
+                currentTab: undefined,
+                compareItems: ['test'],
+            });
+            
+            // currentTab should be unchanged
+            expect(getState('currentTab')).toBe('weapons');
+            expect(getState('compareItems')).toEqual(['test']);
+        });
+
+        it('should sync to window when enabled', () => {
+            enableWindowSync();
+            
+            batchUpdate({
+                currentTab: 'advisor',
+                compareItems: ['batch1', 'batch2'],
+            });
+            
+            expect(window.currentTab).toBe('advisor');
+            expect(window.compareItems).toEqual(['batch1', 'batch2']);
+        });
+
+        it('should not sync to window when disabled', () => {
+            disableWindowSync();
+            const initialTab = window.currentTab;
+            
+            batchUpdate({
+                currentTab: 'changelog',
+            });
+            
+            expect(window.currentTab).toBe(initialTab);
+        });
+
+        it('should update all state keys', () => {
+            const build = {
+                character: { id: 'hero' } as any,
+                weapon: null,
+                tomes: [],
+                items: [],
+                name: 'Batch Build',
+                notes: 'From batch',
+            };
+            const favorites = {
+                items: ['fav1'],
+                weapons: [],
+                tomes: [],
+                characters: [],
+                shrines: [],
+            };
+            const allData = {
+                items: [{ id: 'i1' }] as any,
+                weapons: undefined,
+                tomes: undefined,
+                characters: undefined,
+                shrines: undefined,
+                stats: undefined,
+                changelog: undefined,
+            };
+            
+            batchUpdate({
+                currentTab: 'build-planner',
+                filteredData: [{ id: 'f1', name: 'Filtered' }] as any,
+                allData,
+                currentBuild: build,
+                compareItems: ['c1', 'c2'],
+                favorites,
+            });
+            
+            expect(getState('currentTab')).toBe('build-planner');
+            expect(getState('filteredData')).toEqual([{ id: 'f1', name: 'Filtered' }]);
+            expect(getState('allData')).toEqual(allData);
+            expect(getState('currentBuild')).toEqual(build);
+            expect(getState('compareItems')).toEqual(['c1', 'c2']);
+            expect(getState('favorites')).toEqual(favorites);
+        });
+
+        it('should handle subscriber errors gracefully', () => {
+            const errorCallback = vi.fn().mockImplementation(() => {
+                throw new Error('Batch subscriber error');
+            });
+            const normalCallback = vi.fn();
+            
+            subscribe('currentTab', errorCallback);
+            subscribe('currentTab', normalCallback);
+            
+            expect(() => batchUpdate({ currentTab: 'weapons' })).not.toThrow();
+            expect(normalCallback).toHaveBeenCalledWith('weapons');
+        });
+    });
+
+    // ========================================
+    // Additional Subscribe Edge Cases
+    // ========================================
+    describe('subscribe edge cases', () => {
+        it('should clean up subscriber map when last subscriber unsubscribes', () => {
+            const callback = vi.fn();
+            const unsubscribe = subscribe('currentTab', callback);
+            
+            unsubscribe();
+            
+            // After unsubscribing the only subscriber, re-subscribing should work
+            const newCallback = vi.fn();
+            subscribe('currentTab', newCallback);
+            
+            setState('currentTab', 'weapons');
+            
+            expect(callback).not.toHaveBeenCalled();
+            expect(newCallback).toHaveBeenCalledWith('weapons');
+        });
+
+        it('should handle subscribing to multiple keys', () => {
+            const results: string[] = [];
+            
+            subscribe('currentTab', (val) => results.push(`tab:${val}`));
+            subscribe('compareItems', (val) => results.push(`items:${val.length}`));
+            
+            setState('currentTab', 'tomes');
+            setState('compareItems', ['a', 'b', 'c']);
+            
+            expect(results).toContain('tab:tomes');
+            expect(results).toContain('items:3');
+        });
+
+        it('should handle unsubscribe called multiple times', () => {
+            const callback = vi.fn();
+            const unsubscribe = subscribe('currentTab', callback);
+            
+            unsubscribe();
+            unsubscribe(); // Second call should be safe
+            
+            setState('currentTab', 'weapons');
+            expect(callback).not.toHaveBeenCalled();
         });
     });
 });
