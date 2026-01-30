@@ -20,9 +20,11 @@ import {
     getDetectionCache,
     isTemplatesLoaded,
     isPriorityTemplatesLoaded,
+    isStandardTemplatesLoading,
     setAllData,
     setTemplatesLoaded,
     setPriorityTemplatesLoaded,
+    setStandardTemplatesLoading,
     resetState,
 } from '../../src/modules/cv/state.ts';
 
@@ -165,12 +167,14 @@ describe('CV Templates Module', () => {
     // loadTemplatesBatch Tests
     // ========================================
     describe('loadTemplatesBatch', () => {
-        let mockImage: any;
-        let mockCanvas: any;
         let mockCtx: any;
+        let mockCanvas: any;
+        let originalImage: typeof Image;
 
         beforeEach(() => {
-            // Mock Image constructor
+            originalImage = global.Image;
+
+            // Mock canvas context
             mockCtx = {
                 drawImage: vi.fn(),
                 getImageData: vi.fn().mockReturnValue({
@@ -178,6 +182,8 @@ describe('CV Templates Module', () => {
                     width: 64,
                     height: 64,
                 }),
+                imageSmoothingEnabled: true,
+                imageSmoothingQuality: 'high',
             };
 
             mockCanvas = {
@@ -189,10 +195,16 @@ describe('CV Templates Module', () => {
             // Mock document.createElement
             vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
                 if (tagName === 'canvas') {
-                    return mockCanvas as any;
+                    return { ...mockCanvas } as any;
                 }
-                return document.createElement(tagName);
+                // Return a real element for non-canvas
+                const elem = document.createElementNS('http://www.w3.org/1999/xhtml', tagName);
+                return elem;
             });
+        });
+
+        afterEach(() => {
+            global.Image = originalImage;
         });
 
         it('should skip items without images', async () => {
@@ -212,15 +224,269 @@ describe('CV Templates Module', () => {
             expect(result.failed).toBe(0);
         });
 
-        // Note: Image loading tests are skipped because mocking global.Image
-        // with proper async behavior is complex and these tests timeout.
-        // The core functionality (prioritization, grouping) is tested above.
-        it.skip('should log errors on image load failure', async () => {
-            // Skipped: Complex async Image mocking causes timeout issues
+        it('should load WebP image successfully', async () => {
+            // Mock Image to simulate successful WebP load
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                width = 64;
+                height = 64;
+                src = '';
+
+                constructor() {
+                    setTimeout(() => {
+                        if (this.onload) this.onload();
+                    }, 0);
+                }
+            } as any;
+
+            const items = [createMockItem('sword', 'common', 'images/sword.png')];
+
+            vi.useRealTimers();
+            const result = await loadTemplatesBatch(items as any);
+            vi.useFakeTimers();
+
+            expect(result.loaded).toBe(1);
+            expect(result.failed).toBe(0);
+            expect(getItemTemplates().has('sword')).toBe(true);
         });
 
-        it.skip('should attempt PNG fallback on WebP failure', async () => {
-            // Skipped: Complex async Image mocking causes timeout issues
+        it('should fallback to PNG when WebP fails', async () => {
+            let loadAttempt = 0;
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                width = 64;
+                height = 64;
+                src = '';
+
+                constructor() {
+                    loadAttempt++;
+                    setTimeout(() => {
+                        // First attempt (WebP) fails, second (PNG) succeeds
+                        if (loadAttempt === 1) {
+                            if (this.onerror) this.onerror();
+                        } else {
+                            if (this.onload) this.onload();
+                        }
+                    }, 0);
+                }
+            } as any;
+
+            const items = [createMockItem('shield', 'common', 'images/shield.png')];
+
+            vi.useRealTimers();
+            const result = await loadTemplatesBatch(items as any);
+            vi.useFakeTimers();
+
+            expect(result.loaded).toBe(1);
+            expect(result.failed).toBe(0);
+            expect(loadAttempt).toBe(2); // WebP attempt + PNG fallback
+        });
+
+        it('should handle both WebP and PNG failure', async () => {
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                src = '';
+
+                constructor() {
+                    setTimeout(() => {
+                        if (this.onerror) this.onerror();
+                    }, 0);
+                }
+            } as any;
+
+            const items = [createMockItem('broken', 'common', 'images/broken.png')];
+
+            vi.useRealTimers();
+            const result = await loadTemplatesBatch(items as any);
+            vi.useFakeTimers();
+
+            expect(result.loaded).toBe(0);
+            expect(result.failed).toBe(1);
+            expect(result.failedIds).toContain('broken');
+        });
+
+        it('should log warning when batch has failures', async () => {
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                src = '';
+
+                constructor() {
+                    setTimeout(() => {
+                        if (this.onerror) this.onerror();
+                    }, 0);
+                }
+            } as any;
+
+            const items = [
+                createMockItem('broken1', 'common', 'images/broken1.png'),
+                createMockItem('broken2', 'common', 'images/broken2.png'),
+            ];
+
+            vi.useRealTimers();
+            await loadTemplatesBatch(items as any);
+            vi.useFakeTimers();
+
+            expect(logger.warn).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'cv.load_template_batch',
+                })
+            );
+        });
+
+        it('should handle canvas context failure', async () => {
+            // Override mock to return null context
+            vi.spyOn(document, 'createElement').mockImplementation((tagName: string) => {
+                if (tagName === 'canvas') {
+                    return {
+                        width: 0,
+                        height: 0,
+                        getContext: vi.fn().mockReturnValue(null),
+                    } as any;
+                }
+                return document.createElementNS('http://www.w3.org/1999/xhtml', tagName);
+            });
+
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                width = 64;
+                height = 64;
+                src = '';
+
+                constructor() {
+                    setTimeout(() => {
+                        if (this.onload) this.onload();
+                    }, 0);
+                }
+            } as any;
+
+            const items = [createMockItem('nocontext', 'common', 'images/nocontext.png')];
+
+            vi.useRealTimers();
+            const result = await loadTemplatesBatch(items as any);
+            vi.useFakeTimers();
+
+            expect(result.failed).toBe(1);
+            expect(result.failedIds).toContain('nocontext');
+        });
+
+        it('should convert .png to .webp for initial load attempt', async () => {
+            let capturedSrc = '';
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                width = 64;
+                height = 64;
+                private _src = '';
+
+                get src() { return this._src; }
+                set src(value: string) {
+                    this._src = value;
+                    capturedSrc = value;
+                    setTimeout(() => {
+                        if (this.onload) this.onload();
+                    }, 0);
+                }
+            } as any;
+
+            const items = [createMockItem('test', 'common', 'images/test.png')];
+
+            vi.useRealTimers();
+            await loadTemplatesBatch(items as any);
+            vi.useFakeTimers();
+
+            expect(capturedSrc).toBe('images/test.webp');
+        });
+
+        it('should handle non-png images without conversion', async () => {
+            let capturedSrc = '';
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                width = 64;
+                height = 64;
+                private _src = '';
+
+                get src() { return this._src; }
+                set src(value: string) {
+                    this._src = value;
+                    capturedSrc = value;
+                    setTimeout(() => {
+                        if (this.onload) this.onload();
+                    }, 0);
+                }
+            } as any;
+
+            const items = [createMockItem('test', 'common', 'images/test.jpg')];
+
+            vi.useRealTimers();
+            await loadTemplatesBatch(items as any);
+            vi.useFakeTimers();
+
+            // Non-png should still have .webp appended (due to replace not matching)
+            expect(capturedSrc).toBe('images/test.jpg');
+        });
+
+        it('should store template data correctly', async () => {
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                width = 128;
+                height = 128;
+                src = '';
+
+                constructor() {
+                    setTimeout(() => {
+                        if (this.onload) this.onload();
+                    }, 0);
+                }
+            } as any;
+
+            const items = [createMockItem('stored', 'common', 'images/stored.png')];
+
+            vi.useRealTimers();
+            await loadTemplatesBatch(items as any);
+            vi.useFakeTimers();
+
+            const template = getItemTemplates().get('stored');
+            expect(template).toBeDefined();
+            expect(template?.width).toBe(128);
+            expect(template?.height).toBe(128);
+        });
+
+        it('should load multiple items in parallel', async () => {
+            let loadCount = 0;
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                width = 64;
+                height = 64;
+                src = '';
+
+                constructor() {
+                    loadCount++;
+                    setTimeout(() => {
+                        if (this.onload) this.onload();
+                    }, 0);
+                }
+            } as any;
+
+            const items = [
+                createMockItem('item1', 'common', 'images/item1.png'),
+                createMockItem('item2', 'common', 'images/item2.png'),
+                createMockItem('item3', 'common', 'images/item3.png'),
+            ];
+
+            vi.useRealTimers();
+            const result = await loadTemplatesBatch(items as any);
+            vi.useFakeTimers();
+
+            expect(result.loaded).toBe(3);
+            expect(loadCount).toBe(3);
         });
     });
 
@@ -454,6 +720,114 @@ describe('CV Templates Module', () => {
                     }),
                 })
             );
+        });
+
+        it('should load standard items in background via setTimeout', async () => {
+            setAllData({
+                items: {
+                    items: [
+                        createMockItem('common_item', 'common'),
+                        createMockItem('rare_item', 'rare'),
+                    ],
+                },
+            } as any);
+
+            await loadItemTemplates();
+
+            // Run the setTimeout callback
+            await vi.runAllTimersAsync();
+
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        phase: 'complete',
+                    }),
+                })
+            );
+        });
+
+        it('should set templatesLoaded after standard items complete', async () => {
+            setAllData({
+                items: {
+                    items: [createMockItem('rare_item', 'rare')],
+                },
+            } as any);
+
+            await loadItemTemplates();
+            await vi.runAllTimersAsync();
+
+            expect(isTemplatesLoaded()).toBe(true);
+        });
+
+        it('should skip standard loading if already loading', async () => {
+            // Import and set the loading flag
+            const { setStandardTemplatesLoading, isStandardTemplatesLoading } = await import('../../src/modules/cv/state.ts');
+
+            setAllData({
+                items: {
+                    items: [
+                        createMockItem('common_item', 'common'),
+                        createMockItem('rare_item', 'rare'),
+                    ],
+                },
+            } as any);
+
+            // Pre-set the loading flag
+            setStandardTemplatesLoading(true);
+
+            await loadItemTemplates();
+
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        phase: 'skipped_standard',
+                        reason: 'already_loading',
+                    }),
+                })
+            );
+
+            // Reset for cleanup
+            setStandardTemplatesLoading(false);
+        });
+
+        it('should handle errors in background loading gracefully', async () => {
+            // Create a scenario that will error in the setTimeout callback
+            setAllData({
+                items: {
+                    items: [
+                        createMockItem('common_item', 'common'),
+                        createMockItem('rare_item', 'rare', 'images/rare.png'),
+                    ],
+                },
+            } as any);
+
+            // Mock loadTemplatesBatch to throw for standard items
+            // by having the Image always fail
+            const originalImage = global.Image;
+            global.Image = class MockImage {
+                onload: (() => void) | null = null;
+                onerror: (() => void) | null = null;
+                src = '';
+
+                constructor() {
+                    setTimeout(() => {
+                        if (this.onerror) this.onerror();
+                    }, 0);
+                }
+            } as any;
+
+            vi.useRealTimers();
+            await loadItemTemplates();
+
+            // Wait for setTimeout callbacks to run
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            global.Image = originalImage;
+            vi.useFakeTimers();
+
+            // Even with errors, templates should be marked as loaded
+            // to prevent infinite retries
+            expect(isTemplatesLoaded()).toBe(true);
         });
     });
 
