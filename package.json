@@ -91,7 +91,8 @@
     "chart.js": "^4.5.1",
     "fuse.js": "^7.1.0",
     "tesseract.js": "^7.0.0",
-    "web-vitals": "^5.1.0"
+    "web-vitals": "^5.1.0",
+    "ws": "^8.19.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.57.0",
