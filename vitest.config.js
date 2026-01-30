@@ -20,7 +20,7 @@ export default defineConfig({
         // Forks pool options (Vitest 4+ uses top-level)
         forks: {
             singleFork: false, // Use multiple forks for parallelization
-            maxForks: 4, // Run up to 4 test files in parallel
+            maxForks: 2, // Reduced from 4 to prevent OOM on 16GB systems
             minForks: 1,
             // Note: execArgv heap size removed - memory leaks fixed via cleanup functions
         },
