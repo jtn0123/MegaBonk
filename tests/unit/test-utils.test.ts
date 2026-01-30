@@ -3,14 +3,18 @@
  * Testing accuracy calculations, resolution detection, and report generation
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
     calculateAccuracyMetrics,
     calculateF1Score,
     detectResolution,
     detectUILayout,
     generateTestReport,
+    getTestImageURLs,
+    compareDetectionResults,
+    runAutomatedTest,
     type TestResult,
+    type GroundTruth,
 } from '../../src/modules/test-utils';
 import type { CVDetectionResult } from '../../src/modules/computer-vision';
 import type { Item } from '../../src/types';
@@ -577,5 +581,586 @@ describe('Test Utils - Edge Cases', () => {
 
         const metrics = calculateAccuracyMetrics(detected, groundTruth);
         expect(metrics.accuracy).toBe(1.0);
+    });
+});
+
+describe('Test Utils - getTestImageURLs', () => {
+    it('should return an array of test images', () => {
+        const images = getTestImageURLs();
+        expect(Array.isArray(images)).toBe(true);
+        expect(images.length).toBeGreaterThan(0);
+    });
+
+    it('should have valid structure for each test image', () => {
+        const images = getTestImageURLs();
+        
+        images.forEach(image => {
+            expect(image).toHaveProperty('name');
+            expect(image).toHaveProperty('url');
+            expect(image).toHaveProperty('type');
+            expect(image).toHaveProperty('resolution');
+            expect(image).toHaveProperty('groundTruth');
+            expect(typeof image.name).toBe('string');
+            expect(typeof image.url).toBe('string');
+        });
+    });
+
+    it('should have valid type values (gameplay or pause_menu)', () => {
+        const images = getTestImageURLs();
+        
+        images.forEach(image => {
+            expect(['gameplay', 'pause_menu']).toContain(image.type);
+        });
+    });
+
+    it('should have valid ground truth structure', () => {
+        const images = getTestImageURLs();
+        
+        images.forEach(image => {
+            expect(Array.isArray(image.groundTruth.items)).toBe(true);
+            expect(Array.isArray(image.groundTruth.tomes)).toBe(true);
+        });
+    });
+
+    it('should include PC 1080p pause menu test image', () => {
+        const images = getTestImageURLs();
+        const pc1080p = images.find(img => img.name === 'pc_1080p_pause_menu');
+        
+        expect(pc1080p).toBeDefined();
+        expect(pc1080p?.resolution).toBe('1920x1080');
+        expect(pc1080p?.type).toBe('pause_menu');
+    });
+
+    it('should include Steam Deck test image', () => {
+        const images = getTestImageURLs();
+        const steamDeck = images.find(img => img.name === 'steam_deck_pause_menu');
+        
+        expect(steamDeck).toBeDefined();
+        expect(steamDeck?.resolution).toBe('1280x800');
+    });
+
+    it('should include gameplay test image', () => {
+        const images = getTestImageURLs();
+        const gameplay = images.find(img => img.type === 'gameplay');
+        
+        expect(gameplay).toBeDefined();
+    });
+
+    it('should have non-empty item arrays in ground truth for pause menus', () => {
+        const images = getTestImageURLs();
+        const pauseMenus = images.filter(img => img.type === 'pause_menu');
+        
+        pauseMenus.forEach(img => {
+            expect(img.groundTruth.items.length).toBeGreaterThan(0);
+        });
+    });
+
+    it('should have character and weapon in pause menu ground truth', () => {
+        const images = getTestImageURLs();
+        const pauseMenus = images.filter(img => img.type === 'pause_menu');
+        
+        pauseMenus.forEach(img => {
+            expect(img.groundTruth.character).toBeDefined();
+            expect(img.groundTruth.weapon).toBeDefined();
+        });
+    });
+});
+
+describe('Test Utils - compareDetectionResults', () => {
+    const mockDetection = (name: string): CVDetectionResult => ({
+        type: 'item',
+        entity: { id: `id-${name}`, name } as Item,
+        confidence: 0.9,
+        method: 'template_match',
+    });
+
+    it('should find items only in first result', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [mockDetection('Sword'), mockDetection('Shield'), mockDetection('Helmet')],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [mockDetection('Sword'), mockDetection('Shield')],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        expect(comparison.onlyIn1).toContain('Helmet');
+        expect(comparison.onlyIn1).toHaveLength(1);
+    });
+
+    it('should find items only in second result', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [mockDetection('Sword')],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [mockDetection('Sword'), mockDetection('Shield'), mockDetection('Boots')],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        expect(comparison.onlyIn2).toContain('Shield');
+        expect(comparison.onlyIn2).toContain('Boots');
+        expect(comparison.onlyIn2).toHaveLength(2);
+    });
+
+    it('should find items in both results', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [mockDetection('Sword'), mockDetection('Shield')],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [mockDetection('Shield'), mockDetection('Helmet')],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        expect(comparison.inBoth).toContain('Shield');
+        expect(comparison.inBoth).toHaveLength(1);
+    });
+
+    it('should calculate perfect agreement (100%)', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [mockDetection('Sword'), mockDetection('Shield')],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [mockDetection('Sword'), mockDetection('Shield')],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        expect(comparison.agreement).toBe(1.0);
+        expect(comparison.onlyIn1).toHaveLength(0);
+        expect(comparison.onlyIn2).toHaveLength(0);
+        expect(comparison.inBoth).toHaveLength(2);
+    });
+
+    it('should calculate zero agreement when no overlap', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [mockDetection('Sword'), mockDetection('Shield')],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [mockDetection('Helmet'), mockDetection('Boots')],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        expect(comparison.agreement).toBe(0);
+        expect(comparison.inBoth).toHaveLength(0);
+    });
+
+    it('should calculate partial agreement correctly', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [mockDetection('Sword'), mockDetection('Shield')],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [mockDetection('Sword'), mockDetection('Helmet')],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        // 1 item in common out of max(2, 2) = 2, so agreement = 0.5
+        expect(comparison.agreement).toBe(0.5);
+    });
+
+    it('should handle empty first result', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [] as CVDetectionResult[],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [mockDetection('Sword'), mockDetection('Shield')],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        expect(comparison.onlyIn1).toHaveLength(0);
+        expect(comparison.onlyIn2).toHaveLength(2);
+        expect(comparison.inBoth).toHaveLength(0);
+        expect(comparison.agreement).toBe(0);
+    });
+
+    it('should handle empty second result', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [mockDetection('Sword')],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [] as CVDetectionResult[],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        expect(comparison.onlyIn1).toHaveLength(1);
+        expect(comparison.onlyIn2).toHaveLength(0);
+        expect(comparison.inBoth).toHaveLength(0);
+        expect(comparison.agreement).toBe(0);
+    });
+
+    it('should handle both empty results', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [] as CVDetectionResult[],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [] as CVDetectionResult[],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        expect(comparison.onlyIn1).toHaveLength(0);
+        expect(comparison.onlyIn2).toHaveLength(0);
+        expect(comparison.inBoth).toHaveLength(0);
+        // When both empty, max is 0, but function uses max(..., 1) to avoid division by zero
+        expect(comparison.agreement).toBe(0);
+    });
+
+    it('should handle results with different sizes', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [mockDetection('Sword')],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [mockDetection('Sword'), mockDetection('Shield'), mockDetection('Helmet'), mockDetection('Boots')],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        // 1 in common out of max(1, 4) = 4
+        expect(comparison.agreement).toBe(0.25);
+        expect(comparison.inBoth).toEqual(['Sword']);
+    });
+
+    it('should preserve item order in onlyIn arrays', () => {
+        const result1 = {
+            name: 'detector1',
+            items: [mockDetection('A'), mockDetection('B'), mockDetection('C')],
+        };
+        const result2 = {
+            name: 'detector2',
+            items: [mockDetection('D')],
+        };
+
+        const comparison = compareDetectionResults(result1, result2);
+
+        expect(comparison.onlyIn1).toEqual(['A', 'B', 'C']);
+    });
+});
+
+describe('Test Utils - runAutomatedTest', () => {
+    const mockDetection = (name: string): CVDetectionResult => ({
+        type: 'item',
+        entity: { id: `id-${name}`, name } as Item,
+        confidence: 0.9,
+        method: 'template_match',
+    });
+
+    // Mock Image class for browser-like environment
+    let originalImage: typeof globalThis.Image | undefined;
+    
+    beforeEach(() => {
+        originalImage = globalThis.Image;
+        
+        // Mock Image class
+        class MockImage {
+            width = 1920;
+            height = 1080;
+            src = '';
+            onload: (() => void) | null = null;
+            onerror: ((err: Error) => void) | null = null;
+
+            set _src(value: string) {
+                this.src = value;
+                // Simulate async image load
+                setTimeout(() => {
+                    if (this.onload) this.onload();
+                }, 0);
+            }
+        }
+        
+        // Add setter for src that triggers onload
+        Object.defineProperty(MockImage.prototype, 'src', {
+            set(value: string) {
+                this._srcValue = value;
+                setTimeout(() => {
+                    if (this.onload) this.onload();
+                }, 0);
+            },
+            get() {
+                return this._srcValue || '';
+            },
+        });
+        
+        globalThis.Image = MockImage as unknown as typeof Image;
+    });
+
+    afterEach(() => {
+        if (originalImage) {
+            globalThis.Image = originalImage;
+        }
+    });
+
+    it('should run automated test successfully', async () => {
+        const groundTruth: GroundTruth = {
+            items: ['Sword', 'Shield'],
+            tomes: ['Fire Tome'],
+            character: 'CL4NK',
+            weapon: 'Hammer',
+        };
+
+        const mockDetectionFn = vi.fn().mockResolvedValue({
+            items: [mockDetection('Sword'), mockDetection('Shield')],
+            tomes: [mockDetection('Fire Tome')],
+            character: { id: 'cl4nk', name: 'CL4NK' },
+            weapon: { id: 'hammer', name: 'Hammer' },
+        });
+
+        const result = await runAutomatedTest(
+            'data:image/png;base64,fake',
+            groundTruth,
+            mockDetectionFn,
+            'ocr'
+        );
+
+        expect(result.accuracy).toBe(1.0);
+        expect(result.precision).toBe(1.0);
+        expect(result.recall).toBe(1.0);
+        expect(result.detectedItems).toEqual(['Sword', 'Shield']);
+        expect(result.expectedItems).toEqual(['Sword', 'Shield']);
+        expect(result.errors).toHaveLength(0);
+        expect(result.detectionMode).toBe('ocr');
+        expect(mockDetectionFn).toHaveBeenCalledWith('data:image/png;base64,fake');
+    });
+
+    it('should handle partial detection (some items missing)', async () => {
+        const groundTruth: GroundTruth = {
+            items: ['Sword', 'Shield', 'Helmet'],
+            tomes: [],
+        };
+
+        const mockDetectionFn = vi.fn().mockResolvedValue({
+            items: [mockDetection('Sword')], // Only detected one item
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        const result = await runAutomatedTest(
+            'data:image/png;base64,fake',
+            groundTruth,
+            mockDetectionFn,
+            'hybrid'
+        );
+
+        expect(result.accuracy).toBeCloseTo(0.333, 2);
+        expect(result.precision).toBe(1.0);
+        expect(result.recall).toBeCloseTo(0.333, 2);
+        expect(result.detectionMode).toBe('hybrid');
+    });
+
+    it('should handle detection errors gracefully', async () => {
+        const groundTruth: GroundTruth = {
+            items: ['Sword'],
+            tomes: [],
+        };
+
+        const mockDetectionFn = vi.fn().mockRejectedValue(new Error('Detection failed'));
+
+        const result = await runAutomatedTest(
+            'data:image/png;base64,fake',
+            groundTruth,
+            mockDetectionFn,
+            'ocr'
+        );
+
+        expect(result.accuracy).toBe(0);
+        expect(result.precision).toBe(0);
+        expect(result.recall).toBe(0);
+        expect(result.detectedItems).toHaveLength(0);
+        expect(result.errors).toContain('Detection failed');
+        expect(result.resolution).toBe('unknown');
+        expect(result.uiLayout).toBe('unknown');
+    });
+
+    it('should measure processing time', async () => {
+        const groundTruth: GroundTruth = {
+            items: ['Sword'],
+            tomes: [],
+        };
+
+        const mockDetectionFn = vi.fn().mockImplementation(async () => {
+            await new Promise(resolve => setTimeout(resolve, 50)); // Simulate processing
+            return {
+                items: [mockDetection('Sword')],
+                tomes: [],
+                character: null,
+                weapon: null,
+            };
+        });
+
+        const result = await runAutomatedTest(
+            'data:image/png;base64,fake',
+            groundTruth,
+            mockDetectionFn,
+            'ocr'
+        );
+
+        // Processing time should be at least 50ms (the simulated delay)
+        expect(result.processingTime).toBeGreaterThan(0);
+    });
+
+    it('should detect correct resolution and UI layout', async () => {
+        // Set custom resolution in mock
+        class MockImage1080p {
+            width = 1920;
+            height = 1080;
+            onload: (() => void) | null = null;
+            onerror: ((err: Error) => void) | null = null;
+        }
+        Object.defineProperty(MockImage1080p.prototype, 'src', {
+            set() {
+                setTimeout(() => {
+                    if (this.onload) this.onload();
+                }, 0);
+            },
+            get() { return ''; },
+        });
+        globalThis.Image = MockImage1080p as unknown as typeof Image;
+
+        const groundTruth: GroundTruth = {
+            items: ['Sword'],
+            tomes: [],
+        };
+
+        const mockDetectionFn = vi.fn().mockResolvedValue({
+            items: [mockDetection('Sword')],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        const result = await runAutomatedTest(
+            'data:image/png;base64,fake',
+            groundTruth,
+            mockDetectionFn,
+            'ocr'
+        );
+
+        expect(result.resolution).toBe('1920x1080');
+        expect(result.uiLayout).toBe('pc');
+    });
+
+    it('should return confidence scores from detections', async () => {
+        const groundTruth: GroundTruth = {
+            items: ['Sword', 'Shield'],
+            tomes: [],
+        };
+
+        const highConfidence: CVDetectionResult = {
+            type: 'item',
+            entity: { id: 'sword', name: 'Sword' } as Item,
+            confidence: 0.95,
+            method: 'template_match',
+        };
+        const lowConfidence: CVDetectionResult = {
+            type: 'item',
+            entity: { id: 'shield', name: 'Shield' } as Item,
+            confidence: 0.75,
+            method: 'template_match',
+        };
+
+        const mockDetectionFn = vi.fn().mockResolvedValue({
+            items: [highConfidence, lowConfidence],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        const result = await runAutomatedTest(
+            'data:image/png;base64,fake',
+            groundTruth,
+            mockDetectionFn,
+            'ocr'
+        );
+
+        expect(result.confidenceScores).toEqual([0.95, 0.75]);
+    });
+
+    it('should set imageName to automated_test', async () => {
+        const groundTruth: GroundTruth = {
+            items: [],
+            tomes: [],
+        };
+
+        const mockDetectionFn = vi.fn().mockResolvedValue({
+            items: [],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        const result = await runAutomatedTest(
+            'data:image/png;base64,fake',
+            groundTruth,
+            mockDetectionFn,
+            'ocr'
+        );
+
+        expect(result.imageName).toBe('automated_test');
+    });
+
+    it('should handle image load error', async () => {
+        // Mock Image that fails to load
+        class MockImageError {
+            width = 0;
+            height = 0;
+            onload: (() => void) | null = null;
+            onerror: ((err: Error) => void) | null = null;
+        }
+        Object.defineProperty(MockImageError.prototype, 'src', {
+            set() {
+                setTimeout(() => {
+                    if (this.onerror) this.onerror(new Error('Image load failed'));
+                }, 0);
+            },
+            get() { return ''; },
+        });
+        globalThis.Image = MockImageError as unknown as typeof Image;
+
+        const groundTruth: GroundTruth = {
+            items: ['Sword'],
+            tomes: [],
+        };
+
+        const mockDetectionFn = vi.fn().mockResolvedValue({
+            items: [],
+            tomes: [],
+            character: null,
+            weapon: null,
+        });
+
+        const result = await runAutomatedTest(
+            'data:image/png;base64,fake',
+            groundTruth,
+            mockDetectionFn,
+            'ocr'
+        );
+
+        // Should error out because image fails to load
+        expect(result.errors.length).toBeGreaterThan(0);
     });
 });
