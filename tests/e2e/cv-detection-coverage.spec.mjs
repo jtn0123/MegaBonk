@@ -9,7 +9,8 @@
 
 /* global Image, performance */
 
-import { test, expect } from '@playwright/test';
+// Use coverage-aware test fixture for auto-collection of browser coverage
+import { test, expect } from './coverage-test.mjs';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';

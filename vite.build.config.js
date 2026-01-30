@@ -5,6 +5,9 @@ import pkg from './package.json' with { type: 'json' };
 import { resolve } from 'path';
 import { createReadStream, existsSync, statSync } from 'fs';
 
+// Check if we're building with coverage instrumentation
+const isCoverage = process.env.COVERAGE === 'true';
+
 // Simple MIME type lookup
 const mimeTypes = {
     '.html': 'text/html',
@@ -88,115 +91,146 @@ function serveProjectRoot() {
     };
 }
 
-export default defineConfig({
-    root: 'src',
-    publicDir: false, // No separate public dir, static assets handled separately
-    // Define global constants available at build time
-    define: {
-        __APP_VERSION__: JSON.stringify(pkg.version),
-        __CACHE_VERSION__: JSON.stringify(cacheVersion),
-    },
-    build: {
-        outDir: '../dist',
-        emptyOutDir: true,
-        sourcemap: true,
-        rollupOptions: {
-            input: {
-                main: './src/index.html',
+// Use async config function for dynamic imports
+export default defineConfig(async () => {
+    // Dynamically import istanbul plugin only when needed (ESM-only package)
+    let istanbulPlugin = null;
+    if (isCoverage) {
+        try {
+            const istanbul = await import('vite-plugin-istanbul');
+            istanbulPlugin = istanbul.default;
+            console.log('[vite] Istanbul coverage instrumentation enabled');
+        } catch (e) {
+            console.warn('[vite] Failed to load vite-plugin-istanbul:', e.message);
+        }
+    }
+
+    return {
+        root: 'src',
+        publicDir: false, // No separate public dir, static assets handled separately
+        // Define global constants available at build time
+        define: {
+            __APP_VERSION__: JSON.stringify(pkg.version),
+            __CACHE_VERSION__: JSON.stringify(cacheVersion),
+        },
+        build: {
+            outDir: '../dist',
+            emptyOutDir: true,
+            sourcemap: true,
+            rollupOptions: {
+                input: {
+                    main: './src/index.html',
+                },
+            },
+            // Code splitting strategy
+            chunkSizeWarningLimit: 500,
+            // Disable minification for coverage builds to preserve instrumentation
+            minify: isCoverage ? false : 'terser',
+            terserOptions: isCoverage
+                ? undefined
+                : {
+                      compress: {
+                          drop_console: true, // Remove console.* in production
+                          drop_debugger: true, // Remove debugger statements
+                          pure_funcs: ['console.log', 'console.debug'], // Remove specific console methods
+                      },
+                      mangle: {
+                          safari10: true, // Fix Safari 10 issues
+                      },
+                  },
+        },
+        appType: 'mpa', // Disable SPA fallback so /test-images/... URLs work correctly
+        server: {
+            port: 8000,
+            open: true,
+            fs: {
+                // Allow serving files from the data directory (outside root)
+                allow: ['..'],
             },
         },
-        // Code splitting strategy
-        chunkSizeWarningLimit: 500,
-        minify: 'terser',
-        terserOptions: {
-            compress: {
-                drop_console: true, // Remove console.* in production
-                drop_debugger: true, // Remove debugger statements
-                pure_funcs: ['console.log', 'console.debug'], // Remove specific console methods
-            },
-            mangle: {
-                safari10: true, // Fix Safari 10 issues
+        resolve: {
+            alias: {
+                '@': '/src',
+                '@modules': '/modules',
             },
         },
-    },
-    appType: 'mpa', // Disable SPA fallback so /test-images/... URLs work correctly
-    server: {
-        port: 8000,
-        open: true,
-        fs: {
-            // Allow serving files from the data directory (outside root)
-            allow: ['..'],
-        },
-    },
-    resolve: {
-        alias: {
-            '@': '/src',
-            '@modules': '/modules',
-        },
-    },
-    plugins: [
-        serveProjectRoot(),
-        viteStaticCopy({
-            targets: [
-                { src: '../data', dest: '.' },
-                { src: 'images', dest: '.' },
-                { src: 'icons', dest: '.' },
-            ],
-        }),
-        VitePWA({
-            registerType: 'autoUpdate',
-            manifest: {
-                name: 'MegaBonk Complete Guide',
-                short_name: 'MegaBonk',
-                description:
-                    'Complete guide for MegaBonk roguelike with items, weapons, tomes, characters, build planner and calculator',
-                theme_color: '#00ff88',
-                background_color: '#1a1a1a',
-                display: 'standalone',
-                icons: [
-                    {
-                        src: 'icons/icon-192.png',
-                        sizes: '192x192',
-                        type: 'image/png',
-                    },
-                    {
-                        src: 'icons/icon-512.png',
-                        sizes: '512x512',
-                        type: 'image/png',
-                    },
+        plugins: [
+            serveProjectRoot(),
+            // Istanbul coverage instrumentation - only when COVERAGE=true
+            ...(istanbulPlugin
+                ? [
+                      istanbulPlugin({
+                          include: 'src/**/*.ts',
+                          exclude: ['src/libs/**', 'src/sw.js', 'src/types/**', 'node_modules/**'],
+                          extension: ['.ts'],
+                          requireEnv: false, // Don't require env since we check manually
+                          forceBuildInstrument: true, // Instrument even in build mode
+                      }),
+                  ]
+                : []),
+            viteStaticCopy({
+                targets: [
+                    { src: '../data', dest: '.' },
+                    { src: 'images', dest: '.' },
+                    { src: 'icons', dest: '.' },
                 ],
-            },
-            workbox: {
-                globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webp}'],
-                runtimeCaching: [
-                    {
-                        urlPattern: /^https?:\/\/.*\.json$/,
-                        handler: 'StaleWhileRevalidate',
-                        options: {
-                            cacheName: 'game-data-cache',
-                            expiration: {
-                                maxEntries: 50,
-                                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+            }),
+            // Skip PWA plugin during coverage builds (unminified code is too large)
+            ...(isCoverage ? [] : [VitePWA({
+                registerType: 'autoUpdate',
+                manifest: {
+                    name: 'MegaBonk Complete Guide',
+                    short_name: 'MegaBonk',
+                    description:
+                        'Complete guide for MegaBonk roguelike with items, weapons, tomes, characters, build planner and calculator',
+                    theme_color: '#00ff88',
+                    background_color: '#1a1a1a',
+                    display: 'standalone',
+                    icons: [
+                        {
+                            src: 'icons/icon-192.png',
+                            sizes: '192x192',
+                            type: 'image/png',
+                        },
+                        {
+                            src: 'icons/icon-512.png',
+                            sizes: '512x512',
+                            type: 'image/png',
+                        },
+                    ],
+                },
+                workbox: {
+                    globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webp}'],
+                    runtimeCaching: [
+                        {
+                            urlPattern: /^https?:\/\/.*\.json$/,
+                            handler: 'StaleWhileRevalidate',
+                            options: {
+                                cacheName: 'game-data-cache',
+                                expiration: {
+                                    maxEntries: 50,
+                                    maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+                                },
                             },
                         },
-                    },
-                    {
-                        urlPattern: /\.(?:png|jpg|jpeg|svg|webp|gif)$/,
-                        handler: 'CacheFirst',
-                        options: {
-                            cacheName: 'image-cache',
-                            expiration: {
-                                maxEntries: 100,
-                                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                        {
+                            urlPattern: /\.(?:png|jpg|jpeg|svg|webp|gif)$/,
+                            handler: 'CacheFirst',
+                            options: {
+                                cacheName: 'image-cache',
+                                expiration: {
+                                    maxEntries: 100,
+                                    maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                                },
                             },
                         },
-                    },
-                ],
-                // Clear old caches on activation
-                cleanupOutdatedCaches: true,
-                // Cache versioning - uses package.json version for automatic cache busting
-                cacheId: cacheVersion,
-            },
-        }),
-    ],
+                    ],
+                    // Clear old caches on activation
+                    cleanupOutdatedCaches: true,
+                    // Cache versioning - uses package.json version for automatic cache busting
+                    cacheId: cacheVersion,
+                },
+            })]),
+        ],
+    };
 });
