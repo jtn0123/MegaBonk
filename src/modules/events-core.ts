@@ -673,6 +673,22 @@ export function setupCompareButtonListener(): void {
 }
 
 /**
+ * Setup mobile filter toggle button
+ */
+export function setupFilterToggle(): void {
+    const toggleBtn = safeGetElementById('filter-toggle-btn') as HTMLButtonElement | null;
+    const filters = safeGetElementById('filters') as HTMLElement | null;
+    
+    if (!toggleBtn || !filters) return;
+    
+    toggleBtn.addEventListener('click', () => {
+        const isExpanded = filters.classList.toggle('filters-expanded');
+        toggleBtn.classList.toggle('active', isExpanded);
+        toggleBtn.setAttribute('aria-expanded', String(isExpanded));
+    }, getListenerOptions());
+}
+
+/**
  * Setup all event listeners
  */
 export function setupEventListeners(): void {
@@ -681,6 +697,7 @@ export function setupEventListeners(): void {
     setupSearchListeners(getListenerOptions);
     setupModalListeners();
     setupCompareButtonListener();
+    setupFilterToggle();
     setupEventDelegation();
     setupDropdownClickHandlers();
 }

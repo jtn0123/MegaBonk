@@ -205,7 +205,7 @@
                     <input
                         type="search"
                         id="searchInput"
-                        placeholder="🔍 Search... (Try: tier:SS or damage:>100)"
+                        placeholder="🔍 Search..."
                         aria-label="Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100"
                         title="Advanced search: Use tier:SS, rarity:legendary, or damage:>100 syntax"
                         aria-expanded="false"
@@ -223,6 +223,17 @@
                 </div>
 
                 <span id="item-count" class="item-count" aria-live="polite">0 items</span>
+
+                <button
+                    type="button"
+                    id="filter-toggle-btn"
+                    class="filter-toggle-btn"
+                    aria-expanded="false"
+                    aria-controls="filters"
+                >
+                    <span>Filters</span>
+                    <span class="filter-toggle-icon">▼</span>
+                </button>
 
                 <div class="filters" id="filters" aria-label="Filter options">
                     <!-- Filters dynamically updated based on active tab -->

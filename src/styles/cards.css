@@ -288,21 +288,69 @@
 
 @media (max-width: 480px) {
     .item-card {
-        min-height: 240px;
-        padding: 1rem;
+        min-height: 200px;
+        padding: 0.75rem;
+        border-radius: 6px;
     }
     
     .items-grid {
-        gap: 1rem;
+        gap: 0.65rem;
+        margin-bottom: 1.5rem;
     }
     
     .entity-image {
-        width: 52px;
-        height: 52px;
+        width: 48px;
+        height: 48px;
+    }
+    
+    .item-header {
+        margin-bottom: 0.65rem;
+        gap: 0.65rem;
     }
     
     .item-name {
-        font-size: 1.1rem;
+        font-size: 1rem;
+    }
+    
+    .item-effect {
+        font-size: 0.875rem;
+        margin-bottom: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    .item-description {
+        font-size: 0.8rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .view-details-btn {
+        padding: 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .badge {
+        padding: 3px 8px;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 375px) {
+    .item-card {
+        min-height: 180px;
+        padding: 0.6rem;
+    }
+    
+    .items-grid {
+        gap: 0.5rem;
+    }
+    
+    .entity-image {
+        width: 42px;
+        height: 42px;
+    }
+    
+    .item-name {
+        font-size: 0.95rem;
     }
 }
 

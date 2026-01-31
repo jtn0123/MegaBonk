@@ -46,6 +46,7 @@ export {
     setupTabScrollIndicators,
     setupModalListeners,
     setupCompareButtonListener,
+    setupFilterToggle,
     
     // UI helpers
     toggleTextExpand,
