@@ -285,7 +285,9 @@ export function calculateWindowedSSIM(img1: SimpleImageData, img2: SimpleImageDa
             // Compute local SSIM
             const numerator = (2 * mean1 * mean2 + C1) * (2 * covar + C2);
             const denominator = (mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2);
-            const localSSIM = numerator / denominator;
+            // Bug fix: Clamp local SSIM to [0, 1] before accumulating
+            // Edge cases with uniform windows can produce values slightly outside range
+            const localSSIM = Math.max(0, Math.min(1, numerator / denominator));
 
             totalSSIM += localSSIM;
             windowCount++;
@@ -411,7 +413,10 @@ export function calculateEdgeSimilarity(imageData1: SimpleImageData, imageData2:
     const denominator = Math.sqrt(sumSq1 * sumSq2);
     if (denominator === 0) return 0;
 
-    return sumProduct / denominator;
+    // Bug fix: Clamp result to [0, 1] - edge correlation can be negative
+    // when edges are anti-correlated, but similarity should be non-negative
+    const correlation = sumProduct / denominator;
+    return Math.max(0, Math.min(1, correlation));
 }
 
 // ========================================

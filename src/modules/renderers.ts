@@ -13,7 +13,7 @@ import {
 } from './utils.ts';
 import { isFavorite } from './favorites.ts';
 import { getDataForTab, allData } from './data-service.ts';
-import type { AllGameData, Item, Weapon, Tome, Character, Shrine, EntityType } from '../types/index.ts';
+import type { AllGameData } from '../types/index.ts';
 import { filterData, GlobalSearchResult } from './filters.ts';
 // Tab-specific modules are lazy-loaded via dynamic imports for code splitting
 // import { calculateBreakpoint, populateCalculatorItems } from './calculator.ts';
@@ -684,20 +684,20 @@ function createSearchResultCard(result: GlobalSearchResult): HTMLElement {
 /**
  * Get appropriate description text for an item based on its type
  */
-function getItemDescription(item: Item | Weapon | Tome | Character | Shrine, type: EntityType): string {
+function getItemDescription(item: BaseItem | BaseWeapon | BaseTome | BaseCharacter | BaseShrine, type: EntityType): string {
     switch (type) {
         case 'items':
-            return (item as Item).base_effect || item.description || '';
+            return (item as BaseItem).base_effect || item.description || '';
         case 'weapons':
-            return (item as Weapon).attack_pattern || item.description || '';
+            return (item as BaseWeapon).attack_pattern || item.description || '';
         case 'tomes': {
-            const tome = item as Tome;
+            const tome = item as BaseTome;
             return `${tome.stat_affected || ''}: ${tome.value_per_level || ''}`.trim() || item.description || '';
         }
         case 'characters':
-            return (item as Character).passive_ability || (item as Character).description || '';
+            return (item as BaseCharacter).passive_ability || (item as BaseCharacter).description || '';
         case 'shrines':
-            return (item as Shrine).reward || item.description || '';
+            return (item as BaseShrine).reward || item.description || '';
         default:
             return item.description || '';
     }

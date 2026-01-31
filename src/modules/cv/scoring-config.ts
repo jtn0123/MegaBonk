@@ -217,7 +217,8 @@ export function getThresholdForRarity(rarity?: string): number {
     const base = config.baseThreshold;
 
     if (!rarity) {
-        return base + config.rarityThresholds.unknown;
+        // Bug fix: Apply minConfidence check consistently for unknown rarity
+        return Math.max(config.minConfidence, base + config.rarityThresholds.unknown);
     }
 
     const key = rarity.toLowerCase() as keyof RarityThresholds;

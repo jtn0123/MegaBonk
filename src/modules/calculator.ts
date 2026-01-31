@@ -194,13 +194,14 @@ export function calculateBreakpoint(): void {
 
     stacksNeeded = Math.ceil(target / perStack);
 
-    // Cap checks
-    if (item.stack_cap && stacksNeeded > item.stack_cap) {
-        stacksNeeded = item.stack_cap;
-    }
+    // Bug fix: Track if original calculation exceeded cap BEFORE capping
+    // Using === only checks if final value equals cap, not if we were limited
+    const isCapped = item.stack_cap != null && stacksNeeded > item.stack_cap;
 
-    // Check if capped
-    const isCapped = item.stack_cap != null && stacksNeeded === item.stack_cap;
+    // Cap checks
+    if (isCapped) {
+        stacksNeeded = item.stack_cap!;
+    }
     const actualValue = stacksNeeded * perStack;
 
     // Display result

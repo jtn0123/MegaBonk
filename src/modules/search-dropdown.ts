@@ -50,7 +50,7 @@ export function isSearchDropdownVisible(): boolean {
  */
 export function getSelectedResult(): GlobalSearchResult | null {
     if (focusedIndex >= 0 && focusedIndex < currentResults.length) {
-        return currentResults[focusedIndex];
+        return currentResults[focusedIndex] ?? null;
     }
     return null;
 }
@@ -415,8 +415,9 @@ export function setupDropdownClickHandlers(): void {
             const indexStr = item.dataset.index;
             if (indexStr !== undefined) {
                 const index = parseInt(indexStr, 10);
-                if (!isNaN(index) && index >= 0 && index < currentResults.length) {
-                    navigateToResult(currentResults[index]);
+                const result = currentResults[index];
+                if (!isNaN(index) && index >= 0 && index < currentResults.length && result) {
+                    navigateToResult(result);
                 }
             }
         }
