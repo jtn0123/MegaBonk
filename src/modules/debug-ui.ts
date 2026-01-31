@@ -34,6 +34,9 @@ let updateIntervalId: number | null = null;
 let currentConfidenceThreshold: number = 0.7;
 let activeDebugTab: 'logs' | 'breadcrumbs' | 'requests' | 'state' = 'logs';
 
+// Track event listener cleanup functions to prevent memory leaks
+const eventListenerCleanups: Array<() => void> = [];
+
 // ========================================
 // Initialization
 // ========================================
@@ -42,6 +45,9 @@ let activeDebugTab: 'logs' | 'breadcrumbs' | 'requests' | 'state' = 'logs';
  * Initialize the debug panel UI
  */
 export function initDebugPanel(): void {
+    // Bug fix: Clean up any existing state before reinitializing to prevent memory leaks
+    cleanupDebugPanel();
+
     const panel = document.getElementById('debug-panel');
     const expandBtn = document.getElementById('debug-expand-btn');
     const debugModeCheckbox = document.getElementById('scan-debug-mode') as HTMLInputElement;
@@ -67,17 +73,21 @@ export function initDebugPanel(): void {
         panel.classList.add('active');
     }
 
-    // Debug mode toggle
-    debugModeCheckbox.addEventListener('change', () => {
+    // Debug mode toggle - track for cleanup
+    const checkboxHandler = () => {
         setDebugEnabled(debugModeCheckbox.checked);
         panel.classList.toggle('active', debugModeCheckbox.checked);
-    });
+    };
+    debugModeCheckbox.addEventListener('change', checkboxHandler);
+    eventListenerCleanups.push(() => debugModeCheckbox.removeEventListener('change', checkboxHandler));
 
-    // Expand/collapse toggle
-    expandBtn.addEventListener('click', e => {
+    // Expand/collapse toggle - track for cleanup
+    const expandHandler = (e: Event) => {
         e.stopPropagation();
         toggleExpanded(panel, panelContent);
-    });
+    };
+    expandBtn.addEventListener('click', expandHandler);
+    eventListenerCleanups.push(() => expandBtn.removeEventListener('click', expandHandler));
 
     // Initialize overlay options
     initOverlayOptions();
@@ -100,12 +110,27 @@ export function initDebugPanel(): void {
 
 /**
  * Cleanup debug panel resources
+ * Removes all event listeners and clears intervals to prevent memory leaks
  */
 export function cleanupDebugPanel(): void {
+    // Clear the update interval
     if (updateIntervalId !== null) {
         clearInterval(updateIntervalId);
         updateIntervalId = null;
     }
+
+    // Bug fix: Remove all tracked event listeners to prevent memory leaks
+    while (eventListenerCleanups.length > 0) {
+        const cleanup = eventListenerCleanups.pop();
+        if (cleanup) {
+            try {
+                cleanup();
+            } catch {
+                // Element may have been removed from DOM, ignore
+            }
+        }
+    }
+
     isExpanded = false;
     lastOverlayUrl = null;
 }
@@ -130,6 +155,7 @@ function toggleExpanded(panel: HTMLElement, content: HTMLElement): void {
 
 /**
  * Initialize overlay option checkboxes
+ * Bug fix: Track event listeners for cleanup
  */
 function initOverlayOptions(): void {
     const options = getDebugOptions();
@@ -149,10 +175,12 @@ function initOverlayOptions(): void {
             // Set initial state
             checkbox.checked = options[optionKey] as boolean;
 
-            // Handle changes
-            checkbox.addEventListener('change', () => {
+            // Handle changes - track for cleanup
+            const handler = () => {
                 setDebugOptions({ [optionKey]: checkbox.checked });
-            });
+            };
+            checkbox.addEventListener('change', handler);
+            eventListenerCleanups.push(() => checkbox.removeEventListener('change', handler));
         }
     });
 }
@@ -196,14 +224,17 @@ export function updateStats(): void {
 
 /**
  * Initialize log filter dropdown
+ * Bug fix: Track event listener for cleanup
  */
 function initLogFilter(): void {
     const filterSelect = document.getElementById('debug-log-filter') as HTMLSelectElement;
     if (filterSelect) {
-        filterSelect.addEventListener('change', () => {
+        const handler = () => {
             currentLogFilter = filterSelect.value;
             updateLogViewer();
-        });
+        };
+        filterSelect.addEventListener('change', handler);
+        eventListenerCleanups.push(() => filterSelect.removeEventListener('change', handler));
     }
 }
 
@@ -267,12 +298,13 @@ function escapeHtml(text: string): string {
 
 /**
  * Initialize action buttons
+ * Bug fix: Track event listeners for cleanup
  */
 function initActionButtons(): void {
     // Export logs
     const exportBtn = document.getElementById('debug-export-logs');
     if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
+        const exportHandler = () => {
             const logsJson = exportLogs();
             const blob = new Blob([logsJson], { type: 'application/json' });
             const url = URL.createObjectURL(blob);
@@ -283,35 +315,43 @@ function initActionButtons(): void {
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        });
+        };
+        exportBtn.addEventListener('click', exportHandler);
+        eventListenerCleanups.push(() => exportBtn.removeEventListener('click', exportHandler));
     }
 
     // Clear logs
     const clearBtn = document.getElementById('debug-clear-logs');
     if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
+        const clearHandler = () => {
             clearLogs();
             updateLogViewer();
-        });
+        };
+        clearBtn.addEventListener('click', clearHandler);
+        eventListenerCleanups.push(() => clearBtn.removeEventListener('click', clearHandler));
     }
 
     // Reset stats
     const resetBtn = document.getElementById('debug-reset-stats');
     if (resetBtn) {
-        resetBtn.addEventListener('click', () => {
+        const resetHandler = () => {
             resetStats();
             updateStats();
-        });
+        };
+        resetBtn.addEventListener('click', resetHandler);
+        eventListenerCleanups.push(() => resetBtn.removeEventListener('click', resetHandler));
     }
 
     // Download overlay
     const downloadBtn = document.getElementById('debug-download-overlay') as HTMLButtonElement;
     if (downloadBtn) {
-        downloadBtn.addEventListener('click', () => {
+        const downloadHandler = () => {
             if (lastOverlayUrl) {
                 downloadDebugImage(lastOverlayUrl, `debug-overlay-${Date.now()}.png`);
             }
-        });
+        };
+        downloadBtn.addEventListener('click', downloadHandler);
+        eventListenerCleanups.push(() => downloadBtn.removeEventListener('click', downloadHandler));
     }
 }
 
@@ -332,6 +372,7 @@ export function setLastOverlayUrl(url: string | null): void {
 
 /**
  * Initialize confidence threshold slider
+ * Bug fix: Track event listener for cleanup
  */
 export function initConfidenceSlider(): void {
     const slider = document.getElementById('debug-confidence-slider') as HTMLInputElement;
@@ -341,7 +382,7 @@ export function initConfidenceSlider(): void {
         slider.value = String(currentConfidenceThreshold * 100);
         valueDisplay.textContent = `${Math.round(currentConfidenceThreshold * 100)}%`;
 
-        slider.addEventListener('input', () => {
+        const sliderHandler = () => {
             currentConfidenceThreshold = parseInt(slider.value, 10) / 100;
             valueDisplay.textContent = `${slider.value}%`;
 
@@ -351,7 +392,9 @@ export function initConfidenceSlider(): void {
                 operation: 'debug_ui.threshold_changed',
                 data: { threshold: currentConfidenceThreshold },
             });
-        });
+        };
+        slider.addEventListener('input', sliderHandler);
+        eventListenerCleanups.push(() => slider.removeEventListener('input', sliderHandler));
     }
 }
 
@@ -423,22 +466,27 @@ export function updateBreadcrumbViewer(): void {
 
 /**
  * Initialize breadcrumb controls
+ * Bug fix: Track event listeners for cleanup
  */
 export function initBreadcrumbControls(): void {
     const clearBtn = document.getElementById('debug-clear-breadcrumbs');
     if (clearBtn) {
-        clearBtn.addEventListener('click', () => {
+        const clearHandler = () => {
             clearBreadcrumbs();
             updateBreadcrumbViewer();
-        });
+        };
+        clearBtn.addEventListener('click', clearHandler);
+        eventListenerCleanups.push(() => clearBtn.removeEventListener('click', clearHandler));
     }
 
     const exportBtn = document.getElementById('debug-export-breadcrumbs');
     if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
+        const exportHandler = () => {
             const json = exportBreadcrumbs();
             downloadJson(json, `megabonk-breadcrumbs-${Date.now()}.json`);
-        });
+        };
+        exportBtn.addEventListener('click', exportHandler);
+        eventListenerCleanups.push(() => exportBtn.removeEventListener('click', exportHandler));
     }
 }
 
@@ -530,21 +578,26 @@ export function updateStateViewer(): void {
 
 /**
  * Initialize state controls
+ * Bug fix: Track event listeners for cleanup
  */
 export function initStateControls(): void {
     const refreshBtn = document.getElementById('debug-refresh-state');
     if (refreshBtn) {
-        refreshBtn.addEventListener('click', () => {
+        const refreshHandler = () => {
             updateStateViewer();
-        });
+        };
+        refreshBtn.addEventListener('click', refreshHandler);
+        eventListenerCleanups.push(() => refreshBtn.removeEventListener('click', refreshHandler));
     }
 
     const exportBtn = document.getElementById('debug-export-state');
     if (exportBtn) {
-        exportBtn.addEventListener('click', () => {
+        const exportHandler = () => {
             const snapshot = captureStateSnapshot();
             downloadJson(JSON.stringify(snapshot, null, 2), `megabonk-state-${Date.now()}.json`);
-        });
+        };
+        exportBtn.addEventListener('click', exportHandler);
+        eventListenerCleanups.push(() => exportBtn.removeEventListener('click', exportHandler));
     }
 }
 
@@ -554,15 +607,18 @@ export function initStateControls(): void {
 
 /**
  * Initialize debug tab switching
+ * Bug fix: Track event listeners for cleanup
  */
 export function initDebugTabs(): void {
     const tabButtons = document.querySelectorAll('[data-debug-tab]');
 
     tabButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
+        const tabHandler = () => {
             const tab = (btn as HTMLElement).dataset.debugTab as typeof activeDebugTab;
             switchDebugTab(tab);
-        });
+        };
+        btn.addEventListener('click', tabHandler);
+        eventListenerCleanups.push(() => btn.removeEventListener('click', tabHandler));
     });
 }
 

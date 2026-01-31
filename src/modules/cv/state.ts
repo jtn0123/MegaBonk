@@ -112,6 +112,10 @@ const resizedTemplateCache = new LRUCache<string, ImageData>(RESIZED_CACHE_SIZE)
 // Key: itemId, Value: Map of size -> ImageData
 const multiScaleTemplates = new Map<string, Map<number, ImageData>>();
 
+// Bug fix: Limit multi-scale templates to prevent unbounded memory growth
+// Max ~300 items * 8 sizes = 2400 entries, but we limit to 2000 to be safe
+const MAX_MULTI_SCALE_TEMPLATES = 2000;
+
 // Common icon sizes used in different resolutions
 export const COMMON_ICON_SIZES = [32, 38, 40, 44, 48, 55, 64, 72] as const;
 
@@ -186,6 +190,20 @@ export function getMultiScaleTemplate(itemId: string, size: number): ImageData |
 }
 
 export function setMultiScaleTemplate(itemId: string, size: number, imageData: ImageData): void {
+    // Bug fix: Enforce maximum size limit to prevent unbounded memory growth
+    const currentCount = getMultiScaleTemplateCount();
+    if (currentCount >= MAX_MULTI_SCALE_TEMPLATES) {
+        // Evict oldest entries (first item in the map)
+        const firstKey = multiScaleTemplates.keys().next().value;
+        if (firstKey !== undefined) {
+            multiScaleTemplates.delete(firstKey);
+            logger.info({
+                operation: 'cv.state.multi_scale_eviction',
+                data: { evictedItemId: firstKey, currentCount },
+            });
+        }
+    }
+
     if (!multiScaleTemplates.has(itemId)) {
         multiScaleTemplates.set(itemId, new Map());
     }

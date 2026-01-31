@@ -534,19 +534,20 @@ function setupScalingTabHandlers(data: Item): void {
 
 /**
  * Render weapon modal content
+ * Bug fix: Escape all user-controlled values to prevent XSS
  * @param data - Weapon data
  * @returns HTML content
  */
 function renderWeaponModal(data: Weapon): string {
     const imageHtml = generateModalImage(data, data.name, 'weapon');
 
-    // Build upgradeable stats as tags
+    // Build upgradeable stats as tags (escaped)
     const upgradeableStatsHtml =
         Array.isArray(data.upgradeable_stats) && data.upgradeable_stats.length
-            ? `<div class="tag-list">${data.upgradeable_stats.map(s => `<span class="meta-tag">${s}</span>`).join('')}</div>`
+            ? `<div class="tag-list">${data.upgradeable_stats.map(s => `<span class="meta-tag">${escapeHtml(s)}</span>`).join('')}</div>`
             : '<span class="text-muted">None</span>';
 
-    // Build synergies section if any exist
+    // Build synergies section if any exist (all values escaped)
     const hasSynergies =
         data.synergies_items?.length || data.synergies_tomes?.length || data.synergies_characters?.length;
     const synergiesHtml = hasSynergies
@@ -558,7 +559,7 @@ function renderWeaponModal(data: Weapon): string {
                     ? `
                 <div class="synergy-group">
                     <h4>Items</h4>
-                    <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                    <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
                 </div>
             `
                     : ''
@@ -568,7 +569,7 @@ function renderWeaponModal(data: Weapon): string {
                     ? `
                 <div class="synergy-group">
                     <h4>Tomes</h4>
-                    <div class="synergy-list">${data.synergies_tomes.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                    <div class="synergy-list">${data.synergies_tomes.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
                 </div>
             `
                     : ''
@@ -578,7 +579,7 @@ function renderWeaponModal(data: Weapon): string {
                     ? `
                 <div class="synergy-group">
                     <h4>Characters</h4>
-                    <div class="synergy-list">${data.synergies_characters.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                    <div class="synergy-list">${data.synergies_characters.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
                 </div>
             `
                     : ''
@@ -587,18 +588,18 @@ function renderWeaponModal(data: Weapon): string {
     `
         : '';
 
-    // Build pros/cons section if any exist
+    // Build pros/cons section if any exist (all values escaped)
     const hasProsOrCons = data.pros?.length || data.cons?.length;
     const prosConsHtml = hasProsOrCons
         ? `
         <div class="strengths-weaknesses">
             <div class="strengths">
                 <h4>Pros</h4>
-                <ul>${data.pros?.map(p => `<li>${p}</li>`).join('') || '<li>None listed</li>'}</ul>
+                <ul>${data.pros?.map(p => `<li>${escapeHtml(p)}</li>`).join('') || '<li>None listed</li>'}</ul>
             </div>
             <div class="weaknesses">
                 <h4>Cons</h4>
-                <ul>${data.cons?.map(c => `<li>${c}</li>`).join('') || '<li>None listed</li>'}</ul>
+                <ul>${data.cons?.map(c => `<li>${escapeHtml(c)}</li>`).join('') || '<li>None listed</li>'}</ul>
             </div>
         </div>
     `
@@ -607,20 +608,20 @@ function renderWeaponModal(data: Weapon): string {
     return `
         ${imageHtml}
         <div class="item-badges">
-            <span class="badge tier-${data.tier}">${data.tier} Tier</span>
-            ${data.playstyle ? `<span class="badge">${data.playstyle}</span>` : ''}
+            <span class="badge tier-${escapeHtml(data.tier || '')}">${escapeHtml(data.tier || '')} Tier</span>
+            ${data.playstyle ? `<span class="badge">${escapeHtml(data.playstyle)}</span>` : ''}
         </div>
         <div class="weapon-stats-section">
-            <div><strong>Base Damage:</strong> ${data.base_damage}${data.base_projectile_count ? ` × ${data.base_projectile_count} projectiles` : ''}</div>
-            <div><strong>Attack Pattern:</strong> ${data.attack_pattern}</div>
+            <div><strong>Base Damage:</strong> ${escapeHtml(String(data.base_damage || ''))}${data.base_projectile_count ? ` × ${escapeHtml(String(data.base_projectile_count))} projectiles` : ''}</div>
+            <div><strong>Attack Pattern:</strong> ${escapeHtml(data.attack_pattern || '')}</div>
         </div>
-        <p class="weapon-description">${data.description}</p>
+        <p class="weapon-description">${escapeHtml(data.description || '')}</p>
         ${
             data.best_for?.length
                 ? `
             <div class="weapon-section">
                 <h3>Best For</h3>
-                <div class="tag-list">${data.best_for.map(b => `<span class="meta-tag">${b}</span>`).join('')}</div>
+                <div class="tag-list">${data.best_for.map(b => `<span class="meta-tag">${escapeHtml(b)}</span>`).join('')}</div>
             </div>
         `
                 : ''
@@ -636,7 +637,7 @@ function renderWeaponModal(data: Weapon): string {
                 ? `
             <div class="build-tips">
                 <h3>Build Tips</h3>
-                <p>${data.build_tips}</p>
+                <p>${escapeHtml(data.build_tips)}</p>
             </div>
         `
                 : ''
@@ -645,7 +646,7 @@ function renderWeaponModal(data: Weapon): string {
             data.unlock_requirement
                 ? `
             <div class="unlock-requirement">
-                <strong>Unlock:</strong> ${data.unlock_requirement}
+                <strong>Unlock:</strong> ${escapeHtml(data.unlock_requirement)}
             </div>
         `
                 : ''
@@ -655,6 +656,7 @@ function renderWeaponModal(data: Weapon): string {
 
 /**
  * Render tome modal content
+ * Bug fix: Escape all user-controlled values to prevent XSS
  * @param data - Tome data
  * @returns HTML content
  */
@@ -665,13 +667,13 @@ async function renderTomeModal(data: Tome): Promise<string> {
     // Use cached chart module to avoid repeated import overhead
     const chartModule = await getChartModule();
     if (!chartModule) {
-        // Return basic content without charts
+        // Return basic content without charts (escaped)
         return `
             <div class="item-badges">
-                <span class="badge tier-${data.tier}">${data.tier} Tier</span>
-                <span class="badge" style="background: var(--bg-dark);">Priority: ${data.priority}</span>
+                <span class="badge tier-${escapeHtml(data.tier || '')}">${escapeHtml(data.tier || '')} Tier</span>
+                <span class="badge" style="background: var(--bg-dark);">Priority: ${escapeHtml(String(data.priority || ''))}</span>
             </div>
-            <p>${data.description}</p>
+            <p>${escapeHtml(data.description || '')}</p>
             <p class="error-message">Charts unavailable</p>
         `;
     }
@@ -687,24 +689,24 @@ async function renderTomeModal(data: Tome): Promise<string> {
     const graphHtml = progression
         ? `
         <div class="modal-graph-container">
-            <canvas id="modal-tome-chart-${data.id}" class="scaling-chart"></canvas>
+            <canvas id="modal-tome-chart-${escapeHtml(data.id)}" class="scaling-chart"></canvas>
         </div>
     `
         : '';
 
     const content = `
         <div class="item-badges">
-            <span class="badge tier-${data.tier}">${data.tier} Tier</span>
-            <span class="badge" style="background: var(--bg-dark);">Priority: ${data.priority}</span>
+            <span class="badge tier-${escapeHtml(data.tier || '')}">${escapeHtml(data.tier || '')} Tier</span>
+            <span class="badge" style="background: var(--bg-dark);">Priority: ${escapeHtml(String(data.priority || ''))}</span>
         </div>
         <div class="tome-effect" style="margin-top: 1rem;">
-            <strong>Stat:</strong> ${data.stat_affected}
+            <strong>Stat:</strong> ${escapeHtml(data.stat_affected || '')}
         </div>
-        <p>${data.description}</p>
+        <p>${escapeHtml(data.description || '')}</p>
         ${graphHtml}
         <div class="item-formula"><strong>Per Level:</strong> ${renderFormulaDisplay(String(data.value_per_level))}</div>
-        ${data.notes ? `<div class="item-notes">${data.notes}</div>` : ''}
-        <div class="item-notes"><strong>Recommended for:</strong> ${Array.isArray(data.recommended_for) ? data.recommended_for.join(', ') : 'General use'}</div>
+        ${data.notes ? `<div class="item-notes">${escapeHtml(data.notes)}</div>` : ''}
+        <div class="item-notes"><strong>Recommended for:</strong> ${Array.isArray(data.recommended_for) ? escapeHtml(data.recommended_for.join(', ')) : 'General use'}</div>
     `;
 
     // Initialize chart after modal is displayed using requestAnimationFrame with session check
@@ -730,6 +732,7 @@ async function renderTomeModal(data: Tome): Promise<string> {
 
 /**
  * Render character modal content
+ * Bug fix: Escape all user-controlled values to prevent XSS
  * @param data - Character data
  * @returns HTML content
  */
@@ -739,24 +742,24 @@ function renderCharacterModal(data: Character): string {
     return `
         ${imageHtml}
         <div class="item-badges">
-            <span class="badge tier-${data.tier}">${data.tier} Tier</span>
-            <span class="badge">${data.playstyle}</span>
+            <span class="badge tier-${escapeHtml(data.tier || '')}">${escapeHtml(data.tier || '')} Tier</span>
+            <span class="badge">${escapeHtml(data.playstyle || '')}</span>
         </div>
         <div class="character-passive">
-            <strong>${data.passive_ability}</strong>
-            <p>${data.passive_description}</p>
+            <strong>${escapeHtml(data.passive_ability || '')}</strong>
+            <p>${escapeHtml(data.passive_description || '')}</p>
         </div>
         <div class="character-meta">
-            <div><strong>Starting Weapon:</strong> ${data.starting_weapon}</div>
-            <div><strong>Base HP:</strong> ${data.base_hp} | <strong>Base Damage:</strong> ${data.base_damage}</div>
-            ${data.unlock_requirement ? `<div><strong>Unlock:</strong> ${data.unlock_requirement}</div>` : ''}
+            <div><strong>Starting Weapon:</strong> ${escapeHtml(data.starting_weapon || '')}</div>
+            <div><strong>Base HP:</strong> ${escapeHtml(String(data.base_hp || ''))} | <strong>Base Damage:</strong> ${escapeHtml(String(data.base_damage || ''))}</div>
+            ${data.unlock_requirement ? `<div><strong>Unlock:</strong> ${escapeHtml(data.unlock_requirement)}</div>` : ''}
         </div>
         ${
             data.best_for?.length
                 ? `
             <div class="character-section">
                 <h3>Best For</h3>
-                <div class="tag-list">${data.best_for.map(b => `<span class="meta-tag">${b}</span>`).join('')}</div>
+                <div class="tag-list">${data.best_for.map(b => `<span class="meta-tag">${escapeHtml(b)}</span>`).join('')}</div>
             </div>
         `
                 : ''
@@ -764,11 +767,11 @@ function renderCharacterModal(data: Character): string {
         <div class="strengths-weaknesses">
             <div class="strengths">
                 <h4>Strengths</h4>
-                <ul>${data.strengths?.map(s => `<li>${s}</li>`).join('') || '<li>None listed</li>'}</ul>
+                <ul>${data.strengths?.map(s => `<li>${escapeHtml(s)}</li>`).join('') || '<li>None listed</li>'}</ul>
             </div>
             <div class="weaknesses">
                 <h4>Weaknesses</h4>
-                <ul>${data.weaknesses?.map(w => `<li>${w}</li>`).join('') || '<li>None listed</li>'}</ul>
+                <ul>${data.weaknesses?.map(w => `<li>${escapeHtml(w)}</li>`).join('') || '<li>None listed</li>'}</ul>
             </div>
         </div>
         <div class="synergies-section">
@@ -778,7 +781,7 @@ function renderCharacterModal(data: Character): string {
                     ? `
                 <div class="synergy-group">
                     <h4>Weapons</h4>
-                    <div class="synergy-list">${data.synergies_weapons.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                    <div class="synergy-list">${data.synergies_weapons.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
                 </div>
             `
                     : ''
@@ -788,7 +791,7 @@ function renderCharacterModal(data: Character): string {
                     ? `
                 <div class="synergy-group">
                     <h4>Items</h4>
-                    <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                    <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
                 </div>
             `
                     : ''
@@ -798,7 +801,7 @@ function renderCharacterModal(data: Character): string {
                     ? `
                 <div class="synergy-group">
                     <h4>Tomes</h4>
-                    <div class="synergy-list">${data.synergies_tomes.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                    <div class="synergy-list">${data.synergies_tomes.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
                 </div>
             `
                     : ''
@@ -809,7 +812,7 @@ function renderCharacterModal(data: Character): string {
                 ? `
             <div class="build-tips">
                 <h3>Build Tips</h3>
-                <p>${data.build_tips}</p>
+                <p>${escapeHtml(data.build_tips)}</p>
             </div>
         `
                 : ''
@@ -819,26 +822,27 @@ function renderCharacterModal(data: Character): string {
 
 /**
  * Render shrine modal content
+ * Bug fix: Escape all user-controlled values to prevent XSS
  * @param data - Shrine data
  * @returns HTML content
  */
 function renderShrineModal(data: Shrine): string {
     return `
         <div class="shrine-modal-header">
-            <span class="shrine-icon-modal">${data.icon || ''}</span>
+            <span class="shrine-icon-modal">${escapeHtml(data.icon || '')}</span>
             <div class="item-badges">
-                ${data.type ? `<span class="badge">${data.type.replace('_', ' ')}</span>` : ''}
+                ${data.type ? `<span class="badge">${escapeHtml(data.type.replace('_', ' '))}</span>` : ''}
                 ${data.reusable !== undefined ? (data.reusable ? '<span class="badge">Reusable</span>' : '<span class="badge">One-time</span>') : ''}
             </div>
         </div>
         <div class="shrine-description-full">
-            <p>${data.description}</p>
+            <p>${escapeHtml(data.description || '')}</p>
         </div>
         ${
             data.reward
                 ? `<div class="shrine-detail-section">
             <strong>Reward</strong>
-            <p>${data.reward}</p>
+            <p>${escapeHtml(data.reward)}</p>
         </div>`
                 : ''
         }
@@ -847,7 +851,7 @@ function renderShrineModal(data: Shrine): string {
                 ? `
             <div class="shrine-detail-section">
                 <strong>Activation</strong>
-                <p>${data.activation}</p>
+                <p>${escapeHtml(data.activation)}</p>
             </div>
         `
                 : ''
@@ -857,7 +861,7 @@ function renderShrineModal(data: Shrine): string {
                 ? `
             <div class="shrine-detail-section">
                 <strong>Spawn Rate</strong>
-                <p>${data.spawn_count}</p>
+                <p>${escapeHtml(String(data.spawn_count))}</p>
             </div>
         `
                 : ''
@@ -867,7 +871,7 @@ function renderShrineModal(data: Shrine): string {
                 ? `
             <div class="shrine-detail-section">
                 <strong>Best For</strong>
-                <div class="tag-list">${data.best_for.map(b => `<span class="meta-tag">${b}</span>`).join('')}</div>
+                <div class="tag-list">${data.best_for.map(b => `<span class="meta-tag">${escapeHtml(b)}</span>`).join('')}</div>
             </div>
         `
                 : ''
@@ -877,7 +881,7 @@ function renderShrineModal(data: Shrine): string {
                 ? `
             <div class="synergies-section">
                 <h3>Item Synergies</h3>
-                <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${s}</span>`).join('')}</div>
+                <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
             </div>
         `
                 : ''
@@ -887,7 +891,7 @@ function renderShrineModal(data: Shrine): string {
                 ? `
             <div class="shrine-strategy">
                 <strong>Strategy</strong>
-                <p>${data.strategy}</p>
+                <p>${escapeHtml(data.strategy)}</p>
             </div>
         `
                 : ''
@@ -896,7 +900,7 @@ function renderShrineModal(data: Shrine): string {
             data.notes
                 ? `
             <div class="item-notes" style="margin-top: 1rem;">
-                <em>${data.notes}</em>
+                <em>${escapeHtml(data.notes)}</em>
             </div>
         `
                 : ''

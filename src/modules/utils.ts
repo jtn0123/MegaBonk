@@ -279,11 +279,12 @@ export function generateBadge(text: string, className: string = ''): string {
 
 /**
  * Generate meta tags from array
+ * Bug fix: Escape tag content to prevent XSS
  */
 export function generateMetaTags(tags: string[] | null | undefined, limit: number = 0): string {
     if (!tags || !tags.length) return '';
     const displayTags = limit > 0 ? tags.slice(0, limit) : tags;
-    return displayTags.map(tag => `<span class="meta-tag">${tag}</span>`).join(' ');
+    return displayTags.map(tag => `<span class="meta-tag">${escapeHtml(tag)}</span>`).join(' ');
 }
 
 // ========================================

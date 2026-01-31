@@ -65,6 +65,13 @@ type ProgressCallback = (progress: BatchProgress) => void;
 let isInitialized = false;
 let batchResults: BatchDetectionResult[] = [];
 
+// Race condition fix: Lock to prevent concurrent batch processing
+// Without this, multiple processBatch calls would corrupt batchResults
+let batchProcessingInProgress = false;
+
+// Race condition fix: Lock to prevent double initialization
+let initializationInProgress = false;
+
 // ========================================
 // Initialization
 // ========================================
@@ -73,7 +80,10 @@ let batchResults: BatchDetectionResult[] = [];
  * Initialize batch scan module
  */
 export function initBatchScan(gameData: AllGameData): void {
-    if (isInitialized) return;
+    // Race condition fix: Prevent double initialization
+    // Multiple concurrent calls could otherwise run init code multiple times
+    if (isInitialized || initializationInProgress) return;
+    initializationInProgress = true;
 
     initCV(gameData);
     initOCR(gameData);
@@ -92,6 +102,7 @@ export function initBatchScan(gameData: AllGameData): void {
     });
 
     isInitialized = true;
+    initializationInProgress = false; // Release init lock
 
     logger.info({
         operation: 'batch_scan.init',
@@ -251,6 +262,17 @@ export async function processBatch(
     files: FileList | File[],
     onProgress?: ProgressCallback
 ): Promise<BatchDetectionResult[]> {
+    // Race condition fix: Prevent concurrent batch processing
+    // Multiple calls would otherwise corrupt batchResults array
+    if (batchProcessingInProgress) {
+        logger.warn({
+            operation: 'batch_scan.concurrent_rejected',
+            data: { message: 'Batch processing already in progress' },
+        });
+        return []; // Return empty instead of corrupting state
+    }
+    batchProcessingInProgress = true;
+
     const fileArray = Array.from(files);
 
     // Validate files

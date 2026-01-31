@@ -59,6 +59,9 @@ let activeHighlightTimeout: ReturnType<typeof setTimeout> | null = null;
 let lastTabSwitchTime = 0;
 const TAB_SWITCH_DEBOUNCE_MS = 100; // Minimum time between tab switches
 
+// Lock to prevent concurrent tab switches (race condition fix)
+let tabSwitchInProgress = false;
+
 // Track scroll/resize listener cleanup functions to prevent memory leaks
 let scrollListenerCleanup: (() => void) | null = null;
 let resizeListenerCleanup: (() => void) | null = null;
@@ -75,6 +78,7 @@ const MODAL_CLOSE_DEBOUNCE_MS = 300;
 export function __resetTimersForTesting(): void {
     lastTabSwitchTime = 0;
     lastModalCloseTime = 0;
+    tabSwitchInProgress = false;
 }
 
 /**
@@ -985,7 +989,21 @@ export async function switchTab(tabName: TabName): Promise<void> {
     if (now - lastTabSwitchTime < TAB_SWITCH_DEBOUNCE_MS) {
         return; // Ignore rapid successive tab switches
     }
+
+    // Race condition fix: Prevent concurrent tab switches
+    // Without this lock, multiple async switchTab calls could interleave,
+    // causing state corruption (e.g., charts destroyed while being created)
+    if (tabSwitchInProgress) {
+        logger.info({
+            operation: 'tab.switch.skipped',
+            data: { reason: 'switch_in_progress', requestedTab: tabName },
+        });
+        return;
+    }
+    tabSwitchInProgress = true;
     lastTabSwitchTime = now;
+
+    try {
 
     const previousTab = getState('currentTab');
 
@@ -996,7 +1014,7 @@ export async function switchTab(tabName: TabName): Promise<void> {
         !document.querySelector('#weaponsContainer .item-card') &&
         !document.querySelector('#tomesContainer .item-card');
     if (previousTab === tabName && !isInitialRender) {
-        return;
+        return; // finally block will release lock
     }
 
     // Save current tab's filter state before switching
@@ -1092,6 +1110,10 @@ export async function switchTab(tabName: TabName): Promise<void> {
 
     // Render content for the tab (will replace skeleton with actual content)
     await renderTabContent(tabName);
+    } finally {
+        // Race condition fix: Always release lock when done
+        tabSwitchInProgress = false;
+    }
 }
 
 /**

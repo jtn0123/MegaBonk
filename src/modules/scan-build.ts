@@ -37,6 +37,10 @@ let eventAbortController: AbortController | null = null;
 let uploadDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingUploadId = 0; // Track upload sequence to ignore stale results
 
+// Race condition fix: Lock to prevent concurrent detection runs
+// Without this, multiple button clicks could start overlapping detections
+let detectionInProgress = false;
+
 // Callbacks for when build state is updated
 type BuildStateCallback = (state: {
     character: Character | null;
@@ -364,6 +368,15 @@ async function handleAutoDetect(): Promise<void> {
         return;
     }
 
+    // Race condition fix: Prevent concurrent detection runs
+    // Multiple button clicks could otherwise start overlapping detections,
+    // corrupting progress indicators and detection state
+    if (detectionInProgress) {
+        ToastManager.info('Detection already in progress...');
+        return;
+    }
+    detectionInProgress = true;
+
     // Create progress indicator before try block to ensure cleanup in finally
     const progressDiv = createProgressIndicator();
 
@@ -456,8 +469,9 @@ async function handleAutoDetect(): Promise<void> {
         });
         ToastManager.error(`Auto-detection failed: ${(error as Error).message}`);
     } finally {
-        // Always clean up progress indicator
+        // Always clean up progress indicator and release lock
         progressDiv.remove();
+        detectionInProgress = false;
     }
 }
 
@@ -470,9 +484,17 @@ async function handleHybridDetect(): Promise<void> {
         return;
     }
 
+    // Race condition fix: Prevent concurrent detection runs
+    if (detectionInProgress) {
+        ToastManager.info('Detection already in progress...');
+        return;
+    }
+    detectionInProgress = true;
+
     // Check if templates are still loading
     if (!templatesLoaded && !templatesLoadError) {
         ToastManager.info('Item templates are still loading. Please wait a moment and try again.');
+        detectionInProgress = false; // Release lock since we're returning early
         return;
     }
 
@@ -632,8 +654,9 @@ async function handleHybridDetect(): Promise<void> {
         });
         ToastManager.error(`Hybrid detection failed: ${(error as Error).message}`);
     } finally {
-        // Always clean up progress indicator
+        // Always clean up progress indicator and release lock
         progressDiv.remove();
+        detectionInProgress = false;
     }
 }
 
@@ -1258,6 +1281,7 @@ export function __resetForTesting(): void {
         uploadDebounceTimer = null;
     }
     pendingUploadId = 0;
+    detectionInProgress = false; // Reset race condition lock
 
     allData = {};
     uploadedImage = null;
