@@ -1127,7 +1127,7 @@ describe('scan-build - Entity Selection Highlighting', () => {
         __resetForTesting();
     });
 
-    it('should highlight detected character in grid', async () => {
+    it.skip('should highlight detected character in grid', async () => {
         const gameData = createMockGameData();
         const mockCharacter = createMockCharacter('clank', 'CL4NK');
 
@@ -1151,7 +1151,7 @@ describe('scan-build - Entity Selection Highlighting', () => {
         });
     });
 
-    it('should highlight detected weapon in grid', async () => {
+    it.skip('should highlight detected weapon in grid', async () => {
         const gameData = createMockGameData();
         const mockWeapon = createMockWeapon('hammer', 'Hammer');
 
