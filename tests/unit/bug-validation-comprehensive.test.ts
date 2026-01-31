@@ -101,11 +101,13 @@ describe('Bug #2: Character synergies_items uses names but code checks IDs - FIX
 });
 
 describe('Bug #3: build-planner.ts also checks non-existent synergies_weapons - FIXED', () => {
-    const buildPlannerCode = loadSourceFile('build-planner.ts');
+    // Code moved to build-validation.ts in refactor
+    const buildValidationCode = loadSourceFile('build-validation.ts');
 
     it('should confirm build-planner.ts now uses item.synergies for weapon matching', () => {
         // FIXED: The code now uses item.synergies instead of synergies_weapons
-        expect(buildPlannerCode).toContain('const itemSynergies = item.synergies || []');
+        // Synergy logic moved to build-validation.ts
+        expect(buildValidationCode).toContain('const itemSynergies = item.synergies || []');
     });
 });
 
@@ -357,14 +359,15 @@ describe('Bug #16: Calculator perStack validation missing for zero values', () =
 });
 
 describe('Bug #17: Tome stat calculation (FIXED)', () => {
-    const buildPlannerCode = loadSourceFile('build-planner.ts');
+    // Calculation code moved to build-stats.ts in refactor
+    const buildStatsCode = loadSourceFile('build-stats.ts');
 
     it('should confirm tome values are now multiplied correctly (value * tomeLevel)', () => {
         // Bug fix: The old code multiplied by tomeLevel * 100, which was 100x too high
         // New code uses value * tomeLevel, with proper handling of decimal values
-        expect(buildPlannerCode).toContain('value * tomeLevel');
+        expect(buildStatsCode).toContain('value * tomeLevel');
         // Verify the old buggy pattern is no longer present
-        expect(buildPlannerCode).not.toContain('value * tomeLevel * 100');
+        expect(buildStatsCode).not.toContain('value * tomeLevel * 100');
     });
 
     it('should check if tome value_per_level already includes percentage', () => {
@@ -384,8 +387,9 @@ describe('Bug #17: Tome stat calculation (FIXED)', () => {
 
 describe('Bug #18: Overcrit detection threshold may not match game mechanics', () => {
     it('should confirm overcrit is detected at exactly 100%', () => {
-        const buildPlannerCode = loadSourceFile('build-planner.ts');
-        expect(buildPlannerCode).toContain('crit_chance > 100');
+        // Calculation code moved to build-stats.ts in refactor
+        const buildStatsCode = loadSourceFile('build-stats.ts');
+        expect(buildStatsCode).toContain('crit_chance > 100');
     });
 
     it('should document that 100% exactly is not overcrit (edge case)', () => {
@@ -411,11 +415,12 @@ describe('Bug #19: Item type expects synergies_weapons but data has synergies', 
 });
 
 describe('Bug #20: Inconsistent field naming: base_damage vs baseDamage', () => {
-    const buildPlannerCode = loadSourceFile('build-planner.ts');
+    // Calculation code moved to build-stats.ts in refactor
+    const buildStatsCode = loadSourceFile('build-stats.ts');
 
     it('should confirm code handles both field names', () => {
-        // Line 701: buildToUse.weapon.base_damage ?? buildToUse.weapon.baseDamage
-        expect(buildPlannerCode).toContain('base_damage ?? buildToUse.weapon.baseDamage');
+        // Weapon base_damage handling in build-stats.ts
+        expect(buildStatsCode).toContain('base_damage ?? build.weapon.baseDamage');
     });
 
     it('should confirm weapons use consistent field naming', () => {
@@ -446,7 +451,8 @@ describe('Bug #21: anti_synergies vs antiSynergies inconsistency', () => {
 
 describe('Bug #22: stat_affected case sensitivity issues', () => {
     const tomesData = loadJsonFile('tomes.json');
-    const buildPlannerCode = loadSourceFile('build-planner.ts');
+    // Calculation code moved to build-stats.ts in refactor
+    const buildStatsCode = loadSourceFile('build-stats.ts');
 
     it('should check tome stat_affected matches code expectations', () => {
         const expectedStats = ['Damage', 'Crit Chance', 'Crit Damage', 'HP', 'Attack Speed', 'Movement Speed'];
@@ -457,7 +463,7 @@ describe('Bug #22: stat_affected case sensitivity issues', () => {
                 // Case sensitivity matters
             }
         });
-        expect(buildPlannerCode).toContain("tome.stat_affected === 'Damage'");
+        expect(buildStatsCode).toContain("tome.stat_affected === 'Damage'");
     });
 });
 
