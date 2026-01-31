@@ -19,8 +19,6 @@ export function renderShrines(shrines: Shrine[]): void {
     const container = safeGetElementById('shrinesContainer');
     if (!container) return;
 
-    container.innerHTML = '';
-
     if (shrines.length === 0) {
         container.innerHTML = generateEmptyState('⛩️', 'Shrines');
         return;
@@ -59,6 +57,7 @@ export function renderShrines(shrines: Shrine[]): void {
         fragment.appendChild(card);
     });
 
-    // Single DOM operation - append all cards at once
+    // Single DOM operation - clear and append atomically to avoid flash
+    container.innerHTML = '';
     container.appendChild(fragment);
 }

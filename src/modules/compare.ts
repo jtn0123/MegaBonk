@@ -9,6 +9,7 @@ import { safeGetElementById, safeQuerySelector, safeQuerySelectorAll, escapeHtml
 import { MAX_COMPARE_ITEMS } from './constants.ts';
 import { getState, setState } from './store.ts';
 import { logger } from './logger.ts';
+import { activateFocusTrap, deactivateFocusTrap } from './modal-core.ts';
 
 // ========================================
 // State
@@ -202,7 +203,7 @@ export async function openCompareModal(): Promise<void> {
                     <p class="notes">${escapeHtml(item.notes || 'N/A')}</p>
                 </div>
 
-                <button class="remove-compare-btn" data-remove-id="${item.id}">
+                <button class="remove-compare-btn" data-remove-id="${item.id}" aria-label="Remove ${escapeHtml(item.name)} from comparison">
                     Remove from Comparison
                 </button>
             </div>
@@ -218,6 +219,9 @@ export async function openCompareModal(): Promise<void> {
     // Using nested RAF ensures chart init happens after modal is visible
     requestAnimationFrame(() => {
         modal.classList.add('active');
+
+        // Activate focus trap for accessibility
+        activateFocusTrap(modal);
 
         // Initialize compare chart after modal is confirmed active
         if (chartableItems.length >= 2) {
@@ -267,6 +271,9 @@ export async function closeCompareModal(): Promise<void> {
     }
 
     isModalClosing = true;
+
+    // Deactivate focus trap before closing
+    deactivateFocusTrap();
 
     // Update UI immediately (don't block on chart cleanup)
     modal.classList.remove('active');

@@ -26,22 +26,22 @@ export function renderItemModal(data: Item): string {
         const tabsHtml = trackKeys
             .map(
                 (key, idx) =>
-                    `<button class="scaling-tab ${idx === 0 ? 'active' : ''}" data-track="${key}" data-item-id="${data.id}">${data.scaling_tracks![key]?.stat || key}</button>`
+                    `<button class="scaling-tab ${idx === 0 ? 'active' : ''}" data-track="${key}" data-item-id="${data.id}" role="tab" aria-selected="${idx === 0 ? 'true' : 'false'}" aria-controls="modal-chart-${data.id}">${data.scaling_tracks![key]?.stat || key}</button>`
             )
             .join('');
 
         graphHtml = `
             <div class="scaling-tracks-container">
-                <div class="scaling-tabs">${tabsHtml}</div>
-                <div class="modal-graph-container">
-                    <canvas id="modal-chart-${data.id}" class="scaling-chart"></canvas>
+                <div class="scaling-tabs" role="tablist" aria-label="Scaling tracks">${tabsHtml}</div>
+                <div class="modal-graph-container" role="tabpanel">
+                    <canvas id="modal-chart-${data.id}" class="scaling-chart" aria-label="Scaling chart for ${escapeHtml(data.name)}"></canvas>
                 </div>
             </div>
         `;
     } else if (showGraph) {
         graphHtml = `
             <div class="modal-graph-container">
-                <canvas id="modal-chart-${data.id}" class="scaling-chart"></canvas>
+                <canvas id="modal-chart-${data.id}" class="scaling-chart" aria-label="Scaling chart for ${escapeHtml(data.name)}"></canvas>
             </div>
         `;
     }
@@ -215,10 +215,14 @@ function setupScalingTabHandlers(data: Item): void {
         const tab = target.closest(`.scaling-tab[data-item-id="${data.id}"]`) as HTMLButtonElement | null;
         if (!tab) return;
 
-        // Update active state
+        // Update active state and ARIA
         const tabs = container.querySelectorAll(`.scaling-tab[data-item-id="${data.id}"]`);
-        tabs.forEach(t => t.classList.remove('active'));
+        tabs.forEach(t => {
+            t.classList.remove('active');
+            t.setAttribute('aria-selected', 'false');
+        });
         tab.classList.add('active');
+        tab.setAttribute('aria-selected', 'true');
 
         // Use cached chart module to avoid repeated import overhead
         const chartModule = await getChartModule();

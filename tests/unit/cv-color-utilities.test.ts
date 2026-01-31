@@ -629,13 +629,20 @@ describe('isEmptyCell', () => {
     });
 
     it('should return false for high-variance colorful cell', () => {
-        // Create a simulated item icon with varied colors
-        const itemIcon = createMockImageData(20, 20, (x, y) => {
-            // Create distinct regions to simulate icon
-            if (x < 10 && y < 10) return [255, 100, 50, 255];
-            if (x >= 10 && y < 10) return [50, 200, 100, 255];
-            if (x < 10 && y >= 10) return [100, 50, 255, 255];
-            return [200, 200, 50, 255];
+        // Create a realistic item icon: colorful center, uniform edges
+        // Uses 40x40 for better center/edge ratio analysis (25% margin = 10 pixels)
+        const itemIcon = createMockImageData(40, 40, (x, y) => {
+            const cx = 20, cy = 20;
+            const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+            if (dist < 14) {
+                // Colorful center with variation - many distinct colors
+                const angle = Math.atan2(y - cy, x - cx);
+                const shade = Math.floor(dist * 3);
+                const angleMod = Math.floor((angle + Math.PI) * 30);
+                return [200 + shade, 100 + angleMod % 60, 60 + shade, 255];
+            }
+            // Uniform dark edges
+            return [45, 45, 50, 255];
         });
         expect(isEmptyCell(itemIcon)).toBe(false);
     });

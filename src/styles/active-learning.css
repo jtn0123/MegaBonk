@@ -1,0 +1,352 @@
+/* ========================================
+   Active Learning Prompts
+   ========================================
+   ML feedback and training UI
+   ======================================== */
+
+.active-learning-prompt {
+    padding: 1.5rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.al-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.al-header h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.al-header p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.al-detection {
+    background: var(--bg-subtle);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.al-crop {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: var(--bg-primary);
+    border: 2px solid var(--bg-elevated);
+}
+
+.al-crop img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.al-crop-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 8px;
+    background: var(--bg-primary);
+    border: 2px dashed var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 0.5rem;
+}
+
+.al-detected-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.al-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.al-item-name {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.al-confidence {
+    font-size: 0.85rem;
+    color: #ffc107;
+    font-weight: 600;
+}
+
+.al-question {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.al-question p {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.al-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.al-btn {
+    padding: 0.85rem 1.25rem;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.al-btn-correct {
+    background: rgba(0, 255, 136, 0.15);
+    color: #00ff88;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+}
+
+.al-btn-correct:hover {
+    background: rgba(0, 255, 136, 0.25);
+    transform: translateY(-2px);
+}
+
+.al-btn-wrong {
+    background: rgba(255, 99, 71, 0.15);
+    color: #ff6347;
+    border: 1px solid rgba(255, 99, 71, 0.3);
+}
+
+.al-btn-wrong:hover {
+    background: rgba(255, 99, 71, 0.25);
+    transform: translateY(-2px);
+}
+
+.al-btn-skip {
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.al-btn-skip:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+}
+
+.al-alternatives {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--bg-subtle);
+}
+
+.al-alternatives p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    text-align: center;
+}
+
+.al-alternatives-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.al-alternative {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background: var(--bg-subtle);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-align: left;
+}
+
+.al-alternative:hover {
+    background: var(--bg-elevated);
+    border-color: var(--accent);
+    transform: translateX(4px);
+}
+
+.al-alternative.al-other {
+    background: transparent;
+    border-style: dashed;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.al-alternative.al-other:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.al-progress {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.al-progress-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Active Learning Completion */
+.al-completion {
+    text-align: center;
+    padding: 2rem 1.5rem;
+}
+
+.al-completion-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.al-completion h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 0.5rem 0;
+}
+
+.al-completion p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.al-completion-stats {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin: 1.5rem 0;
+}
+
+.al-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.al-stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.al-stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.al-export {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--bg-subtle);
+    border-radius: 8px;
+}
+
+.al-export p {
+    margin-bottom: 1rem;
+}
+
+.al-btn-export {
+    background: rgba(233, 69, 96, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(233, 69, 96, 0.3);
+    width: 100%;
+}
+
+.al-btn-export:hover {
+    background: rgba(233, 69, 96, 0.25);
+    transform: translateY(-2px);
+}
+
+.al-btn-done {
+    background: var(--accent);
+    color: #fff;
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.al-btn-done:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+/* Active Learning Badge */
+.al-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    background: rgba(255, 193, 7, 0.15);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.al-badge:hover {
+    background: rgba(255, 193, 7, 0.25);
+    transform: scale(1.05);
+}
+
+.al-badge-icon {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ffc107;
+}
+
+.al-badge-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #ffc107;
+}
+
+@media (max-width: 480px) {
+    .active-learning-prompt {
+        padding: 1rem;
+    }
+
+    .al-crop {
+        width: 64px;
+        height: 64px;
+    }
+
+    .al-completion-stats {
+        gap: 1rem;
+    }
+
+    .al-stat-value {
+        font-size: 1.5rem;
+    }
+}

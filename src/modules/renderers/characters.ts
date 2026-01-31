@@ -21,8 +21,6 @@ export function renderCharacters(characters: Character[]): void {
     const container = safeGetElementById('charactersContainer');
     if (!container) return;
 
-    container.innerHTML = '';
-
     if (characters.length === 0) {
         container.innerHTML = generateEmptyState('👤', 'Characters');
         return;
@@ -63,6 +61,7 @@ export function renderCharacters(characters: Character[]): void {
         fragment.appendChild(card);
     });
 
-    // Single DOM operation - append all cards at once
+    // Single DOM operation - clear and append atomically to avoid flash
+    container.innerHTML = '';
     container.appendChild(fragment);
 }

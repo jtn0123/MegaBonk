@@ -13,7 +13,7 @@
         <!-- Resource hints for faster loading -->
         <link rel="preconnect" href="https://megabonk.guide" />
         <link rel="dns-prefetch" href="https://megabonk.guide" />
-        <link rel="preload" href="styles.css" as="style" />
+        <link rel="preload" href="styles/index.css" as="style" />
         <link rel="preload" href="manifest.json" as="fetch" crossorigin />
 
         <!-- Security headers are set via Caddy HTTP headers (Caddyfile) -->
@@ -45,8 +45,8 @@
         />
         <meta property="twitter:image" content="https://megabonk.guide/icons/icon-512.png" />
 
-        <!-- Note: CSS split into modules available in styles/ directory, needs refinement -->
-        <link rel="stylesheet" href="styles.css" />
+        <!-- Modular CSS - consolidated from styles/ directory -->
+        <link rel="stylesheet" href="styles/index.css" />
         <link rel="manifest" href="manifest.json" />
         <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
         <link rel="apple-touch-icon" href="icons/icon-192.png" />

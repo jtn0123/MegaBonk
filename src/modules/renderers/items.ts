@@ -23,19 +23,18 @@ export async function renderItems(items: Item[]): Promise<void> {
     const container = safeGetElementById('itemsContainer');
     if (!container) return;
 
-    container.innerHTML = '';
-
     if (items.length === 0) {
         container.innerHTML = generateEmptyState('🔍', 'Items');
         return;
     }
 
-    // Use DocumentFragment to batch all DOM operations - prevents multiple reflows
-    const fragment = document.createDocumentFragment();
     // Cache compare items lookup once instead of per-item
     // Dynamic import for code splitting - module is preloaded by tab-loader
     const { getCompareItems } = await import('../compare.ts');
     const compareItems = getCompareItems();
+
+    // Use DocumentFragment to batch all DOM operations - prevents multiple reflows
+    const fragment = document.createDocumentFragment();
 
     items.forEach(item => {
         const card = document.createElement('div');
@@ -96,7 +95,8 @@ export async function renderItems(items: Item[]): Promise<void> {
         fragment.appendChild(card);
     });
 
-    // Single DOM operation - append all cards at once
+    // Single DOM operation - clear and append atomically to avoid flash
+    container.innerHTML = '';
     container.appendChild(fragment);
 
     // Initialize charts after DOM is painted

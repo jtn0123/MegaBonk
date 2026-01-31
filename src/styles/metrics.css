@@ -1,0 +1,380 @@
+/* ========================================
+   Detection Metrics Summary
+   ========================================
+   CV/OCR detection accuracy and stats display
+   ======================================== */
+
+.metrics-summary {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+}
+
+.metrics-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--bg-subtle);
+}
+
+.metrics-grade {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.metrics-grade .grade-letter {
+    width: 48px;
+    height: 48px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 700;
+}
+
+.metrics-grade.grade-a .grade-letter {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+}
+
+.metrics-grade.grade-b .grade-letter {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.metrics-grade.grade-c .grade-letter {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.metrics-grade.grade-d .grade-letter {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+}
+
+.metrics-grade.grade-f .grade-letter {
+    background: rgba(255, 99, 71, 0.2);
+    color: #ff6347;
+}
+
+.metrics-grade .grade-label {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.metrics-confidence {
+    text-align: right;
+}
+
+.metrics-confidence .confidence-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.metrics-confidence .confidence-label {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.metrics-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.metric-stat {
+    text-align: center;
+    padding: 0.75rem;
+    background: var(--bg-subtle);
+    border-radius: 8px;
+}
+
+.metric-stat .stat-value {
+    display: block;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.metric-stat .stat-label {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.metrics-distribution {
+    margin-bottom: 1.5rem;
+}
+
+.distribution-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.dist-segment {
+    transition: width 0.3s ease;
+}
+
+.dist-segment.dist-high {
+    background: #00ff88;
+}
+
+.dist-segment.dist-medium {
+    background: #ffc107;
+}
+
+.dist-segment.dist-low {
+    background: #ff6347;
+}
+
+.distribution-legend {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    font-size: 0.8rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--text-secondary);
+}
+
+.legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.legend-dot.high {
+    background: #00ff88;
+}
+
+.legend-dot.medium {
+    background: #ffc107;
+}
+
+.legend-dot.low {
+    background: #ff6347;
+}
+
+.metrics-weak {
+    margin-bottom: 1rem;
+}
+
+.metrics-weak h4 {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.metrics-weak ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.metrics-weak li {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0.75rem;
+    background: var(--bg-subtle);
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+}
+
+.weak-item-name {
+    color: var(--text-primary);
+}
+
+.weak-item-conf {
+    color: #ff6347;
+    font-weight: 600;
+}
+
+.weak-more {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 0.5rem;
+}
+
+.metrics-rarity h4 {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.rarity-bars {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.rarity-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 16px;
+    font-size: 0.8rem;
+}
+
+.rarity-bar.rarity-common {
+    background: rgba(107, 155, 107, 0.2);
+    color: var(--rarity-common);
+}
+
+.rarity-bar.rarity-uncommon {
+    background: rgba(91, 184, 208, 0.2);
+    color: var(--rarity-uncommon);
+}
+
+.rarity-bar.rarity-rare {
+    background: rgba(201, 77, 224, 0.2);
+    color: var(--rarity-rare);
+}
+
+.rarity-bar.rarity-epic {
+    background: rgba(139, 92, 246, 0.2);
+    color: var(--rarity-epic);
+}
+
+.rarity-bar.rarity-legendary {
+    background: rgba(240, 168, 0, 0.2);
+    color: var(--rarity-legendary);
+}
+
+.rarity-count {
+    font-weight: 700;
+}
+
+/* System Accuracy Badge */
+.system-accuracy-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 1rem;
+    background: var(--bg-subtle);
+    border-radius: 8px;
+}
+
+.system-accuracy-badge .accuracy-grade {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.system-accuracy-badge .accuracy-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.system-accuracy-badge .accuracy-f1 {
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.system-accuracy-badge .accuracy-trend {
+    font-size: 0.75rem;
+}
+
+.system-accuracy-badge .accuracy-trend.improving {
+    color: #00ff88;
+}
+
+.system-accuracy-badge .accuracy-trend.declining {
+    color: #ff6347;
+}
+
+.system-accuracy-badge .accuracy-trend.stable,
+.system-accuracy-badge .accuracy-trend.unknown {
+    color: var(--text-secondary);
+}
+
+/* Compact Metrics */
+.metrics-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.35rem 0.75rem;
+    background: var(--bg-subtle);
+    border-radius: 6px;
+    font-size: 0.85rem;
+}
+
+.metrics-compact .compact-grade {
+    font-weight: 700;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+}
+
+.metrics-compact .compact-grade.grade-a {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+}
+
+.metrics-compact .compact-grade.grade-b {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.metrics-compact .compact-grade.grade-c {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+}
+
+.metrics-compact .compact-grade.grade-d {
+    background: rgba(255, 152, 0, 0.2);
+    color: #ff9800;
+}
+
+.metrics-compact .compact-grade.grade-f {
+    background: rgba(255, 99, 71, 0.2);
+    color: #ff6347;
+}
+
+.metrics-compact .compact-conf {
+    color: var(--text-secondary);
+}
+
+.metrics-compact .compact-items {
+    color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+    .metrics-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .metrics-header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+
+    .metrics-confidence {
+        text-align: center;
+    }
+}

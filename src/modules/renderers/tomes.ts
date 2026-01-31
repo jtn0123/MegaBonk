@@ -21,8 +21,6 @@ export function renderTomes(tomes: Tome[]): void {
     const container = safeGetElementById('tomesContainer');
     if (!container) return;
 
-    container.innerHTML = '';
-
     if (tomes.length === 0) {
         container.innerHTML = generateEmptyState('📚', 'Tomes');
         return;
@@ -75,7 +73,8 @@ export function renderTomes(tomes: Tome[]): void {
         fragment.appendChild(card);
     });
 
-    // Single DOM operation - append all cards at once
+    // Single DOM operation - clear and append atomically to avoid flash
+    container.innerHTML = '';
     container.appendChild(fragment);
 
     // Initialize charts after DOM is painted

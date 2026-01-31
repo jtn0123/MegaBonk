@@ -478,11 +478,13 @@ export function renderSimilarItemsSection(type: EntityType, id: string): string 
         .map(item => {
             const imageHtml = generateEntityImage(item.entity, item.entity.name || 'Unknown', 'similar-item-image');
             const reason = item.reasons[0] || 'Similar';
+            const itemName = escapeHtml(item.entity.name || 'Unknown');
 
             return `
-            <div class="similar-item-card" data-type="${item.type}" data-id="${item.entity.id}">
+            <div class="similar-item-card" data-type="${item.type}" data-id="${item.entity.id}" 
+                 role="button" tabindex="0" aria-label="View ${itemName}: ${escapeHtml(reason)}">
                 ${imageHtml || '<span class="similar-item-icon">📦</span>'}
-                <div class="similar-item-name">${escapeHtml(item.entity.name || 'Unknown')}</div>
+                <div class="similar-item-name">${itemName}</div>
                 <div class="similar-item-reason">${escapeHtml(reason)}</div>
             </div>
         `;
@@ -500,14 +502,14 @@ export function renderSimilarItemsSection(type: EntityType, id: string): string 
 }
 
 /**
- * Setup click handlers for similar items
+ * Setup click and keyboard handlers for similar items
  * Call this after inserting the similar items HTML
  */
 export function setupSimilarItemsHandlers(container: HTMLElement): void {
     const cards = container.querySelectorAll('.similar-item-card');
 
     cards.forEach(card => {
-        card.addEventListener('click', () => {
+        const handleActivation = (): void => {
             const type = (card as HTMLElement).dataset.type as EntityType;
             const id = (card as HTMLElement).dataset.id;
 
@@ -516,6 +518,17 @@ export function setupSimilarItemsHandlers(container: HTMLElement): void {
                 import('./modal.ts').then(({ openDetailModal }) => {
                     openDetailModal(type, id);
                 });
+            }
+        };
+
+        card.addEventListener('click', handleActivation);
+
+        // Keyboard accessibility: Enter or Space activates the card
+        card.addEventListener('keydown', (e: Event) => {
+            const keyEvent = e as KeyboardEvent;
+            if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+                keyEvent.preventDefault();
+                handleActivation();
             }
         });
     });

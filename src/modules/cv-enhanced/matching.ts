@@ -128,10 +128,12 @@ export function matchCell(
         }
 
         // Apply context boosting if enabled
+        // Common items need stricter matching (penalize to reduce false positives)
+        // Legendary items are distinctive (boost since gold borders help identification)
         if (strategy.useContextBoosting) {
-            if (item.rarity === 'common') similarity += 0.03;
-            else if (item.rarity === 'uncommon') similarity += 0.02;
-            else if (item.rarity === 'legendary') similarity -= 0.02;
+            if (item.rarity === 'legendary') similarity += 0.03;
+            else if (item.rarity === 'epic') similarity += 0.02;
+            else if (item.rarity === 'common') similarity -= 0.02;
         }
 
         // Apply border validation if enabled
@@ -150,6 +152,13 @@ export function matchCell(
         if (!bestMatch || similarity > bestMatch.similarity) {
             bestMatch = { item, similarity };
         }
+    }
+
+    // Similarity floor: reject matches below 0.35 absolute similarity
+    // This prevents low-confidence garbage matches from propagating
+    const SIMILARITY_FLOOR = 0.35;
+    if (bestMatch && bestMatch.similarity < SIMILARITY_FLOOR) {
+        return null;
     }
 
     return bestMatch;

@@ -1,36 +1,51 @@
 /* ========================================
    MegaBonk CSS Module Index
    ========================================
-   Modular CSS entry point for better maintainability.
+   Modular CSS entry point - all styles consolidated.
 
-   MIGRATION STATUS: ~85% complete
-   Most styles have been extracted into logical modules.
-   Once migration is complete, switch index.html to use this file.
+   MIGRATION STATUS: COMPLETE ✓
+   All styles have been extracted into logical modules.
 
-   Completed Modules:
+   Module Categories:
+   ─────────────────────────────────────────
+   CORE
    ✓ base.css           - Variables, reset, focus states
    ✓ layout.css         - Container, header, footer
    ✓ navigation.css     - Tabs, mobile scroll indicators
+
+   COMPONENTS
    ✓ cards.css          - Item/weapon/character cards, grids
    ✓ forms.css          - Inputs, buttons, filters
    ✓ modal.css          - Modal dialogs, overlays
+
+   FEATURES
    ✓ features.css       - Build planner, breakpoint calculator
-   ✓ animations.css     - Keyframes, transitions
-   ✓ themes.css         - Light mode overrides
    ✓ compare.css        - Compare mode UI
-   ✓ states.css         - Loading, skeleton, toast, errors
+   ✓ advisor.css        - Build advisor recommendations
+   ✓ scan.css           - Screenshot scanning, build import
+   ✓ batch.css          - Batch processing, build scan modals
+   ✓ debug.css          - Debug panel, logging
+   ✓ metrics.css        - Detection accuracy metrics
+   ✓ active-learning.css - ML feedback prompts
+   ✓ scan-build-enhanced.css - CV strategy selector
+
+   CONTENT
    ✓ shrines.css        - Shrine grid, cards, modal
    ✓ characters.css     - Character/weapon cards, modals
    ✓ changelog.css      - Changelog tab styles
-   ✓ shortcuts.css      - Keyboard shortcuts, theme toggle
    ✓ search.css         - Global search results
-   ✓ mobile-nav.css     - Mobile bottom navigation
-   ✓ scan-build-enhanced.css - Scan build feature
 
-   TODO (still in styles.css):
-   - Advisor module responsive styles
-   - Some edge-case responsive overrides
+   UI/UX
+   ✓ animations.css     - Keyframes, transitions
+   ✓ states.css         - Loading, skeleton, toast, errors
+   ✓ shortcuts.css      - Keyboard shortcuts, theme toggle
+   ✓ mobile-nav.css     - Mobile bottom navigation
+   ✓ themes.css         - Light mode overrides (MUST BE LAST)
    ======================================== */
+
+/* ────────────────────────────────────────
+   CORE STYLES
+   ──────────────────────────────────────── */
 
 /* Base styles - CSS reset, variables, typography */
 @import './base.css';
@@ -41,6 +56,10 @@
 /* Navigation - Tabs, mobile nav, scroll indicators */
 @import './navigation.css';
 
+/* ────────────────────────────────────────
+   COMPONENT STYLES
+   ──────────────────────────────────────── */
+
 /* Cards - Item cards, grids, card variations */
 @import './cards.css';
 
@@ -50,17 +69,40 @@
 /* Modal - Modal dialogs, overlays, focus trap */
 @import './modal.css';
 
-/* Features - Build planner, calculator, advisor specific */
-@import './features.css';
+/* ────────────────────────────────────────
+   FEATURE STYLES
+   ──────────────────────────────────────── */
 
-/* Animations - Keyframes, transitions, effects */
-@import './animations.css';
+/* Features - Build planner, calculator, recently viewed, random build */
+@import './features.css';
 
 /* Compare Mode - Compare checkboxes, floating button, compare grid */
 @import './compare.css';
 
-/* UI States - Loading overlay, skeleton, toast, errors, offline */
-@import './states.css';
+/* Advisor - Build advisor and recommendation UI */
+@import './advisor.css';
+
+/* Scan Build - Screenshot scanning and build import UI */
+@import './scan.css';
+
+/* Batch Processing - Multi-image batch processing, build scan modals */
+@import './batch.css';
+
+/* Debug Panel - Developer debug tools and logging */
+@import './debug.css';
+
+/* Detection Metrics - CV/OCR accuracy and stats display */
+@import './metrics.css';
+
+/* Active Learning - ML feedback and training prompts */
+@import './active-learning.css';
+
+/* Scan Build Enhanced - CV strategy selector and options */
+@import './scan-build-enhanced.css';
+
+/* ────────────────────────────────────────
+   CONTENT STYLES
+   ──────────────────────────────────────── */
 
 /* Shrines - Shrine grid, cards, modal */
 @import './shrines.css';
@@ -71,17 +113,28 @@
 /* Changelog - Version history, changelog entries */
 @import './changelog.css';
 
-/* Shortcuts - Keyboard shortcuts modal, theme toggle */
-@import './shortcuts.css';
-
 /* Search - Global search results styling */
 @import './search.css';
+
+/* ────────────────────────────────────────
+   UI/UX STYLES
+   ──────────────────────────────────────── */
+
+/* Animations - Keyframes, transitions, effects */
+@import './animations.css';
+
+/* UI States - Loading overlay, skeleton, toast, errors, offline */
+@import './states.css';
+
+/* Shortcuts - Keyboard shortcuts modal, theme toggle */
+@import './shortcuts.css';
 
 /* Mobile Navigation - Bottom nav bar */
 @import './mobile-nav.css';
 
-/* Scan Build - Enhanced scan build feature */
-@import './scan-build-enhanced.css';
+/* ────────────────────────────────────────
+   THEMES (MUST BE LAST FOR OVERRIDE PRIORITY)
+   ──────────────────────────────────────── */
 
-/* Themes - Light mode overrides and theme-specific styles (must be last for override priority) */
+/* Themes - Light mode overrides and theme-specific styles */
 @import './themes.css';

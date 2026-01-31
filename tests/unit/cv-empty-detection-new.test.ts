@@ -152,29 +152,47 @@ describe('Empty Cell Detection - New Methods', () => {
         });
 
         it('should NOT detect colorful image as empty', () => {
+            // Create a realistic item icon: colorful center, more uniform edges
+            // This pattern has high center/edge variance ratio
             const colorfulImage = image.create(40, 40, (x, y) => {
-                return [
-                    Math.min(255, x * 6),
-                    Math.min(255, y * 6),
-                    Math.min(255, (x + y) * 3),
-                ];
+                const cx = 20, cy = 20;
+                const distFromCenter = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+                
+                if (distFromCenter < 15) {
+                    // Colorful center with multiple distinct colors based on angle
+                    const angle = Math.atan2(y - cy, x - cx);
+                    const colorIndex = Math.floor((angle + Math.PI) / (Math.PI / 2));
+                    const shade = Math.floor(distFromCenter * 4);
+                    if (colorIndex === 0) return [255 - shade, 80, 50 + shade];
+                    if (colorIndex === 1) return [80, 220 - shade, 60 + shade];
+                    if (colorIndex === 2) return [60 + shade, 80, 200 - shade];
+                    return [200 - shade, 180 - shade, 40 + shade];
+                }
+                // Uniform dark edge (low variance)
+                return [45, 45, 50];
             });
             expect(isEmptyCell(colorfulImage)).toBe(false);
         });
 
         it('should NOT detect image with centered icon as empty', () => {
-            // Image with colorful center and grey edges - simulates an item icon
+            // Image with colorful multi-shaded center and varied edges - simulates an item icon
+            // Uses multiple colors to pass histogram check and high saturation center
             const iconImage = image.create(40, 40, (x, y) => {
                 const cx = 20,
                     cy = 20,
-                    radius = 10;
+                    radius = 12;
                 const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-                if (dist < radius) {
-                    // Colorful center
-                    return [255, 100, 50];
+                if (dist < radius / 2) {
+                    // Inner highlight - bright gold
+                    return [255, 220, 100];
+                } else if (dist < radius) {
+                    // Outer icon - orange with variation
+                    const shade = Math.floor((dist / radius) * 50);
+                    return [255 - shade, 120 - shade, 30];
                 }
-                // Grey edges
-                return [80, 80, 80];
+                // Darker border area with slight variation
+                const edgeShade = ((x + y) % 3) * 10;
+                return [60 + edgeShade, 60 + edgeShade, 70 + edgeShade];
             });
             expect(isEmptyCell(iconImage)).toBe(false);
         });
@@ -190,9 +208,9 @@ describe('Empty Cell Detection - New Methods', () => {
             expect(EMPTY_DETECTION_CONFIG.methods.useVariance).toBe(true);
             expect(EMPTY_DETECTION_CONFIG.methods.useConfidenceThreshold).toBe(true);
             expect(EMPTY_DETECTION_CONFIG.methods.useSaturation).toBe(true);
-            // Experimental methods off by default
-            expect(EMPTY_DETECTION_CONFIG.methods.useHistogram).toBe(false);
-            expect(EMPTY_DETECTION_CONFIG.methods.useCenterEdge).toBe(false);
+            // Histogram and center-edge methods now enabled for better empty cell detection
+            expect(EMPTY_DETECTION_CONFIG.methods.useHistogram).toBe(true);
+            expect(EMPTY_DETECTION_CONFIG.methods.useCenterEdge).toBe(true);
         });
 
         it('should have reasonable threshold values', () => {

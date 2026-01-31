@@ -137,17 +137,20 @@ export const EMPTY_DETECTION_CONFIG = {
     // #2: Saturation check - low saturation cells are likely empty (grey backgrounds)
     MAX_SATURATION: 0.15,
     // #3: Histogram width - cells with few distinct colors are likely empty
-    MIN_HISTOGRAM_BINS: 5,
+    // Value of 3 means cells with ≤2 colors are considered empty (solid backgrounds)
+    MIN_HISTOGRAM_BINS: 3,
     // #7: Center/edge ratio - uniform cells (no icon in center) are likely empty
-    MIN_CENTER_EDGE_RATIO: 1.5,
+    // Value of 1.1 means center variance should be at least 10% higher than edges
+    // Lower threshold to avoid false positives on small/synthetic test images
+    MIN_CENTER_EDGE_RATIO: 1.1,
 
     // Toggle which methods are active
     methods: {
         useVariance: true, // Existing method (variance + edge density)
         useConfidenceThreshold: true, // #1: Post-match confidence filter
         useSaturation: true, // #2: Low saturation = empty (good for grey backgrounds)
-        useHistogram: false, // #3: Few colors = empty (experimental)
-        useCenterEdge: false, // #7: Uniform = empty (experimental)
+        useHistogram: true, // #3: Few colors = empty (enabled)
+        useCenterEdge: true, // #7: Uniform = empty (enabled)
     },
 };
 

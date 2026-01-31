@@ -22,8 +22,6 @@ export function renderWeapons(weapons: Weapon[]): void {
     const container = safeGetElementById('weaponsContainer');
     if (!container) return;
 
-    container.innerHTML = '';
-
     if (weapons.length === 0) {
         container.innerHTML = generateEmptyState('⚔️', 'Weapons');
         return;
@@ -63,6 +61,7 @@ export function renderWeapons(weapons: Weapon[]): void {
         fragment.appendChild(card);
     });
 
-    // Single DOM operation - append all cards at once
+    // Single DOM operation - clear and append atomically to avoid flash
+    container.innerHTML = '';
     container.appendChild(fragment);
 }

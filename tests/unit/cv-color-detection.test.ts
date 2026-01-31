@@ -137,10 +137,30 @@ describe('isEmptyCell', () => {
     ];
 
     const nonEmptyCases = [
-        { name: 'gradient', factory: () => image.gradient(45, 45, [0, 0, 0], [255, 255, 255]) },
+        // Colorful centered pattern (high center/edge variance ratio)
+        { name: 'gradient', factory: () => image.create(45, 45, (x, y) => {
+            const cx = 22, cy = 22;
+            const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+            if (dist < 16) {
+                // Colorful center with gradient
+                return [Math.min(255, 100 + dist * 8), 80, Math.min(255, 50 + dist * 6)];
+            }
+            // Uniform dark edges
+            return [40, 40, 45];
+        })},
+        // Multi-colored icon with distinct center and uniform edges
         { name: 'icon with center', factory: () => image.create(45, 45, (x, y) => {
-            if (x > 10 && x < 35 && y > 10 && y < 35) return [200, 100, 50];
-            return [50, 50, 50];
+            const cx = 22, cy = 22;
+            const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+            if (dist < 14) {
+                // Colorful center with variation
+                const angle = Math.atan2(y - cy, x - cx);
+                const shade = Math.floor(dist * 3);
+                if (angle < 0) return [200 + shade, 100, 50 + shade];
+                return [100 + shade, 180, 80 + shade];
+            }
+            // Uniform edges
+            return [50, 50, 55];
         })},
     ];
 
@@ -266,7 +286,18 @@ describe('Color Detection Integration', () => {
 
     it('uses empty cell detection to skip matching', () => {
         const emptySlot = image.solid(45, 45, 30, 30, 30);
-        const itemSlot = image.checkerboard(45, 45, 5);
+        // Create a realistic item icon with colorful center and uniform edges
+        const itemSlot = image.create(45, 45, (x, y) => {
+            const cx = 22, cy = 22;
+            const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+            if (dist < 14) {
+                // Colorful center with variation
+                const shade = Math.floor(dist * 4);
+                return [200 + shade, 120, 60 + shade];
+            }
+            // Uniform dark edges
+            return [45, 45, 50];
+        });
 
         expect(isEmptyCell(emptySlot)).toBe(true);
         expect(isEmptyCell(itemSlot)).toBe(false);
