@@ -284,7 +284,11 @@ export function setupEventDelegation(): void {
                 if (target.classList.contains('tab-btn')) {
                     e.preventDefault();
                     const tabButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.tab-btn'));
+                    // Bug fix: Guard against empty tabButtons array to prevent division by zero
+                    if (tabButtons.length === 0) return;
                     const currentIndex = tabButtons.indexOf(target as HTMLButtonElement);
+                    // Bug fix: Guard against target not found in array (returns -1)
+                    if (currentIndex === -1) return;
 
                     let nextIndex: number;
                     if (e.key === 'ArrowRight') {

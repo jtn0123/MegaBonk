@@ -42,7 +42,7 @@ import { addToSearchHistory } from './search-history.ts';
 import { saveFilterState } from './filter-state.ts';
 import { fuzzyMatchScore, parseAdvancedSearch, matchesAdvancedFilters } from './fuzzy-match.ts';
 import { globalSearch } from './global-search.ts';
-import { showSearchDropdown, hideSearchDropdown } from './search-dropdown.ts';
+import { hideSearchDropdown } from './search-dropdown.ts';
 
 // ========================================
 // Type Definitions
@@ -290,20 +290,23 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
         const dateCache = new Map<string, number>();
         const defaultValue = sortBy === 'date_asc' ? Infinity : -Infinity;
         patchesForSort.forEach(patch => {
-            if (!dateCache.has(patch.date)) {
-                const d = new Date(patch.date);
-                dateCache.set(patch.date, isNaN(d.getTime()) ? defaultValue : d.getTime());
+            // Bug fix: Handle undefined/null patch.date to prevent Map key issues and invalid dates
+            const dateKey = patch.date ?? '';
+            if (!dateCache.has(dateKey)) {
+                const d = new Date(dateKey);
+                // If date is empty or invalid, use default value for proper sorting
+                dateCache.set(dateKey, !dateKey || isNaN(d.getTime()) ? defaultValue : d.getTime());
             }
         });
 
         // Sort using cached date values
         if (sortBy === 'date_asc') {
             patchesForSort.sort(
-                (a, b) => (dateCache.get(a.date) ?? defaultValue) - (dateCache.get(b.date) ?? defaultValue)
+                (a, b) => (dateCache.get(a.date ?? '') ?? defaultValue) - (dateCache.get(b.date ?? '') ?? defaultValue)
             );
         } else {
             patchesForSort.sort(
-                (a, b) => (dateCache.get(b.date) ?? defaultValue) - (dateCache.get(a.date) ?? defaultValue)
+                (a, b) => (dateCache.get(b.date ?? '') ?? defaultValue) - (dateCache.get(a.date ?? '') ?? defaultValue)
             );
         }
 

@@ -528,7 +528,8 @@ export function renderBuildPlanner(): void {
     const charSelect = safeGetElementById('build-character') as HTMLSelectElement | null;
     if (charSelect) {
         charSelect.innerHTML = '<option value="">Select Character...</option>';
-        if (allData.characters) {
+        // Bug fix: Check both allData.characters and the inner .characters array exist
+        if (allData.characters?.characters) {
             const fragment = document.createDocumentFragment();
             allData.characters.characters.forEach((char: Character) => {
                 const option = document.createElement('option');
@@ -543,7 +544,8 @@ export function renderBuildPlanner(): void {
     const weaponSelect = safeGetElementById('build-weapon') as HTMLSelectElement | null;
     if (weaponSelect) {
         weaponSelect.innerHTML = '<option value="">Select Weapon...</option>';
-        if (allData.weapons) {
+        // Bug fix: Check both allData.weapons and the inner .weapons array exist
+        if (allData.weapons?.weapons) {
             const fragment = document.createDocumentFragment();
             allData.weapons.weapons.forEach((weapon: Weapon) => {
                 const option = document.createElement('option');
@@ -865,10 +867,15 @@ export function updateBuildAnalysis(): void {
     currentBuild.items.forEach((item: Item) => {
         if (currentBuild.weapon) {
             const itemSynergies = item.synergies || [];
+            const weaponName = currentBuild.weapon.name.toLowerCase();
+            // Bug fix: Filter out empty strings to prevent false positives
+            // ("sword".includes("") is always true, causing false matches)
             const hasWeaponSynergy = itemSynergies.some(
                 (syn: string) =>
-                    syn.toLowerCase().includes(currentBuild.weapon!.name.toLowerCase()) ||
-                    currentBuild.weapon!.name.toLowerCase().includes(syn.toLowerCase())
+                    syn.length > 0 &&
+                    weaponName.length > 0 &&
+                    (syn.toLowerCase().includes(weaponName) ||
+                        weaponName.includes(syn.toLowerCase()))
             );
             if (hasWeaponSynergy) {
                 synergies.push(`✓ ${escapeHtml(item.name)} works great with ${escapeHtml(currentBuild.weapon.name)}`);
