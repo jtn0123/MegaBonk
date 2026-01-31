@@ -159,6 +159,105 @@
 }
 
 /* ========================================
+   Mobile Controls (max-width: 480px)
+   ======================================== */
+
+@media (max-width: 480px) {
+    .controls {
+        padding: 0.75rem 0;
+    }
+    
+    .controls .container {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.75rem;
+    }
+    
+    .search-box {
+        max-width: none;
+        width: 100%;
+    }
+    
+    /* Item count - position on its own row */
+    .item-count {
+        order: 1;
+        text-align: center;
+        padding: 0.35rem 0.75rem;
+    }
+    
+    .filters {
+        order: 2;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .filters select {
+        width: 100%;
+        padding: 10px 36px 10px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .filters label {
+        display: none;
+    }
+}
+
+/* ========================================
+   Small Mobile (max-width: 375px)
+   ======================================== */
+
+@media (max-width: 375px) {
+    .controls .container {
+        padding: 0 12px;
+        gap: 0.5rem;
+    }
+    
+    #searchInput {
+        font-size: 0.85rem;
+        padding: 8px 12px;
+    }
+    
+    .filters select {
+        padding: 8px 32px 8px 10px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ========================================
+   Medium Breakpoint Filter Wrapping (481px - 768px)
+   ======================================== */
+
+@media (min-width: 481px) and (max-width: 768px) {
+    .controls .container {
+        gap: 0.75rem;
+    }
+    
+    .search-box {
+        flex: 1 1 100%;
+        max-width: none;
+    }
+    
+    .item-count {
+        order: 0;
+    }
+    
+    .filters {
+        flex: 1 1 100%;
+        justify-content: flex-start;
+        gap: 0.5rem;
+    }
+    
+    .filters select {
+        flex: 1 1 calc(50% - 0.25rem);
+        min-width: 120px;
+        max-width: calc(50% - 0.25rem);
+    }
+}
+
+/* ========================================
    Mobile Bottom Navigation
    ======================================== */
 

@@ -73,10 +73,12 @@
    ======================================== */
 
 @media (min-width: 1440px) {
-    /* Expand container for large screens */
+    /* Expand container for large screens - ensure proper centering */
     .container {
         max-width: 1600px;
         padding: 0 32px;
+        margin-left: auto;
+        margin-right: auto;
     }
     
     /* More columns in grids */
@@ -154,10 +156,12 @@
    ======================================== */
 
 @media (min-width: 1920px) {
-    /* Cap container width to prevent over-stretching */
+    /* Cap container width to prevent over-stretching - ensure proper centering */
     .container {
         max-width: 1800px;
         padding: 0 48px;
+        margin-left: auto;
+        margin-right: auto;
     }
     
     /* Force 5-6 columns for item grids */
@@ -233,9 +237,11 @@
    ======================================== */
 
 @media (min-width: 2560px) {
-    /* Hard cap to prevent absurdly wide content */
+    /* Hard cap to prevent absurdly wide content - ensure proper centering */
     .container {
         max-width: 2200px;
+        margin-left: auto;
+        margin-right: auto;
     }
     
     /* 6 columns for ultra-wide */
