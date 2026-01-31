@@ -195,10 +195,10 @@ describe('scoring-config', () => {
             expect(thresholdLower).toBe(thresholdMixed);
         });
 
-        it('should return lower threshold for legendary (more lenient)', () => {
+        it('should return higher threshold for legendary (more strict)', () => {
             const commonThreshold = getThresholdForRarity('common');
             const legendaryThreshold = getThresholdForRarity('legendary');
-            expect(legendaryThreshold).toBeLessThan(commonThreshold);
+            expect(legendaryThreshold).toBeGreaterThan(commonThreshold);
         });
 
         it('should return higher threshold for unknown (more strict)', () => {
