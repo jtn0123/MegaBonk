@@ -136,5 +136,8 @@
    THEMES (MUST BE LAST FOR OVERRIDE PRIORITY)
    ──────────────────────────────────────── */
 
+/* Utilities - Helper classes, misc styles */
+@import './utilities.css';
+
 /* Themes - Light mode overrides and theme-specific styles */
 @import './themes.css';
