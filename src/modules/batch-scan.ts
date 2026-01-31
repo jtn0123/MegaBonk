@@ -16,6 +16,9 @@ import {
 } from './cv/index.ts';
 import { autoDetectFromImage, initOCR, type DetectionResult } from './ocr.ts';
 import { escapeHtml } from './utils.ts';
+import { createMutex } from './async-utils.ts';
+import { logError, logWarning } from './error-utils.ts';
+import { avgBy, sumBy } from './collection-utils.ts';
 
 // ========================================
 // Types
@@ -65,12 +68,11 @@ type ProgressCallback = (progress: BatchProgress) => void;
 let isInitialized = false;
 let batchResults: BatchDetectionResult[] = [];
 
-// Race condition fix: Lock to prevent concurrent batch processing
-// Without this, multiple processBatch calls would corrupt batchResults
-let batchProcessingInProgress = false;
+// Race condition fix: Mutex to prevent concurrent batch processing
+const batchMutex = createMutex('batch_processing');
 
-// Race condition fix: Lock to prevent double initialization
-let initializationInProgress = false;
+// Race condition fix: Mutex to prevent double initialization
+const initMutex = createMutex('batch_init');
 
 // ========================================
 // Initialization
@@ -80,29 +82,21 @@ let initializationInProgress = false;
  * Initialize batch scan module
  */
 export function initBatchScan(gameData: AllGameData): void {
-    // Race condition fix: Prevent double initialization
-    // Multiple concurrent calls could otherwise run init code multiple times
-    if (isInitialized || initializationInProgress) return;
-    initializationInProgress = true;
+    // Race condition fix: Prevent double initialization using mutex
+    if (isInitialized || !initMutex.tryAcquire()) return;
 
     initCV(gameData);
     initOCR(gameData);
 
     // Preload templates
     loadItemTemplates().catch(error => {
-        logger.warn({
-            operation: 'batch_scan.templates_load_failed',
-            error: {
-                name: (error as Error).name,
-                message: (error as Error).message,
-                stack: (error as Error).stack?.split('\n').slice(0, 3).join(' -> '),
-            },
-            data: { itemsCount: gameData.items?.items?.length || 0 },
+        logWarning('batch_scan.templates_load_failed', error, {
+            itemsCount: gameData.items?.items?.length || 0,
         });
     });
 
     isInitialized = true;
-    initializationInProgress = false; // Release init lock
+    initMutex.release(); // Release init lock
 
     logger.info({
         operation: 'batch_scan.init',
@@ -174,10 +168,7 @@ async function detectBuildFromImage(imageData: string): Promise<BatchDetectionRe
     try {
         ocrResults = await autoDetectFromImage(imageData);
     } catch (error) {
-        logger.warn({
-            operation: 'batch_scan.ocr_failed',
-            error: { name: (error as Error).name, message: (error as Error).message },
-        });
+        logWarning('batch_scan.ocr_failed', error);
     }
 
     // Run CV detection
@@ -197,10 +188,7 @@ async function detectBuildFromImage(imageData: string): Promise<BatchDetectionRe
                 method: 'template_match' as const,
             }));
         } catch (error) {
-            logger.warn({
-                operation: 'batch_scan.cv_failed',
-                error: { name: (error as Error).name, message: (error as Error).message },
-            });
+            logWarning('batch_scan.cv_failed', error);
         }
     }
 
@@ -262,16 +250,14 @@ export async function processBatch(
     files: FileList | File[],
     onProgress?: ProgressCallback
 ): Promise<BatchDetectionResult[]> {
-    // Race condition fix: Prevent concurrent batch processing
-    // Multiple calls would otherwise corrupt batchResults array
-    if (batchProcessingInProgress) {
+    // Race condition fix: Prevent concurrent batch processing using mutex
+    if (!batchMutex.tryAcquire()) {
         logger.warn({
             operation: 'batch_scan.concurrent_rejected',
             data: { message: 'Batch processing already in progress' },
         });
         return []; // Return empty instead of corrupting state
     }
-    batchProcessingInProgress = true;
 
     const fileArray = Array.from(files);
 
@@ -296,7 +282,7 @@ export async function processBatch(
 
     if (validFiles.length === 0) {
         ToastManager.error('No valid image files selected');
-        batchProcessingInProgress = false; // Release lock on early return
+        batchMutex.release(); // Release lock on early return
         return [];
     }
 
@@ -373,11 +359,7 @@ export async function processBatch(
             result.status = 'error';
             result.error = (error as Error).message;
 
-            logger.error({
-                operation: 'batch_scan.file_error',
-                error: { name: (error as Error).name, message: (error as Error).message },
-                data: { filename: file.name },
-            });
+            logError('batch_scan.file_error', error, { filename: file.name });
         }
     }
 
@@ -400,7 +382,7 @@ export async function processBatch(
     return batchResults;
     } finally {
         // Race condition fix: Always release lock when done
-        batchProcessingInProgress = false;
+        batchMutex.release();
     }
 }
 
@@ -501,29 +483,25 @@ export function getBatchSummary(): {
         };
     }
 
-    // Count item occurrences across all screenshots
+    // Flatten all detected items across all screenshots
+    const allItems = successful.flatMap(r =>
+        r.detectedBuild?.items ?? []
+    );
+
+    // Count item occurrences
     const itemCounts = new Map<string, { name: string; count: number }>();
-
-    let totalItems = 0;
-    let totalConfidence = 0;
-    let confidenceCount = 0;
-
-    for (const result of successful) {
-        if (!result.detectedBuild) continue;
-
-        for (const { item, count, confidence } of result.detectedBuild.items) {
-            totalItems += count;
-            totalConfidence += confidence;
-            confidenceCount++;
-
-            const existing = itemCounts.get(item.id);
-            if (existing) {
-                existing.count += count;
-            } else {
-                itemCounts.set(item.id, { name: item.name, count });
-            }
+    for (const { item, count } of allItems) {
+        const existing = itemCounts.get(item.id);
+        if (existing) {
+            existing.count += count;
+        } else {
+            itemCounts.set(item.id, { name: item.name, count });
         }
     }
+
+    // Use collection utilities for calculations
+    const totalItems = sumBy(allItems, i => i.count);
+    const avgConfidence = allItems.length > 0 ? avgBy(allItems, i => i.confidence) : 0;
 
     // Sort by count and take top 10
     const mostCommonItems = [...itemCounts.entries()]
@@ -535,7 +513,7 @@ export function getBatchSummary(): {
         totalScreenshots: batchResults.length,
         successfulScans: successful.length,
         totalItemsDetected: totalItems,
-        avgConfidence: confidenceCount > 0 ? totalConfidence / confidenceCount : 0,
+        avgConfidence,
         mostCommonItems,
     };
 }
@@ -650,6 +628,7 @@ export function renderBatchResultsGrid(containerId: string): void {
 export function __resetForTesting(): void {
     batchResults = [];
     isInitialized = false;
-    batchProcessingInProgress = false; // Reset race condition locks
-    initializationInProgress = false;
+    // Release mutexes if held
+    if (batchMutex.isLocked()) batchMutex.release();
+    if (initMutex.isLocked()) initMutex.release();
 }

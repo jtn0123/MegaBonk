@@ -20,6 +20,7 @@ import {
 } from './image-recognition-debug';
 import { logger, requestTimer } from './logger';
 import { getBreadcrumbs, clearBreadcrumbs, exportBreadcrumbs, captureStateSnapshot } from './breadcrumbs';
+import { createEventListenerManager, downloadJson as downloadJsonFile } from './dom-utils.ts';
 
 import type { DebugLogEntry } from '../types/computer-vision';
 
@@ -34,8 +35,8 @@ let updateIntervalId: number | null = null;
 let currentConfidenceThreshold: number = 0.7;
 let activeDebugTab: 'logs' | 'breadcrumbs' | 'requests' | 'state' = 'logs';
 
-// Track event listener cleanup functions to prevent memory leaks
-const eventListenerCleanups: Array<() => void> = [];
+// Use centralized event listener manager for cleanup
+const eventManager = createEventListenerManager();
 
 // ========================================
 // Initialization
@@ -73,21 +74,17 @@ export function initDebugPanel(): void {
         panel.classList.add('active');
     }
 
-    // Debug mode toggle - track for cleanup
-    const checkboxHandler = () => {
+    // Debug mode toggle - track for cleanup using event manager
+    eventManager.add(debugModeCheckbox, 'change', () => {
         setDebugEnabled(debugModeCheckbox.checked);
         panel.classList.toggle('active', debugModeCheckbox.checked);
-    };
-    debugModeCheckbox.addEventListener('change', checkboxHandler);
-    eventListenerCleanups.push(() => debugModeCheckbox.removeEventListener('change', checkboxHandler));
+    });
 
     // Expand/collapse toggle - track for cleanup
-    const expandHandler = (e: Event) => {
+    eventManager.add(expandBtn, 'click', (e: Event) => {
         e.stopPropagation();
         toggleExpanded(panel, panelContent);
-    };
-    expandBtn.addEventListener('click', expandHandler);
-    eventListenerCleanups.push(() => expandBtn.removeEventListener('click', expandHandler));
+    });
 
     // Initialize overlay options
     initOverlayOptions();
@@ -119,17 +116,8 @@ export function cleanupDebugPanel(): void {
         updateIntervalId = null;
     }
 
-    // Bug fix: Remove all tracked event listeners to prevent memory leaks
-    while (eventListenerCleanups.length > 0) {
-        const cleanup = eventListenerCleanups.pop();
-        if (cleanup) {
-            try {
-                cleanup();
-            } catch {
-                // Element may have been removed from DOM, ignore
-            }
-        }
-    }
+    // Remove all tracked event listeners using centralized manager
+    eventManager.removeAll();
 
     isExpanded = false;
     lastOverlayUrl = null;
@@ -155,7 +143,7 @@ function toggleExpanded(panel: HTMLElement, content: HTMLElement): void {
 
 /**
  * Initialize overlay option checkboxes
- * Bug fix: Track event listeners for cleanup
+ * Uses centralized event manager for cleanup
  */
 function initOverlayOptions(): void {
     const options = getDebugOptions();
@@ -175,12 +163,10 @@ function initOverlayOptions(): void {
             // Set initial state
             checkbox.checked = options[optionKey] as boolean;
 
-            // Handle changes - track for cleanup
-            const handler = () => {
+            // Handle changes using centralized event manager
+            eventManager.add(checkbox, 'change', () => {
                 setDebugOptions({ [optionKey]: checkbox.checked });
-            };
-            checkbox.addEventListener('change', handler);
-            eventListenerCleanups.push(() => checkbox.removeEventListener('change', handler));
+            });
         }
     });
 }
@@ -224,17 +210,15 @@ export function updateStats(): void {
 
 /**
  * Initialize log filter dropdown
- * Bug fix: Track event listener for cleanup
+ * Uses centralized event manager for cleanup
  */
 function initLogFilter(): void {
     const filterSelect = document.getElementById('debug-log-filter') as HTMLSelectElement;
     if (filterSelect) {
-        const handler = () => {
+        eventManager.add(filterSelect, 'change', () => {
             currentLogFilter = filterSelect.value;
             updateLogViewer();
-        };
-        filterSelect.addEventListener('change', handler);
-        eventListenerCleanups.push(() => filterSelect.removeEventListener('change', handler));
+        });
     }
 }
 
@@ -298,60 +282,44 @@ function escapeHtml(text: string): string {
 
 /**
  * Initialize action buttons
- * Bug fix: Track event listeners for cleanup
+ * Uses centralized event manager for cleanup
  */
 function initActionButtons(): void {
-    // Export logs
+    // Export logs - use dom-utils downloadFile
     const exportBtn = document.getElementById('debug-export-logs');
     if (exportBtn) {
-        const exportHandler = () => {
+        eventManager.add(exportBtn, 'click', () => {
             const logsJson = exportLogs();
-            const blob = new Blob([logsJson], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `megabonk-debug-logs-${Date.now()}.json`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-        };
-        exportBtn.addEventListener('click', exportHandler);
-        eventListenerCleanups.push(() => exportBtn.removeEventListener('click', exportHandler));
+            downloadJsonFile(JSON.parse(logsJson), `megabonk-debug-logs-${Date.now()}`);
+        });
     }
 
     // Clear logs
     const clearBtn = document.getElementById('debug-clear-logs');
     if (clearBtn) {
-        const clearHandler = () => {
+        eventManager.add(clearBtn, 'click', () => {
             clearLogs();
             updateLogViewer();
-        };
-        clearBtn.addEventListener('click', clearHandler);
-        eventListenerCleanups.push(() => clearBtn.removeEventListener('click', clearHandler));
+        });
     }
 
     // Reset stats
     const resetBtn = document.getElementById('debug-reset-stats');
     if (resetBtn) {
-        const resetHandler = () => {
+        eventManager.add(resetBtn, 'click', () => {
             resetStats();
             updateStats();
-        };
-        resetBtn.addEventListener('click', resetHandler);
-        eventListenerCleanups.push(() => resetBtn.removeEventListener('click', resetHandler));
+        });
     }
 
     // Download overlay
     const downloadBtn = document.getElementById('debug-download-overlay') as HTMLButtonElement;
     if (downloadBtn) {
-        const downloadHandler = () => {
+        eventManager.add(downloadBtn, 'click', () => {
             if (lastOverlayUrl) {
                 downloadDebugImage(lastOverlayUrl, `debug-overlay-${Date.now()}.png`);
             }
-        };
-        downloadBtn.addEventListener('click', downloadHandler);
-        eventListenerCleanups.push(() => downloadBtn.removeEventListener('click', downloadHandler));
+        });
     }
 }
 
@@ -372,7 +340,7 @@ export function setLastOverlayUrl(url: string | null): void {
 
 /**
  * Initialize confidence threshold slider
- * Bug fix: Track event listener for cleanup
+ * Uses centralized event manager for cleanup
  */
 export function initConfidenceSlider(): void {
     const slider = document.getElementById('debug-confidence-slider') as HTMLInputElement;
@@ -382,19 +350,15 @@ export function initConfidenceSlider(): void {
         slider.value = String(currentConfidenceThreshold * 100);
         valueDisplay.textContent = `${Math.round(currentConfidenceThreshold * 100)}%`;
 
-        const sliderHandler = () => {
+        eventManager.add(slider, 'input', () => {
             currentConfidenceThreshold = parseInt(slider.value, 10) / 100;
             valueDisplay.textContent = `${slider.value}%`;
-
-            // Note: confidenceThreshold is managed locally, not in debug options
 
             logger.debug({
                 operation: 'debug_ui.threshold_changed',
                 data: { threshold: currentConfidenceThreshold },
             });
-        };
-        slider.addEventListener('input', sliderHandler);
-        eventListenerCleanups.push(() => slider.removeEventListener('input', sliderHandler));
+        });
     }
 }
 
@@ -466,27 +430,23 @@ export function updateBreadcrumbViewer(): void {
 
 /**
  * Initialize breadcrumb controls
- * Bug fix: Track event listeners for cleanup
+ * Uses centralized event manager for cleanup
  */
 export function initBreadcrumbControls(): void {
     const clearBtn = document.getElementById('debug-clear-breadcrumbs');
     if (clearBtn) {
-        const clearHandler = () => {
+        eventManager.add(clearBtn, 'click', () => {
             clearBreadcrumbs();
             updateBreadcrumbViewer();
-        };
-        clearBtn.addEventListener('click', clearHandler);
-        eventListenerCleanups.push(() => clearBtn.removeEventListener('click', clearHandler));
+        });
     }
 
     const exportBtn = document.getElementById('debug-export-breadcrumbs');
     if (exportBtn) {
-        const exportHandler = () => {
+        eventManager.add(exportBtn, 'click', () => {
             const json = exportBreadcrumbs();
-            downloadJson(json, `megabonk-breadcrumbs-${Date.now()}.json`);
-        };
-        exportBtn.addEventListener('click', exportHandler);
-        eventListenerCleanups.push(() => exportBtn.removeEventListener('click', exportHandler));
+            downloadJsonFile(JSON.parse(json), `megabonk-breadcrumbs-${Date.now()}`);
+        });
     }
 }
 
@@ -578,26 +538,22 @@ export function updateStateViewer(): void {
 
 /**
  * Initialize state controls
- * Bug fix: Track event listeners for cleanup
+ * Uses centralized event manager for cleanup
  */
 export function initStateControls(): void {
     const refreshBtn = document.getElementById('debug-refresh-state');
     if (refreshBtn) {
-        const refreshHandler = () => {
+        eventManager.add(refreshBtn, 'click', () => {
             updateStateViewer();
-        };
-        refreshBtn.addEventListener('click', refreshHandler);
-        eventListenerCleanups.push(() => refreshBtn.removeEventListener('click', refreshHandler));
+        });
     }
 
     const exportBtn = document.getElementById('debug-export-state');
     if (exportBtn) {
-        const exportHandler = () => {
+        eventManager.add(exportBtn, 'click', () => {
             const snapshot = captureStateSnapshot();
-            downloadJson(JSON.stringify(snapshot, null, 2), `megabonk-state-${Date.now()}.json`);
-        };
-        exportBtn.addEventListener('click', exportHandler);
-        eventListenerCleanups.push(() => exportBtn.removeEventListener('click', exportHandler));
+            downloadJsonFile(snapshot, `megabonk-state-${Date.now()}`);
+        });
     }
 }
 
@@ -607,18 +563,16 @@ export function initStateControls(): void {
 
 /**
  * Initialize debug tab switching
- * Bug fix: Track event listeners for cleanup
+ * Uses centralized event manager for cleanup
  */
 export function initDebugTabs(): void {
     const tabButtons = document.querySelectorAll('[data-debug-tab]');
 
     tabButtons.forEach(btn => {
-        const tabHandler = () => {
+        eventManager.add(btn as HTMLElement, 'click', () => {
             const tab = (btn as HTMLElement).dataset.debugTab as typeof activeDebugTab;
             switchDebugTab(tab);
-        };
-        btn.addEventListener('click', tabHandler);
-        eventListenerCleanups.push(() => btn.removeEventListener('click', tabHandler));
+        });
     });
 }
 
@@ -656,24 +610,7 @@ export function switchDebugTab(tab: typeof activeDebugTab): void {
     }
 }
 
-// ========================================
-// Utility Functions
-// ========================================
-
-/**
- * Download JSON string as file
- */
-function downloadJson(json: string, filename: string): void {
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-}
+// Download utility moved to dom-utils.ts (downloadJson, downloadFile)
 
 // ========================================
 // Export
