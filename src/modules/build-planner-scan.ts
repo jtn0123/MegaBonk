@@ -18,7 +18,7 @@ import {
     getPresetForResolution,
     loadGridPresets,
 } from './cv/index.ts';
-import { autoDetectFromImage, initOCR, type DetectionResult } from './ocr.ts';
+import { autoDetectFromImage, initOCR, type DetectionResult } from './ocr/index.ts';
 import { loadBuildFromData } from './build-planner.ts';
 import { escapeHtml } from './utils.ts';
 

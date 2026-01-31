@@ -8,7 +8,7 @@
 import type { Item, Tome, AllGameData, Character, Weapon } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
-import { initOCR } from './ocr.ts';
+import { initOCR } from './ocr/index.ts';
 import { initCV, loadItemTemplates } from './computer-vision.ts';
 import { MAX_FILE_SIZE_BYTES } from './constants.ts';
 import { MAX_ITEM_COUNT } from './constants.ts';

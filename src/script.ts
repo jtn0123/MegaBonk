@@ -29,7 +29,7 @@ import { initDebugPanel } from './modules/debug-ui.ts';
 // Note: Tab-specific modules (advisor, build-planner, calculator, changelog) are now lazy-loaded
 // via the tab-loader module when their tabs are first accessed
 // Core modules that may be needed across multiple contexts are still eagerly loaded:
-import './modules/ocr.ts';
+import './modules/ocr/index.ts';
 import './modules/computer-vision.ts';
 import './modules/test-utils.ts';
 

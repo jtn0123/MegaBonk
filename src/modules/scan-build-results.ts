@@ -5,7 +5,7 @@
 // ========================================
 
 import type { Item, Tome, Character, Weapon, AllGameData } from '../types/index.ts';
-import type { DetectionResult } from './ocr.ts';
+import type { DetectionResult } from './ocr/index.ts';
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
 import { escapeHtml } from './utils.ts';

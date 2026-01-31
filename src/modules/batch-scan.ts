@@ -14,7 +14,7 @@ import {
     aggregateDuplicates,
     isFullyLoaded as isCVFullyLoaded,
 } from './cv/index.ts';
-import { autoDetectFromImage, initOCR, type DetectionResult } from './ocr.ts';
+import { autoDetectFromImage, initOCR, type DetectionResult } from './ocr/index.ts';
 import { escapeHtml } from './utils.ts';
 import { createMutex } from './async-utils.ts';
 import { logError, logWarning } from './error-utils.ts';

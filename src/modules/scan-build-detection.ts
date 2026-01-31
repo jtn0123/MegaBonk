@@ -6,7 +6,7 @@
 
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
-import { autoDetectFromImage, type DetectionResult } from './ocr.ts';
+import { autoDetectFromImage, type DetectionResult } from './ocr/index.ts';
 import {
     detectItemsWithCV,
     combineDetections,
