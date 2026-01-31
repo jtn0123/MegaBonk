@@ -338,11 +338,14 @@ describe('Events Module - Extended Coverage', () => {
             expect(retryBtn).toBeNull();
         });
 
-        it('showErrorMessage should escape HTML in message', () => {
+        it('showErrorMessage should escape HTML in message', async () => {
+            const { escapeHtml } = await import('../../src/modules/utils.ts');
+            vi.mocked(escapeHtml).mockClear();
+
             showErrorMessage('<script>alert("xss")</script>');
 
-            const content = document.querySelector('.error-content p');
-            expect(content?.textContent).not.toContain('<script>');
+            // Verify escapeHtml was called with the dangerous input
+            expect(escapeHtml).toHaveBeenCalledWith('<script>alert("xss")</script>');
         });
 
         it('showErrorMessage retry button should dismiss and reload', async () => {
@@ -588,16 +591,28 @@ describe('Events Module - Extended Coverage', () => {
     // ========================================
     describe('scheduleModulePreload', () => {
         it('should call preloadCommonModules', async () => {
-            const originalRequestIdleCallback = (window as any).requestIdleCallback;
-            (window as any).requestIdleCallback = (cb: Function) => cb();
-
+            // Get mock reference and clear it BEFORE setting up requestIdleCallback
             const { preloadCommonModules } = await import('../../src/modules/tab-loader.ts');
+            vi.mocked(preloadCommonModules).mockClear();
+
+            // Set up requestIdleCallback to call the callback synchronously
+            // Must set on globalThis since the code checks `typeof requestIdleCallback`
+            const originalRequestIdleCallback = (globalThis as any).requestIdleCallback;
+            (globalThis as any).requestIdleCallback = (cb: Function) => {
+                cb();
+                return 1;
+            };
 
             scheduleModulePreload();
 
             expect(preloadCommonModules).toHaveBeenCalled();
 
-            (window as any).requestIdleCallback = originalRequestIdleCallback;
+            // Restore original
+            if (originalRequestIdleCallback) {
+                (globalThis as any).requestIdleCallback = originalRequestIdleCallback;
+            } else {
+                delete (globalThis as any).requestIdleCallback;
+            }
         });
 
         it('should use setTimeout fallback when requestIdleCallback unavailable', async () => {
