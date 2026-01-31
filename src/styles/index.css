@@ -40,7 +40,8 @@
    ✓ states.css         - Loading, skeleton, toast, errors
    ✓ shortcuts.css      - Keyboard shortcuts, theme toggle
    ✓ mobile-nav.css     - Mobile bottom navigation
-   ✓ themes.css         - Light mode overrides (MUST BE LAST)
+   ✓ themes.css         - Light mode overrides
+   ✓ responsive.css     - Extended breakpoints (1024px, 1440px, 1920px+)
    ======================================== */
 
 /* ────────────────────────────────────────
@@ -141,3 +142,6 @@
 
 /* Themes - Light mode overrides and theme-specific styles */
 @import './themes.css';
+
+/* Responsive - Extended breakpoints for tablets and large screens */
+@import './responsive.css';
