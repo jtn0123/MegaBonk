@@ -212,7 +212,9 @@ export function findBestTemplateMatch(
                 ? matchTemplateMulti(screenshotCtx, cell, template, item.id, trainingTemplates)
                 : matchTemplate(screenshotCtx, cell, template, item.id);
 
-        if (similarity > minConfidence && (!bestMatch || similarity > bestMatch.similarity)) {
+        // Absolute similarity floor - never accept matches below 0.35 regardless of config
+        const SIMILARITY_FLOOR = 0.35;
+        if (similarity >= SIMILARITY_FLOOR && similarity > minConfidence && (!bestMatch || similarity > bestMatch.similarity)) {
             bestMatch = { item, similarity };
         }
     }
