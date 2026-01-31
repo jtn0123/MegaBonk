@@ -89,7 +89,10 @@ let state: AppState = { ...initialState };
 const deepCloneInitialState = (): AppState => structuredClone(initialState);
 
 // Subscribers map: key -> Set of callbacks
-const subscribers = new Map<keyof AppState, Set<Subscriber<any>>>();
+// Internal storage uses (value: unknown) => void since we store mixed callback types
+// Type safety is enforced at the subscribe() API boundary
+type InternalSubscriber = (value: unknown) => void;
+const subscribers = new Map<keyof AppState, Set<InternalSubscriber>>();
 
 /**
  * Window sync enabled flag - enabled by default for backwards compatibility.
@@ -182,11 +185,13 @@ export function subscribe<K extends keyof AppState>(key: K, callback: Subscriber
     }
 
     const keySubscribers = subscribers.get(key)!;
-    keySubscribers.add(callback);
+    // Cast to InternalSubscriber for storage - type safety maintained at API boundary
+    const internalCallback = callback as InternalSubscriber;
+    keySubscribers.add(internalCallback);
 
     // Return unsubscribe function
     return () => {
-        keySubscribers.delete(callback);
+        keySubscribers.delete(internalCallback);
         if (keySubscribers.size === 0) {
             subscribers.delete(key);
         }

@@ -114,10 +114,11 @@ export function callFunction<K extends keyof ModuleRegistry>(
 ): ModuleRegistry[K] extends ((...args: unknown[]) => infer R) | null ? R | undefined : undefined {
     const fn = registry[name];
     if (fn) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (fn as (...args: unknown[]) => unknown)(...args) as any;
+        type ReturnType = ModuleRegistry[K] extends ((...args: unknown[]) => infer R) | null ? R | undefined : undefined;
+        return (fn as (...args: unknown[]) => unknown)(...args) as ReturnType;
     }
-    return undefined as any;
+    type UndefinedReturn = ModuleRegistry[K] extends ((...args: unknown[]) => infer R) | null ? R | undefined : undefined;
+    return undefined as UndefinedReturn;
 }
 
 /**
