@@ -65,9 +65,10 @@ export async function collectCoverage(page, testName = 'test') {
             mkdirSync(nycOutputDir, { recursive: true });
         }
 
-        // Write coverage file with unique name
+        // Write coverage file with unique name (includes PID + random for parallel workers)
         const sanitizedName = testName.replace(/[^a-zA-Z0-9-_]/g, '_').slice(0, 100);
-        const filename = `coverage-${sanitizedName}-${++coverageCounter}-${Date.now()}.json`;
+        const uniqueId = `${process.pid}-${++coverageCounter}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const filename = `coverage-${sanitizedName}-${uniqueId}.json`;
         const filepath = join(nycOutputDir, filename);
 
         writeFileSync(filepath, JSON.stringify(coverage, null, 2));

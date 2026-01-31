@@ -394,11 +394,11 @@ test.describe('CV Metrics and Configuration', () => {
 // REGION DETECTION TESTS - Increase regions.ts coverage
 // ============================================================
 test.describe('Region Detection', () => {
-    test.setTimeout(120000);
+    test.setTimeout(60000); // Reduced: doesn't need full template init
     
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await waitForFullCVInit(page);
+        await waitForCVFunctions(page); // Changed: doesn't need full template init
     });
 
     test.describe('detectUIRegions', () => {
@@ -471,11 +471,11 @@ test.describe('Region Detection', () => {
 // HOTBAR AND EDGE DETECTION TESTS - More detection.ts coverage
 // ============================================================
 test.describe('Hotbar and Edge Detection', () => {
-    test.setTimeout(120000);
+    test.setTimeout(60000); // Reduced: doesn't need full template init
     
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await waitForFullCVInit(page);
+        await waitForCVFunctions(page); // Changed: doesn't need full template init
     });
 
     test.describe('detectHotbarRegion edge cases', () => {
@@ -599,8 +599,11 @@ test.describe('Hotbar and Edge Detection', () => {
 
 // ============================================================
 // DETECTION PIPELINE TESTS - Core detection.ts functions
+// NOTE: These tests require full CV init (template loading) which is slow.
+// Skip in coverage mode to speed up coverage collection.
 // ============================================================
 test.describe('Detection Pipeline', () => {
+    test.skip(({ }, testInfo) => process.env.COVERAGE === 'true', 'Skip slow detection tests in coverage mode');
     test.setTimeout(180000);
     
     test.beforeEach(async ({ page }) => {

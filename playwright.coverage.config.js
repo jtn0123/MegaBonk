@@ -7,10 +7,10 @@ import { defineConfig, devices } from '@playwright/test';
 export default defineConfig({
     testDir: './tests/e2e',
     testMatch: /.*\.spec\.(js|mjs|ts)$/,
-    fullyParallel: false, // Sequential for coverage reliability
+    fullyParallel: true, // Parallel for speed
     forbidOnly: !!process.env.CI,
     retries: 0, // No retries for coverage
-    workers: 1, // Single worker for coverage
+    workers: 4, // 4 parallel workers
     reporter: [['html', { open: 'never' }], ['list']],
     timeout: 60000, // Longer timeout for instrumented code
     expect: {
