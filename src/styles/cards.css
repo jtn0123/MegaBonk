@@ -101,6 +101,11 @@
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    transition: color var(--transition-fast) ease;
+}
+
+.tier-label:hover {
+    color: var(--text-primary);
 }
 
 /* ========================================
@@ -201,6 +206,12 @@
     color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.3px;
+    transition: background var(--transition-fast) ease, color var(--transition-fast) ease;
+}
+
+.meta-tag:hover {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
 }
 
 /* ========================================
@@ -222,6 +233,11 @@
     gap: 0.25rem;
     font-size: 0.75rem;
     color: var(--text-secondary);
+    transition: color var(--transition-fast) ease;
+}
+
+.stacking-indicator:hover {
+    color: var(--text-primary);
 }
 
 /* ========================================

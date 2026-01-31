@@ -163,6 +163,7 @@
     gap: 1rem;
     overflow-x: auto;
     padding-bottom: 0.5rem;
+    scroll-snap-type: x proximity;
 }
 
 .similar-item-card {
@@ -173,7 +174,8 @@
     border-radius: 8px;
     border: 1px solid var(--bg-subtle);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base) ease;
+    scroll-snap-align: start;
 }
 
 .similar-item-card:hover {

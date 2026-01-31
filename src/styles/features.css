@@ -54,6 +54,7 @@
     overflow-x: auto;
     padding-bottom: 0.5rem;
     scrollbar-width: thin;
+    scroll-snap-type: x mandatory;
 }
 
 .recent-item {
@@ -65,9 +66,10 @@
     background: var(--bg-subtle);
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base) ease;
     min-width: 70px;
     text-align: center;
+    scroll-snap-align: start;
 }
 
 .recent-item:hover {

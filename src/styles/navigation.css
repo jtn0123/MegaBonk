@@ -21,6 +21,7 @@
     -webkit-overflow-scrolling: touch;
     scrollbar-width: thin;
     scrollbar-color: var(--accent) var(--bg-subtle);
+    scroll-snap-type: x proximity;
 }
 
 .tab-buttons::-webkit-scrollbar {
@@ -47,8 +48,9 @@
     font-size: 0.875rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base) ease;
     white-space: nowrap;
+    scroll-snap-align: start;
 }
 
 .tab-btn:hover {
