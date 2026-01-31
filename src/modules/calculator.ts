@@ -262,7 +262,11 @@ function renderResults(result: CalculatorResult): void {
     const barGraphHTML = effectiveScaling
         .map((val: number, idx: number) => {
             const height = (val / safeMax) * 100;
-            const isTarget = idx + 1 === result.stacksNeeded;
+            // Bug fix: Highlight the target bar, or the last available bar if
+            // stacksNeeded exceeds available data points (sparse scaling data)
+            const isTarget =
+                idx + 1 === result.stacksNeeded ||
+                (result.stacksNeeded > effectiveScaling.length && idx === effectiveScaling.length - 1);
             return `<div class="bar-container">
                         <div class="bar ${isTarget ? 'highlight' : ''}" style="height: ${height}%"></div>
                         <div class="bar-label">${idx + 1}</div>
