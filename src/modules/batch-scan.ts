@@ -296,9 +296,11 @@ export async function processBatch(
 
     if (validFiles.length === 0) {
         ToastManager.error('No valid image files selected');
+        batchProcessingInProgress = false; // Release lock on early return
         return [];
     }
 
+    try {
     // Clear previous results
     batchResults = [];
 
@@ -396,6 +398,10 @@ export async function processBatch(
     });
 
     return batchResults;
+    } finally {
+        // Race condition fix: Always release lock when done
+        batchProcessingInProgress = false;
+    }
 }
 
 // ========================================
@@ -644,4 +650,6 @@ export function renderBatchResultsGrid(containerId: string): void {
 export function __resetForTesting(): void {
     batchResults = [];
     isInitialized = false;
+    batchProcessingInProgress = false; // Reset race condition locks
+    initializationInProgress = false;
 }

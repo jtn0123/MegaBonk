@@ -59,6 +59,15 @@ import { detectCount, hasCountOverlay } from './count-detection.ts';
 let workerBasePath = '';
 
 /**
+ * Race condition fix: Lock to prevent concurrent CV detection runs
+ * Without this, multiple detectItemsWithCV calls could corrupt shared state:
+ * - Metrics collector accumulates overlapping data
+ * - Cache operations could conflict
+ * - Progress callbacks would interleave confusingly
+ */
+let cvDetectionInProgress = false;
+
+/**
  * Get dynamic minimum confidence threshold based on resolution and scoring config
  * Uses scoring-config.ts for rarity-aware thresholds
  */
@@ -2153,6 +2162,18 @@ export async function detectItemsWithCV(
     progressCallback?: (progress: number, status: string) => void,
     useWorkers: boolean = false
 ): Promise<CVDetectionResult[]> {
+    // Race condition fix: Prevent concurrent CV detection runs
+    // Multiple simultaneous calls would corrupt metrics and cause confusing progress updates
+    if (cvDetectionInProgress) {
+        logger.warn({
+            operation: 'cv.detect_concurrent_rejected',
+            data: { message: 'CV detection already in progress' },
+        });
+        // Return empty results rather than corrupt state
+        return [];
+    }
+    cvDetectionInProgress = true;
+
     const metrics = getMetricsCollector();
     const runStartTime = performance.now();
 
@@ -2464,6 +2485,9 @@ export async function detectItemsWithCV(
         // End metrics run even on error
         metrics.endRun(performance.now() - runStartTime);
         throw error;
+    } finally {
+        // Race condition fix: Always release lock when done
+        cvDetectionInProgress = false;
     }
 }
 
@@ -2600,4 +2624,12 @@ export function getUncertainDetectionsFromResults(
             height: d.position!.height,
         }));
     return findUncertainDetections(feedbackDetections);
+}
+
+/**
+ * Reset detection state for testing
+ * @internal
+ */
+export function __resetDetectionStateForTesting(): void {
+    cvDetectionInProgress = false;
 }
