@@ -2,8 +2,8 @@
 /**
  * E2E Coverage Collection Script
  * 
- * Runs Playwright tests with Istanbul instrumentation and merges
- * browser coverage with vitest unit test coverage.
+ * Runs Playwright tests with Istanbul instrumentation and collects
+ * browser coverage via window.__coverage__.
  * 
  * Usage: node scripts/e2e-coverage.mjs
  */
@@ -67,21 +67,25 @@ async function main() {
     // Step 3: Verify instrumentation
     log('Step 3: Verifying instrumentation...');
     const distDir = join(projectRoot, 'dist');
-    const jsFiles = readdirSync(join(distDir, 'assets')).filter(f => f.endsWith('.js'));
+    const assetsDir = join(distDir, 'assets');
     
-    let instrumented = false;
-    for (const file of jsFiles.slice(0, 3)) {
-        const content = readFileSync(join(distDir, 'assets', file), 'utf-8');
-        if (content.includes('__coverage__') || content.includes('cov_')) {
-            instrumented = true;
-            log(`  ✓ Found instrumentation in ${file}`);
-            break;
+    if (existsSync(assetsDir)) {
+        const jsFiles = readdirSync(assetsDir).filter(f => f.endsWith('.js'));
+        
+        let instrumented = false;
+        for (const file of jsFiles.slice(0, 3)) {
+            const content = readFileSync(join(assetsDir, file), 'utf-8');
+            if (content.includes('__coverage__') || content.includes('cov_')) {
+                instrumented = true;
+                log(`  ✓ Found instrumentation in ${file}`);
+                break;
+            }
         }
-    }
-    
-    if (!instrumented) {
-        logError('WARNING: No Istanbul instrumentation found in build output!');
-        logError('Coverage collection may not work properly.');
+        
+        if (!instrumented) {
+            logError('WARNING: No Istanbul instrumentation found in build output!');
+            logError('Coverage collection may not work properly.');
+        }
     }
     
     // Step 4: Run Playwright tests with coverage config
@@ -109,6 +113,12 @@ async function main() {
     if (coverageFiles.length > 0) {
         // First merge all coverage files
         runCommand('npx nyc merge .nyc_output coverage/e2e-coverage.json');
+        
+        // Create e2e coverage directory
+        const e2eDir = join(coverageDir, 'e2e');
+        if (!existsSync(e2eDir)) {
+            mkdirSync(e2eDir, { recursive: true });
+        }
         
         // Generate report from merged data
         runCommand('npx nyc report --reporter=text --reporter=html --reporter=json --temp-dir=.nyc_output --report-dir=coverage/e2e');

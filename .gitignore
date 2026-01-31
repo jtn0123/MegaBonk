@@ -58,3 +58,4 @@ fix_claude.sh
 training-data/
 test-results/
 test-images/gameplay/debug-grid-overlay.png
+.nyc_output/

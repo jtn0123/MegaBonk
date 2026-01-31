@@ -38,12 +38,11 @@ export default defineConfig({
         hookTimeout: 30000,
         bail: 0, // Run all tests, don't stop on failure
         coverage: {
-            provider: 'istanbul', // Changed from v8 - lower memory footprint
-            reporter: ['text', 'json', 'html', 'lcov'],
+            provider: 'v8', // V8 coverage for monocart merging
+            reporter: ['text', 'json', 'html', 'lcov'], // Standard reporters
             include: ['src/**/*.ts'],
             exclude: ['src/libs/**', 'src/sw.js', 'src/types/**', '**/*.test.js', '**/*.test.ts', '**/*.config.js'],
-            // Reduce memory usage during coverage collection
-            reportsDirectory: './coverage',
+            reportsDirectory: './coverage/unit',
             clean: true,
             all: false, // Only include tested files
             // Thresholds updated 2026-01-10 after adding comprehensive unit tests:
