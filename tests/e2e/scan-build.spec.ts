@@ -10,14 +10,9 @@
  */
 
 import { test, expect, Page } from '@playwright/test';
-import * as path from 'path';
-import { fileURLToPath } from 'url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-// Path to a real test image in the project
-const TEST_IMAGE_PATH = path.join(__dirname, '../../src/images/items/battery.png');
+// Path to a real test image in the project (relative to project root where playwright runs)
+const TEST_IMAGE_PATH = 'src/images/items/battery.png';
 
 /**
  * Helper to navigate to advisor tab and wait for scan section
