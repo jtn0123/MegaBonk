@@ -128,8 +128,8 @@
 }
 
 /* Rarity badges */
-.badge.rarity-common { background: var(--common); color: white; }
-.badge.rarity-uncommon { background: var(--uncommon); color: white; }
+.badge.rarity-common { background: var(--common); color: black; }
+.badge.rarity-uncommon { background: var(--uncommon); color: black; }
 .badge.rarity-rare { background: var(--rare); color: white; }
 .badge.rarity-epic { background: var(--epic); color: white; }
 .badge.rarity-legendary { background: var(--legendary); color: black; }
@@ -138,7 +138,7 @@
 .badge.tier-SS { background: var(--tier-ss); color: black; }
 .badge.tier-S { background: var(--tier-s); color: black; }
 .badge.tier-A { background: var(--tier-a); color: white; }
-.badge.tier-B { background: var(--tier-b); color: white; }
+.badge.tier-B { background: var(--tier-b); color: black; }
 .badge.tier-C { background: var(--tier-c); color: white; }
 
 /* ========================================
