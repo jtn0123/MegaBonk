@@ -247,6 +247,33 @@ MegaBonk/
 
 Detailed instructions in `docs/UPDATE_GUIDE.md`.
 
+## 🧪 Testing & Coverage
+
+### Run Tests
+```bash
+# Unit tests
+npm run test:unit
+
+# Unit tests with coverage
+npm run test:unit:coverage
+
+# E2E tests (Playwright)
+npm run test:e2e
+
+# E2E tests with coverage
+npm run test:e2e:coverage
+
+# Combined coverage (unit + E2E merged)
+npm run test:coverage:all
+```
+
+### Coverage Reports
+- **Unit coverage**: `coverage/unit/index.html`
+- **E2E coverage**: `coverage/e2e/report.html`
+- **Merged coverage**: `coverage/merged/index.html`
+
+The merge script combines Istanbul coverage from unit tests with browser coverage from E2E tests, giving a holistic view of what code is actually tested.
+
 ## 🛠️ Technical Details
 
 ### Technologies
