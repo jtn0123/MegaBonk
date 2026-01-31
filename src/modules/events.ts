@@ -218,549 +218,490 @@ export function toggleTextExpand(element: HTMLElement): void {
 }
 
 /**
+ * Handle keyboard events for navigation, shortcuts, and accessibility
+ * @param e - Keyboard event
+ */
+function handleKeydownDelegation(e: KeyboardEvent): void {
+    // Handle search dropdown keyboard navigation first (when dropdown is visible)
+    const target = e.target as HTMLElement;
+    const isSearchInputFocused = target.id === 'searchInput';
+
+    if (isSearchInputFocused && isSearchDropdownVisible()) {
+        if (handleDropdownKeyboard(e)) {
+            return; // Event was handled by dropdown
+        }
+    }
+
+    // Escape key closes modals (and dropdown if visible)
+    if (e.key === 'Escape') {
+        handleEscapeKey();
+        return;
+    }
+
+    // Ctrl+K or / to focus search (unless in input)
+    if ((e.ctrlKey && e.key === 'k') || e.key === '/') {
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+            return;
+        }
+        e.preventDefault();
+        const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
+        return;
+    }
+
+    // Arrow key navigation for tabs (W3C WAI-ARIA recommendation)
+    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && target.classList.contains('tab-btn')) {
+        handleTabArrowNavigation(e, target as HTMLButtonElement);
+        return;
+    }
+
+    // Number keys (1-9) to switch tabs
+    if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey && !e.metaKey) {
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
+            handleNumberKeyTabSwitch(e);
+        }
+        return;
+    }
+
+    // Enter or Space on breakpoint cards triggers quickCalc
+    if ((e.key === 'Enter' || e.key === ' ') && target.classList.contains('breakpoint-card')) {
+        handleBreakpointCardActivation(e, target);
+    }
+}
+
+/**
+ * Handle Escape key to close modals and dropdowns
+ */
+function handleEscapeKey(): void {
+    if (isSearchDropdownVisible()) {
+        hideSearchDropdown();
+        return;
+    }
+    closeModal();
+    import('./compare.ts')
+        .then(({ closeCompareModal }) => closeCompareModal())
+        .catch(err => {
+            logger.warn({
+                operation: 'import.compare',
+                error: { name: 'ImportError', message: err.message },
+            });
+            const compareModal = safeGetElementById('compareModal') as HTMLElement | null;
+            if (compareModal) {
+                compareModal.style.display = 'none';
+                compareModal.classList.remove('active');
+            }
+        });
+}
+
+/**
+ * Handle arrow key navigation between tabs
+ */
+function handleTabArrowNavigation(e: KeyboardEvent, target: HTMLButtonElement): void {
+    e.preventDefault();
+    const tabButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.tab-btn'));
+    if (tabButtons.length === 0) return;
+    const currentIndex = tabButtons.indexOf(target);
+    if (currentIndex === -1) return;
+
+    const nextIndex = e.key === 'ArrowRight'
+        ? (currentIndex + 1) % tabButtons.length
+        : (currentIndex - 1 + tabButtons.length) % tabButtons.length;
+
+    const nextTab = tabButtons[nextIndex];
+    if (nextTab) {
+        nextTab.focus();
+        const tabName = nextTab.getAttribute('data-tab') as TabName | null;
+        if (tabName && typeof switchTab === 'function') {
+            switchTab(tabName);
+        }
+    }
+}
+
+/**
+ * Handle number key shortcuts for tab switching
+ */
+function handleNumberKeyTabSwitch(e: KeyboardEvent): void {
+    const tabMap: Record<string, TabName> = {
+        1: 'items', 2: 'weapons', 3: 'tomes', 4: 'characters', 5: 'shrines',
+        6: 'build-planner', 7: 'calculator', 8: 'advisor', 9: 'changelog',
+    };
+    const tabName = tabMap[e.key];
+    if (tabName && typeof switchTab === 'function') {
+        e.preventDefault();
+        switchTab(tabName);
+    }
+}
+
+/**
+ * Handle Enter/Space activation on breakpoint cards
+ */
+function handleBreakpointCardActivation(e: KeyboardEvent, target: HTMLElement): void {
+    e.preventDefault();
+    const itemId = target.dataset.item;
+    const targetVal = target.dataset.target;
+    if (itemId && targetVal) {
+        const parsedTarget = parseInt(targetVal, 10);
+        if (!isNaN(parsedTarget)) {
+            import('./calculator.ts')
+                .then(({ quickCalc }) => quickCalc(itemId, parsedTarget))
+                .catch(err => {
+                    logger.warn({
+                        operation: 'import.calculator',
+                        error: { name: 'ImportError', message: err.message },
+                    });
+                });
+        }
+    }
+}
+
+/**
+ * Handle click events via delegation
+ * @param e - Mouse event
+ */
+function handleClickDelegation(e: MouseEvent): void {
+    const target = e.target;
+
+    // Type guard: ensure target is an Element
+    if (!(target instanceof Element)) {
+        return;
+    }
+
+    // View Details button
+    if (target.classList.contains('view-details-btn')) {
+        handleViewDetailsClick(target as HTMLElement);
+        return;
+    }
+
+    // Compare checkbox or its label
+    if (target.closest('.compare-checkbox-label') && !target.classList.contains('compare-checkbox')) {
+        handleCompareCheckboxClick(e, target);
+        return;
+    }
+
+    // Expandable text
+    if (target.classList.contains('expandable-text') || target.closest('.expandable-text')) {
+        const expandable = target.classList.contains('expandable-text')
+            ? (target as HTMLElement)
+            : (target.closest('.expandable-text') as HTMLElement | null);
+        if (expandable) toggleTextExpand(expandable);
+        return;
+    }
+
+    // Remove from comparison button
+    if (target.classList.contains('remove-compare-btn') || target.closest('.remove-compare-btn')) {
+        handleRemoveCompareClick(target);
+        return;
+    }
+
+    // Clear filters button
+    if (target.classList.contains('btn-secondary') && target.textContent?.includes('Clear Filters')) {
+        clearFilters();
+        return;
+    }
+
+    // Changelog expand button
+    if (target.classList.contains('changelog-expand-btn')) {
+        import('./changelog.ts')
+            .then(({ toggleChangelogExpand }) => toggleChangelogExpand(target as HTMLButtonElement))
+            .catch(err => logger.warn({ operation: 'import.changelog', error: { name: 'ImportError', message: err.message } }));
+        return;
+    }
+
+    // Entity link in changelog
+    if (target.classList.contains('entity-link')) {
+        e.preventDefault();
+        const htmlTarget = target as HTMLElement;
+        const type = htmlTarget.dataset.entityType as EntityType | undefined;
+        const id = htmlTarget.dataset.entityId;
+        if (type && id) openDetailModal(type, id);
+        return;
+    }
+
+    // Breakpoint card click
+    if (target.closest('.breakpoint-card')) {
+        handleBreakpointCardClick(target);
+        return;
+    }
+
+    // Favorite button click
+    if (target.classList.contains('favorite-btn') || target.closest('.favorite-btn')) {
+        handleFavoriteClick(target);
+        return;
+    }
+
+    // Global search result card click
+    if (target.closest('.search-result-card')) {
+        handleSearchResultClick(target);
+        return;
+    }
+}
+
+/**
+ * Handle View Details button click
+ */
+function handleViewDetailsClick(target: HTMLElement): void {
+    const type = target.dataset.type as EntityType | undefined;
+    const id = target.dataset.id;
+    if (type && id) openDetailModal(type, id);
+}
+
+/**
+ * Handle compare checkbox click with debouncing
+ */
+function handleCompareCheckboxClick(e: MouseEvent, target: Element): void {
+    const label = target.closest('.compare-checkbox-label') as HTMLElement;
+    const checkbox = label?.querySelector('.compare-checkbox') as HTMLInputElement | null;
+    if (!checkbox) return;
+
+    const now = Date.now();
+    const lastToggle = parseInt(checkbox.dataset.lastToggle || '0', 10);
+    if (now - lastToggle < 100) return;
+    checkbox.dataset.lastToggle = now.toString();
+
+    const id = checkbox.dataset.id || checkbox.value;
+    if (id) {
+        e.preventDefault();
+        checkbox.checked = !checkbox.checked;
+        import('./compare.ts')
+            .then(({ toggleCompareItem }) => toggleCompareItem(id))
+            .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
+    }
+}
+
+/**
+ * Handle remove from comparison button click
+ */
+function handleRemoveCompareClick(target: Element): void {
+    const btn = target.classList.contains('remove-compare-btn')
+        ? (target as HTMLElement)
+        : (target.closest('.remove-compare-btn') as HTMLElement | null);
+    const id = btn?.dataset.removeId;
+    if (id) {
+        import('./compare.ts')
+            .then(({ toggleCompareItem, updateCompareDisplay }) => {
+                toggleCompareItem(id);
+                updateCompareDisplay();
+            })
+            .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
+    }
+}
+
+/**
+ * Handle breakpoint card click for quick calc
+ */
+function handleBreakpointCardClick(target: Element): void {
+    const card = target.closest('.breakpoint-card') as HTMLElement | null;
+    const itemId = card?.dataset.item;
+    const targetVal = card?.dataset.target;
+    if (itemId && targetVal) {
+        const parsedTarget = parseInt(targetVal, 10);
+        if (!isNaN(parsedTarget)) {
+            import('./calculator.ts')
+                .then(({ quickCalc }) => quickCalc(itemId, parsedTarget))
+                .catch(err => logger.warn({ operation: 'import.calculator', error: { name: 'ImportError', message: err.message } }));
+        }
+    }
+}
+
+/**
+ * Handle favorite button click
+ */
+function handleFavoriteClick(target: Element): void {
+    const btn = (target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')) as HTMLButtonElement | null;
+    const tabName = btn?.dataset.tab as TabName | undefined;
+    const itemId = btn?.dataset.id;
+
+    const isEntityTab = (tab: TabName | undefined): tab is EntityType => {
+        return tab === 'items' || tab === 'weapons' || tab === 'tomes' || tab === 'characters' || tab === 'shrines';
+    };
+
+    if (btn && tabName && isEntityTab(tabName) && itemId && typeof toggleFavorite === 'function') {
+        const nowFavorited = toggleFavorite(tabName, itemId);
+        btn.classList.toggle('favorited', nowFavorited);
+        btn.textContent = nowFavorited ? '⭐' : '☆';
+        btn.title = nowFavorited ? 'Remove from favorites' : 'Add to favorites';
+        btn.setAttribute('aria-label', nowFavorited ? 'Remove from favorites' : 'Add to favorites');
+        if (typeof ToastManager !== 'undefined') {
+            ToastManager.success(nowFavorited ? 'Added to favorites' : 'Removed from favorites');
+        }
+    }
+}
+
+/**
+ * Handle search result card click to navigate to item
+ */
+function handleSearchResultClick(target: Element): void {
+    const card = target.closest('.search-result-card') as HTMLElement | null;
+    const tabType = card?.dataset.tabType as TabName | undefined;
+    const entityId = card?.dataset.entityId;
+
+    if (!tabType || !entityId) return;
+
+    const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
+    if (searchInput) searchInput.value = '';
+
+    if (typeof switchTab === 'function') switchTab(tabType);
+
+    // Clear existing highlight timeout
+    if (activeHighlightTimeout !== null) {
+        clearTimeout(activeHighlightTimeout);
+        activeHighlightTimeout = null;
+        const prevHighlighted = document.querySelector('.search-highlight');
+        if (prevHighlighted) prevHighlighted.classList.remove('search-highlight');
+    }
+
+    // Scroll to and highlight the item
+    requestAnimationFrame(() => {
+        const itemCard = document.querySelector(`[data-entity-id="${entityId}"]`) as HTMLElement | null;
+        if (itemCard) {
+            itemCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            itemCard.classList.add('search-highlight');
+            activeHighlightTimeout = setTimeout(() => {
+                itemCard.classList.remove('search-highlight');
+                activeHighlightTimeout = null;
+            }, 2000);
+        }
+    });
+}
+
+/**
+ * Handle change events via delegation
+ * @param e - Change event
+ */
+function handleChangeDelegation(e: Event): void {
+    const target = e.target as HTMLElement;
+
+    // Tome or Item checkbox in build planner
+    if (target.classList.contains('tome-checkbox') || target.classList.contains('item-checkbox')) {
+        import('./build-planner.ts')
+            .then(({ updateBuildAnalysis }) => updateBuildAnalysis())
+            .catch(err => logger.warn({ operation: 'import.build-planner', error: { name: 'ImportError', message: err.message } }));
+        return;
+    }
+
+    // Filter select changes
+    if (target.closest('#filters') && target.tagName === 'SELECT') {
+        const tab = getState('currentTab');
+        if (tab) {
+            renderTabContent(tab);
+            if (typeof saveFilterState === 'function') saveFilterState(tab);
+        }
+        return;
+    }
+
+    // Favorites filter checkbox
+    if ((target as HTMLInputElement).id === 'favoritesOnly') {
+        const tab = getState('currentTab');
+        if (tab) {
+            renderTabContent(tab);
+            if (typeof saveFilterState === 'function') saveFilterState(tab);
+        }
+        return;
+    }
+}
+
+/**
  * Setup all event delegation handlers
  */
 export function setupEventDelegation(): void {
-    // Bug fix: Add keyboard event handler for breakpoint cards and Escape key for modals
-    document.addEventListener(
-        'keydown',
-        (e: KeyboardEvent) => {
-            // Handle search dropdown keyboard navigation first (when dropdown is visible)
-            // This takes precedence when the search input is focused and dropdown is open
-            const target = e.target as HTMLElement;
-            const isSearchInputFocused = target.id === 'searchInput';
+    // Keyboard events for navigation and shortcuts
+    document.addEventListener('keydown', handleKeydownDelegation, getListenerOptions());
 
-            if (isSearchInputFocused && isSearchDropdownVisible()) {
-                // Let the dropdown handle Arrow keys, Enter, and Escape
-                if (handleDropdownKeyboard(e)) {
-                    return; // Event was handled by dropdown
-                }
-            }
-
-            // Escape key closes modals (and dropdown if visible)
-            if (e.key === 'Escape') {
-                // Close search dropdown first if it's visible
-                if (isSearchDropdownVisible()) {
-                    hideSearchDropdown();
-                    return;
-                }
-                closeModal();
-                // Dynamic import for code splitting with graceful fallback
-                import('./compare.ts')
-                    .then(({ closeCompareModal }) => {
-                        closeCompareModal();
-                    })
-                    .catch(err => {
-                        logger.warn({
-                            operation: 'import.compare',
-                            error: { name: 'ImportError', message: err.message },
-                        });
-                        // Bug fix: Fallback to hide compare modal via DOM if module fails to load
-                        const compareModal = safeGetElementById('compareModal') as HTMLElement | null;
-                        if (compareModal) {
-                            compareModal.style.display = 'none';
-                            compareModal.classList.remove('active');
-                        }
-                    });
-                return;
-            }
-
-            // Ctrl+K or / to focus search (unless in input)
-            if ((e.ctrlKey && e.key === 'k') || e.key === '/') {
-                // Don't trigger if already in an input or textarea
-                const target = e.target as HTMLElement;
-                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-                    return;
-                }
-                e.preventDefault();
-                const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-                if (searchInput) {
-                    searchInput.focus();
-                    searchInput.select();
-                }
-                return;
-            }
-
-            // Arrow key navigation for tabs (W3C WAI-ARIA recommendation)
-            if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
-                const target = e.target as HTMLElement;
-                // Only handle when focus is on a tab button
-                if (target.classList.contains('tab-btn')) {
-                    e.preventDefault();
-                    const tabButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.tab-btn'));
-                    // Bug fix: Guard against empty tabButtons array to prevent division by zero
-                    if (tabButtons.length === 0) return;
-                    const currentIndex = tabButtons.indexOf(target as HTMLButtonElement);
-                    // Bug fix: Guard against target not found in array (returns -1)
-                    if (currentIndex === -1) return;
-
-                    let nextIndex: number;
-                    if (e.key === 'ArrowRight') {
-                        nextIndex = (currentIndex + 1) % tabButtons.length;
-                    } else {
-                        nextIndex = (currentIndex - 1 + tabButtons.length) % tabButtons.length;
-                    }
-
-                    const nextTab = tabButtons[nextIndex];
-                    if (nextTab) {
-                        nextTab.focus();
-                        const tabName = nextTab.getAttribute('data-tab') as TabName | null;
-                        if (tabName && typeof switchTab === 'function') {
-                            switchTab(tabName);
-                        }
-                    }
-                    return;
-                }
-            }
-
-            // Number keys (1-9) to switch tabs
-            if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-                // Don't trigger if in an input or textarea
-                const target = e.target as HTMLElement;
-                if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-                    return;
-                }
-                const tabMap: Record<string, TabName> = {
-                    1: 'items',
-                    2: 'weapons',
-                    3: 'tomes',
-                    4: 'characters',
-                    5: 'shrines',
-                    6: 'build-planner',
-                    7: 'calculator',
-                    8: 'advisor',
-                    9: 'changelog',
-                };
-                const tabName = tabMap[e.key];
-                if (tabName && typeof switchTab === 'function') {
-                    e.preventDefault();
-                    switchTab(tabName);
-                }
-                return;
-            }
-
-            // Enter or Space on breakpoint cards triggers quickCalc
-            if (e.key === 'Enter' || e.key === ' ') {
-                const target = e.target as HTMLElement;
-                if (target.classList.contains('breakpoint-card')) {
-                    e.preventDefault();
-                    const itemId = target.dataset.item;
-                    const targetVal = target.dataset.target;
-                    if (itemId && targetVal) {
-                        const parsedTarget = parseInt(targetVal, 10);
-                        if (!isNaN(parsedTarget)) {
-                            // Dynamic import for code splitting
-                            import('./calculator.ts')
-                                .then(({ quickCalc }) => {
-                                    quickCalc(itemId, parsedTarget);
-                                })
-                                .catch(err => {
-                                    logger.warn({
-                                        operation: 'import.calculator',
-                                        error: { name: 'ImportError', message: err.message },
-                                    });
-                                });
-                        }
-                    }
-                }
-            }
-        },
-        getListenerOptions()
-    );
-
-    // Main click delegation
-    document.addEventListener(
-        'click',
-        (e: MouseEvent) => {
-            const target = e.target;
-
-            // Bug fix: Type guard to ensure target is an Element before accessing classList
-            // e.target could be Text node, Document, or other non-Element types
-            if (!(target instanceof Element)) {
-                return;
-            }
-
-            // View Details button
-            if (target.classList.contains('view-details-btn')) {
-                const htmlTarget = target as HTMLElement;
-                const type = htmlTarget.dataset.type as EntityType | undefined;
-                const id = htmlTarget.dataset.id;
-                if (type && id) {
-                    openDetailModal(type, id);
-                }
-                return;
-            }
-
-            // Compare checkbox or its label
-            // Only handle clicks on the label element itself, not the hidden checkbox
-            // Use a timestamp to prevent rapid double-toggling from event bubbling
-            if (target.closest('.compare-checkbox-label') && !target.classList.contains('compare-checkbox')) {
-                const label = target.closest('.compare-checkbox-label') as HTMLElement;
-                const checkbox = label?.querySelector('.compare-checkbox') as HTMLInputElement | null;
-                if (checkbox) {
-                    // Prevent double-toggling by checking last toggle time
-                    const now = Date.now();
-                    const lastToggle = parseInt(checkbox.dataset.lastToggle || '0', 10);
-                    if (now - lastToggle < 100) {
-                        return; // Ignore rapid repeated clicks
-                    }
-                    checkbox.dataset.lastToggle = now.toString();
-
-                    const id = checkbox.dataset.id || checkbox.value;
-                    if (id) {
-                        e.preventDefault();
-                        // Toggle the checkbox state manually since it may be hidden
-                        checkbox.checked = !checkbox.checked;
-                        // Dynamic import for code splitting
-                        import('./compare.ts')
-                            .then(({ toggleCompareItem }) => {
-                                toggleCompareItem(id);
-                            })
-                            .catch(err => {
-                                logger.warn({
-                                    operation: 'import.compare',
-                                    error: { name: 'ImportError', message: err.message },
-                                });
-                            });
-                    }
-                }
-                return;
-            }
-
-            // Expandable text
-            if (target.classList.contains('expandable-text') || target.closest('.expandable-text')) {
-                const expandable = target.classList.contains('expandable-text')
-                    ? (target as HTMLElement)
-                    : (target.closest('.expandable-text') as HTMLElement | null);
-                if (expandable) {
-                    toggleTextExpand(expandable);
-                }
-                return;
-            }
-
-            // Remove from comparison button
-            if (target.classList.contains('remove-compare-btn') || target.closest('.remove-compare-btn')) {
-                const btn = target.classList.contains('remove-compare-btn')
-                    ? (target as HTMLElement)
-                    : (target.closest('.remove-compare-btn') as HTMLElement | null);
-                const id = btn?.dataset.removeId;
-                if (id) {
-                    // Dynamic import for code splitting
-                    import('./compare.ts')
-                        .then(({ toggleCompareItem, updateCompareDisplay }) => {
-                            toggleCompareItem(id);
-                            updateCompareDisplay();
-                        })
-                        .catch(err => {
-                            logger.warn({
-                                operation: 'import.compare',
-                                error: { name: 'ImportError', message: err.message },
-                            });
-                        });
-                }
-                return;
-            }
-
-            // Clear filters button (in empty state)
-            if (target.classList.contains('btn-secondary') && target.textContent?.includes('Clear Filters')) {
-                clearFilters();
-                return;
-            }
-
-            // Changelog expand button
-            if (target.classList.contains('changelog-expand-btn')) {
-                // Dynamic import for code splitting
-                import('./changelog.ts')
-                    .then(({ toggleChangelogExpand }) => {
-                        toggleChangelogExpand(target as HTMLButtonElement);
-                    })
-                    .catch(err => {
-                        logger.warn({
-                            operation: 'import.changelog',
-                            error: { name: 'ImportError', message: err.message },
-                        });
-                    });
-                return;
-            }
-
-            // Entity link in changelog (deep linking)
-            if (target.classList.contains('entity-link')) {
-                e.preventDefault();
-                const htmlTarget = target as HTMLElement;
-                const type = htmlTarget.dataset.entityType as EntityType | undefined;
-                const id = htmlTarget.dataset.entityId;
-                if (type && id) {
-                    openDetailModal(type, id);
-                }
-                return;
-            }
-
-            // Breakpoint card click (calculator quick calc)
-            if (target.closest('.breakpoint-card')) {
-                const card = target.closest('.breakpoint-card') as HTMLElement | null;
-                const itemId = card?.dataset.item;
-                const targetVal = card?.dataset.target;
-                if (itemId && targetVal) {
-                    const parsedTarget = parseInt(targetVal, 10);
-                    if (!isNaN(parsedTarget)) {
-                        // Dynamic import for code splitting
-                        import('./calculator.ts')
-                            .then(({ quickCalc }) => {
-                                quickCalc(itemId, parsedTarget);
-                            })
-                            .catch(err => {
-                                logger.warn({
-                                    operation: 'import.calculator',
-                                    error: { name: 'ImportError', message: err.message },
-                                });
-                            });
-                    }
-                }
-                return;
-            }
-
-            // Favorite button click
-            if (target.classList.contains('favorite-btn') || target.closest('.favorite-btn')) {
-                const btn = (
-                    target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')
-                ) as HTMLButtonElement | null;
-                const tabName = btn?.dataset.tab as TabName | undefined;
-                const itemId = btn?.dataset.id;
-                // Type guard: favorites only work for entity tabs, not build-planner or calculator
-                const isEntityTab = (tab: TabName | undefined): tab is EntityType => {
-                    return (
-                        tab === 'items' ||
-                        tab === 'weapons' ||
-                        tab === 'tomes' ||
-                        tab === 'characters' ||
-                        tab === 'shrines'
-                    );
-                };
-                if (btn && tabName && isEntityTab(tabName) && itemId && typeof toggleFavorite === 'function') {
-                    const nowFavorited = toggleFavorite(tabName, itemId);
-                    // Update button appearance
-                    btn.classList.toggle('favorited', nowFavorited);
-                    btn.textContent = nowFavorited ? '⭐' : '☆';
-                    btn.title = nowFavorited ? 'Remove from favorites' : 'Add to favorites';
-                    btn.setAttribute('aria-label', nowFavorited ? 'Remove from favorites' : 'Add to favorites');
-                    // Show toast
-                    if (typeof ToastManager !== 'undefined') {
-                        ToastManager.success(nowFavorited ? 'Added to favorites' : 'Removed from favorites');
-                    }
-                }
-                return;
-            }
-
-            // Global search result card click - navigate to item
-            if (target.closest('.search-result-card')) {
-                const card = target.closest('.search-result-card') as HTMLElement | null;
-                const tabType = card?.dataset.tabType as TabName | undefined;
-                const entityId = card?.dataset.entityId;
-
-                if (tabType && entityId) {
-                    // Clear search and switch to the appropriate tab
-                    const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-                    if (searchInput) {
-                        searchInput.value = '';
-                    }
-
-                    // Switch to the target tab
-                    if (typeof switchTab === 'function') {
-                        switchTab(tabType);
-                    }
-
-                    // Clear any existing highlight timeout to prevent accumulation
-                    if (activeHighlightTimeout !== null) {
-                        clearTimeout(activeHighlightTimeout);
-                        activeHighlightTimeout = null;
-                        // Remove highlight from any previously highlighted card
-                        const prevHighlighted = document.querySelector('.search-highlight');
-                        if (prevHighlighted) {
-                            prevHighlighted.classList.remove('search-highlight');
-                        }
-                    }
-
-                    // After tab switch, scroll to and highlight the item
-                    requestAnimationFrame(() => {
-                        const itemCard = document.querySelector(`[data-entity-id="${entityId}"]`) as HTMLElement | null;
-                        if (itemCard) {
-                            // Scroll into view with smooth behavior
-                            itemCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-                            // Add highlight animation with tracked timeout
-                            itemCard.classList.add('search-highlight');
-                            activeHighlightTimeout = setTimeout(() => {
-                                itemCard.classList.remove('search-highlight');
-                                activeHighlightTimeout = null;
-                            }, 2000);
-                        }
-                    });
-                }
-                return;
-            }
-        },
-        getListenerOptions()
-    );
+    // Click events delegation
+    document.addEventListener('click', handleClickDelegation, getListenerOptions());
 
     // Change event delegation for checkboxes in build planner
-    document.addEventListener(
-        'change',
-        (e: Event) => {
-            const target = e.target as HTMLElement;
-
-            // Tome checkbox in build planner
-            if (target.classList.contains('tome-checkbox')) {
-                // Dynamic import for code splitting
-                import('./build-planner.ts')
-                    .then(({ updateBuildAnalysis }) => {
-                        updateBuildAnalysis();
-                    })
-                    .catch(err => {
-                        logger.warn({
-                            operation: 'import.build-planner',
-                            error: { name: 'ImportError', message: err.message },
-                        });
-                    });
-                return;
-            }
-
-            // Item checkbox in build planner
-            if (target.classList.contains('item-checkbox')) {
-                // Dynamic import for code splitting
-                import('./build-planner.ts')
-                    .then(({ updateBuildAnalysis }) => {
-                        updateBuildAnalysis();
-                    })
-                    .catch(err => {
-                        logger.warn({
-                            operation: 'import.build-planner',
-                            error: { name: 'ImportError', message: err.message },
-                        });
-                    });
-                return;
-            }
-
-            // Filter select changes - guard against uninitialized currentTab
-            if (target.closest('#filters') && target.tagName === 'SELECT') {
-                const tab = getState('currentTab');
-                if (tab) {
-                    renderTabContent(tab);
-                    // Save filter state when filters change
-                    if (typeof saveFilterState === 'function') {
-                        saveFilterState(tab);
-                    }
-                }
-                return;
-            }
-
-            // Favorites filter checkbox - guard against uninitialized currentTab
-            if ((target as HTMLInputElement).id === 'favoritesOnly') {
-                const tab = getState('currentTab');
-                if (tab) {
-                    renderTabContent(tab);
-                    // Save filter state when favorites checkbox changes
-                    if (typeof saveFilterState === 'function') {
-                        saveFilterState(tab);
-                    }
-                }
-                return;
-            }
-        },
-        getListenerOptions()
-    );
+    document.addEventListener('change', handleChangeDelegation, getListenerOptions());
 
     // Cleanup event listeners on page unload to prevent memory leaks
-    // Using 'pagehide' instead of 'beforeunload' for better compatibility with bfcache
-    window.addEventListener(
-        'pagehide',
+    window.addEventListener('pagehide', () => cleanupEventListeners(), getListenerOptions());
+}
+
+/**
+ * Setup tab button click listeners
+ */
+function setupTabButtonListeners(): void {
+    document.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(btn => {
+        btn.addEventListener(
+            'click',
+            () => {
+                const tabName = btn.getAttribute('data-tab') as TabName | null;
+                if (tabName) switchTab(tabName);
+            },
+            getListenerOptions()
+        );
+    });
+}
+
+/**
+ * Setup tab scroll indicators for mobile
+ */
+function setupTabScrollIndicators(): void {
+    const tabContainer = document.querySelector('.tabs .container') as HTMLElement | null;
+    const tabButtons = document.querySelector('.tab-buttons') as HTMLElement | null;
+
+    if (!tabContainer || !tabButtons) return;
+
+    cleanupTabScrollListeners();
+
+    const updateTabScrollIndicators = (): void => {
+        const canScrollLeft = tabButtons.scrollLeft > 5;
+        const canScrollRight = tabButtons.scrollLeft < tabButtons.scrollWidth - tabButtons.clientWidth - 5;
+        tabContainer.classList.toggle('can-scroll-left', canScrollLeft);
+        tabContainer.classList.toggle('can-scroll-right', canScrollRight);
+    };
+
+    let scrollRAFPending = false;
+    const throttledScrollHandler = (): void => {
+        if (scrollRAFPending) return;
+        scrollRAFPending = true;
+        requestAnimationFrame(() => {
+            updateTabScrollIndicators();
+            scrollRAFPending = false;
+        });
+    };
+
+    const debouncedResizeHandler = debounce(updateTabScrollIndicators, 100);
+
+    tabButtons.addEventListener('scroll', throttledScrollHandler, getListenerOptions({ passive: true }));
+    window.addEventListener('resize', debouncedResizeHandler, getListenerOptions());
+
+    scrollListenerCleanup = () => tabButtons.removeEventListener('scroll', throttledScrollHandler);
+    resizeListenerCleanup = () => window.removeEventListener('resize', debouncedResizeHandler);
+
+    setTimeout(updateTabScrollIndicators, 100);
+}
+
+/**
+ * Setup search input listeners
+ */
+function setupSearchListeners(): void {
+    const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
+    if (!searchInput) return;
+
+    searchInput.addEventListener('input', debounce(handleSearch, 300), getListenerOptions());
+
+    searchInput.addEventListener(
+        'focus',
         () => {
-            cleanupEventListeners();
+            const currentQuery = searchInput.value.trim();
+            if (currentQuery.length >= 2) {
+                handleSearch();
+            } else if (typeof showSearchHistoryDropdown === 'function') {
+                showSearchHistoryDropdown(searchInput, handleSearch);
+            }
         },
         getListenerOptions()
     );
 }
 
 /**
- * Setup all event listeners
+ * Setup modal close and backdrop listeners
  */
-export function setupEventListeners(): void {
-    // Tab buttons
-    document.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(btn => {
-        btn.addEventListener(
-            'click',
-            () => {
-                const tabName = btn.getAttribute('data-tab') as TabName | null;
-                if (tabName) {
-                    switchTab(tabName);
-                }
-            },
-            getListenerOptions()
-        );
-    });
-
-    // Tab scroll indicators (mobile)
-    const tabContainer = document.querySelector('.tabs .container') as HTMLElement | null;
-    const tabButtons = document.querySelector('.tab-buttons') as HTMLElement | null;
-
-    if (tabContainer && tabButtons) {
-        // Clean up any existing scroll/resize listeners before adding new ones
-        cleanupTabScrollListeners();
-
-        const updateTabScrollIndicators = (): void => {
-            const canScrollLeft = tabButtons.scrollLeft > 5;
-            const canScrollRight = tabButtons.scrollLeft < tabButtons.scrollWidth - tabButtons.clientWidth - 5;
-
-            tabContainer.classList.toggle('can-scroll-left', canScrollLeft);
-            tabContainer.classList.toggle('can-scroll-right', canScrollRight);
-        };
-
-        // Use requestAnimationFrame throttling for scroll events to prevent jank
-        // This ensures we only update once per frame, not on every scroll pixel
-        let scrollRAFPending = false;
-        const throttledScrollHandler = (): void => {
-            if (scrollRAFPending) return;
-            scrollRAFPending = true;
-            requestAnimationFrame(() => {
-                updateTabScrollIndicators();
-                scrollRAFPending = false;
-            });
-        };
-
-        const debouncedResizeHandler = debounce(updateTabScrollIndicators, 100);
-
-        tabButtons.addEventListener('scroll', throttledScrollHandler, getListenerOptions({ passive: true }));
-        window.addEventListener('resize', debouncedResizeHandler, getListenerOptions());
-
-        // Store cleanup functions to prevent memory leaks
-        scrollListenerCleanup = () => tabButtons.removeEventListener('scroll', throttledScrollHandler);
-        resizeListenerCleanup = () => window.removeEventListener('resize', debouncedResizeHandler);
-
-        // Initial check after a short delay to ensure layout is complete
-        setTimeout(updateTabScrollIndicators, 100);
-    }
-
-    // Search input - Bug fix: Add debounce to prevent excessive re-renders
-    const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-    if (searchInput) {
-        searchInput.addEventListener('input', debounce(handleSearch, 300), getListenerOptions());
-
-        // Show search history on focus (if no current query)
-        // Or re-show search dropdown if there's already a query
-        searchInput.addEventListener(
-            'focus',
-            () => {
-                const currentQuery = searchInput.value.trim();
-                if (currentQuery.length >= 2) {
-                    // Re-trigger search to show dropdown with current query
-                    handleSearch();
-                } else if (typeof showSearchHistoryDropdown === 'function') {
-                    showSearchHistoryDropdown(searchInput, handleSearch);
-                }
-            },
-            getListenerOptions()
-        );
-    }
-
+function setupModalListeners(): void {
     // Modal close buttons
     document.querySelectorAll<HTMLElement>('.close').forEach(closeBtn => {
         closeBtn.addEventListener('click', closeModal, getListenerOptions());
@@ -772,94 +713,74 @@ export function setupEventListeners(): void {
         closeCompare.addEventListener(
             'click',
             () => {
-                // Dynamic import for code splitting
                 import('./compare.ts')
-                    .then(({ closeCompareModal }) => {
-                        closeCompareModal();
-                    })
-                    .catch(err => {
-                        logger.warn({
-                            operation: 'import.compare',
-                            error: { name: 'ImportError', message: err.message },
-                        });
-                    });
+                    .then(({ closeCompareModal }) => closeCompareModal())
+                    .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
             },
             getListenerOptions()
         );
     }
 
-    // Click/touch outside modal to close - handle backdrop clicks
-    // Check if click is inside modal but outside modal-content (the backdrop area)
-    // Uses module-scoped lastModalCloseTime to prevent double-handling
+    // Handle backdrop clicks/touches to close modals
     const handleModalBackdropInteraction = (e: MouseEvent | TouchEvent): void => {
-        // Prevent double-handling: on mobile, both touchend and click can fire for same tap
         const now = Date.now();
-        if (now - lastModalCloseTime < MODAL_CLOSE_DEBOUNCE_MS) {
-            return;
-        }
+        if (now - lastModalCloseTime < MODAL_CLOSE_DEBOUNCE_MS) return;
 
         const target = e.target as HTMLElement;
         const itemModal = safeGetElementById('itemModal') as HTMLElement | null;
         const compareModal = safeGetElementById('compareModal') as HTMLElement | null;
 
-        // Close item modal if clicking on backdrop (modal element but not modal-content)
         if (itemModal && itemModal.classList.contains('active')) {
             const modalContent = itemModal.querySelector('.modal-content');
             if (target === itemModal || (itemModal.contains(target) && !modalContent?.contains(target))) {
                 lastModalCloseTime = now;
                 closeModal();
-                return; // Don't check compare modal if we just closed item modal
+                return;
             }
         }
 
-        // Close compare modal if clicking on backdrop
         if (compareModal && compareModal.classList.contains('active')) {
             const modalContent = compareModal.querySelector('.modal-content');
             if (target === compareModal || (compareModal.contains(target) && !modalContent?.contains(target))) {
                 lastModalCloseTime = now;
-                // Dynamic import for code splitting
                 import('./compare.ts')
-                    .then(({ closeCompareModal }) => {
-                        closeCompareModal();
-                    })
-                    .catch(err => {
-                        logger.warn({
-                            operation: 'import.compare',
-                            error: { name: 'ImportError', message: err.message },
-                        });
-                    });
+                    .then(({ closeCompareModal }) => closeCompareModal())
+                    .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
             }
         }
     };
 
-    // Handle both click and touch events for desktop/mobile compatibility
     window.addEventListener('click', handleModalBackdropInteraction, getListenerOptions());
     window.addEventListener('touchend', handleModalBackdropInteraction, getListenerOptions());
+}
 
-    // Compare button
+/**
+ * Setup compare button listener
+ */
+function setupCompareButtonListener(): void {
     const compareBtn = safeGetElementById('compare-btn') as HTMLButtonElement | null;
     if (compareBtn) {
         compareBtn.addEventListener(
             'click',
             () => {
-                // Dynamic import for code splitting
                 import('./compare.ts')
-                    .then(({ openCompareModal }) => {
-                        openCompareModal();
-                    })
-                    .catch(err => {
-                        logger.warn({
-                            operation: 'import.compare',
-                            error: { name: 'ImportError', message: err.message },
-                        });
-                    });
+                    .then(({ openCompareModal }) => openCompareModal())
+                    .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
             },
             getListenerOptions()
         );
     }
+}
 
-    // Build planner events are set up lazily when the tab is first accessed
-    // This is handled by the tab-loader and build-planner module initialization
+/**
+ * Setup all event listeners
+ */
+export function setupEventListeners(): void {
+    setupTabButtonListeners();
+    setupTabScrollIndicators();
+    setupSearchListeners();
+    setupModalListeners();
+    setupCompareButtonListener();
 
     // Setup event delegation for dynamic elements
     setupEventDelegation();
@@ -970,77 +891,72 @@ export function getCurrentTab(): TabName {
 export let currentTab: TabName = getState('currentTab');
 
 /**
- * Switch to a different tab
- * Loads tab-specific modules lazily for better initial load performance
- * @param {string} tabName - Tab name to switch to
+ * Check if tab switch should proceed (validation and debouncing)
+ * @returns true if switch should proceed, false otherwise
  */
-export async function switchTab(tabName: TabName): Promise<void> {
-    // Runtime validation for tab names to catch invalid calls early
+function shouldProceedWithTabSwitch(tabName: TabName): boolean {
+    // Runtime validation
     if (!VALID_TABS.includes(tabName)) {
         logger.warn({
             operation: 'tab.switch',
             error: { name: 'InvalidTabError', message: `Invalid tab name: ${tabName}` },
         });
-        return;
+        return false;
     }
 
-    // Debounce rapid tab switching to prevent performance issues
+    // Debounce rapid switches
     const now = Date.now();
     if (now - lastTabSwitchTime < TAB_SWITCH_DEBOUNCE_MS) {
-        return; // Ignore rapid successive tab switches
+        return false;
     }
 
-    // Race condition fix: Prevent concurrent tab switches
-    // Without this lock, multiple async switchTab calls could interleave,
-    // causing state corruption (e.g., charts destroyed while being created)
+    // Prevent concurrent switches
     if (tabSwitchInProgress) {
         logger.info({
             operation: 'tab.switch.skipped',
             data: { reason: 'switch_in_progress', requestedTab: tabName },
         });
-        return;
-    }
-    tabSwitchInProgress = true;
-    lastTabSwitchTime = now;
-
-    try {
-
-    const previousTab = getState('currentTab');
-
-    // Don't switch if already on the same tab, UNLESS it's the initial render
-    // Check if content has been rendered by looking for item cards in the container
-    const isInitialRender =
-        !document.querySelector('#itemsContainer .item-card') &&
-        !document.querySelector('#weaponsContainer .item-card') &&
-        !document.querySelector('#tomesContainer .item-card');
-    if (previousTab === tabName && !isInitialRender) {
-        return; // finally block will release lock
+        return false;
     }
 
-    // Save current tab's filter state before switching
+    return true;
+}
+
+/**
+ * Check if this is the initial render (no content rendered yet)
+ */
+function isInitialTabRender(): boolean {
+    return !document.querySelector('#itemsContainer .item-card') &&
+           !document.querySelector('#weaponsContainer .item-card') &&
+           !document.querySelector('#tomesContainer .item-card');
+}
+
+/**
+ * Save current tab state and destroy charts
+ */
+async function cleanupPreviousTab(previousTab: TabName): Promise<void> {
     if (previousTab && typeof saveFilterState === 'function') {
         saveFilterState(previousTab);
     }
 
-    // Destroy existing charts before switching tabs (if charts module was loaded)
     try {
         const { destroyAllCharts } = await import('./charts.ts');
         destroyAllCharts();
     } catch {
         // Charts module may not be loaded yet, that's fine
     }
+}
 
-    // Update store (also syncs to window.currentTab automatically)
+/**
+ * Update global state for the new tab
+ */
+function updateTabState(tabName: TabName, previousTab: TabName): void {
     setState('currentTab', tabName);
-    currentTab = tabName; // Keep local export in sync
-
-    // Persist tab selection to localStorage
+    currentTab = tabName;
     localStorage.setItem(TAB_STORAGE_KEY, tabName);
-
-    // Update logger context with current tab
     logger.setContext('currentTab', tabName);
 
-    // Get item count for the new tab (data tabs only)
+    // Get item count for logging
     let itemCount = 0;
     if (typeof allData !== 'undefined' && allData) {
         const tabDataMap: Record<string, unknown[] | undefined> = {
@@ -1056,17 +972,16 @@ export async function switchTab(tabName: TabName): Promise<void> {
         }
     }
 
-    // Log tab switch event
     logger.info({
         operation: 'tab.switch',
-        data: {
-            fromTab: previousTab,
-            toTab: tabName,
-            itemCount,
-        },
+        data: { fromTab: previousTab, toTab: tabName, itemCount },
     });
-    // Note: window.currentTab is synced automatically by the store
+}
 
+/**
+ * Update UI elements for the new tab
+ */
+function updateTabUI(tabName: TabName): void {
     // Update tab buttons
     document.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(btn => {
         const isActive = btn.getAttribute('data-tab') === tabName;
@@ -1074,7 +989,7 @@ export async function switchTab(tabName: TabName): Promise<void> {
         btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });
 
-    // Update tab content
+    // Update tab content visibility
     document.querySelectorAll<HTMLElement>('.tab-content').forEach(content => {
         content.classList.remove('active');
     });
@@ -1083,16 +998,17 @@ export async function switchTab(tabName: TabName): Promise<void> {
         tabContent.classList.add('active');
     }
 
-    // Update filters based on tab
+    // Update filters
     updateFilters(tabName);
-
-    // Restore filter state for new tab
     restoreFilterState(tabName);
+}
 
-    // Show skeleton loading state before rendering (improves perceived performance)
+/**
+ * Load modules and render content for the tab
+ */
+async function loadAndRenderTab(tabName: TabName): Promise<void> {
     showTabSkeleton(tabName);
 
-    // Lazy load tab-specific modules before rendering
     try {
         await loadTabModules(tabName);
     } catch (error) {
@@ -1105,13 +1021,37 @@ export async function switchTab(tabName: TabName): Promise<void> {
             },
             data: { tabName },
         });
-        // Continue with render attempt anyway - core functionality may still work
     }
 
-    // Render content for the tab (will replace skeleton with actual content)
     await renderTabContent(tabName);
+}
+
+/**
+ * Switch to a different tab
+ * Loads tab-specific modules lazily for better initial load performance
+ * @param {string} tabName - Tab name to switch to
+ */
+export async function switchTab(tabName: TabName): Promise<void> {
+    if (!shouldProceedWithTabSwitch(tabName)) {
+        return;
+    }
+
+    tabSwitchInProgress = true;
+    lastTabSwitchTime = Date.now();
+
+    try {
+        const previousTab = getState('currentTab');
+
+        // Skip if already on this tab (unless initial render)
+        if (previousTab === tabName && !isInitialTabRender()) {
+            return;
+        }
+
+        await cleanupPreviousTab(previousTab);
+        updateTabState(tabName, previousTab);
+        updateTabUI(tabName);
+        await loadAndRenderTab(tabName);
     } finally {
-        // Race condition fix: Always release lock when done
         tabSwitchInProgress = false;
     }
 }

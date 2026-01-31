@@ -19,6 +19,9 @@ import {
 import { setLastOverlayUrl, updateStats, updateLogViewer, isDebugEnabled } from './debug-ui.ts';
 import { escapeHtml } from './utils.ts';
 import { MAX_ITEM_COUNT, MAX_FILE_SIZE_BYTES } from './constants.ts';
+import { createMutex, createDebouncedAsync } from './async-utils.ts';
+import { logError, logWarning } from './error-utils.ts';
+import { createProgressIndicator, createEventListenerManager } from './dom-utils.ts';
 
 // State
 let allData: AllGameData = {};
@@ -30,16 +33,15 @@ let selectedWeapon: Weapon | null = null;
 let templatesLoaded: boolean = false;
 let templatesLoadError: Error | null = null;
 
-// Event listener cleanup - use AbortController for easy cleanup
-let eventAbortController: AbortController | null = null;
+// Event listener cleanup - use centralized manager for easy cleanup
+const eventListenerManager = createEventListenerManager();
 
 // File upload debounce - prevents race conditions from rapid uploads
-let uploadDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-let pendingUploadId = 0; // Track upload sequence to ignore stale results
+const uploadDebouncer = createDebouncedAsync(processFileUploadAsync, 100);
 
-// Race condition fix: Lock to prevent concurrent detection runs
+// Race condition fix: Mutex to prevent concurrent detection runs
 // Without this, multiple button clicks could start overlapping detections
-let detectionInProgress = false;
+const detectionMutex = createMutex('scan_detection');
 
 // Callbacks for when build state is updated
 type BuildStateCallback = (state: {
@@ -125,47 +127,40 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
  * Cleanup event listeners to prevent memory leaks
  */
 export function cleanupEventListeners(): void {
-    if (eventAbortController) {
-        eventAbortController.abort();
-        eventAbortController = null;
-    }
+    eventListenerManager.removeAll();
 }
 
 /**
  * Setup event listeners for scan build UI
- * Uses AbortController for easy cleanup to prevent memory leaks
+ * Uses centralized event listener manager for easy cleanup to prevent memory leaks
  */
 function setupEventListeners(): void {
     // Clean up any existing listeners first
     cleanupEventListeners();
 
-    // Create new AbortController for this batch of listeners
-    eventAbortController = new AbortController();
-    const { signal } = eventAbortController;
-
     // Upload/Camera button
     const uploadBtn = document.getElementById('scan-upload-btn');
-    uploadBtn?.addEventListener('click', handleUploadClick, { signal });
+    if (uploadBtn) eventListenerManager.addWithSignal(uploadBtn, 'click', handleUploadClick);
 
     // File input change
     const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
-    fileInput?.addEventListener('change', handleFileSelect, { signal });
+    if (fileInput) eventListenerManager.addWithSignal(fileInput, 'change', handleFileSelect);
 
     // Clear image button
     const clearBtn = document.getElementById('scan-clear-image');
-    clearBtn?.addEventListener('click', clearUploadedImage, { signal });
+    if (clearBtn) eventListenerManager.addWithSignal(clearBtn, 'click', clearUploadedImage);
 
     // Apply to advisor button
     const applyBtn = document.getElementById('scan-apply-to-advisor');
-    applyBtn?.addEventListener('click', applyToAdvisor, { signal });
+    if (applyBtn) eventListenerManager.addWithSignal(applyBtn, 'click', applyToAdvisor);
 
     // Auto-detect button (OCR)
     const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
-    autoDetectBtn?.addEventListener('click', handleAutoDetect, { signal });
+    if (autoDetectBtn) eventListenerManager.addWithSignal(autoDetectBtn, 'click', handleAutoDetect);
 
     // Hybrid detect button (OCR + CV)
     const hybridDetectBtn = document.getElementById('scan-hybrid-detect-btn');
-    hybridDetectBtn?.addEventListener('click', handleHybridDetect, { signal });
+    if (hybridDetectBtn) eventListenerManager.addWithSignal(hybridDetectBtn, 'click', handleHybridDetect);
 }
 
 /**
@@ -197,78 +192,52 @@ async function handleFileSelect(e: Event): Promise<void> {
         return;
     }
 
-    // Clear any pending upload debounce
-    if (uploadDebounceTimer) {
-        clearTimeout(uploadDebounceTimer);
-        uploadDebounceTimer = null;
-    }
-
-    // Increment upload ID to track this specific upload
-    pendingUploadId++;
-    const currentUploadId = pendingUploadId;
-
     // Debounce file reads to prevent race conditions from rapid uploads
-    uploadDebounceTimer = setTimeout(() => {
-        processFileUpload(file, currentUploadId);
-    }, 100); // 100ms debounce
+    uploadDebouncer.call(file);
 }
 
 /**
- * Process file upload after debounce
+ * Process file upload after debounce (async version for debouncer)
+ * Note: The debouncer handles stale check internally
  */
-function processFileUpload(file: File, uploadId: number): void {
-    try {
-        // Read file as data URL
-        const reader = new FileReader();
-        reader.onload = event => {
-            // Check if this upload is still the current one (race condition guard)
-            if (uploadId !== pendingUploadId) {
-                logger.info({
-                    operation: 'scan_build.upload_superseded',
-                    data: { uploadId, currentId: pendingUploadId },
-                });
-                return;
-            }
-
-            const result = event.target?.result;
-            if (typeof result === 'string') {
-                uploadedImage = result;
-                displayUploadedImage();
-                showItemSelectionGrid();
-                ToastManager.success('Image uploaded! Now select the items you see');
-            } else {
-                ToastManager.error('Failed to read image as data URL');
-            }
-        };
-        reader.onerror = () => {
-            // Only show error if this is still the current upload
-            if (uploadId === pendingUploadId) {
+async function processFileUploadAsync(file: File): Promise<void> {
+    return new Promise((resolve, reject) => {
+        try {
+            // Read file as data URL
+            const reader = new FileReader();
+            reader.onload = event => {
+                const result = event.target?.result;
+                if (typeof result === 'string') {
+                    uploadedImage = result;
+                    displayUploadedImage();
+                    showItemSelectionGrid();
+                    ToastManager.success('Image uploaded! Now select the items you see');
+                    resolve();
+                } else {
+                    ToastManager.error('Failed to read image as data URL');
+                    reject(new Error('Failed to read image as data URL'));
+                }
+            };
+            reader.onerror = () => {
                 ToastManager.error('Failed to read image file');
-            }
-        };
-        reader.readAsDataURL(file);
+                reject(new Error('Failed to read image file'));
+            };
+            reader.readAsDataURL(file);
 
-        logger.info({
-            operation: 'scan_build.image_uploaded',
-            data: {
-                fileName: file.name,
-                fileSize: file.size,
-                fileType: file.type,
-                uploadId,
-            },
-        });
-    } catch (error) {
-        logger.error({
-            operation: 'scan_build.upload_error',
-            error: {
-                name: (error as Error).name,
-                message: (error as Error).message,
-            },
-        });
-        if (uploadId === pendingUploadId) {
+            logger.info({
+                operation: 'scan_build.image_uploaded',
+                data: {
+                    fileName: file.name,
+                    fileSize: file.size,
+                    fileType: file.type,
+                },
+            });
+        } catch (error) {
+            logError('scan_build.upload_error', error);
             ToastManager.error('Failed to upload image');
+            reject(error);
         }
-    }
+    });
 }
 
 /**
@@ -309,14 +278,8 @@ function displayUploadedImage(): void {
         autoDetectArea.style.display = 'block';
     }
 
-    // Attach clear button listener using same abort controller for cleanup
-    // Note: Uses the existing signal so it gets cleaned up with other listeners
-    if (eventAbortController) {
-        clearBtn.addEventListener('click', clearUploadedImage, { signal: eventAbortController.signal });
-    } else {
-        // Fallback if called before setupEventListeners
-        clearBtn.addEventListener('click', clearUploadedImage);
-    }
+    // Attach clear button listener using centralized event manager for cleanup
+    eventListenerManager.add(clearBtn, 'click', clearUploadedImage);
 }
 
 /**
@@ -368,24 +331,25 @@ async function handleAutoDetect(): Promise<void> {
         return;
     }
 
-    // Race condition fix: Prevent concurrent detection runs
-    // Multiple button clicks could otherwise start overlapping detections,
-    // corrupting progress indicators and detection state
-    if (detectionInProgress) {
+    // Race condition fix: Prevent concurrent detection runs using mutex
+    if (!detectionMutex.tryAcquire()) {
         ToastManager.info('Detection already in progress...');
         return;
     }
-    detectionInProgress = true;
 
     // Create progress indicator before try block to ensure cleanup in finally
-    const progressDiv = createProgressIndicator();
+    const progress = createProgressIndicator('Initializing...');
+    const previewContainer = document.getElementById('scan-image-preview');
+    if (previewContainer) {
+        previewContainer.appendChild(progress.element);
+    }
 
     try {
         ToastManager.info('Starting auto-detection...');
 
         // Run OCR
-        const results = await autoDetectFromImage(uploadedImage, (progress, status) => {
-            updateProgressIndicator(progressDiv, progress, status);
+        const results = await autoDetectFromImage(uploadedImage, (pct, status) => {
+            progress.update(pct, status);
         });
 
         // If OCR found nothing, try CV as fallback
@@ -395,12 +359,12 @@ async function handleAutoDetect(): Promise<void> {
                 data: { message: 'OCR found no items, trying icon detection' },
             });
 
-            updateProgressIndicator(progressDiv, 50, 'Trying icon detection...');
+            progress.update(50, 'Trying icon detection...');
             ToastManager.info('No text found, trying icon detection...');
 
             try {
-                const cvResults = await detectItemsWithCV(uploadedImage, (progress, status) => {
-                    updateProgressIndicator(progressDiv, 50 + progress * 0.5, status);
+                const cvResults = await detectItemsWithCV(uploadedImage, (pct, status) => {
+                    progress.update(50 + pct * 0.5, status);
                 });
 
                 if (cvResults.length > 0) {
@@ -430,10 +394,7 @@ async function handleAutoDetect(): Promise<void> {
                     return;
                 }
             } catch (cvError) {
-                logger.warn({
-                    operation: 'scan_build.cv_fallback_failed',
-                    error: { name: (cvError as Error).name, message: (cvError as Error).message },
-                });
+                logWarning('scan_build.cv_fallback_failed', cvError);
             }
         }
 
@@ -460,18 +421,127 @@ async function handleAutoDetect(): Promise<void> {
             },
         });
     } catch (error) {
-        logger.error({
-            operation: 'scan_build.auto_detect_error',
-            error: {
-                name: (error as Error).name,
-                message: (error as Error).message,
-            },
-        });
+        logError('scan_build.auto_detect_error', error);
         ToastManager.error(`Auto-detection failed: ${(error as Error).message}`);
     } finally {
         // Always clean up progress indicator and release lock
-        progressDiv.remove();
-        detectionInProgress = false;
+        progress.remove();
+        detectionMutex.release();
+    }
+}
+
+/**
+ * Combine OCR and CV detection results into unified hybrid results
+ */
+function combineHybridResults(
+    ocrResults: Awaited<ReturnType<typeof autoDetectFromImage>>,
+    cvResults: Awaited<ReturnType<typeof detectItemsWithCV>>
+): {
+    items: DetectionResult[];
+    tomes: DetectionResult[];
+    character: DetectionResult | null;
+    weapon: DetectionResult | null;
+    rawText: string;
+} {
+    // Convert CV results to OCR format
+    const cvAsOCR: DetectionResult[] = cvResults.map(cv => ({
+        type: cv.type,
+        entity: cv.entity,
+        confidence: cv.confidence,
+        rawText: `cv_detected_${cv.entity.name}`,
+    }));
+
+    // Combine and aggregate items
+    const combinedItems = combineDetections(
+        [...ocrResults.items, ...cvAsOCR.filter(r => r.type === 'item')],
+        cvResults.filter(r => r.type === 'item')
+    );
+    const combinedTomes = combineDetections(
+        [...ocrResults.tomes, ...cvAsOCR.filter(r => r.type === 'tome')],
+        cvResults.filter(r => r.type === 'tome')
+    );
+
+    const aggregatedItems = aggregateDuplicates(combinedItems);
+    const aggregatedTomes = aggregateDuplicates(combinedTomes);
+
+    // Determine character (OCR takes priority, fallback to CV)
+    let character: DetectionResult | null = ocrResults.character;
+    if (!character) {
+        const charResult = cvResults.find(r => r.type === 'character');
+        if (charResult) {
+            character = {
+                type: 'character' as const,
+                entity: charResult.entity,
+                confidence: charResult.confidence,
+                rawText: 'hybrid_cv',
+            };
+        }
+    }
+
+    // Determine weapon (OCR takes priority, fallback to CV)
+    let weapon: DetectionResult | null = ocrResults.weapon;
+    if (!weapon) {
+        const weaponResult = cvResults.find(r => r.type === 'weapon');
+        if (weaponResult) {
+            weapon = {
+                type: 'weapon' as const,
+                entity: weaponResult.entity,
+                confidence: weaponResult.confidence,
+                rawText: 'hybrid_cv',
+            };
+        }
+    }
+
+    return {
+        items: aggregatedItems.map(r => ({
+            type: r.type as 'item',
+            entity: r.entity,
+            confidence: r.confidence,
+            rawText: `hybrid_${r.method}`,
+            count: r.count,
+        })),
+        tomes: aggregatedTomes.map(r => ({
+            type: r.type as 'tome',
+            entity: r.entity,
+            confidence: r.confidence,
+            rawText: `hybrid_${r.method}`,
+            count: r.count,
+        })),
+        character,
+        weapon,
+        rawText: 'hybrid_detection',
+    };
+}
+
+/**
+ * Display debug overlay if debug mode is enabled
+ */
+async function displayDebugOverlay(
+    image: string,
+    cvResults: Awaited<ReturnType<typeof detectItemsWithCV>>,
+    hybridResults: { items: DetectionResult[]; tomes: DetectionResult[] }
+): Promise<void> {
+    if (isDebugEnabled()) {
+        const debugOverlayUrl = await createDebugOverlay(image, cvResults);
+        setLastOverlayUrl(debugOverlayUrl);
+
+        const imagePreview = document.getElementById('scan-image-preview');
+        if (imagePreview) {
+            imagePreview.innerHTML = `
+                <img src="${debugOverlayUrl}" alt="Debug Overlay" style="max-width: 100%; border-radius: 8px;" />
+                <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
+                    Debug Mode: Green=High confidence, Orange=Medium, Red=Low
+                </p>
+            `;
+        }
+        ToastManager.success(
+            `Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Debug overlay shown)`
+        );
+    } else {
+        setLastOverlayUrl(null);
+        ToastManager.success(
+            `Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Enhanced accuracy!)`
+        );
     }
 }
 
@@ -484,154 +554,52 @@ async function handleHybridDetect(): Promise<void> {
         return;
     }
 
-    // Race condition fix: Prevent concurrent detection runs
-    if (detectionInProgress) {
+    if (!detectionMutex.tryAcquire()) {
         ToastManager.info('Detection already in progress...');
         return;
     }
-    detectionInProgress = true;
 
-    // Check if templates are still loading
     if (!templatesLoaded && !templatesLoadError) {
         ToastManager.info('Item templates are still loading. Please wait a moment and try again.');
-        detectionInProgress = false; // Release lock since we're returning early
+        detectionMutex.release();
         return;
     }
 
-    // Warn if templates failed to load (CV will have reduced accuracy)
     if (templatesLoadError) {
         ToastManager.warning('Item templates failed to load. Detection accuracy may be reduced.');
-        logger.warn({
-            operation: 'scan_build.hybrid_detect_degraded',
-            error: {
-                name: templatesLoadError.name,
-                message: templatesLoadError.message,
-            },
-        });
+        logWarning('scan_build.hybrid_detect_degraded', templatesLoadError);
     }
 
-    // Create progress indicator before try block to ensure cleanup in finally
-    const progressDiv = createProgressIndicator();
+    const progress = createProgressIndicator('Initializing...');
+    const previewContainer = document.getElementById('scan-image-preview');
+    if (previewContainer) {
+        previewContainer.appendChild(progress.element);
+    }
 
     try {
         ToastManager.info('Starting hybrid detection (OCR + Computer Vision)...');
 
-        // Run OCR first
-        updateProgressIndicator(progressDiv, 10, 'Running OCR...');
-        const ocrResults = await autoDetectFromImage(uploadedImage, (progress, status) => {
-            updateProgressIndicator(progressDiv, 10 + progress * 0.4, status);
+        // Run OCR phase
+        progress.update(10, 'Running OCR...');
+        const ocrResults = await autoDetectFromImage(uploadedImage, (pct, status) => {
+            progress.update(10 + pct * 0.4, status);
         });
 
-        // Run computer vision
-        updateProgressIndicator(progressDiv, 50, 'Running computer vision...');
-        const cvResults = await detectItemsWithCV(uploadedImage, (progress, status) => {
-            updateProgressIndicator(progressDiv, 50 + progress * 0.4, status);
+        // Run CV phase
+        progress.update(50, 'Running computer vision...');
+        const cvResults = await detectItemsWithCV(uploadedImage, (pct, status) => {
+            progress.update(50 + pct * 0.4, status);
         });
 
         // Combine results
-        updateProgressIndicator(progressDiv, 90, 'Combining detections...');
-
-        // Convert CV results to match OCR format
-        const cvAsOCR: DetectionResult[] = cvResults.map(cv => ({
-            type: cv.type,
-            entity: cv.entity,
-            confidence: cv.confidence,
-            rawText: `cv_detected_${cv.entity.name}`,
-        }));
-
-        // Combine both detection methods
-        const combinedItems = combineDetections(
-            [...ocrResults.items, ...cvAsOCR.filter(r => r.type === 'item')],
-            cvResults.filter(r => r.type === 'item')
-        );
-        const combinedTomes = combineDetections(
-            [...ocrResults.tomes, ...cvAsOCR.filter(r => r.type === 'tome')],
-            cvResults.filter(r => r.type === 'tome')
-        );
-
-        // Aggregate duplicates (e.g., [Wrench, Wrench, Wrench] → [Wrench x3])
-        const aggregatedItems = aggregateDuplicates(combinedItems);
-        const aggregatedTomes = aggregateDuplicates(combinedTomes);
-
-        const hybridResults = {
-            items: aggregatedItems.map(r => ({
-                type: r.type as 'item',
-                entity: r.entity,
-                confidence: r.confidence,
-                rawText: `hybrid_${r.method}`,
-                count: r.count,
-            })),
-            tomes: aggregatedTomes.map(r => ({
-                type: r.type as 'tome',
-                entity: r.entity,
-                confidence: r.confidence,
-                rawText: `hybrid_${r.method}`,
-                count: r.count,
-            })),
-            character: (() => {
-                if (ocrResults.character) return ocrResults.character;
-                const charResult = cvResults.find(r => r.type === 'character');
-                if (charResult) {
-                    return {
-                        type: 'character' as const,
-                        entity: charResult.entity,
-                        confidence: charResult.confidence,
-                        rawText: 'hybrid_cv',
-                    };
-                }
-                return null;
-            })(),
-            weapon: (() => {
-                if (ocrResults.weapon) return ocrResults.weapon;
-                const weaponResult = cvResults.find(r => r.type === 'weapon');
-                if (weaponResult) {
-                    return {
-                        type: 'weapon' as const,
-                        entity: weaponResult.entity,
-                        confidence: weaponResult.confidence,
-                        rawText: 'hybrid_cv',
-                    };
-                }
-                return null;
-            })(),
-            rawText: 'hybrid_detection',
-        };
+        progress.update(90, 'Combining detections...');
+        const hybridResults = combineHybridResults(ocrResults, cvResults);
 
         applyDetectionResults(hybridResults);
-
-        // Update debug UI stats
         updateStats();
         updateLogViewer();
 
-        // Check if debug mode is enabled
-        if (isDebugEnabled()) {
-            // Create debug overlay
-            const debugOverlayUrl = await createDebugOverlay(uploadedImage, cvResults);
-
-            // Store overlay URL for download button
-            setLastOverlayUrl(debugOverlayUrl);
-
-            // Replace uploaded image with debug overlay
-            const imagePreview = document.getElementById('scan-image-preview');
-            if (imagePreview) {
-                imagePreview.innerHTML = `
-                    <img src="${debugOverlayUrl}" alt="Debug Overlay" style="max-width: 100%; border-radius: 8px;" />
-                    <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                        Debug Mode: Green=High confidence, Orange=Medium, Red=Low
-                    </p>
-                `;
-            }
-
-            ToastManager.success(
-                `Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Debug overlay shown)`
-            );
-        } else {
-            // Clear any previous overlay URL
-            setLastOverlayUrl(null);
-            ToastManager.success(
-                `Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Enhanced accuracy!)`
-            );
-        }
+        await displayDebugOverlay(uploadedImage, cvResults, hybridResults);
 
         logger.info({
             operation: 'scan_build.hybrid_detect_complete',
@@ -645,59 +613,15 @@ async function handleHybridDetect(): Promise<void> {
             },
         });
     } catch (error) {
-        logger.error({
-            operation: 'scan_build.hybrid_detect_error',
-            error: {
-                name: (error as Error).name,
-                message: (error as Error).message,
-            },
-        });
+        logError('scan_build.hybrid_detect_error', error);
         ToastManager.error(`Hybrid detection failed: ${(error as Error).message}`);
     } finally {
-        // Always clean up progress indicator and release lock
-        progressDiv.remove();
-        detectionInProgress = false;
+        progress.remove();
+        detectionMutex.release();
     }
 }
 
-/**
- * Create progress indicator
- */
-function createProgressIndicator(): HTMLElement {
-    const container = document.getElementById('scan-image-preview');
-    if (!container) return document.createElement('div');
-
-    const progressDiv = document.createElement('div');
-    progressDiv.className = 'scan-progress-overlay';
-    progressDiv.innerHTML = `
-        <div class="scan-progress-content">
-            <div class="scan-progress-spinner"></div>
-            <div class="scan-progress-text">Initializing...</div>
-            <div class="scan-progress-bar">
-                <div class="scan-progress-fill" style="width: 0%"></div>
-            </div>
-        </div>
-    `;
-
-    container.appendChild(progressDiv);
-    return progressDiv;
-}
-
-/**
- * Update progress indicator
- */
-function updateProgressIndicator(progressDiv: HTMLElement, progress: number, status: string): void {
-    const textEl = progressDiv.querySelector('.scan-progress-text');
-    const fillEl = progressDiv.querySelector('.scan-progress-fill') as HTMLElement;
-
-    if (textEl) {
-        textEl.textContent = status;
-    }
-
-    if (fillEl) {
-        fillEl.style.width = `${progress}%`;
-    }
-}
+// Progress indicator functionality moved to dom-utils.ts
 
 /**
  * Apply detection results to the UI
@@ -1275,13 +1199,13 @@ export function __resetForTesting(): void {
     // Clean up event listeners to prevent memory leaks
     cleanupEventListeners();
 
-    // Clear any pending upload debounce
-    if (uploadDebounceTimer) {
-        clearTimeout(uploadDebounceTimer);
-        uploadDebounceTimer = null;
+    // Cancel any pending upload debounce
+    uploadDebouncer.cancel();
+
+    // Release mutex if held (should be released, but just in case)
+    if (detectionMutex.isLocked()) {
+        detectionMutex.release();
     }
-    pendingUploadId = 0;
-    detectionInProgress = false; // Reset race condition lock
 
     allData = {};
     uploadedImage = null;
