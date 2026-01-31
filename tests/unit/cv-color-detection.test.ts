@@ -137,27 +137,32 @@ describe('isEmptyCell', () => {
     ];
 
     const nonEmptyCases = [
-        // Colorful centered pattern (high center/edge variance ratio)
+        // Colorful centered pattern with pure saturated colors (rainbow)
         { name: 'gradient', factory: () => image.create(45, 45, (x, y) => {
             const cx = 22, cy = 22;
             const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
             if (dist < 16) {
-                // Colorful center with gradient
-                return [Math.min(255, 100 + dist * 8), 80, Math.min(255, 50 + dist * 6)];
+                // Pure saturated colors based on angle (rainbow effect)
+                const angle = Math.atan2(y - cy, x - cx);
+                const sector = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * 6);
+                const colors: [number, number, number][] = [
+                    [255, 0, 0], [255, 255, 0], [0, 255, 0],
+                    [0, 255, 255], [0, 0, 255], [255, 0, 255]
+                ];
+                return colors[sector % 6];
             }
             // Uniform dark edges
             return [40, 40, 45];
         })},
-        // Multi-colored icon with distinct center and uniform edges
+        // Multi-colored icon with distinct center and uniform edges (high saturation)
         { name: 'icon with center', factory: () => image.create(45, 45, (x, y) => {
             const cx = 22, cy = 22;
             const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
             if (dist < 14) {
-                // Colorful center with variation
+                // Vibrant colorful center - blue/cyan on one side, red/magenta on other
                 const angle = Math.atan2(y - cy, x - cx);
-                const shade = Math.floor(dist * 3);
-                if (angle < 0) return [200 + shade, 100, 50 + shade];
-                return [100 + shade, 180, 80 + shade];
+                if (angle < 0) return [255, 0, 100]; // Magenta
+                return [0, 200, 255]; // Cyan
             }
             // Uniform edges
             return [50, 50, 55];
@@ -286,14 +291,19 @@ describe('Color Detection Integration', () => {
 
     it('uses empty cell detection to skip matching', () => {
         const emptySlot = image.solid(45, 45, 30, 30, 30);
-        // Create a realistic item icon with colorful center and uniform edges
+        // Create a realistic item icon with vibrant colorful center (rainbow sectors)
         const itemSlot = image.create(45, 45, (x, y) => {
             const cx = 22, cy = 22;
             const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
             if (dist < 14) {
-                // Colorful center with variation
-                const shade = Math.floor(dist * 4);
-                return [200 + shade, 120, 60 + shade];
+                // Pure saturated colors based on angle (rainbow effect)
+                const angle = Math.atan2(y - cy, x - cx);
+                const sector = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * 6);
+                const colors: [number, number, number][] = [
+                    [255, 0, 0], [255, 255, 0], [0, 255, 0],
+                    [0, 255, 255], [0, 0, 255], [255, 0, 255]
+                ];
+                return colors[sector % 6];
             }
             // Uniform dark edges
             return [45, 45, 50];

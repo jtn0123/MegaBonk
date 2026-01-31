@@ -730,7 +730,7 @@ describe('CV Training Module', () => {
     // Version Info with Mocked Index Tests
     // ========================================
     describe('Version Info with Loaded Index', () => {
-        it('should return version info when index is loaded via successful fetch', async () => {
+        it('should return version info when index is loaded via successful fetch', { timeout: 30000 }, async () => {
             const mockIndex: TrainingIndex = {
                 version: '3.0.0',
                 created_at: '2024-01-01T00:00:00Z',

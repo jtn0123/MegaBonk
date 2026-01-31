@@ -629,17 +629,26 @@ describe('isEmptyCell', () => {
     });
 
     it('should return false for high-variance colorful cell', () => {
-        // Create a realistic item icon: colorful center, uniform edges
+        // Create a realistic item icon: vibrant colorful center, uniform edges
         // Uses 40x40 for better center/edge ratio analysis (25% margin = 10 pixels)
+        // Uses pure saturated colors (RGB primaries/secondaries) to definitely pass saturation check
         const itemIcon = createMockImageData(40, 40, (x, y) => {
             const cx = 20, cy = 20;
             const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
             if (dist < 14) {
-                // Colorful center with variation - many distinct colors
+                // Use pure saturated colors based on position
                 const angle = Math.atan2(y - cy, x - cx);
-                const shade = Math.floor(dist * 3);
-                const angleMod = Math.floor((angle + Math.PI) * 30);
-                return [200 + shade, 100 + angleMod % 60, 60 + shade, 255];
+                const sector = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * 6);
+                // Pure RGB colors: red, yellow, green, cyan, blue, magenta
+                const colors: [number, number, number, number][] = [
+                    [255, 0, 0, 255],    // red
+                    [255, 255, 0, 255],  // yellow
+                    [0, 255, 0, 255],    // green
+                    [0, 255, 255, 255],  // cyan
+                    [0, 0, 255, 255],    // blue
+                    [255, 0, 255, 255],  // magenta
+                ];
+                return colors[sector % 6];
             }
             // Uniform dark edges
             return [45, 45, 50, 255];

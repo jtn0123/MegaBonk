@@ -128,7 +128,8 @@ describe('Bug #4: recommendation.ts references non-existent synergies_weapons - 
 });
 
 describe('Bug #5: modal.ts renders synergies_weapons for items that dont have it', () => {
-    const modalCode = loadSourceFile('modal.ts');
+    // After refactoring, synergies_weapons check is in modal-characters.ts
+    const modalCode = loadSourceFile('modal-characters.ts');
 
     it('should confirm modal.ts checks synergies_weapons on items', () => {
         expect(modalCode).toContain('data.synergies_weapons?.length');
