@@ -56,7 +56,7 @@ import {
     setCVDetectionInProgress,
 } from './detection-config.ts';
 import {
-    calculateIoU,
+
     nonMaxSuppression,
     resizeImageData,
     extractIconRegion,
