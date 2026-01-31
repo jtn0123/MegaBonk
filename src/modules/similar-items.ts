@@ -146,8 +146,10 @@ function calculateItemSimilarity(item1: Item, item2: Item): { score: number; rea
     }
 
     // Shared synergies - Bug fix: Add null guard for both arrays before filtering
+    // Bug fix: Filter out empty strings to prevent false positive matches
+    // (every string .includes(''), so empty synergies would match everything)
     if (item1.synergies?.length && item2.synergies?.length) {
-        const shared = item1.synergies.filter(s => item2.synergies?.includes(s));
+        const shared = item1.synergies.filter(s => s.length > 0 && item2.synergies?.includes(s));
         if (shared.length > 0) {
             score += Math.min(shared.length * 0.15, 0.3);
             reasons.push(`Shared synergies`);
@@ -221,8 +223,9 @@ function calculateWeaponSimilarity(weapon1: Weapon, weapon2: Weapon): { score: n
     }
 
     // Shared best_for tags
+    // Bug fix: Filter out empty strings to prevent false positive matches
     if (weapon1.best_for && weapon2.best_for) {
-        const shared = weapon1.best_for.filter(b => weapon2.best_for?.includes(b));
+        const shared = weapon1.best_for.filter(b => b.length > 0 && weapon2.best_for?.includes(b));
         if (shared.length > 0) {
             score += Math.min(shared.length * 0.15, 0.25);
             reasons.push(`Similar use cases`);
@@ -326,8 +329,9 @@ function calculateCharacterSimilarity(char1: Character, char2: Character): { sco
     }
 
     // Shared synergy items
+    // Bug fix: Filter out empty strings to prevent false positive matches
     if (char1.synergies_items && char2.synergies_items) {
-        const shared = char1.synergies_items.filter(s => char2.synergies_items?.includes(s));
+        const shared = char1.synergies_items.filter(s => s.length > 0 && char2.synergies_items?.includes(s));
         if (shared.length > 0) {
             score += Math.min(shared.length * 0.1, 0.2);
             reasons.push(`Similar item synergies`);

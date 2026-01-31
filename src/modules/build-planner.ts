@@ -728,8 +728,10 @@ export function calculateBuildStats(build?: Build): CalculatedBuildStats {
     if (buildToUse.weapon) {
         const baseDamage = buildToUse.weapon.base_damage ?? buildToUse.weapon.baseDamage;
         // Handle undefined/null: parseFloat(String(undefined)) returns NaN, and NaN || 0 still gives NaN
+        // Bug fix: Use Number.isFinite instead of Number.isNaN to also catch Infinity values
+        // (Number.isNaN(Infinity) is false, so Infinity would slip through)
         const parsedDamage = baseDamage != null ? parseFloat(String(baseDamage)) : 0;
-        stats.damage += Number.isNaN(parsedDamage) ? 0 : parsedDamage;
+        stats.damage += Number.isFinite(parsedDamage) ? parsedDamage : 0;
     }
 
     buildToUse.tomes.forEach((tome: Tome) => {
@@ -741,14 +743,15 @@ export function calculateBuildStats(build?: Build): CalculatedBuildStats {
         // - "+25 Max HP" - absolute value, use as-is
         const valueStr = tome.value_per_level || '';
         const match = String(valueStr).match(/[+-]?\d+(?:\.\d+)?/);
-        let rawValue = match ? parseFloat(match[0]) : 0;
-        // Ensure we have a valid number, default to 0 if NaN
-        rawValue = Number.isFinite(rawValue) ? rawValue : 0;
+        const rawValue = match ? parseFloat(match[0]) : 0;
+        // Bug fix: Use Number.isFinite to catch both NaN and Infinity values
+        // Clamp to reasonable bounds to prevent overflow from malformed data
+        const safeRawValue = Number.isFinite(rawValue) ? Math.max(-1000, Math.min(1000, rawValue)) : 0;
 
         // Bug fix: Handle different value formats correctly
         // Decimal values < 1 (like 0.08) represent percentages that need *100
         // Integer values >= 1 (like 7, 25) are already the correct value
-        const value = rawValue < 1 && rawValue > 0 ? rawValue * 100 : rawValue;
+        const value = safeRawValue < 1 && safeRawValue > 0 ? safeRawValue * 100 : safeRawValue;
 
         // Apply tome bonus: value per level * tome level
         if (tome.stat_affected === 'Damage') stats.damage += value * tomeLevel;

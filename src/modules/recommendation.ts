@@ -174,12 +174,16 @@ function calculateSynergyScore(
         const charSynergies = build.character?.synergies_items ?? [];
         const charWeaponSynergies = build.character?.synergies_weapons ?? [];
 
+        // Bug fix: Require minimum 3-char match length to prevent false positives
+        // (e.g., "or" matching "sword", "a" matching everything)
+        // Also filter out empty strings which would match everything
         if (
             choice.type === 'item' &&
             charSynergies.some(
                 s =>
-                    s.toLowerCase().includes(entityName.toLowerCase()) ||
-                    entityName.toLowerCase().includes(s.toLowerCase())
+                    s.length >= 3 &&
+                    (s.toLowerCase().includes(entityName.toLowerCase()) ||
+                    entityName.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score += 20;
@@ -190,8 +194,9 @@ function calculateSynergyScore(
             choice.type === 'weapon' &&
             charWeaponSynergies.some(
                 s =>
-                    s.toLowerCase().includes(entityName.toLowerCase()) ||
-                    entityName.toLowerCase().includes(s.toLowerCase())
+                    s.length >= 3 &&
+                    (s.toLowerCase().includes(entityName.toLowerCase()) ||
+                    entityName.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score += 20;
@@ -208,12 +213,15 @@ function calculateSynergyScore(
         const allWeaponSynergies = [...itemSynergies, ...itemSynergiesWeapons];
         const weapon = build.weapon;
 
+        // Bug fix: Require minimum 3-char match length and filter empty strings
+        // to prevent false positives from short/empty synergy entries
         if (
             allWeaponSynergies.some(
                 s =>
-                    s.toLowerCase() === weapon.name.toLowerCase() ||
+                    s.length >= 3 &&
+                    (s.toLowerCase() === weapon.name.toLowerCase() ||
                     s.toLowerCase().includes(weapon.name.toLowerCase()) ||
-                    weapon.name.toLowerCase().includes(s.toLowerCase())
+                    weapon.name.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score += 15;
@@ -226,11 +234,13 @@ function calculateSynergyScore(
         const itemEntity = entity as Item;
         const itemSynergies = itemEntity?.synergies ?? [];
 
+        // Bug fix: Require minimum 3-char match length and filter empty strings
         if (
             itemSynergies.some(
                 s =>
-                    s.toLowerCase().includes(buildItem.name.toLowerCase()) ||
-                    buildItem.name.toLowerCase().includes(s.toLowerCase())
+                    s.length >= 3 &&
+                    (s.toLowerCase().includes(buildItem.name.toLowerCase()) ||
+                    buildItem.name.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score += 10;
@@ -238,12 +248,14 @@ function calculateSynergyScore(
         }
 
         // Check for anti-synergies
+        // Bug fix: Same minimum length check for anti-synergies
         const antiSyns = itemEntity?.anti_synergies ?? itemEntity?.antiSynergies ?? [];
         if (
             antiSyns.some(
                 s =>
-                    s.toLowerCase().includes(buildItem.name.toLowerCase()) ||
-                    buildItem.name.toLowerCase().includes(s.toLowerCase())
+                    s.length >= 3 &&
+                    (s.toLowerCase().includes(buildItem.name.toLowerCase()) ||
+                    buildItem.name.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score -= 30;

@@ -251,7 +251,9 @@ function renderResults(result: CalculatorResult): void {
     const unit = isPercentage ? '%' : '';
 
     // Bug fix: Trim scaling array to stack_cap to avoid showing bars beyond the cap
-    const effectiveScaling = result.stackCap
+    // Bug fix: Ensure stack_cap is positive before using it with slice()
+    // slice(0, negative) removes elements from the end, which is not intended
+    const effectiveScaling = result.stackCap && result.stackCap > 0
         ? result.scalingPerStack.slice(0, result.stackCap)
         : result.scalingPerStack;
 
