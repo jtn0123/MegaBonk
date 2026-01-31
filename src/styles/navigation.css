@@ -118,6 +118,21 @@
     border-bottom: 1px solid var(--bg-subtle);
 }
 
+/* Sticky controls on mobile with hide-on-scroll */
+@media (max-width: 768px) {
+    .controls {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        transition: transform 0.25s ease-out;
+        will-change: transform;
+    }
+    
+    .controls.controls-hidden {
+        transform: translateY(-100%);
+    }
+}
+
 .controls .container {
     display: flex;
     align-items: center;
@@ -228,18 +243,26 @@
         font-size: 0.85rem;
     }
     
-    /* Item count inline with search */
+    /* Hide item count on mobile - saves space */
     .item-count {
-        order: 1;
-        padding: 0.3rem 0.5rem;
-        font-size: 0.75rem;
-        flex-shrink: 0;
+        display: none !important;
     }
     
-    /* Show filter toggle on mobile */
+    /* Show filter toggle on mobile - icon only */
     .filter-toggle-btn {
         display: flex;
-        order: 2;
+        order: 1;
+        padding: 0.4rem 0.5rem;
+        min-width: auto;
+    }
+    
+    /* Hide text label, show only icon */
+    .filter-toggle-btn .filter-toggle-text {
+        display: none;
+    }
+    
+    .filter-toggle-btn .filter-toggle-icon {
+        font-size: 1rem;
     }
     
     /* Filters: hidden by default, shown when expanded */

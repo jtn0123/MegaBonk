@@ -413,6 +413,29 @@ function handleFavoriteClick(target: Element): void {
 }
 
 /**
+ * Check if we're on mobile (≤480px)
+ */
+function isMobileViewport(): boolean {
+    return window.matchMedia('(max-width: 480px)').matches;
+}
+
+/**
+ * Handle item card click (for mobile - whole card is tappable)
+ */
+function handleItemCardClick(target: Element): void {
+    const card = target.closest('.item-card') as HTMLElement | null;
+    if (!card) return;
+    
+    // Find the view details button inside this card to get type and id
+    const btn = card.querySelector('.view-details-btn') as HTMLElement | null;
+    if (btn) {
+        const type = btn.dataset.type as EntityType | undefined;
+        const id = btn.dataset.id;
+        if (type && id) openDetailModal(type, id);
+    }
+}
+
+/**
  * Handle click events via delegation
  */
 function handleClickDelegation(e: MouseEvent): void {
@@ -425,6 +448,16 @@ function handleClickDelegation(e: MouseEvent): void {
     if (target.classList.contains('view-details-btn')) {
         handleViewDetailsClick(target as HTMLElement);
         return;
+    }
+    
+    // On mobile, make entire card tappable (but not if clicking specific elements)
+    if (isMobileViewport() && target.closest('.item-card')) {
+        // Don't trigger if clicking on interactive elements within the card
+        const isInteractive = target.closest('.favorite-btn, .compare-checkbox-label, .expandable-text, a, button');
+        if (!isInteractive) {
+            handleItemCardClick(target);
+            return;
+        }
     }
 
     if (target.closest('.compare-checkbox-label') && !target.classList.contains('compare-checkbox')) {
@@ -689,6 +722,55 @@ export function setupFilterToggle(): void {
 }
 
 /**
+ * Setup sticky search bar that hides on scroll down, shows on scroll up
+ */
+export function setupStickySearchHideOnScroll(): void {
+    const controls = document.querySelector('.controls') as HTMLElement | null;
+    if (!controls) return;
+    
+    // Only enable on mobile
+    const isMobile = window.matchMedia('(max-width: 768px)');
+    if (!isMobile.matches) return;
+    
+    let lastScrollY = window.scrollY;
+    let ticking = false;
+    const scrollThreshold = 10; // Minimum scroll to trigger hide/show
+    
+    const handleScroll = (): void => {
+        if (ticking) return;
+        
+        ticking = true;
+        requestAnimationFrame(() => {
+            const currentScrollY = window.scrollY;
+            const scrollDelta = currentScrollY - lastScrollY;
+            
+            // Don't hide if we're at the top
+            if (currentScrollY <= 0) {
+                controls.classList.remove('controls-hidden');
+            } else if (scrollDelta > scrollThreshold) {
+                // Scrolling down - hide
+                controls.classList.add('controls-hidden');
+            } else if (scrollDelta < -scrollThreshold) {
+                // Scrolling up - show
+                controls.classList.remove('controls-hidden');
+            }
+            
+            lastScrollY = currentScrollY;
+            ticking = false;
+        });
+    };
+    
+    window.addEventListener('scroll', handleScroll, getListenerOptions({ passive: true }));
+    
+    // Re-check on resize
+    isMobile.addEventListener('change', (e) => {
+        if (!e.matches) {
+            controls.classList.remove('controls-hidden');
+        }
+    });
+}
+
+/**
  * Setup all event listeners
  */
 export function setupEventListeners(): void {
@@ -698,6 +780,7 @@ export function setupEventListeners(): void {
     setupModalListeners();
     setupCompareButtonListener();
     setupFilterToggle();
+    setupStickySearchHideOnScroll();
     setupEventDelegation();
     setupDropdownClickHandlers();
 }

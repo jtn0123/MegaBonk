@@ -419,15 +419,15 @@
         font-size: 0.6rem;
     }
     
-    /* View Details button: right column, fourth row */
+    /* Hide View Details button on mobile - whole card is tappable */
     .view-details-btn {
-        grid-column: 2;
-        grid-row: 4;
-        width: auto;
-        padding: 0.35rem 0.6rem;
-        font-size: 0.7rem;
-        margin-top: 0.2rem;
-        justify-self: start;
+        display: none !important;
+    }
+    
+    /* Add active state for card tap feedback */
+    .item-card:active {
+        transform: scale(0.98);
+        opacity: 0.9;
     }
     
     /* Smaller badges on mobile */
