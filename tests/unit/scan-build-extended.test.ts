@@ -26,7 +26,7 @@ vi.mock('../../src/modules/logger.ts', () => ({
     },
 }));
 
-vi.mock('../../src/modules/ocr.ts', () => ({
+vi.mock('../../src/modules/ocr', () => ({
     autoDetectFromImage: vi.fn(),
     initOCR: vi.fn(),
 }));
@@ -55,7 +55,7 @@ import {
 } from '../../src/modules/scan-build.ts';
 import { ToastManager } from '../../src/modules/toast.ts';
 import { logger } from '../../src/modules/logger.ts';
-import { autoDetectFromImage } from '../../src/modules/ocr.ts';
+import { autoDetectFromImage } from '../../src/modules/ocr';
 import {
     detectItemsWithCV,
     loadItemTemplates,

@@ -17,7 +17,7 @@ vi.mock('../../src/modules/cv/index.ts', () => ({
 }));
 
 // Mock OCR module
-vi.mock('../../src/modules/ocr.ts', () => ({
+vi.mock('../../src/modules/ocr', () => ({
     initOCR: vi.fn(),
     autoDetectFromImage: vi.fn().mockResolvedValue({
         items: [],
