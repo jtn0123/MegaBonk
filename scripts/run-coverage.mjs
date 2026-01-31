@@ -76,7 +76,16 @@ async function main() {
     for (let i = 1; i <= SHARD_COUNT; i++) {
         log(`\n--- Running shard ${i}/${SHARD_COUNT} ---`, 'yellow');
 
-        const result = await runCommand('npx', ['vitest', 'run', `--shard=${i}/${SHARD_COUNT}`, '--coverage']);
+        // Disable coverage thresholds for sharded runs - each shard only has partial coverage
+        const result = await runCommand('npx', [
+            'vitest', 'run', 
+            `--shard=${i}/${SHARD_COUNT}`, 
+            '--coverage',
+            '--coverage.thresholds.lines=0',
+            '--coverage.thresholds.functions=0', 
+            '--coverage.thresholds.branches=0',
+            '--coverage.thresholds.statements=0'
+        ]);
 
         if (result.success) {
             successCount++;
@@ -86,10 +95,15 @@ async function main() {
         }
 
         // Copy coverage file with unique name (even if tests failed, coverage may exist)
-        const coverageFile = join(COVERAGE_DIR, 'coverage-final.json');
-        if (existsSync(coverageFile)) {
+        // Vitest writes to coverage/unit/ per vitest.config.js reportsDirectory
+        const coverageFile = join(COVERAGE_DIR, 'unit', 'coverage-final.json');
+        const legacyCoverageFile = join(COVERAGE_DIR, 'coverage-final.json');
+        const actualFile = existsSync(coverageFile) ? coverageFile : 
+                          existsSync(legacyCoverageFile) ? legacyCoverageFile : null;
+        
+        if (actualFile) {
             const destFile = join(NYC_OUTPUT_DIR, `coverage-shard-${i}.json`);
-            copyFileSync(coverageFile, destFile);
+            copyFileSync(actualFile, destFile);
             log(`Saved coverage for shard ${i}`, 'green');
         } else {
             log(`Warning: No coverage-final.json for shard ${i}`, 'yellow');
