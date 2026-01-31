@@ -288,7 +288,7 @@
 
 @media (max-width: 480px) {
     .item-card {
-        min-height: 200px;
+        min-height: auto; /* Let content determine height */
         padding: 0.75rem;
         border-radius: 6px;
     }
@@ -304,8 +304,8 @@
     }
     
     .item-header {
-        margin-bottom: 0.65rem;
-        gap: 0.65rem;
+        margin-bottom: 0.5rem;
+        gap: 0.5rem;
     }
     
     .item-name {
@@ -314,30 +314,97 @@
     
     .item-effect {
         font-size: 0.875rem;
-        margin-bottom: 0.5rem;
-        padding-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
+        padding-bottom: 0.4rem;
     }
     
+    /* Truncate descriptions to 2 lines on mobile */
     .item-description {
         font-size: 0.8rem;
-        margin-bottom: 0.5rem;
+        margin-bottom: 0.4rem;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.4;
+        max-height: calc(1.4em * 2); /* Fallback for non-webkit */
+    }
+    
+    /* Hide "Click to expand" indicator on mobile - users know to tap */
+    .expand-indicator {
+        display: none !important;
+    }
+    
+    /* Hide scaling charts on mobile - too tall, details available in modal */
+    .item-graph-container,
+    .tome-graph-container {
+        display: none !important;
+    }
+    
+    /* Hide graph placeholder text on mobile */
+    .item-graph-placeholder,
+    .tome-graph-placeholder {
+        display: none !important;
     }
     
     .view-details-btn {
         padding: 0.5rem;
         font-size: 0.8rem;
+        margin-top: 0.5rem;
     }
     
+    /* Smaller badges on mobile */
     .badge {
-        padding: 3px 8px;
-        font-size: 0.7rem;
+        padding: 2px 6px;
+        font-size: 0.65rem;
+    }
+    
+    /* Smaller meta tags on mobile */
+    .meta-tag {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.65rem;
+    }
+    
+    .item-meta {
+        gap: 0.35rem;
+        margin-bottom: 0.4rem;
+    }
+    
+    .item-badges {
+        gap: 0.35rem;
+    }
+    
+    /* Compact tier label */
+    .tier-label {
+        font-size: 0.65rem;
+    }
+    
+    /* Smaller stacking indicator */
+    .stacking-indicator {
+        font-size: 0.65rem;
+    }
+    
+    .stack-icon {
+        font-size: 1.2rem;
+    }
+    
+    /* Smaller favorite button */
+    .favorite-btn {
+        font-size: 1rem;
+        padding: 0.2rem;
+    }
+    
+    /* Smaller compare checkbox */
+    .compare-checkbox-label {
+        font-size: 0.8rem;
     }
 }
 
 @media (max-width: 375px) {
     .item-card {
-        min-height: 180px;
-        padding: 0.6rem;
+        min-height: auto;
+        padding: 0.5rem;
     }
     
     .items-grid {
@@ -345,12 +412,43 @@
     }
     
     .entity-image {
-        width: 42px;
-        height: 42px;
+        width: 40px;
+        height: 40px;
     }
     
     .item-name {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+    }
+    
+    .item-effect {
+        font-size: 0.8rem;
+    }
+    
+    /* Even tighter description truncation on very small screens */
+    .item-description {
+        font-size: 0.75rem;
+        -webkit-line-clamp: 2;
+        max-height: calc(1.4em * 2);
+    }
+    
+    .view-details-btn {
+        padding: 0.4rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Even smaller badges on tiny screens */
+    .badge {
+        padding: 2px 5px;
+        font-size: 0.6rem;
+    }
+    
+    .meta-tag {
+        padding: 0.15rem 0.35rem;
+        font-size: 0.6rem;
+    }
+    
+    .tier-label {
+        font-size: 0.6rem;
     }
 }
 
