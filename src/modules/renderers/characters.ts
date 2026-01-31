@@ -7,9 +7,9 @@ import {
     generateTierLabel,
     escapeHtml,
     safeGetElementById,
-    generateEmptyState,
 } from '../utils.ts';
 import { isFavorite } from '../favorites.ts';
+import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Character } from './types.ts';
 
 /**
@@ -22,7 +22,8 @@ export function renderCharacters(characters: Character[]): void {
     if (!container) return;
 
     if (characters.length === 0) {
-        container.innerHTML = generateEmptyState('👤', 'Characters');
+        const context = detectEmptyStateType('characters');
+        container.innerHTML = generateEmptyStateWithSuggestions(context);
         return;
     }
 

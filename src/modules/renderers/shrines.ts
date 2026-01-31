@@ -5,9 +5,9 @@
 import {
     escapeHtml,
     safeGetElementById,
-    generateEmptyState,
 } from '../utils.ts';
 import { isFavorite } from '../favorites.ts';
+import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Shrine } from './types.ts';
 
 /**
@@ -20,7 +20,8 @@ export function renderShrines(shrines: Shrine[]): void {
     if (!container) return;
 
     if (shrines.length === 0) {
-        container.innerHTML = generateEmptyState('⛩️', 'Shrines');
+        const context = detectEmptyStateType('shrines');
+        container.innerHTML = generateEmptyStateWithSuggestions(context);
         return;
     }
 

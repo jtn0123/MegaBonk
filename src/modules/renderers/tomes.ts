@@ -6,10 +6,10 @@ import {
     generateEntityImage,
     escapeHtml,
     safeGetElementById,
-    generateEmptyState,
 } from '../utils.ts';
 import { isFavorite } from '../favorites.ts';
 import { initChartsAsync } from './common.ts';
+import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Tome } from './types.ts';
 
 /**
@@ -22,7 +22,8 @@ export function renderTomes(tomes: Tome[]): void {
     if (!container) return;
 
     if (tomes.length === 0) {
-        container.innerHTML = generateEmptyState('📚', 'Tomes');
+        const context = detectEmptyStateType('tomes');
+        container.innerHTML = generateEmptyStateWithSuggestions(context);
         return;
     }
 

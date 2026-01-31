@@ -303,6 +303,17 @@ function handleKeydownDelegation(e: KeyboardEvent): void {
 
     if ((e.key === 'Enter' || e.key === ' ') && target.classList.contains('breakpoint-card')) {
         handleBreakpointCardActivation(e, target);
+        return;
+    }
+
+    // Handle Enter/Space on suggestion cards (accessibility)
+    if ((e.key === 'Enter' || e.key === ' ') && target.classList.contains('suggestion-card')) {
+        e.preventDefault();
+        import('./empty-states.ts')
+            .then(({ handleEmptyStateClick }) => {
+                handleEmptyStateClick(target);
+            })
+            .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
     }
 }
 
@@ -467,6 +478,16 @@ function handleClickDelegation(e: MouseEvent): void {
 
     if (target.closest('.search-result-card')) {
         handleSearchResultClick(target);
+        return;
+    }
+
+    // Handle empty state action buttons and suggestion cards
+    if (target.classList.contains('empty-state-action') || target.closest('.suggestion-card')) {
+        import('./empty-states.ts')
+            .then(({ handleEmptyStateClick }) => {
+                handleEmptyStateClick(target);
+            })
+            .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
         return;
     }
 }

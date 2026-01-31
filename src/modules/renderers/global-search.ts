@@ -8,6 +8,8 @@ import {
     escapeHtml,
     safeGetElementById,
 } from '../utils.ts';
+import { generateEmptyStateWithSuggestions, type EmptyStateContext } from '../empty-states.ts';
+import { getState } from '../store.ts';
 import type { GlobalSearchResult } from '../filters.ts';
 import type {
     Item as BaseItem,
@@ -65,13 +67,17 @@ export function renderGlobalSearchResults(
     container.innerHTML = '';
 
     if (results.length === 0) {
-        container.innerHTML = `
-            <div class="empty-state">
-                <span class="empty-icon">🔍</span>
-                <h3>No Results Found</h3>
-                <p>Try a different search term${searchQuery ? ` for "${searchQuery}"` : ''}</p>
-            </div>
-        `;
+        // Use enhanced empty state with suggestions
+        const currentTab = getState('currentTab') as EntityType;
+        const validTab = ['items', 'weapons', 'tomes', 'characters', 'shrines'].includes(currentTab) 
+            ? currentTab 
+            : 'items';
+        const context: EmptyStateContext = {
+            type: 'search',
+            tabName: validTab,
+            searchQuery: searchQuery || '',
+        };
+        container.innerHTML = generateEmptyStateWithSuggestions(context);
         return;
     }
 

@@ -8,10 +8,10 @@ import {
     escapeHtml,
     safeGetElementById,
     truncateText,
-    generateEmptyState,
 } from '../utils.ts';
 import { isFavorite } from '../favorites.ts';
 import { initChartsAsync } from './common.ts';
+import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Item } from './types.ts';
 
 /**
@@ -24,7 +24,8 @@ export async function renderItems(items: Item[]): Promise<void> {
     if (!container) return;
 
     if (items.length === 0) {
-        container.innerHTML = generateEmptyState('🔍', 'Items');
+        const context = detectEmptyStateType('items');
+        container.innerHTML = generateEmptyStateWithSuggestions(context);
         return;
     }
 

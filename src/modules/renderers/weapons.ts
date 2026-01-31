@@ -8,9 +8,9 @@ import {
     escapeHtml,
     safeGetElementById,
     generateMetaTags,
-    generateEmptyState,
 } from '../utils.ts';
 import { isFavorite } from '../favorites.ts';
+import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Weapon } from './types.ts';
 
 /**
@@ -23,7 +23,8 @@ export function renderWeapons(weapons: Weapon[]): void {
     if (!container) return;
 
     if (weapons.length === 0) {
-        container.innerHTML = generateEmptyState('⚔️', 'Weapons');
+        const context = detectEmptyStateType('weapons');
+        container.innerHTML = generateEmptyStateWithSuggestions(context);
         return;
     }
 
