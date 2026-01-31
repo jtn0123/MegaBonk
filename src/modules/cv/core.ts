@@ -134,6 +134,11 @@ export function initCV(gameData: AllGameData): void {
                 error: {
                     name: (error as Error).name,
                     message: (error as Error).message,
+                    stack: (error as Error).stack?.split('\n').slice(0, 3).join(' -> '),
+                },
+                data: {
+                    phase: 'background_init',
+                    itemsAvailable: gameData?.items?.items?.length || 0,
                 },
             });
         });

@@ -385,7 +385,18 @@ export async function loadTemplate(item: Item, source: TemplateSource = 'default
             // Try PNG fallback
             const pngImg = new Image();
             pngImg.onload = () => handleLoad(pngImg);
-            pngImg.onerror = () => resolve(null);
+            pngImg.onerror = () => {
+                logger.warn({
+                    operation: 'unified_template.load_image_failed',
+                    data: {
+                        itemId: item.id,
+                        itemName: item.name,
+                        imagePath: item.image,
+                        attemptedWebP: imagePath,
+                    },
+                });
+                resolve(null);
+            };
             pngImg.src = item.image!;
         };
 

@@ -282,8 +282,13 @@ export async function closeCompareModal(): Promise<void> {
                 delete instances['compare-scaling-chart'];
             }
         })
-        .catch(() => {
+        .catch((error) => {
             // Chart module not loaded yet, nothing to clean up
+            // Log at debug level for troubleshooting if needed
+            logger.info({
+                operation: 'compare.chart_cleanup_skipped',
+                data: { reason: 'module_not_loaded', error: (error as Error).message },
+            });
         });
     setTimeout(() => {
         modal.style.display = 'none';

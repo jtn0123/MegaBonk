@@ -95,8 +95,13 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
             logger.error({
                 operation: 'scan_build.load_templates',
                 error: {
-                    name: error.name,
-                    message: error.message,
+                    name: (error as Error).name,
+                    message: (error as Error).message,
+                    stack: (error as Error).stack?.split('\n').slice(0, 5).join(' -> '),
+                },
+                data: {
+                    itemsCount: gameData.items?.items?.length || 0,
+                    phase: 'template_preload',
                 },
             });
             ToastManager.error('Failed to load item templates for recognition');
@@ -704,13 +709,16 @@ function applyDetectionResults(results: {
     // Apply items (deduplicate and count)
     const itemCounts = new Map<string, number>();
     results.items.forEach(detection => {
+        // Bug fix: Check detection.entity exists before accessing .id
+        if (!detection.entity) return;
         const item = detection.entity as Item;
         const currentCount = itemCounts.get(item.id) || 0;
         itemCounts.set(item.id, currentCount + 1);
     });
 
     itemCounts.forEach((count, itemId) => {
-        const item = allData.items?.items.find(i => i.id === itemId);
+        // Bug fix: Use optional chaining on .find() to prevent TypeError if items array is undefined
+        const item = allData.items?.items?.find(i => i.id === itemId);
         if (item) {
             selectedItems.set(item.id, { item, count });
             updateItemCardCount(item.id, count);
@@ -720,6 +728,8 @@ function applyDetectionResults(results: {
     // Apply tomes (unique)
     const uniqueTomes = new Set<string>();
     results.tomes.forEach(detection => {
+        // Bug fix: Check detection.entity exists before accessing .id
+        if (!detection.entity) return;
         const tome = detection.entity as Tome;
         if (!uniqueTomes.has(tome.id)) {
             uniqueTomes.add(tome.id);

@@ -193,7 +193,14 @@ export async function extractCropFromImage(
             // Export as PNG base64
             resolve(canvas.toDataURL('image/png'));
         };
-        img.onerror = () => reject(new Error('Failed to load image'));
+        img.onerror = (event) => {
+            const errorMsg = event instanceof ErrorEvent ? event.message : 'Unknown error';
+            logger.warn({
+                operation: 'feedback.extract_crop_failed',
+                data: { x, y, width, height, error: errorMsg, imageUrlLength: imageDataUrl.length },
+            });
+            reject(new Error(`Failed to load image for crop extraction: ${errorMsg}`));
+        };
         img.src = imageDataUrl;
     });
 }

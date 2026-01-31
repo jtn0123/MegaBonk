@@ -82,7 +82,12 @@ export function initBatchScan(gameData: AllGameData): void {
     loadItemTemplates().catch(error => {
         logger.warn({
             operation: 'batch_scan.templates_load_failed',
-            error: { name: (error as Error).name, message: (error as Error).message },
+            error: {
+                name: (error as Error).name,
+                message: (error as Error).message,
+                stack: (error as Error).stack?.split('\n').slice(0, 3).join(' -> '),
+            },
+            data: { itemsCount: gameData.items?.items?.length || 0 },
         });
     });
 
