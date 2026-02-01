@@ -17,7 +17,6 @@ Thumbs.db
 .env.*.local
 
 # Build outputs
-dist/
 build/
 
 # Test coverage

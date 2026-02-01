@@ -1,0 +1,1327 @@
+{
+  "version": "1.0.21",
+  "last_updated": "2026-01-26",
+  "total_weapons": 29,
+  "weapons": [
+    {
+      "id": "sniper_rifle",
+      "name": "Sniper Rifle",
+      "tier": "SS",
+      "base_damage": 22,
+      "attack_pattern": "Single shot, pierces enemies",
+      "upgradeable_stats": [
+        "damage",
+        "Projectile Count",
+        "size"
+      ],
+      "unlock_requirement": "Upgrade precision Tome to Level 10",
+      "unlock_cost_silver": 15,
+      "unlocked_by_default": false,
+      "description": "Highest base damage in the game. Pierces through all enemies. Limited upgrade options but devastating when built correctly.",
+      "best_for": [
+        "Single target damage",
+        "Boss killing",
+        "Crit builds"
+      ],
+      "synergies_items": [
+        "forbidden_juice",
+        "grandmas_secret_tonic",
+        "boss_buster",
+        "tactical_glasses"
+      ],
+      "synergies_tomes": [
+        "precision",
+        "damage",
+        "cooldown"
+      ],
+      "synergies_characters": [
+        "Bush",
+        "CL4NK"
+      ],
+      "playstyle": "Long-range precision damage dealer",
+      "pros": [
+        "Highest base damage",
+        "Piercing shots",
+        "Great for boss DPS"
+      ],
+      "cons": [
+        "Limited upgrade options",
+        "Slow fire rate",
+        "Requires aim"
+      ],
+      "image": "images/weapons/sniper_rifle.png"
+    },
+    {
+      "id": "revolver",
+      "name": "Revolver",
+      "tier": "S",
+      "base_damage": 5,
+      "base_projectile_count": 6,
+      "attack_pattern": "Multi-shot burst",
+      "upgradeable_stats": [
+        "damage",
+        "Crit Chance",
+        "Crit damage",
+        "Projectile Bounces",
+        "Projectile Count",
+        "Projectile Speed"
+      ],
+      "unlock_requirement": "Kill 7,500 enemies",
+      "unlock_cost_silver": 10,
+      "unlocked_by_default": false,
+      "description": "Versatile weapon with many upgrade paths. Starts with 6 projectiles. Attack speed dramatically increases bullets per second.",
+      "best_for": [
+        "Crit builds",
+        "Proc-based builds",
+        "Multi-target"
+      ],
+      "synergies_items": [
+        "forbidden_juice",
+        "backpack",
+        "overpowered_lamp",
+        "big_bonk"
+      ],
+      "synergies_tomes": [
+        "precision",
+        "cooldown",
+        "damage",
+        "quantity"
+      ],
+      "synergies_characters": [
+        "CL4NK",
+        "Bush"
+      ],
+      "playstyle": "Rapid-fire multi-target shredder",
+      "pros": [
+        "High projectile count",
+        "Many upgrade options",
+        "Excellent with attack speed"
+      ],
+      "cons": [
+        "Lower base damage",
+        "Requires crit investment"
+      ],
+      "image": "images/weapons/revolver.png"
+    },
+    {
+      "id": "bow",
+      "name": "Bow",
+      "tier": "S",
+      "base_damage": 9,
+      "attack_pattern": "Piercing projectile",
+      "upgradeable_stats": [
+        "damage",
+        "Crit Chance",
+        "Crit damage",
+        "Projectile Count",
+        "Projectile Speed",
+        "size"
+      ],
+      "unlock_requirement": null,
+      "unlock_cost_silver": 0,
+      "unlocked_by_default": true,
+      "description": "Solid starter weapon. Pierces enemies. Great crit scaling potential.",
+      "best_for": [
+        "Crit builds",
+        "Balanced offense",
+        "Beginner-friendly"
+      ],
+      "synergies_items": [
+        "forbidden_juice",
+        "grandmas_secret_tonic",
+        "giant_fork"
+      ],
+      "synergies_tomes": [
+        "precision",
+        "damage",
+        "size"
+      ],
+      "synergies_characters": [
+        "CL4NK",
+        "Bush",
+        "Fox"
+      ],
+      "playstyle": "Versatile piercing damage",
+      "pros": [
+        "Available from start",
+        "Pierce mechanic",
+        "Good crit scaling"
+      ],
+      "cons": [
+        "Moderate damage",
+        "Requires upgrades to shine"
+      ],
+      "image": "images/weapons/bow.png"
+    },
+    {
+      "id": "lightning_staff",
+      "name": "Lightning Staff",
+      "tier": "S",
+      "base_damage": 7,
+      "attack_pattern": "Bounces between enemies",
+      "upgradeable_stats": [
+        "damage",
+        "Projectile Bounces",
+        "Projectile Count",
+        "size"
+      ],
+      "unlock_requirement": null,
+      "unlock_cost_silver": 0,
+      "unlocked_by_default": true,
+      "description": "Chains lightning between enemies. Excellent for crowd control.",
+      "best_for": [
+        "Crowd control",
+        "Chain damage",
+        "AoE clear"
+      ],
+      "synergies_items": [
+        "lightning_orb",
+        "thunder_mitts",
+        "overpowered_lamp"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "quantity"
+      ],
+      "synergies_characters": [
+        "Fox",
+        "Tony McZoom"
+      ],
+      "playstyle": "Chain lightning specialist",
+      "pros": [
+        "Auto-targeting bounces",
+        "Great AoE",
+        "Satisfying clear"
+      ],
+      "cons": [
+        "Requires enemy density",
+        "Lower single-target"
+      ],
+      "image": "images/weapons/lightning_staff.png"
+    },
+    {
+      "id": "dragons_breath",
+      "name": "Dragon's Breath",
+      "tier": "A",
+      "base_damage": 15,
+      "attack_pattern": "Fires in movement direction",
+      "upgradeable_stats": [
+        "damage",
+        "duration",
+        "size"
+      ],
+      "unlock_requirement": "Kill 1,000 Wisps as Fox on Desert",
+      "unlock_cost_silver": 18,
+      "unlocked_by_default": false,
+      "description": "High base damage flame attack. Direction-based firing.",
+      "best_for": [
+        "Burn builds",
+        "High damage",
+        "Fire synergy"
+      ],
+      "synergies_items": [
+        "dragonfire"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "size",
+        "duration"
+      ],
+      "synergies_characters": [
+        "Fox"
+      ],
+      "playstyle": "Burn damage over time",
+      "pros": [
+        "High base damage",
+        "Good with burn synergies"
+      ],
+      "cons": [
+        "Direction-dependent",
+        "Limited upgrade paths"
+      ],
+      "image": "images/weapons/dragons_breath.png"
+    },
+    {
+      "id": "aura",
+      "name": "Aura",
+      "tier": "A",
+      "base_damage": 6,
+      "attack_pattern": "damages enemies around you",
+      "upgradeable_stats": [
+        "damage",
+        "size"
+      ],
+      "unlock_requirement": "Take no damage for 2 minutes",
+      "unlock_cost_silver": 12,
+      "unlocked_by_default": false,
+      "description": "Passive damage aura. Only upgrades damage and size.",
+      "best_for": [
+        "Tank builds",
+        "AFK farming",
+        "size scaling"
+      ],
+      "synergies_items": [
+        "holy_book"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "size",
+        "hp"
+      ],
+      "synergies_characters": [
+        "Megachad",
+        "Sir Oofie"
+      ],
+      "playstyle": "Close-range tank",
+      "pros": [
+        "Automatic damage",
+        "No aim required",
+        "Great with size"
+      ],
+      "cons": [
+        "Very limited upgrades",
+        "Requires proximity"
+      ],
+      "image": "images/weapons/aura.png"
+    },
+    {
+      "id": "sword",
+      "name": "Sword",
+      "tier": "A",
+      "base_damage": 10,
+      "attack_pattern": "Melee slash",
+      "upgradeable_stats": [
+        "damage",
+        "knockback",
+        "Projectile Count",
+        "size"
+      ],
+      "unlock_requirement": null,
+      "unlock_cost_silver": 0,
+      "unlocked_by_default": true,
+      "description": "Classic melee weapon. Reliable starter choice.",
+      "best_for": [
+        "Melee builds",
+        "knockback builds",
+        "Beginners"
+      ],
+      "synergies_items": [
+        "brass_knuckles"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "size",
+        "knockback"
+      ],
+      "synergies_characters": [
+        "Sir Oofie",
+        "Ogre"
+      ],
+      "playstyle": "Close-range melee fighter",
+      "pros": [
+        "Available from start",
+        "Good knockback",
+        "Simple mechanics"
+      ],
+      "cons": [
+        "Melee range only",
+        "Requires positioning"
+      ],
+      "image": "images/weapons/sword.png"
+    },
+    {
+      "id": "axe",
+      "name": "Axe",
+      "tier": "A",
+      "base_damage": 12,
+      "attack_pattern": "Spinning projectile",
+      "upgradeable_stats": [
+        "damage",
+        "duration",
+        "Projectile Count",
+        "size"
+      ],
+      "unlock_requirement": "Kill 2,000 enemies with Sword",
+      "unlock_cost_silver": 10,
+      "unlocked_by_default": false,
+      "description": "Spinning axes that last over time. size is extremely powerful.",
+      "best_for": [
+        "size builds",
+        "duration builds",
+        "Screen coverage"
+      ],
+      "synergies_items": [
+        "backpack"
+      ],
+      "synergies_tomes": [
+        "size",
+        "duration",
+        "damage"
+      ],
+      "synergies_characters": [
+        "Noelle",
+        "Ogre"
+      ],
+      "playstyle": "Persistent spinning damage",
+      "pros": [
+        "size scaling is incredible",
+        "Good coverage",
+        "Persistent damage"
+      ],
+      "cons": [
+        "Requires duration investment",
+        "Slower initial clear"
+      ],
+      "image": "images/weapons/axe.png"
+    },
+    {
+      "id": "tornado",
+      "name": "Tornado",
+      "tier": "A",
+      "base_damage": 8,
+      "attack_pattern": "Spinning vortex",
+      "upgradeable_stats": [
+        "damage",
+        "knockback",
+        "size",
+        "Projectile Speed",
+        "Projectile Count"
+      ],
+      "unlock_requirement": "Charge shrine during sandstorm on Desert",
+      "unlock_cost_silver": 16,
+      "unlocked_by_default": false,
+      "description": "Creates spinning tornadoes. Excellent with size scaling.",
+      "best_for": [
+        "size builds",
+        "Crowd control",
+        "knockback"
+      ],
+      "synergies_items": [],
+      "synergies_tomes": [
+        "size",
+        "damage",
+        "knockback"
+      ],
+      "synergies_characters": [
+        "Birdo",
+        "Noelle"
+      ],
+      "playstyle": "Vortex crowd control",
+      "pros": [
+        "Great size scaling",
+        "Good knockback",
+        "Fun visuals"
+      ],
+      "cons": [
+        "Requires size investment",
+        "Can push enemies away"
+      ],
+      "image": "images/weapons/tornado.png"
+    },
+    {
+      "id": "black_hole",
+      "name": "Black Hole",
+      "tier": "S",
+      "base_damage": 10,
+      "attack_pattern": "Pulls enemies in",
+      "upgradeable_stats": [
+        "damage",
+        "duration",
+        "size",
+        "Projectile Count"
+      ],
+      "unlock_requirement": "knockback Tome to Level 10",
+      "unlock_cost_silver": 18,
+      "unlocked_by_default": false,
+      "description": "Sucks enemies into black holes. Incredible crowd control.",
+      "best_for": [
+        "Crowd control",
+        "size builds",
+        "Enemy grouping"
+      ],
+      "synergies_items": [],
+      "synergies_tomes": [
+        "size",
+        "duration",
+        "damage"
+      ],
+      "synergies_characters": [
+        "Spaceman",
+        "Noelle"
+      ],
+      "playstyle": "Gravitational crowd controller",
+      "pros": [
+        "Best crowd control",
+        "Groups enemies",
+        "size scaling"
+      ],
+      "cons": [
+        "Requires setup",
+        "Lower single-target damage"
+      ],
+      "image": "images/weapons/black_hole.png"
+    },
+    {
+      "id": "dexecutioner",
+      "name": "Dexecutioner",
+      "tier": "A",
+      "base_damage": 14,
+      "attack_pattern": "Execute low hp enemies",
+      "upgradeable_stats": [
+        "damage",
+        "Crit Chance",
+        "size",
+        "Projectile Count"
+      ],
+      "unlock_requirement": "Kill 12,500 enemies with Sword",
+      "unlock_cost_silver": 18,
+      "unlocked_by_default": false,
+      "description": "Execute mechanic for finishing enemies. High base damage.",
+      "best_for": [
+        "Execute builds",
+        "Single target",
+        "Boss damage"
+      ],
+      "synergies_items": [
+        "joes_dagger",
+        "boss_buster"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "precision"
+      ],
+      "synergies_characters": [
+        "Bandit",
+        "Ninja"
+      ],
+      "playstyle": "Execute finisher",
+      "pros": [
+        "Execute mechanic",
+        "High base damage",
+        "Boss killer"
+      ],
+      "cons": [
+        "Requires enemy setup",
+        "Less effective vs full hp"
+      ],
+      "image": "images/weapons/dexecutioner.png"
+    },
+    {
+      "id": "katana",
+      "name": "Katana",
+      "tier": "S",
+      "base_damage": 11,
+      "attack_pattern": "Fast slash combo",
+      "upgradeable_stats": [
+        "damage",
+        "size",
+        "duration",
+        "Projectile Count",
+        "Crit Chance",
+        "Crit damage"
+      ],
+      "unlock_requirement": "5% chance from Tumbleweed (Desert 1)",
+      "unlock_cost_silver": 20,
+      "unlocked_by_default": false,
+      "description": "Versatile weapon with many upgrade options. Great for crit builds.",
+      "best_for": [
+        "Crit builds",
+        "Fast attack speed",
+        "Versatile builds"
+      ],
+      "synergies_items": [
+        "forbidden_juice",
+        "grandmas_secret_tonic",
+        "giant_fork"
+      ],
+      "synergies_tomes": [
+        "precision",
+        "cooldown",
+        "damage"
+      ],
+      "synergies_characters": [
+        "Ninja",
+        "CL4NK"
+      ],
+      "playstyle": "Crit-focused slasher",
+      "pros": [
+        "Many upgrade options",
+        "Crit scaling",
+        "Fast attacks"
+      ],
+      "cons": [
+        "RNG unlock",
+        "Melee range"
+      ],
+      "image": "images/weapons/katana.png"
+    },
+    {
+      "id": "blood_magic",
+      "name": "Blood Magic",
+      "tier": "A",
+      "base_damage": 9,
+      "attack_pattern": "Lifesteal projectiles",
+      "upgradeable_stats": [
+        "damage",
+        "Projectile Count",
+        "size"
+      ],
+      "unlock_requirement": "bloody Tome to Level 12",
+      "unlock_cost_silver": 15,
+      "unlocked_by_default": false,
+      "description": "Lifesteal weapon. Synergizes with healing builds.",
+      "best_for": [
+        "Lifesteal builds",
+        "Sustain",
+        "Vlad character"
+      ],
+      "synergies_items": [
+        "bloody_cleaver",
+        "demonic_blade",
+        "chonkplate"
+      ],
+      "synergies_tomes": [
+        "bloody",
+        "damage"
+      ],
+      "synergies_characters": [
+        "Vlad"
+      ],
+      "playstyle": "Sustain through damage",
+      "pros": [
+        "Built-in lifesteal",
+        "Good sustain",
+        "Vlad synergy"
+      ],
+      "cons": [
+        "Requires lifesteal build",
+        "Limited upgrade paths"
+      ],
+      "image": "images/weapons/blood_magic.png"
+    },
+    {
+      "id": "slutty_rocket",
+      "name": "Slutty Rocket",
+      "tier": "A",
+      "base_damage": 13,
+      "attack_pattern": "Explosive rockets",
+      "upgradeable_stats": [
+        "damage",
+        "Projectile Speed",
+        "Projectile Count",
+        "Crit Chance"
+      ],
+      "unlock_requirement": "Kill 15,000 enemies as CL4NK",
+      "unlock_cost_silver": 16,
+      "unlocked_by_default": false,
+      "description": "Fires explosive rockets. Good AoE damage.",
+      "best_for": [
+        "AoE damage",
+        "Explosions",
+        "Crowd clear"
+      ],
+      "synergies_items": [
+        "slutty_cannon",
+        "spicy_meatball"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "cooldown"
+      ],
+      "synergies_characters": [
+        "CL4NK"
+      ],
+      "playstyle": "Explosive damage dealer",
+      "pros": [
+        "AoE explosions",
+        "Good damage",
+        "Fun mechanics"
+      ],
+      "cons": [
+        "Requires CL4NK unlock",
+        "Projectile speed matters"
+      ],
+      "image": "images/weapons/slutty_rocket.png"
+    },
+    {
+      "id": "poison_flask",
+      "name": "Poison Flask",
+      "tier": "A",
+      "base_damage": 7,
+      "attack_pattern": "Poison cloud",
+      "upgradeable_stats": [
+        "damage",
+        "duration",
+        "Projectile Count",
+        "Projectile Speed",
+        "size"
+      ],
+      "unlock_requirement": "Kill Scorpionussy miniboss 3 times",
+      "unlock_cost_silver": 14,
+      "unlocked_by_default": false,
+      "description": "Creates poison clouds. DoT damage over time.",
+      "best_for": [
+        "Poison builds",
+        "DoT",
+        "duration scaling"
+      ],
+      "synergies_items": [
+        "moldy_cheese",
+        "toxic_barrel",
+        "gas_mask"
+      ],
+      "synergies_tomes": [
+        "duration",
+        "damage"
+      ],
+      "synergies_characters": [
+        "Amog"
+      ],
+      "playstyle": "Poison DoT specialist",
+      "pros": [
+        "DoT damage",
+        "Area denial",
+        "Amog synergy"
+      ],
+      "cons": [
+        "Requires duration",
+        "Slower kill speed"
+      ],
+      "image": "images/weapons/poison_flask.png"
+    },
+    {
+      "id": "frostwalker",
+      "name": "Frostwalker",
+      "tier": "A",
+      "base_damage": 8,
+      "attack_pattern": "Freezing projectiles",
+      "upgradeable_stats": [
+        "damage",
+        "size",
+        "duration"
+      ],
+      "unlock_requirement": "Freeze 1,000 enemies with Ice Cube",
+      "unlock_cost_silver": 14,
+      "unlocked_by_default": false,
+      "description": "Freezes enemies. Crowd control through ice.",
+      "best_for": [
+        "Freeze builds",
+        "Crowd control",
+        "Ice synergy"
+      ],
+      "synergies_items": [
+        "ice_cube",
+        "ice_crystal"
+      ],
+      "synergies_tomes": [
+        "duration",
+        "damage",
+        "size"
+      ],
+      "synergies_characters": [
+        "Noelle"
+      ],
+      "playstyle": "Freeze crowd controller",
+      "pros": [
+        "Freeze CC",
+        "Good with ice items",
+        "Area control"
+      ],
+      "cons": [
+        "Limited upgrade options",
+        "Requires ice items"
+      ],
+      "image": "images/weapons/frostwalker.png"
+    },
+    {
+      "id": "aegis",
+      "name": "Aegis",
+      "tier": "S",
+      "base_damage": 11,
+      "attack_pattern": "Shield bash with shockwave counter",
+      "upgradeable_stats": [
+        "damage",
+        "knockback",
+        "size"
+      ],
+      "unlock_requirement": "Block 500 total damage with armor as Sir Oofie",
+      "unlock_cost_silver": 18,
+      "unlocked_by_default": false,
+      "description": "Perfect balance of offense and defense. Blocks attacks and counters with shockwaves.",
+      "best_for": [
+        "Tank builds",
+        "Defensive playstyle",
+        "Sir Oofie"
+      ],
+      "synergies_items": [
+        "spiky_shield",
+        "mirror"
+      ],
+      "synergies_tomes": [
+        "armor",
+        "knockback",
+        "damage"
+      ],
+      "synergies_characters": [
+        "Sir Oofie",
+        "Megachad"
+      ],
+      "playstyle": "Defensive tank with counter damage",
+      "pros": [
+        "Blocks attacks",
+        "Shockwave counter",
+        "Great for tanks"
+      ],
+      "cons": [
+        "Requires armor build",
+        "Sir Oofie-specific unlock"
+      ],
+      "image": "images/weapons/aegis.png"
+    },
+    {
+      "id": "firestaff",
+      "name": "Firestaff",
+      "tier": "C",
+      "base_damage": 8,
+      "attack_pattern": "Fireballs that explode on impact",
+      "upgradeable_stats": [
+        "damage",
+        "Projectile Count",
+        "size",
+        "Projectile Speed"
+      ],
+      "unlock_requirement": null,
+      "unlock_cost_silver": 0,
+      "unlocked_by_default": true,
+      "description": "Shoots explosive fireballs. Fox's signature weapon.",
+      "best_for": [
+        "Fire builds",
+        "AoE damage",
+        "Beginner-friendly"
+      ],
+      "synergies_items": [
+        "dragonfire"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "size"
+      ],
+      "synergies_characters": [
+        "Fox"
+      ],
+      "playstyle": "Explosive projectile spam",
+      "pros": [
+        "Available from start",
+        "AoE explosions",
+        "Simple mechanics"
+      ],
+      "cons": [
+        "Lower tier",
+        "Situational"
+      ],
+      "image": "images/weapons/firestaff.png"
+    },
+    {
+      "id": "dice",
+      "name": "Dice",
+      "tier": "SS",
+      "base_damage": 3.5,
+      "attack_pattern": "Throws dice dealing 1-6 damage",
+      "upgradeable_stats": [
+        "damage",
+        "Crit Chance",
+        "Crit damage",
+        "Projectile Count"
+      ],
+      "unlock_requirement": "luck Tome to Level 12",
+      "unlock_cost_silver": 20,
+      "unlocked_by_default": false,
+      "description": "Rolling a 6 permanently increases crit chance. Infinite scaling potential.",
+      "best_for": [
+        "Crit builds",
+        "RNG scaling",
+        "Late game"
+      ],
+      "synergies_items": [
+        "clover",
+        "credit_card_green",
+        "forbidden_juice"
+      ],
+      "synergies_tomes": [
+        "luck",
+        "precision",
+        "damage"
+      ],
+      "synergies_characters": [
+        "CL4NK",
+        "Bush"
+      ],
+      "playstyle": "RNG-based crit scaling",
+      "pros": [
+        "Infinite crit scaling",
+        "Most broken weapon",
+        "Unique mechanic"
+      ],
+      "cons": [
+        "RNG dependent",
+        "Requires luck build",
+        "Low base damage"
+      ],
+      "image": "images/weapons/dice.png"
+    },
+    {
+      "id": "bananarang",
+      "name": "Bananarang",
+      "tier": "A",
+      "base_damage": 10,
+      "attack_pattern": "Boomerang that returns",
+      "upgradeable_stats": [
+        "damage",
+        "Projectile Count",
+        "size",
+        "duration"
+      ],
+      "unlock_requirement": "Find secret banana item in Forest map",
+      "unlock_cost_silver": 15,
+      "unlocked_by_default": false,
+      "description": "Boomerang mechanics with lifesteal synergy. Returns after hitting.",
+      "best_for": [
+        "Lifesteal builds",
+        "Casual runs",
+        "Persistent damage"
+      ],
+      "synergies_items": [
+        "bloody_cleaver",
+        "demonic_blade",
+        "chonkplate"
+      ],
+      "synergies_tomes": [
+        "duration",
+        "damage",
+        "bloody"
+      ],
+      "synergies_characters": [
+        "Vlad",
+        "Monke"
+      ],
+      "playstyle": "Boomerang lifesteal",
+      "pros": [
+        "Returns for multiple hits",
+        "Lifesteal synergy",
+        "Fun mechanics"
+      ],
+      "cons": [
+        "Secret unlock",
+        "Requires finding banana"
+      ],
+      "image": "images/weapons/bananarang.png"
+    },
+    {
+      "id": "shotgun",
+      "name": "Shotgun",
+      "tier": "A",
+      "base_damage": 9,
+      "attack_pattern": "Manual aim spread weapon",
+      "upgradeable_stats": [
+        "damage",
+        "Crit Chance",
+        "Projectile Count",
+        "knockback",
+        "size"
+      ],
+      "unlock_requirement": "Kill 5,000 enemies with Revolver",
+      "unlock_cost_silver": 12,
+      "unlocked_by_default": false,
+      "description": "Fires multiple pellets in a cone toward cursor. Excellent close range.",
+      "best_for": [
+        "Close range",
+        "Manual aim",
+        "Burst damage"
+      ],
+      "synergies_items": [
+        "backpack",
+        "forbidden_juice",
+        "brass_knuckles"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "quantity",
+        "precision"
+      ],
+      "synergies_characters": [
+        "Bandit",
+        "Ninja"
+      ],
+      "playstyle": "Close-range burst",
+      "pros": [
+        "High close-range damage",
+        "Manual aim control",
+        "Many upgrade paths"
+      ],
+      "cons": [
+        "Falls off at distance",
+        "Requires good positioning"
+      ],
+      "image": "images/weapons/shotgun.png"
+    },
+    {
+      "id": "mines",
+      "name": "Mines",
+      "tier": "B",
+      "base_damage": 10,
+      "attack_pattern": "Deploy mines that explode near enemies",
+      "upgradeable_stats": [
+        "damage",
+        "duration",
+        "Projectile Count"
+      ],
+      "unlock_requirement": "Kill 3,000 enemies with Shotgun",
+      "unlock_cost_silver": 12,
+      "unlocked_by_default": false,
+      "description": "Places explosive mines. Area denial and defensive tool.",
+      "best_for": [
+        "Defensive builds",
+        "Area denial",
+        "Choke points"
+      ],
+      "synergies_items": [],
+      "synergies_tomes": [
+        "duration",
+        "damage"
+      ],
+      "synergies_characters": [
+        "Sir Oofie",
+        "Megachad"
+      ],
+      "playstyle": "Defensive mine layer",
+      "pros": [
+        "Area denial",
+        "Defensive utility",
+        "Choke point control"
+      ],
+      "cons": [
+        "Situational",
+        "Requires enemy positioning",
+        "Passive playstyle"
+      ],
+      "image": "images/weapons/mines.png"
+    },
+    {
+      "id": "chunkers",
+      "name": "Chunkers",
+      "tier": "A",
+      "base_damage": 12,
+      "attack_pattern": "Orbiting rocks that knock back",
+      "upgradeable_stats": [
+        "damage",
+        "knockback",
+        "Projectile Count",
+        "Projectile Speed",
+        "size"
+      ],
+      "unlock_requirement": "knockback Tome to Level 8",
+      "unlock_cost_silver": 14,
+      "unlocked_by_default": false,
+      "description": "Summons chunky rocks that orbit you. knockback on contact.",
+      "best_for": [
+        "Orbit builds",
+        "knockback",
+        "Close defense"
+      ],
+      "synergies_items": [
+        "power_gloves"
+      ],
+      "synergies_tomes": [
+        "knockback",
+        "size",
+        "damage"
+      ],
+      "synergies_characters": [
+        "Megachad",
+        "Ogre"
+      ],
+      "playstyle": "Orbital defender",
+      "pros": [
+        "Automatic defense",
+        "knockback protection",
+        "Good with size"
+      ],
+      "cons": [
+        "Close range only",
+        "Enemies pushed away"
+      ],
+      "image": "images/weapons/chunkers.png"
+    },
+    {
+      "id": "space_noodle",
+      "name": "Space Noodle",
+      "tier": "A",
+      "base_damage": 8,
+      "attack_pattern": "Beam that latches to nearest enemy",
+      "upgradeable_stats": [
+        "damage",
+        "duration",
+        "size",
+        "Projectile Count"
+      ],
+      "unlock_requirement": "Reach level 50 as Spaceman",
+      "unlock_cost_silver": 18,
+      "unlocked_by_default": false,
+      "description": "Creates beam between you and target. Enemies crossing the line take damage.",
+      "best_for": [
+        "Beam builds",
+        "Spaceman",
+        "Positional damage"
+      ],
+      "synergies_items": [],
+      "synergies_tomes": [
+        "duration",
+        "damage",
+        "size"
+      ],
+      "synergies_characters": [
+        "Spaceman"
+      ],
+      "playstyle": "Beam positioning specialist",
+      "pros": [
+        "Unique beam mechanic",
+        "damages crossing enemies",
+        "Good with duration"
+      ],
+      "cons": [
+        "Spaceman-specific",
+        "Latched enemy can't die",
+        "Requires positioning"
+      ],
+      "image": "images/weapons/space_noodle.png"
+    },
+    {
+      "id": "bone",
+      "name": "Bone",
+      "tier": "A",
+      "base_damage": 9,
+      "attack_pattern": "Bounces off walls and enemies",
+      "upgradeable_stats": [
+        "damage",
+        "Projectile Bounces",
+        "Projectile Count",
+        "Projectile Speed"
+      ],
+      "unlock_requirement": null,
+      "unlock_cost_silver": 0,
+      "unlocked_by_default": false,
+      "description": "Calcium's starting weapon. Unique ricochet mechanics.",
+      "best_for": [
+        "Bounce builds",
+        "Calcium",
+        "Tight spaces"
+      ],
+      "synergies_items": [
+        "backpack",
+        "echo_shard"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "quantity"
+      ],
+      "synergies_characters": [
+        "Calcium"
+      ],
+      "playstyle": "Ricochet specialist",
+      "pros": [
+        "Bounces everywhere",
+        "Good in tight spaces",
+        "Unique mechanics"
+      ],
+      "cons": [
+        "Calcium starter only",
+        "Unpredictable bounces"
+      ],
+      "image": "images/weapons/bone.png"
+    },
+    {
+      "id": "hero_sword",
+      "name": "Hero Sword",
+      "tier": "S",
+      "base_damage": 18,
+      "attack_pattern": "Slow, powerful slashes",
+      "upgradeable_stats": [
+        "damage",
+        "size",
+        "Crit Chance",
+        "Crit damage"
+      ],
+      "unlock_requirement": "Defeat stage boss without items or shrines",
+      "unlock_cost_silver": 30,
+      "unlocked_by_default": false,
+      "description": "High damage but slow. Ultimate challenge weapon.",
+      "best_for": [
+        "High damage",
+        "Challenge runs",
+        "Boss killing"
+      ],
+      "synergies_items": [
+        "forbidden_juice",
+        "giant_fork",
+        "gym_sauce"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "precision"
+      ],
+      "synergies_characters": [
+        "Bush",
+        "Bandit"
+      ],
+      "playstyle": "Slow high-damage striker",
+      "pros": [
+        "Highest melee damage",
+        "Great for bosses",
+        "Challenge reward"
+      ],
+      "cons": [
+        "Very slow",
+        "Hard unlock",
+        "Expensive"
+      ],
+      "image": "images/weapons/hero_sword.png"
+    },
+    {
+      "id": "wireless_dagger",
+      "name": "Wireless Dagger",
+      "tier": "A",
+      "base_damage": 9,
+      "attack_pattern": "Homing daggers",
+      "upgradeable_stats": [
+        "damage",
+        "Projectile Bounces",
+        "Projectile Count",
+        "Crit Chance"
+      ],
+      "unlock_requirement": "Lightning Staff to Level 15",
+      "unlock_cost_silver": 15,
+      "unlocked_by_default": false,
+      "description": "Smart auto-targeting daggers. Tony McZoom's starter weapon.",
+      "best_for": [
+        "Auto-targeting",
+        "Passive damage",
+        "Tony McZoom"
+      ],
+      "synergies_items": [
+        "backpack",
+        "echo_shard",
+        "overpowered_lamp"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "quantity"
+      ],
+      "synergies_characters": [
+        "Tony McZoom"
+      ],
+      "playstyle": "Auto-targeting passive",
+      "pros": [
+        "Homing daggers",
+        "No aim needed",
+        "Good bounce potential"
+      ],
+      "cons": [
+        "Tony McZoom starter",
+        "Lower damage"
+      ],
+      "image": "images/weapons/wireless_dagger.png"
+    },
+    {
+      "id": "corrupted_sword",
+      "name": "Corrupted Sword",
+      "tier": "A",
+      "base_damage": 13,
+      "attack_pattern": "Twin slashes, stronger at low hp",
+      "upgradeable_stats": [
+        "damage",
+        "size",
+        "Crit Chance"
+      ],
+      "unlock_requirement": "cursed Tome to Level 20 before 10:00",
+      "unlock_cost_silver": 18,
+      "unlocked_by_default": false,
+      "description": "More damage when hp is low. High risk, high reward.",
+      "best_for": [
+        "Glass cannon",
+        "Low hp builds",
+        "Risk takers"
+      ],
+      "synergies_items": [
+        "gamer_goggles",
+        "speed_boi",
+        "beer"
+      ],
+      "synergies_tomes": [
+        "damage",
+        "cursed"
+      ],
+      "synergies_characters": [
+        "Bandit",
+        "Ninja"
+      ],
+      "playstyle": "High-risk melee",
+      "pros": [
+        "High damage at low hp",
+        "Twin slashes",
+        "Unique mechanic"
+      ],
+      "cons": [
+        "Risky playstyle",
+        "Hard unlock",
+        "Requires low hp"
+      ],
+      "image": "images/weapons/corrupted_sword.png"
+    },
+    {
+      "id": "flamewalker",
+      "name": "Flamewalker",
+      "tier": "B",
+      "base_damage": 7,
+      "attack_pattern": "Leaves fire trail behind you",
+      "upgradeable_stats": [
+        "damage",
+        "duration",
+        "size"
+      ],
+      "unlock_requirement": null,
+      "unlock_cost_silver": 0,
+      "unlocked_by_default": true,
+      "description": "Fire trail damages enemies. Excellent for kiting and crowd control.",
+      "best_for": [
+        "Kiting builds",
+        "Crowd control",
+        "Movement builds"
+      ],
+      "synergies_items": [
+        "turbo_socks",
+        "dragonfire"
+      ],
+      "synergies_tomes": [
+        "duration",
+        "size",
+        "agility"
+      ],
+      "synergies_characters": [
+        "Tony McZoom",
+        "Fox"
+      ],
+      "playstyle": "Kiting fire trail",
+      "pros": [
+        "Automatic damage while moving",
+        "Good kiting",
+        "Crowd control"
+      ],
+      "cons": [
+        "Lower damage",
+        "Requires movement",
+        "Enemies must walk into trail"
+      ],
+      "image": "images/weapons/flamewalker.png"
+    }
+  ]
+}
