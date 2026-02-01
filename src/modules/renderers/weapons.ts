@@ -9,7 +9,6 @@ import {
     safeGetElementById,
     generateMetaTags,
 } from '../utils.ts';
-import { isFavorite } from '../favorites.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Weapon } from './types.ts';
 

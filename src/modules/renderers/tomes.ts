@@ -7,7 +7,6 @@ import {
     escapeHtml,
     safeGetElementById,
 } from '../utils.ts';
-import { isFavorite } from '../favorites.ts';
 import { initChartsAsync } from './common.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Tome } from './types.ts';

@@ -9,7 +9,6 @@ import {
     safeGetElementById,
     truncateText,
 } from '../utils.ts';
-import { isFavorite } from '../favorites.ts';
 import { initChartsAsync } from './common.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Item } from './types.ts';
@@ -73,11 +72,7 @@ export async function renderItems(items: Item[]): Promise<void> {
                     <div class="item-name">${escapeHtml(item.name)}</div>
                     ${generateTierLabel(item.tier)}
                 </div>
-                <!-- DISABLED: Favorite button hidden
-                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="items" data-id="${item.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
-                    ${isFav ? '⭐' : '☆'}
-                </button>
-                -->
+<!-- DISABLED: Favorite button hidden - see favorites.ts for implementation -->
                 <label class="compare-checkbox-label" title="Add to comparison">
                     <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${compareItems.includes(item.id) ? 'checked' : ''}>
                     <span>+</span>

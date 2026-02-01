@@ -8,7 +8,6 @@ import {
     escapeHtml,
     safeGetElementById,
 } from '../utils.ts';
-import { isFavorite } from '../favorites.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Character } from './types.ts';
 

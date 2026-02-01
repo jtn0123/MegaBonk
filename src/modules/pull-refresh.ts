@@ -123,7 +123,10 @@ function handleTouchStart(e: TouchEvent): void {
     // Only enable when at top of page and not already refreshing
     if (!isAtTop() || state.isRefreshing) return;
     
-    state.startY = e.touches[0].clientY;
+    const touch = e.touches[0];
+    if (!touch) return;
+    
+    state.startY = touch.clientY;
     state.isPulling = true;
 }
 
@@ -134,7 +137,10 @@ function handleTouchMove(e: TouchEvent): void {
         return;
     }
 
-    state.currentY = e.touches[0].clientY;
+    const touch = e.touches[0];
+    if (!touch) return;
+    
+    state.currentY = touch.clientY;
     let distance = state.currentY - state.startY;
 
     // Only allow pulling down

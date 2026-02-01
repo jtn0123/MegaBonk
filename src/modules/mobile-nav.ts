@@ -137,13 +137,13 @@ function handleFocusTrap(e: KeyboardEvent): void {
         // Shift + Tab: moving backwards
         if (document.activeElement === firstElement) {
             e.preventDefault();
-            lastElement.focus();
+            lastElement?.focus();
         }
     } else {
         // Tab: moving forwards
         if (document.activeElement === lastElement) {
             e.preventDefault();
-            firstElement.focus();
+            firstElement?.focus();
         }
     }
 }

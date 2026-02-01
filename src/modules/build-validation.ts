@@ -3,7 +3,7 @@
 // Build validation, synergy checking
 // ========================================
 
-import type { Character, Weapon, Item, Tome } from '../types/index.ts';
+import type { Character, Weapon, Item } from '../types/index.ts';
 import type { Build } from './store.ts';
 import { escapeHtml } from './utils.ts';
 

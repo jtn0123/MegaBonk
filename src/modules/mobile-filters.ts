@@ -5,8 +5,8 @@
 // Similar UX to the more-menu drawer
 // ========================================
 
-import { getState, subscribe, type TabName } from './store.ts';
-import { safeGetElementById, safeQuerySelector, safeQuerySelectorAll } from './utils.ts';
+import { getState, subscribe } from './store.ts';
+import { safeGetElementById, safeQuerySelector } from './utils.ts';
 import { logger } from './logger.ts';
 import { saveFilterState } from './filter-state.ts';
 
@@ -448,12 +448,12 @@ function handleFocusTrap(e: KeyboardEvent): void {
     if (e.shiftKey) {
         if (document.activeElement === firstElement) {
             e.preventDefault();
-            lastElement.focus();
+            lastElement?.focus();
         }
     } else {
         if (document.activeElement === lastElement) {
             e.preventDefault();
-            firstElement.focus();
+            firstElement?.focus();
         }
     }
 }
