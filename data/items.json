@@ -17,7 +17,9 @@
       "stacks_well": false,
       "stack_cap": 1,
       "formula": "Each weapon upgrade adds +1 extra to all stats",
-      "scaling_per_stack": [1],
+      "scaling_per_stack": [
+        1
+      ],
       "detailed_description": "Permanently increases all weapon upgrade values by +1. This is a flat bonus that applies to every upgrade you take. Does NOT benefit from additional copies - one is enough!",
       "synergies": [
         "All weapons",
@@ -46,7 +48,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Multiplier = 1 + ((Max HP / 100) × 0.20 × Stack Count)",
+      "formula": "Damage Multiplier = 1 + ((Max HP / 100) \u00d7 0.20 \u00d7 Stack Count)",
       "scaling_per_stack": [
         20,
         40,
@@ -93,7 +95,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Total Proc Chance = 0.02 × Stack Count (capped at 100%)",
+      "formula": "Total Proc Chance = 0.02 \u00d7 Stack Count (capped at 100%)",
       "scaling_per_stack": [
         2,
         4,
@@ -136,7 +138,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Explosion Chance = 0.25 × Stack Count (capped at 100%)",
+      "formula": "Explosion Chance = 0.25 \u00d7 Stack Count (capped at 100%)",
       "scaling_per_stack": [
         25,
         50,
@@ -180,7 +182,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Multiplier = 1 + (0.10 × Stack Count)",
+      "formula": "Damage Multiplier = 1 + (0.10 \u00d7 Stack Count)",
       "scaling_per_stack": [
         10,
         20,
@@ -220,7 +222,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Crit Chance = Base + (0.10 × Stack Count). Over 100% enables Overcrits!",
+      "formula": "Crit Chance = Base + (0.10 \u00d7 Stack Count). Over 100% enables Overcrits!",
       "scaling_per_stack": [
         10,
         20,
@@ -261,7 +263,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Max HP = Base HP + (25 × Stack Count)",
+      "formula": "Max HP = Base HP + (25 \u00d7 Stack Count)",
       "scaling_per_stack": [
         25,
         50,
@@ -307,7 +309,9 @@
       "stacks_well": false,
       "stack_cap": 1,
       "formula": "Automatic XP collection on cooldown",
-      "scaling_per_stack": [1],
+      "scaling_per_stack": [
+        1
+      ],
       "detailed_description": "Automatically pulls all XP on screen to your location periodically. Incredibly convenient for leveling. Additional copies do NOT reduce cooldown or increase range.",
       "synergies": [
         "XP Gain items",
@@ -336,7 +340,7 @@
       "scaling_type": "one_and_done",
       "stacking_behavior": "extra_lives",
       "stacks_well": true,
-      "stack_cap": null,
+      "stack_cap": 25,
       "formula": "Number of Lives = Stack Count",
       "scaling_per_stack": [
         1,
@@ -356,7 +360,7 @@
         "Risk-taking strategies"
       ],
       "anti_synergies": [],
-      "notes": "STACKS MODERATELY: Each copy = one more life. Useful but has diminishing returns.",
+      "notes": "STACKS MODERATELY: Each copy = one more life. Capped at 25 per run.",
       "graph_type": "linear_scaling",
       "one_and_done": false,
       "image": "images/items/za_warudo.png",
@@ -507,7 +511,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Overheal = Max HP × 0.75 × Stack Count, Lifesteal = 0.20 × Stack Count",
+      "formula": "Overheal = Max HP \u00d7 0.75 \u00d7 Stack Count, Lifesteal = 0.20 \u00d7 Stack Count",
       "scaling_per_stack": [
         75,
         150,
@@ -565,7 +569,7 @@
       "stacking_behavior": "additive_with_kill_counter",
       "stacks_well": true,
       "stack_cap": 1000,
-      "formula": "Damage = 1 + (Kills × 0.001 × Stack Count), max 1000 kills per copy",
+      "formula": "Damage = 1 + (Kills \u00d7 0.001 \u00d7 Stack Count), max 1000 kills per copy",
       "scaling_per_stack": [
         100,
         200,
@@ -716,7 +720,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Lightning Chance = 0.25 × Stack Count (capped at 100%)",
+      "formula": "Lightning Chance = 0.25 \u00d7 Stack Count (capped at 100%)",
       "scaling_per_stack": [
         25,
         50,
@@ -759,7 +763,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Attack Speed Bonus = min(Movement Speed × Stack Count, 40% × Stack Count)",
+      "formula": "Attack Speed Bonus = min(Movement Speed \u00d7 Stack Count, 40% \u00d7 Stack Count)",
       "scaling_per_stack": [
         40,
         80,
@@ -883,7 +887,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Freeze Chance = 0.20 × Stack Count (capped at 100%)",
+      "formula": "Freeze Chance = 0.20 \u00d7 Stack Count (capped at 100%)",
       "scaling_per_stack": [
         20,
         40,
@@ -926,7 +930,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Dragonfire Chance = 0.15 × Stack Count (capped at 100%)",
+      "formula": "Dragonfire Chance = 0.15 \u00d7 Stack Count (capped at 100%)",
       "scaling_per_stack": [
         15,
         30,
@@ -969,7 +973,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": false,
       "stack_cap": null,
-      "formula": "Damage = 1 + (0.20 × Stacks), Max HP = Base × (1 - 0.05 × Stacks)",
+      "formula": "Damage = 1 + (0.20 \u00d7 Stacks), Max HP = Base \u00d7 (1 - 0.05 \u00d7 Stacks)",
       "scaling_per_stack": [
         20,
         40,
@@ -1029,7 +1033,7 @@
       "stacking_behavior": "additive_with_kill_counter",
       "stacks_well": true,
       "stack_cap": 200,
-      "formula": "HP Gain = min(Kills × 0.5 × Stack Count, 100 × Stack Count)",
+      "formula": "HP Gain = min(Kills \u00d7 0.5 \u00d7 Stack Count, 100 \u00d7 Stack Count)",
       "scaling_per_stack": [
         100,
         200,
@@ -1073,7 +1077,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Movement Speed = Base × (1 + 0.15 × Stack Count)",
+      "formula": "Movement Speed = Base \u00d7 (1 + 0.15 \u00d7 Stack Count)",
       "scaling_per_stack": [
         15,
         30,
@@ -1114,7 +1118,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Attack Speed = Base × (1 + 0.08 × Stack Count)",
+      "formula": "Attack Speed = Base \u00d7 (1 + 0.08 \u00d7 Stack Count)",
       "scaling_per_stack": [
         8,
         16,
@@ -1155,7 +1159,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "HP Regen = Base + (35 × Stack Count)",
+      "formula": "HP Regen = Base + (35 \u00d7 Stack Count)",
       "scaling_per_stack": [
         35,
         70,
@@ -1199,7 +1203,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Luck = Base + (0.075 × Stack Count)",
+      "formula": "Luck = Base + (0.075 \u00d7 Stack Count)",
       "scaling_per_stack": [
         7.5,
         15,
@@ -1240,7 +1244,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Poison Chance = 0.40 × Stack Count (capped at 100%)",
+      "formula": "Poison Chance = 0.40 \u00d7 Stack Count (capped at 100%)",
       "scaling_per_stack": [
         40,
         80,
@@ -1284,7 +1288,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": false,
       "stack_cap": null,
-      "formula": "Borgar Spawn Chance = 0.02 × Stack Count",
+      "formula": "Borgar Spawn Chance = 0.02 \u00d7 Stack Count",
       "scaling_per_stack": [
         2,
         4,
@@ -1321,7 +1325,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Elite Damage Multiplier = 1 + (0.15 × Stack Count)",
+      "formula": "Elite Damage Multiplier = 1 + (0.15 \u00d7 Stack Count)",
       "scaling_per_stack": [
         15,
         30,
@@ -1362,7 +1366,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Armor = Base + (0.10 × Stacks), Thorns = (Armor% × 2 × Stacks)",
+      "formula": "Armor = Base + (0.10 \u00d7 Stacks), Thorns = (Armor% \u00d7 2 \u00d7 Stacks)",
       "scaling_per_stack": [
         10,
         20,
@@ -1405,7 +1409,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": 200,
-      "formula": "Execute Chance = 0.01 × Stacks, Damage = 1 + (Executes × 0.01 × Stacks)",
+      "formula": "Execute Chance = 0.01 \u00d7 Stacks, Damage = 1 + (Executes \u00d7 0.01 \u00d7 Stacks)",
       "scaling_per_stack": [
         1,
         2,
@@ -1529,7 +1533,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Souls per Kill = 2 × Stack Count",
+      "formula": "Souls per Kill = 2 \u00d7 Stack Count",
       "scaling_per_stack": [
         2,
         4,
@@ -1611,7 +1615,7 @@
       "stacking_behavior": "additive_damage",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Multiplier when <50% HP = 1 + (1.0 × Stack Count)",
+      "formula": "Damage Multiplier when <50% HP = 1 + (1.0 \u00d7 Stack Count)",
       "scaling_per_stack": [
         100,
         200,
@@ -1708,7 +1712,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Blast Chance = 0.08 × Stack Count",
+      "formula": "Blast Chance = 0.08 \u00d7 Stack Count",
       "scaling_per_stack": [
         8,
         16,
@@ -1792,7 +1796,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Bonus vs Full HP = 0.20 × Stack Count",
+      "formula": "Damage Bonus vs Full HP = 0.20 \u00d7 Stack Count",
       "scaling_per_stack": [
         20,
         40,
@@ -1836,7 +1840,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Charge Speed = 1 + (0.04 × Stacks), Rewards = 1 + (0.075 × Stacks)",
+      "formula": "Charge Speed = 1 + (0.04 \u00d7 Stacks), Rewards = 1 + (0.075 \u00d7 Stacks)",
       "scaling_per_stack": [
         4,
         8,
@@ -1877,7 +1881,7 @@
       "stacking_behavior": "hyperbolic",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Evasion = Internal / (1 + Internal), where Internal = 0.15 × Stacks",
+      "formula": "Evasion = Internal / (1 + Internal), where Internal = 0.15 \u00d7 Stacks",
       "scaling_per_stack": [
         15,
         30,
@@ -1927,7 +1931,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Gold Multiplier = 1 + (0.15 × Stack Count)",
+      "formula": "Gold Multiplier = 1 + (0.15 \u00d7 Stack Count)",
       "scaling_per_stack": [
         15,
         30,
@@ -1968,7 +1972,7 @@
       "stacking_behavior": "additive_capped",
       "stacks_well": true,
       "stack_cap": 1000,
-      "formula": "XP Multiplier = min(1 + (0.08 × Stacks), 10.0)",
+      "formula": "XP Multiplier = min(1 + (0.08 \u00d7 Stacks), 10.0)",
       "scaling_per_stack": [
         8,
         16,
@@ -2010,7 +2014,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Airborne Damage = 1 + (0.66 × Stacks), Launch Chance = 0.08 × Stacks",
+      "formula": "Airborne Damage = 1 + (0.66 \u00d7 Stacks), Launch Chance = 0.08 \u00d7 Stacks",
       "scaling_per_stack": [
         66,
         132,
@@ -2054,7 +2058,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Bonus = (1 - Current HP% / Max HP%) × 1.0 × Stacks",
+      "formula": "Damage Bonus = (1 - Current HP% / Max HP%) \u00d7 1.0 \u00d7 Stacks",
       "scaling_per_stack": [
         100,
         200,
@@ -2102,7 +2106,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Armor = 10 × Poisoned Enemies × Stacks, Overheal = 10 × Poisoned Enemies × Stacks",
+      "formula": "Armor = 10 \u00d7 Poisoned Enemies \u00d7 Stacks, Overheal = 10 \u00d7 Poisoned Enemies \u00d7 Stacks",
       "scaling_per_stack": [
         10,
         20,
@@ -2201,7 +2205,7 @@
       "stacking_behavior": "additive_damage",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "XP Shard Damage = Base Damage × Stack Count",
+      "formula": "XP Shard Damage = Base Damage \u00d7 Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2245,7 +2249,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Rocket Chance = 0.20 × Stack Count (capped at 100%)",
+      "formula": "Rocket Chance = 0.20 \u00d7 Stack Count (capped at 100%)",
       "scaling_per_stack": [
         20,
         40,
@@ -2288,7 +2292,7 @@
       "stacking_behavior": "additive_size",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Poison Cloud Size/Damage = Base × Stack Count",
+      "formula": "Poison Cloud Size/Damage = Base \u00d7 Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2333,7 +2337,7 @@
       "stacking_behavior": "additive_shrines",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Extra Shrines = 2 × Stack Count, Healing Rate = Base × Stack Count",
+      "formula": "Extra Shrines = 2 \u00d7 Stack Count, Healing Rate = Base \u00d7 Stack Count",
       "scaling_per_stack": [
         2,
         4,
@@ -2376,7 +2380,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Base Speed = 1 + (0.05 × Stacks), Damage Speed Boost = 0.10 × Stacks",
+      "formula": "Base Speed = 1 + (0.05 \u00d7 Stacks), Damage Speed Boost = 0.10 \u00d7 Stacks",
       "scaling_per_stack": [
         5,
         10,
@@ -2419,7 +2423,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Heal on Crit Chance = 0.25 × Stack Count (capped at 100%)",
+      "formula": "Heal on Crit Chance = 0.25 \u00d7 Stack Count (capped at 100%)",
       "scaling_per_stack": [
         25,
         50,
@@ -2462,7 +2466,7 @@
       "stacking_behavior": "multiplicative",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Projectile Instances = Base × (1 + Stack Count), XP = 1 + (0.12 × Stacks)",
+      "formula": "Projectile Instances = Base \u00d7 (1 + Stack Count), XP = 1 + (0.12 \u00d7 Stacks)",
       "scaling_per_stack": [
         12,
         24,
@@ -2506,7 +2510,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Gold per Hit = Base × Stack Count",
+      "formula": "Gold per Hit = Base \u00d7 Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2552,7 +2556,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Gold per Meter = 0.1 × Stack Count",
+      "formula": "Gold per Meter = 0.1 \u00d7 Stack Count",
       "scaling_per_stack": [
         10,
         20,
@@ -2597,7 +2601,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage Bonus = min(Time Stationary × 0.20, 1.0) × Stack Count",
+      "formula": "Damage Bonus = min(Time Stationary \u00d7 0.20, 1.0) \u00d7 Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2633,7 +2637,7 @@
     {
       "id": "kevin",
       "name": "Kevin",
-      "rarity": "uncommon",
+      "rarity": "epic",
       "tier": "SS",
       "unlocked_by_default": false,
       "unlock_requirement": "Take damage 5,000 times in one run",
@@ -2643,7 +2647,7 @@
       "stacking_behavior": "additive_damage_and_aoe",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Self Damage Rate = Base × Stack Count, Poison AoE Size = Base × Stack Count",
+      "formula": "Self Damage Rate = Base \u00d7 Stack Count, Poison AoE Size = Base \u00d7 Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2690,7 +2694,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Max HP = Base × (1 + 0.50 × Stacks), Regen = Base / (2 ^ Stacks)",
+      "formula": "Max HP = Base \u00d7 (1 + 0.50 \u00d7 Stacks), Regen = Base / (2 ^ Stacks)",
       "scaling_per_stack": [
         50,
         100,
@@ -2738,7 +2742,7 @@
       "stacking_behavior": "additive_reflection",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Reflected Damage = Incoming Damage × (1.0 × Stack Count)",
+      "formula": "Reflected Damage = Incoming Damage \u00d7 (1.0 \u00d7 Stack Count)",
       "scaling_per_stack": [
         100,
         200,
@@ -2781,7 +2785,7 @@
       "stacking_behavior": "additive_size",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Poison Cloud Size/Damage = Base × Stack Count",
+      "formula": "Poison Cloud Size/Damage = Base \u00d7 Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -2826,7 +2830,7 @@
       "stacking_behavior": "hyperbolic_evasion_additive_speed",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Evasion = Internal / (1 + Internal) where Internal = 0.20 × Stacks, Speed = 1 + (0.10 × Stacks)",
+      "formula": "Evasion = Internal / (1 + Internal) where Internal = 0.20 \u00d7 Stacks, Speed = 1 + (0.10 \u00d7 Stacks)",
       "scaling_per_stack": [
         20,
         40,
@@ -2894,7 +2898,7 @@
       "stacking_behavior": "additive_heal",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Heal Per Proc = 0.075 × Stack Count, Cooldown = 9s / Stack Count",
+      "formula": "Heal Per Proc = 0.075 \u00d7 Stack Count, Cooldown = 9s / Stack Count",
       "scaling_per_stack": [
         7.5,
         15,
@@ -2979,7 +2983,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Bloodmark Chance = 0.27 × Stack Count (capped at 100%)",
+      "formula": "Bloodmark Chance = 0.27 \u00d7 Stack Count (capped at 100%)",
       "scaling_per_stack": [
         27,
         54,
@@ -3022,7 +3026,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Enemy Damage Taken = 1 + (0.20 × Stack Count)",
+      "formula": "Enemy Damage Taken = 1 + (0.20 \u00d7 Stack Count)",
       "scaling_per_stack": [
         20,
         40,
@@ -3109,7 +3113,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Needle Damage = (Thorns Stat × Stack Count) + Base Damage",
+      "formula": "Needle Damage = (Thorns Stat \u00d7 Stack Count) + Base Damage",
       "scaling_per_stack": [
         100,
         200,
@@ -3152,7 +3156,7 @@
       "stacking_behavior": "additive_heal_rate",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Heal per Second = Base × Stack Count",
+      "formula": "Heal per Second = Base \u00d7 Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -3198,7 +3202,7 @@
       "stacking_behavior": "additive_per_chest",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Luck = Base + (Chests Opened × 0.02 × Stack Count)",
+      "formula": "Luck = Base + (Chests Opened \u00d7 0.02 \u00d7 Stack Count)",
       "scaling_per_stack": [
         2,
         4,
@@ -3241,7 +3245,7 @@
       "stacking_behavior": "additive_per_chest",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Damage = 1 + (Chests Opened × 0.025 × Stack Count)",
+      "formula": "Damage = 1 + (Chests Opened \u00d7 0.025 \u00d7 Stack Count)",
       "scaling_per_stack": [
         2.5,
         5,
@@ -3283,7 +3287,7 @@
       "stacking_behavior": "additive_damage",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Pulse Damage = Base × Stack Count",
+      "formula": "Pulse Damage = Base \u00d7 Stack Count",
       "scaling_per_stack": [
         100,
         200,
@@ -3321,12 +3325,12 @@
       "unlocked_by_default": true,
       "unlock_requirement": null,
       "unlock_cost_silver": 0,
-      "base_effect": "Increases jump duration and height by +20%",
+      "base_effect": "Increases movement speed by +10%, grants +1 extra jump, and increases jump duration by +20%",
       "scaling_type": "mobility",
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Jump Height/Duration = Base × (1 + 0.20 × Stack Count)",
+      "formula": "Jump Height/Duration = Base \u00d7 (1 + 0.20 \u00d7 Stack Count)",
       "scaling_per_stack": [
         20,
         40,
@@ -3339,7 +3343,7 @@
         180,
         200
       ],
-      "detailed_description": "Each copy adds +20% jump height/duration. With 3 copies: +60% airtime. Great for aerial builds.",
+      "detailed_description": "Each copy adds +10% speed, +1 jump, and +20% jump duration. Massive mobility boost. Great for aerial builds with Eagle Claw and Scarf.",
       "synergies": [
         "Eagle Claw",
         "Scarf",
@@ -3410,7 +3414,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Freeze Chance = 0.075 × Stack Count",
+      "formula": "Freeze Chance = 0.075 \u00d7 Stack Count",
       "scaling_per_stack": [
         7.5,
         15,
@@ -3502,7 +3506,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Airborne Damage = 1 + (0.33 × Stack Count)",
+      "formula": "Airborne Damage = 1 + (0.33 \u00d7 Stack Count)",
       "scaling_per_stack": [
         33,
         66,
@@ -3545,7 +3549,7 @@
       "stacking_behavior": "additive_both",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Difficulty = 1 + (0.07 × Stacks), Minions = Stack Count",
+      "formula": "Difficulty = 1 + (0.07 \u00d7 Stacks), Minions = Stack Count",
       "scaling_per_stack": [
         7,
         14,
@@ -3588,7 +3592,7 @@
       "stacking_behavior": "additive_chance",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Explosion Chance = 0.50 × Stack Count (capped at 100%), Explosion Damage = Thorns × Armor Multiplier",
+      "formula": "Explosion Chance = 0.50 \u00d7 Stack Count (capped at 100%), Explosion Damage = Thorns \u00d7 Armor Multiplier",
       "scaling_per_stack": [
         50,
         100,
@@ -3632,7 +3636,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Poison Stacks = 4 × Stack Count, Burst Chance = 0.05 × Stack Count",
+      "formula": "Poison Stacks = 4 \u00d7 Stack Count, Burst Chance = 0.05 \u00d7 Stack Count",
       "scaling_per_stack": [
         4,
         8,
@@ -3677,7 +3681,7 @@
       "stacking_behavior": "additive",
       "stacks_well": true,
       "stack_cap": null,
-      "formula": "Elite Spawn Rate Increase = Base × (1 + 0.25 × Stack Count)",
+      "formula": "Elite Spawn Rate Increase = Base \u00d7 (1 + 0.25 \u00d7 Stack Count)",
       "scaling_per_stack": [
         25,
         50,

@@ -932,7 +932,7 @@
       "unlock_requirement": "Kill 5,000 enemies with Revolver",
       "unlock_cost_silver": 12,
       "unlocked_by_default": false,
-      "description": "Fires multiple pellets in a cone toward cursor. Excellent close range.",
+      "description": "Fires multiple pellets in a cone toward cursor. Excellent close range with 3x knockback.",
       "best_for": [
         "Close range",
         "Manual aim",
@@ -962,7 +962,8 @@
         "Falls off at distance",
         "Requires good positioning"
       ],
-      "image": "images/weapons/shotgun.png"
+      "image": "images/weapons/shotgun.png",
+      "base_knockback": 3.0
     },
     {
       "id": "mines",
@@ -1105,12 +1106,13 @@
         "damage",
         "Projectile Bounces",
         "Projectile Count",
-        "Projectile Speed"
+        "Projectile Speed",
+        "knockback"
       ],
       "unlock_requirement": null,
       "unlock_cost_silver": 0,
       "unlocked_by_default": false,
-      "description": "Calcium's starting weapon. Unique ricochet mechanics.",
+      "description": "Calcium's starting weapon. Unique ricochet mechanics with 1.5x knockback.",
       "best_for": [
         "Bounce builds",
         "Calcium",
@@ -1137,7 +1139,8 @@
         "Calcium starter only",
         "Unpredictable bounces"
       ],
-      "image": "images/weapons/bone.png"
+      "image": "images/weapons/bone.png",
+      "base_knockback": 1.5
     },
     {
       "id": "hero_sword",

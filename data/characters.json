@@ -261,7 +261,7 @@
       "name": "Vlad",
       "tier": "S",
       "starting_weapon": "blood_magic",
-      "passive_ability": "Gain 1% Lifesteal per level",
+      "passive_ability": "Gain 1% Lifesteal per level (starts with 5% base)",
       "passive_description": "Sustains through combat with lifesteal. Very hard to kill.",
       "unlock_requirement": "Complete Desert Tier 2",
       "unlock_cost_silver": 32,
@@ -295,7 +295,10 @@
         "blood_magic"
       ],
       "build_tips": "Attack speed = more heals. Bloody Cleaver is core. Unkillable.",
-      "image": "images/characters/vlad.png"
+      "image": "images/characters/vlad.png",
+      "base_stats": {
+        "lifesteal": 5
+      }
     },
     {
       "id": "bandit",
@@ -507,7 +510,7 @@
       "name": "Spaceman",
       "tier": "A",
       "starting_weapon": "black_hole",
-      "passive_ability": "Gain 1% xp Gain per level",
+      "passive_ability": "Gain 1% XP Gain per level (starts with 5% base)",
       "passive_description": "Faster leveling. Black Hole crowd control.",
       "unlock_requirement": "Complete 6 Challenges",
       "unlock_cost_silver": 28,
@@ -541,7 +544,10 @@
         "black_hole"
       ],
       "build_tips": "Level fast. Black Hole with size is amazing. xp snowball.",
-      "image": "images/characters/spaceman.png"
+      "image": "images/characters/spaceman.png",
+      "base_stats": {
+        "xp_gain": 5
+      }
     },
     {
       "id": "noelle",
@@ -672,8 +678,8 @@
       "name": "Robinette",
       "tier": "C",
       "starting_weapon": "bow",
-      "passive_ability": "Gain 1% gold Gain per level",
-      "passive_description": "More gold for shop purchases. Utility passive.",
+      "passive_ability": "Gain 2.5% Gold Gain per level (starts with 5% base)",
+      "passive_description": "More gold for shop purchases. Scales better than before (buffed from 1% to 2.5% per level).",
       "unlock_requirement": "Complete Forest Tier 2",
       "unlock_cost_silver": 16,
       "unlocked_by_default": false,
@@ -703,7 +709,10 @@
         "bow"
       ],
       "build_tips": "Farm gold. Buy shop items. Utility character.",
-      "image": "images/characters/robinette.png"
+      "image": "images/characters/robinette.png",
+      "base_stats": {
+        "gold_gain": 5
+      }
     },
     {
       "id": "birdo",

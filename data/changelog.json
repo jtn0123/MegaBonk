@@ -1,9 +1,219 @@
 {
   "version": "1.0.0",
-  "last_updated": "2026-01-10",
+  "last_updated": "2026-02-01",
   "steam_app_id": "3405340",
-  "total_patches": 6,
+  "total_patches": 7,
   "patches": [
+    {
+      "id": "patch_1822556746165683",
+      "version": "1.0.64",
+      "title": "H A T S",
+      "date": "2026-01-25",
+      "steam_url": "https://store.steampowered.com/news/app/3405340/view/1822556746165683",
+      "summary": "Added 21 hats and achievements, balance changes to characters and items",
+      "categories": {
+        "balance": [
+          {
+            "text": "[[character:vlad|Vlad]] now has 5% Lifesteal (flat) added to character stats",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "vlad"
+              }
+            ]
+          },
+          {
+            "text": "[[character:robinette|Robinette]] now has 5% Gold Gain (flat) added to character stats",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "robinette"
+              }
+            ]
+          },
+          {
+            "text": "Slightly buffed [[character:robinette|Robinette]]'s passive in late game. Damage per 1k gold after 1M gold: 2.5% -> 3.5%",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "robinette"
+              }
+            ]
+          },
+          {
+            "text": "[[character:spaceman|Spaceman]] now has 5% XP Gain (flat) added to character stats",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "spaceman"
+              }
+            ]
+          },
+          {
+            "text": "[[item:feathers|Feathers]] now give about 10% more speed forward when jumping, as well as giving +1 jumps",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "feathers"
+              }
+            ]
+          },
+          {
+            "text": "[[weapon:bone|Bone]] now has higher default knockback (1.25 -> 1.5) and no longer has Knockback as an upgrade offer, but instead has Crit Chance and Crit Damage",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "bone"
+              }
+            ]
+          },
+          {
+            "text": "[[weapon:shotgun|Shotgun]] now has higher default knockback (2.5 -> 3) and no longer has Knockback as an upgrade offer, but instead Crit Damage",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "shotgun"
+              }
+            ]
+          },
+          {
+            "text": "You can now obtain a max amount of 25 [[item:za_warudo|Za Warudos]] per run",
+            "change_type": "nerf",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "za_warudo"
+              }
+            ]
+          },
+          {
+            "text": "Pots / Vases now give a little luck, which scales with the stage",
+            "change_type": "buff",
+            "affected_entities": []
+          }
+        ],
+        "new_content": [
+          {
+            "text": "21 Hats and Achievements",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "New [[character:megachad|Megachad]] skin",
+            "change_type": "addition",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "megachad"
+              }
+            ]
+          },
+          {
+            "text": "Lost Saves / Progress recovery button in Settings -> Other",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "View banished items in pause menu and when opening chests/shrines",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "Stats now show while holding tab and showing map",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "New Unlocks tab window showing upgradable stats for weapons and unique character stats",
+            "change_type": "addition",
+            "affected_entities": []
+          }
+        ],
+        "bug_fixes": [
+          {
+            "text": "Fixed [[character:dicehead|Dicehead]] passive only triggering once when receiving multiple levels at once",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "dicehead"
+              }
+            ]
+          },
+          {
+            "text": "Fixed Chunkers only being affected by its own Projectile Speed stat",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed Joe's Dagger Execute sometimes doing no damage",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed [[item:spicy_meatball|Spicy Meatball]] and Buh's passive Bullseye damage multiplier bug with Elite enemies",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "spicy_meatball"
+              }
+            ]
+          },
+          {
+            "text": "Fixed poison bringing you below 0 HP and killing you",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed leaderboard upload failing with more than 350 items",
+            "change_type": "fix",
+            "affected_entities": []
+          }
+        ],
+        "removed": [],
+        "other": [
+          {
+            "text": "Items no longer tick/proc in the order obtained - now ordered by item name for consistency",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "XP shards now have size differences to distinguish better shards",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Can spin character in Character Selection with mouse or controller",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "New setting: Enemy Attack Indicator Color",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "New setting: XP & Gold increase text toggle",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "Lowered Scythe volume",
+            "change_type": "change",
+            "affected_entities": []
+          }
+        ]
+      },
+      "raw_notes": "Hey whatsup bonkers i decided to add a bunch of hats to megabonk this update..."
+    },
     {
       "id": "patch_1819386365107866",
       "version": "1.0.49",
