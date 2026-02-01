@@ -6,7 +6,6 @@
 import type { Character, Weapon, Tome, Item } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
-import { safeQuerySelectorAll } from './utils.ts';
 import { MAX_BUILD_HISTORY } from './constants.ts';
 import { logger } from './logger.ts';
 import { getState, setState, type Build } from './store.ts';

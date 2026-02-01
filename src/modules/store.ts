@@ -22,7 +22,8 @@ export type TabName =
     | 'build-planner'
     | 'calculator'
     | 'advisor'
-    | 'changelog';
+    | 'changelog'
+    | 'about';
 
 // Re-export types for backwards compatibility
 export type { Build, FavoritesState } from '../types/index.ts';

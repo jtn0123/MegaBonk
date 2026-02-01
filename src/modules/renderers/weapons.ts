@@ -9,7 +9,6 @@ import {
     safeGetElementById,
     generateMetaTags,
 } from '../utils.ts';
-import { isFavorite } from '../favorites.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Weapon } from './types.ts';
 
@@ -33,12 +32,13 @@ export function renderWeapons(weapons: Weapon[]): void {
 
     weapons.forEach(weapon => {
         const card = document.createElement('div');
-        card.className = 'item-card weapon-card';
+        card.className = 'item-card weapon-card clickable-card';
         card.dataset.entityType = 'weapon';
         card.dataset.entityId = weapon.id;
 
         const imageHtml = generateEntityImage(weapon, weapon.name);
-        const isFav = typeof isFavorite === 'function' ? isFavorite('weapons', weapon.id) : false;
+        // DISABLED: Favorites feature UI hidden (module kept for data persistence)
+        // const isFav = typeof isFavorite === 'function' ? isFavorite('weapons', weapon.id) : false;
 
         card.innerHTML = `
             <div class="item-header">
@@ -47,16 +47,17 @@ export function renderWeapons(weapons: Weapon[]): void {
                     <div class="item-name">${escapeHtml(weapon.name)}</div>
                     ${generateTierLabel(weapon.tier)}
                 </div>
-                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="weapons" data-id="${weapon.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
-                    ${isFav ? '⭐' : '☆'}
+                <!-- DISABLED: Favorite button hidden
+                <button class="favorite-btn" data-tab="weapons" data-id="${weapon.id}" title="Add to favorites" aria-label="Add to favorites">
+                    ☆
                 </button>
+                -->
             </div>
             <div class="item-effect">${escapeHtml(weapon.attack_pattern)}</div>
             <div class="item-description">${escapeHtml(weapon.description)}</div>
             <div class="item-meta">
                 ${generateMetaTags(Array.isArray(weapon.upgradeable_stats) ? weapon.upgradeable_stats : weapon.upgradeable_stats ? [weapon.upgradeable_stats] : null, 4)}
             </div>
-            <button class="view-details-btn" data-type="weapons" data-id="${weapon.id}">View Details</button>
         `;
 
         fragment.appendChild(card);

@@ -30,7 +30,6 @@ export type {
 // Import types for internal use
 import type {
     AutoGridConfig,
-    GridCalibration,
     BandRegion,
     CellEdge,
     IconMetrics,

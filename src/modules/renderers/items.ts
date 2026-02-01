@@ -9,7 +9,6 @@ import {
     safeGetElementById,
     truncateText,
 } from '../utils.ts';
-import { isFavorite } from '../favorites.ts';
 import { initChartsAsync } from './common.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Item } from './types.ts';
@@ -39,7 +38,7 @@ export async function renderItems(items: Item[]): Promise<void> {
 
     items.forEach(item => {
         const card = document.createElement('div');
-        card.className = `item-card rarity-${item.rarity}`;
+        card.className = `item-card rarity-${item.rarity} clickable-card`;
         card.dataset.entityType = 'item';
         card.dataset.entityId = item.id;
 
@@ -64,7 +63,8 @@ export async function renderItems(items: Item[]): Promise<void> {
         // Handle expandable description
         const { html: descHtml, needsExpand, fullText } = truncateText(item.detailed_description, 120);
 
-        const isFav = typeof isFavorite === 'function' ? isFavorite('items', item.id) : false;
+        // DISABLED: Favorites feature UI hidden (module kept for data persistence)
+        // const isFav = typeof isFavorite === 'function' ? isFavorite('items', item.id) : false;
         card.innerHTML = `
             <div class="item-header">
                 ${imageHtml}
@@ -72,9 +72,7 @@ export async function renderItems(items: Item[]): Promise<void> {
                     <div class="item-name">${escapeHtml(item.name)}</div>
                     ${generateTierLabel(item.tier)}
                 </div>
-                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="items" data-id="${item.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
-                    ${isFav ? '⭐' : '☆'}
-                </button>
+<!-- DISABLED: Favorite button hidden - see favorites.ts for implementation -->
                 <label class="compare-checkbox-label" title="Add to comparison">
                     <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${compareItems.includes(item.id) ? 'checked' : ''}>
                     <span>+</span>
@@ -90,7 +88,6 @@ export async function renderItems(items: Item[]): Promise<void> {
                 <span class="meta-tag">${stackText}</span>
             </div>
             ${graphHtml}
-            <button class="view-details-btn" data-type="items" data-id="${item.id}">View Details</button>
         `;
 
         fragment.appendChild(card);

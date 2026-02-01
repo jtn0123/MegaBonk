@@ -55,8 +55,12 @@ export function safeSetHTML(id: string, html: string): void {
 // ========================================
 
 /**
- * Generate responsive image HTML with WebP support and fallbacks
+ * Generate responsive image HTML with WebP support, fallbacks, and blur-up loading
  * Uses <picture> element for optimal format delivery
+ * Implements blur-up pattern for improved perceived performance:
+ * - Image starts blurred via CSS filter
+ * - When image loads, blur fades out smoothly
+ * - Uses loading="lazy" for below-the-fold images
  */
 export function generateResponsiveImage(
     imagePath: string,
@@ -69,15 +73,19 @@ export function generateResponsiveImage(
     const webpPath = imagePath.replace(/\.(png|jpg|jpeg)$/i, '.webp');
     const escapedAlt = escapeHtml(altText);
 
-    // Use data-fallback instead of inline onerror for CSP compliance
-    return `<picture>
+    // Blur-up image container with CSS blur transition
+    // - blur-up-image class adds initial blur + transition
+    // - data-loaded attribute is added by JS when image loads
+    // - data-fallback for error handling
+    return `<picture class="blur-up-container">
         <source srcset="${webpPath}" type="image/webp">
-        <img src="${imagePath}" alt="${escapedAlt}" class="${className}" data-fallback="true" loading="lazy">
+        <img src="${imagePath}" alt="${escapedAlt}" class="${className} blur-up-image" data-fallback="true" data-blur-up="true" loading="lazy">
     </picture>`;
 }
 
-// Bug fix: Track if image fallback handler is already attached to prevent memory leaks
+// Bug fix: Track if image handlers are already attached to prevent memory leaks
 let imageFallbackHandlerAttached = false;
+let imageLoadHandlerAttached = false;
 
 /**
  * Setup global image error handler for CSP compliance
@@ -102,6 +110,70 @@ export function setupImageFallbackHandler(): void {
         },
         true
     ); // Use capture phase to catch errors on images
+}
+
+/**
+ * Setup global image load handler for blur-up effect
+ * When images with data-blur-up load, removes blur by adding loaded class
+ * Should be called once on page load
+ */
+export function setupBlurUpHandler(): void {
+    // Guard against duplicate attachment
+    if (imageLoadHandlerAttached) {
+        return;
+    }
+    imageLoadHandlerAttached = true;
+
+    // Handle already-loaded images (from cache)
+    const processLoadedImages = (): void => {
+        document.querySelectorAll('img[data-blur-up="true"]').forEach(img => {
+            if (img instanceof HTMLImageElement && img.complete && img.naturalHeight > 0) {
+                img.classList.add('blur-up-loaded');
+            }
+        });
+    };
+
+    // Initial pass for cached images
+    processLoadedImages();
+
+    // Listen for new image loads (use capture to catch all)
+    document.addEventListener(
+        'load',
+        (e: Event) => {
+            const target = e.target;
+            if (target instanceof HTMLImageElement && target.dataset.blurUp === 'true') {
+                // Small delay to ensure image is painted before removing blur
+                requestAnimationFrame(() => {
+                    target.classList.add('blur-up-loaded');
+                });
+            }
+        },
+        true
+    ); // Use capture phase to catch load events on images
+
+    // Use MutationObserver to handle dynamically added images
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node instanceof HTMLElement) {
+                    // Check if the node itself is a blur-up image
+                    if (node instanceof HTMLImageElement && node.dataset.blurUp === 'true') {
+                        if (node.complete && node.naturalHeight > 0) {
+                            node.classList.add('blur-up-loaded');
+                        }
+                    }
+                    // Check for blur-up images within added elements
+                    node.querySelectorAll?.('img[data-blur-up="true"]')?.forEach(img => {
+                        if (img instanceof HTMLImageElement && img.complete && img.naturalHeight > 0) {
+                            img.classList.add('blur-up-loaded');
+                        }
+                    });
+                }
+            });
+        });
+    });
+
+    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 /**

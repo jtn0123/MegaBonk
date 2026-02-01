@@ -57,6 +57,22 @@
     transform: translateX(4px);
 }
 
+/* Touch/tap feedback for mobile */
+.search-result-card:active {
+    background: var(--bg-subtle);
+    border-color: var(--accent);
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+}
+
+/* Ensure minimum touch target size (44x44px per WCAG) */
+@media (pointer: coarse) {
+    .search-result-card {
+        min-height: 56px;
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
 .search-result-content {
     display: flex;
     align-items: center;

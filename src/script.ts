@@ -19,14 +19,16 @@ import { safeModuleInit, registerErrorBoundary } from './modules/error-boundary.
 import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.ts';
 import { themeManager } from './modules/theme-manager.ts';
 import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
-import { setupImageFallbackHandler } from './modules/utils.ts';
+import { setupImageFallbackHandler, setupBlurUpHandler } from './modules/utils.ts';
 import { logger } from './modules/logger.ts';
 import { setupOfflineListeners } from './modules/offline-ui.ts';
 import { scheduleModulePreload } from './modules/events.ts';
 import { initMobileNav, injectMoreMenuStyles } from './modules/mobile-nav.ts';
+import { initMobileFilters } from './modules/mobile-filters.ts';
 import { initRecentlyViewed } from './modules/recently-viewed.ts';
 import { initDebugPanel } from './modules/debug-ui.ts';
-// Note: Tab-specific modules (advisor, build-planner, calculator, changelog) are now lazy-loaded
+import { initPullRefresh } from './modules/pull-refresh.ts';
+// Note: Tab-specific modules (advisor, build-planner, calculator, changelog, about) are now lazy-loaded
 // via the tab-loader module when their tabs are first accessed
 // Core modules that may be needed across multiple contexts are still eagerly loaded:
 import './modules/ocr/index.ts';
@@ -295,6 +297,15 @@ async function init(): Promise<void> {
         { required: false }
     );
 
+    // Setup blur-up image loading handler for better perceived performance (non-critical)
+    await safeModuleInit(
+        'blur-up-images',
+        async () => {
+            setupBlurUpHandler();
+        },
+        { required: false }
+    );
+
     // Initialize toast manager (important)
     await safeModuleInit(
         'toast-manager',
@@ -361,6 +372,15 @@ async function init(): Promise<void> {
         { required: false }
     );
 
+    // Initialize mobile filters bottom sheet (non-critical)
+    await safeModuleInit(
+        'mobile-filters',
+        async () => {
+            initMobileFilters();
+        },
+        { required: false }
+    );
+
     // Initialize recently viewed tracking (non-critical)
     await safeModuleInit(
         'recently-viewed',
@@ -375,6 +395,15 @@ async function init(): Promise<void> {
         'debug-panel',
         async () => {
             initDebugPanel();
+        },
+        { required: false }
+    );
+
+    // Initialize pull-to-refresh for mobile (non-critical)
+    await safeModuleInit(
+        'pull-refresh',
+        async () => {
+            initPullRefresh();
         },
         { required: false }
     );
@@ -396,12 +425,18 @@ async function init(): Promise<void> {
                 'update-notification',
                 'dom-cache',
                 'image-fallback',
+                'blur-up-images',
                 'toast-manager',
                 'favorites',
                 'event-system',
                 'keyboard-shortcuts',
                 'data-service',
                 'web-vitals',
+                'mobile-nav',
+                'mobile-filters',
+                'recently-viewed',
+                'debug-panel',
+                'pull-refresh',
             ],
         },
     });

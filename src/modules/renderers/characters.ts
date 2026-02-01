@@ -8,7 +8,6 @@ import {
     escapeHtml,
     safeGetElementById,
 } from '../utils.ts';
-import { isFavorite } from '../favorites.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Character } from './types.ts';
 
@@ -32,12 +31,13 @@ export function renderCharacters(characters: Character[]): void {
 
     characters.forEach(char => {
         const card = document.createElement('div');
-        card.className = 'item-card character-card';
+        card.className = 'item-card character-card clickable-card';
         card.dataset.entityType = 'character';
         card.dataset.entityId = char.id;
 
         const imageHtml = generateEntityImage(char, char.name);
-        const isFav = typeof isFavorite === 'function' ? isFavorite('characters', char.id) : false;
+        // DISABLED: Favorites feature UI hidden (module kept for data persistence)
+        // const isFav = typeof isFavorite === 'function' ? isFavorite('characters', char.id) : false;
 
         card.innerHTML = `
             <div class="item-header">
@@ -46,9 +46,11 @@ export function renderCharacters(characters: Character[]): void {
                     <div class="item-name">${escapeHtml(char.name)}</div>
                     ${generateTierLabel(char.tier)}
                 </div>
-                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="characters" data-id="${char.id}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
-                    ${isFav ? '⭐' : '☆'}
+                <!-- DISABLED: Favorite button hidden
+                <button class="favorite-btn" data-tab="characters" data-id="${char.id}" title="Add to favorites" aria-label="Add to favorites">
+                    ☆
                 </button>
+                -->
             </div>
             <div class="item-effect">${escapeHtml(char.passive_ability)}</div>
             <div class="item-description">${escapeHtml(char.passive_description)}</div>
@@ -56,7 +58,6 @@ export function renderCharacters(characters: Character[]): void {
                 <span class="meta-tag">${escapeHtml(char.starting_weapon)}</span>
                 <span class="meta-tag">${escapeHtml(char.playstyle)}</span>
             </div>
-            <button class="view-details-btn" data-type="characters" data-id="${char.id}">View Details</button>
         `;
 
         fragment.appendChild(card);

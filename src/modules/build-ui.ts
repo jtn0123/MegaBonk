@@ -8,22 +8,9 @@ import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
 import { safeGetElementById, escapeHtml, safeQuerySelectorAll, safeSetValue } from './utils.ts';
 import { BUILD_ITEMS_LIMIT } from './constants.ts';
-import { logger } from './logger.ts';
-import { getState, setState, type Build } from './store.ts';
+import type { Build } from './store.ts';
 import { calculateBuildStats, type CalculatedBuildStats } from './build-stats.ts';
 import { detectSynergies } from './build-validation.ts';
-
-// ========================================
-// State Access
-// ========================================
-
-/**
- * Get the current build from the store
- * @returns Current build state
- */
-function getCurrentBuild(): Build {
-    return getState('currentBuild');
-}
 
 // ========================================
 // UI Rendering
