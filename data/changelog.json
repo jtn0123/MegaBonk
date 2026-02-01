@@ -1,9 +1,67 @@
 {
   "version": "1.0.0",
-  "last_updated": "2026-01-10",
+  "last_updated": "2026-02-01",
   "steam_app_id": "3405340",
-  "total_patches": 6,
+  "total_patches": 7,
   "patches": [
+    {
+      "id": "site_update_2026_02_01",
+      "version": "Site Update",
+      "title": "Mobile UX Overhaul",
+      "date": "2026-02-01",
+      "steam_url": "",
+      "summary": "Major mobile experience improvements and UI cleanup",
+      "categories": {
+        "new_content": [
+          {
+            "text": "Pull-to-refresh: Swipe down to reload data on mobile",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "Blur-up image loading: Images now fade in smoothly for better perceived performance",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "Improved skeleton loading placeholders while content loads",
+            "change_type": "addition",
+            "affected_entities": []
+          }
+        ],
+        "balance": [],
+        "bug_fixes": [
+          {
+            "text": "Fixed mobile search: Clicking search results now properly navigates to items",
+            "change_type": "fix",
+            "affected_entities": []
+          }
+        ],
+        "other": [
+          {
+            "text": "Mobile navigation reordered: Tomes and Shrines now appear before Build and Advisor",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Simplified card interaction: Tap anywhere on item cards to view details (removed View Details button)",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Temporarily disabled Favorites feature for UI cleanup",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Removed redundant online status notification on page load",
+            "change_type": "removal",
+            "affected_entities": []
+          }
+        ],
+        "removed": []
+      }
+    },
     {
       "id": "patch_1819386365107866",
       "version": "1.0.49",

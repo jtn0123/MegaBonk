@@ -39,6 +39,7 @@
    ✓ animations.css     - Keyframes, transitions
    ✓ states.css         - Loading, skeleton, toast, errors
    ✓ shortcuts.css      - Keyboard shortcuts, theme toggle
+   ✓ about.css          - About tab styles
    ✓ mobile-nav.css     - Mobile bottom navigation
    ✓ themes.css         - Light mode overrides
    ✓ responsive.css     - Extended breakpoints (1024px, 1440px, 1920px+)
@@ -127,11 +128,20 @@
 /* UI States - Loading overlay, skeleton, toast, errors, offline */
 @import './states.css';
 
+/* Pull-to-Refresh - Touch gesture refresh indicator */
+@import './pull-refresh.css';
+
 /* Shortcuts - Keyboard shortcuts modal, theme toggle */
 @import './shortcuts.css';
 
+/* About Tab - App info and credits */
+@import './about.css';
+
 /* Mobile Navigation - Bottom nav bar */
 @import './mobile-nav.css';
+
+/* Mobile Filters - Filter bottom sheet for mobile */
+@import './mobile-filters.css';
 
 /* ────────────────────────────────────────
    THEMES (MUST BE LAST FOR OVERRIDE PRIORITY)

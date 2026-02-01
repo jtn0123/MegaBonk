@@ -61,6 +61,13 @@ export async function renderTabContent(tabName: string): Promise<void> {
         return;
     }
 
+    if (tabName === 'about') {
+        const { renderAbout, updateAboutStats } = await import('../about.ts');
+        updateAboutStats();
+        renderAbout();
+        return;
+    }
+
     const data = getDataForTab(tabName) as Entity[];
     if (!data) return;
 

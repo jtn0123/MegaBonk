@@ -7,19 +7,16 @@ import { safeGetElementById, debounce } from './utils.ts';
 import { handleSearch } from './filters.ts';
 import { showSearchHistoryDropdown } from './search-history.ts';
 import type { TabName } from './store.ts';
+import type { EntityType } from '../types/index.ts';
 import { switchTab } from './events-tabs.ts';
-
-// Track active highlight timeouts for cleanup
-let activeHighlightTimeout: ReturnType<typeof setTimeout> | null = null;
+import { openDetailModal } from './modal.ts';
 
 /**
- * Clear highlight timeout (exported for cleanup)
+ * Clear highlight timeout (no-op, kept for backward compatibility)
+ * Previously used for scroll-highlight behavior, now modal opens directly
  */
 export function clearHighlightTimeout(): void {
-    if (activeHighlightTimeout !== null) {
-        clearTimeout(activeHighlightTimeout);
-        activeHighlightTimeout = null;
-    }
+    // No-op - highlight behavior replaced with modal
 }
 
 /**
@@ -53,36 +50,25 @@ export function setupSearchListeners(getListenerOptions: GetListenerOptionsFn): 
 }
 
 /**
- * Handle search result card click to navigate to item
+ * Handle search result card click to open detail modal
  * @param target - The clicked element
  */
-export function handleSearchResultClick(target: Element): void {
+export async function handleSearchResultClick(target: Element): Promise<void> {
     const card = target.closest('.search-result-card') as HTMLElement | null;
     const tabType = card?.dataset.tabType as TabName | undefined;
     const entityId = card?.dataset.entityId;
 
     if (!tabType || !entityId) return;
 
+    // Switch to the correct tab so user is on the right tab when modal closes
+    if (typeof switchTab === 'function') {
+        await switchTab(tabType);
+    }
+
+    // Clear search input after opening modal
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
     if (searchInput) searchInput.value = '';
 
-    if (typeof switchTab === 'function') switchTab(tabType);
-
-    // Clear existing highlight timeout
-    clearHighlightTimeout();
-    const prevHighlighted = document.querySelector('.search-highlight');
-    if (prevHighlighted) prevHighlighted.classList.remove('search-highlight');
-
-    // Scroll to and highlight the item
-    requestAnimationFrame(() => {
-        const itemCard = document.querySelector(`[data-entity-id="${entityId}"]`) as HTMLElement | null;
-        if (itemCard) {
-            itemCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            itemCard.classList.add('search-highlight');
-            activeHighlightTimeout = setTimeout(() => {
-                itemCard.classList.remove('search-highlight');
-                activeHighlightTimeout = null;
-            }, 2000);
-        }
-    });
+    // Open the detail modal directly
+    await openDetailModal(tabType as EntityType, entityId);
 }

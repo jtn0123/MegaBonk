@@ -30,11 +30,12 @@ export function renderShrines(shrines: Shrine[]): void {
 
     shrines.forEach(shrine => {
         const card = document.createElement('div');
-        card.className = 'item-card shrine-card';
+        card.className = 'item-card shrine-card clickable-card';
         card.dataset.entityType = 'shrine';
         card.dataset.entityId = shrine.id;
 
-        const isFav = typeof isFavorite === 'function' ? isFavorite('shrines', shrine.id) : false;
+        // DISABLED: Favorites feature UI hidden (module kept for data persistence)
+        // const isFav = typeof isFavorite === 'function' ? isFavorite('shrines', shrine.id) : false;
 
         card.innerHTML = `
             <div class="item-header">
@@ -43,16 +44,17 @@ export function renderShrines(shrines: Shrine[]): void {
                     <div class="item-name">${escapeHtml(shrine.name)}</div>
                     ${shrine.type ? `<span class="tier-label">${escapeHtml(shrine.type.replace('_', ' '))}</span>` : ''}
                 </div>
-                <button class="favorite-btn ${isFav ? 'favorited' : ''}" data-tab="shrines" data-id="${escapeHtml(shrine.id)}" title="${isFav ? 'Remove from favorites' : 'Add to favorites'}" aria-label="${isFav ? 'Remove from favorites' : 'Add to favorites'}">
-                    ${isFav ? '⭐' : '☆'}
+                <!-- DISABLED: Favorite button hidden
+                <button class="favorite-btn" data-tab="shrines" data-id="${escapeHtml(shrine.id)}" title="Add to favorites" aria-label="Add to favorites">
+                    ☆
                 </button>
+                -->
             </div>
             <div class="item-effect">${escapeHtml(shrine.description)}</div>
             <div class="item-description">${shrine.reward ? escapeHtml(shrine.reward) : ''}</div>
             <div class="item-meta">
                 ${shrine.reusable !== undefined ? (shrine.reusable ? '<span class="meta-tag">Reusable</span>' : '<span class="meta-tag">One-time</span>') : ''}
             </div>
-            <button class="view-details-btn" data-type="shrines" data-id="${escapeHtml(shrine.id)}">View Details</button>
         `;
 
         fragment.appendChild(card);

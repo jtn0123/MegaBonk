@@ -25,6 +25,7 @@ export const VALID_TABS: TabName[] = [
     'calculator',
     'advisor',
     'changelog',
+    'about',
 ];
 
 // Track tab switch timing to prevent rapid switching issues

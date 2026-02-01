@@ -194,6 +194,16 @@
                     >
                         📋 Changelog
                     </button>
+                    <button
+                        class="tab-btn"
+                        data-tab="about"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="about-tab"
+                        id="tab-about"
+                    >
+                        ℹ️ About
+                    </button>
                 </div>
             </div>
         </nav>
@@ -843,6 +853,13 @@
                         aria-label="Game changelog entries"
                     >
                         <!-- Changelog entries loaded dynamically -->
+                    </div>
+                </div>
+
+                <!-- About Tab -->
+                <div id="about-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-about">
+                    <div id="aboutContainer" class="about-container">
+                        <!-- About content loaded dynamically -->
                     </div>
                 </div>
             </div>

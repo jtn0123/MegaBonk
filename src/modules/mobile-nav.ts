@@ -24,11 +24,12 @@ interface MoreMenuConfig {
 // ========================================
 
 const MORE_MENU_TABS: MoreMenuConfig[] = [
+    { tab: 'build-planner', label: 'Build', icon: '🛠️' },
+    { tab: 'advisor', label: 'Advisor', icon: '🤖' },
     { tab: 'characters', label: 'Characters', icon: '👤' },
-    { tab: 'shrines', label: 'Shrines', icon: '⛩️' },
-    { tab: 'tomes', label: 'Tomes', icon: '📚' },
     { tab: 'calculator', label: 'Calculator', icon: '🧮' },
     { tab: 'changelog', label: 'Changelog', icon: '📋' },
+    { tab: 'about', label: 'About', icon: 'ℹ️' },
 ];
 
 const MORE_TAB_NAMES = MORE_MENU_TABS.map(t => t.tab);

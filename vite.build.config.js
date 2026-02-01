@@ -4,9 +4,38 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 import pkg from './package.json' with { type: 'json' };
 import { resolve } from 'path';
 import { createReadStream, existsSync, statSync } from 'fs';
+import { execSync } from 'child_process';
 
 // Check if we're building with coverage instrumentation
 const isCoverage = process.env.COVERAGE === 'true';
+
+// ========================================
+// Build-time Git Info Helpers
+// ========================================
+
+/**
+ * Get the current git commit hash (short)
+ * @returns {string} Short commit hash or 'dev' if not in a git repo
+ */
+function getGitCommit() {
+    try {
+        return execSync('git rev-parse --short HEAD', { encoding: 'utf-8' }).trim();
+    } catch {
+        return 'dev';
+    }
+}
+
+/**
+ * Get the current git branch name
+ * @returns {string} Branch name or 'unknown' if not in a git repo
+ */
+function getGitBranch() {
+    try {
+        return execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
+    } catch {
+        return 'unknown';
+    }
+}
 
 // Simple MIME type lookup
 const mimeTypes = {
@@ -112,6 +141,9 @@ export default defineConfig(async () => {
         define: {
             __APP_VERSION__: JSON.stringify(pkg.version),
             __CACHE_VERSION__: JSON.stringify(cacheVersion),
+            __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+            __GIT_COMMIT__: JSON.stringify(getGitCommit()),
+            __GIT_BRANCH__: JSON.stringify(getGitBranch()),
         },
         build: {
             outDir: '../dist',

@@ -41,6 +41,9 @@
 
 /* ========================================
    Skeleton Loading States
+   ========================================
+   Skeleton layouts match actual card components
+   for seamless loading transitions
    ======================================== */
 
 @keyframes shimmer {
@@ -48,13 +51,19 @@
     100% { background-position: 200% 0; }
 }
 
+/* ========================================
+   Base Skeleton Card
+   ======================================== */
+
 .skeleton-card {
     background: var(--bg-elevated);
     border-radius: 8px;
-    padding: 1rem;
+    padding: 1.25rem;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    min-height: 280px;
+    border-left: 4px solid var(--bg-subtle);
 }
 
 .skeleton-element {
@@ -64,17 +73,39 @@
     border-radius: 4px;
 }
 
+/* ========================================
+   Header Elements
+   ======================================== */
+
+.skeleton-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-header--centered {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
 .skeleton-image {
-    width: 48px;
-    height: 48px;
+    width: 64px;
+    height: 64px;
     border-radius: 8px;
     flex-shrink: 0;
 }
 
-.skeleton-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+.skeleton-image--large {
+    width: 80px;
+    height: 80px;
+}
+
+.skeleton-image--shrine {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
 }
 
 .skeleton-title {
@@ -85,14 +116,43 @@
 }
 
 .skeleton-name {
-    height: 1.25rem;
-    width: 60%;
+    height: 1.5rem;
+    width: 70%;
 }
 
-.skeleton-tier {
-    height: 0.875rem;
-    width: 40%;
+.skeleton-name--centered {
+    width: 50%;
+    margin: 0 auto;
 }
+
+.skeleton-subtitle {
+    height: 1rem;
+    width: 50%;
+}
+
+/* ========================================
+   Badges
+   ======================================== */
+
+.skeleton-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.skeleton-badge {
+    height: 1.25rem;
+    width: 4rem;
+    border-radius: 1rem;
+}
+
+.skeleton-badge--small {
+    width: 3rem;
+}
+
+/* ========================================
+   Text Elements
+   ======================================== */
 
 .skeleton-text {
     height: 0.875rem;
@@ -102,32 +162,234 @@
 .skeleton-text.short { width: 75%; }
 .skeleton-text.shorter { width: 50%; }
 
+.skeleton-effect {
+    height: 1rem;
+}
+
+.skeleton-description {
+    height: 0.75rem;
+    opacity: 0.7;
+}
+
+/* ========================================
+   Meta Tags
+   ======================================== */
+
 .skeleton-meta {
     display: flex;
     gap: 0.5rem;
+    flex-wrap: wrap;
     margin-top: 0.5rem;
 }
 
 .skeleton-tag {
     height: 1.5rem;
     width: 5rem;
-    border-radius: 1rem;
+    border-radius: 4px;
 }
+
+.skeleton-tag--small {
+    width: 3.5rem;
+}
+
+/* ========================================
+   Character Stats
+   ======================================== */
+
+.skeleton-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    margin: 0.5rem 0;
+}
+
+.skeleton-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.skeleton-stat-label {
+    height: 0.875rem;
+    width: 30%;
+}
+
+.skeleton-stat-value {
+    height: 0.875rem;
+    width: 20%;
+}
+
+/* ========================================
+   Weapon Stats
+   ======================================== */
+
+.skeleton-weapon-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+}
+
+.skeleton-stat-bar {
+    height: 0.75rem;
+    width: 80%;
+    border-radius: 2px;
+}
+
+.skeleton-stat-bar--short {
+    width: 60%;
+}
+
+/* ========================================
+   Graph Placeholder
+   ======================================== */
+
+.skeleton-graph {
+    margin-top: 0.5rem;
+}
+
+/* ========================================
+   Button
+   ======================================== */
 
 .skeleton-button {
     height: 2.25rem;
     margin-top: auto;
-    border-radius: 8px;
+    border-radius: 6px;
 }
+
+/* ========================================
+   Container Grid
+   ======================================== */
 
 .skeleton-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
+    gap: 1.5rem;
 }
 
 .skeleton-container.hidden {
     display: none;
+}
+
+/* ========================================
+   Mobile Responsive Skeletons
+   ======================================== */
+
+@media (max-width: 480px) {
+    .skeleton-card {
+        min-height: auto;
+        padding: 0.6rem;
+        display: grid;
+        grid-template-columns: 48px 1fr;
+        grid-template-rows: auto auto auto;
+        gap: 0.15rem 0.6rem;
+    }
+    
+    .skeleton-container {
+        gap: 0.5rem;
+    }
+    
+    .skeleton-header {
+        display: contents;
+    }
+    
+    .skeleton-image {
+        width: 48px;
+        height: 48px;
+        grid-column: 1;
+        grid-row: 1 / 4;
+    }
+    
+    .skeleton-image--large,
+    .skeleton-image--shrine {
+        width: 48px;
+        height: 48px;
+    }
+    
+    .skeleton-title {
+        grid-column: 2;
+        grid-row: 1;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.4rem;
+    }
+    
+    .skeleton-name {
+        height: 1.1rem;
+        width: 60%;
+        flex: 1;
+    }
+    
+    .skeleton-badges {
+        flex-shrink: 0;
+    }
+    
+    .skeleton-badge {
+        height: 1rem;
+        width: 2.5rem;
+    }
+    
+    .skeleton-effect,
+    .skeleton-text {
+        grid-column: 2;
+        height: 0.75rem;
+    }
+    
+    .skeleton-description,
+    .skeleton-graph,
+    .skeleton-stats,
+    .skeleton-weapon-stats {
+        display: none;
+    }
+    
+    .skeleton-meta {
+        grid-column: 2;
+        margin-top: 0;
+    }
+    
+    .skeleton-tag {
+        height: 1.25rem;
+        width: 4rem;
+    }
+    
+    .skeleton-button {
+        grid-column: 2;
+        height: 1.75rem;
+        width: auto;
+        justify-self: start;
+        padding: 0 0.6rem;
+        margin-top: 0.2rem;
+    }
+}
+
+@media (max-width: 375px) {
+    .skeleton-card {
+        grid-template-columns: 40px 1fr;
+        padding: 0.5rem;
+    }
+    
+    .skeleton-image {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .skeleton-name {
+        height: 0.95rem;
+    }
+    
+    .skeleton-badge {
+        height: 0.875rem;
+        width: 2rem;
+    }
+    
+    .skeleton-tag {
+        height: 1rem;
+        width: 3rem;
+    }
 }
 
 /* ========================================

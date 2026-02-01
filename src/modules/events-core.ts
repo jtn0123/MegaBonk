@@ -331,6 +331,31 @@ function handleViewDetailsClick(target: HTMLElement): void {
 }
 
 /**
+ * Handle item card click to open detail modal
+ */
+function handleCardClick(target: HTMLElement): void {
+    const card = target.closest('.item-card') as HTMLElement | null;
+    if (!card) return;
+    
+    // Map card classes/data to entity types
+    const entityType = card.dataset.entityType as EntityType | undefined;
+    const entityId = card.dataset.entityId;
+    
+    if (entityType && entityId) {
+        // Map singular entity types to plural tab names
+        const typeMap: Record<string, EntityType> = {
+            'item': 'items',
+            'weapon': 'weapons',
+            'tome': 'tomes',
+            'character': 'characters',
+            'shrine': 'shrines',
+        };
+        const type = typeMap[entityType] || entityType as EntityType;
+        openDetailModal(type, entityId);
+    }
+}
+
+/**
  * Handle compare checkbox click with debouncing
  */
 function handleCompareCheckboxClick(e: MouseEvent, target: Element): void {
@@ -424,6 +449,16 @@ function handleClickDelegation(e: MouseEvent): void {
 
     if (target.classList.contains('view-details-btn')) {
         handleViewDetailsClick(target as HTMLElement);
+        return;
+    }
+
+    // Handle card click to open detail modal (but not if clicking interactive elements)
+    if (target.closest('.item-card') && 
+        !target.closest('.favorite-btn') && 
+        !target.closest('.compare-checkbox-label') &&
+        !target.closest('.expandable-text') &&
+        !target.classList.contains('view-details-btn')) {
+        handleCardClick(target as HTMLElement);
         return;
     }
 

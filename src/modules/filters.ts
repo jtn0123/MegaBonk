@@ -74,11 +74,8 @@ export function updateFilters(tabName: string): void {
     filtersContainer.innerHTML = '';
 
     if (tabName === 'items') {
+        // DISABLED: Favorites Only checkbox hidden (feature UI disabled)
         filtersContainer.innerHTML = `
-            <label for="favoritesOnly">
-                <input type="checkbox" id="favoritesOnly" />
-                ⭐ Favorites Only
-            </label>
             <label for="rarityFilter">Rarity:</label>
             <select id="rarityFilter">
                 <option value="all">All Rarities</option>
@@ -111,11 +108,8 @@ export function updateFilters(tabName: string): void {
             </select>
         `;
     } else if (['weapons', 'tomes', 'characters'].includes(tabName)) {
+        // DISABLED: Favorites Only checkbox hidden (feature UI disabled)
         filtersContainer.innerHTML = `
-            <label for="favoritesOnly">
-                <input type="checkbox" id="favoritesOnly" />
-                ⭐ Favorites Only
-            </label>
             <label for="tierFilter">Tier:</label>
             <select id="tierFilter">
                 <option value="all">All Tiers</option>
@@ -132,11 +126,8 @@ export function updateFilters(tabName: string): void {
             </select>
         `;
     } else if (tabName === 'shrines') {
+        // DISABLED: Favorites Only checkbox hidden (feature UI disabled)
         filtersContainer.innerHTML = `
-            <label for="favoritesOnly">
-                <input type="checkbox" id="favoritesOnly" />
-                ⭐ Favorites Only
-            </label>
             <label for="typeFilter">Type:</label>
             <select id="typeFilter">
                 <option value="all">All Types</option>

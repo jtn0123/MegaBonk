@@ -54,6 +54,23 @@
     border-color: rgba(255, 255, 255, 0.1);
 }
 
+/* Clickable card - entire card opens detail modal */
+.item-card.clickable-card {
+    position: relative;
+}
+
+.item-card.clickable-card:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile tap feedback */
+@media (hover: none) and (pointer: coarse) {
+    .item-card.clickable-card:active {
+        background: var(--bg-subtle);
+    }
+}
+
 .item-card:focus-visible {
     outline: 2px solid var(--accent);
     outline-offset: 2px;
@@ -70,6 +87,43 @@
     align-items: center;
     margin-bottom: 1rem;
     gap: 1rem;
+}
+
+/* ========================================
+   Blur-Up Image Loading
+   ======================================== */
+
+.blur-up-container {
+    display: contents; /* Don't affect layout */
+}
+
+.blur-up-image {
+    /* Start with blur and slightly scaled up for smoother effect */
+    filter: blur(8px);
+    transform: scale(1.02);
+    transition: 
+        filter 0.4s ease-out,
+        transform 0.4s ease-out;
+    will-change: filter, transform;
+}
+
+.blur-up-image.blur-up-loaded {
+    /* Sharp and properly sized when loaded */
+    filter: blur(0);
+    transform: scale(1);
+}
+
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+    .blur-up-image {
+        filter: none;
+        transform: none;
+        transition: none;
+    }
+    .blur-up-image.blur-up-loaded {
+        filter: none;
+        transform: none;
+    }
 }
 
 .entity-image {
@@ -300,7 +354,7 @@
         /* CSS Grid: icon column + content column */
         display: grid;
         grid-template-columns: 48px 1fr;
-        grid-template-rows: auto auto auto auto;
+        grid-template-rows: auto auto auto;
         gap: 0.15rem 0.6rem;
         align-items: start;
     }
@@ -320,7 +374,7 @@
         width: 48px;
         height: 48px;
         grid-column: 1;
-        grid-row: 1 / 5;
+        grid-row: 1 / 4;
         align-self: start;
     }
     
@@ -419,15 +473,9 @@
         font-size: 0.6rem;
     }
     
-    /* View Details button: right column, fourth row */
+    /* View Details button: hidden on mobile - tap card instead */
     .view-details-btn {
-        grid-column: 2;
-        grid-row: 4;
-        width: auto;
-        padding: 0.35rem 0.6rem;
-        font-size: 0.7rem;
-        margin-top: 0.2rem;
-        justify-self: start;
+        display: none;
     }
     
     /* Smaller badges on mobile */
