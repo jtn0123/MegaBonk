@@ -347,15 +347,32 @@ function switchTab(tabName: string): void {
 function updateMobileNavState(currentTab: string): void {
     const navItems = safeQuerySelectorAll('.mobile-bottom-nav .nav-item');
 
+    // Check if current tab is in the "more" menu
+    const isMoreTab = MORE_TAB_NAMES.includes(currentTab);
+    const currentMoreTab = isMoreTab ? MORE_MENU_TABS.find(t => t.tab === currentTab) : null;
+
     navItems.forEach(item => {
         const btn = item as HTMLElement;
         const tab = btn.dataset.tab;
 
-        // Check if current tab is in the "more" menu
-        const isMoreTab = MORE_TAB_NAMES.includes(currentTab);
-
-        if (tab === 'more' && isMoreTab) {
-            btn.classList.add('active');
+        if (tab === 'more') {
+            // Update the More button to show current tab if viewing a More tab
+            const iconSpan = btn.querySelector('.nav-icon');
+            const labelSpan = btn.querySelector('span:not(.nav-icon)');
+            
+            if (isMoreTab && currentMoreTab) {
+                // Show current tab's icon and label
+                if (iconSpan) iconSpan.textContent = currentMoreTab.icon;
+                if (labelSpan) labelSpan.textContent = currentMoreTab.label;
+                btn.classList.add('active');
+                btn.setAttribute('aria-label', `${currentMoreTab.label} (tap for more options)`);
+            } else {
+                // Reset to default More button
+                if (iconSpan) iconSpan.textContent = '≡';
+                if (labelSpan) labelSpan.textContent = 'More';
+                btn.classList.remove('active');
+                btn.setAttribute('aria-label', 'More tabs');
+            }
             btn.setAttribute('aria-expanded', 'false');
         } else if (tab === currentTab) {
             btn.classList.add('active');

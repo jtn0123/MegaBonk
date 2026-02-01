@@ -560,13 +560,23 @@ async function main() {
             }
 
             // Include if title matches patch patterns
-            return (
+            const titleMatches =
                 title.includes('update') ||
                 title.includes('patch') ||
                 title.includes('fix') ||
                 title.includes('version') ||
-                title.match(/v?\d+\.\d+/)
-            );
+                title.match(/v?\d+\.\d+/);
+
+            // Also check content for version patterns (e.g., "v1.0.64" or "version 1.0.64")
+            const contentHasVersion =
+                content.match(/\bv?\d+\.\d+\.\d+\b/) ||
+                content.includes('new stuff') ||
+                content.includes('bug fixes') ||
+                content.includes('balancing') ||
+                content.includes('balance changes');
+
+            // Include if title matches OR content looks like patch notes (substantial + version info)
+            return titleMatches || (content.length > 1000 && contentHasVersion);
         });
 
         console.error(`Identified ${patchItems.length} as patch notes.`);

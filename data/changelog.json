@@ -2,8 +2,261 @@
   "version": "1.0.0",
   "last_updated": "2026-02-01",
   "steam_app_id": "3405340",
-  "total_patches": 6,
+  "total_patches": 7,
   "patches": [
+    {
+      "id": "patch_1822556746165683",
+      "version": "1.0.65",
+      "title": "H A T S",
+      "date": "2026-01-25",
+      "steam_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1822556746165683",
+      "summary": "21 new hats and achievements, plus balance changes and bug fixes!",
+      "categories": {
+        "new_content": [
+          {
+            "text": "21 Hats and Achievements",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "New [[character:megachad|Megachad]] skin",
+            "change_type": "addition",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "megachad"
+              }
+            ]
+          },
+          {
+            "text": "Lost Saves Recovery button in Settings > Other - uses Steam Achievements to recover progress",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "View banished items in pause menu and when opening chests/shrines",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "Stats now show while holding tab and showing map",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "New Unlocks tab showing upgradable stats for different weapons and character-unique stats",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "Character spin in Character Selection (Mouse or Controller)",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "New setting: Enemy Attack Indicator Color",
+            "change_type": "addition",
+            "affected_entities": []
+          },
+          {
+            "text": "New setting: XP & Gold increase text toggle",
+            "change_type": "addition",
+            "affected_entities": []
+          }
+        ],
+        "balance": [
+          {
+            "text": "Pots/Vases now give luck that scales with stage",
+            "change_type": "buff",
+            "affected_entities": []
+          },
+          {
+            "text": "[[character:robinette|Robinette]] passive buff in late game: Damage per 1k gold after 1M gold 2.5% -> 3.5%",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "robinette"
+              }
+            ]
+          },
+          {
+            "text": "[[item:feathers|Feathers]] now give 10% more speed forward when jumping and +1 jumps",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "feathers"
+              }
+            ]
+          },
+          {
+            "text": "[[weapon:bone|Bone]] knockback 1.25 -> 1.5, replaced Knockback upgrade with Crit Chance and Crit Damage",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "bone"
+              }
+            ]
+          },
+          {
+            "text": "[[weapon:shotgun|Shotgun]] knockback 2.5 -> 3, replaced Knockback upgrade with Crit Damage",
+            "change_type": "change",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "shotgun"
+              }
+            ]
+          },
+          {
+            "text": "[[character:vlad|Vlad]] now has 5% Lifesteal added to character stats",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "vlad"
+              }
+            ]
+          },
+          {
+            "text": "[[character:robinette|Robinette]] now has 5% Gold Gain added to character stats",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "robinette"
+              }
+            ]
+          },
+          {
+            "text": "[[character:spaceman|Spaceman]] now has 5% XP Gain added to character stats",
+            "change_type": "buff",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "spaceman"
+              }
+            ]
+          },
+          {
+            "text": "[[item:za_warudo|Za Warudo]] max 25 per run",
+            "change_type": "nerf",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "za_warudo"
+              }
+            ]
+          }
+        ],
+        "bug_fixes": [
+          {
+            "text": "Fixed [[character:dicehead|Dicehead]] passive only triggering once when receiving multiple levels from big XP chunk",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "character",
+                "id": "dicehead"
+              }
+            ]
+          },
+          {
+            "text": "Fixed [[weapon:chunkers|Chunkers]] not affected by Player Projectile Speed stat",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "chunkers"
+              }
+            ]
+          },
+          {
+            "text": "Fixed [[item:joes_dagger|Joes Dagger]] Execute sometimes doing no damage",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "joes_dagger"
+              }
+            ]
+          },
+          {
+            "text": "Fixed [[item:spicy_meatball|Spicy Meatball]] and Bush Bullseye damage multiplier bug with elites",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "spicy_meatball"
+              }
+            ]
+          },
+          {
+            "text": "Fixed [[weapon:corrupted_sword|Corrupted Sword]] and [[weapon:hero_sword|Hero Sword]] front swing only damaging one enemy",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "weapon",
+                "id": "corrupted_sword"
+              },
+              {
+                "type": "weapon",
+                "id": "hero_sword"
+              }
+            ]
+          },
+          {
+            "text": "Fixed poison bringing you below 0 HP",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed leaderboard upload failing with 350+ items",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed minibosses spawning under the map",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "Fixed getting 5 tomes/weapons with auto leveling",
+            "change_type": "fix",
+            "affected_entities": []
+          },
+          {
+            "text": "V1.0.65 Hotfix: Fixed crazy damage bug caused by Joes Dagger",
+            "change_type": "fix",
+            "affected_entities": [
+              {
+                "type": "item",
+                "id": "joes_dagger"
+              }
+            ]
+          }
+        ],
+        "other": [
+          {
+            "text": "Items no longer proc in order obtained - now ordered by item name for consistency",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "XP shards now have size differences to distinguish better shards",
+            "change_type": "change",
+            "affected_entities": []
+          },
+          {
+            "text": "Lowered Scythe volume",
+            "change_type": "change",
+            "affected_entities": []
+          }
+        ],
+        "removed": []
+      }
+    },
     {
       "id": "patch_1819386365107866",
       "version": "1.0.49",
