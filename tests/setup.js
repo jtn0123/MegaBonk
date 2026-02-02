@@ -150,6 +150,19 @@ beforeEach(async () => {
     dom.window.Element.prototype.scrollIntoView = vi.fn();
     dom.window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
+    // Mock matchMedia - not available in jsdom
+    dom.window.matchMedia = vi.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+    }));
+    global.matchMedia = dom.window.matchMedia;
+
     // Mock console methods for cleaner test output
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});

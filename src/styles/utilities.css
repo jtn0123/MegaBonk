@@ -376,6 +376,32 @@
     background: var(--bg-dark);
     border-radius: 8px;
     min-height: 100px;
+    position: relative;
+}
+
+/* Empty state placeholder for build planner slots */
+.slot-preview:empty::before {
+    content: '🎮 Select above to see preview';
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    min-height: 80px;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    opacity: 0.6;
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    margin: -0.5rem;
+    padding: 1rem;
+}
+
+#character-preview:empty::before {
+    content: '👤 Select a character to see stats and synergies';
+}
+
+#weapon-preview:empty::before {
+    content: '⚔️ Select a weapon to see damage and upgrades';
 }
 
 .synergy-badge {

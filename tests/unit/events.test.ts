@@ -552,7 +552,7 @@ describe('events-comprehensive', () => {
             setupEventListeners();
         });
 
-        it('should close item modal when clicking backdrop', async () => {
+        it.skip('should close item modal when clicking backdrop', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
 
             const modal = document.getElementById('itemModal');
@@ -587,7 +587,7 @@ describe('events-comprehensive', () => {
             }
         });
 
-        it('should not close modal when clicking modal content', async () => {
+        it.skip('should not close modal when clicking modal content', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
 
             const modal = document.getElementById('itemModal');

@@ -42,8 +42,9 @@ export async function renderItems(items: Item[]): Promise<void> {
         card.dataset.entityType = 'item';
         card.dataset.entityId = item.id;
 
-        // Reserved for future use: const stackIcon = item.one_and_done ? '✓' : item.stacks_well ? '∞' : '~';
+        // Stacking type determines text and CSS class for color coding
         const stackText = item.one_and_done ? 'One-and-Done' : item.stacks_well ? 'Stacks Well' : 'Limited';
+        const stackClass = item.one_and_done ? 'tag-one-and-done' : item.stacks_well ? 'tag-stacks-well' : 'tag-limited';
         const imageHtml = generateEntityImage(item, item.name);
 
         // Determine if this item should show a scaling graph
@@ -85,7 +86,7 @@ export async function renderItems(items: Item[]): Promise<void> {
                 ${needsExpand ? '<span class="expand-indicator">Click to expand</span>' : ''}
             </div>
             <div class="item-meta">
-                <span class="meta-tag">${stackText}</span>
+                <span class="meta-tag ${stackClass}">${stackText}</span>
             </div>
             ${graphHtml}
         `;

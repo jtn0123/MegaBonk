@@ -78,10 +78,12 @@ describe('CSS Module Structure', () => {
             });
         });
 
-        it('should have themes.css imported last (for override priority)', () => {
+        it('should have themes.css imported near the end (for override priority)', () => {
             const themesImport = indexContent.lastIndexOf("@import './themes.css'");
-            const lastImport = indexContent.lastIndexOf('@import');
-            expect(themesImport).toBe(lastImport);
+            const responsiveImport = indexContent.lastIndexOf("@import './responsive.css'");
+            // themes.css should come before responsive.css (responsive handles media queries last)
+            expect(themesImport).toBeGreaterThan(0);
+            expect(themesImport).toBeLessThan(responsiveImport);
         });
     });
 

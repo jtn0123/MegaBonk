@@ -146,7 +146,7 @@ describe('utils - Image Generation', () => {
     describe('generateResponsiveImage', () => {
         it('should generate picture element with webp source', () => {
             const html = generateResponsiveImage('images/item.png', 'Test Item');
-            expect(html).toContain('<picture>');
+            expect(html).toContain('<picture class="blur-up-container">');
             expect(html).toContain('images/item.webp');
             expect(html).toContain('type="image/webp"');
         });
@@ -163,7 +163,7 @@ describe('utils - Image Generation', () => {
 
         it('should use custom class name', () => {
             const html = generateResponsiveImage('img.png', 'Test', 'custom-class');
-            expect(html).toContain('class="custom-class"');
+            expect(html).toContain('class="custom-class blur-up-image"');
         });
 
         it('should return empty string for empty path', () => {
@@ -218,7 +218,7 @@ describe('utils - Image Generation', () => {
         it('should generate image for entity with image', () => {
             const entity = { id: 'test', name: 'Test', image: 'img.png' } as any;
             const html = generateEntityImage(entity, 'Test Entity');
-            expect(html).toContain('<picture>');
+            expect(html).toContain('<picture class="blur-up-container">');
             expect(html).toContain('img.png');
         });
 
@@ -236,7 +236,7 @@ describe('utils - Image Generation', () => {
         it('should use custom class name', () => {
             const entity = { id: 'test', name: 'Test', image: 'img.png' } as any;
             const html = generateEntityImage(entity, 'Test', 'custom-class');
-            expect(html).toContain('class="custom-class"');
+            expect(html).toContain('class="custom-class blur-up-image"');
         });
     });
 
@@ -244,7 +244,7 @@ describe('utils - Image Generation', () => {
         it('should generate image with modal-type class', () => {
             const entity = { image: 'img.png' };
             const html = generateModalImage(entity, 'Test', 'item');
-            expect(html).toContain('class="modal-item-image"');
+            expect(html).toContain('class="modal-item-image blur-up-image"');
         });
 
         it('should return empty string for null entity', () => {

@@ -28,6 +28,9 @@ export function initChartsAsync(chartInitFn: 'initializeItemCharts' | 'initializ
     });
 }
 
+/** Tabs that don't have countable data entities */
+const NON_DATA_TABS = ['calculator', 'advisor', 'about', 'build-planner'];
+
 /**
  * Update item count badge
  * @param {Entity[]} filtered - Filtered data
@@ -36,6 +39,15 @@ export function initChartsAsync(chartInitFn: 'initializeItemCharts' | 'initializ
 export function updateStats(filtered: Entity[], tabName: string): void {
     const itemCount = safeGetElementById('item-count');
     if (!itemCount) return;
+
+    // Hide count badge for non-data tabs (Calculator, Advisor, About, Build Planner)
+    if (NON_DATA_TABS.includes(tabName)) {
+        itemCount.style.display = 'none';
+        return;
+    }
+
+    // Show the badge for data tabs
+    itemCount.style.display = '';
 
     const totalCount = getDataForTab(tabName).length;
     const showingCount = filtered.length;

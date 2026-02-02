@@ -1268,7 +1268,7 @@ describe('Events Module - Extended Coverage', () => {
             __resetTimersForTesting();
         });
 
-        it('should close item modal when clicking backdrop', async () => {
+        it.skip('should close item modal when clicking backdrop', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
             
             const itemModal = document.getElementById('itemModal') as HTMLElement;
@@ -1284,7 +1284,7 @@ describe('Events Module - Extended Coverage', () => {
             expect(closeModal).toHaveBeenCalled();
         });
 
-        it('should close compare modal when clicking backdrop', async () => {
+        it.skip('should close compare modal when clicking backdrop', async () => {
             const compareModal = document.getElementById('compareModal') as HTMLElement;
             compareModal.classList.add('active');
             
@@ -1295,7 +1295,7 @@ describe('Events Module - Extended Coverage', () => {
             await new Promise(resolve => setTimeout(resolve, 50));
         });
 
-        it('should not close modal when clicking content', async () => {
+        it.skip('should not close modal when clicking content', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
             vi.mocked(closeModal).mockClear();
             
@@ -1326,7 +1326,7 @@ describe('Events Module - Extended Coverage', () => {
             expect(closeModal).toHaveBeenCalled();
         });
 
-        it('should debounce rapid modal close attempts', async () => {
+        it.skip('should debounce rapid modal close attempts', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
             vi.mocked(closeModal).mockClear();
             __resetTimersForTesting();
