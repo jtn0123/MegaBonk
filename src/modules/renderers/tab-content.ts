@@ -34,6 +34,8 @@ export async function renderTabContent(tabName: string): Promise<void> {
         // Initialize screenshot import feature
         const { initBuildPlannerScan } = await import('../build-planner-scan.ts');
         initBuildPlannerScan(allData as AllGameData);
+        // Hide item count badge for build planner tab
+        updateStats([], tabName);
         return;
     }
 
@@ -47,6 +49,14 @@ export async function renderTabContent(tabName: string): Promise<void> {
             calcBtn.addEventListener('click', calculateBreakpoint);
             calcBtn.dataset.listenerAttached = 'true';
         }
+        // Hide item count badge for calculator tab
+        updateStats([], tabName);
+        return;
+    }
+
+    if (tabName === 'advisor') {
+        // Advisor has its own content, just hide the count badge
+        updateStats([], tabName);
         return;
     }
 

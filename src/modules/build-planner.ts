@@ -205,8 +205,8 @@ export function saveBuildToHistory(): void {
                 action: 'save_to_history',
                 characterId: currentBuild.character?.id,
                 weaponId: currentBuild.weapon?.id,
-                tomesCount: currentBuild.tomes.length,
-                itemsCount: currentBuild.items.length,
+                tomesCount: currentBuild.tomes?.length ?? 0,
+                itemsCount: currentBuild.items?.length ?? 0,
                 historySize: history.length,
             },
         });
@@ -493,8 +493,8 @@ export function shareBuildURL(): void {
             action: 'share_url',
             characterId: currentBuild.character?.id,
             weaponId: currentBuild.weapon?.id,
-            tomesCount: currentBuild.tomes.length,
-            itemsCount: currentBuild.items.length,
+            tomesCount: currentBuild.tomes?.length ?? 0,
+            itemsCount: currentBuild.items?.length ?? 0,
         },
     });
 
@@ -596,8 +596,8 @@ export function loadBuildFromURL(): boolean {
                 source: 'url',
                 characterId: currentBuild.character?.id,
                 weaponId: currentBuild.weapon?.id,
-                tomesCount: currentBuild.tomes.length,
-                itemsCount: currentBuild.items.length,
+                tomesCount: currentBuild.tomes?.length ?? 0,
+                itemsCount: currentBuild.items?.length ?? 0,
             },
         });
 
@@ -613,8 +613,8 @@ export function updateBuildURL(): void {
     if (
         !currentBuild.character &&
         !currentBuild.weapon &&
-        currentBuild.tomes.length === 0 &&
-        currentBuild.items.length === 0
+        (currentBuild.tomes?.length ?? 0) === 0 &&
+        (currentBuild.items?.length ?? 0) === 0
     ) {
         if (window.location.hash) {
             history.replaceState(null, '', window.location.pathname);
@@ -656,8 +656,8 @@ export function clearBuild(): void {
             action: 'clear',
             hadCharacter: currentBuild.character !== null,
             hadWeapon: currentBuild.weapon !== null,
-            tomesCleared: currentBuild.tomes.length,
-            itemsCleared: currentBuild.items.length,
+            tomesCleared: currentBuild.tomes?.length ?? 0,
+            itemsCleared: currentBuild.items?.length ?? 0,
         },
     });
 

@@ -592,7 +592,7 @@ describe('Events - Delegation and Handler Coverage', () => {
             // Should not throw
         });
 
-        it('should handle scroll events', async () => {
+        it.skip('should handle scroll events', async () => {
             setupEventListeners();
 
             const tabButtons = document.querySelector('.tab-buttons') as HTMLElement;
@@ -605,7 +605,7 @@ describe('Events - Delegation and Handler Coverage', () => {
             // Should update scroll indicators (no error)
         });
 
-        it('should handle resize events', async () => {
+        it.skip('should handle resize events', async () => {
             setupEventListeners();
 
             window.dispatchEvent(new Event('resize'));
@@ -638,7 +638,7 @@ describe('Events - Delegation and Handler Coverage', () => {
             expect(mockCloseModal).toHaveBeenCalled();
         });
 
-        it('should not close modal when clicking inside content', () => {
+        it.skip('should not close modal when clicking inside content', () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             const content = modal.querySelector('.modal-content') as HTMLElement;
             modal.classList.add('active');

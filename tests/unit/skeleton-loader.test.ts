@@ -59,8 +59,8 @@ describe('skeleton-loader - showSkeletonLoading', () => {
         showSkeletonLoading('itemsContainer', 3, true);
 
         const container = document.getElementById('itemsContainer');
-        // Graph placeholder is a div with specific height
-        const graphPlaceholders = container?.querySelectorAll('.skeleton-element[style*="height: 120px"]');
+        // Graph placeholder uses skeleton-graph class
+        const graphPlaceholders = container?.querySelectorAll('.skeleton-graph');
         expect(graphPlaceholders?.length).toBe(3);
     });
 
@@ -68,7 +68,7 @@ describe('skeleton-loader - showSkeletonLoading', () => {
         showSkeletonLoading('itemsContainer', 3, false);
 
         const container = document.getElementById('itemsContainer');
-        const graphPlaceholders = container?.querySelectorAll('.skeleton-element[style*="height: 120px"]');
+        const graphPlaceholders = container?.querySelectorAll('.skeleton-graph');
         expect(graphPlaceholders?.length).toBe(0);
     });
 
@@ -212,8 +212,8 @@ describe('skeleton-loader - showTabSkeleton', () => {
         const cards = container?.querySelectorAll('.skeleton-card');
         expect(cards?.length).toBe(8);
 
-        // Items tab should have graphs
-        const graphPlaceholders = container?.querySelectorAll('.skeleton-element[style*="height: 120px"]');
+        // Items tab should have graphs (using skeleton-graph class)
+        const graphPlaceholders = container?.querySelectorAll('.skeleton-graph');
         expect(graphPlaceholders?.length).toBe(8);
     });
 
@@ -225,7 +225,7 @@ describe('skeleton-loader - showTabSkeleton', () => {
         expect(cards?.length).toBe(6);
 
         // Weapons tab should not have graphs
-        const graphPlaceholders = container?.querySelectorAll('.skeleton-element[style*="height: 120px"]');
+        const graphPlaceholders = container?.querySelectorAll('.skeleton-graph');
         expect(graphPlaceholders?.length).toBe(0);
     });
 
@@ -236,8 +236,8 @@ describe('skeleton-loader - showTabSkeleton', () => {
         const cards = container?.querySelectorAll('.skeleton-card');
         expect(cards?.length).toBe(6);
 
-        // Tomes tab should have graphs
-        const graphPlaceholders = container?.querySelectorAll('.skeleton-element[style*="height: 120px"]');
+        // Tomes tab should have graphs (using skeleton-graph class)
+        const graphPlaceholders = container?.querySelectorAll('.skeleton-graph');
         expect(graphPlaceholders?.length).toBe(6);
     });
 
@@ -361,7 +361,8 @@ describe('skeleton-loader - skeleton card structure', () => {
     it('should have skeleton tier placeholder', () => {
         showSkeletonLoading('itemsContainer', 1);
 
-        const tier = document.querySelector('.skeleton-tier');
+        // Tier is now rendered as skeleton-badge
+        const tier = document.querySelector('.skeleton-badge');
         expect(tier).not.toBeNull();
     });
 
@@ -378,7 +379,7 @@ describe('skeleton-loader - skeleton card structure', () => {
         const meta = document.querySelector('.skeleton-meta');
         const tags = document.querySelectorAll('.skeleton-tag');
         expect(meta).not.toBeNull();
-        expect(tags.length).toBe(2);
+        expect(tags.length).toBe(3);
     });
 
     it('should have skeleton button placeholder', () => {

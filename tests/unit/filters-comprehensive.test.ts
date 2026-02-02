@@ -93,7 +93,7 @@ describe('filters module', () => {
             expect(filtersContainer.innerHTML).toContain('tierFilter');
             expect(filtersContainer.innerHTML).toContain('stackingFilter');
             expect(filtersContainer.innerHTML).toContain('sortBy');
-            expect(filtersContainer.innerHTML).toContain('favoritesOnly');
+            // Note: favoritesOnly checkbox removed as favorites feature is disabled
         });
 
         it('should include rarity options for items tab', () => {
@@ -136,7 +136,7 @@ describe('filters module', () => {
 
             expect(filtersContainer.innerHTML).toContain('tierFilter');
             expect(filtersContainer.innerHTML).toContain('sortBy');
-            expect(filtersContainer.innerHTML).toContain('favoritesOnly');
+            // Note: favoritesOnly checkbox removed as favorites feature is disabled
             expect(filtersContainer.innerHTML).not.toContain('rarityFilter');
         });
 
