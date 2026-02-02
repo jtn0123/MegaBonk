@@ -1,6 +1,6 @@
 {
   "name": "megabonk",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "**The ultimate reference system for MegaBonk** - Items, Weapons, Tomes, Characters, Shrines, Build Planner, and Breakpoint Calculator all in one beautiful, interactive web app.",
   "main": "index.js",
   "directories": {
