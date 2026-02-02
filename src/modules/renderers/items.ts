@@ -11,6 +11,7 @@ import {
 } from '../utils.ts';
 import { initChartsAsync } from './common.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
+import { FEATURES } from '../constants.ts';
 import type { Item } from './types.ts';
 
 /**
@@ -30,8 +31,12 @@ export async function renderItems(items: Item[]): Promise<void> {
 
     // Cache compare items lookup once instead of per-item
     // Dynamic import for code splitting - module is preloaded by tab-loader
-    const { getCompareItems } = await import('../compare.ts');
-    const compareItems = getCompareItems();
+    // Only load compare module if feature is enabled
+    let compareItems: string[] = [];
+    if (FEATURES.COMPARE_ITEMS) {
+        const { getCompareItems } = await import('../compare.ts');
+        compareItems = getCompareItems();
+    }
 
     // Use DocumentFragment to batch all DOM operations - prevents multiple reflows
     const fragment = document.createDocumentFragment();
@@ -65,6 +70,15 @@ export async function renderItems(items: Item[]): Promise<void> {
 
         // DISABLED: Favorites feature UI hidden (module kept for data persistence)
         // const isFav = typeof isFavorite === 'function' ? isFavorite('items', item.id) : false;
+        
+        // Compare checkbox - only render if feature is enabled
+        const compareCheckboxHtml = FEATURES.COMPARE_ITEMS
+            ? `<label class="compare-checkbox-label" title="Add to comparison">
+                    <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${compareItems.includes(item.id) ? 'checked' : ''}>
+                    <span>+</span>
+                </label>`
+            : '';
+        
         card.innerHTML = `
             <div class="item-header">
                 ${imageHtml}
@@ -72,11 +86,7 @@ export async function renderItems(items: Item[]): Promise<void> {
                     <div class="item-name">${escapeHtml(item.name)}</div>
                     ${generateTierLabel(item.tier)}
                 </div>
-<!-- DISABLED: Favorite button hidden - see favorites.ts for implementation -->
-                <label class="compare-checkbox-label" title="Add to comparison">
-                    <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${compareItems.includes(item.id) ? 'checked' : ''}>
-                    <span>+</span>
-                </label>
+                ${compareCheckboxHtml}
             </div>
             <div class="item-effect">${escapeHtml(item.base_effect)}</div>
             <div class="item-description ${needsExpand ? 'expandable-text' : ''}"

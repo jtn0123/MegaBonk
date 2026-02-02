@@ -113,3 +113,19 @@ export const MAX_SEARCH_HISTORY = 10; // Maximum saved search terms
 export const MAX_RECENT_ITEMS = 10; // Maximum recently viewed items
 export const MAX_GLOBAL_SEARCH_RESULTS = 100; // Maximum global search results
 export const MAX_SEARCH_RESULTS_PER_TYPE = 30; // Maximum results per entity type in global search
+
+// ========================================
+// Feature Flags
+// ========================================
+// Toggle features on/off for gradual rollout or A/B testing
+
+export const FEATURES = Object.freeze({
+    /** Enable item comparison feature (plus button on cards) */
+    COMPARE_ITEMS: false,
+    /** Enable build scanning from screenshots */
+    BUILD_SCANNER: true,
+    /** Enable AI-powered build advisor */
+    BUILD_ADVISOR: true,
+    /** Enable pull-to-refresh on mobile */
+    PULL_TO_REFRESH: true,
+});

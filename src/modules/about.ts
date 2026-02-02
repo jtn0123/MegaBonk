@@ -4,6 +4,7 @@
 // ========================================
 
 import { safeGetElementById, escapeHtml } from './utils.ts';
+import { getDataForTab } from './data-service.ts';
 
 // ========================================
 // Build-time Constants (injected by Vite)
@@ -22,6 +23,30 @@ declare const __GIT_BRANCH__: string;
 const GITHUB_REPO_URL = 'https://github.com/jtn0123/MegaBonk';
 
 // ========================================
+// Data Counts
+// ========================================
+
+/**
+ * Get dynamic counts from loaded data
+ * Returns actual counts from data files for accurate display
+ */
+function getDataCounts(): { items: number; weapons: number; tomes: number; characters: number; shrines: number } {
+    const items = getDataForTab('items') as unknown[];
+    const weapons = getDataForTab('weapons') as unknown[];
+    const tomes = getDataForTab('tomes') as unknown[];
+    const characters = getDataForTab('characters') as unknown[];
+    const shrines = getDataForTab('shrines') as unknown[];
+    
+    return {
+        items: items?.length || 0,
+        weapons: weapons?.length || 0,
+        tomes: tomes?.length || 0,
+        characters: characters?.length || 0,
+        shrines: shrines?.length || 0,
+    };
+}
+
+// ========================================
 // Rendering
 // ========================================
 
@@ -36,6 +61,9 @@ export function renderAbout(): void {
     const buildDate = typeof __BUILD_DATE__ !== 'undefined' ? __BUILD_DATE__ : new Date().toISOString();
     const gitCommit = typeof __GIT_COMMIT__ !== 'undefined' ? __GIT_COMMIT__ : 'dev';
     const gitBranch = typeof __GIT_BRANCH__ !== 'undefined' ? __GIT_BRANCH__ : 'main';
+    
+    // Get dynamic counts from loaded data
+    const counts = getDataCounts();
 
     // Format build date for display
     const formattedDate = new Date(buildDate).toLocaleDateString('en-US', {
@@ -132,11 +160,11 @@ export function renderAbout(): void {
             <div class="about-features-section">
                 <h3>Features</h3>
                 <ul class="about-features">
-                    <li>📦 77 items with detailed stats and scaling</li>
-                    <li>⚔️ 29 weapons with upgrade paths</li>
-                    <li>📚 23 tomes with priority rankings</li>
-                    <li>👤 20 playable characters</li>
-                    <li>⛩️ 8 shrine types</li>
+                    <li>📦 ${counts.items} items with detailed stats and scaling</li>
+                    <li>⚔️ ${counts.weapons} weapons with upgrade paths</li>
+                    <li>📚 ${counts.tomes} tomes with priority rankings</li>
+                    <li>👤 ${counts.characters} playable characters</li>
+                    <li>⛩️ ${counts.shrines} shrine types</li>
                     <li>🛠️ Interactive build planner</li>
                     <li>🧮 Breakpoint calculator</li>
                     <li>🤖 AI-powered build advisor</li>
@@ -145,7 +173,6 @@ export function renderAbout(): void {
             </div>
 
             <div class="about-footer">
-                <p class="about-credits">Made with ❤️ for MegaBonk players</p>
                 <p class="about-disclaimer">
                     This is a community-made guide. Not affiliated with the game developers.
                 </p>
@@ -170,4 +197,5 @@ export function updateAboutStats(): void {
 
 export const __test__ = {
     GITHUB_REPO_URL,
+    getDataCounts,
 };

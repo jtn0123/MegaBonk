@@ -11,9 +11,9 @@ import { ToastManager } from './toast.ts';
 // Constants
 // ========================================
 
-const PULL_THRESHOLD = 80; // Pixels to pull before refresh triggers
-const MAX_PULL_DISTANCE = 120; // Maximum visual pull distance
-const RESISTANCE_FACTOR = 0.4; // Resistance when pulling past threshold
+const PULL_THRESHOLD = 120; // Pixels to pull before refresh triggers (increased from 80 to reduce accidental triggers)
+const MAX_PULL_DISTANCE = 150; // Maximum visual pull distance
+const RESISTANCE_FACTOR = 0.3; // Resistance when pulling past threshold (reduced for smoother feel)
 
 // ========================================
 // State

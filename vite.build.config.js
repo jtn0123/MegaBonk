@@ -27,11 +27,30 @@ function getGitCommit() {
 
 /**
  * Get the current git branch name
+ * In CI (GitHub Actions), uses GITHUB_REF_NAME or GITHUB_HEAD_REF env vars
+ * since git rev-parse returns "HEAD" in detached HEAD state
  * @returns {string} Branch name or 'unknown' if not in a git repo
  */
 function getGitBranch() {
+    // GitHub Actions sets these environment variables
+    // GITHUB_HEAD_REF is set for PRs, GITHUB_REF_NAME for pushes
+    const ciBranch = process.env.GITHUB_HEAD_REF || process.env.GITHUB_REF_NAME;
+    if (ciBranch) {
+        return ciBranch;
+    }
+    
     try {
-        return execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
+        const branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
+        // If we're in detached HEAD state, try to get the branch from git describe
+        if (branch === 'HEAD') {
+            // Try to get branch name from symbolic ref
+            try {
+                return execSync('git symbolic-ref --short HEAD', { encoding: 'utf-8' }).trim();
+            } catch {
+                return 'release'; // Default for detached HEAD (likely a release build)
+            }
+        }
+        return branch;
     } catch {
         return 'unknown';
     }
