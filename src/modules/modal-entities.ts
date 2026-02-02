@@ -64,21 +64,25 @@ export async function renderTomeModal(data: Tome): Promise<string> {
     `;
 
     // Initialize chart after modal is displayed using requestAnimationFrame with session check
+    // Bug fix #11: Wait for modal animation (300ms) before chart init to ensure proper canvas sizing
+    const MODAL_ANIMATION_DELAY = 350;
     if (progression) {
-        requestAnimationFrame(() => {
-            // Verify modal hasn't changed before creating chart
-            if (sessionId !== getCurrentModalSessionId()) return;
-            const canvas = document.getElementById(`modal-tome-chart-${data.id}`);
-            if (canvas) {
-                createScalingChart(
-                    `modal-tome-chart-${data.id}`,
-                    progression,
-                    data.name,
-                    data.stat_affected || '',
-                    true
-                );
-            }
-        });
+        setTimeout(() => {
+            requestAnimationFrame(() => {
+                // Verify modal hasn't changed before creating chart
+                if (sessionId !== getCurrentModalSessionId()) return;
+                const canvas = document.getElementById(`modal-tome-chart-${data.id}`);
+                if (canvas) {
+                    createScalingChart(
+                        `modal-tome-chart-${data.id}`,
+                        progression,
+                        data.name,
+                        data.stat_affected || '',
+                        true
+                    );
+                }
+            });
+        }, MODAL_ANIMATION_DELAY);
     }
 
     return content;

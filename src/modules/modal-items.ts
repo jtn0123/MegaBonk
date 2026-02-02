@@ -109,9 +109,11 @@ export function renderItemModal(data: Item): string {
     // Bug fix #10: Use requestAnimationFrame for more reliable chart initialization
     // Initialize chart after modal is displayed and DOM is ready
     // Bug fix: Use session ID to cancel stale initialization attempts when modal changes
+    // Bug fix #11: Wait for modal animation to complete before chart init (fixes mobile blank charts)
     const sessionId = incrementModalSessionId();
     let initAttempts = 0;
     const MAX_INIT_ATTEMPTS = 50; // Prevent infinite loop - ~830ms max wait
+    const MODAL_ANIMATION_DELAY = 350; // CSS modal animation is 300ms, add buffer
     const initChart = async (): Promise<void> => {
         // Check if this initialization is still valid (modal wasn't reopened with different content)
         if (sessionId !== getCurrentModalSessionId()) {
@@ -194,7 +196,9 @@ export function renderItemModal(data: Item): string {
             );
         }
     };
-    requestAnimationFrame(initChart);
+    // Wait for modal animation to complete before initializing chart
+    // This ensures the canvas has its final dimensions for Chart.js to measure
+    setTimeout(() => requestAnimationFrame(initChart), MODAL_ANIMATION_DELAY);
 
     return content;
 }
