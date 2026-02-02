@@ -446,17 +446,27 @@ function isMobileViewport(): boolean {
 
 /**
  * Handle item card click (for mobile - whole card is tappable)
+ * Bug fix: Use card's data attributes directly instead of looking for hidden view-details-btn
  */
 function handleItemCardClick(target: Element): void {
     const card = target.closest('.item-card') as HTMLElement | null;
     if (!card) return;
     
-    // Find the view details button inside this card to get type and id
-    const btn = card.querySelector('.view-details-btn') as HTMLElement | null;
-    if (btn) {
-        const type = btn.dataset.type as EntityType | undefined;
-        const id = btn.dataset.id;
-        if (type && id) openDetailModal(type, id);
+    // Use card's data attributes (same as handleCardClick)
+    const entityType = card.dataset.entityType as EntityType | undefined;
+    const entityId = card.dataset.entityId;
+    
+    if (entityType && entityId) {
+        // Map singular entity types to plural tab names
+        const typeMap: Record<string, EntityType> = {
+            'item': 'items',
+            'weapon': 'weapons',
+            'tome': 'tomes',
+            'character': 'characters',
+            'shrine': 'shrines',
+        };
+        const type = typeMap[entityType] || entityType as EntityType;
+        openDetailModal(type, entityId);
     }
 }
 
