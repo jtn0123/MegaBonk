@@ -2,7 +2,8 @@
 // Favorites E2E Tests
 // ========================================
 // Tests for the favorites toggle functionality
-// across items, weapons, tomes, characters, and shrines.
+// across weapons, tomes, characters, and shrines.
+// NOTE: Items tab does not have favorite buttons (disabled in items.ts)
 
 import { test, expect } from '@playwright/test';
 
@@ -12,17 +13,19 @@ test.describe('Favorites', () => {
         await page.goto('/');
         await page.evaluate(() => localStorage.clear());
         await page.reload();
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
+        // Navigate to weapons tab (items tab doesn't have favorite buttons)
+        await page.click('.tab-btn[data-tab="weapons"]');
+        await page.waitForSelector('#weaponsContainer .item-card', { timeout: 15000 });
     });
 
     test.describe('Favorite Button', () => {
         test('should display favorite button on item cards', async ({ page }) => {
-            const favoriteBtn = page.locator('#itemsContainer .favorite-btn').first();
+            const favoriteBtn = page.locator('#weaponsContainer .favorite-btn').first();
             await expect(favoriteBtn).toBeVisible();
         });
 
         test('should toggle favorite state when clicked', async ({ page }) => {
-            const favoriteBtn = page.locator('#itemsContainer .favorite-btn').first();
+            const favoriteBtn = page.locator('#weaponsContainer .favorite-btn').first();
 
             // Initially not favorited
             await expect(favoriteBtn).not.toHaveClass(/favorited/);
@@ -37,7 +40,7 @@ test.describe('Favorites', () => {
         });
 
         test('should update aria-label when favorited', async ({ page }) => {
-            const favoriteBtn = page.locator('#itemsContainer .favorite-btn').first();
+            const favoriteBtn = page.locator('#weaponsContainer .favorite-btn').first();
 
             // Check initial aria-label
             await expect(favoriteBtn).toHaveAttribute('aria-label', 'Add to favorites');
@@ -52,25 +55,24 @@ test.describe('Favorites', () => {
         });
 
         test('should persist favorites after page reload', async ({ page }) => {
-            // Favorite first item
-            const favoriteBtn = page.locator('#itemsContainer .favorite-btn').first();
+            // Favorite first weapon
+            const favoriteBtn = page.locator('#weaponsContainer .favorite-btn').first();
             await favoriteBtn.click();
             await expect(favoriteBtn).toHaveClass(/favorited/);
 
             // Reload page
             await page.reload();
-            await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
+            // Navigate back to weapons tab
+            await page.click('.tab-btn[data-tab="weapons"]');
+            await page.waitForSelector('#weaponsContainer .item-card', { timeout: 10000 });
 
             // Check favorite persists
-            const favoriteBtnAfterReload = page.locator('#itemsContainer .favorite-btn').first();
+            const favoriteBtnAfterReload = page.locator('#weaponsContainer .favorite-btn').first();
             await expect(favoriteBtnAfterReload).toHaveClass(/favorited/);
         });
 
         test('should work across different tabs', async ({ page }) => {
-            // Favorite a weapon
-            await page.click('.tab-btn[data-tab="weapons"]');
-            await page.waitForSelector('#weaponsContainer .item-card', { timeout: 10000 });
-
+            // Favorite a weapon (already on weapons tab)
             const weaponFavBtn = page.locator('#weaponsContainer .favorite-btn').first();
             await weaponFavBtn.click();
             await expect(weaponFavBtn).toHaveClass(/favorited/);
@@ -97,8 +99,8 @@ test.describe('Favorites', () => {
         });
 
         test('should filter to show only favorites when checked', async ({ page }) => {
-            // First favorite a few items
-            const favoriteBtns = page.locator('#itemsContainer .favorite-btn');
+            // First favorite a few weapons
+            const favoriteBtns = page.locator('#weaponsContainer .favorite-btn');
             await favoriteBtns.nth(0).click();
             await favoriteBtns.nth(2).click();
 
@@ -109,8 +111,8 @@ test.describe('Favorites', () => {
             await page.locator('#favoritesOnly').check();
             await page.waitForTimeout(300); // Debounce
 
-            // Should only show 2 items
-            const itemCards = page.locator('#itemsContainer .item-card');
+            // Should only show 2 weapons
+            const itemCards = page.locator('#weaponsContainer .item-card');
             await expect(itemCards).toHaveCount(2);
         });
 
@@ -119,8 +121,8 @@ test.describe('Favorites', () => {
             await page.locator('#favoritesOnly').check();
             await page.waitForTimeout(300);
 
-            // Should show no items
-            const itemCards = page.locator('#itemsContainer .item-card');
+            // Should show no weapons
+            const itemCards = page.locator('#weaponsContainer .item-card');
             await expect(itemCards).toHaveCount(0);
 
             // Item count should indicate no results
@@ -129,55 +131,59 @@ test.describe('Favorites', () => {
         });
 
         test('should restore full list when unchecked', async ({ page }) => {
-            // Favorite one item
-            await page.locator('#itemsContainer .favorite-btn').first().click();
+            // Get initial count of weapons
+            const initialCount = await page.locator('#weaponsContainer .item-card').count();
+
+            // Favorite one weapon
+            await page.locator('#weaponsContainer .favorite-btn').first().click();
 
             // Check filter
             await page.locator('#favoritesOnly').check();
             await page.waitForTimeout(300);
-            await expect(page.locator('#itemsContainer .item-card')).toHaveCount(1);
+            await expect(page.locator('#weaponsContainer .item-card')).toHaveCount(1);
 
             // Uncheck filter
             await page.locator('#favoritesOnly').uncheck();
             await page.waitForTimeout(300);
 
-            // Should show all items
-            await expect(page.locator('#itemsContainer .item-card')).toHaveCount(80);
+            // Should show all weapons again
+            await expect(page.locator('#weaponsContainer .item-card')).toHaveCount(initialCount);
         });
 
         test('should combine with search filter', async ({ page }) => {
-            // Search for "bonk" (should match Big Bonk and possibly others)
-            await page.fill('#searchInput', 'bonk');
+            // Search for something (use a generic term that should match weapons)
+            await page.fill('#searchInput', 'a');
             await page.waitForTimeout(500);
 
-            const initialCount = await page.locator('#itemsContainer .item-card').count();
+            const searchResultCount = await page.locator('#weaponsContainer .item-card').count();
+            expect(searchResultCount).toBeGreaterThan(0);
 
             // Favorite the first result
-            await page.locator('#itemsContainer .favorite-btn').first().click();
+            await page.locator('#weaponsContainer .favorite-btn').first().click();
 
             // Enable favorites filter
             await page.locator('#favoritesOnly').check();
             await page.waitForTimeout(300);
 
-            // Should only show 1 item (the favorited one matching search)
-            await expect(page.locator('#itemsContainer .item-card')).toHaveCount(1);
+            // Should only show 1 weapon (the favorited one matching search)
+            await expect(page.locator('#weaponsContainer .item-card')).toHaveCount(1);
 
             // Clear search, favorites filter should still apply
             await page.fill('#searchInput', '');
             await page.waitForTimeout(500);
 
-            // Should still show only 1 item (the favorited one, regardless of search)
-            await expect(page.locator('#itemsContainer .item-card')).toHaveCount(1);
+            // Should still show only 1 weapon (the favorited one, regardless of search)
+            await expect(page.locator('#weaponsContainer .item-card')).toHaveCount(1);
         });
     });
 
     test.describe('Favorites in Modal', () => {
         test('should show favorite status in item modal', async ({ page }) => {
-            // Favorite an item first
-            await page.locator('#itemsContainer .favorite-btn').first().click();
+            // Favorite a weapon first
+            await page.locator('#weaponsContainer .favorite-btn').first().click();
 
-            // Open the item modal
-            await page.click('#itemsContainer .view-details-btn >> nth=0');
+            // Open the weapon modal
+            await page.click('#weaponsContainer .view-details-btn >> nth=0');
             await expect(page.locator('#itemModal')).toBeVisible();
 
             // Modal should reflect favorite status (if there's a favorite indicator)
