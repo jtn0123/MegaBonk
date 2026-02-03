@@ -1,13 +1,15 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const isCI = !!process.env.CI;
+
 export default defineConfig({
     testDir: './tests/e2e',
     testMatch: /.*\.spec\.(js|mjs|ts)$/,
     fullyParallel: true,
-    forbidOnly: !!process.env.CI,
-    retries: process.env.CI ? 2 : 0,
-    workers: process.env.CI ? 1 : 4,
-    reporter: process.env.CI ? 'github' : [['html', { open: 'never' }]],
+    forbidOnly: isCI,
+    retries: isCI ? 2 : 0,
+    workers: isCI ? 1 : (process.env.PW_WORKERS ? parseInt(process.env.PW_WORKERS) : undefined),
+    reporter: isCI ? 'github' : [['html', { open: 'never' }]],
     timeout: 30000,
     expect: {
         timeout: 10000,
@@ -29,9 +31,13 @@ export default defineConfig({
         },
     ],
     webServer: {
-        command: 'npm run build && npm run preview -- --port 4173',
+        // CI: full build + preview for production-like testing
+        // Local: dev server for faster iteration (start with npm run dev -- --port 4173)
+        command: isCI 
+            ? 'npm run build && npm run preview -- --port 4173'
+            : 'npm run dev -- --port 4173',
         url: 'http://localhost:4173',
-        reuseExistingServer: !process.env.CI,
+        reuseExistingServer: true,
         timeout: 120 * 1000,
         stdout: 'pipe',
         stderr: 'pipe',
