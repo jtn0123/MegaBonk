@@ -17,7 +17,7 @@ const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-1080
 
 test.describe('CV Performance Benchmarks', () => {
     test.beforeEach(async ({ page }) => {
-        await page.goto('http://localhost:5173');
+        await page.goto('/');
         await page.waitForLoadState('networkidle');
 
         await page.waitForFunction(

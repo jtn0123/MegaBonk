@@ -122,7 +122,7 @@ function calculateAccuracyMetrics(detected, expected) {
 test.describe('CV Accuracy Tests', () => {
     test.beforeEach(async ({ page }) => {
         // Navigate to the app
-        await page.goto('http://localhost:5173');
+        await page.goto('/');
         await page.waitForLoadState('networkidle');
 
         // Wait for game data to load
