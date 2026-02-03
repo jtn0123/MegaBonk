@@ -16,9 +16,11 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
     beforeEach(() => {
         createMinimalDOM();
         vi.clearAllMocks();
+        vi.useFakeTimers();
     });
 
     afterEach(() => {
+        vi.useRealTimers();
         cleanupKeyboardShortcuts();
         // Clean up any modals
         const modal = document.getElementById('shortcuts-modal');
@@ -238,6 +240,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
             
             const closeBtn = document.getElementById('shortcuts-modal-close');
             closeBtn?.click();
+            vi.advanceTimersByTime(300); // Wait for animation timeout
 
             expect(document.getElementById('shortcuts-modal')).toBeNull();
         });
@@ -249,6 +252,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             Object.defineProperty(clickEvent, 'target', { value: modal });
             modal?.dispatchEvent(clickEvent);
+            vi.advanceTimersByTime(300); // Wait for animation timeout
 
             expect(document.getElementById('shortcuts-modal')).toBeNull();
         });
@@ -272,18 +276,19 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
                 bubbles: true,
             });
             document.dispatchEvent(escapeEvent);
+            vi.advanceTimersByTime(300); // Wait for animation timeout
 
             expect(document.getElementById('shortcuts-modal')).toBeNull();
         });
 
-        it('should add show class on next animation frame', async () => {
+        it('should add show class on next animation frame', () => {
             showShortcutsModal();
             
-            // Wait for requestAnimationFrame
-            await new Promise(resolve => requestAnimationFrame(resolve));
+            // Run the requestAnimationFrame callback via fake timers
+            vi.advanceTimersByTime(16); // ~1 frame at 60fps
             
             const modal = document.getElementById('shortcuts-modal');
-            expect(modal?.classList.contains('show')).toBe(true);
+            expect(modal?.classList.contains('active')).toBe(true); // The code uses 'active' not 'show'
         });
     });
 

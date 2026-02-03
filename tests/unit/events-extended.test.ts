@@ -7,6 +7,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
+import { FEATURES } from '../../src/modules/constants.ts';
 
 // Mock all dependencies
 vi.mock('../../src/modules/charts.ts', () => ({
@@ -1268,7 +1269,7 @@ describe('Events Module - Extended Coverage', () => {
             __resetTimersForTesting();
         });
 
-        it.skip('should close item modal when clicking backdrop', async () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should close item modal when clicking backdrop', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
             
             const itemModal = document.getElementById('itemModal') as HTMLElement;
@@ -1284,7 +1285,7 @@ describe('Events Module - Extended Coverage', () => {
             expect(closeModal).toHaveBeenCalled();
         });
 
-        it.skip('should close compare modal when clicking backdrop', async () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should close compare modal when clicking backdrop', async () => {
             const compareModal = document.getElementById('compareModal') as HTMLElement;
             compareModal.classList.add('active');
             
@@ -1295,7 +1296,7 @@ describe('Events Module - Extended Coverage', () => {
             await new Promise(resolve => setTimeout(resolve, 50));
         });
 
-        it.skip('should not close modal when clicking content', async () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should not close modal when clicking content', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
             vi.mocked(closeModal).mockClear();
             
@@ -1326,7 +1327,7 @@ describe('Events Module - Extended Coverage', () => {
             expect(closeModal).toHaveBeenCalled();
         });
 
-        it.skip('should debounce rapid modal close attempts', async () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should debounce rapid modal close attempts', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
             vi.mocked(closeModal).mockClear();
             __resetTimersForTesting();

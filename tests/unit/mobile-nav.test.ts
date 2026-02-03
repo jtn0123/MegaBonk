@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
+import { FEATURES } from '../../src/modules/constants.ts';
 
 // Mock the store module
 vi.mock('../../src/modules/store.ts', () => ({
@@ -74,7 +75,7 @@ describe('Mobile Navigation Module', () => {
     });
 
     describe('injectMoreMenuStyles()', () => {
-        it.skip('should inject styles into document head', () => {
+        it.skipIf(!FEATURES.MOBILE_MORE_MENU)('should inject styles into document head', () => {
             injectMoreMenuStyles();
 
             const styleElement = document.getElementById('more-menu-styles');
@@ -82,7 +83,7 @@ describe('Mobile Navigation Module', () => {
             expect(styleElement.tagName).toBe('STYLE');
         });
 
-        it.skip('should not duplicate styles on multiple calls', () => {
+        it.skipIf(!FEATURES.MOBILE_MORE_MENU)('should not duplicate styles on multiple calls', () => {
             injectMoreMenuStyles();
             injectMoreMenuStyles();
             injectMoreMenuStyles();
@@ -91,7 +92,7 @@ describe('Mobile Navigation Module', () => {
             expect(styleElements).toHaveLength(1);
         });
 
-        it.skip('should include more-menu styles', () => {
+        it.skipIf(!FEATURES.MOBILE_MORE_MENU)('should include more-menu styles', () => {
             injectMoreMenuStyles();
 
             const styleElement = document.getElementById('more-menu-styles');
@@ -121,7 +122,7 @@ describe('Mobile Navigation Module', () => {
             expect(document.body.classList.contains('more-menu-open')).toBe(true);
         });
 
-        it.skip('should include menu items for additional tabs', () => {
+        it.skipIf(!FEATURES.MOBILE_MORE_MENU)('should include menu items for additional tabs', () => {
             showMoreMenu();
 
             const moreMenu = document.getElementById('more-menu');
@@ -210,7 +211,7 @@ describe('Mobile Navigation Module', () => {
             expect(itemsBtn.classList.contains('active')).toBe(false);
         });
 
-        it.skip('should highlight more button for tabs in more menu', () => {
+        it.skipIf(!FEATURES.MOBILE_MORE_MENU)('should highlight more button for tabs in more menu', () => {
             initMobileNav();
 
             const subscriberCallback = subscribe.mock.calls[0][1];

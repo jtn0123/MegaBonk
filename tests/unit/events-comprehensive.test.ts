@@ -5,6 +5,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.ts';
+import { FEATURES } from '../../src/modules/constants.ts';
 
 // Hoist mock functions for dynamic imports
 const mockDestroyAllCharts = vi.hoisted(() => vi.fn());
@@ -672,7 +673,7 @@ describe('Events - Comprehensive Coverage', () => {
         // Note: View-details and entity-link tests are skipped because the mocked
         // modal module doesn't get properly wired up through event delegation.
         // The functionality is verified through integration tests.
-        it.skip('should handle view-details button click', async () => {
+        it.skipIf(!FEATURES.VIEW_DETAILS_BUTTON)('should handle view-details button click', async () => {
             const btn = document.createElement('button');
             btn.className = 'view-details-btn';
             btn.dataset.type = 'items';
@@ -1033,7 +1034,7 @@ describe('Events - Comprehensive Coverage', () => {
             setupEventListeners();
         });
 
-        it.skip('should close item modal when clicking backdrop', async () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should close item modal when clicking backdrop', async () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             modal.classList.add('active');
             
@@ -1051,7 +1052,7 @@ describe('Events - Comprehensive Coverage', () => {
             expect(mockCloseModal).toHaveBeenCalled();
         });
 
-        it.skip('should not close modal when clicking inside modal-content', () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should not close modal when clicking inside modal-content', () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             modal.classList.add('active');
             
@@ -1067,7 +1068,7 @@ describe('Events - Comprehensive Coverage', () => {
             // Should not close since click was inside content
         });
 
-        it.skip('should debounce rapid modal close attempts', async () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should debounce rapid modal close attempts', async () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             modal.classList.add('active');
             
@@ -1086,7 +1087,7 @@ describe('Events - Comprehensive Coverage', () => {
             expect(mockCloseModal).toHaveBeenCalledTimes(1);
         });
 
-        it.skip('should handle touchend for mobile modal close', async () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should handle touchend for mobile modal close', async () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             modal.classList.add('active');
             
@@ -1458,7 +1459,7 @@ describe('Events - Comprehensive Coverage', () => {
             setupEventListeners();
         });
 
-        it.skip('should handle closeCompare button click', async () => {
+        it.skipIf(!FEATURES.COMPARE_ITEMS)('should handle closeCompare button click', async () => {
             const closeBtn = document.getElementById('closeCompare') as HTMLButtonElement;
             closeBtn?.click();
 
@@ -1479,7 +1480,7 @@ describe('Events - Comprehensive Coverage', () => {
             setupEventListeners();
         });
 
-        it.skip('should handle compare button click', async () => {
+        it.skipIf(!FEATURES.COMPARE_ITEMS)('should handle compare button click', async () => {
             const compareBtn = document.getElementById('compare-btn') as HTMLButtonElement;
             compareBtn?.click();
 
@@ -1517,7 +1518,7 @@ describe('Events - Comprehensive Coverage', () => {
             document.body.appendChild(tabsContainer);
         });
 
-        it.skip('should setup scroll listeners on tab buttons', () => {
+        it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should setup scroll listeners on tab buttons', () => {
             const tabButtons = document.querySelector('.tab-buttons') as HTMLElement;
             const addEventListenerSpy = vi.spyOn(tabButtons, 'addEventListener');
 
@@ -1526,13 +1527,13 @@ describe('Events - Comprehensive Coverage', () => {
             expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), expect.anything());
         });
 
-        it.skip('should clean up scroll listeners', () => {
+        it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should clean up scroll listeners', () => {
             setupEventListeners();
             
             expect(() => cleanupTabScrollListeners()).not.toThrow();
         });
 
-        it.skip('should handle scroll events', async () => {
+        it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should handle scroll events', async () => {
             setupEventListeners();
             
             const tabButtons = document.querySelector('.tab-buttons') as HTMLElement;
@@ -1542,7 +1543,7 @@ describe('Events - Comprehensive Coverage', () => {
             // Should not throw
         });
 
-        it.skip('should handle resize events', async () => {
+        it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should handle resize events', async () => {
             setupEventListeners();
             
             window.dispatchEvent(new Event('resize'));
@@ -1560,7 +1561,7 @@ describe('Events - Comprehensive Coverage', () => {
             setupEventListeners();
         });
 
-        it.skip('should show search history when focused with empty input', () => {
+        it.skipIf(!FEATURES.SEARCH_FOCUS_HISTORY)('should show search history when focused with empty input', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = '';
             
@@ -1569,7 +1570,7 @@ describe('Events - Comprehensive Coverage', () => {
             expect(mockShowSearchHistoryDropdown).toHaveBeenCalled();
         });
 
-        it.skip('should trigger search when focused with short query', () => {
+        it.skipIf(!FEATURES.SEARCH_FOCUS_HISTORY)('should trigger search when focused with short query', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = 'a'; // Less than 2 chars
             
@@ -1579,7 +1580,7 @@ describe('Events - Comprehensive Coverage', () => {
             expect(mockShowSearchHistoryDropdown).toHaveBeenCalled();
         });
 
-        it.skip('should trigger search when focused with valid query', () => {
+        it.skipIf(!FEATURES.SEARCH_FOCUS_HISTORY)('should trigger search when focused with valid query', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = 'test search';
             

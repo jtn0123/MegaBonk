@@ -1,4 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import os from 'os';
+
+// Use 75% of available CPUs for workers (leave headroom for browser processes)
+const cpuCount = os.cpus().length;
+const optimalWorkers = Math.max(4, Math.floor(cpuCount * 0.75));
 
 export default defineConfig({
     testDir: './tests/e2e',
@@ -6,22 +11,28 @@ export default defineConfig({
     fullyParallel: true,
     forbidOnly: !!process.env.CI,
     retries: process.env.CI ? 2 : 0,
-    workers: process.env.CI ? 1 : 4,
+    workers: process.env.CI ? 2 : optimalWorkers, // Dynamic: ~15 workers on 20-core machine
     reporter: process.env.CI ? 'github' : [['html', { open: 'never' }]],
-    timeout: 30000,
+    timeout: 20000, // Reduced from 30s - fail faster
     expect: {
-        timeout: 10000,
+        timeout: 8000, // Reduced from 10s
     },
     use: {
         baseURL: 'http://localhost:4173',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
-        video: 'retain-on-failure',
+        video: process.env.CI ? 'retain-on-failure' : 'off', // Disable video locally for speed
+        launchOptions: {
+            args: ['--disable-gpu', '--no-sandbox'], // Faster in headless
+        },
     },
     projects: [
         {
             name: 'chromium',
-            use: { ...devices['Desktop Chrome'] },
+            use: { 
+                ...devices['Desktop Chrome'],
+                channel: 'chromium', // Use headless shell (faster)
+            },
         },
         {
             name: 'webkit',

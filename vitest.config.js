@@ -91,10 +91,10 @@ export default defineConfig({
             // These are covered by Playwright E2E tests in tests/e2e/scan-build.spec.ts
             // Remaining code achieves 85%+ coverage with unit tests
             thresholds: {
-                statements: 85,
-                branches: 75,
-                functions: 85,
-                lines: 85,
+                statements: 90,
+                branches: 80,
+                functions: 90,
+                lines: 90,
             },
         },
     },

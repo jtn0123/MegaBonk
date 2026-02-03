@@ -5,6 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
+import { FEATURES } from '../../src/modules/constants.ts';
 import {
     setupEventDelegation,
     setupEventListeners,
@@ -552,7 +553,7 @@ describe('events-comprehensive', () => {
             setupEventListeners();
         });
 
-        it.skip('should close item modal when clicking backdrop', async () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should close item modal when clicking backdrop', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
 
             const modal = document.getElementById('itemModal');
@@ -570,7 +571,7 @@ describe('events-comprehensive', () => {
         });
 
         // Skipped: jsdom event propagation issues with backdrop click detection and modal close debounce timing
-        it.skip('should close compare modal when clicking backdrop', async () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should close compare modal when clicking backdrop', async () => {
             const modal = document.getElementById('compareModal');
             if (modal) {
                 modal.classList.add('active');

@@ -128,4 +128,18 @@ export const FEATURES = Object.freeze({
     BUILD_ADVISOR: true,
     /** Enable pull-to-refresh on mobile */
     PULL_TO_REFRESH: true,
+    /** Enable favorites feature (heart button on cards) */
+    FAVORITES: false,
+    /** Enable view-details button on cards */
+    VIEW_DETAILS_BUTTON: false,
+    /** Enable modal backdrop click to close */
+    MODAL_BACKDROP_CLOSE: false,
+    /** Enable tab scroll indicators */
+    TAB_SCROLL_INDICATORS: false,
+    /** Enable search focus behavior (history dropdown) */
+    SEARCH_FOCUS_HISTORY: false,
+    /** Enable mobile "More" menu with dynamic styles */
+    MOBILE_MORE_MENU: false,
+    /** Enable online/offline toast notifications */
+    OFFLINE_NOTIFICATIONS: false,
 });

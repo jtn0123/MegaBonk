@@ -279,3 +279,46 @@ export function resetAppState() {
         compareItems: [],
     };
 }
+
+// ========================================
+// Feature Flag Test Helpers
+// ========================================
+// Import feature flags for conditional test skipping
+import { FEATURES } from '../src/modules/constants.ts';
+
+/**
+ * Helper to conditionally run or skip tests based on feature flags.
+ * Use this instead of it.skip when a test depends on a disabled feature.
+ * 
+ * @example
+ * itWhenFeature('FAVORITES', 'should show favorite button', () => { ... });
+ * 
+ * @param {keyof typeof FEATURES} featureName - The feature flag name
+ * @param {string} description - Test description
+ * @param {Function} testFn - Test function
+ */
+export function itWhenFeature(featureName, description, testFn) {
+    const isEnabled = FEATURES[featureName];
+    if (isEnabled) {
+        it(description, testFn);
+    } else {
+        it.skip(`[FEATURE:${featureName}] ${description}`, testFn);
+    }
+}
+
+/**
+ * Async version of itWhenFeature
+ */
+export function itWhenFeatureAsync(featureName, description, testFn) {
+    const isEnabled = FEATURES[featureName];
+    if (isEnabled) {
+        it(description, testFn);
+    } else {
+        it.skip(`[FEATURE:${featureName}] ${description}`, testFn);
+    }
+}
+
+/**
+ * Export FEATURES for direct access in tests
+ */
+export { FEATURES };

@@ -19,6 +19,18 @@ const __dirname = path.dirname(__filename);
 
 const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-screenshots');
 
+// Check if dev server is running before all tests
+let serverAvailable = false;
+test.beforeAll(async () => {
+    try {
+        const response = await fetch('http://localhost:5173', { method: 'HEAD' });
+        serverAvailable = response.ok || response.status === 200 || response.status === 304;
+    } catch {
+        serverAvailable = false;
+        console.log('Dev server not running at localhost:5173 - CV detection extended tests will be skipped');
+    }
+});
+
 // Helper to load test image as base64
 function loadTestImageBase64(filename) {
     const imagePath = path.join(TEST_IMAGES_DIR, filename);
@@ -62,7 +74,8 @@ async function waitForCVFunctions(page) {
 test.describe('Color Analysis Functions', () => {
     test.setTimeout(60000);
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) { testInfo.skip(); return; }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -318,7 +331,8 @@ test.describe('Color Analysis Functions', () => {
 test.describe('CV Metrics and Configuration', () => {
     test.setTimeout(60000);
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) { testInfo.skip(); return; }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -396,7 +410,8 @@ test.describe('CV Metrics and Configuration', () => {
 test.describe('Region Detection', () => {
     test.setTimeout(60000); // Reduced: doesn't need full template init
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) { testInfo.skip(); return; }
         await page.goto('/');
         await waitForCVFunctions(page); // Changed: doesn't need full template init
     });
@@ -473,7 +488,8 @@ test.describe('Region Detection', () => {
 test.describe('Hotbar and Edge Detection', () => {
     test.setTimeout(60000); // Reduced: doesn't need full template init
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) { testInfo.skip(); return; }
         await page.goto('/');
         await waitForCVFunctions(page); // Changed: doesn't need full template init
     });
@@ -606,7 +622,8 @@ test.describe('Detection Pipeline', () => {
     test.skip(({ }, testInfo) => process.env.COVERAGE === 'true', 'Skip slow detection tests in coverage mode');
     test.setTimeout(180000);
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) { testInfo.skip(); return; }
         await page.goto('/');
         await waitForFullCVInit(page);
     });
@@ -751,7 +768,8 @@ test.describe('Detection Pipeline', () => {
 test.describe('Grid Verification and NMS Edge Cases', () => {
     test.setTimeout(60000);
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) { testInfo.skip(); return; }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -894,7 +912,8 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
 test.describe('Similarity and Image Processing Edge Cases', () => {
     test.setTimeout(60000);
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) { testInfo.skip(); return; }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -1080,7 +1099,8 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
 test.describe('Cell Analysis Edge Cases', () => {
     test.setTimeout(60000);
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) { testInfo.skip(); return; }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -1185,7 +1205,8 @@ test.describe('Cell Analysis Edge Cases', () => {
 test.describe('Grid Fitting and Icon Size Detection', () => {
     test.setTimeout(60000);
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) { testInfo.skip(); return; }
         await page.goto('/');
         await waitForCVFunctions(page);
     });

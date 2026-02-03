@@ -167,8 +167,8 @@ test.describe('Image Loading', () => {
         await page.goto('/');
         await waitForContentReady(page, '#itemsContainer');
 
-        // Open modal for first item
-        await page.click('#itemsContainer .view-details-btn >> nth=0');
+        // Open modal for first item (cards are now directly clickable)
+        await page.click('#itemsContainer .item-card >> nth=0');
         await expect(page.locator('#itemModal')).toBeVisible();
 
         // Wait for modal to fully render and images to load

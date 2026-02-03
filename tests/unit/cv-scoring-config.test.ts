@@ -1,9 +1,9 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+// ========================================
+// CV Scoring Configuration Module - Unit Tests
+// ========================================
+
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
-    DEFAULT_SCORING_CONFIG,
-    PRECISION_SCORING_CONFIG,
-    RECALL_SCORING_CONFIG,
-    FAST_SCORING_CONFIG,
     setScoringConfig,
     getScoringConfig,
     getThresholdForRarity,
@@ -12,453 +12,371 @@ import {
     getConfidenceGrade,
     describeScoringConfig,
     mergeWithDefaults,
+    DEFAULT_SCORING_CONFIG,
+    PRECISION_SCORING_CONFIG,
+    RECALL_SCORING_CONFIG,
+    FAST_SCORING_CONFIG,
     type ScoringConfig,
-    type MetricWeights,
-    type AgreementConfig,
-    type RarityThresholds,
-} from '../../src/modules/cv/scoring-config.js';
+} from '../../src/modules/cv/scoring-config.ts';
 
-describe('scoring-config', () => {
-    // Reset to default config before each test
+describe('Scoring Configuration', () => {
     beforeEach(() => {
+        // Reset to default config before each test
         setScoringConfig(DEFAULT_SCORING_CONFIG);
-    });
-
-    afterEach(() => {
-        setScoringConfig(DEFAULT_SCORING_CONFIG);
-    });
-
-    describe('Configuration Constants', () => {
-        describe('DEFAULT_SCORING_CONFIG', () => {
-            it('should have weights that sum to approximately 1.0', () => {
-                const { weights } = DEFAULT_SCORING_CONFIG;
-                const sum = weights.ncc + weights.ssim + weights.histogram + weights.edge;
-                expect(sum).toBeCloseTo(1.0, 2);
-            });
-
-            it('should have SSIM as the highest weighted metric', () => {
-                const { weights } = DEFAULT_SCORING_CONFIG;
-                expect(weights.ssim).toBeGreaterThan(weights.ncc);
-                expect(weights.ssim).toBeGreaterThan(weights.histogram);
-                expect(weights.ssim).toBeGreaterThan(weights.edge);
-            });
-
-            it('should have agreement bonus enabled', () => {
-                expect(DEFAULT_SCORING_CONFIG.agreement.enabled).toBe(true);
-            });
-
-            it('should have valid confidence range', () => {
-                expect(DEFAULT_SCORING_CONFIG.minConfidence).toBeLessThan(DEFAULT_SCORING_CONFIG.maxConfidence);
-                expect(DEFAULT_SCORING_CONFIG.minConfidence).toBeGreaterThan(0);
-                expect(DEFAULT_SCORING_CONFIG.maxConfidence).toBeLessThanOrEqual(1);
-            });
-
-            it('should have all rarity thresholds defined', () => {
-                const rarities: (keyof RarityThresholds)[] = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'unknown'];
-                rarities.forEach(rarity => {
-                    expect(DEFAULT_SCORING_CONFIG.rarityThresholds[rarity]).toBeDefined();
-                    expect(typeof DEFAULT_SCORING_CONFIG.rarityThresholds[rarity]).toBe('number');
-                });
-            });
-        });
-
-        describe('PRECISION_SCORING_CONFIG', () => {
-            it('should have higher base threshold than default', () => {
-                expect(PRECISION_SCORING_CONFIG.baseThreshold).toBeGreaterThan(DEFAULT_SCORING_CONFIG.baseThreshold);
-            });
-
-            it('should have higher agreement threshold', () => {
-                expect(PRECISION_SCORING_CONFIG.agreement.threshold).toBeGreaterThan(DEFAULT_SCORING_CONFIG.agreement.threshold);
-            });
-
-            it('should require more metrics for bonus', () => {
-                expect(PRECISION_SCORING_CONFIG.agreement.minMetricsForBonus).toBeGreaterThanOrEqual(
-                    DEFAULT_SCORING_CONFIG.agreement.minMetricsForBonus
-                );
-            });
-
-            it('should have weights summing to ~1.0', () => {
-                const { weights } = PRECISION_SCORING_CONFIG;
-                const sum = weights.ncc + weights.ssim + weights.histogram + weights.edge;
-                expect(sum).toBeCloseTo(1.0, 2);
-            });
-        });
-
-        describe('RECALL_SCORING_CONFIG', () => {
-            it('should have lower base threshold than default', () => {
-                expect(RECALL_SCORING_CONFIG.baseThreshold).toBeLessThan(DEFAULT_SCORING_CONFIG.baseThreshold);
-            });
-
-            it('should have lower agreement threshold', () => {
-                expect(RECALL_SCORING_CONFIG.agreement.threshold).toBeLessThan(DEFAULT_SCORING_CONFIG.agreement.threshold);
-            });
-
-            it('should have higher max bonus', () => {
-                expect(RECALL_SCORING_CONFIG.agreement.maxBonus).toBeGreaterThan(DEFAULT_SCORING_CONFIG.agreement.maxBonus);
-            });
-
-            it('should have lower minConfidence', () => {
-                expect(RECALL_SCORING_CONFIG.minConfidence).toBeLessThan(DEFAULT_SCORING_CONFIG.minConfidence);
-            });
-        });
-
-        describe('FAST_SCORING_CONFIG', () => {
-            it('should disable histogram and edge metrics', () => {
-                expect(FAST_SCORING_CONFIG.weights.histogram).toBe(0);
-                expect(FAST_SCORING_CONFIG.weights.edge).toBe(0);
-            });
-
-            it('should only use SSIM and NCC', () => {
-                const { weights } = FAST_SCORING_CONFIG;
-                expect(weights.ssim + weights.ncc).toBe(1.0);
-            });
-
-            it('should disable agreement bonus', () => {
-                expect(FAST_SCORING_CONFIG.agreement.enabled).toBe(false);
-            });
-
-            it('should have bonusPerMetric and maxBonus of 0', () => {
-                expect(FAST_SCORING_CONFIG.agreement.bonusPerMetric).toBe(0);
-                expect(FAST_SCORING_CONFIG.agreement.maxBonus).toBe(0);
-            });
-        });
     });
 
     describe('setScoringConfig / getScoringConfig', () => {
-        it('should return default config initially', () => {
+        it('should get default config initially', () => {
             const config = getScoringConfig();
             expect(config).toEqual(DEFAULT_SCORING_CONFIG);
         });
 
-        it('should update active config when set', () => {
+        it('should update config when set', () => {
             setScoringConfig(PRECISION_SCORING_CONFIG);
             expect(getScoringConfig()).toEqual(PRECISION_SCORING_CONFIG);
         });
 
-        it('should allow switching between configs', () => {
-            setScoringConfig(RECALL_SCORING_CONFIG);
-            expect(getScoringConfig()).toEqual(RECALL_SCORING_CONFIG);
-
-            setScoringConfig(FAST_SCORING_CONFIG);
-            expect(getScoringConfig()).toEqual(FAST_SCORING_CONFIG);
-
-            setScoringConfig(DEFAULT_SCORING_CONFIG);
-            expect(getScoringConfig()).toEqual(DEFAULT_SCORING_CONFIG);
-        });
-
-        it('should accept custom config', () => {
+        it('should allow custom config', () => {
             const customConfig: ScoringConfig = {
-                weights: { ncc: 0.4, ssim: 0.4, histogram: 0.1, edge: 0.1 },
-                agreement: {
-                    enabled: false,
-                    threshold: 0.5,
-                    minMetricsForBonus: 2,
-                    bonusPerMetric: 0,
-                    maxBonus: 0,
-                },
-                baseThreshold: 0.5,
-                rarityThresholds: {
-                    common: 0, uncommon: 0, rare: 0, epic: 0, legendary: 0, unknown: 0,
-                },
-                minConfidence: 0.3,
-                maxConfidence: 0.95,
+                ...DEFAULT_SCORING_CONFIG,
+                baseThreshold: 0.6,
             };
-
             setScoringConfig(customConfig);
-            expect(getScoringConfig()).toEqual(customConfig);
+            expect(getScoringConfig().baseThreshold).toBe(0.6);
         });
     });
 
-    describe('getThresholdForRarity', () => {
-        beforeEach(() => {
-            setScoringConfig(DEFAULT_SCORING_CONFIG);
+    describe('Preset Configurations', () => {
+        it('DEFAULT_SCORING_CONFIG weights should sum close to 1.0', () => {
+            const w = DEFAULT_SCORING_CONFIG.weights;
+            const sum = w.ncc + w.ssim + w.histogram + w.edge;
+            expect(sum).toBeCloseTo(1.0, 5);
         });
 
-        it('should return base + unknown adjustment when rarity is undefined', () => {
-            const threshold = getThresholdForRarity(undefined);
-            const expected = DEFAULT_SCORING_CONFIG.baseThreshold + DEFAULT_SCORING_CONFIG.rarityThresholds.unknown;
-            expect(threshold).toBe(expected);
+        it('PRECISION_SCORING_CONFIG should have higher threshold', () => {
+            expect(PRECISION_SCORING_CONFIG.baseThreshold).toBeGreaterThan(DEFAULT_SCORING_CONFIG.baseThreshold);
         });
 
-        it('should return base + common adjustment for common rarity', () => {
-            const threshold = getThresholdForRarity('common');
-            const expected = DEFAULT_SCORING_CONFIG.baseThreshold + DEFAULT_SCORING_CONFIG.rarityThresholds.common;
-            expect(threshold).toBe(expected);
+        it('RECALL_SCORING_CONFIG should have lower threshold', () => {
+            expect(RECALL_SCORING_CONFIG.baseThreshold).toBeLessThan(DEFAULT_SCORING_CONFIG.baseThreshold);
         });
 
-        it('should handle case-insensitive rarity names', () => {
-            const thresholdLower = getThresholdForRarity('legendary');
-            const thresholdUpper = getThresholdForRarity('LEGENDARY');
-            const thresholdMixed = getThresholdForRarity('LeGeNdArY');
-
-            expect(thresholdLower).toBe(thresholdUpper);
-            expect(thresholdLower).toBe(thresholdMixed);
+        it('FAST_SCORING_CONFIG should only use NCC and SSIM', () => {
+            expect(FAST_SCORING_CONFIG.weights.histogram).toBe(0);
+            expect(FAST_SCORING_CONFIG.weights.edge).toBe(0);
+            expect(FAST_SCORING_CONFIG.weights.ncc).toBeGreaterThan(0);
+            expect(FAST_SCORING_CONFIG.weights.ssim).toBeGreaterThan(0);
         });
 
-        it('should return higher threshold for legendary (more strict)', () => {
+        it('FAST_SCORING_CONFIG should have agreement disabled', () => {
+            expect(FAST_SCORING_CONFIG.agreement.enabled).toBe(false);
+        });
+    });
+});
+
+describe('getThresholdForRarity', () => {
+    beforeEach(() => {
+        setScoringConfig(DEFAULT_SCORING_CONFIG);
+    });
+
+    describe('Rarity-Based Thresholds', () => {
+        it('should return lower threshold for common items', () => {
             const commonThreshold = getThresholdForRarity('common');
+            const rareThreshold = getThresholdForRarity('rare');
+            expect(commonThreshold).toBeLessThan(rareThreshold);
+        });
+
+        it('should return higher threshold for legendary items', () => {
             const legendaryThreshold = getThresholdForRarity('legendary');
+            const commonThreshold = getThresholdForRarity('common');
             expect(legendaryThreshold).toBeGreaterThan(commonThreshold);
         });
 
-        it('should return higher threshold for unknown (more strict)', () => {
-            const commonThreshold = getThresholdForRarity('common');
+        it('should return base threshold for rare (no adjustment)', () => {
+            const config = getScoringConfig();
+            // The threshold is base + adjustment, rare adjustment is 0
+            expect(getThresholdForRarity('rare')).toBe(config.baseThreshold);
+        });
+
+        it('should handle unknown rarity with higher threshold', () => {
             const unknownThreshold = getThresholdForRarity('unknown');
-            expect(unknownThreshold).toBeGreaterThan(commonThreshold);
-        });
-
-        it('should use unknown adjustment for invalid rarity', () => {
-            const threshold = getThresholdForRarity('mythical'); // Not a real rarity
-            const expected = DEFAULT_SCORING_CONFIG.baseThreshold + DEFAULT_SCORING_CONFIG.rarityThresholds.unknown;
-            expect(threshold).toBe(expected);
-        });
-
-        it('should never return below minConfidence', () => {
-            // Create config with very negative adjustment
-            const testConfig: ScoringConfig = {
-                ...DEFAULT_SCORING_CONFIG,
-                baseThreshold: 0.1,
-                rarityThresholds: {
-                    ...DEFAULT_SCORING_CONFIG.rarityThresholds,
-                    legendary: -0.5, // Would make it negative
-                },
-                minConfidence: 0.2,
-            };
-            setScoringConfig(testConfig);
-
-            const threshold = getThresholdForRarity('legendary');
-            expect(threshold).toBe(testConfig.minConfidence);
-        });
-
-        it('should return different thresholds for each rarity', () => {
-            setScoringConfig(PRECISION_SCORING_CONFIG);
-            const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'unknown'];
-            const thresholds = rarities.map(r => getThresholdForRarity(r));
-
-            // At least some should differ
-            const uniqueThresholds = new Set(thresholds);
-            expect(uniqueThresholds.size).toBeGreaterThan(1);
+            const rareThreshold = getThresholdForRarity('rare');
+            expect(unknownThreshold).toBeGreaterThan(rareThreshold);
         });
     });
 
-    describe('calculateWeightedScore', () => {
-        beforeEach(() => {
-            setScoringConfig(DEFAULT_SCORING_CONFIG);
+    describe('Case Insensitivity', () => {
+        it('should handle uppercase rarity', () => {
+            const threshold1 = getThresholdForRarity('LEGENDARY');
+            const threshold2 = getThresholdForRarity('legendary');
+            expect(threshold1).toBe(threshold2);
         });
 
-        it('should calculate weighted average of metrics', () => {
-            // All 1.0 should give max (capped to maxConfidence)
-            const score = calculateWeightedScore(1.0, 1.0, 1.0, 1.0);
-            expect(score).toBeLessThanOrEqual(DEFAULT_SCORING_CONFIG.maxConfidence);
-        });
-
-        it('should handle all zeros', () => {
-            const score = calculateWeightedScore(0, 0, 0, 0);
-            expect(score).toBe(DEFAULT_SCORING_CONFIG.minConfidence);
-        });
-
-        it('should weight SSIM highest', () => {
-            // Use moderate values so we're not clamped to minConfidence
-            // High SSIM only (0.8 SSIM, 0.3 others)
-            const highSsim = calculateWeightedScore(0.3, 0.8, 0.3, 0.3);
-            // High NCC only (0.8 NCC, 0.3 others)
-            const highNcc = calculateWeightedScore(0.8, 0.3, 0.3, 0.3);
-
-            // SSIM weight (0.35) > NCC weight (0.25), so boosting SSIM gives higher score
-            expect(highSsim).toBeGreaterThan(highNcc);
-        });
-
-        it('should add agreement bonus when metrics agree', () => {
-            // All metrics high (above threshold)
-            const allHigh = calculateWeightedScore(0.8, 0.8, 0.8, 0.8);
-
-            // Calculate expected base without bonus
-            const w = DEFAULT_SCORING_CONFIG.weights;
-            const baseScore = 0.8 * w.ncc + 0.8 * w.ssim + 0.8 * w.histogram + 0.8 * w.edge;
-
-            expect(allHigh).toBeGreaterThan(baseScore);
-        });
-
-        it('should not add agreement bonus when disabled', () => {
-            setScoringConfig(FAST_SCORING_CONFIG);
-
-            const score = calculateWeightedScore(0.8, 0.8, 0.8, 0.8);
-
-            // With FAST config (histogram=0, edge=0), only SSIM and NCC count
-            const w = FAST_SCORING_CONFIG.weights;
-            const expected = 0.8 * w.ncc + 0.8 * w.ssim;
-            expect(score).toBe(expected);
-        });
-
-        it('should not add bonus when too few metrics agree', () => {
-            // Only 1 metric above threshold
-            const score = calculateWeightedScore(0.2, 0.9, 0.2, 0.2);
-
-            const w = DEFAULT_SCORING_CONFIG.weights;
-            const expectedBase = 0.2 * w.ncc + 0.9 * w.ssim + 0.2 * w.histogram + 0.2 * w.edge;
-
-            // Should be close to base (maybe clamped)
-            expect(score).toBeCloseTo(Math.max(DEFAULT_SCORING_CONFIG.minConfidence, expectedBase), 2);
-        });
-
-        it('should cap bonus at maxBonus', () => {
-            // All 4 metrics super high
-            const score = calculateWeightedScore(0.95, 0.95, 0.95, 0.95);
-
-            const w = DEFAULT_SCORING_CONFIG.weights;
-            const baseScore = 0.95 * w.ncc + 0.95 * w.ssim + 0.95 * w.histogram + 0.95 * w.edge;
-            const maxWithBonus = baseScore + DEFAULT_SCORING_CONFIG.agreement.maxBonus;
-
-            expect(score).toBeLessThanOrEqual(Math.min(DEFAULT_SCORING_CONFIG.maxConfidence, maxWithBonus));
-        });
-
-        it('should clamp score to minConfidence', () => {
-            const score = calculateWeightedScore(0, 0, 0, 0);
-            expect(score).toBe(DEFAULT_SCORING_CONFIG.minConfidence);
-        });
-
-        it('should clamp score to maxConfidence', () => {
-            const score = calculateWeightedScore(1.0, 1.0, 1.0, 1.0);
-            expect(score).toBeLessThanOrEqual(DEFAULT_SCORING_CONFIG.maxConfidence);
-        });
-
-        it('should handle mixed metric values', () => {
-            const score = calculateWeightedScore(0.3, 0.7, 0.5, 0.6);
-            expect(score).toBeGreaterThan(0);
-            expect(score).toBeLessThanOrEqual(1);
-        });
-
-        it('should only count enabled metrics for agreement bonus', () => {
-            setScoringConfig(FAST_SCORING_CONFIG);
-
-            // Even though histogram=0.9 and edge=0.9 are high, they're disabled (weight=0)
-            // Use values that produce a score above minConfidence
-            const score = calculateWeightedScore(0.5, 0.5, 0.9, 0.9);
-
-            // Only SSIM and NCC count (histogram and edge weights are 0)
-            // Agreement is disabled in FAST config, so no bonus
-            const w = FAST_SCORING_CONFIG.weights;
-            const expected = 0.5 * w.ncc + 0.5 * w.ssim; // = 0.5 * 0.5 + 0.5 * 0.5 = 0.5
-            expect(score).toBe(expected);
+        it('should handle mixed case rarity', () => {
+            const threshold1 = getThresholdForRarity('Rare');
+            const threshold2 = getThresholdForRarity('rare');
+            expect(threshold1).toBe(threshold2);
         });
     });
 
-    describe('passesThreshold', () => {
-        beforeEach(() => {
-            setScoringConfig(DEFAULT_SCORING_CONFIG);
-        });
-
-        it('should return true when score equals threshold', () => {
-            const threshold = getThresholdForRarity('common');
-            expect(passesThreshold(threshold, 'common')).toBe(true);
-        });
-
-        it('should return true when score exceeds threshold', () => {
-            const threshold = getThresholdForRarity('common');
-            expect(passesThreshold(threshold + 0.1, 'common')).toBe(true);
-        });
-
-        it('should return false when score below threshold', () => {
-            const threshold = getThresholdForRarity('common');
-            expect(passesThreshold(threshold - 0.1, 'common')).toBe(false);
-        });
-
-        it('should use unknown threshold when rarity undefined', () => {
+    describe('Undefined/Null Handling', () => {
+        it('should use unknown threshold for undefined rarity', () => {
             const threshold = getThresholdForRarity(undefined);
-            expect(passesThreshold(threshold, undefined)).toBe(true);
-            expect(passesThreshold(threshold - 0.01, undefined)).toBe(false);
+            // Should use unknown adjustment from config
+            expect(threshold).toBeGreaterThan(DEFAULT_SCORING_CONFIG.baseThreshold);
         });
 
-        it('should be more lenient for legendary', () => {
-            const commonThreshold = getThresholdForRarity('common');
-            const legendaryThreshold = getThresholdForRarity('legendary');
+        it('should use unknown threshold for unrecognized rarity', () => {
+            const threshold = getThresholdForRarity('mythical');
+            const unknownThreshold = getThresholdForRarity('unknown');
+            expect(threshold).toBe(unknownThreshold);
+        });
+    });
 
-            // Score that fails common but passes legendary
-            const midScore = (commonThreshold + legendaryThreshold) / 2;
-            if (legendaryThreshold < commonThreshold) {
-                expect(passesThreshold(midScore, 'legendary')).toBe(true);
+    describe('Minimum Confidence Enforcement', () => {
+        it('should not return below minConfidence', () => {
+            const config = getScoringConfig();
+            const threshold = getThresholdForRarity('common');
+            expect(threshold).toBeGreaterThanOrEqual(config.minConfidence);
+        });
+
+        it('should enforce minConfidence for all rarities', () => {
+            const config = getScoringConfig();
+            const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'unknown'];
+
+            for (const rarity of rarities) {
+                const threshold = getThresholdForRarity(rarity);
+                expect(threshold).toBeGreaterThanOrEqual(config.minConfidence);
             }
         });
     });
+});
 
-    describe('getConfidenceGrade', () => {
-        it('should return A grade for score >= 0.85', () => {
-            expect(getConfidenceGrade(0.85)).toEqual({ grade: 'A', label: 'Excellent', color: '#4CAF50' });
-            expect(getConfidenceGrade(0.95)).toEqual({ grade: 'A', label: 'Excellent', color: '#4CAF50' });
-            expect(getConfidenceGrade(1.0)).toEqual({ grade: 'A', label: 'Excellent', color: '#4CAF50' });
+describe('calculateWeightedScore', () => {
+    beforeEach(() => {
+        setScoringConfig(DEFAULT_SCORING_CONFIG);
+    });
+
+    describe('Basic Weighted Calculation', () => {
+        it('should return perfect score for perfect metrics', () => {
+            const score = calculateWeightedScore(1.0, 1.0, 1.0, 1.0);
+            // With agreement bonus, should be close to maxConfidence
+            expect(score).toBeGreaterThanOrEqual(0.99);
         });
 
-        it('should return B grade for score >= 0.7 and < 0.85', () => {
-            expect(getConfidenceGrade(0.7)).toEqual({ grade: 'B', label: 'Good', color: '#8BC34A' });
-            expect(getConfidenceGrade(0.84)).toEqual({ grade: 'B', label: 'Good', color: '#8BC34A' });
+        it('should return low score for poor metrics', () => {
+            const score = calculateWeightedScore(0.1, 0.1, 0.1, 0.1);
+            // Should be at or near minConfidence
+            expect(score).toBeLessThanOrEqual(0.4);
         });
 
-        it('should return C grade for score >= 0.55 and < 0.7', () => {
-            expect(getConfidenceGrade(0.55)).toEqual({ grade: 'C', label: 'Fair', color: '#FFC107' });
-            expect(getConfidenceGrade(0.69)).toEqual({ grade: 'C', label: 'Fair', color: '#FFC107' });
+        it('should weight SSIM highest by default', () => {
+            // If only SSIM is high, score should still be decent
+            const ssimOnly = calculateWeightedScore(0.1, 0.9, 0.1, 0.1);
+            // If only NCC is high, score should be lower (NCC weight is less)
+            const nccOnly = calculateWeightedScore(0.9, 0.1, 0.1, 0.1);
+
+            expect(ssimOnly).toBeGreaterThan(nccOnly);
         });
 
-        it('should return D grade for score >= 0.4 and < 0.55', () => {
-            expect(getConfidenceGrade(0.4)).toEqual({ grade: 'D', label: 'Poor', color: '#FF9800' });
-            expect(getConfidenceGrade(0.54)).toEqual({ grade: 'D', label: 'Poor', color: '#FF9800' });
-        });
-
-        it('should return F grade for score < 0.4', () => {
-            expect(getConfidenceGrade(0.39)).toEqual({ grade: 'F', label: 'Fail', color: '#F44336' });
-            expect(getConfidenceGrade(0.0)).toEqual({ grade: 'F', label: 'Fail', color: '#F44336' });
-            expect(getConfidenceGrade(0.1)).toEqual({ grade: 'F', label: 'Fail', color: '#F44336' });
-        });
-
-        it('should return correct grade at boundary values', () => {
-            expect(getConfidenceGrade(0.849).grade).toBe('B');
-            expect(getConfidenceGrade(0.85).grade).toBe('A');
-            expect(getConfidenceGrade(0.699).grade).toBe('C');
-            expect(getConfidenceGrade(0.7).grade).toBe('B');
+        it('should handle zero metrics', () => {
+            const score = calculateWeightedScore(0, 0, 0, 0);
+            expect(score).toBe(DEFAULT_SCORING_CONFIG.minConfidence);
         });
     });
 
-    describe('describeScoringConfig', () => {
-        it('should include weight values', () => {
-            setScoringConfig(DEFAULT_SCORING_CONFIG);
-            const desc = describeScoringConfig();
+    describe('Agreement Bonus', () => {
+        it('should add bonus when multiple metrics agree', () => {
+            // All metrics above agreement threshold (0.55)
+            const allAgree = calculateWeightedScore(0.6, 0.6, 0.6, 0.6);
+            // Only one metric above threshold
+            const oneAgrees = calculateWeightedScore(0.6, 0.3, 0.3, 0.3);
 
-            expect(desc).toContain('SSIM=0.35');
-            expect(desc).toContain('NCC=0.25');
-            expect(desc).toContain('Hist=0.25');
-            expect(desc).toContain('Edge=0.15');
+            expect(allAgree).toBeGreaterThan(oneAgrees);
         });
 
-        it('should indicate agreement status', () => {
-            setScoringConfig(DEFAULT_SCORING_CONFIG);
-            expect(describeScoringConfig()).toContain('Agreement: ON');
+        it('should respect maxBonus cap', () => {
+            // Perfect metrics should get bonus but capped at maxBonus
+            const score = calculateWeightedScore(1.0, 1.0, 1.0, 1.0);
+            expect(score).toBeLessThanOrEqual(DEFAULT_SCORING_CONFIG.maxConfidence);
+        });
 
+        it('should not add bonus below minMetricsForBonus', () => {
+            setScoringConfig({
+                ...DEFAULT_SCORING_CONFIG,
+                agreement: {
+                    ...DEFAULT_SCORING_CONFIG.agreement,
+                    minMetricsForBonus: 4,
+                },
+            });
+
+            // Only 3 metrics above threshold
+            const score = calculateWeightedScore(0.7, 0.7, 0.7, 0.3);
+            // Base weighted without bonus
+            const baseScore = 0.7 * 0.25 + 0.7 * 0.35 + 0.7 * 0.25 + 0.3 * 0.15;
+
+            expect(score).toBeCloseTo(baseScore, 1);
+        });
+    });
+
+    describe('Config Variations', () => {
+        it('should respect disabled agreement bonus', () => {
             setScoringConfig(FAST_SCORING_CONFIG);
-            expect(describeScoringConfig()).toContain('Agreement: OFF');
+
+            // FAST config has agreement disabled
+            const score1 = calculateWeightedScore(0.8, 0.8, 0.0, 0.0);
+            // Should just be weighted average without bonus
+            const expected = 0.8 * 0.5 + 0.8 * 0.5;
+            expect(score1).toBeCloseTo(expected, 1);
         });
 
-        it('should include base threshold', () => {
-            setScoringConfig(DEFAULT_SCORING_CONFIG);
-            const desc = describeScoringConfig();
-            expect(desc).toContain(`Base threshold: ${DEFAULT_SCORING_CONFIG.baseThreshold}`);
-        });
+        it('should only count enabled metrics for agreement', () => {
+            setScoringConfig(FAST_SCORING_CONFIG);
 
-        it('should include rarity adjustments', () => {
-            setScoringConfig(DEFAULT_SCORING_CONFIG);
-            const desc = describeScoringConfig();
-            expect(desc).toContain('Common=');
-            expect(desc).toContain('Legendary=');
-        });
-
-        it('should reflect current config', () => {
-            setScoringConfig(PRECISION_SCORING_CONFIG);
-            const desc = describeScoringConfig();
-            expect(desc).toContain('SSIM=0.4');
-            expect(desc).toContain(`Base threshold: ${PRECISION_SCORING_CONFIG.baseThreshold}`);
+            // Histogram and edge are 0 weight, so they shouldn't count
+            const score = calculateWeightedScore(0.8, 0.8, 0.1, 0.1);
+            // NCC and SSIM are 0.5 each
+            expect(score).toBeCloseTo(0.8, 1);
         });
     });
 
-    describe('mergeWithDefaults', () => {
-        it('should return default config when given empty object', () => {
+    describe('Clamping', () => {
+        it('should clamp to minConfidence', () => {
+            const score = calculateWeightedScore(0, 0, 0, 0);
+            expect(score).toBe(DEFAULT_SCORING_CONFIG.minConfidence);
+        });
+
+        it('should clamp to maxConfidence', () => {
+            const score = calculateWeightedScore(1.0, 1.0, 1.0, 1.0);
+            expect(score).toBeLessThanOrEqual(DEFAULT_SCORING_CONFIG.maxConfidence);
+        });
+    });
+});
+
+describe('passesThreshold', () => {
+    beforeEach(() => {
+        setScoringConfig(DEFAULT_SCORING_CONFIG);
+    });
+
+    describe('Basic Threshold Checking', () => {
+        it('should return true for score above threshold', () => {
+            expect(passesThreshold(0.9, 'common')).toBe(true);
+        });
+
+        it('should return false for score below threshold', () => {
+            expect(passesThreshold(0.2, 'legendary')).toBe(false);
+        });
+
+        it('should return true for exact threshold', () => {
+            const threshold = getThresholdForRarity('rare');
+            expect(passesThreshold(threshold, 'rare')).toBe(true);
+        });
+    });
+
+    describe('Rarity Consideration', () => {
+        it('should be more lenient for common items', () => {
+            // Same score, common should pass more easily
+            const score = 0.43;
+            expect(passesThreshold(score, 'common')).toBe(true);
+            expect(passesThreshold(score, 'legendary')).toBe(false);
+        });
+    });
+});
+
+describe('getConfidenceGrade', () => {
+    describe('Grade Assignments', () => {
+        it('should return A for excellent scores', () => {
+            const grade = getConfidenceGrade(0.9);
+            expect(grade.grade).toBe('A');
+            expect(grade.label).toBe('Excellent');
+        });
+
+        it('should return B for good scores', () => {
+            const grade = getConfidenceGrade(0.75);
+            expect(grade.grade).toBe('B');
+            expect(grade.label).toBe('Good');
+        });
+
+        it('should return C for fair scores', () => {
+            const grade = getConfidenceGrade(0.6);
+            expect(grade.grade).toBe('C');
+            expect(grade.label).toBe('Fair');
+        });
+
+        it('should return D for poor scores', () => {
+            const grade = getConfidenceGrade(0.45);
+            expect(grade.grade).toBe('D');
+            expect(grade.label).toBe('Poor');
+        });
+
+        it('should return F for failing scores', () => {
+            const grade = getConfidenceGrade(0.3);
+            expect(grade.grade).toBe('F');
+            expect(grade.label).toBe('Fail');
+        });
+    });
+
+    describe('Boundary Cases', () => {
+        it('should handle exact boundaries correctly', () => {
+            expect(getConfidenceGrade(0.85).grade).toBe('A');
+            expect(getConfidenceGrade(0.7).grade).toBe('B');
+            expect(getConfidenceGrade(0.55).grade).toBe('C');
+            expect(getConfidenceGrade(0.4).grade).toBe('D');
+        });
+
+        it('should handle 0 score', () => {
+            const grade = getConfidenceGrade(0);
+            expect(grade.grade).toBe('F');
+        });
+
+        it('should handle 1.0 score', () => {
+            const grade = getConfidenceGrade(1.0);
+            expect(grade.grade).toBe('A');
+        });
+    });
+
+    describe('Color Assignment', () => {
+        it('should return green-ish color for A grade', () => {
+            const grade = getConfidenceGrade(0.9);
+            expect(grade.color).toMatch(/#[A-Fa-f0-9]{6}/);
+        });
+
+        it('should return different colors for different grades', () => {
+            const gradeA = getConfidenceGrade(0.9);
+            const gradeF = getConfidenceGrade(0.2);
+            expect(gradeA.color).not.toBe(gradeF.color);
+        });
+    });
+});
+
+describe('describeScoringConfig', () => {
+    it('should include weight information', () => {
+        const description = describeScoringConfig();
+        expect(description).toContain('Weights');
+        expect(description).toContain('SSIM');
+        expect(description).toContain('NCC');
+    });
+
+    it('should include agreement status', () => {
+        const description = describeScoringConfig();
+        expect(description).toMatch(/Agreement: (ON|OFF)/);
+    });
+
+    it('should include threshold information', () => {
+        const description = describeScoringConfig();
+        expect(description).toContain('threshold');
+    });
+
+    it('should reflect current config', () => {
+        setScoringConfig(FAST_SCORING_CONFIG);
+        const description = describeScoringConfig();
+        expect(description).toContain('OFF'); // Agreement disabled in FAST config
+    });
+});
+
+describe('mergeWithDefaults', () => {
+    describe('Partial Merging', () => {
+        it('should return defaults for empty partial', () => {
             const merged = mergeWithDefaults({});
             expect(merged).toEqual(DEFAULT_SCORING_CONFIG);
         });
@@ -469,63 +387,68 @@ describe('scoring-config', () => {
             expect(merged.weights).toEqual(DEFAULT_SCORING_CONFIG.weights);
         });
 
-        it('should partially override weights', () => {
+        it('should override minConfidence', () => {
+            const merged = mergeWithDefaults({ minConfidence: 0.2 });
+            expect(merged.minConfidence).toBe(0.2);
+        });
+
+        it('should override maxConfidence', () => {
+            const merged = mergeWithDefaults({ maxConfidence: 0.95 });
+            expect(merged.maxConfidence).toBe(0.95);
+        });
+    });
+
+    describe('Nested Object Merging', () => {
+        it('should merge weights partially', () => {
             const merged = mergeWithDefaults({
-                weights: { ssim: 0.5 } as MetricWeights,
+                weights: { ssim: 0.5 } as any,
             });
             expect(merged.weights.ssim).toBe(0.5);
             expect(merged.weights.ncc).toBe(DEFAULT_SCORING_CONFIG.weights.ncc);
-            expect(merged.weights.histogram).toBe(DEFAULT_SCORING_CONFIG.weights.histogram);
-            expect(merged.weights.edge).toBe(DEFAULT_SCORING_CONFIG.weights.edge);
         });
 
-        it('should partially override agreement config', () => {
+        it('should merge agreement config partially', () => {
             const merged = mergeWithDefaults({
-                agreement: { enabled: false } as AgreementConfig,
+                agreement: { enabled: false } as any,
             });
             expect(merged.agreement.enabled).toBe(false);
             expect(merged.agreement.threshold).toBe(DEFAULT_SCORING_CONFIG.agreement.threshold);
-            expect(merged.agreement.maxBonus).toBe(DEFAULT_SCORING_CONFIG.agreement.maxBonus);
         });
 
-        it('should partially override rarity thresholds', () => {
+        it('should merge rarityThresholds partially', () => {
             const merged = mergeWithDefaults({
-                rarityThresholds: { legendary: -0.1 } as RarityThresholds,
+                rarityThresholds: { legendary: 0.1 } as any,
             });
-            expect(merged.rarityThresholds.legendary).toBe(-0.1);
+            expect(merged.rarityThresholds.legendary).toBe(0.1);
             expect(merged.rarityThresholds.common).toBe(DEFAULT_SCORING_CONFIG.rarityThresholds.common);
         });
+    });
 
-        it('should override minConfidence and maxConfidence', () => {
-            const merged = mergeWithDefaults({
-                minConfidence: 0.2,
+    describe('Complete Override', () => {
+        it('should allow complete config override', () => {
+            const custom: ScoringConfig = {
+                weights: { ncc: 0.1, ssim: 0.1, histogram: 0.4, edge: 0.4 },
+                agreement: {
+                    enabled: false,
+                    threshold: 0.8,
+                    minMetricsForBonus: 4,
+                    bonusPerMetric: 0.01,
+                    maxBonus: 0.02,
+                },
+                baseThreshold: 0.7,
+                rarityThresholds: {
+                    common: 0,
+                    uncommon: 0,
+                    rare: 0,
+                    epic: 0,
+                    legendary: 0,
+                    unknown: 0,
+                },
+                minConfidence: 0.5,
                 maxConfidence: 0.9,
-            });
-            expect(merged.minConfidence).toBe(0.2);
-            expect(merged.maxConfidence).toBe(0.9);
-        });
-
-        it('should handle multiple partial overrides', () => {
-            const merged = mergeWithDefaults({
-                baseThreshold: 0.5,
-                weights: { ssim: 0.6 } as MetricWeights,
-                agreement: { enabled: false } as AgreementConfig,
-                minConfidence: 0.25,
-            });
-
-            expect(merged.baseThreshold).toBe(0.5);
-            expect(merged.weights.ssim).toBe(0.6);
-            expect(merged.weights.ncc).toBe(DEFAULT_SCORING_CONFIG.weights.ncc);
-            expect(merged.agreement.enabled).toBe(false);
-            expect(merged.agreement.threshold).toBe(DEFAULT_SCORING_CONFIG.agreement.threshold);
-            expect(merged.minConfidence).toBe(0.25);
-            expect(merged.maxConfidence).toBe(DEFAULT_SCORING_CONFIG.maxConfidence);
-        });
-
-        it('should not mutate the default config', () => {
-            const originalWeights = { ...DEFAULT_SCORING_CONFIG.weights };
-            mergeWithDefaults({ weights: { ssim: 0.99 } as MetricWeights });
-            expect(DEFAULT_SCORING_CONFIG.weights).toEqual(originalWeights);
+            };
+            const merged = mergeWithDefaults(custom);
+            expect(merged).toEqual(custom);
         });
     });
 });

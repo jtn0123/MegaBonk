@@ -5,6 +5,7 @@
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.ts';
+import { FEATURES } from '../../src/modules/constants.ts';
 
 // Hoist mock functions
 const mockDestroyAllCharts = vi.hoisted(() => vi.fn());
@@ -592,7 +593,7 @@ describe('Events - Delegation and Handler Coverage', () => {
             // Should not throw
         });
 
-        it.skip('should handle scroll events', async () => {
+        it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should handle scroll events', async () => {
             setupEventListeners();
 
             const tabButtons = document.querySelector('.tab-buttons') as HTMLElement;
@@ -605,7 +606,7 @@ describe('Events - Delegation and Handler Coverage', () => {
             // Should update scroll indicators (no error)
         });
 
-        it.skip('should handle resize events', async () => {
+        it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should handle resize events', async () => {
             setupEventListeners();
 
             window.dispatchEvent(new Event('resize'));
@@ -638,7 +639,7 @@ describe('Events - Delegation and Handler Coverage', () => {
             expect(mockCloseModal).toHaveBeenCalled();
         });
 
-        it.skip('should not close modal when clicking inside content', () => {
+        it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should not close modal when clicking inside content', () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             const content = modal.querySelector('.modal-content') as HTMLElement;
             modal.classList.add('active');

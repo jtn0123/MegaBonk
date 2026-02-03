@@ -20,15 +20,16 @@ test.describe('Search Input', () => {
     test('search filters items by name', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         await searchInput.fill('Anvil');
-        await page.waitForTimeout(300); // Debounce
+        await page.waitForTimeout(500); // Debounce + render
 
-        const cards = page.locator('#itemsContainer .item-card');
+        // Global search renders .search-result-card instead of .item-card
+        const cards = page.locator('.search-result-card');
         const count = await cards.count();
         expect(count).toBeGreaterThan(0);
         expect(count).toBeLessThan(80); // Filtered down
 
         // First card should contain "Anvil"
-        const firstCardName = await cards.first().locator('.item-name').textContent();
+        const firstCardName = await cards.first().locator('.search-result-name').textContent();
         expect(firstCardName?.toLowerCase()).toContain('anvil');
     });
 
@@ -49,15 +50,16 @@ test.describe('Search Input', () => {
     test('clearing search shows all items', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         
-        // Filter first
+        // Filter first - global search renders .search-result-card
         await searchInput.fill('Anvil');
-        await page.waitForTimeout(300);
-        const filteredCount = await page.locator('#itemsContainer .item-card').count();
+        await page.waitForTimeout(500);
+        const filteredCount = await page.locator('.search-result-card').count();
+        expect(filteredCount).toBeGreaterThan(0);
         expect(filteredCount).toBeLessThan(80);
 
-        // Clear search
+        // Clear search - returns to normal .item-card rendering
         await searchInput.fill('');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         const allCount = await page.locator('#itemsContainer .item-card').count();
         expect(allCount).toBe(80);
     });
@@ -65,34 +67,34 @@ test.describe('Search Input', () => {
     test('search with no results shows empty state', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         await searchInput.fill('xyznonexistent123');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
-        const cards = page.locator('#itemsContainer .item-card');
+        // Global search should show no results
+        const cards = page.locator('.search-result-card');
         const count = await cards.count();
         expect(count).toBe(0);
 
-        // Should show empty state
-        const emptyState = page.locator('#itemsContainer .empty-state, #itemsContainer [class*="empty"]');
+        // Should show empty state in the active container
+        const emptyState = page.locator('.empty-state, [class*="empty-state"]');
         await expect(emptyState.first()).toBeVisible();
     });
 
     test('search works across tabs', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         
-        // Search in items
+        // Search in items - global search renders .search-result-card
         await searchInput.fill('damage');
-        await page.waitForTimeout(300);
-        const itemsCount = await page.locator('#itemsContainer .item-card').count();
-        expect(itemsCount).toBeGreaterThan(0);
+        await page.waitForTimeout(500);
+        const searchResults = await page.locator('.search-result-card').count();
+        expect(searchResults).toBeGreaterThan(0);
 
-        // Switch to weapons and search should persist or reset appropriately
+        // Switch to weapons tab
         await page.click('.tab-btn[data-tab="weapons"]');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
-        const weaponsCards = page.locator('#weaponsContainer .item-card');
-        const weaponsCount = await weaponsCards.count();
-        // Should have weapons displayed
-        expect(weaponsCount).toBeGreaterThanOrEqual(0);
+        // After tab switch with search active, should still show search results
+        const resultsAfterSwitch = await page.locator('.search-result-card, #weaponsContainer .item-card').count();
+        expect(resultsAfterSwitch).toBeGreaterThanOrEqual(0);
     });
 
     test('/ keyboard shortcut focuses search', async ({ page }) => {
@@ -106,35 +108,41 @@ test.describe('Search Input', () => {
         await expect(searchInput).toBeFocused();
     });
 
-    test('Escape clears search focus', async ({ page }) => {
+    test('Escape closes search dropdown and keeps focus', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         await searchInput.focus();
-        await searchInput.fill('test');
+        await searchInput.fill('Anvil');
+        await page.waitForTimeout(500);
         
+        // Verify search results appeared
+        const resultCount = await page.locator('.search-result-card').count();
+        expect(resultCount).toBeGreaterThan(0);
+        
+        // Press Escape - this should close any open dropdown but keep focus
         await page.keyboard.press('Escape');
+        await page.waitForTimeout(200);
         
-        // Search should be cleared or unfocused
+        // Search input should still be focused (Escape doesn't blur when inside input)
         const isFocused = await searchInput.evaluate(el => el === document.activeElement);
-        expect(isFocused).toBe(false);
+        expect(isFocused).toBe(true);
     });
 });
 
-test.describe('Search Dropdown', () => {
+test.describe('Search Results', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
 
-    test('search dropdown appears with suggestions', async ({ page }) => {
+    test('search shows results in main content area', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         await searchInput.fill('Big');
         await page.waitForTimeout(500);
 
-        // Check for dropdown
-        const dropdown = page.locator('.search-dropdown, [class*="dropdown"]');
-        if (await dropdown.count() > 0) {
-            await expect(dropdown.first()).toBeVisible();
-        }
+        // Results should appear in main content as .search-result-card elements
+        const results = page.locator('.search-result-card');
+        const count = await results.count();
+        expect(count).toBeGreaterThan(0);
     });
 });
 
@@ -147,10 +155,10 @@ test.describe('Global Search', () => {
     test('search finds items across all categories', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         await searchInput.fill('damage');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
-        // Should find multiple items with "damage" in their text
-        const cards = page.locator('#itemsContainer .item-card');
+        // Global search renders .search-result-card elements
+        const cards = page.locator('.search-result-card');
         const count = await cards.count();
         expect(count).toBeGreaterThan(1);
     });

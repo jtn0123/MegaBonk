@@ -13,10 +13,28 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-1080p');
+const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-screenshots');
+
+// Check if dev server is running before all tests
+let serverAvailable = false;
+test.beforeAll(async () => {
+    try {
+        const response = await fetch('http://localhost:5173', { method: 'HEAD' });
+        serverAvailable = response.ok || response.status === 200 || response.status === 304;
+    } catch {
+        serverAvailable = false;
+        console.log('Dev server not running at localhost:5173 - CV benchmark tests will be skipped');
+    }
+});
 
 test.describe('CV Performance Benchmarks', () => {
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        // Skip if server not available
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
+
         await page.goto('http://localhost:5173');
         await page.waitForLoadState('networkidle');
 
