@@ -24,9 +24,6 @@ export default defineConfig({
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: process.env.CI ? 'retain-on-failure' : 'off', // Disable video locally for speed
-        launchOptions: {
-            args: ['--disable-gpu', '--no-sandbox'], // Faster in headless
-        },
     },
     projects: [
         {
@@ -34,6 +31,9 @@ export default defineConfig({
             use: { 
                 ...devices['Desktop Chrome'],
                 channel: 'chromium', // Use headless shell (faster)
+                launchOptions: {
+                    args: ['--disable-gpu', '--no-sandbox'], // Chromium-only flags
+                },
             },
         },
         {
