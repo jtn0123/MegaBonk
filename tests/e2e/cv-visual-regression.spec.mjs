@@ -13,11 +13,24 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-1080p');
+const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-screenshots');
+
+// Check if dev server is running before all tests
+let serverAvailable = false;
+test.beforeAll(async () => {
+    try {
+        const response = await fetch('http://localhost:5173', { method: 'HEAD' });
+        serverAvailable = response.ok || response.status === 200 || response.status === 304;
+    } catch {
+        serverAvailable = false;
+        console.log('Dev server not running at localhost:5173 - CV visual regression tests will be skipped');
+    }
+});
 
 test.describe('CV Debug Overlay Visual Regression', () => {
     // Skip: CV tests are slow and have dedicated workflow - run separately
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
+    
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
         await page.waitForLoadState('networkidle');

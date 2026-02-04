@@ -3,6 +3,7 @@
  * Tests offline UI indicators and cached data display
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { FEATURES } from '../../src/modules/constants.ts';
 
 // Mock dependencies
 vi.mock('../../src/modules/utils.ts', () => ({
@@ -345,7 +346,7 @@ describe('offline-ui - setupOfflineListeners', () => {
         expect(indicator?.style.display).toBe('none');
     });
 
-    it.skip('should handle online event', () => {
+    it.skipIf(!FEATURES.OFFLINE_NOTIFICATIONS)('should handle online event', () => {
         Object.defineProperty(navigator, 'onLine', { value: true, configurable: true });
 
         setupOfflineListeners();

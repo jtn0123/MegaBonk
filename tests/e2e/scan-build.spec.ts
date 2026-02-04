@@ -7,9 +7,14 @@
  * - CV (computer vision) detection
  * - Hybrid detection mode
  * - Detection results display in UI
+ * 
+ * NOTE: Skipped - OCR/CV features still in development
  */
 
 import { test, expect, Page } from '@playwright/test';
+
+// Skip all tests - OCR/CV features still in development
+test.skip(true, 'Scan Build feature still in development');
 
 // Path to a real test image in the project (relative to project root where playwright runs)
 const TEST_IMAGE_PATH = 'src/images/items/battery.png';

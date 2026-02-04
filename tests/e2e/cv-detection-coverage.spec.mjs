@@ -20,6 +20,18 @@ const __dirname = path.dirname(__filename);
 
 const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-screenshots');
 
+// Check if dev server is running before all tests
+let serverAvailable = false;
+test.beforeAll(async () => {
+    try {
+        const response = await fetch('http://localhost:5173', { method: 'HEAD' });
+        serverAvailable = response.ok || response.status === 200 || response.status === 304;
+    } catch {
+        serverAvailable = false;
+        console.log('Dev server not running at localhost:5173 - CV detection coverage tests will be skipped');
+    }
+});
+
 // Helper to load test image as base64
 function loadTestImageBase64(filename) {
     const imagePath = path.join(TEST_IMAGES_DIR, filename);
@@ -83,7 +95,11 @@ test.describe('CV Utility Functions', () => {
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForPageReady(page);
         await waitForCVFunctions(page);
@@ -273,7 +289,11 @@ test.describe('CV Canvas Functions', () => {
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForPageReady(page);
         await waitForCVFunctions(page);
@@ -460,7 +480,11 @@ test.describe('CV Detection - Image Tests', () => {
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000); // Reduced: coverage collected even on timeout
     
-    test.beforeEach(async ({ page }) => {
+    test.beforeEach(async ({ page }, testInfo) => {
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForCVFunctions(page); // Changed: use lighter init
     });

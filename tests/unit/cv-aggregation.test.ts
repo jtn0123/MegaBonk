@@ -1,75 +1,38 @@
-/**
- * @vitest-environment jsdom
- * CV Aggregation Module - Comprehensive Tests
- * Tests for result aggregation, duplicate detection, and hybrid detection
- */
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+// ========================================
+// CV Aggregation Module - Unit Tests
+// ========================================
 
-import {
-    aggregateDuplicates,
-    combineDetections,
-} from '../../src/modules/cv/aggregation.ts';
-
+import { describe, it, expect } from 'vitest';
+import { aggregateDuplicates, combineDetections } from '../../src/modules/cv/aggregation.ts';
 import type { CVDetectionResult } from '../../src/modules/cv/types.ts';
 
-// ========================================
-// Test Data Factories
-// ========================================
-
-const createDetectionResult = (
+// Helper to create mock detection results
+function createDetection(
     id: string,
     name: string,
-    confidence: number = 0.9,
+    confidence: number,
     type: CVDetectionResult['type'] = 'item',
-    method: CVDetectionResult['method'] = 'template_match'
-): CVDetectionResult => ({
-    type,
-    entity: { id, name },
-    confidence,
-    position: { x: 0, y: 0, width: 64, height: 64 },
-    method,
-});
+    method: CVDetectionResult['method'] = 'template_match',
+    position?: { x: number; y: number; width: number; height: number }
+): CVDetectionResult {
+    return {
+        type,
+        entity: { id, name } as CVDetectionResult['entity'],
+        confidence,
+        method,
+        position,
+    };
+}
 
-const createBaseDetectionResult = (
-    id: string,
-    name: string,
-    confidence: number = 0.9,
-    type: string = 'item',
-    method?: string
-) => ({
-    type,
-    entity: { id, name },
-    confidence,
-    position: { x: 0, y: 0, width: 64, height: 64 },
-    method,
-});
-
-// ========================================
-// Test Suite
-// ========================================
-
-describe('CV Aggregation Module', () => {
-    beforeEach(() => {
-        vi.clearAllMocks();
-    });
-
-    afterEach(() => {
-        vi.restoreAllMocks();
-    });
-
-    // ========================================
-    // aggregateDuplicates Tests
-    // ========================================
-    describe('aggregateDuplicates', () => {
+describe('aggregateDuplicates', () => {
+    describe('Basic Aggregation', () => {
         it('should return empty array for empty input', () => {
             const result = aggregateDuplicates([]);
-
             expect(result).toEqual([]);
         });
 
         it('should return single item with count 1', () => {
-            const detections = [createDetectionResult('sword', 'Sword')];
-
+            const detections = [createDetection('sword', 'Sword', 0.9)];
             const result = aggregateDuplicates(detections);
 
             expect(result).toHaveLength(1);
@@ -77,416 +40,358 @@ describe('CV Aggregation Module', () => {
             expect(result[0].count).toBe(1);
         });
 
-        it('should aggregate duplicate items with count', () => {
+        it('should aggregate duplicate items with correct count', () => {
             const detections = [
-                createDetectionResult('sword', 'Sword', 0.9),
-                createDetectionResult('sword', 'Sword', 0.85),
-                createDetectionResult('sword', 'Sword', 0.8),
+                createDetection('wrench', 'Wrench', 0.8),
+                createDetection('wrench', 'Wrench', 0.7),
+                createDetection('wrench', 'Wrench', 0.9),
             ];
-
             const result = aggregateDuplicates(detections);
 
             expect(result).toHaveLength(1);
-            expect(result[0].entity.id).toBe('sword');
+            expect(result[0].entity.id).toBe('wrench');
             expect(result[0].count).toBe(3);
         });
 
+        it('should keep separate entries for different items', () => {
+            const detections = [
+                createDetection('sword', 'Sword', 0.8),
+                createDetection('shield', 'Shield', 0.9),
+                createDetection('potion', 'Potion', 0.7),
+            ];
+            const result = aggregateDuplicates(detections);
+
+            expect(result).toHaveLength(3);
+        });
+    });
+
+    describe('Confidence Handling', () => {
         it('should use highest confidence from group', () => {
             const detections = [
-                createDetectionResult('sword', 'Sword', 0.7),
-                createDetectionResult('sword', 'Sword', 0.95),
-                createDetectionResult('sword', 'Sword', 0.8),
+                createDetection('sword', 'Sword', 0.6),
+                createDetection('sword', 'Sword', 0.9),
+                createDetection('sword', 'Sword', 0.7),
             ];
-
             const result = aggregateDuplicates(detections);
 
-            expect(result[0].confidence).toBe(0.95);
+            expect(result[0].confidence).toBe(0.9);
         });
 
+        it('should handle confidence values at boundaries', () => {
+            const detections = [
+                createDetection('item', 'Item', 0.0),
+                createDetection('item', 'Item', 1.0),
+            ];
+            const result = aggregateDuplicates(detections);
+
+            expect(result[0].confidence).toBe(1.0);
+        });
+
+        it('should handle very small confidence differences', () => {
+            const detections = [
+                createDetection('item', 'Item', 0.8999999),
+                createDetection('item', 'Item', 0.9000001),
+            ];
+            const result = aggregateDuplicates(detections);
+
+            expect(result[0].confidence).toBeCloseTo(0.9000001);
+        });
+    });
+
+    describe('Position Handling', () => {
         it('should keep first detection position', () => {
-            const detections = [
-                { ...createDetectionResult('sword', 'Sword'), position: { x: 10, y: 20, width: 64, height: 64 } },
-                { ...createDetectionResult('sword', 'Sword'), position: { x: 100, y: 200, width: 64, height: 64 } },
-            ];
+            const position1 = { x: 10, y: 20, width: 50, height: 50 };
+            const position2 = { x: 60, y: 20, width: 50, height: 50 };
 
+            const detections = [
+                createDetection('item', 'Item', 0.7, 'item', 'template_match', position1),
+                createDetection('item', 'Item', 0.8, 'item', 'template_match', position2),
+            ];
             const result = aggregateDuplicates(detections);
 
-            expect(result[0].position?.x).toBe(10);
-            expect(result[0].position?.y).toBe(20);
+            expect(result[0].position).toEqual(position1);
         });
 
-        it('should handle multiple different items', () => {
+        it('should handle missing positions', () => {
             const detections = [
-                createDetectionResult('sword', 'Sword'),
-                createDetectionResult('shield', 'Shield'),
-                createDetectionResult('potion', 'Potion'),
+                createDetection('item', 'Item', 0.7),
+                createDetection('item', 'Item', 0.8),
             ];
-
             const result = aggregateDuplicates(detections);
 
+            expect(result[0].position).toBeUndefined();
+        });
+    });
+
+    describe('Sorting', () => {
+        it('should sort results by entity name alphabetically', () => {
+            const detections = [
+                createDetection('zebra', 'Zebra Item', 0.8),
+                createDetection('apple', 'Apple Item', 0.8),
+                createDetection('middle', 'Middle Item', 0.8),
+            ];
+            const result = aggregateDuplicates(detections);
+
+            expect(result[0].entity.name).toBe('Apple Item');
+            expect(result[1].entity.name).toBe('Middle Item');
+            expect(result[2].entity.name).toBe('Zebra Item');
+        });
+
+        it('should handle case sensitivity in sorting', () => {
+            const detections = [
+                createDetection('upper', 'UPPER', 0.8),
+                createDetection('lower', 'lower', 0.8),
+                createDetection('mixed', 'Mixed', 0.8),
+            ];
+            const result = aggregateDuplicates(detections);
+
+            // localeCompare sorts uppercase before lowercase by default
             expect(result).toHaveLength(3);
-            expect(result.map(r => r.entity.id)).toContain('sword');
-            expect(result.map(r => r.entity.id)).toContain('shield');
-            expect(result.map(r => r.entity.id)).toContain('potion');
         });
+    });
 
-        it('should aggregate mixed duplicates correctly', () => {
+    describe('Count Handling', () => {
+        it('should handle detections with existing counts', () => {
             const detections = [
-                createDetectionResult('sword', 'Sword'),
-                createDetectionResult('shield', 'Shield'),
-                createDetectionResult('sword', 'Sword'),
-                createDetectionResult('potion', 'Potion'),
-                createDetectionResult('sword', 'Sword'),
-            ];
+                { ...createDetection('item', 'Item', 0.8), count: 3 },
+                { ...createDetection('item', 'Item', 0.9), count: 2 },
+            ] as Array<CVDetectionResult & { count?: number }>;
 
             const result = aggregateDuplicates(detections);
 
-            expect(result).toHaveLength(3);
-
-            const swordResult = result.find(r => r.entity.id === 'sword');
-            expect(swordResult?.count).toBe(3);
-
-            const shieldResult = result.find(r => r.entity.id === 'shield');
-            expect(shieldResult?.count).toBe(1);
+            expect(result[0].count).toBe(5); // 3 + 2
         });
 
-        it('should sort results by entity name', () => {
+        it('should default count to 1 when not specified', () => {
             const detections = [
-                createDetectionResult('zebra', 'Zebra'),
-                createDetectionResult('apple', 'Apple'),
-                createDetectionResult('mango', 'Mango'),
+                createDetection('item', 'Item', 0.8),
+                createDetection('item', 'Item', 0.9),
             ];
-
             const result = aggregateDuplicates(detections);
 
-            expect(result[0].entity.name).toBe('Apple');
-            expect(result[1].entity.name).toBe('Mango');
-            expect(result[2].entity.name).toBe('Zebra');
-        });
-
-        it('should preserve type from first detection', () => {
-            const detections = [
-                createDetectionResult('sword', 'Sword', 0.9, 'item'),
-                createDetectionResult('sword', 'Sword', 0.8, 'item'),
-            ];
-
-            const result = aggregateDuplicates(detections);
-
-            expect(result[0].type).toBe('item');
-        });
-
-        it('should preserve method from first detection', () => {
-            const detections = [
-                createDetectionResult('sword', 'Sword', 0.9, 'item', 'template_match'),
-                createDetectionResult('sword', 'Sword', 0.8, 'item', 'ocr'),
-            ];
-
-            const result = aggregateDuplicates(detections);
-
-            expect(result[0].method).toBe('template_match');
-        });
-
-        it('should handle detections with existing count field', () => {
-            const detections = [
-                { ...createDetectionResult('sword', 'Sword'), count: 2 } as CVDetectionResult & { count: number },
-                { ...createDetectionResult('sword', 'Sword'), count: 3 } as CVDetectionResult & { count: number },
-            ];
-
-            const result = aggregateDuplicates(detections);
-
-            expect(result[0].count).toBe(5); // 2 + 3
-        });
-
-        it('should handle different entity types separately', () => {
-            const detections = [
-                createDetectionResult('sword', 'Sword', 0.9, 'item'),
-                createDetectionResult('sword', 'Sword', 0.9, 'weapon'),
-            ];
-
-            const result = aggregateDuplicates(detections);
-
-            // Same ID but different types - still grouped by ID
-            expect(result).toHaveLength(1);
             expect(result[0].count).toBe(2);
         });
     });
 
-    // ========================================
-    // combineDetections Tests
-    // ========================================
-    describe('combineDetections', () => {
+    describe('Type Preservation', () => {
+        it('should preserve type from first detection', () => {
+            const detections = [
+                createDetection('item1', 'Item 1', 0.8, 'weapon'),
+                createDetection('item1', 'Item 1', 0.9, 'item'),
+            ];
+            const result = aggregateDuplicates(detections);
+
+            expect(result[0].type).toBe('weapon');
+        });
+
+        it('should preserve method from first detection', () => {
+            const detections = [
+                createDetection('item1', 'Item 1', 0.8, 'item', 'icon_similarity'),
+                createDetection('item1', 'Item 1', 0.9, 'item', 'template_match'),
+            ];
+            const result = aggregateDuplicates(detections);
+
+            expect(result[0].method).toBe('icon_similarity');
+        });
+    });
+
+    describe('Large Datasets', () => {
+        it('should handle many duplicates efficiently', () => {
+            const detections: CVDetectionResult[] = [];
+            for (let i = 0; i < 100; i++) {
+                detections.push(createDetection('item', 'Item', 0.5 + Math.random() * 0.5));
+            }
+
+            const result = aggregateDuplicates(detections);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].count).toBe(100);
+        });
+
+        it('should handle many unique items', () => {
+            const detections: CVDetectionResult[] = [];
+            for (let i = 0; i < 50; i++) {
+                detections.push(createDetection(`item_${i}`, `Item ${i}`, 0.8));
+            }
+
+            const result = aggregateDuplicates(detections);
+
+            expect(result).toHaveLength(50);
+        });
+    });
+});
+
+describe('combineDetections', () => {
+    describe('Basic Combining', () => {
         it('should return empty array for empty inputs', () => {
             const result = combineDetections([], []);
-
             expect(result).toEqual([]);
         });
 
-        it('should include OCR-only results', () => {
-            const ocrResults = [createBaseDetectionResult('sword', 'Sword', 0.8)];
-            const cvResults: CVDetectionResult[] = [];
-
-            const result = combineDetections(ocrResults, cvResults);
+        it('should return OCR results when no CV results', () => {
+            const ocrResults = [
+                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.8, method: 'ocr' },
+            ];
+            const result = combineDetections(ocrResults, []);
 
             expect(result).toHaveLength(1);
             expect(result[0].entity.id).toBe('sword');
         });
 
-        it('should include CV-only results', () => {
-            const ocrResults: any[] = [];
-            const cvResults = [createDetectionResult('shield', 'Shield', 0.85)];
-
-            const result = combineDetections(ocrResults, cvResults);
+        it('should return CV results when no OCR results', () => {
+            const cvResults = [createDetection('shield', 'Shield', 0.9)];
+            const result = combineDetections([], cvResults);
 
             expect(result).toHaveLength(1);
             expect(result[0].entity.id).toBe('shield');
         });
+    });
 
-        it('should combine OCR and CV results', () => {
-            const ocrResults = [createBaseDetectionResult('sword', 'Sword', 0.8)];
-            const cvResults = [createDetectionResult('shield', 'Shield', 0.85)];
-
-            const result = combineDetections(ocrResults, cvResults);
-
-            expect(result).toHaveLength(2);
-            expect(result.map(r => r.entity.id)).toContain('sword');
-            expect(result.map(r => r.entity.id)).toContain('shield');
-        });
-
-        it('should boost confidence when both methods detect same item', () => {
-            const ocrResults = [createBaseDetectionResult('sword', 'Sword', 0.7, 'item', 'ocr')];
-            const cvResults = [createDetectionResult('sword', 'Sword', 0.7, 'item', 'template_match')];
+    describe('Confidence Boosting', () => {
+        it('should boost confidence when both methods agree', () => {
+            const ocrResults = [
+                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7, method: 'ocr' },
+            ];
+            const cvResults = [createDetection('sword', 'Sword', 0.8)];
 
             const result = combineDetections(ocrResults, cvResults);
 
             expect(result).toHaveLength(1);
+            // First one added gets boosted when second is found
             expect(result[0].confidence).toBeGreaterThan(0.7);
-        });
-
-        it('should mark hybrid detection method', () => {
-            const ocrResults = [createBaseDetectionResult('sword', 'Sword', 0.7, 'item', 'ocr')];
-            const cvResults = [createDetectionResult('sword', 'Sword', 0.7, 'item', 'template_match')];
-
-            const result = combineDetections(ocrResults, cvResults);
-
             expect(result[0].method).toBe('hybrid');
         });
 
         it('should cap boosted confidence at 0.98', () => {
-            const ocrResults = [createBaseDetectionResult('sword', 'Sword', 0.95, 'item')];
-            const cvResults = [createDetectionResult('sword', 'Sword', 0.95, 'item')];
+            const ocrResults = [
+                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.95, method: 'ocr' },
+            ];
+            const cvResults = [createDetection('sword', 'Sword', 0.95)];
 
             const result = combineDetections(ocrResults, cvResults);
 
             expect(result[0].confidence).toBeLessThanOrEqual(0.98);
         });
+    });
 
-        it('should sort results by confidence (descending)', () => {
+    describe('Deduplication', () => {
+        it('should not duplicate items found by both methods', () => {
             const ocrResults = [
-                createBaseDetectionResult('low', 'Low Item', 0.5),
-                createBaseDetectionResult('high', 'High Item', 0.95),
+                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7, method: 'ocr' },
             ];
-            const cvResults = [createDetectionResult('mid', 'Mid Item', 0.7)];
+            const cvResults = [createDetection('sword', 'Sword', 0.8)];
 
             const result = combineDetections(ocrResults, cvResults);
 
-            expect(result[0].entity.id).toBe('high');
-            expect(result[1].entity.id).toBe('mid');
-            expect(result[2].entity.id).toBe('low');
+            expect(result).toHaveLength(1);
         });
 
-        it('should handle same entity with different types', () => {
-            const ocrResults = [createBaseDetectionResult('sword', 'Sword', 0.8, 'item')];
-            const cvResults = [createDetectionResult('sword', 'Sword', 0.8, 'weapon')];
+        it('should keep different items from both sources', () => {
+            const ocrResults = [
+                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 },
+            ];
+            const cvResults = [createDetection('shield', 'Shield', 0.8)];
+
+            const result = combineDetections(ocrResults, cvResults);
+
+            expect(result).toHaveLength(2);
+        });
+
+        it('should differentiate by type as well as id', () => {
+            const ocrResults = [
+                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 },
+            ];
+            const cvResults = [
+                createDetection('sword', 'Sword', 0.8, 'weapon'),
+            ];
 
             const result = combineDetections(ocrResults, cvResults);
 
             // Different types = different entries
             expect(result).toHaveLength(2);
         });
+    });
 
-        it('should preserve position from first detection', () => {
+    describe('Sorting', () => {
+        it('should sort results by confidence descending', () => {
             const ocrResults = [
-                {
-                    ...createBaseDetectionResult('sword', 'Sword', 0.8),
-                    position: { x: 10, y: 20, width: 64, height: 64 },
-                },
+                { type: 'item', entity: { id: 'low', name: 'Low' }, confidence: 0.5 },
+                { type: 'item', entity: { id: 'high', name: 'High' }, confidence: 0.9 },
             ];
-            const cvResults: CVDetectionResult[] = [];
+            const cvResults = [createDetection('medium', 'Medium', 0.7)];
 
             const result = combineDetections(ocrResults, cvResults);
 
-            expect(result[0].position?.x).toBe(10);
-            expect(result[0].position?.y).toBe(20);
+            expect(result[0].entity.id).toBe('high');
+            expect(result[1].entity.id).toBe('medium');
+            expect(result[2].entity.id).toBe('low');
         });
+    });
 
-        it('should use template_match as default method', () => {
-            const ocrResults = [createBaseDetectionResult('sword', 'Sword', 0.8)];
-            // No method specified
+    describe('Method Assignment', () => {
+        it('should default method to template_match when not specified', () => {
+            const ocrResults = [
+                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 },
+            ];
 
             const result = combineDetections(ocrResults, []);
 
             expect(result[0].method).toBe('template_match');
         });
 
-        it('should handle multiple duplicates from both sources', () => {
+        it('should preserve specified method', () => {
             const ocrResults = [
-                createBaseDetectionResult('sword', 'Sword', 0.7, 'item'),
-                createBaseDetectionResult('shield', 'Shield', 0.6, 'item'),
-            ];
-            const cvResults = [
-                createDetectionResult('sword', 'Sword', 0.75, 'item'),
-                createDetectionResult('potion', 'Potion', 0.8, 'item'),
+                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7, method: 'icon_similarity' },
             ];
 
-            const result = combineDetections(ocrResults, cvResults);
+            const result = combineDetections(ocrResults, []);
 
-            expect(result).toHaveLength(3);
-
-            const swordResult = result.find(r => r.entity.id === 'sword');
-            expect(swordResult?.method).toBe('hybrid');
-            expect(swordResult?.confidence).toBeGreaterThan(0.75);
+            expect(result[0].method).toBe('icon_similarity');
         });
     });
 
-    // ========================================
-    // Integration Tests
-    // ========================================
-    describe('Integration Tests', () => {
-        it('should support typical workflow: combine then aggregate', () => {
-            // Note: combineDetections deduplicates by entity_id + type, boosting confidence for matches
-            // So multiple OCR detections of same item become one entry with boosted confidence
+    describe('Position Handling', () => {
+        it('should preserve position data', () => {
+            const position = { x: 10, y: 20, width: 50, height: 50 };
+            const cvResults = [createDetection('sword', 'Sword', 0.8, 'item', 'template_match', position)];
+
+            const result = combineDetections([], cvResults);
+
+            expect(result[0].position).toEqual(position);
+        });
+
+        it('should handle undefined positions', () => {
             const ocrResults = [
-                createBaseDetectionResult('sword', 'Sword', 0.7, 'item'),
-            ];
-            const cvResults = [
-                createDetectionResult('sword', 'Sword', 0.75, 'item'),
-                createDetectionResult('shield', 'Shield', 0.8, 'item'),
+                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 },
             ];
 
-            // First combine OCR and CV
-            const combined = combineDetections(ocrResults, cvResults);
-
-            // Then aggregate duplicates
-            const aggregated = aggregateDuplicates(combined);
-
-            expect(aggregated).toHaveLength(2);
-
-            const swordResult = aggregated.find(r => r.entity.id === 'sword');
-            expect(swordResult?.count).toBe(1); // Deduplicated in combineDetections
-            expect(swordResult?.method).toBe('hybrid'); // Detected by both
-        });
-
-        it('should handle real-world detection scenario', () => {
-            // combineDetections deduplicates, so we get one entry per unique entity+type
-            const ocrResults = [
-                createBaseDetectionResult('sword', 'Sword', 0.8, 'item', 'ocr'),
-                createBaseDetectionResult('shield', 'Shield', 0.75, 'item', 'ocr'),
-            ];
-            const cvResults = [
-                createDetectionResult('sword', 'Sword', 0.85, 'item'),
-                createDetectionResult('shield', 'Shield', 0.78, 'item'),
-                createDetectionResult('potion', 'Potion', 0.9, 'item'),
-            ];
-
-            const combined = combineDetections(ocrResults, cvResults);
-            const aggregated = aggregateDuplicates(combined);
-
-            expect(aggregated).toHaveLength(3);
-
-            const swordResult = aggregated.find(r => r.entity.id === 'sword');
-            expect(swordResult?.count).toBe(1); // Deduplicated
-            expect(swordResult?.method).toBe('hybrid');
-
-            const shieldResult = aggregated.find(r => r.entity.id === 'shield');
-            expect(shieldResult?.count).toBe(1);
-            expect(shieldResult?.method).toBe('hybrid');
-
-            const potionResult = aggregated.find(r => r.entity.id === 'potion');
-            expect(potionResult?.count).toBe(1);
-        });
-
-        it('should aggregate duplicates from CV-only detections', () => {
-            // When we want to count multiple detections, use aggregateDuplicates directly
-            const cvResults = [
-                createDetectionResult('sword', 'Sword', 0.85, 'item'),
-                createDetectionResult('sword', 'Sword', 0.82, 'item'),
-                createDetectionResult('sword', 'Sword', 0.8, 'item'),
-                createDetectionResult('shield', 'Shield', 0.9, 'item'),
-            ];
-
-            const aggregated = aggregateDuplicates(cvResults);
-
-            expect(aggregated).toHaveLength(2);
-
-            const swordResult = aggregated.find(r => r.entity.id === 'sword');
-            expect(swordResult?.count).toBe(3);
-            expect(swordResult?.confidence).toBe(0.85); // Highest confidence
-
-            const shieldResult = aggregated.find(r => r.entity.id === 'shield');
-            expect(shieldResult?.count).toBe(1);
-        });
-    });
-
-    // ========================================
-    // Edge Cases
-    // ========================================
-    describe('Edge Cases', () => {
-        it('should handle very low confidence values', () => {
-            const detections = [
-                createDetectionResult('sword', 'Sword', 0.01),
-                createDetectionResult('sword', 'Sword', 0.02),
-            ];
-
-            const result = aggregateDuplicates(detections);
-
-            expect(result[0].confidence).toBe(0.02);
-        });
-
-        it('should handle confidence at boundary (1.0)', () => {
-            const detections = [createDetectionResult('sword', 'Sword', 1.0)];
-
-            const result = aggregateDuplicates(detections);
-
-            expect(result[0].confidence).toBe(1.0);
-        });
-
-        it('should handle large number of detections', () => {
-            const detections = Array.from({ length: 100 }, (_, i) =>
-                createDetectionResult(`item_${i % 10}`, `Item ${i % 10}`, 0.8)
-            );
-
-            const result = aggregateDuplicates(detections);
-
-            expect(result).toHaveLength(10);
-            result.forEach(r => {
-                expect(r.count).toBe(10);
-            });
-        });
-
-        it('should handle undefined position', () => {
-            const detections = [
-                { ...createDetectionResult('sword', 'Sword'), position: undefined },
-            ];
-
-            const result = aggregateDuplicates(detections);
+            const result = combineDetections(ocrResults, []);
 
             expect(result[0].position).toBeUndefined();
         });
+    });
 
-        it('should handle empty entity name', () => {
-            const detections = [createDetectionResult('sword', '', 0.9)];
+    describe('Edge Cases', () => {
+        it('should handle identical confidence values', () => {
+            const ocrResults = [
+                { type: 'item', entity: { id: 'a', name: 'A' }, confidence: 0.8 },
+                { type: 'item', entity: { id: 'b', name: 'B' }, confidence: 0.8 },
+            ];
 
-            const result = aggregateDuplicates(detections);
+            const result = combineDetections(ocrResults, []);
 
-            expect(result[0].entity.name).toBe('');
+            expect(result).toHaveLength(2);
         });
 
-        it('should handle special characters in entity name', () => {
-            const detections = [createDetectionResult('special', "Sword's Edge + 1", 0.9)];
+        it('should handle zero confidence', () => {
+            const ocrResults = [
+                { type: 'item', entity: { id: 'zero', name: 'Zero' }, confidence: 0 },
+            ];
 
-            const result = aggregateDuplicates(detections);
+            const result = combineDetections(ocrResults, []);
 
-            expect(result[0].entity.name).toBe("Sword's Edge + 1");
+            expect(result).toHaveLength(1);
+            expect(result[0].confidence).toBe(0);
         });
     });
 });

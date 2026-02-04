@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-1080p');
+const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-screenshots');
 const GROUND_TRUTH_PATH = path.join(__dirname, '../../test-images/gameplay/ground-truth.json');
 
 // Load ground truth data
@@ -119,9 +119,22 @@ function calculateAccuracyMetrics(detected, expected) {
     };
 }
 
+// Check if dev server is running before all tests
+let serverAvailable = false;
+test.beforeAll(async () => {
+    try {
+        const response = await fetch('http://localhost:5173', { method: 'HEAD' });
+        serverAvailable = response.ok || response.status === 200 || response.status === 304;
+    } catch {
+        serverAvailable = false;
+        console.log('Dev server not running at localhost:5173 - CV accuracy tests will be skipped');
+    }
+});
+
 test.describe('CV Accuracy Tests', () => {
     // Skip: CV tests are slow and have dedicated workflow - run separately
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
+    
     test.beforeEach(async ({ page }) => {
         // Navigate to the app
         await page.goto('/');
@@ -142,55 +155,55 @@ test.describe('CV Accuracy Tests', () => {
             filename: 'level_33_english_forest_early.jpg',
             expectedAccuracy: 80, // Easy test case
             difficulty: 'Easy',
-            key: 'pc-1080p/level_33_english_forest_early.jpg',
+            key: 'pc-screenshots/level_33_english_forest_early.jpg',
         },
         {
             filename: 'level_21_english_desert_scorpion.jpg',
             expectedAccuracy: 75,
             difficulty: 'Easy',
-            key: 'pc-1080p/level_21_english_desert_scorpion.jpg',
+            key: 'pc-screenshots/level_21_english_desert_scorpion.jpg',
         },
         {
             filename: 'level_52_spanish_ocean.jpg',
             expectedAccuracy: 70,
             difficulty: 'Medium',
-            key: 'pc-1080p/level_52_spanish_ocean.jpg',
+            key: 'pc-screenshots/level_52_spanish_ocean.jpg',
         },
         {
             filename: 'level_66_russian_desert.jpg',
             expectedAccuracy: 70,
             difficulty: 'Medium',
-            key: 'pc-1080p/level_66_russian_desert.jpg',
+            key: 'pc-screenshots/level_66_russian_desert.jpg',
         },
         {
             filename: 'level_75_portuguese_hell_final.jpg',
             expectedAccuracy: 65,
             difficulty: 'Hard',
-            key: 'pc-1080p/level_75_portuguese_hell_final.jpg',
+            key: 'pc-screenshots/level_75_portuguese_hell_final.jpg',
         },
         {
             filename: 'level_108_english_snow_boss.jpg',
             expectedAccuracy: 70,
             difficulty: 'Medium',
-            key: 'pc-1080p/level_108_english_snow_boss.jpg',
+            key: 'pc-screenshots/level_108_english_snow_boss.jpg',
         },
         {
             filename: 'level_112_russian_crypt_boss.jpg',
             expectedAccuracy: 65,
             difficulty: 'Hard',
-            key: 'pc-1080p/level_112_russian_crypt_boss.jpg',
+            key: 'pc-screenshots/level_112_russian_crypt_boss.jpg',
         },
         {
             filename: 'level_281_turkish_hell.jpg',
             expectedAccuracy: 60,
             difficulty: 'Very Hard',
-            key: 'pc-1080p/level_281_turkish_hell.jpg',
+            key: 'pc-screenshots/level_281_turkish_hell.jpg',
         },
         {
             filename: 'level_803_russian_stress_test.jpg',
             expectedAccuracy: 55,
             difficulty: 'Extreme',
-            key: 'pc-1080p/level_803_russian_stress_test.jpg',
+            key: 'pc-screenshots/level_803_russian_stress_test.jpg',
         },
     ];
 
