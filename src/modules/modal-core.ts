@@ -42,6 +42,9 @@ export type ModalEntity = Item | Weapon | Tome | Character | Shrine;
 type ChartModule = typeof import('./charts.ts');
 let cachedChartModule: ChartModule | null = null;
 
+// Track close timeout to cancel if modal is reopened quickly
+let modalCloseTimeout: ReturnType<typeof setTimeout> | null = null;
+
 /**
  * Get the cached chart module or load it
  * @returns Promise resolving to the chart module
@@ -272,6 +275,13 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
     }
 
     modalBody.innerHTML = content;
+    
+    // Cancel any pending close timeout to prevent race condition
+    if (modalCloseTimeout) {
+        clearTimeout(modalCloseTimeout);
+        modalCloseTimeout = null;
+    }
+    
     modal.style.display = 'block';
 
     // Track this view in recently viewed
@@ -304,8 +314,10 @@ export function closeModal(): void {
         // Re-enable body scroll on mobile
         document.body.classList.remove('modal-open');
         // Wait for animation to complete before hiding
-        setTimeout(() => {
+        // Store timeout reference so it can be cancelled if modal is reopened
+        modalCloseTimeout = setTimeout(() => {
             modal.style.display = 'none';
+            modalCloseTimeout = null;
         }, 300);
     }
 }

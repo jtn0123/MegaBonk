@@ -47,7 +47,7 @@ test.describe('Modal Interactions', () => {
         await expect(modalBody).not.toBeEmpty();
 
         // Modal should contain common item detail sections
-        await expect(modalBody.locator('h2, h3, .item-name')).toBeVisible();
+        await expect(modalBody.locator('h2, h3, .item-name').first()).toBeVisible();
     });
 
     test('should show correct modal for different items', async ({ page }) => {
