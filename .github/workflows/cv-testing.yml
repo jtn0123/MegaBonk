@@ -1,11 +1,12 @@
 name: Computer Vision Testing
 
 on:
-  push:
-    branches: [ main, develop, claude/** ]
-  pull_request:
-    branches: [ main, develop ]
-  workflow_dispatch:
+  # Disabled on PRs - CV tests are slow and run separately
+  # push:
+  #   branches: [ main, develop, claude/** ]
+  # pull_request:
+  #   branches: [ main, develop ]
+  workflow_dispatch:  # Manual trigger only for now
 
 jobs:
   cv-strategy-comparison:

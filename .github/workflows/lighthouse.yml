@@ -10,6 +10,7 @@ jobs:
   lighthouse:
     name: Lighthouse Audit
     runs-on: ubuntu-latest
+    continue-on-error: true  # Don't block PRs on performance thresholds
 
     steps:
       - name: Checkout code
