@@ -18,7 +18,7 @@ test.describe('Similar Items - Section Display', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -41,7 +41,7 @@ test.describe('Similar Items - Section Display', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -63,7 +63,7 @@ test.describe('Similar Items - Section Display', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -93,7 +93,7 @@ test.describe('Similar Items - Section Display', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -127,7 +127,7 @@ test.describe('Similar Items - Click Navigation', () => {
 
         for (let i = 0; i < Math.min(15, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -138,7 +138,7 @@ test.describe('Similar Items - Click Navigation', () => {
                 
                 // Click the similar item
                 await similarCard.click();
-                await page.waitForTimeout(400);
+                await page.waitForTimeout(600);
                 
                 // Modal should now show the similar item - check content changed
                 const newContent = await page.locator('#modalBody').textContent();
@@ -161,13 +161,13 @@ test.describe('Similar Items - Click Navigation', () => {
 
         for (let i = 0; i < Math.min(15, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
                 // Click first similar item
                 await similarSection.locator('.similar-item-card').first().click();
-                await page.waitForTimeout(400);
+                await page.waitForTimeout(600);
                 
                 // The new modal might also have similar items
                 const newSimilarSection = page.locator('#modalBody .similar-items-section');
@@ -191,7 +191,7 @@ test.describe('Similar Items - Click Navigation', () => {
         // Find an item with similar items
         for (let i = 0; i < Math.min(15, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -204,7 +204,7 @@ test.describe('Similar Items - Click Navigation', () => {
 
                 // Navigate to B
                 await similarSection.locator('.similar-item-card').first().click();
-                await page.waitForTimeout(400);
+                await page.waitForTimeout(600);
 
                 const contentB = await page.locator('#modalBody').textContent();
                 visitedContents.push(contentB || '');
@@ -217,7 +217,7 @@ test.describe('Similar Items - Click Navigation', () => {
                     const similarNameC = await similarSectionB.locator('.similar-item-card .similar-item-name').first().textContent();
                     
                     await similarSectionB.locator('.similar-item-card').first().click();
-                    await page.waitForTimeout(400);
+                    await page.waitForTimeout(600);
 
                     const contentC = await page.locator('#modalBody').textContent();
                     visitedContents.push(contentC || '');
@@ -249,7 +249,7 @@ test.describe('Similar Items - Similarity Criteria', () => {
 
         for (let i = 0; i < Math.min(20, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -275,7 +275,7 @@ test.describe('Similar Items - Similarity Criteria', () => {
 
         for (let i = 0; i < Math.min(20, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -310,7 +310,7 @@ test.describe('Similar Items - Similarity Criteria', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -349,7 +349,7 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -372,7 +372,7 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -396,7 +396,7 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -419,7 +419,7 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
 
         for (let i = 0; i < Math.min(15, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -433,7 +433,7 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
                 
                 // Press Enter to activate
                 await page.keyboard.press('Enter');
-                await page.waitForTimeout(400);
+                await page.waitForTimeout(600);
                 
                 // Modal should show different item
                 const newContent = await page.locator('#modalBody').textContent();
@@ -454,7 +454,7 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
 
         for (let i = 0; i < Math.min(15, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -468,7 +468,7 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
                 
                 // Press Space to activate
                 await page.keyboard.press('Space');
-                await page.waitForTimeout(400);
+                await page.waitForTimeout(600);
                 
                 // Modal should show different item
                 const newContent = await page.locator('#modalBody').textContent();
@@ -489,7 +489,7 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
 
         for (let i = 0; i < Math.min(15, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -538,7 +538,7 @@ test.describe('Similar Items - Different Entity Types', () => {
         
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -567,7 +567,7 @@ test.describe('Similar Items - Different Entity Types', () => {
         
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -595,7 +595,7 @@ test.describe('Similar Items - Different Entity Types', () => {
         
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -627,7 +627,7 @@ test.describe('Similar Items - Visual Feedback', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -658,7 +658,7 @@ test.describe('Similar Items - Visual Feedback', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -694,7 +694,7 @@ test.describe('Similar Items - Visual Feedback', () => {
 
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -730,7 +730,7 @@ test.describe('Similar Items - Edge Cases', () => {
 
         for (let i = 0; i < Math.min(5, count); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             // Shrines should not have similar items (not supported)
             const similarSection = page.locator('#modalBody .similar-items-section');
@@ -746,7 +746,7 @@ test.describe('Similar Items - Edge Cases', () => {
 
         for (let i = 0; i < Math.min(15, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
@@ -756,7 +756,7 @@ test.describe('Similar Items - Edge Cases', () => {
                 
                 // Navigate to similar item
                 await similarSection.locator('.similar-item-card').first().click();
-                await page.waitForTimeout(400);
+                await page.waitForTimeout(600);
                 
                 // Content should be different and contain the similar item's name
                 const newContent = await page.locator('#modalBody').textContent();
@@ -778,7 +778,7 @@ test.describe('Similar Items - Edge Cases', () => {
 
         for (let i = 0; i < Math.min(15, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(400);
+            await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0 && await similarSection.locator('.similar-item-card').count() >= 2) {

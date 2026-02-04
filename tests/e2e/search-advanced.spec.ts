@@ -26,7 +26,7 @@ test.describe('Search History', () => {
         await searchInput.pressSequentially('Anvil', { delay: 50 });
         
         // Wait for debounce (300ms) + extra time for search to complete
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
 
         // Check localStorage
         const history = await page.evaluate((key) => {
@@ -42,7 +42,7 @@ test.describe('Search History', () => {
 
         // Search with single character
         await searchInput.fill('A');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         const history = await page.evaluate((key) => {
             const stored = localStorage.getItem(key);
@@ -144,7 +144,7 @@ test.describe('Search History', () => {
 
         for (const term of searchTerms) {
             await searchInput.fill(term);
-            await page.waitForTimeout(400); // Enough time for debounce + save
+            await page.waitForTimeout(350); // Enough time for debounce + save
         }
 
         const history = await page.evaluate((key) => {
@@ -263,14 +263,14 @@ test.describe('Search History Dropdown', () => {
         // Add history using pressSequentially for proper input events
         await searchInput.click();
         await searchInput.pressSequentially('test', { delay: 50 });
-        await page.waitForTimeout(400); // Wait for debounce + history save
+        await page.waitForTimeout(600); // Wait for debounce + history save
         
         // Clear input and trigger dropdown
         await searchInput.clear();
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         const historyDropdown = page.locator('.search-history-dropdown');
         await expect(historyDropdown).toBeVisible({ timeout: 5000 });
@@ -288,14 +288,14 @@ test.describe('Search History Dropdown', () => {
         // Add history using pressSequentially for proper input events
         await searchInput.click();
         await searchInput.pressSequentially('test', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
         
         // Clear and show dropdown
         await searchInput.clear();
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         const historyDropdown = page.locator('.search-history-dropdown');
         await expect(historyDropdown).toBeVisible({ timeout: 5000 });
@@ -395,7 +395,7 @@ test.describe('Search History Keyboard Navigation', () => {
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         // Verify dropdown is visible first
         const historyDropdown = page.locator('.search-history-dropdown');
@@ -413,7 +413,7 @@ test.describe('Search History Keyboard Navigation', () => {
         await searchInput.focus();
         await page.waitForTimeout(100);
         await page.keyboard.press('Enter');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         // Input should have the selected term
         await expect(searchInput).toHaveValue('anvil');
@@ -428,7 +428,7 @@ test.describe('Search History Keyboard Navigation', () => {
         // Add history using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('bonk', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
         
         // Clear input
         await searchInput.clear();
@@ -437,7 +437,7 @@ test.describe('Search History Keyboard Navigation', () => {
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         // Wait for dropdown
         const historyDropdown = page.locator('.search-history-dropdown');
@@ -470,7 +470,7 @@ test.describe('Search History Keyboard Navigation', () => {
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         // Verify dropdown is visible
         const historyDropdown = page.locator('.search-history-dropdown');
@@ -514,17 +514,17 @@ test.describe('Clear Search History', () => {
         // Add history using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('test1', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
         await searchInput.clear();
         await searchInput.pressSequentially('test2', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
         await searchInput.clear();
 
         // Show dropdown
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         // Wait for dropdown to be visible
         const historyDropdown = page.locator('.search-history-dropdown');
@@ -552,14 +552,14 @@ test.describe('Clear Search History', () => {
         // Add history using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('test', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
         await searchInput.clear();
         
         // Show and clear history
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const historyDropdown = page.locator('.search-history-dropdown');
         await expect(historyDropdown).toBeVisible({ timeout: 5000 });
@@ -571,7 +571,7 @@ test.describe('Clear Search History', () => {
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         await expect(historyDropdown).not.toBeVisible();
     });
@@ -591,7 +591,7 @@ test.describe('Search Suggestions', () => {
         // Type a search query using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('An', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
 
         // Global search renders results in main content area with .search-result-card
         const searchResults = page.locator('.search-result-card');
@@ -611,7 +611,7 @@ test.describe('Search Suggestions', () => {
         // Type search using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('An', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
 
         // Global search results use .search-result-card selector
         const searchResults = page.locator('.search-result-card');
@@ -622,7 +622,7 @@ test.describe('Search Suggestions', () => {
         // More specific search
         await searchInput.clear();
         await searchInput.pressSequentially('Anvil', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
 
         await expect(searchResults.first()).toBeVisible({ timeout: 5000 });
         const finalCount = await searchResults.count();
@@ -635,7 +635,7 @@ test.describe('Search Suggestions', () => {
 
         // Search for one term (global search uses .search-result-card)
         await searchInput.fill('Anvil');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         const searchResults = page.locator('.search-result-card');
         const anvilCount = await searchResults.count();
         expect(anvilCount).toBeGreaterThan(0);
@@ -645,7 +645,7 @@ test.describe('Search Suggestions', () => {
 
         // Change to completely different term
         await searchInput.fill('damage');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         const damageCount = await searchResults.count();
         expect(damageCount).toBeGreaterThan(0);
 
@@ -660,7 +660,7 @@ test.describe('Search Suggestions', () => {
         // Filter first using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('Anvil', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
         
         const searchResults = page.locator('.search-result-card');
         await expect(searchResults.first()).toBeVisible({ timeout: 5000 });
@@ -669,7 +669,7 @@ test.describe('Search Suggestions', () => {
 
         // Clear search
         await searchInput.clear();
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
 
         // Should show all items (back to regular .item-card display)
         await expect(page.locator('#itemsContainer .item-card').first()).toBeVisible({ timeout: 5000 });
@@ -691,7 +691,7 @@ test.describe('Search History ARIA Accessibility', () => {
         // Add history using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('test', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
         await searchInput.clear();
         await page.waitForTimeout(100);
 
@@ -699,7 +699,7 @@ test.describe('Search History ARIA Accessibility', () => {
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         // First verify dropdown is visible
         const dropdown = page.locator('.search-history-dropdown');
@@ -736,7 +736,7 @@ test.describe('Search History ARIA Accessibility', () => {
         // Add history using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('test', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
         await searchInput.clear();
         await page.waitForTimeout(100);
 
@@ -744,7 +744,7 @@ test.describe('Search History ARIA Accessibility', () => {
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         // First verify dropdown is visible
         const dropdown = page.locator('.search-history-dropdown');
@@ -766,7 +766,7 @@ test.describe('Search History ARIA Accessibility', () => {
         // Add history using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('test', { delay: 50 });
-        await page.waitForTimeout(400);
+        await page.waitForTimeout(600);
         await searchInput.clear();
         await page.waitForTimeout(100);
 
@@ -774,7 +774,7 @@ test.describe('Search History ARIA Accessibility', () => {
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
 
         // First verify dropdown is visible
         const dropdown = page.locator('.search-history-dropdown');

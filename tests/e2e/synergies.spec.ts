@@ -69,7 +69,7 @@ test.describe('Synergies - Build Planner', () => {
         }
         
         await page.selectOption('#build-weapon', { index: revolverIndex });
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         // Should show synergy message or at least have updated content
         const synergiesDisplay = page.locator('#build-synergies');
@@ -105,7 +105,7 @@ test.describe('Synergies - Build Planner', () => {
         }
         
         await page.selectOption('#build-weapon', { index: swordIndex });
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         // Should show synergy message or at least have updated content
         const synergiesDisplay = page.locator('#build-synergies');
@@ -231,7 +231,7 @@ test.describe('Synergies - Item Modal', () => {
         // Search for Beefy Ring (has anti-synergy with Beer)
         // Global search uses .search-result-card
         await page.fill('#searchInput', 'beefy ring');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const hasResults = await page.locator('.search-result-card').count() > 0;
         if (!hasResults) {
@@ -255,7 +255,7 @@ test.describe('Synergies - Item Modal', () => {
         // Find an item with anti-synergies
         // Global search uses .search-result-card
         await page.fill('#searchInput', 'beefy ring');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const hasResults = await page.locator('.search-result-card').count() > 0;
         if (!hasResults) {
@@ -331,13 +331,13 @@ test.describe('Synergies - Character Modal', () => {
     test('should display item synergies for characters', async ({ page }) => {
         // Search for Sir Oofie (known to have item synergies)
         await page.fill('#searchInput', 'oofie');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const hasCharacters = await page.locator('#charactersContainer .item-card').count() > 0;
         if (!hasCharacters) {
             // Try without search
             await page.fill('#searchInput', '');
-            await page.waitForTimeout(300);
+            await page.waitForTimeout(500);
         }
         
         await page.click('#charactersContainer .item-card >> nth=0');
@@ -466,12 +466,12 @@ test.describe('Synergies - Compare Mode', () => {
         
         // Search for items with known synergies
         await page.fill('#searchInput', 'beefy');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const hasResults = await page.locator('#itemsContainer .item-card').count() > 0;
         if (!hasResults) {
             await page.fill('#searchInput', '');
-            await page.waitForTimeout(300);
+            await page.waitForTimeout(500);
         }
         
         // Select for comparison
@@ -479,12 +479,12 @@ test.describe('Synergies - Compare Mode', () => {
         
         // Get another item
         await page.fill('#searchInput', 'big bonk');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const hasSecondItem = await page.locator('#itemsContainer .item-card').count() > 0;
         if (!hasSecondItem) {
             await page.fill('#searchInput', '');
-            await page.waitForTimeout(300);
+            await page.waitForTimeout(500);
         }
         
         await page.click('#itemsContainer .compare-checkbox-label >> nth=0');
@@ -512,7 +512,7 @@ test.describe('Synergies - Advisor', () => {
 
     test('should show synergy info in recommendations', async ({ page }) => {
         // Wait for data to load
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         // Set up build
         const charOptions = await page.locator('#advisor-character option').count();
@@ -527,7 +527,7 @@ test.describe('Synergies - Advisor', () => {
         
         // Set up choices
         await page.selectOption('#choice-1-type', 'item');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const entityOptions = await page.locator('#choice-1-entity option').count();
         if (entityOptions > 1) {
@@ -535,7 +535,7 @@ test.describe('Synergies - Advisor', () => {
         }
         
         await page.selectOption('#choice-2-type', 'item');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const entity2Options = await page.locator('#choice-2-entity option').count();
         if (entity2Options > 1) {
@@ -591,7 +591,7 @@ test.describe('Synergies - Advisor', () => {
         
         // Get recommendation
         await page.click('#get-recommendation');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         // Verify advisor didn't crash
         const advisorTab = page.locator('#advisor-tab');
@@ -633,7 +633,7 @@ test.describe('Synergies - Advisor', () => {
         
         // Get recommendation
         await page.click('#get-recommendation');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         // Verify the advisor tab is still active (didn't crash)
         const advisorTab = page.locator('#advisor-tab');
@@ -690,7 +690,7 @@ test.describe('Synergies - Visual Indicators', () => {
     test('anti-synergy tags have warning/distinct styling', async ({ page }) => {
         // Use global search - results are .search-result-card
         await page.fill('#searchInput', 'beefy ring');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const hasResults = await page.locator('.search-result-card').count() > 0;
         if (!hasResults) {
@@ -729,7 +729,7 @@ test.describe('Synergies - Visual Indicators', () => {
     test('synergy section headers are visible', async ({ page }) => {
         // Use global search - results are .search-result-card
         await page.fill('#searchInput', 'beefy');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         const hasResults = await page.locator('.search-result-card').count() > 0;
         if (!hasResults) {
@@ -867,7 +867,7 @@ test.describe('Synergies - Accessibility', () => {
 
     test('synergy tags are readable by screen readers', async ({ page }) => {
         await page.fill('#searchInput', 'beefy');
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(500);
         
         // Global search uses .search-result-card, not .item-card
         const hasResults = await page.locator('.search-result-card').count() > 0;
