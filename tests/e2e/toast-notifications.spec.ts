@@ -157,11 +157,10 @@ test.describe('Toast Notifications - Export Success', () => {
     });
 
     test('toast or feedback appears on build export', async ({ page, context, browserName }) => {
-        // WebKit: Clipboard API behaves differently, toast timing varies
-        test.skip(browserName === 'webkit', 'WebKit: Clipboard API and toast timing differences');
-        
-        // Grant clipboard permissions
-        await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+        // Grant clipboard permissions (Chromium/Firefox only - WebKit doesn't support)
+        if (browserName !== 'webkit') {
+            await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+        }
         
         // Set up a build
         await page.selectOption('#build-character', { index: 1 });
@@ -197,10 +196,10 @@ test.describe('Toast Notifications - Export Success', () => {
     });
 
     test('toast or feedback appears on share build URL', async ({ page, context, browserName }) => {
-        // WebKit: Clipboard API behaves differently, toast timing varies
-        test.skip(browserName === 'webkit', 'WebKit: Clipboard API and toast timing differences');
-        
-        await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+        // Grant clipboard permissions (Chromium/Firefox only - WebKit doesn't support)
+        if (browserName !== 'webkit') {
+            await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+        }
         
         await page.selectOption('#build-character', { index: 1 });
         await page.selectOption('#build-weapon', { index: 1 });
