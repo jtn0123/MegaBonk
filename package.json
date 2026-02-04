@@ -26,6 +26,7 @@
     "test:watch": "npx vitest watch",
     "test:e2e": "npx playwright test",
     "test:e2e:fast": "npx playwright test --project=chromium",
+    "test:e2e:parallel": "bash scripts/e2e-parallel.sh",
     "test:e2e:coverage": "node scripts/e2e-coverage.mjs",
     "test:coverage:combined": "node scripts/combined-coverage.mjs",
     "test:coverage:merge": "node scripts/merge-coverage.mjs",

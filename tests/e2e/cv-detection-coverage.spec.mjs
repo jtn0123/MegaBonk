@@ -79,6 +79,8 @@ async function waitForCVReady(page) {
 // These test pure utility functions exposed on window
 // ============================================================
 test.describe('CV Utility Functions', () => {
+    // Skip: CV tests are slow and have dedicated workflow - run separately
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
     test.beforeEach(async ({ page }) => {

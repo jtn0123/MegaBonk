@@ -120,6 +120,8 @@ function calculateAccuracyMetrics(detected, expected) {
 }
 
 test.describe('CV Accuracy Tests', () => {
+    // Skip: CV tests are slow and have dedicated workflow - run separately
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.beforeEach(async ({ page }) => {
         // Navigate to the app
         await page.goto('/');

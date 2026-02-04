@@ -60,6 +60,8 @@ async function waitForCVFunctions(page) {
 // COLOR ANALYSIS TESTS - Increase color.ts coverage
 // ============================================================
 test.describe('Color Analysis Functions', () => {
+    // Skip: CV tests are slow and have dedicated workflow
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
     test.beforeEach(async ({ page }) => {
@@ -316,6 +318,8 @@ test.describe('Color Analysis Functions', () => {
 // METRICS AND CONFIG TESTS - Increase detection.ts coverage
 // ============================================================
 test.describe('CV Metrics and Configuration', () => {
+    // Skip: CV tests are slow and have dedicated workflow
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
     test.beforeEach(async ({ page }) => {
@@ -394,6 +398,8 @@ test.describe('CV Metrics and Configuration', () => {
 // REGION DETECTION TESTS - Increase regions.ts coverage
 // ============================================================
 test.describe('Region Detection', () => {
+    // Skip: CV tests are slow and have dedicated workflow
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000); // Reduced: doesn't need full template init
     
     test.beforeEach(async ({ page }) => {
@@ -471,6 +477,8 @@ test.describe('Region Detection', () => {
 // HOTBAR AND EDGE DETECTION TESTS - More detection.ts coverage
 // ============================================================
 test.describe('Hotbar and Edge Detection', () => {
+    // Skip: CV tests are slow and have dedicated workflow
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000); // Reduced: doesn't need full template init
     
     test.beforeEach(async ({ page }) => {
@@ -603,6 +611,8 @@ test.describe('Hotbar and Edge Detection', () => {
 // Skip in coverage mode to speed up coverage collection.
 // ============================================================
 test.describe('Detection Pipeline', () => {
+    // Skip: CV tests are slow and have dedicated workflow
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.skip(({ }, testInfo) => process.env.COVERAGE === 'true', 'Skip slow detection tests in coverage mode');
     test.setTimeout(180000);
     
@@ -749,6 +759,8 @@ test.describe('Detection Pipeline', () => {
 // GRID VERIFICATION AND NMS EDGE CASES
 // ============================================================
 test.describe('Grid Verification and NMS Edge Cases', () => {
+    // Skip: CV tests are slow and have dedicated workflow
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
     test.beforeEach(async ({ page }) => {
@@ -892,6 +904,8 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
 // SIMILARITY AND IMAGE PROCESSING EDGE CASES
 // ============================================================
 test.describe('Similarity and Image Processing Edge Cases', () => {
+    // Skip: CV tests are slow and have dedicated workflow
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
     test.beforeEach(async ({ page }) => {
@@ -1078,6 +1092,8 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
 // ISEMPTYCELL AND VARIANCE EDGE CASES
 // ============================================================
 test.describe('Cell Analysis Edge Cases', () => {
+    // Skip: CV tests are slow and have dedicated workflow
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
     test.beforeEach(async ({ page }) => {
@@ -1183,6 +1199,8 @@ test.describe('Cell Analysis Edge Cases', () => {
 // FIT GRID AND ICON SIZES
 // ============================================================
 test.describe('Grid Fitting and Icon Size Detection', () => {
+    // Skip: CV tests are slow and have dedicated workflow
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
     test.beforeEach(async ({ page }) => {

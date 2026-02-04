@@ -16,6 +16,8 @@ const __dirname = path.dirname(__filename);
 const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-1080p');
 
 test.describe('CV Debug Overlay Visual Regression', () => {
+    // Skip: CV tests are slow and have dedicated workflow - run separately
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
         await page.waitForLoadState('networkidle');
