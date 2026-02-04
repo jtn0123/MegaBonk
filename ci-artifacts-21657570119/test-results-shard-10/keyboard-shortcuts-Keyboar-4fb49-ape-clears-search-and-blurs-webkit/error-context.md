@@ -1,0 +1,80 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - heading "🎮 MegaBonk Complete Guide" [level=1] [ref=e4]
+  - navigation "Main navigation" [ref=e5]:
+    - tablist "Content categories" [ref=e7]:
+      - tab "📦 Items" [selected] [ref=e8] [cursor=pointer]
+      - tab "⚔️ Weapons" [ref=e9] [cursor=pointer]
+      - tab "📚 Tomes" [ref=e10] [cursor=pointer]
+      - tab "👤 Characters" [ref=e11] [cursor=pointer]
+      - tab "⛩️ Shrines" [ref=e12] [cursor=pointer]
+      - tab "🛠️ Build Planner" [ref=e13] [cursor=pointer]
+      - tab "🧮 Calculator" [ref=e14] [cursor=pointer]
+      - tab "🤖 Advisor" [ref=e15] [cursor=pointer]
+      - tab "📋 Changelog" [ref=e16] [cursor=pointer]
+      - tab "ℹ️ About" [ref=e17] [cursor=pointer]
+  - navigation "Search and filters" [ref=e18]:
+    - generic [ref=e19]:
+      - searchbox "Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100" [active] [ref=e21]: test search
+      - generic [ref=e22]: 1 results across all categories
+      - generic "Filter options" [ref=e23]:
+        - generic [ref=e24]: "Rarity:"
+        - combobox "Rarity:" [ref=e25] [cursor=pointer]:
+          - option "All Rarities" [selected]
+          - option "Common"
+          - option "Uncommon"
+          - option "Rare"
+          - option "Epic"
+          - option "Legendary"
+        - generic [ref=e26]: "Tier:"
+        - combobox "Tier:" [ref=e27] [cursor=pointer]:
+          - option "All Tiers" [selected]
+          - option "SS Tier"
+          - option "S Tier"
+          - option "A Tier"
+          - option "B Tier"
+          - option "C Tier"
+        - generic [ref=e28]: "Stacking:"
+        - combobox "Stacking:" [ref=e29] [cursor=pointer]:
+          - option "All" [selected]
+          - option "Stacks Well"
+          - option "One-and-Done"
+        - generic [ref=e30]: "Sort:"
+        - combobox "Sort:" [ref=e31] [cursor=pointer]:
+          - option "Name"
+          - option "Tier"
+          - option "Rarity" [selected]
+  - main [ref=e32]:
+    - generic [ref=e33]:
+      - tabpanel "📦 Items" [ref=e34]:
+        - generic "Loading content" [ref=e35]:
+          - generic [ref=e36]:
+            - generic [ref=e37]: 📚
+            - generic [ref=e38]: Tomes
+            - generic [ref=e39]: (1)
+          - generic [ref=e41] [cursor=pointer]:
+            - generic [ref=e42]:
+              - img "Armor Tome" [ref=e44]
+              - generic [ref=e45]:
+                - generic [ref=e46]: Armor Tome
+                - generic [ref=e47]: A Tier
+                - generic [ref=e48]: "Armor: +12% armor (hyperbolic scaling)"
+            - generic [ref=e49]: →
+      - text: 👤 Select a character to see stats and synergies ⚔️ Select a weapon to see damage and upgrades
+  - contentinfo [ref=e50]:
+    - generic [ref=e51]:
+      - status [ref=e52]:
+        - generic [ref=e53]: "Version: 1.0.21"
+        - generic [ref=e54]: "Last Updated: 2026-01-26"
+      - paragraph [ref=e55]:
+        - text: Made with ❤️ for MegaBonk players |
+        - link "Play on Steam" [ref=e56]:
+          - /url: https://store.steampowered.com/app/3405340/Megabonk/
+      - paragraph [ref=e57]: Data sourced from official wikis and community guides. Always verify in-game!
+  - button "Toggle theme" [ref=e58] [cursor=pointer]: 🌙
+  - status
+  - generic "Click to view Web Vitals details" [ref=e59] [cursor=pointer]: "🚀 Perf: 100%"
+```

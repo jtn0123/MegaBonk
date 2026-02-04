@@ -3,7 +3,31 @@
 // ========================================
 // Tests for chart rendering, tooltips, responsiveness, and formula display
 
-import { test, expect } from '@playwright/test';
+import { test, expect, Page } from '@playwright/test';
+
+/**
+ * Helper to wait for canvas to be fully rendered with dimensions.
+ * WebKit has slower Chart.js canvas initialization timing.
+ */
+async function waitForCanvasReady(page: Page, canvasLocator: ReturnType<Page['locator']>, browserName: string) {
+    const isWebKit = browserName === 'webkit';
+    const timeout = isWebKit ? 3000 : 1500;
+    
+    // Wait for canvas to have non-zero dimensions
+    await page.waitForFunction(
+        (selector: string) => {
+            const canvas = document.querySelector(selector) as HTMLCanvasElement;
+            return canvas && canvas.width > 0 && canvas.height > 0;
+        },
+        '#modalBody canvas.scaling-chart',
+        { timeout }
+    ).catch(() => {});
+    
+    // Extra wait for WebKit to complete Chart.js render cycle
+    if (isWebKit) {
+        await page.waitForTimeout(500);
+    }
+}
 
 test.describe('Chart Rendering', () => {
     test.beforeEach(async ({ page }) => {
@@ -28,17 +52,21 @@ test.describe('Chart Rendering', () => {
         }
     });
 
-    test('chart canvas has proper initialization', async ({ page }) => {
+    test('chart canvas has proper initialization', async ({ page, browserName }) => {
         // Open items until we find one with a chart
         const cards = page.locator('#itemsContainer .item-card');
         const count = await cards.count();
+        const isWebKit = browserName === 'webkit';
 
         for (let i = 0; i < Math.min(count, 15); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(600);
+            await page.waitForTimeout(isWebKit ? 1000 : 600);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
             if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+                // Wait for canvas to be ready (WebKit needs extra time for Chart.js init)
+                await waitForCanvasReady(page, chartCanvas, browserName);
+                
                 // Verify chart.js has initialized the canvas
                 const hasChart = await chartCanvas.first().evaluate((el) => {
                     // Chart.js adds attributes when initialized
@@ -74,14 +102,15 @@ test.describe('Chart Rendering', () => {
         }
     });
 
-    test('multiple items with charts render correctly', async ({ page }) => {
+    test('multiple items with charts render correctly', async ({ page, browserName }) => {
         const cards = page.locator('#itemsContainer .item-card');
         const count = await cards.count();
         let chartsFound = 0;
+        const isWebKit = browserName === 'webkit';
 
         for (let i = 0; i < Math.min(count, 15) && chartsFound < 3; i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(800);
+            await page.waitForTimeout(isWebKit ? 1200 : 800);
 
             const modal = page.locator('#itemModal');
             const isModalOpen = await modal.evaluate(el => el.classList.contains('active')).catch(() => false);
@@ -89,6 +118,9 @@ test.describe('Chart Rendering', () => {
             if (isModalOpen) {
                 const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
                 if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible().catch(() => false)) {
+                    // Wait for canvas to be ready (WebKit has slower Chart.js rendering)
+                    await waitForCanvasReady(page, chartCanvas, browserName);
+                    
                     chartsFound++;
                     // Verify each chart renders properly
                     const box = await chartCanvas.first().boundingBox();
@@ -99,13 +131,13 @@ test.describe('Chart Rendering', () => {
 
                 // Close modal using Escape key (more reliable)
                 await page.keyboard.press('Escape');
-                await page.waitForTimeout(400);
+                await page.waitForTimeout(isWebKit ? 600 : 400);
                 
                 // Wait for modal to fully close
                 await page.waitForFunction(() => {
                     const modal = document.getElementById('itemModal');
                     return !modal || !modal.classList.contains('active');
-                }, { timeout: 2000 }).catch(() => {});
+                }, { timeout: isWebKit ? 3000 : 2000 }).catch(() => {});
             }
         }
 
@@ -728,14 +760,24 @@ test.describe('Chart Data Integrity', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
 
-    test('chart displays data points correctly', async ({ page }) => {
+    test('chart displays data points correctly', async ({ page, browserName }) => {
         const cards = page.locator('#itemsContainer .item-card');
+        const isWebKit = browserName === 'webkit';
+        
         for (let i = 0; i < Math.min(await cards.count(), 15); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(700);
+            await page.waitForTimeout(isWebKit ? 1000 : 700);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
             if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+                // Wait for canvas to be ready (WebKit needs extra time for Chart.js to draw)
+                await waitForCanvasReady(page, chartCanvas, browserName);
+                
+                // Extra wait for WebKit to complete pixel rendering
+                if (isWebKit) {
+                    await page.waitForTimeout(300);
+                }
+                
                 // Verify chart has been drawn (canvas context has content)
                 const hasDrawnContent = await chartCanvas.first().evaluate((canvas) => {
                     const ctx = (canvas as HTMLCanvasElement).getContext('2d');

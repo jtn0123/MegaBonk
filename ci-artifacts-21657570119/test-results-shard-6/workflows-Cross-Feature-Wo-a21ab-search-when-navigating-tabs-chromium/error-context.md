@@ -1,0 +1,66 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - heading "🎮 MegaBonk Complete Guide" [level=1] [ref=e4]
+  - navigation "Main navigation" [ref=e5]:
+    - tablist "Content categories" [ref=e7]:
+      - tab "📦 Items" [active] [ref=e8] [cursor=pointer]
+      - tab "⚔️ Weapons" [selected] [ref=e9] [cursor=pointer]
+      - tab "📚 Tomes" [ref=e10] [cursor=pointer]
+      - tab "👤 Characters" [ref=e11] [cursor=pointer]
+      - tab "⛩️ Shrines" [ref=e12] [cursor=pointer]
+      - tab "🛠️ Build Planner" [ref=e13] [cursor=pointer]
+      - tab "🧮 Calculator" [ref=e14] [cursor=pointer]
+      - tab "🤖 Advisor" [ref=e15] [cursor=pointer]
+      - tab "📋 Changelog" [ref=e16] [cursor=pointer]
+      - tab "ℹ️ About" [ref=e17] [cursor=pointer]
+  - navigation "Search and filters" [ref=e18]:
+    - generic [ref=e19]:
+      - searchbox "Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100" [ref=e21]: legendary
+      - generic [ref=e22]: 1/29 weapon
+      - generic "Filter options" [ref=e23]:
+        - generic [ref=e24]: "Tier:"
+        - combobox "Tier:" [ref=e25] [cursor=pointer]:
+          - option "All Tiers" [selected]
+          - option "SS Tier"
+          - option "S Tier"
+          - option "A Tier"
+          - option "B Tier"
+          - option "C Tier"
+        - generic [ref=e26]: "Sort:"
+        - combobox "Sort:" [ref=e27] [cursor=pointer]:
+          - option "Name" [selected]
+          - option "Tier"
+  - main [ref=e28]:
+    - generic [ref=e29]:
+      - tabpanel "⚔️ Weapons" [ref=e30]:
+        - generic "Loading content" [ref=e31]:
+          - generic [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]:
+              - img "Sniper Rifle" [ref=e35]
+              - generic [ref=e36]:
+                - generic [ref=e37]: Sniper Rifle
+                - text: SS Tier
+            - generic [ref=e38]: Single shot, pierces enemies
+            - generic [ref=e39]: Highest base damage in the game. Pierces through all enemies. Limited upgrade options but devastating when built correctly.
+            - generic [ref=e40]:
+              - generic [ref=e41]: damage
+              - generic [ref=e42]: Projectile Count
+              - generic [ref=e43]: size
+      - text: 👤 Select a character to see stats and synergies ⚔️ Select a weapon to see damage and upgrades
+  - contentinfo [ref=e44]:
+    - generic [ref=e45]:
+      - status [ref=e46]:
+        - generic [ref=e47]: "Version: 1.0.21"
+        - generic [ref=e48]: "Last Updated: 2026-01-26"
+      - paragraph [ref=e49]:
+        - text: Made with ❤️ for MegaBonk players |
+        - link "Play on Steam" [ref=e50] [cursor=pointer]:
+          - /url: https://store.steampowered.com/app/3405340/Megabonk/
+      - paragraph [ref=e51]: Data sourced from official wikis and community guides. Always verify in-game!
+  - button "Toggle theme" [ref=e52] [cursor=pointer]: 🌙
+  - status
+  - generic "Click to view Web Vitals details" [ref=e53] [cursor=pointer]: "🚀 Perf: 100%"
+```

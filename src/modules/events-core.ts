@@ -314,6 +314,13 @@ function handleKeydownDelegation(e: KeyboardEvent): void {
                 handleEmptyStateClick(target);
             })
             .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
+        return;
+    }
+
+    // Handle Enter/Space on item cards (accessibility) - opens detail modal
+    if ((e.key === 'Enter' || e.key === ' ') && target.classList.contains('clickable-card')) {
+        e.preventDefault();
+        handleCardClick(target);
     }
 }
 

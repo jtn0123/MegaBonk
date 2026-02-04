@@ -1,0 +1,110 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - heading "🎮 MegaBonk Complete Guide" [level=1] [ref=e4]
+  - navigation "Main navigation" [ref=e5]:
+    - tablist "Content categories" [ref=e7]:
+      - tab "📦 Items" [ref=e8] [cursor=pointer]
+      - tab "⚔️ Weapons" [ref=e9] [cursor=pointer]
+      - tab "📚 Tomes" [ref=e10] [cursor=pointer]
+      - tab "👤 Characters" [ref=e11] [cursor=pointer]
+      - tab "⛩️ Shrines" [ref=e12] [cursor=pointer]
+      - tab "🛠️ Build Planner" [ref=e13] [cursor=pointer]
+      - tab "🧮 Calculator" [ref=e14] [cursor=pointer]
+      - tab "🤖 Advisor" [active] [selected] [ref=e15] [cursor=pointer]
+      - tab "📋 Changelog" [ref=e16] [cursor=pointer]
+      - tab "ℹ️ About" [ref=e17] [cursor=pointer]
+  - navigation "Search and filters" [ref=e18]:
+    - generic [ref=e19]:
+      - searchbox "Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100" [ref=e21]
+      - generic "Filter options"
+  - main [ref=e22]:
+    - generic [ref=e23]:
+      - text: 👤 Select a character to see stats and synergies ⚔️ Select a weapon to see damage and upgrades
+      - tabpanel "🤖 Advisor" [ref=e24]:
+        - generic [ref=e25]:
+          - generic [ref=e26]:
+            - heading "🤖 Build Advisor" [level=2] [ref=e27]
+            - paragraph [ref=e28]: Input your current build and the choices you're presented with to get intelligent recommendations
+          - generic [ref=e29]:
+            - heading "📸 Scan Your Build (Beta)" [level=3] [ref=e30]
+            - paragraph [ref=e31]: Upload a screenshot of your pause menu and manually select the items you see. We'll help you make the best decisions!
+            - generic [ref=e32]:
+              - button "📷 Upload Screenshot" [ref=e33] [cursor=pointer]
+              - paragraph [ref=e34]: Supports JPG, PNG, WebP. Max 10MB. On mobile, choose from camera or gallery.
+          - generic [ref=e35]:
+            - heading "📋 Your Current Build" [level=3] [ref=e36]
+            - generic [ref=e37]:
+              - generic [ref=e38]:
+                - generic [ref=e39]: 👤 Character
+                - combobox "👤 Character" [ref=e40] [cursor=pointer]:
+                  - option "Select your character..." [selected]
+              - generic [ref=e41]:
+                - generic [ref=e42]: ⚔️ Weapon
+                - combobox "⚔️ Weapon" [ref=e43] [cursor=pointer]:
+                  - option "Select your weapon..." [selected]
+              - generic [ref=e44]:
+                - generic [ref=e45]: 📦 Current Items
+                - button "+ Add Item" [ref=e47] [cursor=pointer]
+              - generic [ref=e48]:
+                - generic [ref=e49]: 📚 Current Tomes
+                - button "+ Add Tome" [ref=e51] [cursor=pointer]
+          - generic [ref=e52]:
+            - heading "🎲 What are you choosing between?" [level=3] [ref=e53]
+            - generic [ref=e54]:
+              - generic [ref=e55]:
+                - generic [ref=e56]:
+                  - generic [ref=e57]: Choice 1 Type
+                  - combobox "Choice 1 Type" [ref=e58] [cursor=pointer]:
+                    - option "Select type..." [selected]
+                    - option "Item"
+                    - option "Weapon"
+                    - option "Tome"
+                    - option "Shrine"
+                - generic [ref=e59]:
+                  - generic [ref=e60]: Choice 1
+                  - combobox "Choice 1" [ref=e61] [cursor=pointer]:
+                    - option "Select..." [selected]
+              - generic [ref=e62]:
+                - generic [ref=e63]:
+                  - generic [ref=e64]: Choice 2 Type
+                  - combobox "Choice 2 Type" [ref=e65] [cursor=pointer]:
+                    - option "Select type..." [selected]
+                    - option "Item"
+                    - option "Weapon"
+                    - option "Tome"
+                    - option "Shrine"
+                - generic [ref=e66]:
+                  - generic [ref=e67]: Choice 2
+                  - combobox "Choice 2" [ref=e68] [cursor=pointer]:
+                    - option "Select..." [selected]
+              - generic [ref=e69]:
+                - generic [ref=e70]:
+                  - generic [ref=e71]: Choice 3 Type (Optional)
+                  - combobox "Choice 3 Type (Optional)" [ref=e72] [cursor=pointer]:
+                    - option "Select type..." [selected]
+                    - option "Item"
+                    - option "Weapon"
+                    - option "Tome"
+                    - option "Shrine"
+                - generic [ref=e73]:
+                  - generic [ref=e74]: Choice 3 (Optional)
+                  - combobox "Choice 3 (Optional)" [ref=e75] [cursor=pointer]:
+                    - option "Select..." [selected]
+          - button "🎯 Get Recommendation" [ref=e77] [cursor=pointer]
+  - contentinfo [ref=e78]:
+    - generic [ref=e79]:
+      - status [ref=e80]:
+        - generic [ref=e81]: "Version: 1.0.21"
+        - generic [ref=e82]: "Last Updated: 2026-01-26"
+      - paragraph [ref=e83]:
+        - text: Made with ❤️ for MegaBonk players |
+        - link "Play on Steam" [ref=e84]:
+          - /url: https://store.steampowered.com/app/3405340/Megabonk/
+      - paragraph [ref=e85]: Data sourced from official wikis and community guides. Always verify in-game!
+  - button "Toggle theme" [ref=e86] [cursor=pointer]: 🌙
+  - status
+  - generic "Click to view Web Vitals details" [ref=e87] [cursor=pointer]: "🚀 Perf: 100%"
+```

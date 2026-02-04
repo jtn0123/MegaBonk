@@ -372,7 +372,7 @@ test.describe('Cross-Feature Workflows', () => {
             const itemCard = page.locator('#itemsContainer .item-card').first();
             await itemCard.click();
 
-            const modal = page.locator('#itemModal, .item-modal, [role="dialog"]');
+            const modal = page.locator('#itemModal');
             await expect(modal).toBeVisible({ timeout: 2000 });
 
             // Press Escape

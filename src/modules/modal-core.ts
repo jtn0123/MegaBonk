@@ -87,10 +87,10 @@ let lastFocusableElement: Element | null | undefined = null;
 let modalObserver: MutationObserver | null = null;
 
 /**
- * Handle Tab key press for focus trap
+ * Handle keyboard events for modal (focus trap + Escape to close)
  * @param e - Keyboard event
  */
-function handleFocusTrap(e: KeyboardEvent): void {
+function handleModalKeydown(e: KeyboardEvent): void {
     if (!focusTrapActive) return;
 
     // Guard: Check if modal element still exists in DOM and is active
@@ -98,6 +98,13 @@ function handleFocusTrap(e: KeyboardEvent): void {
     const modal = safeGetElementById('itemModal');
     if (!modal || !modal.classList.contains('active')) {
         deactivateFocusTrap(); // Clean up stale listener
+        return;
+    }
+
+    // Handle Escape key to close modal
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
         return;
     }
 
@@ -144,7 +151,7 @@ export function activateFocusTrap(modal: HTMLElement): void {
     }
 
     focusTrapActive = true;
-    document.addEventListener('keydown', handleFocusTrap);
+    document.addEventListener('keydown', handleModalKeydown);
 
     // Setup MutationObserver to cleanup if modal is removed abnormally
     // This prevents state leaks if modal closes without calling deactivateFocusTrap
@@ -185,7 +192,7 @@ export function activateFocusTrap(modal: HTMLElement): void {
  */
 export function deactivateFocusTrap(): void {
     focusTrapActive = false;
-    document.removeEventListener('keydown', handleFocusTrap);
+    document.removeEventListener('keydown', handleModalKeydown);
     focusableElements = [];
     firstFocusableElement = null;
     lastFocusableElement = null;

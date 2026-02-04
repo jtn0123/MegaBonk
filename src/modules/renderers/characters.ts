@@ -32,6 +32,7 @@ export function renderCharacters(characters: Character[]): void {
     characters.forEach(char => {
         const card = document.createElement('div');
         card.className = 'item-card character-card clickable-card';
+        card.tabIndex = 0;
         card.dataset.entityType = 'character';
         card.dataset.entityId = char.id;
 

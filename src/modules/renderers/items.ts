@@ -44,6 +44,7 @@ export async function renderItems(items: Item[]): Promise<void> {
     items.forEach(item => {
         const card = document.createElement('div');
         card.className = `item-card rarity-${item.rarity} clickable-card`;
+        card.tabIndex = 0;
         card.dataset.entityType = 'item';
         card.dataset.entityId = item.id;
 
