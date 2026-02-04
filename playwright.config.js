@@ -28,7 +28,7 @@ export default defineConfig({
     projects: [
         {
             name: 'chromium',
-            use: { 
+            use: {
                 ...devices['Desktop Chrome'],
                 channel: 'chromium', // Use headless shell (faster)
                 launchOptions: {
@@ -39,14 +39,15 @@ export default defineConfig({
         {
             name: 'webkit',
             use: { ...devices['Desktop Safari'] },
+            // Webkit is slower in CI - increase timeouts and retries
+            timeout: 30000,
+            retries: isCI ? 3 : 0,
         },
     ],
     webServer: {
         // CI: full build + preview for production-like testing
         // Local: dev server for faster iteration (start with npm run dev -- --port 4173)
-        command: isCI 
-            ? 'npm run build && npm run preview -- --port 4173'
-            : 'npm run dev -- --port 4173',
+        command: isCI ? 'npm run build && npm run preview -- --port 4173' : 'npm run dev -- --port 4173',
         url: 'http://localhost:4173',
         reuseExistingServer: true,
         timeout: 120 * 1000,

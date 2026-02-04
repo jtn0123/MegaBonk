@@ -35,14 +35,15 @@ test.describe('Search Input', () => {
 
     test('search is case-insensitive', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
-        
+
+        // Global search renders .search-result-card elements
         await searchInput.fill('ANVIL');
-        await page.waitForTimeout(300);
-        const upperCount = await page.locator('#itemsContainer .item-card').count();
+        await page.waitForSelector('.search-result-card', { timeout: 5000 });
+        const upperCount = await page.locator('.search-result-card').count();
 
         await searchInput.fill('anvil');
-        await page.waitForTimeout(300);
-        const lowerCount = await page.locator('#itemsContainer .item-card').count();
+        await page.waitForSelector('.search-result-card', { timeout: 5000 });
+        const lowerCount = await page.locator('.search-result-card').count();
 
         expect(upperCount).toBe(lowerCount);
     });
@@ -155,7 +156,9 @@ test.describe('Global Search', () => {
     test('search finds items across all categories', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         await searchInput.fill('damage');
-        await page.waitForTimeout(500);
+
+        // Wait for search results to appear
+        await page.waitForSelector('.search-result-card', { timeout: 5000 });
 
         // Global search renders .search-result-card elements
         const cards = page.locator('.search-result-card');

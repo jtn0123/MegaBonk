@@ -51,6 +51,26 @@ module.exports = [
         },
     },
     {
+        // Service Worker specific config
+        files: ['sw.js'],
+        languageOptions: {
+            globals: {
+                // Service Worker globals
+                self: 'readonly',
+                caches: 'readonly',
+                Request: 'readonly',
+                Response: 'readonly',
+                Headers: 'readonly',
+                location: 'readonly',
+                fetch: 'readonly',
+                URL: 'readonly',
+                console: 'readonly',
+                importScripts: 'readonly',
+                define: 'readonly',
+            },
+        },
+    },
+    {
         // Ignore patterns - skip TypeScript files (use tsc for type checking)
         ignores: [
             'node_modules/**',
@@ -62,6 +82,7 @@ module.exports = [
             'android/**',
             'ios/**',
             'src/**/*.ts', // TypeScript files handled by tsc
+            'workbox-*.js', // Workbox generated files
         ],
     },
 ];
