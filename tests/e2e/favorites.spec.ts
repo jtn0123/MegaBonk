@@ -8,6 +8,10 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Favorites', () => {
+    // Skip all tests - Favorites feature is disabled in all renderers
+    // (favorite buttons are commented out in items.ts, weapons.ts, tomes.ts, characters.ts, shrines.ts)
+    test.skip(true, 'Favorites feature is disabled - UI buttons commented out in renderers');
+
     test.beforeEach(async ({ page }) => {
         // Clear localStorage to start fresh
         await page.goto('/');
