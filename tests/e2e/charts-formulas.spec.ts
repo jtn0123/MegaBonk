@@ -35,7 +35,7 @@ test.describe('Chart Rendering', () => {
 
         for (let i = 0; i < Math.min(count, 15); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(600);
+            await page.waitForTimeout(400);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
             if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
@@ -59,7 +59,7 @@ test.describe('Chart Rendering', () => {
 
         for (let i = 0; i < Math.min(count, 15); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(600);
+            await page.waitForTimeout(400);
 
             const chartContainer = page.locator('#modalBody .modal-graph-container');
             if (await chartContainer.count() > 0 && await chartContainer.first().isVisible()) {
@@ -205,7 +205,7 @@ test.describe('Chart Responsiveness', () => {
                 
                 // Resize viewport
                 await page.setViewportSize({ width: 800, height: 600 });
-                await page.waitForTimeout(600);
+                await page.waitForTimeout(400);
 
                 // Chart should still be visible (or at least not crash)
                 const isStillVisible = await chartCanvas.first().isVisible().catch(() => false);
@@ -249,7 +249,7 @@ test.describe('Chart Responsiveness', () => {
                 
                 // Resize to smaller
                 await page.setViewportSize({ width: 600, height: 400 });
-                await page.waitForTimeout(600);
+                await page.waitForTimeout(400);
 
                 const resizedBox = await chartContainer.first().boundingBox().catch(() => null);
 
@@ -316,7 +316,7 @@ test.describe('Formula Rendering', () => {
 
         for (let i = 0; i < Math.min(count, 20); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
 
             const formula = page.locator('#modalBody .item-formula, #modalBody .formula-display');
             if (await formula.count() > 0 && await formula.first().isVisible()) {
@@ -339,7 +339,7 @@ test.describe('Formula Rendering', () => {
 
         for (let i = 0; i < Math.min(count, 20); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
 
             const formulaContainer = page.locator('#modalBody .formula-container, #modalBody .formula-display');
             if (await formulaContainer.count() > 0 && await formulaContainer.first().isVisible()) {
@@ -367,7 +367,7 @@ test.describe('Formula Rendering', () => {
 
         for (let i = 0; i < Math.min(count, 20); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
 
             const formulaVar = page.locator('#modalBody .formula-var');
             if (await formulaVar.count() > 0) {
@@ -431,7 +431,7 @@ test.describe('Scaling Formulas - Calculations', () => {
 
         for (let i = 0; i < Math.min(count, 15) && !foundScalingWithNumbers; i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(600);
+            await page.waitForTimeout(400);
 
             const modal = page.locator('#itemModal');
             const isModalOpen = await modal.evaluate(el => el.classList.contains('active'));
@@ -455,12 +455,12 @@ test.describe('Scaling Formulas - Calculations', () => {
     test('hyperbolic scaling items show diminishing returns', async ({ page }) => {
         // Search for items that use hyperbolic scaling (e.g., "Cursed Grabbies" or "Key")
         await page.fill('#searchInput', 'Cursed');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         const cards = page.locator('#itemsContainer .item-card:visible');
         if (await cards.count() > 0) {
             await cards.first().click();
-            await page.waitForTimeout(600);
+            await page.waitForTimeout(400);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
             if (await chartCanvas.count() > 0) {
@@ -608,7 +608,7 @@ test.describe('Chart Accessibility', () => {
         const cards = page.locator('#itemsContainer .item-card');
         for (let i = 0; i < Math.min(await cards.count(), 20); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
 
             const formula = page.locator('#modalBody .item-formula, #modalBody .formula-display');
             if (await formula.count() > 0 && await formula.first().isVisible()) {
@@ -688,7 +688,7 @@ test.describe('Compare Mode Charts', () => {
         
         if (await compareTab.count() > 0 && await compareTab.first().isVisible()) {
             await compareTab.first().click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
 
             const compareChart = page.locator('#compare-scaling-chart');
             // Compare chart may only appear when items are selected
@@ -706,7 +706,7 @@ test.describe('Compare Mode Charts', () => {
         const compareTab = page.locator('.tab-btn[data-tab="compare"]');
         if (await compareTab.count() > 0) {
             await compareTab.first().click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
 
             const compareChartContainer = page.locator('.compare-chart-container');
             if (await compareChartContainer.count() > 0) {
@@ -806,7 +806,7 @@ test.describe('Formula Edge Cases', () => {
         
         for (let i = 0; i < Math.min(await cards.count(), 10); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(600);
+            await page.waitForTimeout(400);
 
             // Check if modal opened (may not always have 'active' class instantly)
             const modal = page.locator('#itemModal');
@@ -828,7 +828,7 @@ test.describe('Formula Edge Cases', () => {
         const cards = page.locator('#itemsContainer .item-card');
         for (let i = 0; i < Math.min(await cards.count(), 25); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
 
             const formula = page.locator('#modalBody .formula-container');
             if (await formula.count() > 0) {
@@ -848,7 +848,7 @@ test.describe('Formula Edge Cases', () => {
         const cards = page.locator('#itemsContainer .item-card');
         for (let i = 0; i < Math.min(await cards.count(), 25); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
 
             const formulaOp = page.locator('#modalBody .formula-op, #modalBody .formula-eq');
             if (await formulaOp.count() > 0) {

@@ -179,7 +179,7 @@ test.describe('LocalStorage Error Handling', () => {
         const favBtn = page.locator('.modal-favorite-btn, [data-action="favorite"], .favorite-btn');
         if (await favBtn.count() > 0) {
             await favBtn.click();
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(300);
             
             // App should handle gracefully - no crash
             await expect(page.locator('body')).toBeVisible();
@@ -271,7 +271,7 @@ test.describe('User-Friendly Error Messages', () => {
         
         // Search for something that won't match
         await searchInput.fill('zzzzxxxxxxxxxnonexistent12345');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // Should show empty state or "no results" message
         const noResults = page.locator('.no-results, .empty-state, [data-no-results]');
@@ -300,7 +300,7 @@ test.describe('User-Friendly Error Messages', () => {
         });
 
         await page.click('#export-build');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // Toast container should have proper ARIA attributes
         const toastContainer = page.locator('#toast-container');
@@ -347,11 +347,11 @@ test.describe('Error State Recovery', () => {
 
         // Close modal via escape
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // Open a different item modal
         await page.locator('#itemsContainer .item-card').nth(1).click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // Modal should be visible for different item
         const modal = page.locator('.modal.active, #itemModal, [role="dialog"]');
@@ -377,7 +377,7 @@ test.describe('Error State Recovery', () => {
             await page.click(`.tab-btn[data-tab="${tab}"]`);
         }
 
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // App should be stable
         await expect(page.locator('.tab-btn[data-tab="items"]')).toHaveClass(/active/);
@@ -395,7 +395,7 @@ test.describe('Error State Recovery', () => {
             await searchInput.fill('');
         }
 
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // Search should work normally after
         await searchInput.fill('sword');
@@ -433,7 +433,7 @@ test.describe('Error State Recovery', () => {
 
         // Go back (may or may not be supported)
         await page.goBack();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // If still on app, it should be functional
         const isOnApp = page.url().includes('localhost') || page.url().includes('127.0.0.1');
@@ -452,7 +452,7 @@ test.describe('Form Validation Errors', () => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="calculator"]');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         const targetInput = page.locator('#calc-target, [data-calc-target], input[name="target"]');
         
@@ -710,7 +710,7 @@ test.describe('Missing Data and Image Fallbacks', () => {
         // Items should still work
         const itemsTab = page.locator('.tab-btn[data-tab="items"]');
         await itemsTab.click();
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
     });
 
     test('should show placeholder for corrupted image', async ({ page }) => {
@@ -736,7 +736,7 @@ test.describe('Missing Data and Image Fallbacks', () => {
 
         // Search for something that won't exist
         await page.locator('#searchInput').fill('zzznonexistent99999');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // Should show empty state or no results message
         const visibleItems = await page.locator('#itemsContainer .item-card:visible').count();
@@ -758,7 +758,7 @@ test.describe('Missing Data and Image Fallbacks', () => {
 
         // Navigate to changelog tab
         await page.click('.tab-btn[data-tab="changelog"]');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // Should show empty state or error, not crash
         await expect(page.locator('body')).toBeVisible();
@@ -871,7 +871,7 @@ test.describe('Console Error Monitoring', () => {
 
         // Navigate through the app
         await page.click('.tab-btn[data-tab="build-planner"]');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         expect(rejections.length).toBe(0);
     });
@@ -911,7 +911,7 @@ test.describe('Network Error Recovery', () => {
 
         // Try tab navigation
         await page.click('.tab-btn[data-tab="weapons"]');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // Should still function with cached data
         await expect(page.locator('body')).toBeVisible();
@@ -926,9 +926,9 @@ test.describe('Network Error Recovery', () => {
 
         // Go offline briefly
         await context.setOffline(true);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
         await context.setOffline(false);
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         // App should work normally
         const items = page.locator('#itemsContainer .item-card');
@@ -1010,7 +1010,7 @@ test.describe('Memory and Performance', () => {
         // Page should be responsive
         const searchInput = page.locator('#searchInput');
         await searchInput.fill('test');
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(300);
 
         await expect(searchInput).toHaveValue('test');
     });
