@@ -270,30 +270,32 @@ test.describe('Similar Items - Similarity Criteria', () => {
         test.skip();
     });
 
-    test('similar items show effect-based reasons', async ({ page, browserName }) => {
-        const isWebKit = browserName === 'webkit';
+    test('similar items show effect-based reasons', async ({ page }) => {
         const cards = page.locator('#itemsContainer .item-card');
 
         for (let i = 0; i < Math.min(20, await cards.count()); i++) {
             await cards.nth(i).click();
-            // WebKit needs longer wait for modal animation to complete
-            await page.waitForTimeout(isWebKit ? 1000 : 600);
+
+            // Wait for modal to open
+            try {
+                await page.waitForFunction(
+                    () => document.getElementById('itemModal')?.classList.contains('active'),
+                    { timeout: 3000 }
+                );
+            } catch {
+                continue;
+            }
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
-                // WebKit: wait for section content to fully render
-                if (isWebKit) {
-                    await page.waitForTimeout(300);
-                }
-                
                 const reasons = await similarSection.locator('.similar-item-reason').allTextContents();
-                const hasEffectReason = reasons.some(r => 
+                const hasEffectReason = reasons.some(r =>
                     r.toLowerCase().includes('effect') ||
                     r.toLowerCase().includes('damage') ||
                     r.toLowerCase().includes('crit') ||
                     r.toLowerCase().includes('synerg')
                 );
-                
+
                 if (hasEffectReason) {
                     expect(hasEffectReason).toBe(true);
                     return;
@@ -304,8 +306,12 @@ test.describe('Similar Items - Similarity Criteria', () => {
             const modalIsOpen = await page.locator('#itemModal.active').count() > 0;
             if (modalIsOpen) {
                 await page.keyboard.press('Escape');
-                // WebKit needs extra time after Escape for modal to close
-                await page.waitForTimeout(isWebKit ? 500 : 300);
+
+                // Wait for modal to close
+                await page.waitForFunction(() => {
+                    const modal = document.getElementById('itemModal');
+                    return !modal || !modal.classList.contains('active');
+                }, { timeout: 3000 }).catch(() => {});
             }
         }
 

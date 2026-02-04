@@ -50,17 +50,17 @@ test.describe('Search Input', () => {
 
     test('clearing search shows all items', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
-        
+
         // Filter first - global search renders .search-result-card
         await searchInput.fill('Anvil');
-        await page.waitForTimeout(500);
+        await page.waitForSelector('.search-result-card', { timeout: 5000 });
         const filteredCount = await page.locator('.search-result-card').count();
         expect(filteredCount).toBeGreaterThan(0);
         expect(filteredCount).toBeLessThan(80);
 
         // Clear search - returns to normal .item-card rendering
         await searchInput.fill('');
-        await page.waitForTimeout(500);
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 5000 });
         const allCount = await page.locator('#itemsContainer .item-card').count();
         expect(allCount).toBe(80);
     });
@@ -101,12 +101,13 @@ test.describe('Search Input', () => {
     test('/ keyboard shortcut focuses search', async ({ page }) => {
         // Ensure search is not focused
         await page.locator('body').click();
-        
+
         // Press / to focus search
         await page.keyboard.press('/');
-        
+
+        // Wait for focus state with retry
         const searchInput = page.locator('#searchInput');
-        await expect(searchInput).toBeFocused();
+        await expect(searchInput).toBeFocused({ timeout: 5000 });
     });
 
     test('Escape closes search dropdown and keeps focus', async ({ page }) => {
@@ -138,7 +139,9 @@ test.describe('Search Results', () => {
     test('search shows results in main content area', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         await searchInput.fill('Big');
-        await page.waitForTimeout(500);
+
+        // Wait for results to appear
+        await page.waitForSelector('.search-result-card', { timeout: 5000 });
 
         // Results should appear in main content as .search-result-card elements
         const results = page.locator('.search-result-card');

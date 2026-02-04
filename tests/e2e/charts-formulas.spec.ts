@@ -467,11 +467,20 @@ test.describe('Formula Rendering', () => {
 
         for (let i = 0; i < Math.min(count, 15) && !found; i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(700);
+
+            // Wait for modal to open instead of fixed timeout
+            try {
+                await page.waitForFunction(
+                    () => document.getElementById('itemModal')?.classList.contains('active'),
+                    { timeout: 3000 }
+                );
+            } catch {
+                continue;
+            }
 
             const modal = page.locator('#itemModal');
             const isModalOpen = await modal.evaluate(el => el.classList.contains('active')).catch(() => false);
-            
+
             if (isModalOpen) {
                 const fraction = page.locator('#modalBody .formula-fraction');
                 if (await fraction.count() > 0 && await fraction.first().isVisible().catch(() => false)) {
@@ -483,13 +492,12 @@ test.describe('Formula Rendering', () => {
                 }
 
                 await page.keyboard.press('Escape');
-                await page.waitForTimeout(400);
-                
+
                 // Wait for modal to close
                 await page.waitForFunction(() => {
                     const modal = document.getElementById('itemModal');
                     return !modal || !modal.classList.contains('active');
-                }, { timeout: 2000 }).catch(() => {});
+                }, { timeout: 3000 }).catch(() => {});
             }
         }
 
@@ -891,20 +899,34 @@ test.describe('Formula Edge Cases', () => {
         // Open items and verify no errors when formula is absent
         const cards = page.locator('#itemsContainer .item-card');
         let modalOpened = 0;
-        
+
         for (let i = 0; i < Math.min(await cards.count(), 10); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(600);
 
-            // Check if modal opened (may not always have 'active' class instantly)
+            // Wait for modal to open instead of fixed timeout
+            try {
+                await page.waitForFunction(
+                    () => document.getElementById('itemModal')?.classList.contains('active'),
+                    { timeout: 3000 }
+                );
+            } catch {
+                continue;
+            }
+
+            // Check if modal opened
             const modal = page.locator('#itemModal');
             const isModalOpen = await modal.evaluate(el => el.classList.contains('active'));
-            
+
             if (isModalOpen) {
                 modalOpened++;
                 // Modal opened successfully - test passes regardless of formula presence
                 await page.keyboard.press('Escape');
-                await page.waitForTimeout(300);
+
+                // Wait for modal to close
+                await page.waitForFunction(() => {
+                    const modal = document.getElementById('itemModal');
+                    return !modal || !modal.classList.contains('active');
+                }, { timeout: 3000 }).catch(() => {});
             }
         }
 
