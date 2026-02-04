@@ -39,8 +39,8 @@ test.describe('Cross-Feature Workflows', () => {
                 await firstItem.waitFor({ state: 'visible' });
                 await firstItem.click();
 
-                // Modal should open - use longer timeout and more specific selector
-                const modal = page.locator('#itemModal, .item-modal, [role="dialog"]');
+                // Modal should open - use specific #itemModal to avoid matching compareModal
+                const modal = page.locator('#itemModal');
                 await expect(modal).toBeVisible({ timeout: 5000 });
 
                 // Step 5: Add to build if button exists
@@ -235,7 +235,8 @@ test.describe('Cross-Feature Workflows', () => {
             const itemCard = page.locator('#itemsContainer .item-card').first();
             await itemCard.click();
 
-            const modal = page.locator('#itemModal, .item-modal, [role="dialog"]');
+            // Use specific #itemModal selector to avoid matching compareModal
+            const modal = page.locator('#itemModal');
             await expect(modal).toBeVisible({ timeout: 5000 });
 
             // Switch tabs - modal should close
