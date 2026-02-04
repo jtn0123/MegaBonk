@@ -51,21 +51,33 @@ test.describe('Cross-Feature Workflows', () => {
         });
 
         test('should preserve search when navigating tabs', async ({ page }) => {
-            // Search for something
+            // This test verifies the search INPUT VALUE is preserved across tab switches.
+            // Note: Global search (>=2 chars) shows a combined results view, not tab-specific items.
+            // We test that sessionStorage-based filter state correctly saves/restores the search query.
             const searchInput = page.locator('#searchInput');
-            await searchInput.fill('legendary');
+            await searchInput.fill('bonk');
             await page.waitForTimeout(300);
 
-            // Switch to weapons tab
+            // Global search shows results across categories - wait for those
+            await page.waitForSelector('.search-result-card, #itemsContainer .item-card', { timeout: 5000 });
+
+            // Switch to weapons tab (this should save items tab filter state)
             await page.click('.tab-btn[data-tab="weapons"]');
+            // Wait for weapons tab panel AND content to be fully loaded
+            // (the app has debounce that prevents rapid tab switching)
+            await expect(page.locator('#weapons-tab')).toHaveClass(/active/, { timeout: 5000 });
             await page.waitForSelector('#weaponsContainer .item-card', { timeout: 5000 });
 
-            // Switch back to items tab
-            await page.click('.tab-btn[data-tab="items"]');
-            await page.waitForSelector('#itemsContainer .item-card', { timeout: 5000 });
+            // Small delay to ensure tab switch lock is released
+            await page.waitForTimeout(200);
 
-            // Search should be preserved
-            await expect(searchInput).toHaveValue('legendary');
+            // Switch back to items tab (this should restore items tab filter state)
+            await page.click('.tab-btn[data-tab="items"]');
+            // Wait for items tab panel to become visible (longer timeout for module loading)
+            await expect(page.locator('#items-tab')).toHaveClass(/active/, { timeout: 8000 });
+
+            // Search value should be preserved in the input
+            await expect(searchInput).toHaveValue('bonk');
         });
     });
 
