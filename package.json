@@ -34,6 +34,7 @@
     "test:e2e:sw": "npx playwright test --config=playwright.sw.config.js",
     "test:e2e:ui": "npx playwright test --ui",
     "test:all": "npm run test:unit && npm run test:e2e",
+    "test:all:parallel": "bash scripts/test-all-parallel.sh",
     "test:full": "npm run test:unit && npm run test:e2e && npm run build && npm run test:e2e:sw",
     "test:ocr": "npx vitest run tests/unit/ocr.test.ts",
     "test:cv": "npx vitest run tests/unit/computer-vision.test.ts",
