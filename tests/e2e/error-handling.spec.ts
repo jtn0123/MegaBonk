@@ -961,7 +961,10 @@ test.describe('Network Error Recovery', () => {
 // ========================================
 
 test.describe('Memory and Performance', () => {
-    test('should not leak memory on repeated modal opens', async ({ page }) => {
+    test('should not leak memory on repeated modal opens', async ({ page, browserName }) => {
+        // Skip on WebKit - performance.memory API is Chrome-only and modal timing differs
+        test.skip(browserName === 'webkit', 'Memory API not available in WebKit');
+        
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
