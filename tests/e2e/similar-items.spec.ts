@@ -271,17 +271,21 @@ test.describe('Similar Items - Similarity Criteria', () => {
     });
 
     test('similar items show effect-based reasons', async ({ page, browserName }) => {
-        // WebKit: Modal rendering timing differences cause effect reason detection to fail
-        test.skip(browserName === 'webkit', 'WebKit: Modal timing differences affect effect-based reason detection');
-        
+        const isWebKit = browserName === 'webkit';
         const cards = page.locator('#itemsContainer .item-card');
 
         for (let i = 0; i < Math.min(20, await cards.count()); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(600);
+            // WebKit needs longer wait for modal animation to complete
+            await page.waitForTimeout(isWebKit ? 1000 : 600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
             if (await similarSection.count() > 0) {
+                // WebKit: wait for section content to fully render
+                if (isWebKit) {
+                    await page.waitForTimeout(300);
+                }
+                
                 const reasons = await similarSection.locator('.similar-item-reason').allTextContents();
                 const hasEffectReason = reasons.some(r => 
                     r.toLowerCase().includes('effect') ||
@@ -300,7 +304,8 @@ test.describe('Similar Items - Similarity Criteria', () => {
             const modalIsOpen = await page.locator('#itemModal.active').count() > 0;
             if (modalIsOpen) {
                 await page.keyboard.press('Escape');
-                await page.waitForTimeout(300);
+                // WebKit needs extra time after Escape for modal to close
+                await page.waitForTimeout(isWebKit ? 500 : 300);
             }
         }
 

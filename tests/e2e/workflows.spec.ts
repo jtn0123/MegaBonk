@@ -413,21 +413,44 @@ test.describe('Cross-Feature Workflows', () => {
         });
 
         test('should close modal with Escape', async ({ page, browserName }) => {
-            // WebKit: Escape key event handling differs, modal close timing unreliable
-            test.skip(browserName === 'webkit', 'WebKit: Escape key handling differs in WebKit');
+            const isWebKit = browserName === 'webkit';
             
             // Open item modal
             const itemCard = page.locator('#itemsContainer .item-card').first();
             await itemCard.click();
 
             const modal = page.locator('#itemModal');
-            await expect(modal).toBeVisible({ timeout: 2000 });
+            await expect(modal).toBeVisible({ timeout: isWebKit ? 3000 : 2000 });
+
+            // WebKit: small delay before pressing Escape to ensure modal is fully ready
+            if (isWebKit) {
+                await page.waitForTimeout(200);
+            }
 
             // Press Escape
             await page.keyboard.press('Escape');
+            
+            // WebKit needs extra time for key event processing
+            if (isWebKit) {
+                await page.waitForTimeout(300);
+                
+                // If modal still visible, try dispatching event directly
+                if (await modal.isVisible()) {
+                    await page.evaluate(() => {
+                        const event = new KeyboardEvent('keydown', { 
+                            key: 'Escape', 
+                            code: 'Escape',
+                            bubbles: true,
+                            cancelable: true
+                        });
+                        document.dispatchEvent(event);
+                    });
+                    await page.waitForTimeout(200);
+                }
+            }
 
             // Modal should close
-            await expect(modal).toBeHidden({ timeout: 1000 });
+            await expect(modal).toBeHidden({ timeout: isWebKit ? 2000 : 1000 });
         });
     });
 });

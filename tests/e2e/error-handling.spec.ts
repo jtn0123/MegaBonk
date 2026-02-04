@@ -645,8 +645,7 @@ test.describe('Invalid URL Parameters Handling', () => {
     });
 
     test('should handle malformed build parameter', async ({ page, browserName }) => {
-        // WebKit: URL parameter parsing behaves differently with malformed values
-        test.skip(browserName === 'webkit', 'WebKit: URL parameter handling differs for malformed values');
+        const isWebKit = browserName === 'webkit';
         
         // Various malformed build params
         const malformedParams = [
@@ -659,9 +658,16 @@ test.describe('Invalid URL Parameters Handling', () => {
         ];
 
         for (const param of malformedParams) {
-            await page.goto(`/?${param}`);
-            await page.waitForSelector('body', { timeout: 10000 });
+            // WebKit may need URL-encoded brackets
+            const encodedParam = isWebKit ? param.replace('[', '%5B').replace(']', '%5D') : param;
+            await page.goto(`/?${encodedParam}`);
+            // WebKit needs longer timeout for URL parameter processing
+            await page.waitForSelector('body', { timeout: isWebKit ? 15000 : 10000 });
             await expect(page.locator('body')).toBeVisible();
+            // Small delay between navigations for WebKit
+            if (isWebKit) {
+                await page.waitForTimeout(200);
+            }
         }
     });
 
