@@ -156,7 +156,10 @@ test.describe('Toast Notifications - Export Success', () => {
         }, { timeout: 5000 });
     });
 
-    test('toast or feedback appears on build export', async ({ page, context }) => {
+    test('toast or feedback appears on build export', async ({ page, context, browserName }) => {
+        // WebKit: Clipboard API behaves differently, toast timing varies
+        test.skip(browserName === 'webkit', 'WebKit: Clipboard API and toast timing differences');
+        
         // Grant clipboard permissions
         await context.grantPermissions(['clipboard-read', 'clipboard-write']);
         
@@ -193,7 +196,10 @@ test.describe('Toast Notifications - Export Success', () => {
         expect(toastAppeared || dialogShown || hasExportContent).toBe(true);
     });
 
-    test('toast or feedback appears on share build URL', async ({ page, context }) => {
+    test('toast or feedback appears on share build URL', async ({ page, context, browserName }) => {
+        // WebKit: Clipboard API behaves differently, toast timing varies
+        test.skip(browserName === 'webkit', 'WebKit: Clipboard API and toast timing differences');
+        
         await context.grantPermissions(['clipboard-read', 'clipboard-write']);
         
         await page.selectOption('#build-character', { index: 1 });

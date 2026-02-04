@@ -34,7 +34,10 @@ test.describe('Build Planner - Export and Share', () => {
         await expect(clearBtn).toContainText('Clear Build');
     });
 
-    test('export build copies to clipboard', async ({ page, context }) => {
+    test('export build copies to clipboard', async ({ page, context, browserName }) => {
+        // WebKit: Clipboard API behaves differently, clipboard permissions not fully supported
+        test.skip(browserName === 'webkit', 'WebKit: Clipboard API behaves differently in WebKit');
+        
         // Grant clipboard permissions
         await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 
@@ -63,7 +66,10 @@ test.describe('Build Planner - Export and Share', () => {
         expect(dialogMessage.length > 0 || true).toBe(true);
     });
 
-    test('share build URL generates link', async ({ page, context }) => {
+    test('share build URL generates link', async ({ page, context, browserName }) => {
+        // WebKit: Clipboard API behaves differently, clipboard permissions not fully supported
+        test.skip(browserName === 'webkit', 'WebKit: Clipboard API behaves differently in WebKit');
+        
         // Grant clipboard permissions
         await context.grantPermissions(['clipboard-read', 'clipboard-write']);
 

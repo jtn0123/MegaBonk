@@ -115,7 +115,10 @@ test.describe('Pull-to-Refresh Gesture', () => {
         await expect(indicator).toBeAttached();
     });
 
-    test('pull-to-refresh indicator appears when pulling down', async ({ page }) => {
+    test('pull-to-refresh indicator appears when pulling down', async ({ page, browserName }) => {
+        // WebKit: Touch events simulation not fully supported in WebKit Playwright
+        test.skip(browserName === 'webkit', 'WebKit: Touch events simulation not supported in WebKit Playwright');
+        
         const indicator = page.locator('.pull-refresh-indicator');
         
         // Simulate a pull gesture that doesn't reach threshold
@@ -134,7 +137,10 @@ test.describe('Pull-to-Refresh Gesture', () => {
         expect(hasStyles || await indicator.isAttached()).toBeTruthy();
     });
 
-    test('pull-to-refresh has correct threshold indication', async ({ page }) => {
+    test('pull-to-refresh has correct threshold indication', async ({ page, browserName }) => {
+        // WebKit: Touch events simulation not fully supported in WebKit Playwright
+        test.skip(browserName === 'webkit', 'WebKit: Touch events simulation not supported in WebKit Playwright');
+        
         const indicator = page.locator('.pull-refresh-indicator');
         const textEl = page.locator('.pull-refresh-text');
 
@@ -152,7 +158,10 @@ test.describe('Pull-to-Refresh Gesture', () => {
         await expect(spinner).toBeAttached();
     });
 
-    test('pull-to-refresh is disabled when not at top of page', async ({ page }) => {
+    test('pull-to-refresh is disabled when not at top of page', async ({ page, browserName }) => {
+        // WebKit: Touch events simulation not fully supported in WebKit Playwright
+        test.skip(browserName === 'webkit', 'WebKit: Touch events simulation not supported in WebKit Playwright');
+        
         // Scroll down first
         await page.evaluate(() => window.scrollTo(0, 500));
         await page.waitForTimeout(100);
@@ -168,7 +177,10 @@ test.describe('Pull-to-Refresh Gesture', () => {
         expect(isActive).toBeFalsy();
     });
 
-    test('pull-to-refresh triggers data reload on full pull', async ({ page }) => {
+    test('pull-to-refresh triggers data reload on full pull', async ({ page, browserName }) => {
+        // WebKit: Touch events simulation not fully supported in WebKit Playwright
+        test.skip(browserName === 'webkit', 'WebKit: Touch events simulation not supported in WebKit Playwright');
+        
         // Listen for toast notification (success indicator)
         const toastAppeared = page.waitForSelector('.toast', { timeout: 5000 }).catch(() => null);
 
