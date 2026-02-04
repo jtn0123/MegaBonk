@@ -270,7 +270,8 @@ test.describe('Similar Items - Similarity Criteria', () => {
         test.skip();
     });
 
-    test('similar items show effect-based reasons', async ({ page }) => {
+    // Test needs longer timeout due to looping through items
+    test('similar items show effect-based reasons', { timeout: 60000 }, async ({ page }) => {
         const cards = page.locator('#itemsContainer .item-card');
         const cardCount = await cards.count();
 

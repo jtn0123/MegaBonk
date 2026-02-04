@@ -460,7 +460,8 @@ test.describe('Formula Rendering', () => {
         }
     });
 
-    test('formula fractions render with stacked layout', async ({ page }) => {
+    // Test needs longer timeout due to looping through items
+    test('formula fractions render with stacked layout', { timeout: 60000 }, async ({ page }) => {
         const cards = page.locator('#itemsContainer .item-card');
         const count = await cards.count();
         let found = false;
@@ -892,7 +893,8 @@ test.describe('Formula Edge Cases', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
 
-    test('handles items without formulas gracefully', async ({ page }) => {
+    // Test needs longer timeout due to looping through items
+    test('handles items without formulas gracefully', { timeout: 60000 }, async ({ page }) => {
         // Open items and verify no errors when formula is absent
         const cards = page.locator('#itemsContainer .item-card');
         let modalOpened = 0;
