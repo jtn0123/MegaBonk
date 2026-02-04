@@ -7,7 +7,9 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Compare Mode', () => {
-    // Check if compare feature is enabled before running tests
+    // Skip all tests - compare mode feature is disabled in production
+    test.skip(true, 'Compare mode feature is disabled (FEATURES.COMPARE_ITEMS = false)');
+
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
         // Wait for items to load

@@ -1,0 +1,507 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - heading "🎮 MegaBonk Complete Guide" [level=1] [ref=e4]
+  - navigation "Main navigation" [ref=e5]:
+    - tablist "Content categories" [ref=e7]:
+      - tab "📦 Items" [ref=e8] [cursor=pointer]
+      - tab "⚔️ Weapons" [selected] [ref=e9] [cursor=pointer]
+      - tab "📚 Tomes" [ref=e10] [cursor=pointer]
+      - tab "👤 Characters" [ref=e11] [cursor=pointer]
+      - tab "⛩️ Shrines" [ref=e12] [cursor=pointer]
+      - tab "🛠️ Build Planner" [ref=e13] [cursor=pointer]
+      - tab "🧮 Calculator" [ref=e14] [cursor=pointer]
+      - tab "🤖 Advisor" [ref=e15] [cursor=pointer]
+      - tab "📋 Changelog" [ref=e16] [cursor=pointer]
+      - tab "ℹ️ About" [ref=e17] [cursor=pointer]
+  - navigation "Search and filters" [ref=e18]:
+    - generic [ref=e19]:
+      - searchbox "Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100" [ref=e21]
+      - generic [ref=e22]: 29 weapons
+      - generic "Filter options" [ref=e23]:
+        - generic [ref=e24]: "Tier:"
+        - combobox "Tier:" [ref=e25] [cursor=pointer]:
+          - option "All Tiers" [selected]
+          - option "SS Tier"
+          - option "S Tier"
+          - option "A Tier"
+          - option "B Tier"
+          - option "C Tier"
+        - generic [ref=e26]: "Sort:"
+        - combobox "Sort:" [ref=e27] [cursor=pointer]:
+          - option "Name" [selected]
+          - option "Tier"
+  - main [ref=e28]:
+    - generic [ref=e29]:
+      - tabpanel "⚔️ Weapons" [ref=e30]:
+        - generic "Loading content" [ref=e31]:
+          - generic [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]:
+              - img "Aegis" [ref=e35]
+              - generic [ref=e36]:
+                - generic [ref=e37]: Aegis
+                - text: S Tier
+            - generic [ref=e38]: Shield bash with shockwave counter
+            - generic [ref=e39]: Perfect balance of offense and defense. Blocks attacks and counters with shockwaves.
+            - generic [ref=e40]:
+              - generic [ref=e41]: damage
+              - generic [ref=e42]: knockback
+              - generic [ref=e43]: size
+          - generic [ref=e44] [cursor=pointer]:
+            - generic [ref=e45]:
+              - img "Aura" [ref=e47]
+              - generic [ref=e48]:
+                - generic [ref=e49]: Aura
+                - text: A Tier
+            - generic [ref=e50]: damages enemies around you
+            - generic [ref=e51]: Passive damage aura. Only upgrades damage and size.
+            - generic [ref=e52]:
+              - generic [ref=e53]: damage
+              - generic [ref=e54]: size
+          - generic [ref=e55] [cursor=pointer]:
+            - generic [ref=e56]:
+              - img "Axe" [ref=e58]
+              - generic [ref=e59]:
+                - generic [ref=e60]: Axe
+                - text: A Tier
+            - generic [ref=e61]: Spinning projectile
+            - generic [ref=e62]: Spinning axes that last over time. size is extremely powerful.
+            - generic [ref=e63]:
+              - generic [ref=e64]: damage
+              - generic [ref=e65]: duration
+              - generic [ref=e66]: Projectile Count
+              - generic [ref=e67]: size
+          - generic [ref=e68] [cursor=pointer]:
+            - generic [ref=e69]:
+              - img "Bananarang" [ref=e71]
+              - generic [ref=e72]:
+                - generic [ref=e73]: Bananarang
+                - text: A Tier
+            - generic [ref=e74]: Boomerang that returns
+            - generic [ref=e75]: Boomerang mechanics with lifesteal synergy. Returns after hitting.
+            - generic [ref=e76]:
+              - generic [ref=e77]: damage
+              - generic [ref=e78]: Projectile Count
+              - generic [ref=e79]: size
+              - generic [ref=e80]: duration
+          - generic [ref=e81] [cursor=pointer]:
+            - generic [ref=e82]:
+              - img "Black Hole" [ref=e84]
+              - generic [ref=e85]:
+                - generic [ref=e86]: Black Hole
+                - text: S Tier
+            - generic [ref=e87]: Pulls enemies in
+            - generic [ref=e88]: Sucks enemies into black holes. Incredible crowd control.
+            - generic [ref=e89]:
+              - generic [ref=e90]: damage
+              - generic [ref=e91]: duration
+              - generic [ref=e92]: size
+              - generic [ref=e93]: Projectile Count
+          - generic [ref=e94] [cursor=pointer]:
+            - generic [ref=e95]:
+              - img "Blood Magic" [ref=e97]
+              - generic [ref=e98]:
+                - generic [ref=e99]: Blood Magic
+                - text: A Tier
+            - generic [ref=e100]: Lifesteal projectiles
+            - generic [ref=e101]: Lifesteal weapon. Synergizes with healing builds.
+            - generic [ref=e102]:
+              - generic [ref=e103]: damage
+              - generic [ref=e104]: Projectile Count
+              - generic [ref=e105]: size
+          - generic [ref=e106] [cursor=pointer]:
+            - generic [ref=e107]:
+              - img "Bone" [ref=e109]
+              - generic [ref=e110]:
+                - generic [ref=e111]: Bone
+                - text: A Tier
+            - generic [ref=e112]: Bounces off walls and enemies
+            - generic [ref=e113]: Calcium's starting weapon. Unique ricochet mechanics with 1.5x knockback.
+            - generic [ref=e114]:
+              - generic [ref=e115]: damage
+              - generic [ref=e116]: Projectile Bounces
+              - generic [ref=e117]: Projectile Count
+              - generic [ref=e118]: Projectile Speed
+          - generic [ref=e119] [cursor=pointer]:
+            - generic [ref=e120]:
+              - img "Bow" [ref=e122]
+              - generic [ref=e123]:
+                - generic [ref=e124]: Bow
+                - text: S Tier
+            - generic [ref=e125]: Piercing projectile
+            - generic [ref=e126]: Solid starter weapon. Pierces enemies. Great crit scaling potential.
+            - generic [ref=e127]:
+              - generic [ref=e128]: damage
+              - generic [ref=e129]: Crit Chance
+              - generic [ref=e130]: Crit damage
+              - generic [ref=e131]: Projectile Count
+          - generic [ref=e132] [cursor=pointer]:
+            - generic [ref=e133]:
+              - img "Chunkers" [ref=e135]
+              - generic [ref=e136]:
+                - generic [ref=e137]: Chunkers
+                - text: A Tier
+            - generic [ref=e138]: Orbiting rocks that knock back
+            - generic [ref=e139]: Summons chunky rocks that orbit you. knockback on contact.
+            - generic [ref=e140]:
+              - generic [ref=e141]: damage
+              - generic [ref=e142]: knockback
+              - generic [ref=e143]: Projectile Count
+              - generic [ref=e144]: Projectile Speed
+          - generic [ref=e145] [cursor=pointer]:
+            - generic [ref=e146]:
+              - img "Corrupted Sword" [ref=e148]
+              - generic [ref=e149]:
+                - generic [ref=e150]: Corrupted Sword
+                - text: A Tier
+            - generic [ref=e151]: Twin slashes, stronger at low hp
+            - generic [ref=e152]: More damage when hp is low. High risk, high reward.
+            - generic [ref=e153]:
+              - generic [ref=e154]: damage
+              - generic [ref=e155]: size
+              - generic [ref=e156]: Crit Chance
+          - generic [ref=e157] [cursor=pointer]:
+            - generic [ref=e158]:
+              - img "Dexecutioner" [ref=e160]
+              - generic [ref=e161]:
+                - generic [ref=e162]: Dexecutioner
+                - text: A Tier
+            - generic [ref=e163]: Execute low hp enemies
+            - generic [ref=e164]: Execute mechanic for finishing enemies. High base damage.
+            - generic [ref=e165]:
+              - generic [ref=e166]: damage
+              - generic [ref=e167]: Crit Chance
+              - generic [ref=e168]: size
+              - generic [ref=e169]: Projectile Count
+          - generic [ref=e170] [cursor=pointer]:
+            - generic [ref=e171]:
+              - img "Dice" [ref=e173]
+              - generic [ref=e174]:
+                - generic [ref=e175]: Dice
+                - text: SS Tier
+            - generic [ref=e176]: Throws dice dealing 1-6 damage
+            - generic [ref=e177]: Rolling a 6 permanently increases crit chance. Infinite scaling potential.
+            - generic [ref=e178]:
+              - generic [ref=e179]: damage
+              - generic [ref=e180]: Crit Chance
+              - generic [ref=e181]: Crit damage
+              - generic [ref=e182]: Projectile Count
+          - generic [ref=e183] [cursor=pointer]:
+            - generic [ref=e184]:
+              - img "Dragon's Breath" [ref=e186]
+              - generic [ref=e187]:
+                - generic [ref=e188]: Dragon's Breath
+                - text: A Tier
+            - generic [ref=e189]: Fires in movement direction
+            - generic [ref=e190]: High base damage flame attack. Direction-based firing.
+            - generic [ref=e191]:
+              - generic [ref=e192]: damage
+              - generic [ref=e193]: duration
+              - generic [ref=e194]: size
+          - generic [ref=e195] [cursor=pointer]:
+            - generic [ref=e196]:
+              - img "Firestaff" [ref=e198]
+              - generic [ref=e199]:
+                - generic [ref=e200]: Firestaff
+                - text: C Tier
+            - generic [ref=e201]: Fireballs that explode on impact
+            - generic [ref=e202]: Shoots explosive fireballs. Fox's signature weapon.
+            - generic [ref=e203]:
+              - generic [ref=e204]: damage
+              - generic [ref=e205]: Projectile Count
+              - generic [ref=e206]: size
+              - generic [ref=e207]: Projectile Speed
+          - generic [ref=e208] [cursor=pointer]:
+            - generic [ref=e209]:
+              - img "Flamewalker" [ref=e211]
+              - generic [ref=e212]:
+                - generic [ref=e213]: Flamewalker
+                - text: B Tier
+            - generic [ref=e214]: Leaves fire trail behind you
+            - generic [ref=e215]: Fire trail damages enemies. Excellent for kiting and crowd control.
+            - generic [ref=e216]:
+              - generic [ref=e217]: damage
+              - generic [ref=e218]: duration
+              - generic [ref=e219]: size
+          - generic [ref=e220] [cursor=pointer]:
+            - generic [ref=e221]:
+              - img "Frostwalker" [ref=e223]
+              - generic [ref=e224]:
+                - generic [ref=e225]: Frostwalker
+                - text: A Tier
+            - generic [ref=e226]: Freezing projectiles
+            - generic [ref=e227]: Freezes enemies. Crowd control through ice.
+            - generic [ref=e228]:
+              - generic [ref=e229]: damage
+              - generic [ref=e230]: size
+              - generic [ref=e231]: duration
+          - generic [ref=e232] [cursor=pointer]:
+            - generic [ref=e233]:
+              - img "Hero Sword" [ref=e235]
+              - generic [ref=e236]:
+                - generic [ref=e237]: Hero Sword
+                - text: S Tier
+            - generic [ref=e238]: Slow, powerful slashes
+            - generic [ref=e239]: High damage but slow. Ultimate challenge weapon.
+            - generic [ref=e240]:
+              - generic [ref=e241]: damage
+              - generic [ref=e242]: size
+              - generic [ref=e243]: Crit Chance
+              - generic [ref=e244]: Crit damage
+          - generic [ref=e245] [cursor=pointer]:
+            - generic [ref=e246]:
+              - img "Katana" [ref=e248]
+              - generic [ref=e249]:
+                - generic [ref=e250]: Katana
+                - text: S Tier
+            - generic [ref=e251]: Fast slash combo
+            - generic [ref=e252]: Versatile weapon with many upgrade options. Great for crit builds.
+            - generic [ref=e253]:
+              - generic [ref=e254]: damage
+              - generic [ref=e255]: size
+              - generic [ref=e256]: duration
+              - generic [ref=e257]: Projectile Count
+          - generic [ref=e258] [cursor=pointer]:
+            - generic [ref=e259]:
+              - img "Lightning Staff" [ref=e261]
+              - generic [ref=e262]:
+                - generic [ref=e263]: Lightning Staff
+                - text: S Tier
+            - generic [ref=e264]: Bounces between enemies
+            - generic [ref=e265]: Chains lightning between enemies. Excellent for crowd control.
+            - generic [ref=e266]:
+              - generic [ref=e267]: damage
+              - generic [ref=e268]: Projectile Bounces
+              - generic [ref=e269]: Projectile Count
+              - generic [ref=e270]: size
+          - generic [ref=e271] [cursor=pointer]:
+            - generic [ref=e272]:
+              - img "Mines" [ref=e274]
+              - generic [ref=e275]:
+                - generic [ref=e276]: Mines
+                - text: B Tier
+            - generic [ref=e277]: Deploy mines that explode near enemies
+            - generic [ref=e278]: Places explosive mines. Area denial and defensive tool.
+            - generic [ref=e279]:
+              - generic [ref=e280]: damage
+              - generic [ref=e281]: duration
+              - generic [ref=e282]: Projectile Count
+          - generic [ref=e283] [cursor=pointer]:
+            - generic [ref=e284]:
+              - img "Poison Flask" [ref=e286]
+              - generic [ref=e287]:
+                - generic [ref=e288]: Poison Flask
+                - text: A Tier
+            - generic [ref=e289]: Poison cloud
+            - generic [ref=e290]: Creates poison clouds. DoT damage over time.
+            - generic [ref=e291]:
+              - generic [ref=e292]: damage
+              - generic [ref=e293]: duration
+              - generic [ref=e294]: Projectile Count
+              - generic [ref=e295]: Projectile Speed
+          - generic [ref=e296] [cursor=pointer]:
+            - generic [ref=e297]:
+              - img "Revolver" [ref=e299]
+              - generic [ref=e300]:
+                - generic [ref=e301]: Revolver
+                - text: S Tier
+            - generic [ref=e302]: Multi-shot burst
+            - generic [ref=e303]: Versatile weapon with many upgrade paths. Starts with 6 projectiles. Attack speed dramatically increases bullets per second.
+            - generic [ref=e304]:
+              - generic [ref=e305]: damage
+              - generic [ref=e306]: Crit Chance
+              - generic [ref=e307]: Crit damage
+              - generic [ref=e308]: Projectile Bounces
+          - generic [ref=e309] [cursor=pointer]:
+            - generic [ref=e310]:
+              - img "Shotgun" [ref=e312]
+              - generic [ref=e313]:
+                - generic [ref=e314]: Shotgun
+                - text: A Tier
+            - generic [ref=e315]: Manual aim spread weapon
+            - generic [ref=e316]: Fires multiple pellets in a cone toward cursor. Excellent close range with 3x knockback.
+            - generic [ref=e317]:
+              - generic [ref=e318]: damage
+              - generic [ref=e319]: Crit Chance
+              - generic [ref=e320]: Projectile Count
+              - generic [ref=e321]: knockback
+          - generic [ref=e322] [cursor=pointer]:
+            - generic [ref=e323]:
+              - img "Slutty Rocket" [ref=e325]
+              - generic [ref=e326]:
+                - generic [ref=e327]: Slutty Rocket
+                - text: A Tier
+            - generic [ref=e328]: Explosive rockets
+            - generic [ref=e329]: Fires explosive rockets. Good AoE damage.
+            - generic [ref=e330]:
+              - generic [ref=e331]: damage
+              - generic [ref=e332]: Projectile Speed
+              - generic [ref=e333]: Projectile Count
+              - generic [ref=e334]: Crit Chance
+          - generic [ref=e335] [cursor=pointer]:
+            - generic [ref=e336]:
+              - img "Sniper Rifle" [ref=e338]
+              - generic [ref=e339]:
+                - generic [ref=e340]: Sniper Rifle
+                - text: SS Tier
+            - generic [ref=e341]: Single shot, pierces enemies
+            - generic [ref=e342]: Highest base damage in the game. Pierces through all enemies. Limited upgrade options but devastating when built correctly.
+            - generic [ref=e343]:
+              - generic [ref=e344]: damage
+              - generic [ref=e345]: Projectile Count
+              - generic [ref=e346]: size
+          - generic [ref=e347] [cursor=pointer]:
+            - generic [ref=e348]:
+              - img "Space Noodle" [ref=e350]
+              - generic [ref=e351]:
+                - generic [ref=e352]: Space Noodle
+                - text: A Tier
+            - generic [ref=e353]: Beam that latches to nearest enemy
+            - generic [ref=e354]: Creates beam between you and target. Enemies crossing the line take damage.
+            - generic [ref=e355]:
+              - generic [ref=e356]: damage
+              - generic [ref=e357]: duration
+              - generic [ref=e358]: size
+              - generic [ref=e359]: Projectile Count
+          - generic [ref=e360] [cursor=pointer]:
+            - generic [ref=e361]:
+              - img "Sword" [ref=e363]
+              - generic [ref=e364]:
+                - generic [ref=e365]: Sword
+                - text: A Tier
+            - generic [ref=e366]: Melee slash
+            - generic [ref=e367]: Classic melee weapon. Reliable starter choice.
+            - generic [ref=e368]:
+              - generic [ref=e369]: damage
+              - generic [ref=e370]: knockback
+              - generic [ref=e371]: Projectile Count
+              - generic [ref=e372]: size
+          - generic [ref=e373] [cursor=pointer]:
+            - generic [ref=e374]:
+              - img "Tornado" [ref=e376]
+              - generic [ref=e377]:
+                - generic [ref=e378]: Tornado
+                - text: A Tier
+            - generic [ref=e379]: Spinning vortex
+            - generic [ref=e380]: Creates spinning tornadoes. Excellent with size scaling.
+            - generic [ref=e381]:
+              - generic [ref=e382]: damage
+              - generic [ref=e383]: knockback
+              - generic [ref=e384]: size
+              - generic [ref=e385]: Projectile Speed
+          - generic [ref=e386] [cursor=pointer]:
+            - generic [ref=e387]:
+              - img "Wireless Dagger" [ref=e389]
+              - generic [ref=e390]:
+                - generic [ref=e391]: Wireless Dagger
+                - text: A Tier
+            - generic [ref=e392]: Homing daggers
+            - generic [ref=e393]: Smart auto-targeting daggers. Tony McZoom's starter weapon.
+            - generic [ref=e394]:
+              - generic [ref=e395]: damage
+              - generic [ref=e396]: Projectile Bounces
+              - generic [ref=e397]: Projectile Count
+              - generic [ref=e398]: Crit Chance
+      - text: 👤 Select a character to see stats and synergies ⚔️ Select a weapon to see damage and upgrades
+  - dialog "Item Details" [ref=e399]:
+    - generic [ref=e400]:
+      - button "Close modal" [ref=e401] [cursor=pointer]: ×
+      - heading "Item Details" [active] [level=2] [ref=e402]
+      - generic [ref=e403]:
+        - heading "Aegis" [level=2] [ref=e404]
+        - img "Aegis" [ref=e406]
+        - generic [ref=e407]:
+          - generic [ref=e408]: S Tier
+          - generic [ref=e409]: Defensive tank with counter damage
+        - generic [ref=e410]:
+          - generic [ref=e411]:
+            - strong [ref=e412]: "Base Damage:"
+            - text: "11"
+          - generic [ref=e413]:
+            - strong [ref=e414]: "Attack Pattern:"
+            - text: Shield bash with shockwave counter
+        - paragraph [ref=e415]: Perfect balance of offense and defense. Blocks attacks and counters with shockwaves.
+        - generic [ref=e416]:
+          - heading "Best For" [level=3] [ref=e417]
+          - generic [ref=e418]:
+            - generic [ref=e419]: Tank builds
+            - generic [ref=e420]: Defensive playstyle
+            - generic [ref=e421]: Sir Oofie
+        - generic [ref=e422]:
+          - heading "Upgradeable Stats" [level=3] [ref=e423]
+          - generic [ref=e424]:
+            - generic [ref=e425]: damage
+            - generic [ref=e426]: knockback
+            - generic [ref=e427]: size
+        - generic [ref=e428]:
+          - generic [ref=e429]:
+            - heading "Pros" [level=4] [ref=e430]
+            - list [ref=e431]:
+              - listitem [ref=e432]: ✓ Blocks attacks
+              - listitem [ref=e433]: ✓ Shockwave counter
+              - listitem [ref=e434]: ✓ Great for tanks
+          - generic [ref=e435]:
+            - heading "Cons" [level=4] [ref=e436]
+            - list [ref=e437]:
+              - listitem [ref=e438]: ✗ Requires armor build
+              - listitem [ref=e439]: ✗ Sir Oofie-specific unlock
+        - generic [ref=e440]:
+          - heading "Synergies" [level=3] [ref=e441]
+          - generic [ref=e442]:
+            - heading "Items" [level=4] [ref=e443]
+            - generic [ref=e444]:
+              - generic [ref=e445]: spiky_shield
+              - generic [ref=e446]: mirror
+          - generic [ref=e447]:
+            - heading "Tomes" [level=4] [ref=e448]
+            - generic [ref=e449]:
+              - generic [ref=e450]: armor
+              - generic [ref=e451]: knockback
+              - generic [ref=e452]: damage
+          - generic [ref=e453]:
+            - heading "Characters" [level=4] [ref=e454]
+            - generic [ref=e455]:
+              - generic [ref=e456]: Sir Oofie
+              - generic [ref=e457]: Megachad
+        - generic [ref=e458]:
+          - strong [ref=e459]: "Unlock:"
+          - text: Block 500 total damage with armor as Sir Oofie
+        - generic [ref=e460]:
+          - heading "💡 Items Like This" [level=3] [ref=e461]
+          - generic [ref=e462]:
+            - 'button "View Revolver: Same tier (S)" [ref=e463] [cursor=pointer]':
+              - img "Revolver" [ref=e465]
+              - generic [ref=e466]: Revolver
+              - generic [ref=e467]: Same tier (S)
+            - 'button "View Bow: Same tier (S)" [ref=e468] [cursor=pointer]':
+              - img "Bow" [ref=e470]
+              - generic [ref=e471]: Bow
+              - generic [ref=e472]: Same tier (S)
+            - 'button "View Lightning Staff: Same tier (S)" [ref=e473] [cursor=pointer]':
+              - img "Lightning Staff" [ref=e475]
+              - generic [ref=e476]: Lightning Staff
+              - generic [ref=e477]: Same tier (S)
+            - 'button "View Black Hole: Same tier (S)" [ref=e478] [cursor=pointer]':
+              - img "Black Hole" [ref=e480]
+              - generic [ref=e481]: Black Hole
+              - generic [ref=e482]: Same tier (S)
+            - 'button "View Katana: Same tier (S)" [ref=e483] [cursor=pointer]':
+              - img "Katana" [ref=e485]
+              - generic [ref=e486]: Katana
+              - generic [ref=e487]: Same tier (S)
+  - contentinfo [ref=e488]:
+    - generic [ref=e489]:
+      - status [ref=e490]:
+        - generic [ref=e491]: "Version: 1.0.21"
+        - generic [ref=e492]: "Last Updated: 2026-01-26"
+      - paragraph [ref=e493]:
+        - text: Made with ❤️ for MegaBonk players |
+        - link "Play on Steam" [ref=e494]:
+          - /url: https://store.steampowered.com/app/3405340/Megabonk/
+      - paragraph [ref=e495]: Data sourced from official wikis and community guides. Always verify in-game!
+  - button "Toggle theme" [ref=e496] [cursor=pointer]: 🌙
+  - status
+  - generic "Click to view Web Vitals details" [ref=e497] [cursor=pointer]: "🚀 Perf: 100%"
+```

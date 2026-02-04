@@ -439,8 +439,10 @@ export function updateBuildAnalysis(): void {
         currentBuild.items = [];
     }
 
-    setState('currentBuild', { ...currentBuild });
-
+    // Note: Don't spread the Proxy directly ({ ...currentBuild }) as it produces an empty object.
+    // The Proxy setter already calls setState for each property change, so the store is up-to-date.
+    // Just get the current build from the store for the UI update.
+    
     // Update UI display
     updateBuildDisplay(getCurrentBuildFromStore(), updateBuildURL);
 }

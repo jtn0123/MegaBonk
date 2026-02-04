@@ -91,6 +91,8 @@ async function waitForCVReady(page) {
 // These test pure utility functions exposed on window
 // ============================================================
 test.describe('CV Utility Functions', () => {
+    // Skip: CV tests are slow and have dedicated workflow - run separately
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
     test.beforeEach(async ({ page }, testInfo) => {
@@ -284,6 +286,7 @@ test.describe('CV Utility Functions', () => {
 // CANVAS TESTS - Need browser canvas but not full CV init
 // ============================================================
 test.describe('CV Canvas Functions', () => {
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
     
     test.beforeEach(async ({ page }, testInfo) => {
@@ -474,6 +477,7 @@ test.describe('CV Canvas Functions', () => {
 // collected even if tests timeout, so we use shorter timeouts.
 // ============================================================
 test.describe('CV Detection - Image Tests', () => {
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000); // Reduced: coverage collected even on timeout
     
     test.beforeEach(async ({ page }, testInfo) => {

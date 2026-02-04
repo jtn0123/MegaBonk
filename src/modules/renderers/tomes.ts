@@ -32,6 +32,7 @@ export function renderTomes(tomes: Tome[]): void {
     tomes.forEach(tome => {
         const card = document.createElement('div');
         card.className = 'item-card tome-card clickable-card';
+        card.tabIndex = 0;
         card.dataset.entityType = 'tome';
         card.dataset.entityId = tome.id;
 

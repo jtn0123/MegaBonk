@@ -42,6 +42,9 @@ export type ModalEntity = Item | Weapon | Tome | Character | Shrine;
 type ChartModule = typeof import('./charts.ts');
 let cachedChartModule: ChartModule | null = null;
 
+// Track close timeout to cancel if modal is reopened quickly
+let modalCloseTimeout: ReturnType<typeof setTimeout> | null = null;
+
 /**
  * Get the cached chart module or load it
  * @returns Promise resolving to the chart module
@@ -87,10 +90,10 @@ let lastFocusableElement: Element | null | undefined = null;
 let modalObserver: MutationObserver | null = null;
 
 /**
- * Handle Tab key press for focus trap
+ * Handle keyboard events for modal (focus trap + Escape to close)
  * @param e - Keyboard event
  */
-function handleFocusTrap(e: KeyboardEvent): void {
+function handleModalKeydown(e: KeyboardEvent): void {
     if (!focusTrapActive) return;
 
     // Guard: Check if modal element still exists in DOM and is active
@@ -98,6 +101,13 @@ function handleFocusTrap(e: KeyboardEvent): void {
     const modal = safeGetElementById('itemModal');
     if (!modal || !modal.classList.contains('active')) {
         deactivateFocusTrap(); // Clean up stale listener
+        return;
+    }
+
+    // Handle Escape key to close modal
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
         return;
     }
 
@@ -144,7 +154,7 @@ export function activateFocusTrap(modal: HTMLElement): void {
     }
 
     focusTrapActive = true;
-    document.addEventListener('keydown', handleFocusTrap);
+    document.addEventListener('keydown', handleModalKeydown);
 
     // Setup MutationObserver to cleanup if modal is removed abnormally
     // This prevents state leaks if modal closes without calling deactivateFocusTrap
@@ -185,7 +195,7 @@ export function activateFocusTrap(modal: HTMLElement): void {
  */
 export function deactivateFocusTrap(): void {
     focusTrapActive = false;
-    document.removeEventListener('keydown', handleFocusTrap);
+    document.removeEventListener('keydown', handleModalKeydown);
     focusableElements = [];
     firstFocusableElement = null;
     lastFocusableElement = null;
@@ -265,6 +275,13 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
     }
 
     modalBody.innerHTML = content;
+    
+    // Cancel any pending close timeout to prevent race condition
+    if (modalCloseTimeout) {
+        clearTimeout(modalCloseTimeout);
+        modalCloseTimeout = null;
+    }
+    
     modal.style.display = 'block';
 
     // Track this view in recently viewed
@@ -297,8 +314,10 @@ export function closeModal(): void {
         // Re-enable body scroll on mobile
         document.body.classList.remove('modal-open');
         // Wait for animation to complete before hiding
-        setTimeout(() => {
+        // Store timeout reference so it can be cancelled if modal is reopened
+        modalCloseTimeout = setTimeout(() => {
             modal.style.display = 'none';
+            modalCloseTimeout = null;
         }, 300);
     }
 }

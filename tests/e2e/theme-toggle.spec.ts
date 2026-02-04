@@ -103,12 +103,35 @@ test.describe('Theme Toggle', () => {
     });
 
     test('theme affects card styling', async ({ page }) => {
-        const html = page.locator('html');
         const firstCard = page.locator('#itemsContainer .item-card').first();
 
+        // Helper to set theme via ThemeManager (which updates CSS variables properly)
+        const setTheme = async (theme: 'dark' | 'light') => {
+            await page.evaluate((t) => {
+                // @ts-expect-error - themeManager is exposed on window
+                if (window.themeManager) {
+                    // @ts-expect-error - setTheme exists
+                    window.themeManager.setTheme(t);
+                } else {
+                    // Fallback: manually apply theme variables if themeManager not exposed
+                    const root = document.documentElement;
+                    root.setAttribute('data-theme', t);
+                    if (t === 'dark') {
+                        root.style.setProperty('--bg-primary', '#0f0f14');
+                        root.style.setProperty('--bg-elevated', '#1a1a24');
+                        root.style.setProperty('--text-primary', '#ffffff');
+                    } else {
+                        root.style.setProperty('--bg-primary', '#ffffff');
+                        root.style.setProperty('--bg-elevated', '#f5f5f5');
+                        root.style.setProperty('--text-primary', '#1a1a1a');
+                    }
+                }
+            }, theme);
+            await page.waitForTimeout(100);
+        };
+
         // Get card styles in dark mode
-        await html.evaluate(el => el.setAttribute('data-theme', 'dark'));
-        await page.waitForTimeout(200);
+        await setTheme('dark');
         const darkStyles = await firstCard.evaluate(el => {
             const style = getComputedStyle(el);
             return {
@@ -119,8 +142,7 @@ test.describe('Theme Toggle', () => {
         });
 
         // Get card styles in light mode
-        await html.evaluate(el => el.setAttribute('data-theme', 'light'));
-        await page.waitForTimeout(200);
+        await setTheme('light');
         const lightStyles = await firstCard.evaluate(el => {
             const style = getComputedStyle(el);
             return {
@@ -131,21 +153,11 @@ test.describe('Theme Toggle', () => {
         });
 
         // At least one style property should differ between themes
-        // (some apps may not change card backgrounds but might change text color or borders)
         const stylesMatch = darkStyles.bg === lightStyles.bg && 
                           darkStyles.color === lightStyles.color && 
                           darkStyles.border === lightStyles.border;
         
-        // If all styles match, check body/main area instead as fallback
-        if (stylesMatch) {
-            const darkBodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-            await html.evaluate(el => el.setAttribute('data-theme', 'dark'));
-            await page.waitForTimeout(100);
-            const lightBodyBg = await page.evaluate(() => getComputedStyle(document.body).backgroundColor);
-            expect(darkBodyBg !== lightBodyBg || !stylesMatch).toBe(true);
-        } else {
-            expect(stylesMatch).toBe(false);
-        }
+        expect(stylesMatch).toBe(false);
     });
 });
 

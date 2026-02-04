@@ -28,14 +28,11 @@ test.beforeAll(async () => {
 });
 
 test.describe('CV Performance Benchmarks', () => {
-    test.beforeEach(async ({ page }, testInfo) => {
-        // Skip if server not available
-        if (!serverAvailable) {
-            testInfo.skip();
-            return;
-        }
-
-        await page.goto('http://localhost:5173');
+    // Skip: CV tests are slow and have dedicated workflow - run separately
+    test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
+    
+    test.beforeEach(async ({ page }) => {
+        await page.goto('/');
         await page.waitForLoadState('networkidle');
 
         await page.waitForFunction(

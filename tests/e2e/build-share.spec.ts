@@ -34,9 +34,11 @@ test.describe('Build Planner - Export and Share', () => {
         await expect(clearBtn).toContainText('Clear Build');
     });
 
-    test('export build copies to clipboard', async ({ page, context }) => {
-        // Grant clipboard permissions
-        await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    test('export build copies to clipboard', async ({ page, context, browserName }) => {
+        // Grant clipboard permissions (Chromium/Firefox only - WebKit doesn't support)
+        if (browserName !== 'webkit') {
+            await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+        }
 
         // Set up a build
         await page.selectOption('#build-character', { index: 1 });
@@ -63,9 +65,11 @@ test.describe('Build Planner - Export and Share', () => {
         expect(dialogMessage.length > 0 || true).toBe(true);
     });
 
-    test('share build URL generates link', async ({ page, context }) => {
-        // Grant clipboard permissions
-        await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+    test('share build URL generates link', async ({ page, context, browserName }) => {
+        // Grant clipboard permissions (Chromium/Firefox only - WebKit doesn't support)
+        if (browserName !== 'webkit') {
+            await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+        }
 
         // Set up a build
         await page.selectOption('#build-character', { index: 1 });

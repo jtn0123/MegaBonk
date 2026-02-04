@@ -30,6 +30,7 @@ export function renderShrines(shrines: Shrine[]): void {
     shrines.forEach(shrine => {
         const card = document.createElement('div');
         card.className = 'item-card shrine-card clickable-card';
+        card.tabIndex = 0;
         card.dataset.entityType = 'shrine';
         card.dataset.entityId = shrine.id;
 

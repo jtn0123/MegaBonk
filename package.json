@@ -25,6 +25,8 @@
     "test:unit:nocov": "npx vitest run",
     "test:watch": "npx vitest watch",
     "test:e2e": "npx playwright test",
+    "test:e2e:fast": "npx playwright test --project=chromium",
+    "test:e2e:parallel": "bash scripts/e2e-parallel.sh",
     "test:e2e:coverage": "node scripts/e2e-coverage.mjs",
     "test:coverage:combined": "node scripts/combined-coverage.mjs",
     "test:coverage:merge": "node scripts/merge-coverage.mjs",
@@ -32,6 +34,7 @@
     "test:e2e:sw": "npx playwright test --config=playwright.sw.config.js",
     "test:e2e:ui": "npx playwright test --ui",
     "test:all": "npm run test:unit && npm run test:e2e",
+    "test:all:parallel": "bash scripts/test-all-parallel.sh",
     "test:full": "npm run test:unit && npm run test:e2e && npm run build && npm run test:e2e:sw",
     "test:ocr": "npx vitest run tests/unit/ocr.test.ts",
     "test:cv": "npx vitest run tests/unit/computer-vision.test.ts",
@@ -128,6 +131,9 @@
     "vite-plugin-static-copy": "^3.1.4",
     "vitest": "^4.0.17",
     "zod": "^4.3.5"
+  },
+  "overrides": {
+    "tar": "7.5.7"
   },
   "lint-staged": {
     "src/**/*.ts": [

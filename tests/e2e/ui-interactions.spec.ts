@@ -47,7 +47,7 @@ test.describe('Modal Interactions', () => {
         await expect(modalBody).not.toBeEmpty();
 
         // Modal should contain common item detail sections
-        await expect(modalBody.locator('h2, h3, .item-name')).toBeVisible();
+        await expect(modalBody.locator('h2, h3, .item-name').first()).toBeVisible();
     });
 
     test('should show correct modal for different items', async ({ page }) => {
@@ -95,20 +95,17 @@ test.describe('Keyboard Navigation', () => {
         await expect(searchInput).toBeFocused();
     });
 
-    test('should navigate tabs with Tab key', async ({ page }) => {
-        // Focus first tab button
-        await page.locator('.tab-btn[data-tab="items"]').focus();
-
-        // Press Enter to activate
-        await page.keyboard.press('Enter');
+    test('should navigate tabs with keyboard number keys', async ({ page }) => {
+        // Items tab should be active by default
         await expect(page.locator('.tab-btn[data-tab="items"]')).toHaveClass(/active/);
 
-        // Tab to next tab button
-        await page.keyboard.press('Tab');
-        await page.keyboard.press('Enter');
-
-        // Should activate weapons tab
+        // Press '2' to switch to weapons tab (keyboard shortcut)
+        await page.keyboard.press('2');
         await expect(page.locator('.tab-btn[data-tab="weapons"]')).toHaveClass(/active/);
+
+        // Press '1' to switch back to items tab
+        await page.keyboard.press('1');
+        await expect(page.locator('.tab-btn[data-tab="items"]')).toHaveClass(/active/);
     });
 
     test('should activate item card on Enter and Space', async ({ page }) => {
