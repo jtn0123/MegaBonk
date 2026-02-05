@@ -18,7 +18,7 @@ import { domCache } from './modules/dom-cache.ts';
 import { safeModuleInit, registerErrorBoundary } from './modules/error-boundary.ts';
 import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.ts';
 import { themeManager } from './modules/theme-manager.ts';
-import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
+import { initWebVitals } from './modules/web-vitals.ts';
 import { setupImageFallbackHandler, setupBlurUpHandler } from './modules/utils.ts';
 import { logger } from './modules/logger.ts';
 import { setupOfflineListeners } from './modules/offline-ui.ts';
@@ -357,7 +357,6 @@ async function init(): Promise<void> {
         'web-vitals',
         async () => {
             initWebVitals();
-            createPerformanceBadge();
         },
         { required: false }
     );
