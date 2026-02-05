@@ -6,6 +6,10 @@ import { allData } from './data-service.ts';
 import { safeGetElementById, escapeHtml, isValidExternalUrl, generateEmptyState } from './utils.ts';
 import type { ChangelogPatch, Entity } from '../types/index.ts';
 
+// Store AbortController for proper event listener cleanup
+// This ensures removeEventListener works correctly even with dynamic imports
+let expandAbortController: AbortController | null = null;
+
 // ========================================
 // Type Definitions
 // ========================================
@@ -284,8 +288,15 @@ export function renderChangelog(patches: ExtendedPatch[]): void {
     });
 
     // Event delegation for expand buttons
-    container.removeEventListener('click', handleExpandClick); // Remove any existing listener
-    container.addEventListener('click', handleExpandClick);
+    // Use AbortController to ensure proper cleanup of previous listeners
+    // (removeEventListener fails with dynamic imports since function references differ)
+    if (expandAbortController) {
+        expandAbortController.abort();
+    }
+    expandAbortController = new AbortController();
+    container.addEventListener('click', handleExpandClick, {
+        signal: expandAbortController.signal,
+    });
 }
 
 /**
