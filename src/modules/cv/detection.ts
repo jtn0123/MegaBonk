@@ -11,21 +11,12 @@
 // ========================================
 // Configuration Exports
 // ========================================
-export {
-    setWorkerBasePath,
-    getDynamicMinConfidence,
-    IMAGE_LOAD_TIMEOUT_MS,
-} from './detection-config.ts';
+export { setWorkerBasePath, getDynamicMinConfidence, IMAGE_LOAD_TIMEOUT_MS } from './detection-config.ts';
 
 // ========================================
 // Utility Exports
 // ========================================
-export {
-    calculateIoU,
-    nonMaxSuppression,
-    resizeImageData,
-    extractCountRegion,
-} from './detection-utils.ts';
+export { calculateIoU, nonMaxSuppression, resizeImageData, extractCountRegion } from './detection-utils.ts';
 
 // ========================================
 // Grid Detection Exports
@@ -34,23 +25,23 @@ export {
     // Hotbar/Edge Detection
     detectHotbarRegion,
     detectIconEdges,
-    
+
     // Grid Inference
     inferGridFromEdges,
     generateGridROIs,
-    
+
     // Adaptive Sizing
     getAdaptiveIconSizes,
     detectIconScale,
     detectGridPositions,
-    
+
     // Grid Verification
     findMode,
     calculateAdaptiveTolerance,
     fitsGrid,
     clusterByY,
     verifyGridPattern,
-    
+
     // Types
     type GridParameters,
     type GridVerificationResult,
@@ -63,22 +54,22 @@ export {
 export {
     // Image Loading
     loadImageToCanvas,
-    
+
     // Similarity
     calculateSimilarity,
-    
+
     // Main Detection
     detectItemsWithCV,
     runEnsembleDetection,
-    
+
     // Count Detection
     detectItemCounts,
-    
+
     // Metrics & Config
     getCVMetrics,
     getDetectionConfig,
     getUncertainDetectionsFromResults,
-    
+
     // Testing
     __resetDetectionStateForTesting,
 } from './detection-core.ts';

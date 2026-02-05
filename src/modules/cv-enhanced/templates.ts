@@ -76,11 +76,7 @@ async function loadTemplateItem(item: Item): Promise<void> {
             sumV = 0,
             count = 0;
         for (let i = 0; i < imageData.data.length; i += 16) {
-            const hsv = rgbToHSV(
-                imageData.data[i] ?? 0,
-                imageData.data[i + 1] ?? 0,
-                imageData.data[i + 2] ?? 0
-            );
+            const hsv = rgbToHSV(imageData.data[i] ?? 0, imageData.data[i + 1] ?? 0, imageData.data[i + 2] ?? 0);
             sumH += hsv.h;
             sumS += hsv.s;
             sumV += hsv.v;

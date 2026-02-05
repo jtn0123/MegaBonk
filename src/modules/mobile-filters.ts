@@ -435,9 +435,7 @@ function handleFocusTrap(e: KeyboardEvent): void {
     if (!sheet) return;
 
     const focusableElements = Array.from(
-        sheet.querySelectorAll<HTMLElement>(
-            'button:not([disabled]), select, input, [tabindex]:not([tabindex="-1"])'
-        )
+        sheet.querySelectorAll<HTMLElement>('button:not([disabled]), select, input, [tabindex]:not([tabindex="-1"])')
     ).filter(el => el.offsetParent !== null);
 
     if (focusableElements.length === 0) return;

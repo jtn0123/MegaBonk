@@ -275,13 +275,13 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
     }
 
     modalBody.innerHTML = content;
-    
+
     // Cancel any pending close timeout to prevent race condition
     if (modalCloseTimeout) {
         clearTimeout(modalCloseTimeout);
         modalCloseTimeout = null;
     }
-    
+
     modal.style.display = 'block';
 
     // Track this view in recently viewed

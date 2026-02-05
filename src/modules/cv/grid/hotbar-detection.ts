@@ -9,11 +9,7 @@ import type { HotbarRegion } from './grid-types.ts';
  * Enhanced hotbar region detection using rarity border analysis
  * Returns the Y coordinates of the detected hotbar band
  */
-export function detectHotbarRegion(
-    ctx: CanvasRenderingContext2D,
-    width: number,
-    height: number
-): HotbarRegion {
+export function detectHotbarRegion(ctx: CanvasRenderingContext2D, width: number, height: number): HotbarRegion {
     // Scan bottom 35% of screen (hotbar is at very bottom)
     const scanStartY = Math.floor(height * 0.65);
     const scanEndY = height - 5;

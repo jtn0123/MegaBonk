@@ -102,7 +102,9 @@
     inset: 0;
     background: rgba(0, 0, 0, 0);
     backdrop-filter: blur(0);
-    transition: background 0.3s ease, backdrop-filter 0.3s ease;
+    transition:
+        background 0.3s ease,
+        backdrop-filter 0.3s ease;
 }
 
 .more-menu.active .more-menu-backdrop {
@@ -181,7 +183,9 @@
 }
 
 .more-menu-close:focus-visible {
-    box-shadow: 0 0 0 2px var(--bg-elevated), 0 0 0 4px var(--accent);
+    box-shadow:
+        0 0 0 2px var(--bg-elevated),
+        0 0 0 4px var(--accent);
 }
 
 /* Menu items grid */
@@ -272,15 +276,15 @@ body.more-menu-open {
     .more-menu-drawer {
         transition: none;
     }
-    
+
     .more-menu-backdrop {
         transition: none;
     }
-    
+
     .more-menu-item {
         transition: none;
     }
-    
+
     .more-menu-item:active {
         transform: none;
     }

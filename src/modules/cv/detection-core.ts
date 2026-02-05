@@ -37,15 +37,15 @@ export {
     // Main Detection
     detectItemsWithCV,
     runEnsembleDetection,
-    
+
     // Count Detection
     detectItemCounts,
-    
+
     // Metrics & Config
     getCVMetrics,
     getDetectionConfig,
     getUncertainDetectionsFromResults,
-    
+
     // Testing
     __resetDetectionStateForTesting,
 } from './detection-pipeline.ts';

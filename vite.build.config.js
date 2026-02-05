@@ -38,7 +38,7 @@ function getGitBranch() {
     if (ciBranch) {
         return ciBranch;
     }
-    
+
     try {
         const branch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf-8' }).trim();
         // If we're in detached HEAD state, try to get the branch from git describe
@@ -227,61 +227,65 @@ export default defineConfig(async () => {
                 ],
             }),
             // Skip PWA plugin during coverage builds (unminified code is too large)
-            ...(isCoverage ? [] : [VitePWA({
-                registerType: 'autoUpdate',
-                manifest: {
-                    name: 'MegaBonk Complete Guide',
-                    short_name: 'MegaBonk',
-                    description:
-                        'Complete guide for MegaBonk roguelike with items, weapons, tomes, characters, build planner and calculator',
-                    theme_color: '#00ff88',
-                    background_color: '#1a1a1a',
-                    display: 'standalone',
-                    icons: [
-                        {
-                            src: 'icons/icon-192.png',
-                            sizes: '192x192',
-                            type: 'image/png',
-                        },
-                        {
-                            src: 'icons/icon-512.png',
-                            sizes: '512x512',
-                            type: 'image/png',
-                        },
-                    ],
-                },
-                workbox: {
-                    globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webp}'],
-                    runtimeCaching: [
-                        {
-                            urlPattern: /^https?:\/\/.*\.json$/,
-                            handler: 'StaleWhileRevalidate',
-                            options: {
-                                cacheName: 'game-data-cache',
-                                expiration: {
-                                    maxEntries: 50,
-                                    maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
-                                },
-                            },
-                        },
-                        {
-                            urlPattern: /\.(?:png|jpg|jpeg|svg|webp|gif)$/,
-                            handler: 'CacheFirst',
-                            options: {
-                                cacheName: 'image-cache',
-                                expiration: {
-                                    maxEntries: 100,
-                                    maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
-                                },
-                            },
-                        },
-                    ],
-                    // Clear old caches on activation
-                    cleanupOutdatedCaches: true,
-                    // Cache versioning - uses package.json version for automatic cache busting
-                    cacheId: cacheVersion,
-                },
-            })]),
+            ...(isCoverage
+                ? []
+                : [
+                      VitePWA({
+                          registerType: 'autoUpdate',
+                          manifest: {
+                              name: 'MegaBonk Complete Guide',
+                              short_name: 'MegaBonk',
+                              description:
+                                  'Complete guide for MegaBonk roguelike with items, weapons, tomes, characters, build planner and calculator',
+                              theme_color: '#00ff88',
+                              background_color: '#1a1a1a',
+                              display: 'standalone',
+                              icons: [
+                                  {
+                                      src: 'icons/icon-192.png',
+                                      sizes: '192x192',
+                                      type: 'image/png',
+                                  },
+                                  {
+                                      src: 'icons/icon-512.png',
+                                      sizes: '512x512',
+                                      type: 'image/png',
+                                  },
+                              ],
+                          },
+                          workbox: {
+                              globPatterns: ['**/*.{js,css,html,ico,png,svg,json,webp}'],
+                              runtimeCaching: [
+                                  {
+                                      urlPattern: /^https?:\/\/.*\.json$/,
+                                      handler: 'StaleWhileRevalidate',
+                                      options: {
+                                          cacheName: 'game-data-cache',
+                                          expiration: {
+                                              maxEntries: 50,
+                                              maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+                                          },
+                                      },
+                                  },
+                                  {
+                                      urlPattern: /\.(?:png|jpg|jpeg|svg|webp|gif)$/,
+                                      handler: 'CacheFirst',
+                                      options: {
+                                          cacheName: 'image-cache',
+                                          expiration: {
+                                              maxEntries: 100,
+                                              maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                                          },
+                                      },
+                                  },
+                              ],
+                              // Clear old caches on activation
+                              cleanupOutdatedCaches: true,
+                              // Cache versioning - uses package.json version for automatic cache busting
+                              cacheId: cacheVersion,
+                          },
+                      }),
+                  ]),
         ],
     };
 });

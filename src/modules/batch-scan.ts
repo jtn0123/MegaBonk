@@ -287,99 +287,101 @@ export async function processBatch(
     }
 
     try {
-    // Clear previous results
-    batchResults = [];
+        // Clear previous results
+        batchResults = [];
 
-    // Initialize results
-    for (const file of validFiles) {
-        batchResults.push({
-            id: `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-            filename: file.name,
-            imageDataUrl: '',
-            thumbnail: '',
-            timestamp: new Date().toISOString(),
-            status: 'pending',
-        });
-    }
+        // Initialize results
+        for (const file of validFiles) {
+            batchResults.push({
+                id: `batch_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                filename: file.name,
+                imageDataUrl: '',
+                thumbnail: '',
+                timestamp: new Date().toISOString(),
+                status: 'pending',
+            });
+        }
 
-    // Process each file
-    for (let i = 0; i < validFiles.length; i++) {
-        const file = validFiles[i];
-        const result = batchResults[i];
+        // Process each file
+        for (let i = 0; i < validFiles.length; i++) {
+            const file = validFiles[i];
+            const result = batchResults[i];
 
-        // Skip if file or result is undefined (should never happen, but satisfies TypeScript)
-        if (!file || !result) continue;
+            // Skip if file or result is undefined (should never happen, but satisfies TypeScript)
+            if (!file || !result) continue;
+
+            onProgress?.({
+                total: validFiles.length,
+                completed: i,
+                current: file.name,
+                overallProgress: (i / validFiles.length) * 100,
+            });
+
+            result.status = 'processing';
+            const startTime = Date.now();
+
+            try {
+                // Read and generate thumbnail
+                result.imageDataUrl = await readFileAsDataURL(file);
+                result.thumbnail = await generateThumbnail(result.imageDataUrl);
+
+                // Detect build
+                const detectedBuild = await detectBuildFromImage(result.imageDataUrl);
+                result.detectedBuild = detectedBuild;
+
+                // Calculate stats (detectedBuild is guaranteed to exist from detectBuildFromImage)
+                const totalItems = detectedBuild?.items.reduce((sum, item) => sum + item.count, 0) ?? 0;
+                const allConfidences = [
+                    ...(detectedBuild?.items.map(item => item.confidence) ?? []),
+                    ...(detectedBuild?.tomes.map(t => t.confidence) ?? []),
+                ];
+                const avgConfidence =
+                    allConfidences.length > 0
+                        ? allConfidences.reduce((sum, c) => sum + c, 0) / allConfidences.length
+                        : 0;
+
+                result.stats = {
+                    totalItems,
+                    avgConfidence,
+                    processingTimeMs: Date.now() - startTime,
+                };
+
+                result.status = 'complete';
+
+                logger.info({
+                    operation: 'batch_scan.file_processed',
+                    data: {
+                        filename: file.name,
+                        itemsDetected: totalItems,
+                        avgConfidence: Math.round(avgConfidence * 100),
+                        timeMs: result.stats.processingTimeMs,
+                    },
+                });
+            } catch (error) {
+                result.status = 'error';
+                result.error = (error as Error).message;
+
+                logError('batch_scan.file_error', error, { filename: file.name });
+            }
+        }
 
         onProgress?.({
             total: validFiles.length,
-            completed: i,
-            current: file.name,
-            overallProgress: (i / validFiles.length) * 100,
+            completed: validFiles.length,
+            current: 'Complete',
+            overallProgress: 100,
         });
 
-        result.status = 'processing';
-        const startTime = Date.now();
+        logger.info({
+            operation: 'batch_scan.complete',
+            data: {
+                totalFiles: validFiles.length,
+                successful: batchResults.filter(r => r.status === 'complete').length,
+                failed: batchResults.filter(r => r.status === 'error').length,
+            },
+        });
 
-        try {
-            // Read and generate thumbnail
-            result.imageDataUrl = await readFileAsDataURL(file);
-            result.thumbnail = await generateThumbnail(result.imageDataUrl);
-
-            // Detect build
-            const detectedBuild = await detectBuildFromImage(result.imageDataUrl);
-            result.detectedBuild = detectedBuild;
-
-            // Calculate stats (detectedBuild is guaranteed to exist from detectBuildFromImage)
-            const totalItems = detectedBuild?.items.reduce((sum, item) => sum + item.count, 0) ?? 0;
-            const allConfidences = [
-                ...(detectedBuild?.items.map(item => item.confidence) ?? []),
-                ...(detectedBuild?.tomes.map(t => t.confidence) ?? []),
-            ];
-            const avgConfidence =
-                allConfidences.length > 0 ? allConfidences.reduce((sum, c) => sum + c, 0) / allConfidences.length : 0;
-
-            result.stats = {
-                totalItems,
-                avgConfidence,
-                processingTimeMs: Date.now() - startTime,
-            };
-
-            result.status = 'complete';
-
-            logger.info({
-                operation: 'batch_scan.file_processed',
-                data: {
-                    filename: file.name,
-                    itemsDetected: totalItems,
-                    avgConfidence: Math.round(avgConfidence * 100),
-                    timeMs: result.stats.processingTimeMs,
-                },
-            });
-        } catch (error) {
-            result.status = 'error';
-            result.error = (error as Error).message;
-
-            logError('batch_scan.file_error', error, { filename: file.name });
-        }
-    }
-
-    onProgress?.({
-        total: validFiles.length,
-        completed: validFiles.length,
-        current: 'Complete',
-        overallProgress: 100,
-    });
-
-    logger.info({
-        operation: 'batch_scan.complete',
-        data: {
-            totalFiles: validFiles.length,
-            successful: batchResults.filter(r => r.status === 'complete').length,
-            failed: batchResults.filter(r => r.status === 'error').length,
-        },
-    });
-
-    return batchResults;
+        return batchResults;
     } finally {
         // Race condition fix: Always release lock when done
         batchMutex.release();
@@ -484,9 +486,7 @@ export function getBatchSummary(): {
     }
 
     // Flatten all detected items across all screenshots
-    const allItems = successful.flatMap(r =>
-        r.detectedBuild?.items ?? []
-    );
+    const allItems = successful.flatMap(r => r.detectedBuild?.items ?? []);
 
     // Count item occurrences
     const itemCounts = new Map<string, { name: string; count: number }>();

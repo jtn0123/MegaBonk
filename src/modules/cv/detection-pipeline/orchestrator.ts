@@ -12,18 +12,9 @@ import { selectStrategiesForImage } from '../ensemble-detector.ts';
 import { getResolutionTier } from '../resolution-profiles.ts';
 import { findUncertainDetections, shouldPromptForLearning } from '../active-learning.ts';
 import { detectCount, hasCountOverlay } from '../count-detection.ts';
-import {
-    getDynamicMinConfidence,
-    isCVDetectionInProgress,
-    setCVDetectionInProgress,
-} from '../detection-config.ts';
+import { getDynamicMinConfidence, isCVDetectionInProgress, setCVDetectionInProgress } from '../detection-config.ts';
 import { hashImageDataUrl } from '../detection-utils.ts';
-import {
-    detectHotbarRegion,
-    getAdaptiveIconSizes,
-    verifyGridPattern,
-    detectGridPositions,
-} from '../detection-grid.ts';
+import { detectHotbarRegion, getAdaptiveIconSizes, verifyGridPattern, detectGridPositions } from '../detection-grid.ts';
 import {
     loadImageToCanvas,
     getCachedResults,

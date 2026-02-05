@@ -84,7 +84,7 @@ export function createDebouncedAsync<T, Args extends unknown[]>(
             pendingId++;
             const currentId = pendingId;
 
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 timeoutId = setTimeout(async () => {
                     // Check if this call is still current
                     if (currentId !== pendingId) {

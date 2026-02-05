@@ -364,7 +364,7 @@ async function loadTrainingImage(imagePath: string): Promise<ImageData | null> {
             }
         };
 
-        img.onerror = (event) => {
+        img.onerror = event => {
             if (resolved) return;
             resolved = true;
             clearTimeout(timeout);

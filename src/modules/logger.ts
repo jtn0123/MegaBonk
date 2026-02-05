@@ -33,10 +33,4 @@ export {
 export { EventBuilder } from './logger-metrics';
 
 // Request tracking
-export {
-    RequestTimer,
-    requestTimer,
-    trackedFetch,
-    type RequestTiming,
-    type RequestStats,
-} from './logger-requests';
+export { RequestTimer, requestTimer, trackedFetch, type RequestTiming, type RequestStats } from './logger-requests';

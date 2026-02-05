@@ -10,10 +10,7 @@
  * @param keyFn - Function to extract key from item
  * @returns Map of key to items array
  */
-export function groupBy<T, K>(
-    items: T[],
-    keyFn: (item: T) => K
-): Map<K, T[]> {
+export function groupBy<T, K>(items: T[], keyFn: (item: T) => K): Map<K, T[]> {
     const map = new Map<K, T[]>();
 
     for (const item of items) {
@@ -32,10 +29,7 @@ export function groupBy<T, K>(
  * @param keyFn - Function to extract key from item
  * @returns Map of key to count
  */
-export function countBy<T, K>(
-    items: T[],
-    keyFn: (item: T) => K
-): Map<K, number> {
+export function countBy<T, K>(items: T[], keyFn: (item: T) => K): Map<K, number> {
     const map = new Map<K, number>();
 
     for (const item of items) {
@@ -52,10 +46,7 @@ export function countBy<T, K>(
  * @param keyFn - Function to extract unique key
  * @returns Deduplicated array
  */
-export function uniqueBy<T, K>(
-    items: T[],
-    keyFn: (item: T) => K
-): T[] {
+export function uniqueBy<T, K>(items: T[], keyFn: (item: T) => K): T[] {
     const seen = new Set<K>();
     const result: T[] = [];
 
@@ -76,10 +67,7 @@ export function uniqueBy<T, K>(
  * @param predicate - Function returning true for first partition
  * @returns Tuple of [matching, non-matching] arrays
  */
-export function partition<T>(
-    items: T[],
-    predicate: (item: T) => boolean
-): [T[], T[]] {
+export function partition<T>(items: T[], predicate: (item: T) => boolean): [T[], T[]] {
     const matching: T[] = [];
     const nonMatching: T[] = [];
 
@@ -100,10 +88,7 @@ export function partition<T>(
  * @param filterMapFn - Function returning undefined to filter, or mapped value
  * @returns Filtered and mapped array
  */
-export function filterMap<T, U>(
-    items: T[],
-    filterMapFn: (item: T, index: number) => U | undefined
-): U[] {
+export function filterMap<T, U>(items: T[], filterMapFn: (item: T, index: number) => U | undefined): U[] {
     const result: U[] = [];
 
     for (let i = 0; i < items.length; i++) {
@@ -145,11 +130,7 @@ export function findInCollection<T extends { [K in IdKey]: string }, IdKey exten
  * @param defaultValue - Value to return if index out of bounds
  * @returns Item at index or default
  */
-export function safeGet<T>(
-    array: T[] | undefined | null,
-    index: number,
-    defaultValue: T
-): T {
+export function safeGet<T>(array: T[] | undefined | null, index: number, defaultValue: T): T {
     if (!array || index < 0 || index >= array.length) {
         return defaultValue;
     }
@@ -173,10 +154,7 @@ export function take<T>(items: T[], count: number): T[] {
  * @param valueFn - Function to extract numeric value
  * @returns Sum of values
  */
-export function sumBy<T>(
-    items: T[],
-    valueFn: (item: T) => number
-): number {
+export function sumBy<T>(items: T[], valueFn: (item: T) => number): number {
     return items.reduce((sum, item) => sum + valueFn(item), 0);
 }
 
@@ -186,10 +164,7 @@ export function sumBy<T>(
  * @param valueFn - Function to extract numeric value
  * @returns Average or 0 if empty
  */
-export function avgBy<T>(
-    items: T[],
-    valueFn: (item: T) => number
-): number {
+export function avgBy<T>(items: T[], valueFn: (item: T) => number): number {
     if (items.length === 0) return 0;
     return sumBy(items, valueFn) / items.length;
 }
@@ -200,10 +175,7 @@ export function avgBy<T>(
  * @param valueFn - Function to extract numeric value
  * @returns Item with max value or undefined if empty
  */
-export function maxBy<T>(
-    items: T[],
-    valueFn: (item: T) => number
-): T | undefined {
+export function maxBy<T>(items: T[], valueFn: (item: T) => number): T | undefined {
     if (items.length === 0) return undefined;
 
     const firstItem = items[0];
@@ -231,10 +203,7 @@ export function maxBy<T>(
  * @param keyFn - Function to extract key
  * @returns Map for O(1) lookups
  */
-export function buildLookup<T, K>(
-    items: T[],
-    keyFn: (item: T) => K
-): Map<K, T> {
+export function buildLookup<T, K>(items: T[], keyFn: (item: T) => K): Map<K, T> {
     const map = new Map<K, T>();
 
     for (const item of items) {
@@ -250,10 +219,7 @@ export function buildLookup<T, K>(
  * @param keyFn - Optional function to extract key (default: identity)
  * @returns Set for O(1) lookups
  */
-export function buildSet<T, K = T>(
-    items: T[],
-    keyFn?: (item: T) => K
-): Set<K> {
+export function buildSet<T, K = T>(items: T[], keyFn?: (item: T) => K): Set<K> {
     const set = new Set<K>();
 
     for (const item of items) {

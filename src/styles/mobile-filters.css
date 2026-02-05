@@ -27,7 +27,9 @@
 }
 
 .mobile-filter-btn:focus-visible {
-    box-shadow: 0 0 0 2px var(--bg-elevated), 0 0 0 4px var(--accent);
+    box-shadow:
+        0 0 0 2px var(--bg-elevated),
+        0 0 0 4px var(--accent);
 }
 
 .mobile-filter-btn .filter-icon {
@@ -72,7 +74,9 @@
     inset: 0;
     background: rgba(0, 0, 0, 0);
     backdrop-filter: blur(0);
-    transition: background 0.3s ease, backdrop-filter 0.3s ease;
+    transition:
+        background 0.3s ease,
+        backdrop-filter 0.3s ease;
 }
 
 .filter-bottom-sheet.active .filter-sheet-backdrop {
@@ -176,7 +180,9 @@
 }
 
 .filter-sheet-close:focus-visible {
-    box-shadow: 0 0 0 2px var(--bg-elevated), 0 0 0 4px var(--accent);
+    box-shadow:
+        0 0 0 2px var(--bg-elevated),
+        0 0 0 4px var(--accent);
 }
 
 /* Filter content area */
@@ -243,7 +249,7 @@
     background: var(--bg-card);
 }
 
-.filter-group-checkbox input[type="checkbox"] {
+.filter-group-checkbox input[type='checkbox'] {
     width: 20px;
     height: 20px;
     accent-color: var(--accent);
@@ -342,11 +348,11 @@ body.filter-sheet-open {
     .filter-sheet-drawer {
         transition: none;
     }
-    
+
     .filter-sheet-backdrop {
         transition: none;
     }
-    
+
     .filter-sheet-apply button:active {
         transform: none;
     }

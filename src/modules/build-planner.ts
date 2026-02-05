@@ -235,7 +235,7 @@ export function loadBuildFromHistory(index: number): void {
             ToastManager.error('Build not found in history');
             return;
         }
-        
+
         loadBuildFromData(buildData);
 
         logger.info({
@@ -413,7 +413,7 @@ export function setupBuildPlannerEvents(): void {
         // onClear
         clearBuild
     );
-    
+
     setupSelectionListeners(updateBuildAnalysis);
 }
 
@@ -442,7 +442,7 @@ export function updateBuildAnalysis(): void {
     // Note: Don't spread the Proxy directly ({ ...currentBuild }) as it produces an empty object.
     // The Proxy setter already calls setState for each property change, so the store is up-to-date.
     // Just get the current build from the store for the UI update.
-    
+
     // Update UI display
     updateBuildDisplay(getCurrentBuildFromStore(), updateBuildURL);
 }
@@ -545,7 +545,7 @@ export function loadBuildFromURL(): boolean {
         }
 
         const decoded = JSON.parse(decodedString);
-        
+
         if (!isValidURLBuildData(decoded)) {
             ToastManager.error('Invalid build data format');
             return false;

@@ -114,10 +114,14 @@ export function callFunction<K extends keyof ModuleRegistry>(
 ): ModuleRegistry[K] extends ((...args: unknown[]) => infer R) | null ? R | undefined : undefined {
     const fn = registry[name];
     if (fn) {
-        type ReturnType = ModuleRegistry[K] extends ((...args: unknown[]) => infer R) | null ? R | undefined : undefined;
+        type ReturnType = ModuleRegistry[K] extends ((...args: unknown[]) => infer R) | null
+            ? R | undefined
+            : undefined;
         return (fn as (...args: unknown[]) => unknown)(...args) as ReturnType;
     }
-    type UndefinedReturn = ModuleRegistry[K] extends ((...args: unknown[]) => infer R) | null ? R | undefined : undefined;
+    type UndefinedReturn = ModuleRegistry[K] extends ((...args: unknown[]) => infer R) | null
+        ? R | undefined
+        : undefined;
     return undefined as UndefinedReturn;
 }
 

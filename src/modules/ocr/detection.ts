@@ -7,7 +7,13 @@ import type { AllGameData, Item, Tome, Character, Weapon } from '../../types/ind
 import Fuse from 'fuse.js';
 import { logger } from '../logger.ts';
 import { splitIntoSegments } from './utils.ts';
-import type { DetectionResult, EntityWithId, DetectEntitiesOptions, AutoDetectResult, OCRProgressCallback } from './types.ts';
+import type {
+    DetectionResult,
+    EntityWithId,
+    DetectEntitiesOptions,
+    AutoDetectResult,
+    OCRProgressCallback,
+} from './types.ts';
 import { extractTextFromImage } from './extraction.ts';
 
 // Fuse.js instances for fuzzy matching

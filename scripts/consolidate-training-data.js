@@ -30,11 +30,11 @@ const CONFIG = {
 
     // Source weights for quality scoring
     SOURCE_WEIGHTS: {
-        ground_truth: 1.5,      // Human-labeled from ground truth images
-        corrected: 1.3,         // Human-corrected in validator
+        ground_truth: 1.5, // Human-labeled from ground truth images
+        corrected: 1.3, // Human-corrected in validator
         corrected_from_empty: 1.2, // Filled in empty slot
-        verified: 1.0,          // Confirmed correct detection
-        unreviewed: 0.8,        // Auto-detected but not reviewed
+        verified: 1.0, // Confirmed correct detection
+        unreviewed: 0.8, // Auto-detected but not reviewed
     },
 
     // Quality thresholds
@@ -79,7 +79,7 @@ function buffersAreSimilar(buf1, buf2) {
         if (Math.abs(buf1[i] - buf2[i]) < 10) matching++;
     }
 
-    return (matching / (buf1.length / step)) > CONFIG.SIMILARITY_THRESHOLD;
+    return matching / (buf1.length / step) > CONFIG.SIMILARITY_THRESHOLD;
 }
 
 // ========================================
@@ -350,9 +350,7 @@ function rebuildIndexFromCrops(outputDir, options) {
     console.log('Rebuilding index from existing crops...');
     const index = createEmptyIndex();
 
-    const itemDirs = fs.readdirSync(cropsDir).filter(f =>
-        fs.statSync(path.join(cropsDir, f)).isDirectory()
-    );
+    const itemDirs = fs.readdirSync(cropsDir).filter(f => fs.statSync(path.join(cropsDir, f)).isDirectory());
 
     for (const itemId of itemDirs) {
         const itemDir = path.join(cropsDir, itemId);
@@ -377,12 +375,14 @@ function rebuildIndexFromCrops(outputDir, options) {
             // Parse info from filename if possible
             // Format: itemid_source_num.png (e.g., wrench_gt_001.png)
             const match = file.match(/^(.+?)_(gt|cor|ver|exp)_(\d+)\.png$/);
-            const source = match ? {
-                gt: 'ground_truth',
-                cor: 'corrected',
-                ver: 'verified',
-                exp: 'validated_export',
-            }[match[2]] : 'unknown';
+            const source = match
+                ? {
+                      gt: 'ground_truth',
+                      cor: 'corrected',
+                      ver: 'verified',
+                      exp: 'validated_export',
+                  }[match[2]]
+                : 'unknown';
 
             index.items[itemId].samples.push({
                 id: file.replace('.png', ''),
@@ -433,9 +433,9 @@ function generateStatistics(index) {
         avg_samples_per_item: 0,
         coverage: {
             single_sample: 0,
-            low: 0,      // 2-3 samples
-            medium: 0,   // 4-6 samples
-            high: 0,     // 7+ samples
+            low: 0, // 2-3 samples
+            medium: 0, // 4-6 samples
+            high: 0, // 7+ samples
         },
     };
 
@@ -460,9 +460,8 @@ function generateStatistics(index) {
         }
     }
 
-    stats.avg_samples_per_item = stats.items_with_samples > 0
-        ? (stats.total_samples / stats.items_with_samples).toFixed(2)
-        : 0;
+    stats.avg_samples_per_item =
+        stats.items_with_samples > 0 ? (stats.total_samples / stats.items_with_samples).toFixed(2) : 0;
 
     return stats;
 }

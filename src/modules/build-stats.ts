@@ -4,12 +4,7 @@
 // ========================================
 
 import type { Tome, Item } from '../types/index.ts';
-import {
-    DEFAULT_BUILD_STATS,
-    ITEM_EFFECTS,
-    type BuildStats,
-    type ItemEffect,
-} from './constants.ts';
+import { DEFAULT_BUILD_STATS, ITEM_EFFECTS, type BuildStats, type ItemEffect } from './constants.ts';
 import type { Build } from './store.ts';
 
 // ========================================
@@ -130,8 +125,7 @@ function applyTomeBonus(stats: CalculatedBuildStats, tome: Tome): void {
     else if (tome.stat_affected === 'Crit Damage') stats.crit_damage += value * tomeLevel;
     else if (tome.stat_affected === 'Max HP' || tome.id === 'vitality' || tome.id === 'hp')
         stats.hp += value * tomeLevel;
-    else if (tome.stat_affected === 'Attack Speed' || tome.id === 'cooldown')
-        stats.attack_speed += value * tomeLevel;
+    else if (tome.stat_affected === 'Attack Speed' || tome.id === 'cooldown') stats.attack_speed += value * tomeLevel;
     else if (tome.stat_affected === 'Movement Speed' || tome.id === 'agility')
         stats.movement_speed += value * tomeLevel;
     else if (tome.stat_affected === 'Armor' || tome.id === 'armor') stats.armor += value * tomeLevel;
@@ -222,7 +216,7 @@ export function calculateDPS(stats: CalculatedBuildStats): number {
     const baseDamage = stats.damage;
     const critMultiplier = 1 + (stats.crit_chance / 100) * (stats.crit_damage / 100 - 1);
     const attackSpeedMultiplier = 1 + stats.attack_speed / 100;
-    
+
     return baseDamage * critMultiplier * attackSpeedMultiplier * stats.projectiles;
 }
 
@@ -234,7 +228,7 @@ export function calculateDPS(stats: CalculatedBuildStats): number {
 export function calculateEffectiveHP(stats: CalculatedBuildStats): number {
     const armorReduction = stats.armor / (stats.armor + 100); // Diminishing returns formula
     const evasionMultiplier = 1 / (1 - stats.evasion / 100);
-    
+
     return stats.hp * (1 / (1 - armorReduction)) * evasionMultiplier;
 }
 
@@ -247,7 +241,7 @@ export function scoreBuild(stats: CalculatedBuildStats): number {
     const dps = calculateDPS(stats);
     const ehp = calculateEffectiveHP(stats);
     const mobilityBonus = stats.movement_speed * 2;
-    
+
     // Weighted score combining offense and defense
     return dps * 0.6 + ehp * 0.3 + mobilityBonus * 0.1;
 }

@@ -23,28 +23,28 @@ export {
     type SlidingWindowOptions,
     type TwoPhaseResult,
     type ProgressCallback,
-    
+
     // Two-Phase Detection
     detectIconsWithTwoPhase,
-    
+
     // Sliding Window Detection
     detectIconsWithSlidingWindow,
     detectEquipmentRegion,
-    
+
     // Worker Detection
     detectItemsWithWorkers,
-    
+
     // Ensemble Detection
     runEnsembleDetection,
-    
+
     // OCR Count Detection
     detectItemCounts,
-    
+
     // Metrics & Config Exports
     getCVMetrics,
     getDetectionConfig,
     getUncertainDetectionsFromResults,
-    
+
     // Main Orchestration
     detectItemsWithCV,
     __resetDetectionStateForTesting,

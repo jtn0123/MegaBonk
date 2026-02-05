@@ -251,11 +251,14 @@ self.onmessage = function(e) {
 
 class CVWorkerManager {
     private worker: Worker | null = null;
-    private pendingRequests: Map<string, {
-        resolve: (result: DetectionResult[]) => void;
-        reject: (error: Error) => void;
-        onProgress?: (progress: number) => void;
-    }> = new Map();
+    private pendingRequests: Map<
+        string,
+        {
+            resolve: (result: DetectionResult[]) => void;
+            reject: (error: Error) => void;
+            onProgress?: (progress: number) => void;
+        }
+    > = new Map();
     private isReady = false;
     private requestIdCounter = 0;
 
@@ -288,13 +291,13 @@ class CVWorkerManager {
                         this.isReady = true;
                         resolve();
                     },
-                    reject
+                    reject,
                 });
 
                 this.worker?.postMessage({
                     type: 'init',
                     id,
-                    data: { config, templates }
+                    data: { config, templates },
                 });
 
                 // Timeout after 5 seconds
@@ -308,7 +311,7 @@ class CVWorkerManager {
         } catch (error) {
             logger.error({
                 operation: 'cv-worker.init',
-                error: { name: 'WorkerError', message: String(error), module: 'cv-worker' }
+                error: { name: 'WorkerError', message: String(error), module: 'cv-worker' },
             });
             throw error;
         }
@@ -317,10 +320,7 @@ class CVWorkerManager {
     /**
      * Run detection on an image
      */
-    async detect(
-        imageData: ImageData,
-        onProgress?: (progress: number) => void
-    ): Promise<DetectionResult[]> {
+    async detect(imageData: ImageData, onProgress?: (progress: number) => void): Promise<DetectionResult[]> {
         if (!this.worker || !this.isReady) {
             throw new Error('CV Worker not initialized');
         }
@@ -332,7 +332,7 @@ class CVWorkerManager {
             this.worker?.postMessage({
                 type: 'detect',
                 id,
-                data: { imageData }
+                data: { imageData },
             });
 
             // Timeout after 30 seconds
@@ -377,7 +377,7 @@ class CVWorkerManager {
             if (type === 'progress') return;
             logger.warn({
                 operation: 'cv-worker.message',
-                data: { id, type, reason: 'no_pending_request' }
+                data: { id, type, reason: 'no_pending_request' },
             });
             return;
         }
@@ -410,7 +410,7 @@ class CVWorkerManager {
     private handleError(error: ErrorEvent): void {
         logger.error({
             operation: 'cv-worker.error',
-            error: { name: 'WorkerError', message: error.message, module: 'cv-worker' }
+            error: { name: 'WorkerError', message: error.message, module: 'cv-worker' },
         });
 
         // Reject all pending requests
@@ -457,7 +457,7 @@ export async function runCVDetection(
     if (!isWorkerSupported()) {
         logger.warn({
             operation: 'cv-worker.detect',
-            data: { reason: 'workers_not_supported', fallback: 'main_thread' }
+            data: { reason: 'workers_not_supported', fallback: 'main_thread' },
         });
         // Fallback would go here - for now just return empty
         return [];
@@ -473,7 +473,7 @@ export async function runCVDetection(
     } catch (error) {
         logger.error({
             operation: 'cv-worker.detect',
-            error: { name: 'DetectionError', message: String(error), module: 'cv-worker' }
+            error: { name: 'DetectionError', message: String(error), module: 'cv-worker' },
         });
         throw error;
     }

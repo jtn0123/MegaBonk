@@ -16,11 +16,7 @@ import { getTrainingTemplatesForItem } from './training.ts';
 import type { TrainingTemplate } from './training.ts';
 import { combineVotes, type TemplateVote } from './voting.ts';
 import { shouldSkipTemplate, getTemplateRanking } from './template-ranking.ts';
-import {
-    resizeImageData,
-    extractIconRegion,
-    findClosestTemplateSize,
-} from './detection-utils.ts';
+import { resizeImageData, extractIconRegion, findClosestTemplateSize } from './detection-utils.ts';
 
 // ========================================
 // Similarity Calculation
@@ -214,7 +210,11 @@ export function findBestTemplateMatch(
 
         // Absolute similarity floor - never accept matches below 0.35 regardless of config
         const SIMILARITY_FLOOR = 0.35;
-        if (similarity >= SIMILARITY_FLOOR && similarity > minConfidence && (!bestMatch || similarity > bestMatch.similarity)) {
+        if (
+            similarity >= SIMILARITY_FLOOR &&
+            similarity > minConfidence &&
+            (!bestMatch || similarity > bestMatch.similarity)
+        ) {
             bestMatch = { item, similarity };
         }
     }

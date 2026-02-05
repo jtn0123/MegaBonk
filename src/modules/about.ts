@@ -36,7 +36,7 @@ function getDataCounts(): { items: number; weapons: number; tomes: number; chara
     const tomes = getDataForTab('tomes') as unknown[];
     const characters = getDataForTab('characters') as unknown[];
     const shrines = getDataForTab('shrines') as unknown[];
-    
+
     return {
         items: items?.length || 0,
         weapons: weapons?.length || 0,
@@ -61,7 +61,7 @@ export function renderAbout(): void {
     const buildDate = typeof __BUILD_DATE__ !== 'undefined' ? __BUILD_DATE__ : new Date().toISOString();
     const gitCommit = typeof __GIT_COMMIT__ !== 'undefined' ? __GIT_COMMIT__ : 'dev';
     const gitBranch = typeof __GIT_BRANCH__ !== 'undefined' ? __GIT_BRANCH__ : 'main';
-    
+
     // Get dynamic counts from loaded data
     const counts = getDataCounts();
 

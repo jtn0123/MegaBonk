@@ -19,12 +19,7 @@ export type {
 } from './types.ts';
 
 // Similarity algorithms
-export {
-    calculateSimilarity,
-    calculateNCC,
-    calculateSSD,
-    calculateSSIM,
-} from './similarity.ts';
+export { calculateSimilarity, calculateNCC, calculateSSD, calculateSSIM } from './similarity.ts';
 
 // Template management
 export {
@@ -37,26 +32,13 @@ export {
 } from './templates.ts';
 
 // Matching algorithms
-export {
-    filterValidCells,
-    filterCandidates,
-    matchCell,
-    multiPassMatching,
-    singlePassMatching,
-} from './matching.ts';
+export { filterValidCells, filterCandidates, matchCell, multiPassMatching, singlePassMatching } from './matching.ts';
 
 // Detection (main entry point)
-export {
-    initEnhancedCV,
-    detectItemsWithEnhancedCV,
-} from './detection.ts';
+export { initEnhancedCV, detectItemsWithEnhancedCV } from './detection.ts';
 
 // Utilities
-export {
-    resizeImageData,
-    loadImage,
-    createCanvasFromImage,
-} from './utils.ts';
+export { resizeImageData, loadImage, createCanvasFromImage } from './utils.ts';
 
 // Backwards compatibility alias
 export { resetEnhancedTemplates as resetEnhancedCVState } from './templates.ts';

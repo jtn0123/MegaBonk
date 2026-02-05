@@ -193,7 +193,7 @@ export async function extractCropFromImage(
             // Export as PNG base64
             resolve(canvas.toDataURL('image/png'));
         };
-        img.onerror = (event) => {
+        img.onerror = event => {
             const errorMsg = event instanceof ErrorEvent ? event.message : 'Unknown error';
             logger.warn({
                 operation: 'feedback.extract_crop_failed',

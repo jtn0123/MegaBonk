@@ -36,11 +36,14 @@ interface SuggestedItem {
 // Empty State Configuration
 // ========================================
 
-const EMPTY_STATE_CONFIG: Record<EmptyStateType, {
-    getMessage: (ctx: EmptyStateContext) => string;
-    buttonText: string;
-    buttonAction: string;
-}> = {
+const EMPTY_STATE_CONFIG: Record<
+    EmptyStateType,
+    {
+        getMessage: (ctx: EmptyStateContext) => string;
+        buttonText: string;
+        buttonAction: string;
+    }
+> = {
     favorites: {
         getMessage: () => 'No favorites yet! ❤️',
         buttonText: 'Browse Items',
@@ -52,7 +55,7 @@ const EMPTY_STATE_CONFIG: Record<EmptyStateType, {
         buttonAction: 'browse',
     },
     search: {
-        getMessage: (ctx) => `No results for "${escapeHtml(ctx.searchQuery || '')}" 🔍`,
+        getMessage: ctx => `No results for "${escapeHtml(ctx.searchQuery || '')}" 🔍`,
         buttonText: 'Clear Search',
         buttonAction: 'clear-search',
     },
@@ -107,7 +110,7 @@ function getCompareableItems(tabName: EntityType, limit: number = 4): SuggestedI
 
     const suggestions: SuggestedItem[] = [];
     const tiers = ['SS', 'S', 'A', 'B'];
-    
+
     for (const tier of tiers) {
         if (suggestions.length >= limit) break;
         const tierItems = byTier[tier];
@@ -180,7 +183,7 @@ function mapEntityToSuggested(entity: Entity, tabName: EntityType): SuggestedIte
  */
 function getShortDescription(entity: Entity, tabName: EntityType): string {
     let desc = '';
-    
+
     switch (tabName) {
         case 'items':
             desc = (entity as { base_effect?: string }).base_effect || entity.description || '';
@@ -218,17 +221,17 @@ function getShortDescription(entity: Entity, tabName: EntityType): string {
 export function detectEmptyStateType(tabName: EntityType): EmptyStateContext {
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
     const searchQuery = searchInput?.value?.trim() || '';
-    
+
     const favoritesCheckbox = safeGetElementById('favoritesOnly') as HTMLInputElement | null;
     const favoritesOnly = favoritesCheckbox?.checked || false;
-    
+
     // Check if any filters are active
     const tierFilter = safeGetElementById('tierFilter') as HTMLSelectElement | null;
     const rarityFilter = safeGetElementById('rarityFilter') as HTMLSelectElement | null;
     const stackingFilter = safeGetElementById('stackingFilter') as HTMLSelectElement | null;
     const typeFilter = safeGetElementById('typeFilter') as HTMLSelectElement | null;
-    
-    const hasActiveFilters = 
+
+    const hasActiveFilters =
         (tierFilter?.value && tierFilter.value !== 'all') ||
         (rarityFilter?.value && rarityFilter.value !== 'all') ||
         (stackingFilter?.value && stackingFilter.value !== 'all') ||
@@ -262,7 +265,7 @@ export function detectEmptyStateType(tabName: EntityType): EmptyStateContext {
  */
 function generateSuggestionCard(item: SuggestedItem, tabName: EntityType): string {
     const entityType = tabName.replace(/s$/, ''); // items -> item
-    
+
     let imageHtml = '';
     if (item.icon) {
         imageHtml = `<span class="suggestion-icon">${escapeHtml(item.icon)}</span>`;
@@ -325,8 +328,9 @@ export function generateEmptyStateWithSuggestions(context: EmptyStateContext): s
             suggestions = getPopularItems(context.tabName, 4);
     }
 
-    const suggestionsHtml = suggestions.length > 0 
-        ? `
+    const suggestionsHtml =
+        suggestions.length > 0
+            ? `
             <div class="empty-state-suggestions">
                 <span class="suggestions-label">Try these instead:</span>
                 <div class="suggestions-grid">
@@ -334,7 +338,7 @@ export function generateEmptyStateWithSuggestions(context: EmptyStateContext): s
                 </div>
             </div>
         `
-        : '';
+            : '';
 
     return `
         <div class="empty-state empty-state-enhanced">
@@ -370,7 +374,7 @@ export function handleEmptyStateClick(target: Element): boolean {
     // Handle action button clicks
     if (target.classList.contains('empty-state-action')) {
         const action = (target as HTMLElement).dataset.action;
-        
+
         switch (action) {
             case 'browse':
                 // Clear filters and show all items
@@ -387,14 +391,14 @@ export function handleEmptyStateClick(target: Element): boolean {
 
     // Handle suggestion card clicks
     if (target.classList.contains('suggestion-card') || target.closest('.suggestion-card')) {
-        const card = target.classList.contains('suggestion-card') 
-            ? target as HTMLElement 
-            : target.closest('.suggestion-card') as HTMLElement;
-        
+        const card = target.classList.contains('suggestion-card')
+            ? (target as HTMLElement)
+            : (target.closest('.suggestion-card') as HTMLElement);
+
         if (card) {
             const entityType = card.dataset.entityType;
             const entityId = card.dataset.entityId;
-            
+
             if (entityType && entityId) {
                 // Open the detail modal for this item
                 import('./modal.ts').then(({ openDetailModal }) => {

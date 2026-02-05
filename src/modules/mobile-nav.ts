@@ -70,7 +70,8 @@ function createMoreMenu(): HTMLElement {
                 </button>
             </div>
             <div class="more-menu-items" role="menu" aria-labelledby="more-menu-title">
-                ${MORE_MENU_TABS.map(({ tab, label, icon }) => `
+                ${MORE_MENU_TABS.map(
+                    ({ tab, label, icon }) => `
                     <button 
                         class="more-menu-item${currentTab === tab ? ' current' : ''}" 
                         data-tab="${tab}" 
@@ -81,7 +82,8 @@ function createMoreMenu(): HTMLElement {
                         <span class="menu-icon" aria-hidden="true">${icon}</span>
                         <span class="menu-label">${label}</span>
                     </button>
-                `).join('')}
+                `
+                ).join('')}
             </div>
         </div>
     `;
@@ -101,7 +103,7 @@ function updateMenuItems(currentTab: string): void {
         const btn = item as HTMLElement;
         const tab = btn.dataset.tab;
         const isCurrent = tab === currentTab;
-        
+
         btn.classList.toggle('current', isCurrent);
         btn.setAttribute('aria-current', isCurrent ? 'page' : 'false');
     });
@@ -115,9 +117,7 @@ function getFocusableElements(): HTMLElement[] {
     if (!menu) return [];
 
     return Array.from(
-        menu.querySelectorAll<HTMLElement>(
-            'button:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        )
+        menu.querySelectorAll<HTMLElement>('button:not([disabled]), [tabindex]:not([tabindex="-1"])')
     ).filter(el => el.offsetParent !== null); // Filter out hidden elements
 }
 
@@ -236,7 +236,7 @@ function showMoreMenu(): void {
 
     logger.debug({
         operation: 'mobile-nav.more-menu',
-        data: { action: 'open' }
+        data: { action: 'open' },
     });
 }
 
@@ -263,7 +263,7 @@ function hideMoreMenu(): void {
 
     logger.debug({
         operation: 'mobile-nav.more-menu',
-        data: { action: 'close' }
+        data: { action: 'close' },
     });
 }
 
@@ -295,7 +295,7 @@ function setupMenuEventListeners(menu: HTMLElement): void {
     itemsContainer?.addEventListener('click', (e: Event) => {
         const target = e.target as HTMLElement;
         const item = target.closest('.more-menu-item') as HTMLElement | null;
-        
+
         if (item) {
             const tab = item.dataset.tab;
             if (tab) {
@@ -359,7 +359,7 @@ function updateMobileNavState(currentTab: string): void {
             // Update the More button to show current tab if viewing a More tab
             const iconSpan = btn.querySelector('.nav-icon');
             const labelSpan = btn.querySelector('span:not(.nav-icon)');
-            
+
             if (isMoreTab && currentMoreTab) {
                 // Show current tab's icon and label
                 if (iconSpan) iconSpan.textContent = currentMoreTab.icon;
@@ -424,7 +424,7 @@ export function initMobileNav(): void {
     if (!mobileNav) {
         logger.warn({
             operation: 'mobile-nav.init',
-            data: { reason: 'mobile_nav_not_found' }
+            data: { reason: 'mobile_nav_not_found' },
         });
         return;
     }
@@ -440,7 +440,7 @@ export function initMobileNav(): void {
     }
 
     // Subscribe to tab changes to update nav state
-    subscribe('currentTab', (newTab) => {
+    subscribe('currentTab', newTab => {
         updateMobileNavState(newTab as string);
     });
 
@@ -452,24 +452,7 @@ export function initMobileNav(): void {
 
     logger.info({
         operation: 'mobile-nav.init',
-        data: { status: 'initialized' }
-    });
-}
-
-// ========================================
-// CSS Injection (Deprecated - now in mobile-nav.css)
-// ========================================
-
-/**
- * Inject additional CSS for the more menu
- * @deprecated CSS is now in mobile-nav.css - this function is kept for backwards compatibility
- */
-export function injectMoreMenuStyles(): void {
-    // CSS is now in mobile-nav.css file
-    // This function is kept for backwards compatibility but does nothing
-    logger.debug({
-        operation: 'mobile-nav.styles',
-        data: { note: 'CSS now in mobile-nav.css, injectMoreMenuStyles is deprecated' }
+        data: { status: 'initialized' },
     });
 }
 

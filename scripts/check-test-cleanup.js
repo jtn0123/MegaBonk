@@ -67,10 +67,7 @@ function checkFile(filePath) {
     // Check for addEventListener without cleanup pattern
     const addListenerMatches = content.match(/addEventListener\(/g);
     const removeListenerMatches = content.match(/removeEventListener\(/g);
-    if (
-        addListenerMatches &&
-        (!removeListenerMatches || addListenerMatches.length > removeListenerMatches.length)
-    ) {
+    if (addListenerMatches && (!removeListenerMatches || addListenerMatches.length > removeListenerMatches.length)) {
         issues.push({
             type: 'warning',
             message: `Found ${addListenerMatches.length} addEventListener() but only ${removeListenerMatches?.length || 0} removeEventListener()`,

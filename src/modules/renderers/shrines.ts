@@ -2,10 +2,7 @@
 // Shrine Renderer
 // ========================================
 
-import {
-    escapeHtml,
-    safeGetElementById,
-} from '../utils.ts';
+import { escapeHtml, safeGetElementById } from '../utils.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Shrine } from './types.ts';
 

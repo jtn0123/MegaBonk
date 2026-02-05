@@ -208,10 +208,7 @@ export interface BuildState {
 /**
  * Apply selections to the main advisor
  */
-export function applyToAdvisor(
-    state: SelectionState,
-    onBuildStateChange: ((state: BuildState) => void) | null
-): void {
+export function applyToAdvisor(state: SelectionState, onBuildStateChange: ((state: BuildState) => void) | null): void {
     // Convert items map to array (expand counts)
     const items: Item[] = [];
     state.selectedItems.forEach(({ item, count }) => {

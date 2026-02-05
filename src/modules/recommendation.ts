@@ -183,7 +183,7 @@ function calculateSynergyScore(
                 s =>
                     s.length >= 3 &&
                     (s.toLowerCase().includes(entityName.toLowerCase()) ||
-                    entityName.toLowerCase().includes(s.toLowerCase()))
+                        entityName.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score += 20;
@@ -196,7 +196,7 @@ function calculateSynergyScore(
                 s =>
                     s.length >= 3 &&
                     (s.toLowerCase().includes(entityName.toLowerCase()) ||
-                    entityName.toLowerCase().includes(s.toLowerCase()))
+                        entityName.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score += 20;
@@ -220,8 +220,8 @@ function calculateSynergyScore(
                 s =>
                     s.length >= 3 &&
                     (s.toLowerCase() === weapon.name.toLowerCase() ||
-                    s.toLowerCase().includes(weapon.name.toLowerCase()) ||
-                    weapon.name.toLowerCase().includes(s.toLowerCase()))
+                        s.toLowerCase().includes(weapon.name.toLowerCase()) ||
+                        weapon.name.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score += 15;
@@ -240,7 +240,7 @@ function calculateSynergyScore(
                 s =>
                     s.length >= 3 &&
                     (s.toLowerCase().includes(buildItem.name.toLowerCase()) ||
-                    buildItem.name.toLowerCase().includes(s.toLowerCase()))
+                        buildItem.name.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score += 10;
@@ -255,7 +255,7 @@ function calculateSynergyScore(
                 s =>
                     s.length >= 3 &&
                     (s.toLowerCase().includes(buildItem.name.toLowerCase()) ||
-                    buildItem.name.toLowerCase().includes(s.toLowerCase()))
+                        buildItem.name.toLowerCase().includes(s.toLowerCase()))
             )
         ) {
             score -= 30;

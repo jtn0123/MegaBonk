@@ -25,42 +25,42 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 1.25rem;
     }
-    
+
     .shrines-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 1.25rem;
     }
-    
+
     .compare-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .batch-results-grid {
         grid-template-columns: repeat(3, 1fr);
     }
-    
+
     .advisor-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .advisor-choices-grid {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .advisor-entity-list {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     /* Slightly reduce container padding */
     .container {
         padding: 0 16px;
     }
-    
+
     /* Adjust card sizing */
     .item-card {
         padding: 1rem;
     }
-    
+
     .shrine-card {
         padding: 1.25rem;
     }
@@ -80,70 +80,70 @@
         margin-left: auto;
         margin-right: auto;
     }
-    
+
     /* More columns in grids */
     .items-grid {
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 1.75rem;
     }
-    
+
     .shrines-grid {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 1.75rem;
     }
-    
+
     .compare-grid {
         grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 1.75rem;
     }
-    
+
     .batch-results-grid {
         grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         gap: 1.25rem;
     }
-    
+
     .advisor-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 1.75rem;
     }
-    
+
     .advisor-choices-grid {
         grid-template-columns: repeat(3, 1fr);
         gap: 1.75rem;
     }
-    
+
     .advisor-entity-list {
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 1rem;
     }
-    
+
     /* Larger cards with more breathing room */
     .item-card {
         padding: 1.5rem;
     }
-    
+
     .shrine-card {
         padding: 1.75rem;
     }
-    
+
     .advisor-section {
         padding: 2.5rem;
     }
-    
+
     /* Larger fonts for better readability */
     .item-name {
         font-size: 1.3rem;
     }
-    
+
     .shrine-name {
         font-size: 1.4rem;
     }
-    
+
     /* Wider modals for large screens */
     .modal-wide {
         max-width: 1600px !important;
     }
-    
+
     .compare-chart-container {
         height: 350px;
     }
@@ -163,67 +163,67 @@
         margin-left: auto;
         margin-right: auto;
     }
-    
+
     /* Force 5-6 columns for item grids */
     .items-grid {
         grid-template-columns: repeat(5, 1fr);
         gap: 2rem;
     }
-    
+
     .shrines-grid {
         grid-template-columns: repeat(5, 1fr);
         gap: 2rem;
     }
-    
+
     .compare-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 2rem;
     }
-    
+
     .batch-results-grid {
         grid-template-columns: repeat(6, 1fr);
         gap: 1.5rem;
     }
-    
+
     .advisor-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 2rem;
     }
-    
+
     .advisor-choices-grid {
         grid-template-columns: repeat(4, 1fr);
         gap: 2rem;
     }
-    
+
     .advisor-entity-list {
         grid-template-columns: repeat(5, 1fr);
         gap: 1.25rem;
     }
-    
+
     /* Even more padding on cards */
     .item-card {
         padding: 1.75rem;
     }
-    
+
     .shrine-card {
         padding: 2rem;
     }
-    
+
     .advisor-section {
         padding: 3rem;
     }
-    
+
     /* Entity images slightly larger */
     .entity-image {
         width: 72px;
         height: 72px;
     }
-    
+
     /* Larger compare chart */
     .compare-chart-container {
         height: 400px;
     }
-    
+
     /* Main content area more spacious */
     main {
         padding: 2rem 0;
@@ -243,16 +243,16 @@
         margin-left: auto;
         margin-right: auto;
     }
-    
+
     /* 6 columns for ultra-wide */
     .items-grid {
         grid-template-columns: repeat(6, 1fr);
     }
-    
+
     .shrines-grid {
         grid-template-columns: repeat(6, 1fr);
     }
-    
+
     .batch-results-grid {
         grid-template-columns: repeat(8, 1fr);
     }
@@ -268,7 +268,7 @@
         grid-template-columns: 1fr 1fr;
         gap: 2.5rem;
     }
-    
+
     .build-scan-modal .modal-content {
         max-width: 1100px;
     }
@@ -285,7 +285,7 @@
     .strengths-weaknesses {
         gap: 1.5rem;
     }
-    
+
     .strengths,
     .weaknesses {
         padding: 1.25rem;
@@ -320,11 +320,11 @@
     header h1 {
         font-size: 2rem;
     }
-    
+
     .subtitle {
         font-size: 1.2rem;
     }
-    
+
     .version-info {
         gap: 3rem;
         font-size: 1rem;
@@ -342,7 +342,7 @@
     footer {
         padding: 2rem 0;
     }
-    
+
     footer .version-info {
         font-size: 0.9rem;
     }
@@ -353,7 +353,7 @@
     .empty-state {
         padding: 4rem;
     }
-    
+
     .empty-icon {
         font-size: 5rem;
     }

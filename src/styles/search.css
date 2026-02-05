@@ -131,7 +131,9 @@
 .search-result-action {
     flex-shrink: 0;
     color: var(--text-secondary);
-    transition: color 0.2s ease, transform 0.2s ease;
+    transition:
+        color 0.2s ease,
+        transform 0.2s ease;
 }
 
 .search-result-card:hover .search-result-action {
@@ -146,9 +148,15 @@
 
 /* Highlight animation for navigated items */
 @keyframes searchHighlight {
-    0% { box-shadow: 0 0 0 0 var(--accent); }
-    50% { box-shadow: 0 0 0 4px var(--accent); }
-    100% { box-shadow: 0 0 0 0 var(--accent); }
+    0% {
+        box-shadow: 0 0 0 0 var(--accent);
+    }
+    50% {
+        box-shadow: 0 0 0 4px var(--accent);
+    }
+    100% {
+        box-shadow: 0 0 0 0 var(--accent);
+    }
 }
 
 .search-highlight {

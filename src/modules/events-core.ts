@@ -207,9 +207,10 @@ function handleTabArrowNavigation(e: KeyboardEvent, target: HTMLButtonElement): 
     const currentIndex = tabButtons.indexOf(target);
     if (currentIndex === -1) return;
 
-    const nextIndex = e.key === 'ArrowRight'
-        ? (currentIndex + 1) % tabButtons.length
-        : (currentIndex - 1 + tabButtons.length) % tabButtons.length;
+    const nextIndex =
+        e.key === 'ArrowRight'
+            ? (currentIndex + 1) % tabButtons.length
+            : (currentIndex - 1 + tabButtons.length) % tabButtons.length;
 
     const nextTab = tabButtons[nextIndex];
     if (nextTab) {
@@ -226,8 +227,15 @@ function handleTabArrowNavigation(e: KeyboardEvent, target: HTMLButtonElement): 
  */
 function handleNumberKeyTabSwitch(e: KeyboardEvent): void {
     const tabMap: Record<string, TabName> = {
-        1: 'items', 2: 'weapons', 3: 'tomes', 4: 'characters', 5: 'shrines',
-        6: 'build-planner', 7: 'calculator', 8: 'advisor', 9: 'changelog',
+        1: 'items',
+        2: 'weapons',
+        3: 'tomes',
+        4: 'characters',
+        5: 'shrines',
+        6: 'build-planner',
+        7: 'calculator',
+        8: 'advisor',
+        9: 'changelog',
     };
     const tabName = tabMap[e.key];
     if (tabName && typeof switchTab === 'function') {
@@ -313,7 +321,9 @@ function handleKeydownDelegation(e: KeyboardEvent): void {
             .then(({ handleEmptyStateClick }) => {
                 handleEmptyStateClick(target);
             })
-            .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
+            .catch(err =>
+                logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } })
+            );
         return;
     }
 
@@ -343,21 +353,21 @@ function handleViewDetailsClick(target: HTMLElement): void {
 function handleCardClick(target: HTMLElement): void {
     const card = target.closest('.item-card') as HTMLElement | null;
     if (!card) return;
-    
+
     // Map card classes/data to entity types
     const entityType = card.dataset.entityType as EntityType | undefined;
     const entityId = card.dataset.entityId;
-    
+
     if (entityType && entityId) {
         // Map singular entity types to plural tab names
         const typeMap: Record<string, EntityType> = {
-            'item': 'items',
-            'weapon': 'weapons',
-            'tome': 'tomes',
-            'character': 'characters',
-            'shrine': 'shrines',
+            item: 'items',
+            weapon: 'weapons',
+            tome: 'tomes',
+            character: 'characters',
+            shrine: 'shrines',
         };
-        const type = typeMap[entityType] || entityType as EntityType;
+        const type = typeMap[entityType] || (entityType as EntityType);
         openDetailModal(type, entityId);
     }
 }
@@ -381,7 +391,9 @@ function handleCompareCheckboxClick(e: MouseEvent, target: Element): void {
         checkbox.checked = !checkbox.checked;
         import('./compare.ts')
             .then(({ toggleCompareItem }) => toggleCompareItem(id))
-            .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
+            .catch(err =>
+                logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } })
+            );
     }
 }
 
@@ -399,7 +411,9 @@ function handleRemoveCompareClick(target: Element): void {
                 toggleCompareItem(id);
                 updateCompareDisplay();
             })
-            .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
+            .catch(err =>
+                logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } })
+            );
     }
 }
 
@@ -415,7 +429,12 @@ function handleBreakpointCardClick(target: Element): void {
         if (!isNaN(parsedTarget)) {
             import('./calculator.ts')
                 .then(({ quickCalc }) => quickCalc(itemId, parsedTarget))
-                .catch(err => logger.warn({ operation: 'import.calculator', error: { name: 'ImportError', message: err.message } }));
+                .catch(err =>
+                    logger.warn({
+                        operation: 'import.calculator',
+                        error: { name: 'ImportError', message: err.message },
+                    })
+                );
         }
     }
 }
@@ -424,7 +443,9 @@ function handleBreakpointCardClick(target: Element): void {
  * Handle favorite button click
  */
 function handleFavoriteClick(target: Element): void {
-    const btn = (target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')) as HTMLButtonElement | null;
+    const btn = (
+        target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')
+    ) as HTMLButtonElement | null;
     const tabName = btn?.dataset.tab as TabName | undefined;
     const itemId = btn?.dataset.id;
 
@@ -458,21 +479,21 @@ function isMobileViewport(): boolean {
 function handleItemCardClick(target: Element): void {
     const card = target.closest('.item-card') as HTMLElement | null;
     if (!card) return;
-    
+
     // Use card's data attributes (same as handleCardClick)
     const entityType = card.dataset.entityType as EntityType | undefined;
     const entityId = card.dataset.entityId;
-    
+
     if (entityType && entityId) {
         // Map singular entity types to plural tab names
         const typeMap: Record<string, EntityType> = {
-            'item': 'items',
-            'weapon': 'weapons',
-            'tome': 'tomes',
-            'character': 'characters',
-            'shrine': 'shrines',
+            item: 'items',
+            weapon: 'weapons',
+            tome: 'tomes',
+            character: 'characters',
+            shrine: 'shrines',
         };
-        const type = typeMap[entityType] || entityType as EntityType;
+        const type = typeMap[entityType] || (entityType as EntityType);
         openDetailModal(type, entityId);
     }
 }
@@ -491,7 +512,7 @@ function handleClickDelegation(e: MouseEvent): void {
         handleViewDetailsClick(target as HTMLElement);
         return;
     }
-    
+
     // On mobile, make entire card tappable (but not if clicking specific elements)
     if (isMobileViewport() && target.closest('.item-card')) {
         // Don't trigger if clicking on interactive elements within the card
@@ -503,11 +524,13 @@ function handleClickDelegation(e: MouseEvent): void {
     }
 
     // Handle card click to open detail modal (but not if clicking interactive elements)
-    if (target.closest('.item-card') && 
-        !target.closest('.favorite-btn') && 
+    if (
+        target.closest('.item-card') &&
+        !target.closest('.favorite-btn') &&
         !target.closest('.compare-checkbox-label') &&
         !target.closest('.expandable-text') &&
-        !target.classList.contains('view-details-btn')) {
+        !target.classList.contains('view-details-btn')
+    ) {
         handleCardClick(target as HTMLElement);
         return;
     }
@@ -538,7 +561,9 @@ function handleClickDelegation(e: MouseEvent): void {
     if (target.classList.contains('changelog-expand-btn')) {
         import('./changelog.ts')
             .then(({ toggleChangelogExpand }) => toggleChangelogExpand(target as HTMLButtonElement))
-            .catch(err => logger.warn({ operation: 'import.changelog', error: { name: 'ImportError', message: err.message } }));
+            .catch(err =>
+                logger.warn({ operation: 'import.changelog', error: { name: 'ImportError', message: err.message } })
+            );
         return;
     }
 
@@ -572,7 +597,9 @@ function handleClickDelegation(e: MouseEvent): void {
             .then(({ handleEmptyStateClick }) => {
                 handleEmptyStateClick(target);
             })
-            .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
+            .catch(err =>
+                logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } })
+            );
         return;
     }
 }
@@ -590,7 +617,9 @@ function handleChangeDelegation(e: Event): void {
     if (target.classList.contains('tome-checkbox') || target.classList.contains('item-checkbox')) {
         import('./build-planner.ts')
             .then(({ updateBuildAnalysis }) => updateBuildAnalysis())
-            .catch(err => logger.warn({ operation: 'import.build-planner', error: { name: 'ImportError', message: err.message } }));
+            .catch(err =>
+                logger.warn({ operation: 'import.build-planner', error: { name: 'ImportError', message: err.message } })
+            );
         return;
     }
 
@@ -701,7 +730,12 @@ export function setupModalListeners(): void {
             () => {
                 import('./compare.ts')
                     .then(({ closeCompareModal }) => closeCompareModal())
-                    .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
+                    .catch(err =>
+                        logger.warn({
+                            operation: 'import.compare',
+                            error: { name: 'ImportError', message: err.message },
+                        })
+                    );
             },
             getListenerOptions()
         );
@@ -730,7 +764,12 @@ export function setupModalListeners(): void {
                 lastModalCloseTime = now;
                 import('./compare.ts')
                     .then(({ closeCompareModal }) => closeCompareModal())
-                    .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
+                    .catch(err =>
+                        logger.warn({
+                            operation: 'import.compare',
+                            error: { name: 'ImportError', message: err.message },
+                        })
+                    );
             }
         }
     };
@@ -750,7 +789,12 @@ export function setupCompareButtonListener(): void {
             () => {
                 import('./compare.ts')
                     .then(({ openCompareModal }) => openCompareModal())
-                    .catch(err => logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } }));
+                    .catch(err =>
+                        logger.warn({
+                            operation: 'import.compare',
+                            error: { name: 'ImportError', message: err.message },
+                        })
+                    );
             },
             getListenerOptions()
         );
@@ -763,14 +807,18 @@ export function setupCompareButtonListener(): void {
 export function setupFilterToggle(): void {
     const toggleBtn = safeGetElementById('filter-toggle-btn') as HTMLButtonElement | null;
     const filters = safeGetElementById('filters') as HTMLElement | null;
-    
+
     if (!toggleBtn || !filters) return;
-    
-    toggleBtn.addEventListener('click', () => {
-        const isExpanded = filters.classList.toggle('filters-expanded');
-        toggleBtn.classList.toggle('active', isExpanded);
-        toggleBtn.setAttribute('aria-expanded', String(isExpanded));
-    }, getListenerOptions());
+
+    toggleBtn.addEventListener(
+        'click',
+        () => {
+            const isExpanded = filters.classList.toggle('filters-expanded');
+            toggleBtn.classList.toggle('active', isExpanded);
+            toggleBtn.setAttribute('aria-expanded', String(isExpanded));
+        },
+        getListenerOptions()
+    );
 }
 
 /**
@@ -779,23 +827,23 @@ export function setupFilterToggle(): void {
 export function setupStickySearchHideOnScroll(): void {
     const controls = document.querySelector('.controls') as HTMLElement | null;
     if (!controls) return;
-    
+
     // Only enable on mobile
     const isMobile = window.matchMedia('(max-width: 768px)');
     if (!isMobile.matches) return;
-    
+
     let lastScrollY = window.scrollY;
     let ticking = false;
     const scrollThreshold = 10; // Minimum scroll to trigger hide/show
-    
+
     const handleScroll = (): void => {
         if (ticking) return;
-        
+
         ticking = true;
         requestAnimationFrame(() => {
             const currentScrollY = window.scrollY;
             const scrollDelta = currentScrollY - lastScrollY;
-            
+
             // Don't hide if we're at the top
             if (currentScrollY <= 0) {
                 controls.classList.remove('controls-hidden');
@@ -806,16 +854,16 @@ export function setupStickySearchHideOnScroll(): void {
                 // Scrolling up - show
                 controls.classList.remove('controls-hidden');
             }
-            
+
             lastScrollY = currentScrollY;
             ticking = false;
         });
     };
-    
+
     window.addEventListener('scroll', handleScroll, getListenerOptions({ passive: true }));
-    
+
     // Re-check on resize
-    isMobile.addEventListener('change', (e) => {
+    isMobile.addEventListener('change', e => {
         if (!e.matches) {
             controls.classList.remove('controls-hidden');
         }

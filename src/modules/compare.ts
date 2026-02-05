@@ -289,7 +289,7 @@ export async function closeCompareModal(): Promise<void> {
                 delete instances['compare-scaling-chart'];
             }
         })
-        .catch((error) => {
+        .catch(error => {
             // Chart module not loaded yet, nothing to clean up
             // Log at debug level for troubleshooting if needed
             logger.info({

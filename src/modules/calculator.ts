@@ -253,9 +253,10 @@ function renderResults(result: CalculatorResult): void {
     // Bug fix: Trim scaling array to stack_cap to avoid showing bars beyond the cap
     // Bug fix: Ensure stack_cap is positive before using it with slice()
     // slice(0, negative) removes elements from the end, which is not intended
-    const effectiveScaling = result.stackCap && result.stackCap > 0
-        ? result.scalingPerStack.slice(0, result.stackCap)
-        : result.scalingPerStack;
+    const effectiveScaling =
+        result.stackCap && result.stackCap > 0
+            ? result.scalingPerStack.slice(0, result.stackCap)
+            : result.scalingPerStack;
 
     // Calculate max for bar graph normalization
     const maxVal = effectiveScaling.length > 0 ? Math.max(...effectiveScaling) : 1;

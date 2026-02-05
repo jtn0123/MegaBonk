@@ -48,7 +48,7 @@ import {
 if (typeof window !== 'undefined') {
     // Core
     window.initCV = initCV;
-    
+
     // Detection - use type assertions for functions with concrete parameter types
     // The Window interface uses `unknown` for flexibility, but actual functions use specific types
     window.detectItemsWithCV = detectItemsWithCV;
@@ -69,18 +69,18 @@ if (typeof window !== 'undefined') {
     window.runEnsembleDetection = runEnsembleDetection as typeof window.runEnsembleDetection;
     window.getCVMetrics = getCVMetrics;
     window.getDetectionConfig = getDetectionConfig;
-    
+
     // Color - extractDominantColors returns objects, Window interface expects strings for simplicity
     window.extractDominantColors = extractDominantColors as unknown as typeof window.extractDominantColors;
     window.getDominantColor = getDominantColor;
     window.calculateColorVariance = calculateColorVariance;
     window.isEmptyCell = isEmptyCell;
     window.detectBorderRarity = detectBorderRarity;
-    
+
     // Regions
     window.detectUIRegions = detectUIRegions;
     window.detectScreenType = detectScreenType;
-    
+
     // Templates
     window.clearDetectionCache = clearDetectionCache;
 }

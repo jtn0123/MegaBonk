@@ -6,20 +6,12 @@
 import type { Item } from '../../types/index.ts';
 import type { ROI } from '../computer-vision.ts';
 import type { CVStrategy, ColorProfile } from '../cv-strategy.ts';
-import {
-    getConfidenceThresholds,
-    compareColorProfiles,
-    getSimilarityPenalty,
-} from '../cv-strategy.ts';
+import { getConfidenceThresholds, compareColorProfiles, getSimilarityPenalty } from '../cv-strategy.ts';
 import { isEmptyCell, detectBorderRarity } from '../cv/color.ts';
 import { extractColorProfile } from '../cv-strategy.ts';
 import { calculateSimilarity } from './similarity.ts';
 import { resizeImageData } from './utils.ts';
-import {
-    getEnhancedTemplate,
-    getTemplatesByRarity,
-    getTemplatesByColor,
-} from './templates.ts';
+import { getEnhancedTemplate, getTemplatesByRarity, getTemplatesByColor } from './templates.ts';
 import type { CVDetectionResult } from '../computer-vision.ts';
 import type { ValidCellData, CellMatchResult, ProgressCallback } from './types.ts';
 
@@ -101,11 +93,7 @@ export function filterCandidates(
 /**
  * Match a cell against candidate items
  */
-export function matchCell(
-    cellImageData: ImageData,
-    candidates: Item[],
-    strategy: CVStrategy
-): CellMatchResult | null {
+export function matchCell(cellImageData: ImageData, candidates: Item[], strategy: CVStrategy): CellMatchResult | null {
     let bestMatch: CellMatchResult | null = null;
 
     for (const item of candidates) {

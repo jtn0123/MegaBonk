@@ -17,28 +17,17 @@ export function __resetTimersForTesting(): void {
 }
 
 // Re-export tab management
-export {
-    currentTab,
-    getCurrentTab,
-    switchTab,
-    getSavedTab,
-    scheduleModulePreload,
-    VALID_TABS,
-} from './events-tabs.ts';
+export { currentTab, getCurrentTab, switchTab, getSavedTab, scheduleModulePreload, VALID_TABS } from './events-tabs.ts';
 
 // Re-export search functionality
-export {
-    handleSearchResultClick,
-    clearHighlightTimeout,
-    setupSearchListeners,
-} from './events-search.ts';
+export { handleSearchResultClick, clearHighlightTimeout, setupSearchListeners } from './events-search.ts';
 
 // Re-export core event infrastructure
 export {
     // Cleanup
     cleanupEventListeners,
     cleanupTabScrollListeners,
-    
+
     // Setup functions
     setupEventListeners,
     setupEventDelegation,
@@ -47,16 +36,16 @@ export {
     setupModalListeners,
     setupCompareButtonListener,
     setupFilterToggle,
-    
+
     // UI helpers
     toggleTextExpand,
-    
+
     // Loading/Error UI
     showLoading,
     hideLoading,
     showErrorMessage,
     dismissError,
-    
+
     // Internal (for testing)
     __resetModalTimerForTesting,
     getListenerOptions,

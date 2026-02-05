@@ -2,13 +2,7 @@
 // Weapon Renderer
 // ========================================
 
-import {
-    generateEntityImage,
-    generateTierLabel,
-    escapeHtml,
-    safeGetElementById,
-    generateMetaTags,
-} from '../utils.ts';
+import { generateEntityImage, generateTierLabel, escapeHtml, safeGetElementById, generateMetaTags } from '../utils.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Weapon } from './types.ts';
 

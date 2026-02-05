@@ -15,33 +15,36 @@ export default defineConfig({
     expect: {
         timeout: 15000,
     },
-    
+
     // Global setup initializes coverage directory
     globalSetup: './tests/e2e/coverage-global-setup.mjs',
-    
+
     reporter: [
         ['html', { open: 'never' }],
         ['list'],
-        ['monocart-reporter', {
-            name: 'MegaBonk E2E Coverage Report',
-            outputFile: './coverage/e2e/monocart-report.html',
-        }]
+        [
+            'monocart-reporter',
+            {
+                name: 'MegaBonk E2E Coverage Report',
+                outputFile: './coverage/e2e/monocart-report.html',
+            },
+        ],
     ],
-    
+
     use: {
         baseURL: 'http://localhost:4173',
         trace: 'off',
         screenshot: 'off',
         video: 'off',
     },
-    
+
     projects: [
         {
             name: 'chromium-coverage',
             use: { ...devices['Desktop Chrome'] },
         },
     ],
-    
+
     webServer: {
         // Build with Istanbul coverage instrumentation, then preview
         command: 'COVERAGE=true npm run build && npm run preview -- --port 4173',

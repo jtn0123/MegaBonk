@@ -25,7 +25,13 @@ import {
     type SelectionState,
 } from './scan-build-ui.ts';
 import { runAutoDetect, runHybridDetect, type DetectionResults } from './scan-build-detection.ts';
-import { applyDetectionResults, applyToAdvisor, getScanState, type ScanState, type BuildState } from './scan-build-results.ts';
+import {
+    applyDetectionResults,
+    applyToAdvisor,
+    getScanState,
+    type ScanState,
+    type BuildState,
+} from './scan-build-results.ts';
 
 // Re-export types for consumers
 export type { ScanState, BuildState, DetectionResults };
@@ -380,13 +386,7 @@ async function handleHybridDetect(): Promise<void> {
         return;
     }
 
-    await runHybridDetect(
-        uploadedImage,
-        detectionMutex,
-        templatesLoaded,
-        templatesLoadError,
-        handleDetectionResults
-    );
+    await runHybridDetect(uploadedImage, detectionMutex, templatesLoaded, templatesLoadError, handleDetectionResults);
 }
 
 // ========================================

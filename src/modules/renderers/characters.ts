@@ -2,12 +2,7 @@
 // Character Renderer
 // ========================================
 
-import {
-    generateEntityImage,
-    generateTierLabel,
-    escapeHtml,
-    safeGetElementById,
-} from '../utils.ts';
+import { generateEntityImage, generateTierLabel, escapeHtml, safeGetElementById } from '../utils.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import type { Character } from './types.ts';
 

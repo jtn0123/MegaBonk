@@ -22,9 +22,9 @@ vi.mock('../../src/modules/logger.ts', () => ({
 
 import {
     initMobileNav,
-    injectMoreMenuStyles,
     showMoreMenu,
     hideMoreMenu,
+    toggleMoreMenu,
 } from '../../src/modules/mobile-nav.ts';
 import { getState, setState, subscribe } from '../../src/modules/store.ts';
 
@@ -74,30 +74,24 @@ describe('Mobile Navigation Module', () => {
         });
     });
 
-    describe('injectMoreMenuStyles()', () => {
-        it.skipIf(!FEATURES.MOBILE_MORE_MENU)('should inject styles into document head', () => {
-            injectMoreMenuStyles();
+    describe('toggleMoreMenu()', () => {
+        it('should open menu when closed', () => {
+            toggleMoreMenu();
 
-            const styleElement = document.getElementById('more-menu-styles');
-            expect(styleElement).not.toBeNull();
-            expect(styleElement.tagName).toBe('STYLE');
+            const moreMenu = document.getElementById('more-menu');
+            expect(moreMenu).not.toBeNull();
+            expect(moreMenu!.classList.contains('active')).toBe(true);
         });
 
-        it.skipIf(!FEATURES.MOBILE_MORE_MENU)('should not duplicate styles on multiple calls', () => {
-            injectMoreMenuStyles();
-            injectMoreMenuStyles();
-            injectMoreMenuStyles();
+        it('should close menu when open', () => {
+            // First open the menu
+            showMoreMenu();
+            const moreMenu = document.getElementById('more-menu');
+            expect(moreMenu?.classList.contains('active')).toBe(true);
 
-            const styleElements = document.querySelectorAll('#more-menu-styles');
-            expect(styleElements).toHaveLength(1);
-        });
-
-        it.skipIf(!FEATURES.MOBILE_MORE_MENU)('should include more-menu styles', () => {
-            injectMoreMenuStyles();
-
-            const styleElement = document.getElementById('more-menu-styles');
-            expect(styleElement.textContent).toContain('.more-menu');
-            expect(styleElement.textContent).toContain('.more-menu-content');
+            // Then toggle to close
+            toggleMoreMenu();
+            expect(moreMenu?.classList.contains('active')).toBe(false);
         });
     });
 

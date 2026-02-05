@@ -43,11 +43,7 @@ export function extractErrorInfo(error: unknown, stackLines: number = 5): ErrorI
  * @param error - Error to log
  * @param data - Additional context data
  */
-export function logError(
-    operation: string,
-    error: unknown,
-    data?: Record<string, unknown>
-): void {
+export function logError(operation: string, error: unknown, data?: Record<string, unknown>): void {
     logger.error({
         operation,
         error: extractErrorInfo(error),
@@ -61,11 +57,7 @@ export function logError(
  * @param error - Error to log
  * @param data - Additional context data
  */
-export function logWarning(
-    operation: string,
-    error: unknown,
-    data?: Record<string, unknown>
-): void {
+export function logWarning(operation: string, error: unknown, data?: Record<string, unknown>): void {
     logger.warn({
         operation,
         error: extractErrorInfo(error),
@@ -104,11 +96,7 @@ export function withErrorLogging<T, Args extends unknown[]>(
  * @param operation - Optional operation name for logging (if not provided, error is silent)
  * @returns Function result or default value
  */
-export function tryOrDefault<T>(
-    fn: () => T,
-    defaultValue: T,
-    operation?: string
-): T {
+export function tryOrDefault<T>(fn: () => T, defaultValue: T, operation?: string): T {
     try {
         return fn();
     } catch (error) {
@@ -126,11 +114,7 @@ export function tryOrDefault<T>(
  * @param operation - Optional operation name for logging
  * @returns Promise of function result or default value
  */
-export async function tryOrDefaultAsync<T>(
-    fn: () => Promise<T>,
-    defaultValue: T,
-    operation?: string
-): Promise<T> {
+export async function tryOrDefaultAsync<T>(fn: () => Promise<T>, defaultValue: T, operation?: string): Promise<T> {
     try {
         return await fn();
     } catch (error) {

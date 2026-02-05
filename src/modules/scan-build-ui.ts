@@ -416,7 +416,10 @@ export function updateSelectionSummary(state: SelectionState): void {
     const applyBtn = document.getElementById('scan-apply-to-advisor');
     if (applyBtn) {
         applyBtn.style.display =
-            state.selectedCharacter || state.selectedWeapon || state.selectedItems.size > 0 || state.selectedTomes.size > 0
+            state.selectedCharacter ||
+            state.selectedWeapon ||
+            state.selectedItems.size > 0 ||
+            state.selectedTomes.size > 0
                 ? 'block'
                 : 'none';
     }

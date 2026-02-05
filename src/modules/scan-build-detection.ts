@@ -7,12 +7,7 @@
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
 import { autoDetectFromImage, type DetectionResult } from './ocr/index.ts';
-import {
-    detectItemsWithCV,
-    combineDetections,
-    aggregateDuplicates,
-    createDebugOverlay,
-} from './computer-vision.ts';
+import { detectItemsWithCV, combineDetections, aggregateDuplicates, createDebugOverlay } from './computer-vision.ts';
 import { setLastOverlayUrl, updateStats, updateLogViewer, isDebugEnabled } from './debug-ui.ts';
 import { createProgressIndicator } from './dom-utils.ts';
 import { logError, logWarning } from './error-utils.ts';

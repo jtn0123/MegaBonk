@@ -4,12 +4,7 @@
 // This file re-exports from the grid/ subdirectory for backwards compatibility.
 // New code should import directly from './grid/index.ts' or specific submodules.
 
-export type {
-    GridParameters,
-    GridVerificationResult,
-    ScaleDetectionResult,
-    HotbarRegion,
-} from './grid/index.ts';
+export type { GridParameters, GridVerificationResult, ScaleDetectionResult, HotbarRegion } from './grid/index.ts';
 
 export {
     // Hotbar Detection

@@ -152,7 +152,7 @@ export function showShortcutsModal(): void {
     `;
 
     document.body.appendChild(modal);
-    
+
     // Set display to block first (CSS has display: none by default)
     modal.style.display = 'block';
 

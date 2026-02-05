@@ -112,11 +112,7 @@ export const detectRarityBorders = _detectRarityBorders;
  * Calculate icon dimensions from detected cell edges
  * Uses module-level config by default
  */
-export function calculateIconMetrics(
-    cellEdges: CellEdge[],
-    width: number,
-    bandRegion: BandRegion
-): IconMetrics {
+export function calculateIconMetrics(cellEdges: CellEdge[], width: number, bandRegion: BandRegion): IconMetrics {
     return _calculateIconMetrics(cellEdges, width, bandRegion, config);
 }
 

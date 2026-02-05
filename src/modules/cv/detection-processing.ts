@@ -5,11 +5,7 @@
 import type { Item } from '../../types/index.ts';
 import { logger } from '../logger.ts';
 import type { CVDetectionResult } from './types.ts';
-import {
-    getDetectionCache,
-    CACHE_TTL,
-    MAX_CACHE_SIZE,
-} from './state.ts';
+import { getDetectionCache, CACHE_TTL, MAX_CACHE_SIZE } from './state.ts';
 import { detectBorderRarity } from './color.ts';
 import { IMAGE_LOAD_TIMEOUT_MS } from './detection-config.ts';
 
@@ -262,10 +258,7 @@ export function validateWithBorderRarity(
 /**
  * Filter detections below a confidence threshold
  */
-export function filterByConfidence(
-    detections: CVDetectionResult[],
-    minConfidence: number
-): CVDetectionResult[] {
+export function filterByConfidence(detections: CVDetectionResult[], minConfidence: number): CVDetectionResult[] {
     return detections.filter(d => d.confidence >= minConfidence);
 }
 
@@ -273,8 +266,6 @@ export function filterByConfidence(
  * Aggregate multiple detection results (from different strategies/phases)
  * Handles deduplication and merging overlapping detections
  */
-export function aggregateDetections(
-    ...detectionArrays: CVDetectionResult[][]
-): CVDetectionResult[] {
+export function aggregateDetections(...detectionArrays: CVDetectionResult[][]): CVDetectionResult[] {
     return detectionArrays.flat();
 }

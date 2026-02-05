@@ -2,12 +2,7 @@
 // Global Search Results Rendering
 // ========================================
 
-import {
-    generateEntityImage,
-    generateTierLabel,
-    escapeHtml,
-    safeGetElementById,
-} from '../utils.ts';
+import { generateEntityImage, generateTierLabel, escapeHtml, safeGetElementById } from '../utils.ts';
 import { generateEmptyStateWithSuggestions, type EmptyStateContext } from '../empty-states.ts';
 import { getState } from '../store.ts';
 import type { GlobalSearchResult } from '../filters.ts';
@@ -69,8 +64,8 @@ export function renderGlobalSearchResults(
     if (results.length === 0) {
         // Use enhanced empty state with suggestions
         const currentTab = getState('currentTab') as EntityType;
-        const validTab = ['items', 'weapons', 'tomes', 'characters', 'shrines'].includes(currentTab) 
-            ? currentTab 
+        const validTab = ['items', 'weapons', 'tomes', 'characters', 'shrines'].includes(currentTab)
+            ? currentTab
             : 'items';
         const context: EmptyStateContext = {
             type: 'search',
@@ -183,7 +178,10 @@ function createSearchResultCard(result: GlobalSearchResult): HTMLElement {
 /**
  * Get appropriate description text for an item based on its type
  */
-function getItemDescription(item: BaseItem | BaseWeapon | BaseTome | BaseCharacter | BaseShrine, type: EntityType): string {
+function getItemDescription(
+    item: BaseItem | BaseWeapon | BaseTome | BaseCharacter | BaseShrine,
+    type: EntityType
+): string {
     switch (type) {
         case 'items':
             return (item as BaseItem).base_effect || item.description || '';

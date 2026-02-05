@@ -51,7 +51,9 @@
 
 .pull-refresh-indicator.resetting .pull-refresh-content {
     opacity: 0;
-    transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    transition:
+        opacity 0.2s ease-out,
+        transform 0.2s ease-out;
 }
 
 /* ========================================
@@ -79,8 +81,12 @@
 }
 
 @keyframes pull-refresh-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 /* ========================================
@@ -115,28 +121,16 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 255, 136, calc(var(--pull-progress) * 0.1)),
-        transparent
-    );
+    background: linear-gradient(to bottom, rgba(0, 255, 136, calc(var(--pull-progress) * 0.1)), transparent);
     pointer-events: none;
 }
 
 .pull-refresh-indicator.threshold-reached::before {
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 255, 136, 0.15),
-        transparent
-    );
+    background: linear-gradient(to bottom, rgba(0, 255, 136, 0.15), transparent);
 }
 
 .pull-refresh-indicator.refreshing::before {
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 255, 136, 0.2),
-        transparent
-    );
+    background: linear-gradient(to bottom, rgba(0, 255, 136, 0.2), transparent);
 }
 
 /* ========================================

@@ -4,12 +4,7 @@
 // ========================================
 
 // Types
-export type {
-    GridParameters,
-    GridVerificationResult,
-    ScaleDetectionResult,
-    HotbarRegion,
-} from './grid-types.ts';
+export type { GridParameters, GridVerificationResult, ScaleDetectionResult, HotbarRegion } from './grid-types.ts';
 
 // Hotbar Detection
 export { detectHotbarRegion } from './hotbar-detection.ts';
@@ -24,10 +19,4 @@ export { inferGridFromEdges, generateGridROIs } from './grid-inference.ts';
 export { getAdaptiveIconSizes, detectIconScale, detectGridPositions } from './scale-detection.ts';
 
 // Grid Verification
-export {
-    findMode,
-    calculateAdaptiveTolerance,
-    fitsGrid,
-    clusterByY,
-    verifyGridPattern,
-} from './grid-verification.ts';
+export { findMode, calculateAdaptiveTolerance, fitsGrid, clusterByY, verifyGridPattern } from './grid-verification.ts';

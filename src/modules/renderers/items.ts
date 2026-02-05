@@ -2,13 +2,7 @@
 // Item Renderer
 // ========================================
 
-import {
-    generateEntityImage,
-    generateTierLabel,
-    escapeHtml,
-    safeGetElementById,
-    truncateText,
-} from '../utils.ts';
+import { generateEntityImage, generateTierLabel, escapeHtml, safeGetElementById, truncateText } from '../utils.ts';
 import { initChartsAsync } from './common.ts';
 import { detectEmptyStateType, generateEmptyStateWithSuggestions } from '../empty-states.ts';
 import { FEATURES } from '../constants.ts';
@@ -50,7 +44,11 @@ export async function renderItems(items: Item[]): Promise<void> {
 
         // Stacking type determines text and CSS class for color coding
         const stackText = item.one_and_done ? 'One-and-Done' : item.stacks_well ? 'Stacks Well' : 'Limited';
-        const stackClass = item.one_and_done ? 'tag-one-and-done' : item.stacks_well ? 'tag-stacks-well' : 'tag-limited';
+        const stackClass = item.one_and_done
+            ? 'tag-one-and-done'
+            : item.stacks_well
+              ? 'tag-stacks-well'
+              : 'tag-limited';
         const imageHtml = generateEntityImage(item, item.name);
 
         // Determine if this item should show a scaling graph
@@ -72,7 +70,7 @@ export async function renderItems(items: Item[]): Promise<void> {
 
         // DISABLED: Favorites feature UI hidden (module kept for data persistence)
         // const isFav = typeof isFavorite === 'function' ? isFavorite('items', item.id) : false;
-        
+
         // Compare checkbox - only render if feature is enabled
         const compareCheckboxHtml = FEATURES.COMPARE_ITEMS
             ? `<label class="compare-checkbox-label" title="Add to comparison">
@@ -80,7 +78,7 @@ export async function renderItems(items: Item[]): Promise<void> {
                     <span>+</span>
                 </label>`
             : '';
-        
+
         card.innerHTML = `
             <div class="item-header">
                 ${imageHtml}

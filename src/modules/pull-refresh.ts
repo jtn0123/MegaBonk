@@ -84,7 +84,7 @@ function updateIndicator(distance: number, isRefreshing: boolean = false): void 
 
     state.indicator.style.setProperty('--pull-distance', `${clampedDistance}px`);
     state.indicator.style.setProperty('--pull-progress', `${progress}`);
-    
+
     const textEl = state.indicator.querySelector('.pull-refresh-text');
     if (textEl) {
         if (isRefreshing) {
@@ -106,10 +106,10 @@ function updateIndicator(distance: number, isRefreshing: boolean = false): void 
  */
 function resetIndicator(): void {
     if (!state.indicator) return;
-    
+
     state.indicator.classList.add('resetting');
     updateIndicator(0, false);
-    
+
     setTimeout(() => {
         state.indicator?.classList.remove('active', 'threshold-reached', 'refreshing', 'resetting');
     }, 300);
@@ -122,10 +122,10 @@ function resetIndicator(): void {
 function handleTouchStart(e: TouchEvent): void {
     // Only enable when at top of page and not already refreshing
     if (!isAtTop() || state.isRefreshing) return;
-    
+
     const touch = e.touches[0];
     if (!touch) return;
-    
+
     state.startY = touch.clientY;
     state.isPulling = true;
 }
@@ -139,7 +139,7 @@ function handleTouchMove(e: TouchEvent): void {
 
     const touch = e.touches[0];
     if (!touch) return;
-    
+
     state.currentY = touch.clientY;
     let distance = state.currentY - state.startY;
 
@@ -153,7 +153,7 @@ function handleTouchMove(e: TouchEvent): void {
     // Apply resistance after threshold
     if (distance > PULL_THRESHOLD) {
         const overPull = distance - PULL_THRESHOLD;
-        distance = PULL_THRESHOLD + (overPull * RESISTANCE_FACTOR);
+        distance = PULL_THRESHOLD + overPull * RESISTANCE_FACTOR;
     }
 
     // Prevent default scrolling when pulling
@@ -200,14 +200,14 @@ async function triggerRefresh(): Promise<void> {
 
     try {
         await loadAllData();
-        
+
         const duration = Math.round(performance.now() - startTime);
         logger.info({
             operation: 'pull-refresh.complete',
             durationMs: duration,
             success: true,
         });
-        
+
         ToastManager.success('Data refreshed!');
     } catch (error) {
         const err = error as Error;

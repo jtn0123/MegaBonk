@@ -31,10 +31,7 @@ export { detectIconsWithTwoPhase } from './two-phase.ts';
 // ========================================
 // Sliding Window Detection
 // ========================================
-export {
-    detectIconsWithSlidingWindow,
-    detectEquipmentRegion,
-} from './sliding-window.ts';
+export { detectIconsWithSlidingWindow, detectEquipmentRegion } from './sliding-window.ts';
 
 // ========================================
 // Worker Detection
@@ -54,16 +51,9 @@ export { detectItemCounts } from './ocr-count.ts';
 // ========================================
 // Metrics & Config Exports
 // ========================================
-export {
-    getCVMetrics,
-    getDetectionConfig,
-    getUncertainDetectionsFromResults,
-} from './metrics-exports.ts';
+export { getCVMetrics, getDetectionConfig, getUncertainDetectionsFromResults } from './metrics-exports.ts';
 
 // ========================================
 // Main Orchestration
 // ========================================
-export {
-    detectItemsWithCV,
-    __resetDetectionStateForTesting,
-} from './orchestrator.ts';
+export { detectItemsWithCV, __resetDetectionStateForTesting } from './orchestrator.ts';

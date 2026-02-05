@@ -300,12 +300,7 @@ export {
     getRankingConfig,
     DEFAULT_RANKING_CONFIG,
 } from './template-ranking.ts';
-export type {
-    TemplatePerformance,
-    TemplateRanking,
-    SkipListEntry,
-    RankingConfig,
-} from './template-ranking.ts';
+export type { TemplatePerformance, TemplateRanking, SkipListEntry, RankingConfig } from './template-ranking.ts';
 
 // Scoring Configuration
 export {
@@ -322,12 +317,7 @@ export {
     describeScoringConfig,
     mergeWithDefaults,
 } from './scoring-config.ts';
-export type {
-    MetricWeights,
-    AgreementConfig,
-    RarityThresholds,
-    ScoringConfig,
-} from './scoring-config.ts';
+export type { MetricWeights, AgreementConfig, RarityThresholds, ScoringConfig } from './scoring-config.ts';
 
 // Weighted Voting
 export {
@@ -342,12 +332,7 @@ export {
     STRICT_VOTING_CONFIG,
     LENIENT_VOTING_CONFIG,
 } from './voting.ts';
-export type {
-    TemplateVote,
-    VotingResult,
-    VoteAggregate,
-    VotingConfig,
-} from './voting.ts';
+export type { TemplateVote, VotingResult, VoteAggregate, VotingConfig } from './voting.ts';
 
 // Similarity (advanced functions)
 export {
@@ -379,11 +364,7 @@ export {
     HIGH_RES_PROFILE,
     ULTRA_RES_PROFILE,
 } from './resolution-profiles.ts';
-export type {
-    ResolutionTier,
-    ResolutionInfo,
-    StrategyProfile,
-} from './resolution-profiles.ts';
+export type { ResolutionTier, ResolutionInfo, StrategyProfile } from './resolution-profiles.ts';
 
 // Count Detection
 export {

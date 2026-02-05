@@ -18,7 +18,7 @@ export async function detectStackCount(imageDataUrl: string): Promise<StackCount
         const img = await loadImage(imageDataUrl);
         const canvas = createCanvasFromImage(img);
         const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        
+
         if (!ctx) {
             return { count: null, confidence: 0, rawText: '' };
         }

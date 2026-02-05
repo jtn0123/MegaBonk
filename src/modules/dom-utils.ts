@@ -198,11 +198,7 @@ export function createEventListenerManager(): EventListenerManager {
  * @param filename - Suggested filename
  * @param mimeType - MIME type (default: application/json)
  */
-export function downloadFile(
-    content: string,
-    filename: string,
-    mimeType: string = 'application/json'
-): void {
+export function downloadFile(content: string, filename: string, mimeType: string = 'application/json'): void {
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -220,11 +216,7 @@ export function downloadFile(
  * @param filename - Suggested filename (without extension)
  * @param pretty - Whether to pretty-print JSON (default: true)
  */
-export function downloadJson(
-    data: unknown,
-    filename: string,
-    pretty: boolean = true
-): void {
+export function downloadJson(data: unknown, filename: string, pretty: boolean = true): void {
     const json = pretty ? JSON.stringify(data, null, 2) : JSON.stringify(data);
     const fullFilename = filename.endsWith('.json') ? filename : `${filename}.json`;
     downloadFile(json, fullFilename, 'application/json');
@@ -258,11 +250,7 @@ export function renderWithFragment<T>(
  * @param dataset - Data attributes
  * @returns Card element
  */
-export function createCard(
-    className: string,
-    content: string,
-    dataset?: Record<string, string>
-): HTMLElement {
+export function createCard(className: string, content: string, dataset?: Record<string, string>): HTMLElement {
     return createElement('div', {
         className,
         innerHTML: content,

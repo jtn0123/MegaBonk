@@ -6,21 +6,11 @@ import type { Item } from '../../../types/index.ts';
 import { logger } from '../../logger.ts';
 import type { CVDetectionResult } from '../types.ts';
 import { getTemplatesByColor } from '../state.ts';
-import {
-    getDominantColor,
-    getColorCandidates,
-    isEmptyCell,
-    calculateColorVariance,
-} from '../color.ts';
+import { getDominantColor, getColorCandidates, isEmptyCell, calculateColorVariance } from '../color.ts';
 import { isTrainingDataLoaded } from '../training.ts';
 import { getMetricsCollector } from '../metrics.ts';
 import { getDynamicMinConfidence } from '../detection-config.ts';
-import {
-    detectHotbarRegion,
-    detectIconEdges,
-    inferGridFromEdges,
-    generateGridROIs,
-} from '../detection-grid.ts';
+import { detectHotbarRegion, detectIconEdges, inferGridFromEdges, generateGridROIs } from '../detection-grid.ts';
 import { findBestTemplateMatch } from '../detection-matching.ts';
 import type { TwoPhaseOptions, TwoPhaseResult } from './types.ts';
 

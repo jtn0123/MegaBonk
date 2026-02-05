@@ -23,9 +23,9 @@ import { detectSynergies } from './build-validation.ts';
 export function renderCharacterSelect(): void {
     const charSelect = safeGetElementById('build-character') as HTMLSelectElement | null;
     if (!charSelect) return;
-    
+
     charSelect.innerHTML = '<option value="">Select Character...</option>';
-    
+
     if (allData.characters?.characters) {
         const fragment = document.createDocumentFragment();
         allData.characters.characters.forEach((char: Character) => {
@@ -45,9 +45,9 @@ export function renderCharacterSelect(): void {
 export function renderWeaponSelect(): void {
     const weaponSelect = safeGetElementById('build-weapon') as HTMLSelectElement | null;
     if (!weaponSelect) return;
-    
+
     weaponSelect.innerHTML = '<option value="">Select Weapon...</option>';
-    
+
     if (allData.weapons?.weapons) {
         const fragment = document.createDocumentFragment();
         allData.weapons.weapons.forEach((weapon: Weapon) => {
@@ -67,9 +67,9 @@ export function renderWeaponSelect(): void {
 export function renderTomesSelection(): void {
     const tomesSelection = safeGetElementById('tomes-selection');
     if (!tomesSelection) return;
-    
+
     tomesSelection.innerHTML = '';
-    
+
     if (allData.tomes?.tomes) {
         const fragment = document.createDocumentFragment();
         allData.tomes.tomes.forEach((tome: Tome) => {
@@ -89,9 +89,9 @@ export function renderTomesSelection(): void {
 export function renderItemsSelection(): void {
     const itemsSelection = safeGetElementById('items-selection');
     if (!itemsSelection) return;
-    
+
     itemsSelection.innerHTML = '';
-    
+
     if (allData.items?.items) {
         const fragment = document.createDocumentFragment();
         allData.items.items.slice(0, BUILD_ITEMS_LIMIT).forEach((item: Item) => {
@@ -122,7 +122,7 @@ export function renderBuildPlanner(): void {
 export function renderStatsDisplay(stats: CalculatedBuildStats): void {
     const statsDisplay = safeGetElementById('build-stats');
     if (!statsDisplay) return;
-    
+
     statsDisplay.innerHTML = `
         <div class="stat-card"><div class="stat-icon">⚔️</div><div class="stat-info"><div class="stat-label">Total Damage</div><div class="stat-value">${stats.damage.toFixed(0)}%</div></div></div>
         <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-info"><div class="stat-label">Max HP</div><div class="stat-value">${stats.hp.toFixed(0)}</div></div></div>
@@ -143,7 +143,7 @@ export function renderStatsDisplay(stats: CalculatedBuildStats): void {
 export function renderSynergiesDisplay(synergies: string[]): void {
     const synergiesDisplay = safeGetElementById('build-synergies');
     if (!synergiesDisplay) return;
-    
+
     synergiesDisplay.innerHTML =
         synergies.length > 0
             ? `<h4>🔗 Synergies Found:</h4><ul>${synergies.map((s: string) => `<li>${s}</li>`).join('')}</ul>`
@@ -156,9 +156,8 @@ export function renderSynergiesDisplay(synergies: string[]): void {
 export function renderStatsPlaceholder(): void {
     const statsDisplay = safeGetElementById('build-stats');
     if (!statsDisplay) return;
-    
-    statsDisplay.innerHTML =
-        '<p class="stats-placeholder">Select character and weapon to see calculated stats...</p>';
+
+    statsDisplay.innerHTML = '<p class="stats-placeholder">Select character and weapon to see calculated stats...</p>';
 }
 
 /**
@@ -174,11 +173,11 @@ export function updateBuildDisplay(build: Build, onBuildUpdate?: () => void): vo
     } else {
         renderStatsPlaceholder();
     }
-    
+
     // Detect and display synergies
     const synergyResult = detectSynergies(build);
     renderSynergiesDisplay(synergyResult.messages);
-    
+
     // Notify of build update
     if (onBuildUpdate) {
         onBuildUpdate();
@@ -213,7 +212,7 @@ export function setTomeCheckboxes(tomeIds: string[]): void {
     const tomeCheckboxes = document.querySelectorAll('.tome-checkbox') as NodeListOf<HTMLInputElement>;
     const checkboxMap = new Map<string, HTMLInputElement>();
     tomeCheckboxes.forEach(cb => checkboxMap.set(cb.value, cb));
-    
+
     tomeIds.forEach((tomeId: string) => {
         const checkbox = checkboxMap.get(tomeId);
         if (checkbox) checkbox.checked = true;
@@ -228,7 +227,7 @@ export function setItemCheckboxes(itemIds: string[]): void {
     const itemCheckboxes = document.querySelectorAll('.item-checkbox') as NodeListOf<HTMLInputElement>;
     const checkboxMap = new Map<string, HTMLInputElement>();
     itemCheckboxes.forEach(cb => checkboxMap.set(cb.value, cb));
-    
+
     itemIds.forEach((itemId: string) => {
         const checkbox = checkboxMap.get(itemId);
         if (checkbox) checkbox.checked = true;
@@ -347,7 +346,7 @@ export function setupSelectionListeners(onSelectionChange: () => void): void {
     if (tomesSelection) {
         tomesSelection.addEventListener('change', onSelectionChange);
     }
-    
+
     const itemsSelection = safeGetElementById('items-selection');
     if (itemsSelection) {
         itemsSelection.addEventListener('change', onSelectionChange);

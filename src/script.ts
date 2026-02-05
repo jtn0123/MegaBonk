@@ -23,7 +23,7 @@ import { setupImageFallbackHandler, setupBlurUpHandler } from './modules/utils.t
 import { logger } from './modules/logger.ts';
 import { setupOfflineListeners } from './modules/offline-ui.ts';
 import { scheduleModulePreload } from './modules/events.ts';
-import { initMobileNav, injectMoreMenuStyles } from './modules/mobile-nav.ts';
+import { initMobileNav } from './modules/mobile-nav.ts';
 import { initMobileFilters } from './modules/mobile-filters.ts';
 import { initRecentlyViewed } from './modules/recently-viewed.ts';
 import { initDebugPanel } from './modules/debug-ui.ts';
@@ -366,7 +366,6 @@ async function init(): Promise<void> {
     await safeModuleInit(
         'mobile-nav',
         async () => {
-            injectMoreMenuStyles();
             initMobileNav();
         },
         { required: false }

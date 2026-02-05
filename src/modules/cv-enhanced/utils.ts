@@ -39,9 +39,10 @@ export function loadImage(dataUrl: string): Promise<HTMLImageElement> {
 /**
  * Create canvas from image
  */
-export function createCanvasFromImage(
-    img: HTMLImageElement
-): { canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D } {
+export function createCanvasFromImage(img: HTMLImageElement): {
+    canvas: HTMLCanvasElement;
+    ctx: CanvasRenderingContext2D;
+} {
     const canvas = document.createElement('canvas');
     canvas.width = img.width;
     canvas.height = img.height;

@@ -17,29 +17,13 @@ export type {
 } from './types.ts';
 
 // Re-export utilities
-export {
-    OCR_TIMEOUT_MS,
-    OCR_MAX_RETRIES,
-    withTimeout,
-    sleep,
-    splitIntoSegments,
-    extractItemCounts,
-} from './utils.ts';
+export { OCR_TIMEOUT_MS, OCR_MAX_RETRIES, withTimeout, sleep, splitIntoSegments, extractItemCounts } from './utils.ts';
 
 // Re-export worker management
-export {
-    getTesseract,
-    getOrCreateWorker,
-    terminateOCRWorker,
-    isOCRWorkerActive,
-} from './worker.ts';
+export { getTesseract, getOrCreateWorker, terminateOCRWorker, isOCRWorkerActive } from './worker.ts';
 
 // Re-export preprocessing
-export {
-    preprocessForDigits,
-    loadImage,
-    createCanvasFromImage,
-} from './preprocessing.ts';
+export { preprocessForDigits, loadImage, createCanvasFromImage } from './preprocessing.ts';
 
 // Re-export text extraction
 export { extractTextFromImage } from './extraction.ts';
@@ -57,10 +41,7 @@ export {
 } from './detection.ts';
 
 // Re-export stack count detection
-export {
-    detectStackCount,
-    detectStackCountsBatch,
-} from './stack-count.ts';
+export { detectStackCount, detectStackCountsBatch } from './stack-count.ts';
 
 // Import for window assignments and reset
 import { initOCR } from './detection.ts';

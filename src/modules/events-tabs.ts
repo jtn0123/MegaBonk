@@ -90,9 +90,11 @@ function shouldProceedWithTabSwitch(tabName: TabName): boolean {
  * Check if this is the initial render (no content rendered yet)
  */
 function isInitialTabRender(): boolean {
-    return !document.querySelector('#itemsContainer .item-card') &&
-           !document.querySelector('#weaponsContainer .item-card') &&
-           !document.querySelector('#tomesContainer .item-card');
+    return (
+        !document.querySelector('#itemsContainer .item-card') &&
+        !document.querySelector('#weaponsContainer .item-card') &&
+        !document.querySelector('#tomesContainer .item-card')
+    );
 }
 
 /**

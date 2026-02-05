@@ -30,7 +30,7 @@ export async function renderDebugOverlay(
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
         const image = new Image();
         image.onload = () => resolve(image);
-        image.onerror = (event) => {
+        image.onerror = event => {
             const errorMsg = event instanceof ErrorEvent ? event.message : 'Unknown image load error';
             logger.warn({
                 operation: 'cv.debug.image_load_failed',
