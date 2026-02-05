@@ -28,7 +28,7 @@ vi.mock('../../src/modules/logger.ts', () => ({
     },
 }));
 
-import { getRating, getMetrics, logSummary, initWebVitals, createPerformanceBadge, THRESHOLDS } from '../../src/modules/web-vitals.ts';
+import { getRating, getMetrics, logSummary, initWebVitals, THRESHOLDS } from '../../src/modules/web-vitals.ts';
 import { onCLS, onFCP, onLCP, onTTFB, onINP } from 'web-vitals';
 
 describe('Web Vitals Module', () => {
@@ -260,82 +260,6 @@ describe('Web Vitals Module', () => {
         });
     });
 
-    describe('createPerformanceBadge', () => {
-        beforeEach(() => {
-            vi.useFakeTimers();
-            // JSDOM sets hostname to 'localhost' by default, which allows badge creation
-        });
-
-        afterEach(() => {
-            vi.useRealTimers();
-            // Clean up badge if created
-            const badge = document.getElementById('perf-badge');
-            if (badge) badge.remove();
-        });
-
-        it('should create badge on localhost (JSDOM default)', () => {
-            // JSDOM defaults to localhost, so badge should be created
-            createPerformanceBadge();
-            vi.advanceTimersByTime(3500);
-
-            const badge = document.getElementById('perf-badge');
-            expect(badge).not.toBeNull();
-            expect(badge?.className).toContain('perf-badge');
-        });
-
-        it('should show 0% score when no metrics collected', () => {
-            createPerformanceBadge();
-            vi.advanceTimersByTime(3500);
-
-            const badge = document.getElementById('perf-badge');
-            expect(badge?.textContent).toContain('Perf: 0%');
-        });
-
-        it('should call logSummary when badge is clicked', () => {
-            createPerformanceBadge();
-            vi.advanceTimersByTime(3500);
-
-            const badge = document.getElementById('perf-badge');
-            badge?.click();
-
-            expect(console.groupCollapsed).toHaveBeenCalledWith('[Web Vitals] Performance Summary');
-        });
-
-        it('should change opacity on mouseenter', () => {
-            createPerformanceBadge();
-            vi.advanceTimersByTime(3500);
-
-            const badge = document.getElementById('perf-badge') as HTMLElement;
-
-            // Trigger mouseenter - should update to opacity 1
-            badge.dispatchEvent(new Event('mouseenter'));
-            expect(badge.style.opacity).toBe('1');
-
-            // Trigger mouseleave - should reset to 0.7
-            badge.dispatchEvent(new Event('mouseleave'));
-            expect(badge.style.opacity).toBe('0.7');
-        });
-
-        it('should have correct title attribute', () => {
-            createPerformanceBadge();
-            vi.advanceTimersByTime(3500);
-
-            const badge = document.getElementById('perf-badge');
-            expect(badge?.title).toBe('Click to view Web Vitals details');
-        });
-
-        it('should create badge with perf-badge class', () => {
-            createPerformanceBadge();
-            vi.advanceTimersByTime(3500);
-
-            const badge = document.getElementById('perf-badge') as HTMLElement;
-            // Verify badge has correct ID and class
-            expect(badge).not.toBeNull();
-            expect(badge?.id).toBe('perf-badge');
-            expect(badge?.classList.contains('perf-badge')).toBe(true);
-        });
-    });
-
     describe('Metric handling integration', () => {
         it('should properly handle metrics via callbacks', () => {
             initWebVitals();
@@ -496,90 +420,6 @@ describe('Web Vitals Module', () => {
             // Should have both good (✅) and needs-improvement (⚠️) emojis
             expect(console.log).toHaveBeenCalledWith(expect.stringContaining('✅'));
             expect(console.log).toHaveBeenCalledWith(expect.stringContaining('⚠️'));
-        });
-    });
-
-    describe('Performance badge score emojis', () => {
-        beforeEach(() => {
-            vi.useFakeTimers();
-        });
-
-        afterEach(() => {
-            vi.useRealTimers();
-            const badge = document.getElementById('perf-badge');
-            if (badge) badge.remove();
-        });
-
-        it('should show rocket emoji for score >= 80%', () => {
-            initWebVitals();
-
-            // All good metrics = 100%
-            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
-            const fcpCallback = vi.mocked(onFCP).mock.calls[0][0];
-            const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
-            const ttfbCallback = vi.mocked(onTTFB).mock.calls[0][0];
-            const inpCallback = vi.mocked(onINP).mock.calls[0][0];
-
-            lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
-            fcpCallback({ name: 'FCP', value: 1500, rating: 'good', delta: 1500, id: 'fcp-1' } as any);
-            clsCallback({ name: 'CLS', value: 0.05, rating: 'good', delta: 0.05, id: 'cls-1' } as any);
-            ttfbCallback({ name: 'TTFB', value: 500, rating: 'good', delta: 500, id: 'ttfb-1' } as any);
-            inpCallback({ name: 'INP', value: 100, rating: 'good', delta: 100, id: 'inp-1' } as any);
-
-            createPerformanceBadge();
-            vi.advanceTimersByTime(3500);
-
-            const badge = document.getElementById('perf-badge');
-            expect(badge?.textContent).toContain('🚀');
-            expect(badge?.textContent).toContain('100%');
-        });
-
-        it('should show lightning emoji for score between 60-79%', () => {
-            initWebVitals();
-
-            // 3 good, 2 not = 60%
-            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
-            const fcpCallback = vi.mocked(onFCP).mock.calls[0][0];
-            const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
-            const ttfbCallback = vi.mocked(onTTFB).mock.calls[0][0];
-            const inpCallback = vi.mocked(onINP).mock.calls[0][0];
-
-            lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
-            fcpCallback({ name: 'FCP', value: 1500, rating: 'good', delta: 1500, id: 'fcp-1' } as any);
-            clsCallback({ name: 'CLS', value: 0.05, rating: 'good', delta: 0.05, id: 'cls-1' } as any);
-            ttfbCallback({ name: 'TTFB', value: 2000, rating: 'poor', delta: 2000, id: 'ttfb-1' } as any);
-            inpCallback({ name: 'INP', value: 600, rating: 'poor', delta: 600, id: 'inp-1' } as any);
-
-            createPerformanceBadge();
-            vi.advanceTimersByTime(3500);
-
-            const badge = document.getElementById('perf-badge');
-            expect(badge?.textContent).toContain('⚡');
-            expect(badge?.textContent).toContain('60%');
-        });
-
-        it('should show snail emoji for low scores', () => {
-            initWebVitals();
-
-            // Add many poor metrics to push score below 60%
-            const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
-            const fcpCallback = vi.mocked(onFCP).mock.calls[0][0];
-            const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
-            const ttfbCallback = vi.mocked(onTTFB).mock.calls[0][0];
-            const inpCallback = vi.mocked(onINP).mock.calls[0][0];
-
-            // All poor metrics = 0%
-            lcpCallback({ name: 'LCP', value: 5000, rating: 'poor', delta: 5000, id: 'lcp-1' } as any);
-            fcpCallback({ name: 'FCP', value: 5000, rating: 'poor', delta: 5000, id: 'fcp-1' } as any);
-            clsCallback({ name: 'CLS', value: 0.5, rating: 'poor', delta: 0.5, id: 'cls-1' } as any);
-            ttfbCallback({ name: 'TTFB', value: 3000, rating: 'poor', delta: 3000, id: 'ttfb-1' } as any);
-            inpCallback({ name: 'INP', value: 600, rating: 'poor', delta: 600, id: 'inp-1' } as any);
-
-            createPerformanceBadge();
-            vi.advanceTimersByTime(3500);
-
-            const badge = document.getElementById('perf-badge');
-            expect(badge?.textContent).toContain('🐌');
         });
     });
 
