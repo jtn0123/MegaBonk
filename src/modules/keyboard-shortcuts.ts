@@ -153,13 +153,21 @@ export function showShortcutsModal(): void {
 
     document.body.appendChild(modal);
 
+    // Set display to block first (CSS has display: none by default)
+    modal.style.display = 'block';
+
     // Use AbortController to clean up all listeners when modal closes
     const abortController = new AbortController();
     const { signal } = abortController;
 
     const closeModal = (): void => {
         abortController.abort(); // Clean up all listeners
-        modal.remove();
+        modal.classList.remove('active');
+        document.body.classList.remove('modal-open');
+        // Wait for animation before removing
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
     };
 
     // Add event listeners with signal for automatic cleanup
@@ -190,9 +198,11 @@ export function showShortcutsModal(): void {
         { signal }
     );
 
-    // Show modal
+    // Show modal with animation
     requestAnimationFrame(() => {
-        modal.classList.add('show');
+        modal.classList.add('active');
+        // Prevent body scroll on mobile when modal is open
+        document.body.classList.add('modal-open');
     });
 }
 

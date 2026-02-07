@@ -194,13 +194,14 @@ export function calculateBreakpoint(): void {
 
     stacksNeeded = Math.ceil(target / perStack);
 
-    // Cap checks
-    if (item.stack_cap && stacksNeeded > item.stack_cap) {
-        stacksNeeded = item.stack_cap;
-    }
+    // Bug fix: Track if original calculation exceeded cap BEFORE capping
+    // Using === only checks if final value equals cap, not if we were limited
+    const isCapped = item.stack_cap != null && stacksNeeded > item.stack_cap;
 
-    // Check if capped
-    const isCapped = item.stack_cap != null && stacksNeeded === item.stack_cap;
+    // Cap checks
+    if (isCapped) {
+        stacksNeeded = item.stack_cap!;
+    }
     const actualValue = stacksNeeded * perStack;
 
     // Display result
@@ -250,9 +251,12 @@ function renderResults(result: CalculatorResult): void {
     const unit = isPercentage ? '%' : '';
 
     // Bug fix: Trim scaling array to stack_cap to avoid showing bars beyond the cap
-    const effectiveScaling = result.stackCap
-        ? result.scalingPerStack.slice(0, result.stackCap)
-        : result.scalingPerStack;
+    // Bug fix: Ensure stack_cap is positive before using it with slice()
+    // slice(0, negative) removes elements from the end, which is not intended
+    const effectiveScaling =
+        result.stackCap && result.stackCap > 0
+            ? result.scalingPerStack.slice(0, result.stackCap)
+            : result.scalingPerStack;
 
     // Calculate max for bar graph normalization
     const maxVal = effectiveScaling.length > 0 ? Math.max(...effectiveScaling) : 1;
@@ -261,7 +265,11 @@ function renderResults(result: CalculatorResult): void {
     const barGraphHTML = effectiveScaling
         .map((val: number, idx: number) => {
             const height = (val / safeMax) * 100;
-            const isTarget = idx + 1 === result.stacksNeeded;
+            // Bug fix: Highlight the target bar, or the last available bar if
+            // stacksNeeded exceeds available data points (sparse scaling data)
+            const isTarget =
+                idx + 1 === result.stacksNeeded ||
+                (result.stacksNeeded > effectiveScaling.length && idx === effectiveScaling.length - 1);
             return `<div class="bar-container">
                         <div class="bar ${isTarget ? 'highlight' : ''}" style="height: ${height}%"></div>
                         <div class="bar-label">${idx + 1}</div>

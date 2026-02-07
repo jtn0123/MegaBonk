@@ -112,13 +112,9 @@ const resizedTemplateCache = new LRUCache<string, ImageData>(RESIZED_CACHE_SIZE)
 // Key: itemId, Value: Map of size -> ImageData
 const multiScaleTemplates = new Map<string, Map<number, ImageData>>();
 
-// Maximum number of items in multiScaleTemplates cache (2.3)
-// Each item can have up to 8 size variants (one per COMMON_ICON_SIZES)
-// So 100 items * 8 sizes = 800 total ImageData objects max
-const MAX_MULTISCALE_ITEMS = 100;
-
-// Track insertion order for LRU-like eviction of multiScaleTemplates
-const multiScaleInsertionOrder: string[] = [];
+// Bug fix: Limit multi-scale templates to prevent unbounded memory growth
+// Max ~300 items * 8 sizes = 2400 entries, but we limit to 2000 to be safe
+const MAX_MULTI_SCALE_TEMPLATES = 2000;
 
 // Common icon sizes used in different resolutions
 export const COMMON_ICON_SIZES = [32, 38, 40, 44, 48, 55, 64, 72] as const;
@@ -129,61 +125,9 @@ export const COMMON_ICON_SIZES = [32, 38, 40, 44, 48, 55, 64, 72] as const;
 
 export const CACHE_TTL = 1000 * 60 * 15; // 15 minutes
 export const MAX_CACHE_SIZE = 50; // Maximum number of cache entries
-const CACHE_CLEANUP_INTERVAL = 1000 * 60 * 10; // 10 minutes - periodic cleanup interval
 
 // Timer for periodic cache cleanup
 let cacheCleanupTimer: ReturnType<typeof setInterval> | null = null;
-
-/**
- * Start periodic cache cleanup to remove stale entries
- * Prevents memory accumulation from unused cached items
- */
-export function startPeriodicCacheCleanup(): void {
-    if (cacheCleanupTimer) return; // Already running
-
-    cacheCleanupTimer = setInterval(() => {
-        cleanupStaleCacheEntries();
-    }, CACHE_CLEANUP_INTERVAL);
-
-    logger.info({
-        operation: 'cv.state.cache_cleanup_started',
-        data: { interval: CACHE_CLEANUP_INTERVAL },
-    });
-}
-
-/**
- * Clean up stale detection cache entries
- * Removes entries older than CACHE_TTL
- */
-export function cleanupStaleCacheEntries(): void {
-    const now = Date.now();
-    let removedCount = 0;
-
-    for (const [key, entry] of detectionCache.entries()) {
-        if (now - entry.timestamp > CACHE_TTL) {
-            detectionCache.delete(key);
-            removedCount++;
-        }
-    }
-
-    if (removedCount > 0) {
-        logger.info({
-            operation: 'cv.state.cache_cleanup',
-            data: { removedEntries: removedCount, remainingEntries: detectionCache.size },
-        });
-    }
-}
-
-/**
- * Stop periodic cache cleanup
- */
-export function stopPeriodicCacheCleanup(): void {
-    if (cacheCleanupTimer) {
-        clearInterval(cacheCleanupTimer);
-        cacheCleanupTimer = null;
-        logger.info({ operation: 'cv.state.cache_cleanup_stopped' });
-    }
-}
 
 // ========================================
 // State Getters
@@ -246,22 +190,22 @@ export function getMultiScaleTemplate(itemId: string, size: number): ImageData |
 }
 
 export function setMultiScaleTemplate(itemId: string, size: number, imageData: ImageData): void {
-    // Check if we need to evict oldest entry (2.3 - cache bounding)
-    if (!multiScaleTemplates.has(itemId)) {
-        // New item - check cache bounds before adding
-        if (multiScaleTemplates.size >= MAX_MULTISCALE_ITEMS) {
-            // Evict oldest item
-            const oldestId = multiScaleInsertionOrder.shift();
-            if (oldestId) {
-                multiScaleTemplates.delete(oldestId);
-                logger.debug?.({
-                    operation: 'cv.state.multiscale_eviction',
-                    data: { evictedId: oldestId, cacheSize: multiScaleTemplates.size },
-                });
-            }
+    // Bug fix: Enforce maximum size limit to prevent unbounded memory growth
+    const currentCount = getMultiScaleTemplateCount();
+    if (currentCount >= MAX_MULTI_SCALE_TEMPLATES) {
+        // Evict oldest entries (first item in the map)
+        const firstKey = multiScaleTemplates.keys().next().value;
+        if (firstKey !== undefined) {
+            multiScaleTemplates.delete(firstKey);
+            logger.info({
+                operation: 'cv.state.multi_scale_eviction',
+                data: { evictedItemId: firstKey, currentCount },
+            });
         }
+    }
+
+    if (!multiScaleTemplates.has(itemId)) {
         multiScaleTemplates.set(itemId, new Map());
-        multiScaleInsertionOrder.push(itemId);
     }
     multiScaleTemplates.get(itemId)!.set(size, imageData);
 }
@@ -316,7 +260,6 @@ export function resetState(): void {
     detectionCache.clear();
     resizedTemplateCache.clear();
     multiScaleTemplates.clear();
-    multiScaleInsertionOrder.length = 0; // Clear insertion order for bounded cache (2.3)
     gridPresets = null;
     gridPresetsLoaded = false;
     if (cacheCleanupTimer) {
@@ -443,116 +386,4 @@ export function scaleCalibrationToResolution(
         iconsPerRow: calibration.iconsPerRow, // These don't scale
         numRows: calibration.numRows,
     };
-}
-
-// ========================================
-// Detection Trace ID (2.8)
-// ========================================
-
-let currentTraceId: string | null = null;
-let traceIdCounter = 0;
-
-/**
- * Generate a new detection trace ID (2.8)
- * Use at the start of a detection run to correlate log entries
- */
-export function generateTraceId(): string {
-    traceIdCounter++;
-    currentTraceId = `trace-${Date.now()}-${traceIdCounter}`;
-    return currentTraceId;
-}
-
-/**
- * Get the current trace ID (2.8)
- */
-export function getTraceId(): string | null {
-    return currentTraceId;
-}
-
-/**
- * Clear the current trace ID (2.8)
- */
-export function clearTraceId(): void {
-    currentTraceId = null;
-}
-
-// ========================================
-// Memory Stats Helper (2.9)
-// ========================================
-
-/**
- * Memory statistics for CV module caches
- */
-export interface MemoryStats {
-    /** Number of item templates loaded */
-    itemTemplatesCount: number;
-    /** Number of items in detection cache */
-    detectionCacheCount: number;
-    /** Number of resized templates in cache */
-    resizedCacheCount: number;
-    /** Number of multi-scale template items */
-    multiScaleItemCount: number;
-    /** Total multi-scale template variants */
-    multiScaleVariantCount: number;
-    /** Estimated memory usage in MB (rough estimate) */
-    estimatedMemoryMB: number;
-    /** Timestamp when stats were collected */
-    timestamp: number;
-}
-
-/**
- * Get memory statistics for CV module caches (2.9)
- * Useful for monitoring memory pressure during long sessions
- */
-export function getMemoryStats(): MemoryStats {
-    const itemTemplatesCount = itemTemplates.size;
-    const detectionCacheCount = detectionCache.size;
-    const resizedCacheCount = resizedTemplateCache.size;
-    const multiScaleItemCount = multiScaleTemplates.size;
-
-    // Count total multi-scale variants
-    let multiScaleVariantCount = 0;
-    multiScaleTemplates.forEach(sizes => {
-        multiScaleVariantCount += sizes.size;
-    });
-
-    // Estimate memory usage (very rough)
-    // Each template: ~64x64 pixels * 4 bytes = ~16KB
-    // Multi-scale variants average ~40x40 pixels * 4 bytes = ~6KB
-    // Detection cache entries: ~1KB each (estimated)
-    const templateMemoryKB = itemTemplatesCount * 16;
-    const resizedMemoryKB = resizedCacheCount * 10;
-    const multiScaleMemoryKB = multiScaleVariantCount * 6;
-    const detectionCacheMemoryKB = detectionCacheCount * 1;
-
-    const estimatedMemoryMB = (templateMemoryKB + resizedMemoryKB + multiScaleMemoryKB + detectionCacheMemoryKB) / 1024;
-
-    return {
-        itemTemplatesCount,
-        detectionCacheCount,
-        resizedCacheCount,
-        multiScaleItemCount,
-        multiScaleVariantCount,
-        estimatedMemoryMB: Math.round(estimatedMemoryMB * 100) / 100,
-        timestamp: Date.now(),
-    };
-}
-
-/**
- * Log memory stats for debugging (2.9)
- */
-export function logMemoryStats(): void {
-    const stats = getMemoryStats();
-    logger.info({
-        operation: 'cv.state.memory_stats',
-        data: {
-            itemTemplatesCount: stats.itemTemplatesCount,
-            detectionCacheCount: stats.detectionCacheCount,
-            resizedCacheCount: stats.resizedCacheCount,
-            multiScaleItemCount: stats.multiScaleItemCount,
-            multiScaleVariantCount: stats.multiScaleVariantCount,
-            estimatedMemoryMB: stats.estimatedMemoryMB,
-            timestamp: stats.timestamp,
-        },
-    });
 }

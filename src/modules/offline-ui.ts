@@ -161,7 +161,8 @@ export function setupOfflineListeners(): void {
             operation: 'app.online',
             data: { previousState: 'offline' },
         });
-        ToastManager.success('Back online!');
+        // DISABLED: "Back online" toast notification hidden
+        // ToastManager.success('Back online!');
         recordDataSync();
     };
 

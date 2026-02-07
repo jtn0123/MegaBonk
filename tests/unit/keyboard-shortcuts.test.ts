@@ -12,9 +12,11 @@ describe('Keyboard Shortcuts Module', () => {
     beforeEach(() => {
         createMinimalDOM();
         vi.clearAllMocks();
+        vi.useFakeTimers();
     });
 
     afterEach(() => {
+        vi.useRealTimers();
         // Clean up any modals
         const modal = document.getElementById('shortcuts-modal');
         if (modal) modal.remove();
@@ -702,6 +704,7 @@ describe('Keyboard Shortcuts Module', () => {
             const closeBtn = document.getElementById('shortcuts-modal-close');
 
             closeBtn.click();
+            vi.advanceTimersByTime(300); // Wait for animation timeout
 
             expect(document.getElementById('shortcuts-modal')).toBeNull();
         });
@@ -717,6 +720,7 @@ describe('Keyboard Shortcuts Module', () => {
             });
             Object.defineProperty(clickEvent, 'target', { value: modal });
             modal.dispatchEvent(clickEvent);
+            vi.advanceTimersByTime(300); // Wait for animation timeout
 
             expect(document.getElementById('shortcuts-modal')).toBeNull();
         });
@@ -729,6 +733,7 @@ describe('Keyboard Shortcuts Module', () => {
                 bubbles: true,
             });
             document.dispatchEvent(escapeEvent);
+            vi.advanceTimersByTime(300); // Wait for animation timeout
 
             expect(document.getElementById('shortcuts-modal')).toBeNull();
         });

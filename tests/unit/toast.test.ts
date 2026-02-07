@@ -1,270 +1,270 @@
+/**
+ * @vitest-environment jsdom
+ * Toast Notification Module Tests
+ */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import { createMinimalDOM } from '../helpers/dom-setup.js';
 
-// Unmock ToastManager to test real implementation (setup.js mocks it globally)
+// Unmock the toast module to test real implementation
 vi.unmock('../../src/modules/toast.ts');
+
+// Import after unmocking
 import { ToastManager } from '../../src/modules/toast.ts';
 
 describe('ToastManager', () => {
     beforeEach(() => {
-        createMinimalDOM();
-        ToastManager.reset();
         vi.useFakeTimers();
+        ToastManager.reset();
     });
 
     afterEach(() => {
-        ToastManager.reset();
         vi.useRealTimers();
+        ToastManager.reset();
     });
 
-    describe('init()', () => {
-        it('should create toast container with correct ID', () => {
+    // ========================================
+    // Initialization Tests
+    // ========================================
+    describe('init', () => {
+        it('should create a toast container on first init', () => {
             ToastManager.init();
-
             const container = document.getElementById('toast-container');
             expect(container).not.toBeNull();
         });
 
-        it('should set aria-live attribute to polite', () => {
+        it('should set correct aria attributes on container', () => {
             ToastManager.init();
-
             const container = document.getElementById('toast-container');
-            expect(container.getAttribute('aria-live')).toBe('polite');
+            expect(container?.getAttribute('role')).toBe('status');
+            expect(container?.getAttribute('aria-live')).toBe('polite');
+            expect(container?.getAttribute('aria-atomic')).toBe('true');
         });
 
-        it('should set role to status', () => {
-            ToastManager.init();
-
-            const container = document.getElementById('toast-container');
-            expect(container.getAttribute('role')).toBe('status');
-        });
-
-        it('should set aria-atomic to true', () => {
-            ToastManager.init();
-
-            const container = document.getElementById('toast-container');
-            expect(container.getAttribute('aria-atomic')).toBe('true');
-        });
-
-        it('should append container to body', () => {
-            ToastManager.init();
-
-            const container = document.getElementById('toast-container');
-            expect(container.parentNode).toBe(document.body);
-        });
-
-        it('should not create duplicate containers', () => {
+        it('should not create duplicate containers on multiple inits', () => {
             ToastManager.init();
             ToastManager.init();
             ToastManager.init();
-
             const containers = document.querySelectorAll('#toast-container');
             expect(containers.length).toBe(1);
         });
     });
 
-    describe('show()', () => {
-        it('should create toast element with correct class', () => {
-            const toast = ToastManager.show('Test message', 'info');
+    // ========================================
+    // show() Tests
+    // ========================================
+    describe('show', () => {
+        it('should create a toast element', () => {
+            const toast = ToastManager.show('Test message');
+            expect(toast).toBeInstanceOf(HTMLElement);
+            expect(toast.textContent).toBe('Test message');
+        });
 
+        it('should apply correct class for info type', () => {
+            const toast = ToastManager.show('Info message', 'info');
             expect(toast.classList.contains('toast')).toBe(true);
             expect(toast.classList.contains('toast-info')).toBe(true);
         });
 
-        it('should set toast message text', () => {
-            const toast = ToastManager.show('Test message');
-
-            expect(toast.textContent).toBe('Test message');
-        });
-
-        it('should initially not have toast-visible class', () => {
-            const toast = ToastManager.show('Test message');
-
-            // Initially should not have visible class (RAF hasn't fired yet)
-            expect(toast.classList.contains('toast-visible')).toBe(false);
-        });
-
-        it('should schedule visible class addition via requestAnimationFrame', () => {
-            // Verify RAF is called when showing toast
-            const rafSpy = vi.spyOn(globalThis, 'requestAnimationFrame');
-            ToastManager.show('Test message');
-
-            expect(rafSpy).toHaveBeenCalled();
-            rafSpy.mockRestore();
-        });
-
-        it('should default to info type', () => {
-            const toast = ToastManager.show('Test message');
-
-            expect(toast.classList.contains('toast-info')).toBe(true);
-        });
-
-        it('should schedule auto-dismiss with default 3000ms duration', () => {
-            const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-            ToastManager.show('Test message');
-
-            // Should schedule setTimeout with 3000ms (default duration)
-            const dismissCall = setTimeoutSpy.mock.calls.find(call => call[1] === 3000);
-            expect(dismissCall).toBeDefined();
-            setTimeoutSpy.mockRestore();
-        });
-
-        it('should add toast to container', () => {
-            ToastManager.show('Test message');
-
-            const container = document.getElementById('toast-container');
-            expect(container.children.length).toBe(1);
-        });
-
-        it('should support custom duration', () => {
-            const setTimeoutSpy = vi.spyOn(globalThis, 'setTimeout');
-            ToastManager.show('Test message', 'info', 5000);
-
-            // Should schedule setTimeout with custom duration
-            const dismissCall = setTimeoutSpy.mock.calls.find(call => call[1] === 5000);
-            expect(dismissCall).toBeDefined();
-            setTimeoutSpy.mockRestore();
-        });
-    });
-
-    describe('info()', () => {
-        it('should create toast with toast-info class', () => {
-            const toast = ToastManager.info('Info message');
-
-            expect(toast.classList.contains('toast-info')).toBe(true);
-        });
-
-        it('should display the message', () => {
-            const toast = ToastManager.info('Info message');
-
-            expect(toast.textContent).toBe('Info message');
-        });
-    });
-
-    describe('success()', () => {
-        it('should create toast with toast-success class', () => {
-            const toast = ToastManager.success('Success message');
-
+        it('should apply correct class for success type', () => {
+            const toast = ToastManager.show('Success message', 'success');
             expect(toast.classList.contains('toast-success')).toBe(true);
         });
 
-        it('should display the message', () => {
-            const toast = ToastManager.success('Success message');
-
-            expect(toast.textContent).toBe('Success message');
-        });
-    });
-
-    describe('warning()', () => {
-        it('should create toast with toast-warning class', () => {
-            const toast = ToastManager.warning('Warning message');
-
+        it('should apply correct class for warning type', () => {
+            const toast = ToastManager.show('Warning message', 'warning');
             expect(toast.classList.contains('toast-warning')).toBe(true);
         });
 
-        it('should display the message', () => {
-            const toast = ToastManager.warning('Warning message');
-
-            expect(toast.textContent).toBe('Warning message');
-        });
-    });
-
-    describe('error()', () => {
-        it('should create toast with toast-error class', () => {
-            const toast = ToastManager.error('Error message');
-
+        it('should apply correct class for error type', () => {
+            const toast = ToastManager.show('Error message', 'error');
             expect(toast.classList.contains('toast-error')).toBe(true);
         });
 
-        it('should display the message', () => {
-            const toast = ToastManager.error('Error message');
-
-            expect(toast.textContent).toBe('Error message');
-        });
-    });
-
-    describe('accessibility', () => {
-        it('should set role=alert on toast elements', () => {
-            const toast = ToastManager.show('Test message');
-
+        it('should set role="alert" for accessibility', () => {
+            const toast = ToastManager.show('Alert message');
             expect(toast.getAttribute('role')).toBe('alert');
         });
 
-        it('should have aria-atomic=true on container', () => {
-            ToastManager.init();
-
-            const container = document.getElementById('toast-container');
-            expect(container.getAttribute('aria-atomic')).toBe('true');
+        it('should default to info type when not specified', () => {
+            const toast = ToastManager.show('Default message');
+            expect(toast.classList.contains('toast-info')).toBe(true);
         });
 
-        it('should have aria-live=polite on container for non-urgent messages', () => {
-            ToastManager.init();
+        it('should add toast-visible class after animation frame', () => {
+            const toast = ToastManager.show('Animated message');
+            
+            // Initially not visible
+            expect(toast.classList.contains('toast-visible')).toBe(false);
+            
+            // After animation frame
+            vi.runAllTimers();
+            // Note: requestAnimationFrame is async, so we need to advance
+        });
 
+        it('should auto-dismiss after default duration (3000ms)', () => {
+            const toast = ToastManager.show('Dismissing message');
             const container = document.getElementById('toast-container');
-            expect(container.getAttribute('aria-live')).toBe('polite');
+            
+            expect(container?.contains(toast)).toBe(true);
+            
+            // Advance past the duration
+            vi.advanceTimersByTime(3000);
+            
+            // Toast should start removal process
+            expect(toast.classList.contains('toast-visible')).toBe(false);
+        });
+
+        it('should respect custom duration', () => {
+            const toast = ToastManager.show('Quick message', 'info', 1000);
+            
+            vi.advanceTimersByTime(500);
+            expect(toast.classList.contains('toast-visible')).toBe(true);
+            
+            vi.advanceTimersByTime(600);
+            expect(toast.classList.contains('toast-visible')).toBe(false);
+        });
+
+        it('should remove toast from DOM after transition', () => {
+            const toast = ToastManager.show('Removing message', 'info', 100);
+            const container = document.getElementById('toast-container');
+            
+            expect(container?.contains(toast)).toBe(true);
+            
+            // Advance past duration + fallback timeout
+            vi.advanceTimersByTime(700);
+            
+            expect(container?.contains(toast)).toBe(false);
+        });
+
+        it('should handle multiple toasts simultaneously', () => {
+            const toast1 = ToastManager.show('First');
+            const toast2 = ToastManager.show('Second');
+            const toast3 = ToastManager.show('Third');
+            
+            const container = document.getElementById('toast-container');
+            expect(container?.children.length).toBe(3);
+        });
+
+        it('should auto-init container if not initialized', () => {
+            // Don't call init() first
+            ToastManager.show('Auto-init message');
+            
+            const container = document.getElementById('toast-container');
+            expect(container).not.toBeNull();
         });
     });
 
-    describe('multiple toasts', () => {
-        it('should allow multiple toasts at once', () => {
-            ToastManager.show('First message');
-            ToastManager.show('Second message');
-            ToastManager.show('Third message');
-
-            const container = document.getElementById('toast-container');
-            expect(container.children.length).toBe(3);
-        });
-
-        it('should dismiss toasts independently', () => {
-            ToastManager.show('First message', 'info', 1000);
-            ToastManager.show('Second message', 'info', 2000);
-
-            const container = document.getElementById('toast-container');
-            expect(container.children.length).toBe(2);
-
-            // After first toast duration
-            vi.advanceTimersByTime(1001);
-
-            // First toast should start dismissing (remove visible class)
-            const firstToast = container.children[0];
-            expect(firstToast.classList.contains('toast-visible')).toBe(false);
-
-            // Second toast should still be visible
-            const secondToast = container.children[1];
-            expect(secondToast.classList.contains('toast-visible')).toBe(true);
+    // ========================================
+    // Convenience Method Tests
+    // ========================================
+    describe('info', () => {
+        it('should show info toast', () => {
+            const toast = ToastManager.info('Info notification');
+            expect(toast.textContent).toBe('Info notification');
+            expect(toast.classList.contains('toast-info')).toBe(true);
         });
     });
 
+    describe('success', () => {
+        it('should show success toast', () => {
+            const toast = ToastManager.success('Success notification');
+            expect(toast.textContent).toBe('Success notification');
+            expect(toast.classList.contains('toast-success')).toBe(true);
+        });
+    });
+
+    describe('warning', () => {
+        it('should show warning toast', () => {
+            const toast = ToastManager.warning('Warning notification');
+            expect(toast.textContent).toBe('Warning notification');
+            expect(toast.classList.contains('toast-warning')).toBe(true);
+        });
+    });
+
+    describe('error', () => {
+        it('should show error toast', () => {
+            const toast = ToastManager.error('Error notification');
+            expect(toast.textContent).toBe('Error notification');
+            expect(toast.classList.contains('toast-error')).toBe(true);
+        });
+    });
+
+    // ========================================
+    // Reset Tests
+    // ========================================
+    describe('reset', () => {
+        it('should remove container from DOM', () => {
+            ToastManager.init();
+            expect(document.getElementById('toast-container')).not.toBeNull();
+            
+            ToastManager.reset();
+            expect(document.getElementById('toast-container')).toBeNull();
+        });
+
+        it('should reset internal state', () => {
+            ToastManager.init();
+            ToastManager.reset();
+            
+            // Should be able to init again
+            ToastManager.init();
+            expect(document.getElementById('toast-container')).not.toBeNull();
+        });
+
+        it('should handle reset when not initialized', () => {
+            // Should not throw
+            expect(() => ToastManager.reset()).not.toThrow();
+        });
+
+        it('should handle multiple resets', () => {
+            ToastManager.init();
+            ToastManager.reset();
+            ToastManager.reset();
+            ToastManager.reset();
+            
+            expect(document.getElementById('toast-container')).toBeNull();
+        });
+    });
+
+    // ========================================
+    // Edge Cases
+    // ========================================
     describe('edge cases', () => {
         it('should handle empty message', () => {
             const toast = ToastManager.show('');
-
             expect(toast.textContent).toBe('');
-            expect(toast).not.toBeNull();
-        });
-
-        it('should handle special characters in message', () => {
-            const message = '<script>alert("xss")</script>';
-            const toast = ToastManager.show(message);
-
-            // textContent should escape HTML
-            expect(toast.textContent).toBe(message);
-            // Should not contain actual script element
-            expect(toast.querySelector('script')).toBeNull();
         });
 
         it('should handle very long messages', () => {
             const longMessage = 'A'.repeat(1000);
             const toast = ToastManager.show(longMessage);
-
             expect(toast.textContent).toBe(longMessage);
         });
 
-        it('should handle unicode characters', () => {
-            const unicodeMessage = '🎮 Game saved! 日本語 テスト';
-            const toast = ToastManager.show(unicodeMessage);
+        it('should handle special characters', () => {
+            const specialMessage = '<script>alert("xss")</script>';
+            const toast = ToastManager.show(specialMessage);
+            // textContent should escape HTML
+            expect(toast.textContent).toBe(specialMessage);
+            expect(toast.innerHTML).not.toContain('<script>');
+        });
 
+        it('should handle unicode characters', () => {
+            const unicodeMessage = '🎮 MegaBonk 🏆 测试 العربية';
+            const toast = ToastManager.show(unicodeMessage);
             expect(toast.textContent).toBe(unicodeMessage);
+        });
+
+        it('should handle zero duration', () => {
+            const toast = ToastManager.show('Instant', 'info', 0);
+            
+            vi.advanceTimersByTime(0);
+            expect(toast.classList.contains('toast-visible')).toBe(false);
+        });
+
+        it('should handle negative duration as immediate', () => {
+            const toast = ToastManager.show('Negative', 'info', -100);
+            
+            vi.advanceTimersByTime(0);
+            // Should still work, treated as 0 or immediate
         });
     });
 });

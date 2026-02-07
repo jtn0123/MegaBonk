@@ -31,7 +31,7 @@
 
     /* Text - 2 levels only */
     --text-primary: #ffffff;
-    --text-secondary: #8b8b9b;
+    --text-secondary: #a0a0b0;
     --text-light: var(--text-primary);
     --text-muted: var(--text-secondary);
 
@@ -51,6 +51,11 @@
     --tier-a: #3b82f6; /* Blue - Strong */
     --tier-b: #f59e0b; /* Amber - Situational */
     --tier-c: #ef4444; /* Red - Weak */
+
+    /* Transition Timing */
+    --transition-fast: 0.15s;
+    --transition-base: 0.2s;
+    --transition-slow: 0.3s;
 }
 
 * {

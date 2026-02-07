@@ -146,8 +146,10 @@ function calculateItemSimilarity(item1: Item, item2: Item): { score: number; rea
     }
 
     // Shared synergies - Bug fix: Add null guard for both arrays before filtering
+    // Bug fix: Filter out empty strings to prevent false positive matches
+    // (every string .includes(''), so empty synergies would match everything)
     if (item1.synergies?.length && item2.synergies?.length) {
-        const shared = item1.synergies.filter(s => item2.synergies?.includes(s));
+        const shared = item1.synergies.filter(s => s.length > 0 && item2.synergies?.includes(s));
         if (shared.length > 0) {
             score += Math.min(shared.length * 0.15, 0.3);
             reasons.push(`Shared synergies`);
@@ -221,8 +223,9 @@ function calculateWeaponSimilarity(weapon1: Weapon, weapon2: Weapon): { score: n
     }
 
     // Shared best_for tags
+    // Bug fix: Filter out empty strings to prevent false positive matches
     if (weapon1.best_for && weapon2.best_for) {
-        const shared = weapon1.best_for.filter(b => weapon2.best_for?.includes(b));
+        const shared = weapon1.best_for.filter(b => b.length > 0 && weapon2.best_for?.includes(b));
         if (shared.length > 0) {
             score += Math.min(shared.length * 0.15, 0.25);
             reasons.push(`Similar use cases`);
@@ -326,8 +329,9 @@ function calculateCharacterSimilarity(char1: Character, char2: Character): { sco
     }
 
     // Shared synergy items
+    // Bug fix: Filter out empty strings to prevent false positive matches
     if (char1.synergies_items && char2.synergies_items) {
-        const shared = char1.synergies_items.filter(s => char2.synergies_items?.includes(s));
+        const shared = char1.synergies_items.filter(s => s.length > 0 && char2.synergies_items?.includes(s));
         if (shared.length > 0) {
             score += Math.min(shared.length * 0.1, 0.2);
             reasons.push(`Similar item synergies`);
@@ -474,11 +478,13 @@ export function renderSimilarItemsSection(type: EntityType, id: string): string 
         .map(item => {
             const imageHtml = generateEntityImage(item.entity, item.entity.name || 'Unknown', 'similar-item-image');
             const reason = item.reasons[0] || 'Similar';
+            const itemName = escapeHtml(item.entity.name || 'Unknown');
 
             return `
-            <div class="similar-item-card" data-type="${item.type}" data-id="${item.entity.id}">
+            <div class="similar-item-card" data-type="${item.type}" data-id="${item.entity.id}" 
+                 role="button" tabindex="0" aria-label="View ${itemName}: ${escapeHtml(reason)}">
                 ${imageHtml || '<span class="similar-item-icon">📦</span>'}
-                <div class="similar-item-name">${escapeHtml(item.entity.name || 'Unknown')}</div>
+                <div class="similar-item-name">${itemName}</div>
                 <div class="similar-item-reason">${escapeHtml(reason)}</div>
             </div>
         `;
@@ -496,14 +502,14 @@ export function renderSimilarItemsSection(type: EntityType, id: string): string 
 }
 
 /**
- * Setup click handlers for similar items
+ * Setup click and keyboard handlers for similar items
  * Call this after inserting the similar items HTML
  */
 export function setupSimilarItemsHandlers(container: HTMLElement): void {
     const cards = container.querySelectorAll('.similar-item-card');
 
     cards.forEach(card => {
-        card.addEventListener('click', () => {
+        const handleActivation = (): void => {
             const type = (card as HTMLElement).dataset.type as EntityType;
             const id = (card as HTMLElement).dataset.id;
 
@@ -512,6 +518,17 @@ export function setupSimilarItemsHandlers(container: HTMLElement): void {
                 import('./modal.ts').then(({ openDetailModal }) => {
                     openDetailModal(type, id);
                 });
+            }
+        };
+
+        card.addEventListener('click', handleActivation);
+
+        // Keyboard accessibility: Enter or Space activates the card
+        card.addEventListener('keydown', (e: Event) => {
+            const keyEvent = e as KeyboardEvent;
+            if (keyEvent.key === 'Enter' || keyEvent.key === ' ') {
+                keyEvent.preventDefault();
+                handleActivation();
             }
         });
     });

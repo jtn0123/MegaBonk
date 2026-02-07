@@ -54,6 +54,7 @@
     overflow-x: auto;
     padding-bottom: 0.5rem;
     scrollbar-width: thin;
+    scroll-snap-type: x mandatory;
 }
 
 .recent-item {
@@ -65,9 +66,10 @@
     background: var(--bg-subtle);
     border-radius: 8px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base) ease;
     min-width: 70px;
     text-align: center;
+    scroll-snap-align: start;
 }
 
 .recent-item:hover {
@@ -515,4 +517,413 @@
 
 .shortcut-description {
     color: var(--text-secondary);
+}
+
+/* ========================================
+   Breakpoint Calculator
+   ======================================== */
+
+.calculator-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.calculator-subtitle {
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+.calculator-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.calculator-card {
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 2px solid var(--accent);
+}
+
+.calculator-card.full-width {
+    grid-column: 1 / -1;
+}
+
+.calculator-card h3 {
+    color: var(--accent);
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+}
+
+.calc-select,
+.calc-input {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-dark);
+    color: var(--text-primary);
+    border: 2px solid var(--accent);
+    border-radius: 6px;
+    font-size: 1rem;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.calc-select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23e94560' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 36px;
+    cursor: pointer;
+}
+
+.calc-select:focus,
+.calc-input:focus {
+    outline: none;
+    border-color: var(--accent-hover);
+}
+
+.input-hint {
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.calc-btn {
+    width: 100%;
+    padding: 1.25rem;
+    font-size: 1.1rem;
+}
+
+.calculator-result {
+    grid-column: 1 / -1;
+    background: var(--bg-light);
+    border: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 2rem;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.calc-result-content h3 {
+    text-align: center;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+}
+
+.result-main {
+    background: var(--bg-dark);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.result-item:last-child {
+    border-bottom: none;
+}
+
+.result-item.highlight {
+    background: rgba(0, 255, 136, 0.1);
+    border-radius: 6px;
+    border: 2px solid var(--accent);
+}
+
+.result-label {
+    color: var(--text-muted);
+}
+
+.result-value {
+    color: var(--text-primary);
+}
+
+.result-value.large {
+    font-size: 1.8rem;
+    color: var(--accent);
+}
+
+.result-details {
+    background: var(--bg-dark);
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+}
+
+.result-details p {
+    margin: 0.75rem 0;
+}
+
+.result-graph h4 {
+    color: var(--accent);
+    margin-bottom: 1rem;
+}
+
+.mini-bar-graph {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    height: 150px;
+    background: var(--bg-dark);
+    padding: 1rem;
+    border-radius: 8px;
+    gap: 0.5rem;
+}
+
+.bar-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+    justify-content: flex-end;
+}
+
+.bar {
+    width: 100%;
+    background: linear-gradient(180deg, var(--accent) 0%, var(--accent-hover) 100%);
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s ease;
+    min-height: 5px;
+}
+
+.bar.target-bar {
+    background: linear-gradient(180deg, var(--legendary) 0%, #ff8c00 100%);
+    box-shadow: 0 0 15px rgba(255, 165, 0, 0.5);
+}
+
+.bar-label {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.common-breakpoints {
+    margin-top: 3rem;
+}
+
+.common-breakpoints h3 {
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.breakpoint-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+    gap: 1rem;
+}
+
+button.breakpoint-card {
+    font-family: inherit;
+    font-size: inherit;
+    text-align: left;
+    color: inherit;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.breakpoint-card {
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 2px solid var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.breakpoint-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    border-color: var(--accent-hover);
+}
+
+.breakpoint-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px rgba(233, 69, 96, 0.25);
+}
+
+.bp-icon {
+    font-size: 2.5rem;
+    flex-shrink: 0;
+}
+
+.bp-text {
+    flex: 1;
+}
+
+.bp-text strong {
+    display: block;
+    color: var(--accent);
+    margin-bottom: 0.25rem;
+}
+
+.bp-text span {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.bp-answer {
+    background: var(--accent);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* ========================================
+   Build Planner
+   ======================================== */
+
+.build-planner {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.build-section {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.build-section h2 {
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+}
+
+.build-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.build-slot {
+    background: var(--bg-light);
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.build-slot.full-width {
+    grid-column: 1 / -1;
+}
+
+.build-slot h3 {
+    margin-bottom: 1rem;
+    color: var(--legendary);
+}
+
+.build-analysis {
+    background: var(--bg-light);
+    padding: 2rem;
+    border-radius: 12px;
+    margin-bottom: 2rem;
+}
+
+.build-analysis h3 {
+    margin-bottom: 1.5rem;
+    color: var(--accent);
+}
+
+.build-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.build-stat-item {
+    background: var(--bg-dark);
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.build-stat-label {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.build-stat-value {
+    color: var(--accent);
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+.build-synergies-display {
+    background: var(--bg-dark);
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.build-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* ========================================
+   Responsive: Calculator & Build Planner
+   ======================================== */
+
+@media (max-width: 768px) {
+    .calculator-container {
+        padding: 1.5rem;
+    }
+
+    .calculator-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .breakpoint-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .build-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .build-slot.full-width {
+        grid-column: 1;
+    }
+
+    .build-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .build-actions {
+        flex-wrap: wrap;
+    }
+
+    .build-actions button {
+        flex: 1 1 calc(50% - 0.5rem);
+        min-width: 140px;
+    }
 }

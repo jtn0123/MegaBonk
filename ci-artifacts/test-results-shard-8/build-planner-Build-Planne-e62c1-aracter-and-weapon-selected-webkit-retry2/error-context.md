@@ -1,0 +1,308 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - heading "🎮 MegaBonk Complete Guide" [level=1] [ref=e4]
+  - navigation "Main navigation" [ref=e5]:
+    - tablist "Content categories" [ref=e7]:
+      - tab "📦 Items" [ref=e8] [cursor=pointer]
+      - tab "⚔️ Weapons" [ref=e9] [cursor=pointer]
+      - tab "📚 Tomes" [ref=e10] [cursor=pointer]
+      - tab "👤 Characters" [ref=e11] [cursor=pointer]
+      - tab "⛩️ Shrines" [ref=e12] [cursor=pointer]
+      - tab "🛠️ Build Planner" [active] [selected] [ref=e13] [cursor=pointer]
+      - tab "🧮 Calculator" [ref=e14] [cursor=pointer]
+      - tab "🤖 Advisor" [ref=e15] [cursor=pointer]
+      - tab "📋 Changelog" [ref=e16] [cursor=pointer]
+      - tab "ℹ️ About" [ref=e17] [cursor=pointer]
+  - navigation "Search and filters" [ref=e18]:
+    - generic [ref=e19]:
+      - searchbox "Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100" [ref=e21]
+      - generic "Filter options"
+  - main [ref=e22]:
+    - tabpanel "🛠️ Build Planner" [ref=e24]:
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - heading "🛠️ Build Your Perfect Loadout" [level=2] [ref=e27]
+          - paragraph [ref=e28]: Select character, weapon, tomes, and items to see synergies and stats.
+        - generic [ref=e29]:
+          - generic [ref=e30]:
+            - heading "👤 Character" [level=3] [ref=e31]
+            - combobox "👤 Character" [ref=e32]:
+              - option "Select Character..."
+              - option "Fox (A Tier)" [selected]
+              - option "Sir Oofie (S Tier)"
+              - option "CL4NK (SS Tier)"
+              - option "Calcium (A Tier)"
+              - option "Ogre (S Tier)"
+              - option "Bush (S Tier)"
+              - option "Vlad (S Tier)"
+              - option "Bandit (S Tier)"
+              - option "Ninja (A Tier)"
+              - option "Athena (A Tier)"
+              - option "Megachad (B Tier)"
+              - option "Monke (B Tier)"
+              - option "Spaceman (A Tier)"
+              - option "Noelle (A Tier)"
+              - option "Amog (A Tier)"
+              - option "Tony McZoom (B Tier)"
+              - option "Robinette (C Tier)"
+              - option "Birdo (B Tier)"
+              - option "Sir Chadwell (A Tier)"
+              - option "Dicehead (B Tier)"
+            - status [ref=e33]: 👤 Select a character to see stats and synergies
+          - generic [ref=e34]:
+            - heading "⚔️ Weapon" [level=3] [ref=e35]
+            - combobox "⚔️ Weapon" [ref=e36]:
+              - option "Select Weapon..."
+              - option "Sniper Rifle (SS Tier)" [selected]
+              - option "Revolver (S Tier)"
+              - option "Bow (S Tier)"
+              - option "Lightning Staff (S Tier)"
+              - option "Dragon's Breath (A Tier)"
+              - option "Aura (A Tier)"
+              - option "Sword (A Tier)"
+              - option "Axe (A Tier)"
+              - option "Tornado (A Tier)"
+              - option "Black Hole (S Tier)"
+              - option "Dexecutioner (A Tier)"
+              - option "Katana (S Tier)"
+              - option "Blood Magic (A Tier)"
+              - option "Slutty Rocket (A Tier)"
+              - option "Poison Flask (A Tier)"
+              - option "Frostwalker (A Tier)"
+              - option "Aegis (S Tier)"
+              - option "Firestaff (C Tier)"
+              - option "Dice (SS Tier)"
+              - option "Bananarang (A Tier)"
+              - option "Shotgun (A Tier)"
+              - option "Mines (B Tier)"
+              - option "Chunkers (A Tier)"
+              - option "Space Noodle (A Tier)"
+              - option "Bone (A Tier)"
+              - option "Hero Sword (S Tier)"
+              - option "Wireless Dagger (A Tier)"
+              - option "Corrupted Sword (A Tier)"
+              - option "Flamewalker (B Tier)"
+            - status [ref=e37]: ⚔️ Select a weapon to see damage and upgrades
+          - generic [ref=e38]:
+            - heading "📚 Priority Tomes (Select up to 5)" [level=3] [ref=e39]
+            - group "📚 Priority Tomes (Select up to 5)" [ref=e40]:
+              - generic [ref=e41] [cursor=pointer]:
+                - checkbox "Damage Tome" [ref=e42]
+                - text: Damage Tome
+              - generic [ref=e43] [cursor=pointer]:
+                - checkbox "Precision Tome (Crit Chance)" [ref=e44]
+                - text: Precision Tome (Crit Chance)
+              - generic [ref=e45] [cursor=pointer]:
+                - checkbox "Cooldown Tome (Attack Speed)" [ref=e46]
+                - text: Cooldown Tome (Attack Speed)
+              - generic [ref=e47] [cursor=pointer]:
+                - checkbox "HP Tome" [ref=e48]
+                - text: HP Tome
+              - generic [ref=e49] [cursor=pointer]:
+                - checkbox "Agility Tome (Movement Speed)" [ref=e50]
+                - text: Agility Tome (Movement Speed)
+              - generic [ref=e51] [cursor=pointer]:
+                - checkbox "Size Tome" [ref=e52]
+                - text: Size Tome
+              - generic [ref=e53] [cursor=pointer]:
+                - checkbox "Shield Tome" [ref=e54]
+                - text: Shield Tome
+              - generic [ref=e55] [cursor=pointer]:
+                - checkbox "Regen Tome" [ref=e56]
+                - text: Regen Tome
+              - generic [ref=e57] [cursor=pointer]:
+                - checkbox "Evasion Tome (Dodge)" [ref=e58]
+                - text: Evasion Tome (Dodge)
+              - generic [ref=e59] [cursor=pointer]:
+                - checkbox "Knockback Tome" [ref=e60]
+                - text: Knockback Tome
+              - generic [ref=e61] [cursor=pointer]:
+                - checkbox "Projectile Speed Tome" [ref=e62]
+                - text: Projectile Speed Tome
+              - generic [ref=e63] [cursor=pointer]:
+                - checkbox "Quantity Tome (Projectile Count)" [ref=e64]
+                - text: Quantity Tome (Projectile Count)
+              - generic [ref=e65] [cursor=pointer]:
+                - checkbox "Duration Tome" [ref=e66]
+                - text: Duration Tome
+              - generic [ref=e67] [cursor=pointer]:
+                - checkbox "Armor Tome" [ref=e68]
+                - text: Armor Tome
+              - generic [ref=e69] [cursor=pointer]:
+                - checkbox "Bloody Tome (Lifesteal)" [ref=e70]
+                - text: Bloody Tome (Lifesteal)
+              - generic [ref=e71] [cursor=pointer]:
+                - checkbox "Thorns Tome" [ref=e72]
+                - text: Thorns Tome
+              - generic [ref=e73] [cursor=pointer]:
+                - checkbox "XP Tome" [ref=e74]
+                - text: XP Tome
+              - generic [ref=e75] [cursor=pointer]:
+                - checkbox "Luck Tome" [ref=e76]
+                - text: Luck Tome
+              - generic [ref=e77] [cursor=pointer]:
+                - checkbox "Gold Tome (Greed)" [ref=e78]
+                - text: Gold Tome (Greed)
+              - generic [ref=e79] [cursor=pointer]:
+                - checkbox "Silver Tome" [ref=e80]
+                - text: Silver Tome
+              - generic [ref=e81] [cursor=pointer]:
+                - checkbox "Attraction Tome (Magnet/Pickup Range)" [ref=e82]
+                - text: Attraction Tome (Magnet/Pickup Range)
+              - generic [ref=e83] [cursor=pointer]:
+                - checkbox "Cursed Tome" [ref=e84]
+                - text: Cursed Tome
+              - generic [ref=e85] [cursor=pointer]:
+                - checkbox "Chaos Tome" [ref=e86]
+                - text: Chaos Tome
+          - generic [ref=e87]:
+            - heading "📦 Core Items (Select up to 6)" [level=3] [ref=e88]
+            - group "📦 Core Items (Select up to 6)" [ref=e89]:
+              - generic [ref=e90] [cursor=pointer]:
+                - checkbox "Anvil (SS)" [ref=e91]
+                - text: Anvil (SS)
+              - generic [ref=e92] [cursor=pointer]:
+                - checkbox "Beefy Ring (S)" [ref=e93]
+                - text: Beefy Ring (S)
+              - generic [ref=e94] [cursor=pointer]:
+                - checkbox "Big Bonk (SS)" [ref=e95]
+                - text: Big Bonk (SS)
+              - generic [ref=e96] [cursor=pointer]:
+                - checkbox "Spicy Meatball (SS)" [ref=e97]
+                - text: Spicy Meatball (SS)
+              - generic [ref=e98] [cursor=pointer]:
+                - checkbox "Gym Sauce (S)" [ref=e99]
+                - text: Gym Sauce (S)
+              - generic [ref=e100] [cursor=pointer]:
+                - checkbox "Forbidden Juice (S)" [ref=e101]
+                - text: Forbidden Juice (S)
+              - generic [ref=e102] [cursor=pointer]:
+                - checkbox "Oats (A)" [ref=e103]
+                - text: Oats (A)
+              - generic [ref=e104] [cursor=pointer]:
+                - checkbox "Sucky Magnet (SS)" [ref=e105]
+                - text: Sucky Magnet (SS)
+              - generic [ref=e106] [cursor=pointer]:
+                - checkbox "Za Warudo (S)" [ref=e107]
+                - text: Za Warudo (S)
+              - generic [ref=e108] [cursor=pointer]:
+                - checkbox "Holy Book (SS)" [ref=e109]
+                - text: Holy Book (SS)
+              - generic [ref=e110] [cursor=pointer]:
+                - checkbox "Chonkplate (S)" [ref=e111]
+                - text: Chonkplate (S)
+              - generic [ref=e112] [cursor=pointer]:
+                - checkbox "Demonic Soul (A)" [ref=e113]
+                - text: Demonic Soul (A)
+              - generic [ref=e114] [cursor=pointer]:
+                - checkbox "Overpowered Lamp (S)" [ref=e115]
+                - text: Overpowered Lamp (S)
+              - generic [ref=e116] [cursor=pointer]:
+                - checkbox "Cursed Doll (SS)" [ref=e117]
+                - text: Cursed Doll (SS)
+              - generic [ref=e118] [cursor=pointer]:
+                - checkbox "Lightning Orb (A)" [ref=e119]
+                - text: Lightning Orb (A)
+              - generic [ref=e120] [cursor=pointer]:
+                - checkbox "Turbo Skates (S)" [ref=e121]
+                - text: Turbo Skates (S)
+              - generic [ref=e122] [cursor=pointer]:
+                - checkbox "Grandma's Secret Tonic (A)" [ref=e123]
+                - text: Grandma's Secret Tonic (A)
+              - generic [ref=e124] [cursor=pointer]:
+                - checkbox "Ice Cube (S)" [ref=e125]
+                - text: Ice Cube (S)
+              - generic [ref=e126] [cursor=pointer]:
+                - checkbox "Dragonfire (A)" [ref=e127]
+                - text: Dragonfire (A)
+              - generic [ref=e128] [cursor=pointer]:
+                - checkbox "Beer (B)" [ref=e129]
+                - text: Beer (B)
+              - generic [ref=e130] [cursor=pointer]:
+                - checkbox "Demonic Blood (A)" [ref=e131]
+                - text: Demonic Blood (A)
+              - generic [ref=e132] [cursor=pointer]:
+                - checkbox "Turbo Socks (A)" [ref=e133]
+                - text: Turbo Socks (A)
+              - generic [ref=e134] [cursor=pointer]:
+                - checkbox "Battery (A)" [ref=e135]
+                - text: Battery (A)
+              - generic [ref=e136] [cursor=pointer]:
+                - checkbox "Medkit (B)" [ref=e137]
+                - text: Medkit (B)
+              - generic [ref=e138] [cursor=pointer]:
+                - checkbox "Clover (B)" [ref=e139]
+                - text: Clover (B)
+              - generic [ref=e140] [cursor=pointer]:
+                - checkbox "Moldy Cheese (S)" [ref=e141]
+                - text: Moldy Cheese (S)
+              - generic [ref=e142] [cursor=pointer]:
+                - checkbox "Borgar (C)" [ref=e143]
+                - text: Borgar (C)
+              - generic [ref=e144] [cursor=pointer]:
+                - checkbox "Boss Buster (A)" [ref=e145]
+                - text: Boss Buster (A)
+              - generic [ref=e146] [cursor=pointer]:
+                - checkbox "Spiky Shield (B)" [ref=e147]
+                - text: Spiky Shield (B)
+              - generic [ref=e148] [cursor=pointer]:
+                - checkbox "Joe's Dagger (B)" [ref=e149]
+                - text: Joe's Dagger (B)
+              - generic [ref=e150] [cursor=pointer]:
+                - checkbox "Bloody Cleaver (S)" [ref=e151]
+                - text: Bloody Cleaver (S)
+              - generic [ref=e152] [cursor=pointer]:
+                - checkbox "Soul Harvester (A)" [ref=e153]
+                - text: Soul Harvester (A)
+              - generic [ref=e154] [cursor=pointer]:
+                - checkbox "Energy Core (A)" [ref=e155]
+                - text: Energy Core (A)
+              - generic [ref=e156] [cursor=pointer]:
+                - checkbox "Speed Boi (A)" [ref=e157]
+                - text: Speed Boi (A)
+              - generic [ref=e158] [cursor=pointer]:
+                - checkbox "Giant Fork (A)" [ref=e159]
+                - text: Giant Fork (A)
+              - generic [ref=e160] [cursor=pointer]:
+                - checkbox "Power Gloves (A)" [ref=e161]
+                - text: Power Gloves (A)
+              - generic [ref=e162] [cursor=pointer]:
+                - checkbox "Backpack (A)" [ref=e163]
+                - text: Backpack (A)
+              - generic [ref=e164] [cursor=pointer]:
+                - checkbox "Tactical Glasses (B)" [ref=e165]
+                - text: Tactical Glasses (B)
+              - generic [ref=e166] [cursor=pointer]:
+                - checkbox "Wrench (B)" [ref=e167]
+                - text: Wrench (B)
+              - generic [ref=e168] [cursor=pointer]:
+                - checkbox "Slippery Ring (A)" [ref=e169]
+                - text: Slippery Ring (A)
+        - region "Build analysis" [ref=e170]:
+          - heading "📊 Build Analysis" [level=3] [ref=e171]
+          - status [ref=e172]:
+            - paragraph [ref=e173]: Select character and weapon to see calculated stats...
+          - status [ref=e174]:
+            - paragraph [ref=e175]: Select character, weapon, and items to see synergies...
+        - generic [ref=e176]:
+          - button "📷 Import from Screenshot" [ref=e177] [cursor=pointer]
+          - button "📋 Copy Build Code" [ref=e178] [cursor=pointer]
+          - button "🔗 Share Build Link" [ref=e179] [cursor=pointer]
+          - button "🗑️ Clear Build" [ref=e180] [cursor=pointer]
+  - contentinfo [ref=e181]:
+    - generic [ref=e182]:
+      - status [ref=e183]:
+        - generic [ref=e184]: "Version: 1.0.21"
+        - generic [ref=e185]: "Last Updated: 2026-01-26"
+      - paragraph [ref=e186]:
+        - text: Made with ❤️ for MegaBonk players |
+        - link "Play on Steam" [ref=e187]:
+          - /url: https://store.steampowered.com/app/3405340/Megabonk/
+      - paragraph [ref=e188]: Data sourced from official wikis and community guides. Always verify in-game!
+  - button "Toggle theme" [ref=e189] [cursor=pointer]: 🌙
+  - status
+  - generic "Click to view Web Vitals details" [ref=e190] [cursor=pointer]: "🚀 Perf: 100%"
+```

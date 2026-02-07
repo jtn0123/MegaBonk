@@ -1,0 +1,429 @@
+/* ========================================
+   Advisor Module Styles
+   ========================================
+   Build advisor and recommendation UI
+   ======================================== */
+
+.advisor-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.advisor-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.advisor-header h2 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--text-primary);
+}
+
+.advisor-subtitle {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+}
+
+.advisor-section {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.advisor-section h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+.advisor-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.advisor-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.advisor-input-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.advisor-input-group label {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.advisor-select {
+    padding: 0.75rem;
+    background: var(--bg-subtle);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.advisor-select:hover {
+    border-color: var(--accent);
+}
+
+.advisor-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(233, 69, 96, 0.1);
+}
+
+.advisor-chips-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    min-height: 50px;
+    align-items: flex-start;
+}
+
+.advisor-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--bg-subtle);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+.advisor-chip .chip-name {
+    color: var(--text-primary);
+}
+
+.advisor-chip .chip-remove {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1.2rem;
+    line-height: 1;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+}
+
+.advisor-chip .chip-remove:hover {
+    color: var(--accent);
+}
+
+.advisor-add-btn {
+    background: var(--bg-subtle);
+    border: 2px dashed rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.75rem 1.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+}
+
+.advisor-add-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: var(--bg-elevated);
+}
+
+.advisor-choices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.advisor-choice-card {
+    background: var(--bg-subtle);
+    border-radius: 8px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.advisor-choice-card .advisor-input-group {
+    margin-bottom: 1rem;
+}
+
+.advisor-choice-card .advisor-input-group:last-child {
+    margin-bottom: 0;
+}
+
+.advisor-action {
+    display: flex;
+    justify-content: center;
+    margin: 2rem 0;
+}
+
+.advisor-btn {
+    padding: 1rem 3rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.2s;
+}
+
+.advisor-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(233, 69, 96, 0.3);
+}
+
+.advisor-results {
+    margin-top: 3rem;
+}
+
+.advisor-results h3 {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 2rem;
+    color: var(--text-primary);
+}
+
+#advisor-results-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.advisor-result-card {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    padding: 2rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s;
+}
+
+.advisor-result-card.top-recommendation {
+    border: 2px solid var(--accent);
+    box-shadow: 0 8px 24px rgba(233, 69, 96, 0.2);
+}
+
+.advisor-result-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.3);
+}
+
+.result-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+}
+
+.result-rank {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.result-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.result-tier {
+    padding: 0.25rem 0.75rem;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.result-tier.tier-ss {
+    background: var(--tier-ss);
+    color: #000;
+}
+
+.result-tier.tier-s {
+    background: var(--tier-s);
+    color: #000;
+}
+
+.result-tier.tier-a {
+    background: var(--tier-a);
+    color: #fff;
+}
+
+.result-tier.tier-b {
+    background: var(--tier-b);
+    color: #000;
+}
+
+.result-tier.tier-c {
+    background: var(--tier-c);
+    color: #fff;
+}
+
+.result-score {
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+}
+
+.result-section {
+    margin-top: 1rem;
+}
+
+.result-section strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.result-section ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.result-section li {
+    padding: 0.4rem 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.result-section li.synergy {
+    color: var(--tier-s);
+}
+
+.result-section li.warning {
+    color: var(--tier-b);
+}
+
+.result-section.warnings {
+    background: rgba(245, 158, 11, 0.1);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 3px solid var(--tier-b);
+}
+
+/* Entity Modal for Advisor */
+.advisor-entity-modal .modal-content {
+    max-width: 600px;
+}
+
+.advisor-entity-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    max-height: 500px;
+    overflow-y: auto;
+    padding: 1rem 0;
+}
+
+.advisor-entity-card {
+    background: var(--bg-elevated);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+}
+
+.advisor-entity-card:hover {
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(233, 69, 96, 0.2);
+}
+
+.advisor-entity-card .entity-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.advisor-entity-card .entity-tier {
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    background: var(--bg-subtle);
+    color: var(--text-secondary);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .advisor-container {
+        padding: 1rem;
+    }
+
+    .advisor-header h2 {
+        font-size: 2rem;
+    }
+
+    .advisor-section {
+        padding: 1.5rem;
+    }
+
+    .advisor-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .advisor-choices-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .advisor-btn {
+        width: 100%;
+        padding: 0.875rem 2rem;
+        font-size: 1.1rem;
+    }
+
+    .result-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .result-title {
+        font-size: 1.25rem;
+    }
+}
+
+/* Light theme adjustments */
+[data-theme='light'] .advisor-section {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .advisor-select {
+    background: #f5f5f5;
+    border-color: rgba(0, 0, 0, 0.2);
+    color: #000;
+}
+
+[data-theme='light'] .advisor-chip {
+    background: #f5f5f5;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .advisor-chip .chip-name {
+    color: #000;
+}
+
+[data-theme='light'] .advisor-result-card {
+    background: #ffffff;
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .result-section.warnings {
+    background: rgba(245, 158, 11, 0.15);
+}

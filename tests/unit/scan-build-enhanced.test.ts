@@ -58,7 +58,7 @@ vi.mock('../../src/modules/cv-metrics.ts', () => ({
     },
 }));
 
-vi.mock('../../src/modules/ocr.ts', () => ({
+vi.mock('../../src/modules/ocr', () => ({
     autoDetectFromImage: vi.fn().mockResolvedValue({
         items: [{ type: 'item', entity: { id: 'shield', name: 'Shield' }, confidence: 0.8 }],
         tomes: [],
@@ -82,7 +82,7 @@ import { ToastManager } from '../../src/modules/toast.ts';
 import { logger } from '../../src/modules/logger.ts';
 import { setActiveStrategy } from '../../src/modules/cv-strategy.ts';
 import { initEnhancedCV, loadEnhancedTemplates, detectItemsWithEnhancedCV } from '../../src/modules/computer-vision-enhanced.ts';
-import { autoDetectFromImage } from '../../src/modules/ocr.ts';
+import { autoDetectFromImage } from '../../src/modules/ocr';
 import { combineDetections, aggregateDuplicates } from '../../src/modules/computer-vision.ts';
 
 // ========================================

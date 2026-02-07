@@ -1,0 +1,335 @@
+/* ========================================
+   About Tab Styles
+   ========================================
+   Styles for the About/Info tab content
+   ======================================== */
+
+/* ========================================
+   Container
+   ======================================== */
+
+.about-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+
+.about-content {
+    background: var(--bg-medium, #2a2a2a);
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid var(--bg-subtle, #333);
+}
+
+/* ========================================
+   Header
+   ======================================== */
+
+.about-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--bg-subtle, #333);
+}
+
+.about-logo {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.about-title {
+    font-size: 1.75rem;
+    color: var(--text-primary, #fff);
+    margin: 0 0 0.5rem 0;
+    font-weight: 700;
+}
+
+.about-subtitle {
+    color: var(--text-muted, #888);
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* ========================================
+   Info Grid
+   ======================================== */
+
+.about-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.about-info-card {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: var(--bg-dark, #1a1a1a);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--bg-subtle, #333);
+    transition:
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.about-info-card:hover {
+    border-color: var(--accent, #00ff88);
+    transform: translateY(-2px);
+}
+
+.about-info-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.about-info-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.about-info-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted, #888);
+}
+
+.about-info-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary, #fff);
+    word-break: break-word;
+}
+
+.about-commit-link {
+    color: var(--accent, #00ff88);
+    text-decoration: none;
+    font-family: 'SF Mono', 'Consolas', monospace;
+}
+
+.about-commit-link:hover {
+    text-decoration: underline;
+}
+
+/* ========================================
+   Links Section
+   ======================================== */
+
+.about-links-section {
+    margin-bottom: 2rem;
+}
+
+.about-links-section h3 {
+    font-size: 1rem;
+    color: var(--text-primary, #fff);
+    margin: 0 0 1rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.about-links {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.about-link {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--bg-dark, #1a1a1a);
+    border: 1px solid var(--bg-subtle, #333);
+    border-radius: 12px;
+    color: var(--text-primary, #fff);
+    text-decoration: none;
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
+}
+
+.about-link:hover,
+.about-link:focus {
+    background: var(--bg-subtle, #333);
+    border-color: var(--accent, #00ff88);
+    transform: translateX(4px);
+}
+
+.about-link:focus-visible {
+    outline: 2px solid var(--accent, #00ff88);
+    outline-offset: 2px;
+}
+
+.about-link-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.about-link-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.about-link-text strong {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.about-link-text span {
+    font-size: 0.8rem;
+    color: var(--text-muted, #888);
+}
+
+/* ========================================
+   Features Section
+   ======================================== */
+
+.about-features-section {
+    margin-bottom: 2rem;
+}
+
+.about-features-section h3 {
+    font-size: 1rem;
+    color: var(--text-primary, #fff);
+    margin: 0 0 1rem 0;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.about-features {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.about-features li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-dark, #1a1a1a);
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: var(--text-secondary, #ccc);
+    transition: background 0.2s ease;
+}
+
+.about-features li:hover {
+    background: var(--bg-subtle, #333);
+}
+
+/* ========================================
+   Footer
+   ======================================== */
+
+.about-footer {
+    text-align: center;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--bg-subtle, #333);
+}
+
+.about-credits {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    color: var(--text-primary, #fff);
+}
+
+.about-disclaimer {
+    margin: 0;
+    font-size: 0.8rem;
+    color: var(--text-muted, #888);
+}
+
+/* ========================================
+   Light Theme Overrides
+   ======================================== */
+
+[data-theme='light'] .about-content {
+    background: var(--bg-primary, #f5f5f7);
+}
+
+[data-theme='light'] .about-info-card,
+[data-theme='light'] .about-link,
+[data-theme='light'] .about-features li {
+    background: var(--bg-elevated, #fff);
+    border-color: var(--bg-subtle, #e5e5ea);
+}
+
+[data-theme='light'] .about-link:hover,
+[data-theme='light'] .about-link:focus,
+[data-theme='light'] .about-features li:hover {
+    background: var(--bg-subtle, #e5e5ea);
+}
+
+/* ========================================
+   Mobile Responsive
+   ======================================== */
+
+@media (max-width: 600px) {
+    .about-container {
+        padding: 0.5rem;
+    }
+
+    .about-content {
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .about-logo {
+        font-size: 3rem;
+    }
+
+    .about-title {
+        font-size: 1.5rem;
+    }
+
+    .about-info-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+
+    .about-info-card {
+        padding: 0.75rem;
+    }
+
+    .about-info-icon {
+        font-size: 1.25rem;
+    }
+
+    .about-link {
+        padding: 0.75rem;
+    }
+
+    .about-link-icon {
+        font-size: 1.25rem;
+    }
+
+    .about-features {
+        grid-template-columns: 1fr;
+    }
+
+    .about-features li {
+        padding: 0.6rem 0.75rem;
+        font-size: 0.85rem;
+    }
+}

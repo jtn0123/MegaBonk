@@ -6,7 +6,6 @@
 
 import { applyAdaptivePreprocessing, type SceneAnalysis, analyzeScene } from './adaptive-preprocessing.ts';
 import { calculateWeightedScore, passesThreshold, getThresholdForRarity } from './scoring-config.ts';
-import { logger } from '../logger.ts';
 
 /**
  * Simple image data interface for cross-module compatibility
@@ -152,9 +151,7 @@ export function calculateNCC(imageData1: SimpleImageData, imageData2: SimpleImag
     if (denominator === 0 || !Number.isFinite(denominator)) return 0;
 
     const result = (numerator / denominator + 1) / 2;
-    // Ensure result is valid and in range [0, 1]
-    // NaN can occur from edge cases with very small variances
-    if (!Number.isFinite(result)) return 0;
+    // Ensure result is in valid range [0, 1]
     return Math.max(0, Math.min(1, result));
 }
 
@@ -288,7 +285,9 @@ export function calculateWindowedSSIM(img1: SimpleImageData, img2: SimpleImageDa
             // Compute local SSIM
             const numerator = (2 * mean1 * mean2 + C1) * (2 * covar + C2);
             const denominator = (mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2);
-            const localSSIM = numerator / denominator;
+            // Bug fix: Clamp local SSIM to [0, 1] before accumulating
+            // Edge cases with uniform windows can produce values slightly outside range
+            const localSSIM = Math.max(0, Math.min(1, numerator / denominator));
 
             totalSSIM += localSSIM;
             windowCount++;
@@ -301,10 +300,7 @@ export function calculateWindowedSSIM(img1: SimpleImageData, img2: SimpleImageDa
     }
 
     // Average SSIM across all windows, clamped to [0, 1]
-    const avgSSIM = totalSSIM / windowCount;
-    // Guard against NaN from edge cases (e.g., uniform images)
-    if (!Number.isFinite(avgSSIM)) return 0;
-    return Math.max(0, Math.min(1, avgSSIM));
+    return Math.max(0, Math.min(1, totalSSIM / windowCount));
 }
 
 /**
@@ -415,12 +411,12 @@ export function calculateEdgeSimilarity(imageData1: SimpleImageData, imageData2:
     }
 
     const denominator = Math.sqrt(sumSq1 * sumSq2);
-    if (denominator === 0 || !Number.isFinite(denominator)) return 0;
+    if (denominator === 0) return 0;
 
-    const result = sumProduct / denominator;
-    // Guard against NaN from edge cases
-    if (!Number.isFinite(result)) return 0;
-    return result;
+    // Bug fix: Clamp result to [0, 1] - edge correlation can be negative
+    // when edges are anti-correlated, but similarity should be non-negative
+    const correlation = sumProduct / denominator;
+    return Math.max(0, Math.min(1, correlation));
 }
 
 // ========================================
@@ -594,88 +590,4 @@ export function calculateAdaptiveDetailedSimilarity(
  */
 export function getSceneAnalysis(imageData: SimpleImageData): SceneAnalysis {
     return analyzeScene(imageData);
-}
-
-// ========================================
-// Image Validation Functions (2.1)
-// ========================================
-
-/**
- * Threshold for determining if an image is uniform
- * Variance below this value indicates a solid/near-solid color image
- */
-const UNIFORM_IMAGE_VARIANCE_THRESHOLD = 100;
-
-/**
- * Check if an image is uniform (solid color or near-solid)
- * Uniform images can cause misleading similarity scores
- * Returns true if the image is too uniform to be a valid template match candidate
- *
- * @param imageData The image data to check
- * @returns true if the image is uniform, false otherwise
- */
-export function isUniformImage(imageData: SimpleImageData): boolean {
-    const data = imageData.data;
-    const pixelCount = data.length / 4;
-
-    if (pixelCount === 0) return true;
-
-    // Sample pixels for performance (every 8th pixel)
-    let sumR = 0,
-        sumG = 0,
-        sumB = 0;
-    let sumSqR = 0,
-        sumSqG = 0,
-        sumSqB = 0;
-    let sampleCount = 0;
-
-    for (let i = 0; i < data.length; i += 32) {
-        // Skip 8 pixels at a time (32 bytes)
-        const r = data[i] ?? 0;
-        const g = data[i + 1] ?? 0;
-        const b = data[i + 2] ?? 0;
-
-        sumR += r;
-        sumG += g;
-        sumB += b;
-        sumSqR += r * r;
-        sumSqG += g * g;
-        sumSqB += b * b;
-        sampleCount++;
-    }
-
-    if (sampleCount === 0) return true;
-
-    // Calculate variance for each channel
-    const meanR = sumR / sampleCount;
-    const meanG = sumG / sampleCount;
-    const meanB = sumB / sampleCount;
-
-    const varianceR = sumSqR / sampleCount - meanR * meanR;
-    const varianceG = sumSqG / sampleCount - meanG * meanG;
-    const varianceB = sumSqB / sampleCount - meanB * meanB;
-
-    const totalVariance = varianceR + varianceG + varianceB;
-
-    return totalVariance < UNIFORM_IMAGE_VARIANCE_THRESHOLD;
-}
-
-/**
- * Calculate similarity with uniform image early rejection
- * Returns 0 immediately for uniform images to avoid misleading scores
- */
-export function calculateSimilarityWithUniformCheck(imageData1: SimpleImageData, imageData2: SimpleImageData): number {
-    // Early rejection for uniform images
-    if (isUniformImage(imageData1) || isUniformImage(imageData2)) {
-        logger.debug?.({
-            operation: 'cv.similarity.uniform_rejection',
-            data: {
-                img1Uniform: isUniformImage(imageData1),
-                img2Uniform: isUniformImage(imageData2),
-            },
-        });
-        return 0;
-    }
-
-    return calculateCombinedSimilarity(imageData1, imageData2);
 }

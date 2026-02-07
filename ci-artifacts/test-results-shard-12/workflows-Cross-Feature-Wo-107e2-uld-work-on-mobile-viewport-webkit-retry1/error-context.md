@@ -1,0 +1,689 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - heading "🎮 MegaBonk" [level=1] [ref=e4]
+  - navigation "Search and filters" [ref=e5]:
+    - generic [ref=e6]:
+      - searchbox "Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100" [ref=e8]
+      - button "Open filters" [ref=e9] [cursor=pointer]:
+        - generic [ref=e10]: ⚙️
+        - generic [ref=e11]: Filters
+        - generic [ref=e12]: "1"
+  - main [ref=e13]:
+    - generic [ref=e14]:
+      - tabpanel "📦 Items" [ref=e15]:
+        - generic "Loading content" [ref=e16]:
+          - generic [ref=e17] [cursor=pointer]:
+            - generic [ref=e18]:
+              - img "Anvil" [ref=e20]
+              - generic [ref=e21]:
+                - generic [ref=e22]: Anvil
+                - generic [ref=e23]: SS Tier
+            - generic [ref=e24]: Weapon upgrades gain +1 to all stats
+            - generic [ref=e26]: One-and-Done
+          - generic [ref=e27] [cursor=pointer]:
+            - generic [ref=e28]:
+              - img "Big Bonk" [ref=e30]
+              - generic [ref=e31]:
+                - generic [ref=e32]: Big Bonk
+                - generic [ref=e33]: SS Tier
+            - generic [ref=e34]: +2% chance to deal 20x damage
+            - generic [ref=e36]: Stacks Well
+          - generic [ref=e37] [cursor=pointer]:
+            - generic [ref=e38]:
+              - img "Spicy Meatball" [ref=e40]
+              - generic [ref=e41]:
+                - generic [ref=e42]: Spicy Meatball
+                - generic [ref=e43]: SS Tier
+            - generic [ref=e44]: +25% chance to explode on attack, dealing 65% AoE damage
+            - generic [ref=e46]: Stacks Well
+          - generic [ref=e47] [cursor=pointer]:
+            - generic [ref=e48]:
+              - img "Sucky Magnet" [ref=e50]
+              - generic [ref=e51]:
+                - generic [ref=e52]: Sucky Magnet
+                - generic [ref=e53]: SS Tier
+            - generic [ref=e54]: Periodically drags all XP gems to you
+            - generic [ref=e56]: One-and-Done
+          - generic [ref=e57] [cursor=pointer]:
+            - generic [ref=e58]:
+              - img "Za Warudo" [ref=e60]
+              - generic [ref=e61]:
+                - generic [ref=e62]: Za Warudo
+                - generic [ref=e63]: S Tier
+            - generic [ref=e64]: Freeze time when damage would kill you (one-time use per run)
+            - generic [ref=e66]: Stacks Well
+          - generic [ref=e67] [cursor=pointer]:
+            - generic [ref=e68]:
+              - img "Holy Book" [ref=e70]
+              - generic [ref=e71]:
+                - generic [ref=e72]: Holy Book
+                - generic [ref=e73]: SS Tier
+            - generic [ref=e74]: +100 Max HP, +50 HP regen; healing radiates damage to nearby enemies
+            - generic [ref=e76]: Stacks Well
+          - generic [ref=e77] [cursor=pointer]:
+            - generic [ref=e78]:
+              - img "Chonkplate" [ref=e80]
+              - generic [ref=e81]:
+                - generic [ref=e82]: Chonkplate
+                - generic [ref=e83]: S Tier
+            - generic [ref=e84]: Overheal up to 75% beyond max HP; +20% lifesteal
+            - generic [ref=e86]: Stacks Well
+          - generic [ref=e87] [cursor=pointer]:
+            - generic [ref=e88]:
+              - img "Overpowered Lamp" [ref=e90]
+              - generic [ref=e91]:
+                - generic [ref=e92]: Overpowered Lamp
+                - generic [ref=e93]: S Tier
+            - generic [ref=e94]: +1 extra chance to proc on-hit effects
+            - generic [ref=e96]: Stacks Well
+          - generic [ref=e97] [cursor=pointer]:
+            - generic [ref=e98]:
+              - img "Lightning Orb" [ref=e100]
+              - generic [ref=e101]:
+                - generic [ref=e102]: Lightning Orb
+                - generic [ref=e103]: A Tier
+            - generic [ref=e104]: +25% chance to summon lightning on hit; stuns enemies
+            - generic [ref=e106]: Stacks Well
+          - generic [ref=e107] [cursor=pointer]:
+            - generic [ref=e108]:
+              - img "Ice Cube" [ref=e110]
+              - generic [ref=e111]:
+                - generic [ref=e112]: Ice Cube
+                - generic [ref=e113]: S Tier
+            - generic [ref=e114]: +20% chance to deal ice damage and freeze enemies
+            - generic [ref=e116]: Stacks Well
+          - generic [ref=e117] [cursor=pointer]:
+            - generic [ref=e118]:
+              - img "Dragonfire" [ref=e120]
+              - generic [ref=e121]:
+                - generic [ref=e122]: Dragonfire
+                - generic [ref=e123]: A Tier
+            - generic [ref=e124]: +15% chance to summon dragonfire on hit; applies burn
+            - generic [ref=e126]: Stacks Well
+          - generic [ref=e127] [cursor=pointer]:
+            - generic [ref=e128]:
+              - img "Joe's Dagger" [ref=e130]
+              - generic [ref=e131]:
+                - generic [ref=e132]: Joe's Dagger
+                - generic [ref=e133]: B Tier
+            - generic [ref=e134]: +1% execute chance; damage increases +1% per execute (capped at +200% per minute per dagger)
+            - generic [ref=e136]: Stacks Well
+          - generic [ref=e137] [cursor=pointer]:
+            - generic [ref=e138]:
+              - img "Bloody Cleaver" [ref=e140]
+              - generic [ref=e141]:
+                - generic [ref=e142]: Bloody Cleaver
+                - generic [ref=e143]: S Tier
+            - generic [ref=e144]: Lifesteal activates bloodmark; +50% bloodmark chance
+            - generic [ref=e146]: Stacks Well
+          - generic [ref=e147] [cursor=pointer]:
+            - generic [ref=e148]:
+              - img "Soul Harvester" [ref=e150]
+              - generic [ref=e151]:
+                - generic [ref=e152]: Soul Harvester
+                - generic [ref=e153]: A Tier
+            - generic [ref=e154]: Summon 2 homing souls per kill
+            - generic [ref=e156]: Stacks Well
+          - generic [ref=e157] [cursor=pointer]:
+            - generic [ref=e158]:
+              - img "Energy Core" [ref=e160]
+              - generic [ref=e161]:
+                - generic [ref=e162]: Energy Core
+                - generic [ref=e163]: A Tier
+            - generic [ref=e164]: Shoot energy orbs at enemies automatically
+            - generic [ref=e166]: Stacks Well
+          - generic [ref=e167] [cursor=pointer]:
+            - generic [ref=e168]:
+              - img "Speed Boi" [ref=e170]
+              - generic [ref=e171]:
+                - generic [ref=e172]: Speed Boi
+                - generic [ref=e173]: A Tier
+            - generic [ref=e174]: Slow time + 2x damage when below 50% HP
+            - generic [ref=e176]: Stacks Well
+          - generic [ref=e177] [cursor=pointer]:
+            - generic [ref=e178]:
+              - img "Giant Fork" [ref=e180]
+              - generic [ref=e181]:
+                - generic [ref=e182]: Giant Fork
+                - generic [ref=e183]: A Tier
+            - generic [ref=e184]: +8% megacrit proc chance (hyperbolic)
+            - generic [ref=e186]: Stacks Well
+          - generic [ref=e187] [cursor=pointer]:
+            - generic [ref=e188]:
+              - img "Power Gloves" [ref=e190]
+              - generic [ref=e191]:
+                - generic [ref=e192]: Power Gloves
+                - generic [ref=e193]: A Tier
+            - generic [ref=e194]: +8% chance for giant blast on hit; strong knockback
+            - generic [ref=e196]: Stacks Well
+          - generic [ref=e197] [cursor=pointer]:
+            - generic [ref=e198]:
+              - img "Snek" [ref=e200]
+              - generic [ref=e201]:
+                - generic [ref=e202]: Snek
+                - generic [ref=e203]: S Tier
+            - generic [ref=e204]: +4 poison stacks, 5% chance to burst all poison damage instantly
+            - generic [ref=e206]: Stacks Well
+          - generic [ref=e207] [cursor=pointer]:
+            - generic [ref=e208]:
+              - img "Eagle Claw" [ref=e210]
+              - generic [ref=e211]:
+                - generic [ref=e212]: Eagle Claw
+                - generic [ref=e213]: A Tier
+            - generic [ref=e214]: Enemies in the air take +66% damage; 8% chance to launch enemies upward
+            - generic [ref=e216]: Stacks Well
+          - generic [ref=e217] [cursor=pointer]:
+            - generic [ref=e218]:
+              - img "Gamer Goggles" [ref=e220]
+              - generic [ref=e221]:
+                - generic [ref=e222]: Gamer Goggles
+                - generic [ref=e223]: A Tier
+            - generic [ref=e224]: Damage increases as HP decreases (up to +100% at 1 HP per copy)
+            - generic [ref=e226]: Stacks Well
+          - generic [ref=e227] [cursor=pointer]:
+            - generic [ref=e228]:
+              - img "Gas Mask" [ref=e230]
+              - generic [ref=e231]:
+                - generic [ref=e232]: Gas Mask
+                - generic [ref=e233]: SS Tier
+            - generic [ref=e234]: Immunity to poison; +10 armor and +10 overheal per poisoned enemy
+            - generic [ref=e236]: Stacks Well
+          - generic [ref=e237] [cursor=pointer]:
+            - generic [ref=e238]:
+              - img "Cursed Grabbies" [ref=e240]
+              - generic [ref=e241]:
+                - generic [ref=e242]: Cursed Grabbies
+                - generic [ref=e243]: B Tier
+            - generic [ref=e244]: +10% difficulty, -20% max HP, 5% chance to cast cursed magic on hit
+            - generic [ref=e246]: Limited
+          - generic [ref=e247] [cursor=pointer]:
+            - generic [ref=e248]:
+              - img "Shattered Knowledge" [ref=e250]
+              - generic [ref=e251]:
+                - generic [ref=e252]: Shattered Knowledge
+                - generic [ref=e253]: S Tier
+            - generic [ref=e254]: XP shards damage enemies as they fly toward you
+            - generic [ref=e256]: Stacks Well
+          - generic [ref=e257] [cursor=pointer]:
+            - generic [ref=e258]:
+              - img "Slutty Cannon" [ref=e260]
+              - generic [ref=e261]:
+                - generic [ref=e262]: Slutty Cannon
+                - generic [ref=e263]: A Tier
+            - generic [ref=e264]: +20% chance to launch rockets when killing an enemy
+            - generic [ref=e266]: Stacks Well
+          - generic [ref=e267] [cursor=pointer]:
+            - generic [ref=e268]:
+              - img "Toxic Barrel" [ref=e270]
+              - generic [ref=e271]:
+                - generic [ref=e272]: Toxic Barrel
+                - generic [ref=e273]: SS Tier
+            - generic [ref=e274]: Creates poison cloud when you take damage
+            - generic [ref=e276]: Stacks Well
+          - generic [ref=e277] [cursor=pointer]:
+            - generic [ref=e278]:
+              - img "Kevin" [ref=e280]
+              - generic [ref=e281]:
+                - generic [ref=e282]: Kevin
+                - generic [ref=e283]: SS Tier
+            - generic [ref=e284]: Self-damage to trigger on-hit effects; creates poison AoE when hit (25% chance)
+            - generic [ref=e286]: Stacks Well
+          - generic [ref=e287] [cursor=pointer]:
+            - generic [ref=e288]:
+              - img "Quin's Mask" [ref=e290]
+              - generic [ref=e291]:
+                - generic [ref=e292]: Quin's Mask
+                - generic [ref=e293]: A Tier
+            - generic [ref=e294]: Thorns damage has a 50% chance to explode
+            - generic [ref=e296]: Stacks Well
+          - generic [ref=e297] [cursor=pointer]:
+            - generic [ref=e298]:
+              - img "Beefy Ring" [ref=e300]
+              - generic [ref=e301]:
+                - generic [ref=e302]: Beefy Ring
+                - generic [ref=e303]: S Tier
+            - generic [ref=e304]: +20% damage per 100 max HP
+            - generic [ref=e306]: Stacks Well
+          - generic [ref=e307] [cursor=pointer]:
+            - generic [ref=e308]:
+              - img "Demonic Soul" [ref=e310]
+              - generic [ref=e311]:
+                - generic [ref=e312]: Demonic Soul
+                - generic [ref=e313]: A Tier
+            - generic [ref=e314]: +0.1% damage per kill (max 100% per copy)
+            - generic [ref=e316]: Stacks Well
+          - generic [ref=e317] [cursor=pointer]:
+            - generic [ref=e318]:
+              - img "Turbo Skates" [ref=e320]
+              - generic [ref=e321]:
+                - generic [ref=e322]: Turbo Skates
+                - generic [ref=e323]: S Tier
+            - generic [ref=e324]: Movement speed grants attack speed (max +40% per stack)
+            - generic [ref=e326]: Stacks Well
+          - generic [ref=e327] [cursor=pointer]:
+            - generic [ref=e328]:
+              - img "Grandma's Secret Tonic" [ref=e330]
+              - generic [ref=e331]:
+                - generic [ref=e332]: Grandma's Secret Tonic
+                - generic [ref=e333]: A Tier
+            - generic [ref=e334]: Crits have 50% chance to explode in 4m radius dealing 50% crit damage
+            - generic [ref=e336]: Limited
+          - generic [ref=e337] [cursor=pointer]:
+            - generic [ref=e338]:
+              - img "Spiky Shield" [ref=e340]
+              - generic [ref=e341]:
+                - generic [ref=e342]: Spiky Shield
+                - generic [ref=e343]: B Tier
+            - generic [ref=e344]: +2 thorns per 1% armor; +10% armor base
+            - generic [ref=e346]: Stacks Well
+          - generic [ref=e347] [cursor=pointer]:
+            - generic [ref=e348]:
+              - img "Mirror" [ref=e350]
+              - generic [ref=e351]:
+                - generic [ref=e352]: Mirror
+                - generic [ref=e353]: A Tier
+            - generic [ref=e354]: Reflects all incoming damage; grants brief invulnerability
+            - generic [ref=e356]: Stacks Well
+          - generic [ref=e357] [cursor=pointer]:
+            - generic [ref=e358]:
+              - img "Slurp Gloves" [ref=e360]
+              - generic [ref=e361]:
+                - generic [ref=e362]: Slurp Gloves
+                - generic [ref=e363]: A Tier
+            - generic [ref=e364]: Casts blood magic on hit (9s cooldown); AoE damage and heal 7.5%
+            - generic [ref=e366]: Stacks Well
+          - generic [ref=e367] [cursor=pointer]:
+            - generic [ref=e368]:
+              - img "Bob (Dead)" [ref=e370]
+              - generic [ref=e371]:
+                - generic [ref=e372]: Bob (Dead)
+                - generic [ref=e373]: A Tier
+            - generic [ref=e374]: For every 14 units moved, summon Bob (ghost that damages nearby enemies)
+            - generic [ref=e376]: Stacks Well
+          - generic [ref=e377] [cursor=pointer]:
+            - generic [ref=e378]:
+              - img "Credit Card (Green)" [ref=e380]
+              - generic [ref=e381]:
+                - generic [ref=e382]: Credit Card (Green)
+                - generic [ref=e383]: B Tier
+            - generic [ref=e384]: +2% luck per chest opened (stacks throughout run)
+            - generic [ref=e386]: Stacks Well
+          - generic [ref=e387] [cursor=pointer]:
+            - generic [ref=e388]:
+              - img "Scarf" [ref=e390]
+              - generic [ref=e391]:
+                - generic [ref=e392]: Scarf
+                - generic [ref=e393]: A Tier
+            - generic [ref=e394]: +33% damage while airborne
+            - generic [ref=e396]: Stacks Well
+          - generic [ref=e397] [cursor=pointer]:
+            - generic [ref=e398]:
+              - img "Beer" [ref=e400]
+              - generic [ref=e401]:
+                - generic [ref=e402]: Beer
+                - generic [ref=e403]: B Tier
+            - generic [ref=e404]: +20% damage; -5% max HP penalty
+            - generic [ref=e406]: Limited
+          - generic [ref=e407] [cursor=pointer]:
+            - generic [ref=e408]:
+              - img "Demonic Blood" [ref=e410]
+              - generic [ref=e411]:
+                - generic [ref=e412]: Demonic Blood
+                - generic [ref=e413]: A Tier
+            - generic [ref=e414]: +0.5 Max HP per kill (max 200 stacks per copy)
+            - generic [ref=e416]: Stacks Well
+          - generic [ref=e417] [cursor=pointer]:
+            - generic [ref=e418]:
+              - img "Backpack" [ref=e420]
+              - generic [ref=e421]:
+                - generic [ref=e422]: Backpack
+                - generic [ref=e423]: A Tier
+            - generic [ref=e424]: +1 projectile count for all weapons
+            - generic [ref=e426]: Stacks Well
+          - generic [ref=e427] [cursor=pointer]:
+            - generic [ref=e428]:
+              - img "Beacon" [ref=e430]
+              - generic [ref=e431]:
+                - generic [ref=e432]: Beacon
+                - generic [ref=e433]: A Tier
+            - generic [ref=e434]: Adds two charge shrines; area around monument becomes healing zone
+            - generic [ref=e436]: Stacks Well
+          - generic [ref=e437] [cursor=pointer]:
+            - generic [ref=e438]:
+              - img "Coward's Cloak" [ref=e440]
+              - generic [ref=e441]:
+                - generic [ref=e442]: Coward's Cloak
+                - generic [ref=e443]: A Tier
+            - generic [ref=e444]: +5% movement speed; speed increases when taking damage
+            - generic [ref=e446]: Stacks Well
+          - generic [ref=e447] [cursor=pointer]:
+            - generic [ref=e448]:
+              - img "Demonic Blade" [ref=e450]
+              - generic [ref=e451]:
+                - generic [ref=e452]: Demonic Blade
+                - generic [ref=e453]: A Tier
+            - generic [ref=e454]: Critical hits have +25% chance to heal you
+            - generic [ref=e456]: Stacks Well
+          - generic [ref=e457] [cursor=pointer]:
+            - generic [ref=e458]:
+              - img "Echo Shard" [ref=e460]
+              - generic [ref=e461]:
+                - generic [ref=e462]: Echo Shard
+                - generic [ref=e463]: S Tier
+            - generic [ref=e464]: Duplicates projectile effects; +12% XP gain
+            - generic [ref=e466]: Stacks Well
+          - generic [ref=e467] [cursor=pointer]:
+            - generic [ref=e468]:
+              - img "Golden Shield" [ref=e470]
+              - generic [ref=e471]:
+                - generic [ref=e472]: Golden Shield
+                - generic [ref=e473]: B Tier
+            - generic [ref=e474]: Gain gold when hit
+            - generic [ref=e476]: Stacks Well
+          - generic [ref=e477] [cursor=pointer]:
+            - generic [ref=e478]:
+              - img "Golden Sneakers" [ref=e480]
+              - generic [ref=e481]:
+                - generic [ref=e482]: Golden Sneakers
+                - generic [ref=e483]: B Tier
+            - generic [ref=e484]: Earn 0.1 gold per meter traveled
+            - generic [ref=e486]: Stacks Well
+          - generic [ref=e487] [cursor=pointer]:
+            - generic [ref=e488]:
+              - img "Idle Juice" [ref=e490]
+              - generic [ref=e491]:
+                - generic [ref=e492]: Idle Juice
+                - generic [ref=e493]: A Tier
+            - generic [ref=e494]: Gain up to +100% damage while standing still (caps at 100% per copy)
+            - generic [ref=e496]: Stacks Well
+          - generic [ref=e497] [cursor=pointer]:
+            - generic [ref=e498]:
+              - img "Leeching Crystal" [ref=e500]
+              - generic [ref=e501]:
+                - generic [ref=e502]: Leeching Crystal
+                - generic [ref=e503]: B Tier
+            - generic [ref=e504]: +50% max HP; health regeneration halved
+            - generic [ref=e506]: Stacks Well
+          - generic [ref=e507] [cursor=pointer]:
+            - generic [ref=e508]:
+              - img "Moldy Gloves" [ref=e510]
+              - generic [ref=e511]:
+                - generic [ref=e512]: Moldy Gloves
+                - generic [ref=e513]: S Tier
+            - generic [ref=e514]: Creates moldy poison cloud on hit
+            - generic [ref=e516]: Stacks Well
+          - generic [ref=e517] [cursor=pointer]:
+            - generic [ref=e518]:
+              - img "Phantom Shroud" [ref=e520]
+              - generic [ref=e521]:
+                - generic [ref=e522]: Phantom Shroud
+                - generic [ref=e523]: S Tier
+            - generic [ref=e524]: +20% evasion; +10% movement speed
+            - generic [ref=e526]: Stacks Well
+          - generic [ref=e527] [cursor=pointer]:
+            - generic [ref=e528]:
+              - img "Thunder Mitts" [ref=e530]
+              - generic [ref=e531]:
+                - generic [ref=e532]: Thunder Mitts
+                - generic [ref=e533]: S Tier
+            - generic [ref=e534]: Every 10 seconds, strike enemies with lightning
+            - generic [ref=e536]: Stacks Well
+          - generic [ref=e537] [cursor=pointer]:
+            - generic [ref=e538]:
+              - img "Unstable Transfusion" [ref=e540]
+              - generic [ref=e541]:
+                - generic [ref=e542]: Unstable Transfusion
+                - generic [ref=e543]: A Tier
+            - generic [ref=e544]: +27% chance to apply Bloodmark on hit
+            - generic [ref=e546]: Stacks Well
+          - generic [ref=e547] [cursor=pointer]:
+            - generic [ref=e548]:
+              - img "Brass Knuckles" [ref=e550]
+              - generic [ref=e551]:
+                - generic [ref=e552]: Brass Knuckles
+                - generic [ref=e553]: A Tier
+            - generic [ref=e554]: Nearby enemies take +20% damage
+            - generic [ref=e556]: Stacks Well
+          - generic [ref=e557] [cursor=pointer]:
+            - generic [ref=e558]:
+              - img "Campfire" [ref=e560]
+              - generic [ref=e561]:
+                - generic [ref=e562]: Campfire
+                - generic [ref=e563]: B Tier
+            - generic [ref=e564]: Stand still to spawn campfire that restores health
+            - generic [ref=e566]: Stacks Well
+          - generic [ref=e567] [cursor=pointer]:
+            - generic [ref=e568]:
+              - img "Credit Card (Red)" [ref=e570]
+              - generic [ref=e571]:
+                - generic [ref=e572]: Credit Card (Red)
+                - generic [ref=e573]: A Tier
+            - generic [ref=e574]: +2.5% damage per chest opened (stacks throughout run)
+            - generic [ref=e576]: Stacks Well
+          - generic [ref=e577] [cursor=pointer]:
+            - generic [ref=e578]:
+              - img "Electric Plug" [ref=e580]
+              - generic [ref=e581]:
+                - generic [ref=e582]: Electric Plug
+                - generic [ref=e583]: B Tier
+            - generic [ref=e584]: Releases electric pulse when taking damage
+            - generic [ref=e586]: Stacks Well
+          - generic [ref=e587] [cursor=pointer]:
+            - generic [ref=e588]:
+              - img "Feathers" [ref=e590]
+              - generic [ref=e591]:
+                - generic [ref=e592]: Feathers
+                - generic [ref=e593]: B Tier
+            - generic [ref=e594]: Increases movement speed by +10%, grants +1 extra jump, and increases jump duration by +20%
+            - generic [ref=e596]: Stacks Well
+          - generic [ref=e597] [cursor=pointer]:
+            - generic [ref=e598]:
+              - img "Old Mask" [ref=e600]
+              - generic [ref=e601]:
+                - generic [ref=e602]: Old Mask
+                - generic [ref=e603]: B Tier
+            - generic [ref=e604]: Increases Elite enemy spawn rate
+            - generic [ref=e606]: Stacks Well
+          - generic [ref=e607] [cursor=pointer]:
+            - generic [ref=e608]:
+              - img "Gym Sauce" [ref=e610]
+              - generic [ref=e611]:
+                - generic [ref=e612]: Gym Sauce
+                - generic [ref=e613]: S Tier
+            - generic [ref=e614]: +10% damage
+            - generic [ref=e616]: Stacks Well
+          - generic [ref=e617] [cursor=pointer]:
+            - generic [ref=e618]:
+              - img "Forbidden Juice" [ref=e620]
+              - generic [ref=e621]:
+                - generic [ref=e622]: Forbidden Juice
+                - generic [ref=e623]: S Tier
+            - generic [ref=e624]: +10% critical chance
+            - generic [ref=e626]: Stacks Well
+          - generic [ref=e627] [cursor=pointer]:
+            - generic [ref=e628]:
+              - img "Oats" [ref=e630]
+              - generic [ref=e631]:
+                - generic [ref=e632]: Oats
+                - generic [ref=e633]: A Tier
+            - generic [ref=e634]: +25 maximum HP
+            - generic [ref=e636]: Stacks Well
+          - generic [ref=e637] [cursor=pointer]:
+            - generic [ref=e638]:
+              - img "Cursed Doll" [ref=e640]
+              - generic [ref=e641]:
+                - generic [ref=e642]: Cursed Doll
+                - generic [ref=e643]: SS Tier
+            - generic [ref=e644]: Curse an enemy, dealing 30% of their Max HP every second
+            - generic [ref=e646]: Stacks Well
+          - generic [ref=e647] [cursor=pointer]:
+            - generic [ref=e648]:
+              - img "Turbo Socks" [ref=e650]
+              - generic [ref=e651]:
+                - generic [ref=e652]: Turbo Socks
+                - generic [ref=e653]: A Tier
+            - generic [ref=e654]: +15% movement speed
+            - generic [ref=e656]: Stacks Well
+          - generic [ref=e657] [cursor=pointer]:
+            - generic [ref=e658]:
+              - img "Battery" [ref=e660]
+              - generic [ref=e661]:
+                - generic [ref=e662]: Battery
+                - generic [ref=e663]: A Tier
+            - generic [ref=e664]: +8% attack speed
+            - generic [ref=e666]: Stacks Well
+          - generic [ref=e667] [cursor=pointer]:
+            - generic [ref=e668]:
+              - img "Medkit" [ref=e670]
+              - generic [ref=e671]:
+                - generic [ref=e672]: Medkit
+                - generic [ref=e673]: B Tier
+            - generic [ref=e674]: +35 HP regeneration per minute
+            - generic [ref=e676]: Stacks Well
+          - generic [ref=e677] [cursor=pointer]:
+            - generic [ref=e678]:
+              - img "Clover" [ref=e680]
+              - generic [ref=e681]:
+                - generic [ref=e682]: Clover
+                - generic [ref=e683]: B Tier
+            - generic [ref=e684]: +7.5% luck
+            - generic [ref=e686]: Stacks Well
+          - generic [ref=e687] [cursor=pointer]:
+            - generic [ref=e688]:
+              - img "Moldy Cheese" [ref=e690]
+              - generic [ref=e691]:
+                - generic [ref=e692]: Moldy Cheese
+                - generic [ref=e693]: S Tier
+            - generic [ref=e694]: +40% chance to poison enemies on hit
+            - generic [ref=e696]: Stacks Well
+          - generic [ref=e697] [cursor=pointer]:
+            - generic [ref=e698]:
+              - img "Borgar" [ref=e700]
+              - generic [ref=e701]:
+                - generic [ref=e702]: Borgar
+                - generic [ref=e703]: C Tier
+            - generic [ref=e704]: +2% chance to spawn Borgar upon killing an enemy
+            - generic [ref=e706]: Limited
+          - generic [ref=e707] [cursor=pointer]:
+            - generic [ref=e708]:
+              - img "Boss Buster" [ref=e710]
+              - generic [ref=e711]:
+                - generic [ref=e712]: Boss Buster
+                - generic [ref=e713]: A Tier
+            - generic [ref=e714]: +15% more damage to Elites and Bosses
+            - generic [ref=e716]: Stacks Well
+          - generic [ref=e717] [cursor=pointer]:
+            - generic [ref=e718]:
+              - img "Tactical Glasses" [ref=e720]
+              - generic [ref=e721]:
+                - generic [ref=e722]: Tactical Glasses
+                - generic [ref=e723]: B Tier
+            - generic [ref=e724]: +20% damage to enemies above 90% HP
+            - generic [ref=e726]: Stacks Well
+          - generic [ref=e727] [cursor=pointer]:
+            - generic [ref=e728]:
+              - img "Wrench" [ref=e730]
+              - generic [ref=e731]:
+                - generic [ref=e732]: Wrench
+                - generic [ref=e733]: B Tier
+            - generic [ref=e734]: Charge shrines 4% faster and get 7.5% increased rewards
+            - generic [ref=e736]: Stacks Well
+          - generic [ref=e737] [cursor=pointer]:
+            - generic [ref=e738]:
+              - img "Slippery Ring" [ref=e740]
+              - generic [ref=e741]:
+                - generic [ref=e742]: Slippery Ring
+                - generic [ref=e743]: A Tier
+            - generic [ref=e744]: +15% evasion
+            - generic [ref=e746]: Stacks Well
+          - generic [ref=e747] [cursor=pointer]:
+            - generic [ref=e748]:
+              - img "Golden Glove" [ref=e750]
+              - generic [ref=e751]:
+                - generic [ref=e752]: Golden Glove
+                - generic [ref=e753]: B Tier
+            - generic [ref=e754]: +15% more Gold from killing enemies
+            - generic [ref=e756]: Stacks Well
+          - generic [ref=e757] [cursor=pointer]:
+            - generic [ref=e758]:
+              - img "Time Bracelet" [ref=e760]
+              - generic [ref=e761]:
+                - generic [ref=e762]: Time Bracelet
+                - generic [ref=e763]: A Tier
+            - generic [ref=e764]: +8% XP Gain
+            - generic [ref=e766]: Stacks Well
+          - generic [ref=e767] [cursor=pointer]:
+            - generic [ref=e768]:
+              - img "Cactus" [ref=e770]
+              - generic [ref=e771]:
+                - generic [ref=e772]: Cactus
+                - generic [ref=e773]: B Tier
+            - generic [ref=e774]: When taking damage, shoot needles at enemies (scales with Thorns)
+            - generic [ref=e776]: Stacks Well
+          - generic [ref=e777] [cursor=pointer]:
+            - generic [ref=e778]:
+              - img "Ghost" [ref=e780]
+              - generic [ref=e781]:
+                - generic [ref=e782]: Ghost
+                - generic [ref=e783]: A Tier
+            - generic [ref=e784]: Using objects spawns ghosts that attack enemies; grants intangibility frames
+            - generic [ref=e786]: Stacks Well
+          - generic [ref=e787] [cursor=pointer]:
+            - generic [ref=e788]:
+              - img "Ice Crystal" [ref=e790]
+              - generic [ref=e791]:
+                - generic [ref=e792]: Ice Crystal
+                - generic [ref=e793]: S Tier
+            - generic [ref=e794]: 7.5% chance to freeze on hit; executes low-HP enemies
+            - generic [ref=e796]: Stacks Well
+          - generic [ref=e797] [cursor=pointer]:
+            - generic [ref=e798]:
+              - img "Key" [ref=e800]
+              - generic [ref=e801]:
+                - generic [ref=e802]: Key
+                - generic [ref=e803]: A Tier
+            - generic [ref=e804]: +10% chance to open chests for free (hyperbolic)
+            - generic [ref=e806]: Stacks Well
+          - generic [ref=e807] [cursor=pointer]:
+            - generic [ref=e808]:
+              - img "Skuleg" [ref=e810]
+              - generic [ref=e811]:
+                - generic [ref=e812]: Skuleg
+                - generic [ref=e813]: B Tier
+            - generic [ref=e814]: +7% difficulty; summons skeletal minions
+            - generic [ref=e816]: Stacks Well
+      - text: 👤 Select a character to see stats and synergies ⚔️ Select a weapon to see damage and upgrades
+  - navigation "Mobile navigation" [ref=e817]:
+    - generic [ref=e818]:
+      - button "Items" [ref=e819] [cursor=pointer]:
+        - generic [ref=e820]: 📦
+        - generic [ref=e821]: Items
+      - button "Weapons" [ref=e822] [cursor=pointer]:
+        - generic [ref=e823]: ⚔️
+        - generic [ref=e824]: Weapons
+      - button "Tomes" [ref=e825] [cursor=pointer]:
+        - generic [ref=e826]: 📖
+        - generic [ref=e827]: Tomes
+      - button "Shrines" [ref=e828] [cursor=pointer]:
+        - generic [ref=e829]: ⛩️
+        - generic [ref=e830]: Shrines
+      - button "More tabs" [ref=e831] [cursor=pointer]:
+        - generic [ref=e832]: ≡
+        - generic [ref=e833]: More
+  - contentinfo [ref=e834]:
+    - generic [ref=e835]:
+      - status [ref=e836]:
+        - generic [ref=e837]: "Version: 1.0.21"
+        - generic [ref=e838]: "Last Updated: 2026-01-26"
+      - paragraph [ref=e839]:
+        - text: Made with ❤️ for MegaBonk players |
+        - link "Play on Steam" [ref=e840]:
+          - /url: https://store.steampowered.com/app/3405340/Megabonk/
+      - paragraph [ref=e841]: Data sourced from official wikis and community guides. Always verify in-game!
+  - button "Toggle theme" [ref=e842] [cursor=pointer]: 🌙
+  - status
+  - generic "Click to view Web Vitals details" [ref=e843] [cursor=pointer]: "🚀 Perf: 100%"
+```

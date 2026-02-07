@@ -17,7 +17,7 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 600;
-    color: #f0f0f0;
+    color: var(--text-primary);
 }
 
 .strategy-select {
@@ -25,11 +25,11 @@
     padding: 0.75rem;
     font-size: 1rem;
     background: rgba(0, 0, 0, 0.3);
-    color: #f0f0f0;
+    color: var(--text-primary);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base) ease;
 }
 
 .strategy-select:hover {
@@ -44,8 +44,8 @@
 }
 
 .strategy-select option {
-    background: #1a1a1a;
-    color: #f0f0f0;
+    background: var(--bg-elevated);
+    color: var(--text-primary);
 }
 
 /* Strategy Info */
@@ -55,7 +55,7 @@
 
 .strategy-details {
     font-size: 0.9rem;
-    color: #c0c0c0;
+    color: var(--text-secondary);
 }
 
 .strategy-details p {
@@ -73,21 +73,21 @@
 }
 
 .strategy-metrics .metric strong {
-    color: #4a9eff;
+    color: var(--tier-a);
 }
 
 /* Detection Metrics */
 .detection-metrics {
     margin: 1.5rem 0;
     padding: 1rem;
-    background: linear-gradient(135deg, rgba(74, 158, 255, 0.1), rgba(139, 92, 246, 0.1));
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
     border-radius: 8px;
-    border: 1px solid rgba(74, 158, 255, 0.3);
+    border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .detection-metrics h4 {
     margin: 0 0 1rem 0;
-    color: #4a9eff;
+    color: var(--tier-a);
     font-size: 1.1rem;
 }
 
@@ -105,7 +105,7 @@
 
 .metric-label {
     font-size: 0.85rem;
-    color: #a0a0a0;
+    color: var(--text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -113,7 +113,7 @@
 .metric-value {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #f0f0f0;
+    color: var(--text-primary);
 }
 
 /* Progress Indicator */
@@ -135,15 +135,15 @@
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #4a9eff, #8b5cf6);
-    transition: width 0.3s ease;
+    background: linear-gradient(90deg, var(--tier-a), var(--epic));
+    transition: width var(--transition-slow) ease;
     border-radius: 12px;
 }
 
 .progress-text {
     text-align: center;
     font-size: 0.9rem;
-    color: #c0c0c0;
+    color: var(--text-secondary);
 }
 
 /* Strategy Comparison */
@@ -157,7 +157,7 @@
 
 .strategy-comparison h4 {
     margin: 0 0 1rem 0;
-    color: #f0f0f0;
+    color: var(--text-primary);
 }
 
 .comparison-table {
@@ -174,8 +174,8 @@
     padding: 0.75rem;
     text-align: left;
     font-weight: 600;
-    color: #4a9eff;
-    border-bottom: 2px solid rgba(74, 158, 255, 0.3);
+    color: var(--tier-a);
+    border-bottom: 2px solid rgba(59, 130, 246, 0.3);
 }
 
 .comparison-table td {
@@ -188,30 +188,30 @@
 }
 
 .comparison-table tr.recommended {
-    background: rgba(74, 158, 255, 0.1);
+    background: rgba(59, 130, 246, 0.1);
     font-weight: 600;
 }
 
 .comparison-table tr.recommended td:first-child {
-    color: #4a9eff;
+    color: var(--tier-a);
 }
 
 /* Button for strategy comparison */
 .compare-strategies-btn {
     margin-top: 0.5rem;
     padding: 0.5rem 1rem;
-    background: linear-gradient(135deg, rgba(74, 158, 255, 0.2), rgba(139, 92, 246, 0.2));
-    color: #4a9eff;
-    border: 1px solid rgba(74, 158, 255, 0.4);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(139, 92, 246, 0.2));
+    color: var(--tier-a);
+    border: 1px solid rgba(59, 130, 246, 0.4);
     border-radius: 6px;
     cursor: pointer;
     font-size: 0.9rem;
-    transition: all 0.2s ease;
+    transition: all var(--transition-base) ease;
 }
 
 .compare-strategies-btn:hover {
-    background: linear-gradient(135deg, rgba(74, 158, 255, 0.3), rgba(139, 92, 246, 0.3));
-    border-color: rgba(74, 158, 255, 0.6);
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.3));
+    border-color: rgba(59, 130, 246, 0.6);
     transform: translateY(-1px);
 }
 

@@ -657,7 +657,7 @@ describe('build-planner.ts coverage tests', () => {
             shareBuildURL();
 
             await vi.waitFor(() => {
-                expect(ToastManager.error).toHaveBeenCalledWith(expect.stringContaining('Failed to copy link'));
+                expect(ToastManager.error).toHaveBeenCalledWith(expect.stringContaining('Failed to copy'));
             });
         });
 

@@ -5,7 +5,7 @@
 
 import type { EntityType, Item, Weapon, Tome, Character, Shrine } from '../types/index.ts';
 import type { GlobalSearchResult } from './global-search.ts';
-import { escapeHtml, safeGetElementById } from './utils.ts';
+import { escapeHtml, safeGetElementById, isValidExternalUrl } from './utils.ts';
 import { logger } from './logger.ts';
 
 // ========================================
@@ -50,7 +50,7 @@ export function isSearchDropdownVisible(): boolean {
  */
 export function getSelectedResult(): GlobalSearchResult | null {
     if (focusedIndex >= 0 && focusedIndex < currentResults.length) {
-        return currentResults[focusedIndex];
+        return currentResults[focusedIndex] ?? null;
     }
     return null;
 }
@@ -297,20 +297,23 @@ function buildDropdownHTML(grouped: Map<EntityType, GlobalSearchResult[]>, query
 
 /**
  * Build HTML for a single result item
+ * Bug fix: Validate image URLs to prevent javascript: XSS and escape all user data
  */
 function buildResultItemHTML(result: GlobalSearchResult, query: string, index: number): string {
     const { item, type } = result;
     const description = getItemDescription(item, type);
     const truncatedDesc = truncateText(description, 60);
-    const tierClass = item.tier ? `tier-${item.tier.toLowerCase()}` : '';
-    const imageHtml = item.image
+    const tierClass = item.tier ? `tier-${escapeHtml(item.tier.toLowerCase())}` : '';
+    // Bug fix: Validate image URL to prevent javascript: or data: XSS attacks
+    const hasValidImage = item.image && isValidExternalUrl(item.image);
+    const imageHtml = hasValidImage
         ? `<img src="${escapeHtml(item.image)}" alt="" class="dropdown-item-image" loading="lazy">`
         : `<span class="dropdown-item-icon">${TYPE_LABELS[type].icon}</span>`;
 
     return `
         <div class="search-dropdown-item"
              data-index="${index}"
-             data-type="${type}"
+             data-type="${escapeHtml(type)}"
              data-id="${escapeHtml(item.id)}"
              role="option"
              tabindex="-1"
@@ -320,7 +323,7 @@ function buildResultItemHTML(result: GlobalSearchResult, query: string, index: n
             </div>
             <div class="dropdown-item-info">
                 <span class="dropdown-item-name">${highlightMatches(item.name, query)}</span>
-                ${item.tier ? `<span class="tier-label ${tierClass}">${item.tier}</span>` : ''}
+                ${item.tier ? `<span class="tier-label ${tierClass}">${escapeHtml(item.tier)}</span>` : ''}
             </div>
             <div class="dropdown-item-desc">${escapeHtml(truncatedDesc)}</div>
             <span class="dropdown-item-arrow">→</span>
@@ -415,8 +418,9 @@ export function setupDropdownClickHandlers(): void {
             const indexStr = item.dataset.index;
             if (indexStr !== undefined) {
                 const index = parseInt(indexStr, 10);
-                if (!isNaN(index) && index >= 0 && index < currentResults.length) {
-                    navigateToResult(currentResults[index]);
+                const result = currentResults[index];
+                if (!isNaN(index) && index >= 0 && index < currentResults.length && result) {
+                    navigateToResult(result);
                 }
             }
         }

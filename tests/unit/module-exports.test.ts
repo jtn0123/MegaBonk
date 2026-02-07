@@ -118,7 +118,7 @@ describe('Module Exports', () => {
     describe('utils image generation', () => {
         it('should generate responsive image', () => {
             const html = generateResponsiveImage('path/to/image.png', 'Alt Text', 'custom-class');
-            expect(html).toContain('<picture>');
+            expect(html).toContain('<picture class="blur-up-container">');
             expect(html).toContain('image.webp');
             expect(html).toContain('Alt Text');
             expect(html).toContain('custom-class');
@@ -132,7 +132,7 @@ describe('Module Exports', () => {
         it('should generate entity image', () => {
             const entity = { id: '1', name: 'Test', image: 'path/to/image.png' };
             const html = generateEntityImage(entity as any, 'Alt Text');
-            expect(html).toContain('<picture>');
+            expect(html).toContain('<picture class="blur-up-container">');
             expect(html).toContain('image.webp');
         });
 
@@ -150,7 +150,7 @@ describe('Module Exports', () => {
         it('should generate modal image', () => {
             const entity = { image: 'path/to/image.png' };
             const html = generateModalImage(entity, 'Alt', 'item');
-            expect(html).toContain('<picture>');
+            expect(html).toContain('<picture class="blur-up-container">');
             expect(html).toContain('modal-item-image');
         });
 

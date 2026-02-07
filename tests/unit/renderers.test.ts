@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
+import { FEATURES } from '../../src/modules/constants.js';
+import { itWhenFeature } from '../setup.js';
 
 // Mock dependencies before importing module
 vi.mock('../../src/modules/logger.ts', () => ({
@@ -363,21 +365,24 @@ describe('Renderers Module', () => {
             expect(container.innerHTML).toContain('Limited');
         });
 
-        it('should include favorite button', async () => {
+        // Auto-skip when favorites feature is disabled
+        it.skipIf(!FEATURES.FAVORITES)('should include favorite button', async () => {
             await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
             expect(container.querySelectorAll('.favorite-btn').length).toBe(1);
         });
 
-        it('should include compare checkbox', async () => {
+        // Auto-skip when compare feature is disabled
+        it.skipIf(!FEATURES.COMPARE_ITEMS)('should include compare checkbox', async () => {
             await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
             expect(container.querySelectorAll('.compare-checkbox').length).toBe(1);
         });
 
-        it('should include view details button', async () => {
+        // Auto-skip when view-details feature is disabled
+        it.skipIf(!FEATURES.VIEW_DETAILS_BUTTON)('should include view details button', async () => {
             await renderItems(mockItems);
 
             const container = document.getElementById('itemsContainer');
@@ -391,7 +396,8 @@ describe('Renderers Module', () => {
             expect(container.innerHTML).toContain('empty-state');
         });
 
-        it('should show favorited state when item is favorited', async () => {
+        // Auto-skip when favorites feature is disabled
+        it.skipIf(!FEATURES.FAVORITES)('should show favorited state when item is favorited', async () => {
             vi.mocked(isFavorite).mockReturnValue(true);
             await renderItems(mockItems);
 
@@ -400,7 +406,8 @@ describe('Renderers Module', () => {
             expect(favBtn.textContent).toContain('⭐');
         });
 
-        it('should check compare checkbox when item is in compare list', async () => {
+        // Auto-skip when compare feature is disabled
+        it.skipIf(!FEATURES.COMPARE_ITEMS)('should check compare checkbox when item is in compare list', async () => {
             vi.mocked(getCompareItems).mockReturnValue(['item1']);
             await renderItems(mockItems);
 
@@ -529,7 +536,8 @@ describe('Renderers Module', () => {
             expect(container.innerHTML).toContain('empty-state');
         });
 
-        it('should include favorite button', () => {
+        // Auto-skip when favorites feature is disabled
+        it.skipIf(!FEATURES.FAVORITES)('should include favorite button', () => {
             renderWeapons(mockWeapons);
 
             const container = document.getElementById('weaponsContainer');

@@ -10,9 +10,9 @@ import { logger } from './logger.ts';
 import { setActiveStrategy, STRATEGY_PRESETS } from './cv-strategy.ts';
 import { detectItemsWithEnhancedCV, initEnhancedCV, loadEnhancedTemplates } from './computer-vision-enhanced.ts';
 import { metricsTracker, type DetectionMetrics } from './cv-metrics.ts';
-import { autoDetectFromImage } from './ocr.ts';
+import { autoDetectFromImage } from './ocr/index.ts';
 import { combineDetections, aggregateDuplicates } from './computer-vision.ts';
-import type { DetectionResult } from './ocr.ts';
+import type { DetectionResult } from './ocr/index.ts';
 import type { CVDetectionResult } from './cv/types.ts';
 
 /** Enhanced detection result with count */

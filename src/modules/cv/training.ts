@@ -349,6 +349,10 @@ async function loadTrainingImage(imagePath: string): Promise<ImageData | null> {
         const timeout = setTimeout(() => {
             if (!resolved) {
                 resolved = true;
+                logger.warn({
+                    operation: 'cv.training.load_image_timeout',
+                    data: { imagePath, timeoutMs: 5000 },
+                });
                 resolve(null);
             }
         }, 5000);
@@ -365,6 +369,10 @@ async function loadTrainingImage(imagePath: string): Promise<ImageData | null> {
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
                 if (!ctx) {
+                    logger.warn({
+                        operation: 'cv.training.canvas_context_failed',
+                        data: { imagePath, width: img.width, height: img.height },
+                    });
                     resolve(null);
                     return;
                 }
@@ -372,15 +380,24 @@ async function loadTrainingImage(imagePath: string): Promise<ImageData | null> {
                 ctx.drawImage(img, 0, 0);
                 const imageData = ctx.getImageData(0, 0, img.width, img.height);
                 resolve(imageData);
-            } catch {
+            } catch (error) {
+                logger.warn({
+                    operation: 'cv.training.load_image_processing_error',
+                    error: { name: (error as Error).name, message: (error as Error).message },
+                    data: { imagePath },
+                });
                 resolve(null);
             }
         };
 
-        img.onerror = () => {
+        img.onerror = event => {
             if (resolved) return;
             resolved = true;
             clearTimeout(timeout);
+            logger.warn({
+                operation: 'cv.training.load_image_failed',
+                data: { imagePath, error: event instanceof ErrorEvent ? event.message : 'Unknown error' },
+            });
             resolve(null);
         };
 

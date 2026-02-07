@@ -88,11 +88,11 @@ export const DEFAULT_SCORING_CONFIG: ScoringConfig = {
     },
     baseThreshold: 0.45,
     rarityThresholds: {
-        common: 0.0, // No adjustment
-        uncommon: 0.0, // No adjustment
+        common: -0.03, // Lower threshold (common items are easy to identify)
+        uncommon: -0.02, // Slightly lower
         rare: 0.0, // No adjustment
-        epic: -0.02, // Slightly lower (more lenient)
-        legendary: -0.03, // Lower threshold (gold borders are distinctive)
+        epic: 0.02, // Slightly higher (rarer = need more confidence)
+        legendary: 0.05, // Higher threshold (rarest items need highest confidence)
         unknown: 0.05, // Higher threshold when uncertain
     },
     minConfidence: 0.35,
@@ -119,11 +119,11 @@ export const PRECISION_SCORING_CONFIG: ScoringConfig = {
     },
     baseThreshold: 0.55,
     rarityThresholds: {
-        common: 0.02,
-        uncommon: 0.01,
+        common: -0.02, // Lower threshold (common items are easy to identify)
+        uncommon: -0.01, // Slightly lower
         rare: 0.0,
-        epic: -0.01,
-        legendary: -0.02,
+        epic: 0.02, // Higher (rarer = need more confidence)
+        legendary: 0.04, // Highest (rarest items need highest confidence)
         unknown: 0.08,
     },
     minConfidence: 0.45,
@@ -150,11 +150,11 @@ export const RECALL_SCORING_CONFIG: ScoringConfig = {
     },
     baseThreshold: 0.38,
     rarityThresholds: {
-        common: -0.02,
-        uncommon: -0.02,
-        rare: -0.01,
-        epic: -0.03,
-        legendary: -0.05,
+        common: -0.05, // Most lenient (common items easy to identify)
+        uncommon: -0.03,
+        rare: -0.02,
+        epic: 0.0, // Neutral
+        legendary: 0.03, // Stricter (rarest items need more confidence)
         unknown: 0.02,
     },
     minConfidence: 0.3,
@@ -217,7 +217,8 @@ export function getThresholdForRarity(rarity?: string): number {
     const base = config.baseThreshold;
 
     if (!rarity) {
-        return base + config.rarityThresholds.unknown;
+        // Bug fix: Apply minConfidence check consistently for unknown rarity
+        return Math.max(config.minConfidence, base + config.rarityThresholds.unknown);
     }
 
     const key = rarity.toLowerCase() as keyof RarityThresholds;

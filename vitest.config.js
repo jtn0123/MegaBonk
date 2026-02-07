@@ -20,7 +20,7 @@ export default defineConfig({
         // Forks pool options (Vitest 4+ uses top-level)
         forks: {
             singleFork: false, // Use multiple forks for parallelization
-            maxForks: 4, // Run up to 4 test files in parallel
+            maxForks: 2, // Reduced from 4 to prevent OOM on 16GB systems
             minForks: 1,
             // Note: execArgv heap size removed - memory leaks fixed via cleanup functions
         },
@@ -38,12 +38,23 @@ export default defineConfig({
         hookTimeout: 30000,
         bail: 0, // Run all tests, don't stop on failure
         coverage: {
-            provider: 'istanbul', // Changed from v8 - lower memory footprint
-            reporter: ['text', 'json', 'html', 'lcov'],
+            provider: 'v8', // V8 coverage for monocart merging
+            reporter: ['text', 'json', 'html', 'lcov'], // Standard reporters
             include: ['src/**/*.ts'],
-            exclude: ['src/libs/**', 'src/sw.js', 'src/types/**', '**/*.test.js', '**/*.test.ts', '**/*.config.js'],
-            // Reduce memory usage during coverage collection
-            reportsDirectory: './coverage',
+            exclude: [
+                'src/libs/**',
+                'src/sw.js',
+                'src/types/**',
+                '**/*.test.js',
+                '**/*.test.ts',
+                '**/*.config.js',
+                // Browser-only files that require real canvas/image APIs (covered by E2E tests)
+                'src/modules/cv/detection.ts', // Sliding window detection needs real Image/Canvas
+                'src/modules/cv/debug.ts', // Canvas rendering functions
+                'src/modules/debug-ui.ts', // Debug panel with canvas overlays
+                'src/modules/image-recognition-debug.ts', // Image debug rendering
+            ],
+            reportsDirectory: './coverage/unit',
             clean: true,
             all: false, // Only include tested files
             // Thresholds updated 2026-01-10 after adding comprehensive unit tests:
@@ -75,11 +86,15 @@ export default defineConfig({
             // Target: 90% (aspirational), Current: ~63%
             // Added tests for: cv-error-analysis, debug-ui, offline-ui, search-history,
             // skeleton-loader, tab-loader
+            // Thresholds updated 2026-01-31: Browser-only files excluded from coverage
+            // (detection.ts, debug.ts, debug-ui.ts, image-recognition-debug.ts)
+            // These are covered by Playwright E2E tests in tests/e2e/scan-build.spec.ts
+            // Remaining code achieves 85%+ coverage with unit tests
             thresholds: {
-                statements: 60,
-                branches: 55,
-                functions: 60,
-                lines: 60,
+                statements: 90,
+                branches: 80,
+                functions: 90,
+                lines: 90,
             },
         },
     },

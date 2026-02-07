@@ -13,7 +13,7 @@
         <!-- Resource hints for faster loading -->
         <link rel="preconnect" href="https://megabonk.guide" />
         <link rel="dns-prefetch" href="https://megabonk.guide" />
-        <link rel="preload" href="styles.css" as="style" />
+        <link rel="preload" href="styles/index.css" as="style" />
         <link rel="preload" href="manifest.json" as="fetch" crossorigin />
 
         <!-- Security headers are set via Caddy HTTP headers (Caddyfile) -->
@@ -45,8 +45,8 @@
         />
         <meta property="twitter:image" content="https://megabonk.guide/icons/icon-512.png" />
 
-        <!-- Note: CSS split into modules available in styles/ directory, needs refinement -->
-        <link rel="stylesheet" href="styles.css" />
+        <!-- Modular CSS - consolidated from styles/ directory -->
+        <link rel="stylesheet" href="styles/index.css" />
         <link rel="manifest" href="manifest.json" />
         <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
         <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -96,7 +96,7 @@
 
         <header>
             <div class="container">
-                <h1>🎮 MegaBonk Complete Guide</h1>
+                <h1>🎮 MegaBonk<span class="header-subtitle"> Complete Guide</span></h1>
             </div>
         </header>
 
@@ -194,6 +194,16 @@
                     >
                         📋 Changelog
                     </button>
+                    <button
+                        class="tab-btn"
+                        data-tab="about"
+                        role="tab"
+                        aria-selected="false"
+                        aria-controls="about-tab"
+                        id="tab-about"
+                    >
+                        ℹ️ About
+                    </button>
                 </div>
             </div>
         </nav>
@@ -205,7 +215,7 @@
                     <input
                         type="search"
                         id="searchInput"
-                        placeholder="🔍 Search... (Try: tier:SS or damage:>100)"
+                        placeholder="🔍 Search..."
                         aria-label="Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100"
                         title="Advanced search: Use tier:SS, rarity:legendary, or damage:>100 syntax"
                         aria-expanded="false"
@@ -223,6 +233,18 @@
                 </div>
 
                 <span id="item-count" class="item-count" aria-live="polite">0 items</span>
+
+                <button
+                    type="button"
+                    id="filter-toggle-btn"
+                    class="filter-toggle-btn"
+                    aria-expanded="false"
+                    aria-controls="filters"
+                    aria-label="Toggle filters"
+                >
+                    <span class="filter-toggle-text">Filters</span>
+                    <span class="filter-toggle-icon">⚙</span>
+                </button>
 
                 <div class="filters" id="filters" aria-label="Filter options">
                     <!-- Filters dynamically updated based on active tab -->
@@ -867,6 +889,13 @@
                         <!-- Changelog entries loaded dynamically -->
                     </div>
                 </div>
+
+                <!-- About Tab -->
+                <div id="about-tab" class="tab-content" role="tabpanel" aria-labelledby="tab-about">
+                    <div id="aboutContainer" class="about-container">
+                        <!-- About content loaded dynamically -->
+                    </div>
+                </div>
             </div>
         </main>
 
@@ -908,13 +937,13 @@
                     <span class="nav-icon">⚔️</span>
                     <span>Weapons</span>
                 </button>
-                <button class="nav-item" data-tab="build-planner" aria-label="Build Planner">
-                    <span class="nav-icon">🛠️</span>
-                    <span>Build</span>
+                <button class="nav-item" data-tab="tomes" aria-label="Tomes">
+                    <span class="nav-icon">📖</span>
+                    <span>Tomes</span>
                 </button>
-                <button class="nav-item" data-tab="advisor" aria-label="Advisor">
-                    <span class="nav-icon">🤖</span>
-                    <span>Advisor</span>
+                <button class="nav-item" data-tab="shrines" aria-label="Shrines">
+                    <span class="nav-icon">⛩️</span>
+                    <span>Shrines</span>
                 </button>
                 <button class="nav-item" data-tab="more" aria-label="More tabs">
                     <span class="nav-icon">≡</span>

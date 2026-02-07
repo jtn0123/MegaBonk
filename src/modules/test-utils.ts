@@ -4,7 +4,7 @@
 // Utilities for testing image recognition accuracy
 // ========================================
 
-import type { DetectionResult } from './ocr.ts';
+import type { DetectionResult } from './ocr/index.ts';
 import type { CVDetectionResult } from './computer-vision.ts';
 import type { Character, Weapon } from '../types/index.ts';
 import { logger } from './logger.ts';

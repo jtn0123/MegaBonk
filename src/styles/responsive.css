@@ -1,0 +1,366 @@
+/* ========================================
+   Responsive Breakpoints
+   ========================================
+   Extended breakpoints for tablets and large screens
+   
+   Existing breakpoints:
+   - 768px (tablet portrait)
+   - 640px (mobile)
+   
+   New breakpoints:
+   - 1024px (tablet landscape)
+   - 1440px (large screens)
+   - 1920px (extra large screens)
+   ======================================== */
+
+/* ========================================
+   Tablet Landscape (1024px)
+   ========================================
+   Optimize for landscape tablets and small laptops
+   ======================================== */
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    /* Reduce grid columns for tablet landscape */
+    .items-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+
+    .shrines-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+    }
+
+    .compare-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .batch-results-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .advisor-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .advisor-choices-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .advisor-entity-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Slightly reduce container padding */
+    .container {
+        padding: 0 16px;
+    }
+
+    /* Adjust card sizing */
+    .item-card {
+        padding: 1rem;
+    }
+
+    .shrine-card {
+        padding: 1.25rem;
+    }
+}
+
+/* ========================================
+   Large Screens (1440px+)
+   ========================================
+   Better use of horizontal space with more columns
+   ======================================== */
+
+@media (min-width: 1440px) {
+    /* Expand container for large screens - ensure proper centering */
+    .container {
+        max-width: 1600px;
+        padding: 0 32px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* More columns in grids */
+    .items-grid {
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.75rem;
+    }
+
+    .shrines-grid {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1.75rem;
+    }
+
+    .compare-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 1.75rem;
+    }
+
+    .batch-results-grid {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 1.25rem;
+    }
+
+    .advisor-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.75rem;
+    }
+
+    .advisor-choices-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1.75rem;
+    }
+
+    .advisor-entity-list {
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+
+    /* Larger cards with more breathing room */
+    .item-card {
+        padding: 1.5rem;
+    }
+
+    .shrine-card {
+        padding: 1.75rem;
+    }
+
+    .advisor-section {
+        padding: 2.5rem;
+    }
+
+    /* Larger fonts for better readability */
+    .item-name {
+        font-size: 1.3rem;
+    }
+
+    .shrine-name {
+        font-size: 1.4rem;
+    }
+
+    /* Wider modals for large screens */
+    .modal-wide {
+        max-width: 1600px !important;
+    }
+
+    .compare-chart-container {
+        height: 350px;
+    }
+}
+
+/* ========================================
+   Extra Large Screens (1920px+)
+   ========================================
+   Max-width container and optimal column count
+   ======================================== */
+
+@media (min-width: 1920px) {
+    /* Cap container width to prevent over-stretching - ensure proper centering */
+    .container {
+        max-width: 1800px;
+        padding: 0 48px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* Force 5-6 columns for item grids */
+    .items-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 2rem;
+    }
+
+    .shrines-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 2rem;
+    }
+
+    .compare-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+    }
+
+    .batch-results-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 1.5rem;
+    }
+
+    .advisor-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+    }
+
+    .advisor-choices-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2rem;
+    }
+
+    .advisor-entity-list {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1.25rem;
+    }
+
+    /* Even more padding on cards */
+    .item-card {
+        padding: 1.75rem;
+    }
+
+    .shrine-card {
+        padding: 2rem;
+    }
+
+    .advisor-section {
+        padding: 3rem;
+    }
+
+    /* Entity images slightly larger */
+    .entity-image {
+        width: 72px;
+        height: 72px;
+    }
+
+    /* Larger compare chart */
+    .compare-chart-container {
+        height: 400px;
+    }
+
+    /* Main content area more spacious */
+    main {
+        padding: 2rem 0;
+    }
+}
+
+/* ========================================
+   Ultra Wide Screens (2560px+)
+   ========================================
+   Cap content width to maintain readability
+   ======================================== */
+
+@media (min-width: 2560px) {
+    /* Hard cap to prevent absurdly wide content - ensure proper centering */
+    .container {
+        max-width: 2200px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* 6 columns for ultra-wide */
+    .items-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .shrines-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .batch-results-grid {
+        grid-template-columns: repeat(8, 1fr);
+    }
+}
+
+/* ========================================
+   Specific Component Overrides
+   ======================================== */
+
+/* Build scan preview - better use of space on large screens */
+@media (min-width: 1440px) {
+    .build-scan-preview {
+        grid-template-columns: 1fr 1fr;
+        gap: 2.5rem;
+    }
+
+    .build-scan-modal .modal-content {
+        max-width: 1100px;
+    }
+}
+
+@media (min-width: 1920px) {
+    .build-scan-modal .modal-content {
+        max-width: 1300px;
+    }
+}
+
+/* Strengths/weaknesses grid on large screens */
+@media (min-width: 1440px) {
+    .strengths-weaknesses {
+        gap: 1.5rem;
+    }
+
+    .strengths,
+    .weaknesses {
+        padding: 1.25rem;
+    }
+}
+
+/* Scaling values grid - more columns on large screens */
+@media (min-width: 1440px) {
+    .scaling-values {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+}
+
+@media (min-width: 1920px) {
+    .scaling-values {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+/* Floating compare button positioning for large screens */
+@media (min-width: 1440px) {
+    .floating-compare-btn {
+        bottom: 3rem;
+        right: 3rem;
+        padding: 1.25rem 2.5rem;
+        font-size: 1.1rem;
+    }
+}
+
+/* Header adjustments for large screens */
+@media (min-width: 1440px) {
+    header h1 {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+    }
+
+    .version-info {
+        gap: 3rem;
+        font-size: 1rem;
+    }
+}
+
+@media (min-width: 1920px) {
+    header h1 {
+        font-size: 2.25rem;
+    }
+}
+
+/* Footer adjustments */
+@media (min-width: 1440px) {
+    footer {
+        padding: 2rem 0;
+    }
+
+    footer .version-info {
+        font-size: 0.9rem;
+    }
+}
+
+/* Empty state adjustments */
+@media (min-width: 1440px) {
+    .empty-state {
+        padding: 4rem;
+    }
+
+    .empty-icon {
+        font-size: 5rem;
+    }
+}
+
+@media (min-width: 1920px) {
+    .empty-state {
+        padding: 5rem;
+    }
+}

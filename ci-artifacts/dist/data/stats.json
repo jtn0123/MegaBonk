@@ -1,0 +1,396 @@
+{
+  "version": "1.0.18",
+  "last_updated": "2026-01-08",
+  "stats": {
+    "damage": {
+      "stat_name": "Damage",
+      "category": "offensive",
+      "scaling_type": "multiplicative",
+      "formula": "Effective Damage = Weapon Damage × Character Damage",
+      "description": "Foundational offensive multiplier (e.g., 2.0x = 200% base damage). The most important offensive stat.",
+      "priority": 1,
+      "example": "Weapon Damage 5.0x × Character Damage 3.0x = 15.0x total damage"
+    },
+    "crit_chance": {
+      "stat_name": "Critical Chance",
+      "category": "offensive",
+      "scaling_type": "additive_with_overcrit",
+      "formula": "Standard crits at <100%. Over 100% enables Overcrits!",
+      "overcrit_formula": "Overcrit Multiplier = (n × 0.5)² + (n + 1) where n = number of simultaneous crits",
+      "overcrit_examples": {
+        "0_crits": "1.0× (normal damage)",
+        "1_crit": "2.0× damage",
+        "2_crits": "4.0× damage",
+        "3_crits": "6.25× damage",
+        "4_crits": "9.0× damage",
+        "5_crits": "12.25× damage"
+      },
+      "description": "Exceeding 100% Crit Chance enables Overcrits which apply Crit Damage multiple times with exponential scaling",
+      "priority": 2,
+      "cap": null
+    },
+    "crit_damage": {
+      "stat_name": "Critical Damage",
+      "category": "offensive",
+      "scaling_type": "multiplicative_with_crits",
+      "formula": "Total Crit Damage = Base Damage × Damage Multiplier × Crit Damage Multiplier × Overcrit Multiplier",
+      "description": "Extra damage multiplier on critical hits. Pairs with Crit Chance for exponential scaling.",
+      "priority": 3,
+      "example": "Damage 10.0x × Crit Damage 5.0x = 50.0x damage on crits"
+    },
+    "attack_speed": {
+      "stat_name": "Attack Speed",
+      "category": "offensive",
+      "scaling_type": "percentage_multiplier",
+      "formula": "Attacks Per Second = Base APS × (1 + Attack Speed %)",
+      "description": "Controls weapon attack frequency. 150% = 1.5x faster attacks. Dramatically increases DPS and proc frequency.",
+      "priority": 4,
+      "example": "Base 1.0 APS × 150% Attack Speed = 2.5 attacks per second"
+    },
+    "projectile_count": {
+      "stat_name": "Projectile Count",
+      "category": "offensive",
+      "scaling_type": "additive",
+      "formula": "Total Projectiles = Weapon Count + Character Count",
+      "description": "Number of simultaneous projectiles fired. Each projectile deals full damage.",
+      "priority": 5,
+      "note": "Effectively multiplies damage output"
+    },
+    "projectile_bounces": {
+      "stat_name": "Projectile Bounces",
+      "category": "offensive",
+      "scaling_type": "weapon_specific",
+      "formula": "Weapon-specific, cannot be increased via tomes/items",
+      "description": "Number of times projectiles ricochet between enemies. Only upgradeable through weapon level-ups.",
+      "priority": 6,
+      "note": "Cannot be boosted by character stats"
+    },
+    "size": {
+      "stat_name": "Size",
+      "category": "offensive",
+      "scaling_type": "mixed",
+      "formula": "Effective Size = Weapon Size × Character Size",
+      "description": "Projectile/Aura size multiplier. Larger size = more enemies hit simultaneously. Especially powerful for Axe, Tornado, and Black Hole.",
+      "priority": 7
+    },
+    "projectile_speed": {
+      "stat_name": "Projectile Speed",
+      "category": "offensive",
+      "scaling_type": "percentage_multiplier",
+      "formula": "Effective Speed = Base Speed × (1 + Speed %)",
+      "description": "Travel velocity multiplier. Affects rotation speed for orbital weapons like Chunkers.",
+      "priority": 8
+    },
+    "duration": {
+      "stat_name": "Duration",
+      "category": "offensive",
+      "scaling_type": "percentage_multiplier",
+      "formula": "Effective Duration = Base Duration × (1 + Duration %)",
+      "description": "Weapon and effect persistence time. Also extends elemental status effects (Freeze, Burn, Poison). Essential for DoT builds.",
+      "priority": 9
+    },
+    "damage_to_elites": {
+      "stat_name": "Damage to Elites",
+      "category": "offensive",
+      "scaling_type": "additive_multiplier",
+      "formula": "Elite Damage = Base Damage × (1 + Elite Damage %)",
+      "description": "Multiplier specifically against Elite enemies and stage bosses. All stage bosses count as elites.",
+      "priority": 10
+    },
+    "knockback": {
+      "stat_name": "Knockback",
+      "category": "offensive",
+      "scaling_type": "multiplier",
+      "formula": "Knockback Distance = Base × Knockback Multiplier",
+      "description": "Enemy push-back distance. Improves enemy control and ranged weapon safety.",
+      "priority": 11
+    },
+    "max_hp": {
+      "stat_name": "Max HP",
+      "category": "defensive",
+      "scaling_type": "additive",
+      "formula": "Total HP = Base HP + HP Bonuses",
+      "description": "Your health pool determining survival capacity. Essential for survivability and Beefy Ring synergy.",
+      "priority": 1
+    },
+    "hp_regen": {
+      "stat_name": "HP Regen",
+      "category": "defensive",
+      "scaling_type": "additive",
+      "formula": "HP Regenerated = Regen per Minute / 60",
+      "description": "Health passively regenerated per minute. Regen Tome is the primary source.",
+      "priority": 2,
+      "note": "Displayed per minute but applied continuously"
+    },
+    "overheal": {
+      "stat_name": "Overheal",
+      "category": "defensive",
+      "scaling_type": "percentage_of_hp",
+      "formula": "Overheal Amount = Max HP × Overheal %",
+      "description": "Temporary health beyond normal max HP. Chonkplate is the main source.",
+      "priority": 3
+    },
+    "shield": {
+      "stat_name": "Shield",
+      "category": "defensive",
+      "scaling_type": "additive",
+      "formula": "Total Shield = Base + Shield Bonuses",
+      "description": "Protective barrier that absorbs damage before affecting health. Recharges after 5 seconds without damage. Even 5 points can prevent one-shots.",
+      "priority": 4
+    },
+    "armor": {
+      "stat_name": "Armor",
+      "category": "defensive",
+      "scaling_type": "hyperbolic",
+      "formula": "Character Armor % = Internal Armor / (0.75 + Internal Armor)",
+      "description": "Percentage-based damage reduction with diminishing returns. Impossible to reach 100% due to hyperbolic formula.",
+      "priority": 5,
+      "can_reach_100": false,
+      "examples": {
+        "12%_internal": "13.8% actual armor",
+        "50%_internal": "40% actual armor",
+        "100%_internal": "57.1% actual armor",
+        "200%_internal": "72.7% actual armor"
+      }
+    },
+    "evasion": {
+      "stat_name": "Evasion",
+      "category": "defensive",
+      "scaling_type": "hyperbolic",
+      "formula": "Character Evasion % = Internal Evasion / (1 + Internal Evasion)",
+      "description": "Percentage chance to completely avoid incoming damage. Subject to diminishing returns, cannot reach 100%.",
+      "priority": 6,
+      "can_reach_100": false,
+      "examples": {
+        "15%_internal": "13% actual evasion",
+        "50%_internal": "33.3% actual evasion",
+        "100%_internal": "50% actual evasion",
+        "200%_internal": "66.7% actual evasion"
+      },
+      "best_character": "Ninja"
+    },
+    "lifesteal": {
+      "stat_name": "Lifesteal",
+      "category": "defensive",
+      "scaling_type": "percentage_with_overflow",
+      "formula": "At <100%: chance to steal 1 HP per hit. At >100%: chance to steal 2 HP instead",
+      "description": "Percentage chance to steal HP from enemies per attack. Exceeding 100% increases heal amount. Pairs excellently with high attack speed.",
+      "priority": 7,
+      "overflow_threshold": 100
+    },
+    "thorns": {
+      "stat_name": "Thorns",
+      "category": "defensive",
+      "scaling_type": "flat_damage",
+      "formula": "Reflected Damage = Thorns Value",
+      "description": "Reflects flat damage back to enemies when struck. Most effective in tanky close-range builds with high armor and shield.",
+      "priority": 8
+    },
+    "movement_speed": {
+      "stat_name": "Movement Speed",
+      "category": "utility",
+      "scaling_type": "percentage_multiplier",
+      "formula": "Actual Speed = Base Speed × (1 + Movement Speed %)",
+      "description": "Character velocity multiplier enhancing positioning and kiting capabilities. Can be converted to attack speed via Turbo Skates.",
+      "priority": 1
+    },
+    "extra_jumps": {
+      "stat_name": "Extra Jumps",
+      "category": "utility",
+      "scaling_type": "additive",
+      "formula": "Total Jumps = 1 (base) + Extra Jumps",
+      "description": "Mid-air jumps available before ground contact. 3 extra jumps = 4 total jumps.",
+      "priority": 2
+    },
+    "jump_height": {
+      "stat_name": "Jump Height",
+      "category": "utility",
+      "scaling_type": "percentage_multiplier",
+      "formula": "Jump Distance = Base × (1 + Jump Height %)",
+      "description": "Vertical leap distance affecting navigation and attack avoidance.",
+      "priority": 3
+    },
+    "luck": {
+      "stat_name": "Luck",
+      "category": "utility",
+      "scaling_type": "rarity_multiplier",
+      "formula": "Affects item drop rarity only",
+      "description": "Item rarity multiplier. Does NOT affect item proc chance or crit chance—only the quality of item drops.",
+      "priority": 4,
+      "does_not_affect": ["Proc chances", "Crit chance"]
+    },
+    "difficulty": {
+      "stat_name": "Difficulty",
+      "category": "utility",
+      "scaling_type": "enemy_scaling",
+      "formula": "Affects enemy quantity, health, and damage",
+      "description": "Modifies enemy stats. Does NOT increase XP drops directly, but more enemies = more XP potential.",
+      "priority": 5,
+      "note": "Higher difficulty = better loot but harder combat"
+    },
+    "pickup_range": {
+      "stat_name": "Pickup Range",
+      "category": "utility",
+      "scaling_type": "mixed",
+      "formula": "Character Pickup Range = Initial Range × (1 + Tome Range + Shrine Range)",
+      "description": "XP gem collection distance. Powerup pickup range remains fixed.",
+      "priority": 6,
+      "note": "Only affects XP gems, not powerups"
+    },
+    "xp_gain": {
+      "stat_name": "XP Gain",
+      "category": "utility",
+      "scaling_type": "additive_hard_capped",
+      "formula": "XP per Shard = Base × min(XP Gain %, 1000%)",
+      "description": "Experience per shard multiplier. CAPPED AT 10x MAXIMUM (1000% XP). Beyond this, additional XP Gain has no effect.",
+      "priority": 7,
+      "hard_cap": 1000,
+      "hard_cap_multiplier": "10x"
+    },
+    "gold_gain": {
+      "stat_name": "Gold Gain",
+      "category": "utility",
+      "scaling_type": "percentage_multiplier",
+      "formula": "Gold Earned = Base × (1 + Gold Gain %)",
+      "description": "Multiplier for gold obtained per kill and broken containers.",
+      "priority": 8
+    },
+    "silver_gain": {
+      "stat_name": "Silver Gain",
+      "category": "utility",
+      "scaling_type": "percentage_multiplier",
+      "formula": "Silver Earned = Base × (1 + Silver Gain %)",
+      "description": "Permanent currency multiplier affecting post-run progression rewards.",
+      "priority": 9
+    },
+    "elite_spawn_increase": {
+      "stat_name": "Elite Spawn Increase",
+      "category": "utility",
+      "scaling_type": "percentage_increase",
+      "formula": "Elite Spawn Rate = Base × (1 + Elite Spawn %)",
+      "description": "Enemy elite frequency multiplier. Higher difficulty but better loot opportunities.",
+      "priority": 10
+    },
+    "powerup_multiplier": {
+      "stat_name": "Powerup Multiplier",
+      "category": "utility",
+      "scaling_type": "percentage_multiplier",
+      "formula": "Powerup Effect = Base × (1 + Powerup Multiplier %)",
+      "description": "Increases magnitude and duration of temporary power buffs.",
+      "priority": 11
+    },
+    "powerup_drop_chance": {
+      "stat_name": "Powerup Drop Chance",
+      "category": "utility",
+      "scaling_type": "percentage_chance",
+      "formula": "Drop Probability = Base + Powerup Drop Chance %",
+      "description": "Enemy powerup drop probability. ALSO increases the chance for chest drops (dual benefit).",
+      "priority": 12
+    }
+  },
+  "important_breakpoints": {
+    "crit_chance": {
+      "100_percent": {
+        "description": "Guaranteed crits on every hit. Enables Overcrit mechanic.",
+        "recommended_for": ["Crit builds", "CL4NK", "Bush"],
+        "how_to_reach": "Precision Tome + Forbidden Juice (10%) + Grandma's Secret Tonic (25%) + character passive"
+      },
+      "200_percent": {
+        "description": "Double Overcrit - 2 simultaneous crits per hit for 4.0x damage multiplier",
+        "damage_multiplier": "4.0x"
+      }
+    },
+    "xp_gain": {
+      "1000_percent": {
+        "description": "HARD CAP - 10x XP gain maximum. No benefit beyond this point.",
+        "how_to_reach": "XP Tome + Time Bracelet stacking",
+        "warning": "Stacking more XP sources beyond 1000% is wasted"
+      }
+    },
+    "armor": {
+      "57_percent": {
+        "internal_value": "100%",
+        "description": "Around 60% damage reduction - strong tank threshold"
+      },
+      "73_percent": {
+        "internal_value": "200%",
+        "description": "~75% damage reduction - extremely tanky, diminishing returns set in"
+      }
+    },
+    "evasion": {
+      "50_percent": {
+        "internal_value": "100%",
+        "description": "50% dodge chance - consistent damage avoidance"
+      },
+      "67_percent": {
+        "internal_value": "200%",
+        "description": "~67% dodge - very hard to hit, heavy investment needed"
+      }
+    },
+    "proc_items": {
+      "big_bonk_100": {
+        "stacks_needed": 50,
+        "description": "50 stacks of Big Bonk for 100% 20x damage proc rate"
+      },
+      "ice_cube_100": {
+        "stacks_needed": 5,
+        "description": "5 stacks of Ice Cube for 100% freeze chance"
+      },
+      "spicy_meatball_100": {
+        "stacks_needed": 4,
+        "description": "4 stacks of Spicy Meatball for 100% explosion chance"
+      },
+      "forbidden_juice_100": {
+        "stacks_needed": 10,
+        "description": "10 stacks of Forbidden Juice for 100% crit chance (enables Overcrit)"
+      }
+    }
+  },
+  "scaling_mechanics": {
+    "hyperbolic_scaling": {
+      "applies_to": ["Armor", "Evasion"],
+      "description": "Returns diminish as you invest more. Impossible to reach 100%. Formula: Actual % = Internal / (constant + Internal)",
+      "why_used": "Prevents invincibility while maintaining value at all levels"
+    },
+    "overcrit_system": {
+      "threshold": "100% crit chance",
+      "how_it_works": "Each 100% crit chance = 1 simultaneous crit. Multiple crits multiply damage exponentially",
+      "formula": "Damage Multiplier = (n × 0.5)² + (n + 1) where n = number of crits",
+      "examples": {
+        "150_crit": "1.5 crits = somewhere between 2.0x and 4.0x",
+        "200_crit": "2 crits = 4.0x damage",
+        "300_crit": "3 crits = 6.25x damage",
+        "400_crit": "4 crits = 9.0x damage"
+      },
+      "best_with": ["High crit damage", "CL4NK character", "Sniper Rifle"]
+    },
+    "attack_speed_breakpoints": {
+      "description": "More attacks = more damage AND more proc chances",
+      "100_percent": "2.0x attacks per second",
+      "200_percent": "3.0x attacks per second",
+      "turbo_skates_interaction": "Movement speed can convert to attack speed via Turbo Skates"
+    }
+  },
+  "build_priorities": {
+    "offensive_focus": {
+      "priority_order": ["Damage", "Crit Chance + Crit Damage", "Attack Speed", "Projectile Count"],
+      "description": "Maximize damage output for glass cannon builds"
+    },
+    "defensive_focus": {
+      "priority_order": ["Max HP", "Shield", "Armor OR Evasion", "HP Regen + Lifesteal"],
+      "description": "Maximize survivability for tank builds"
+    },
+    "balanced_approach": {
+      "priority_order": ["Equal Damage and Max HP", "Crit Chance", "Shield", "Attack Speed", "Armor"],
+      "description": "Balanced offense and defense for versatile play"
+    },
+    "crit_build": {
+      "priority_order": ["Crit Chance to 100%+", "Crit Damage", "Damage", "Attack Speed"],
+      "description": "Maximize critical hit damage with Overcrit scaling"
+    },
+    "proc_build": {
+      "priority_order": ["Attack Speed", "Proc items", "Overpowered Lamp", "On-hit effects"],
+      "description": "Maximize proc-based item triggers"
+    }
+  }
+}

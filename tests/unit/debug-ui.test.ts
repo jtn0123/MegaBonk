@@ -38,6 +38,17 @@ vi.mock('../../src/modules/logger', () => ({
         debug: vi.fn(),
         error: vi.fn(),
     },
+    requestTimer: {
+        getStats: vi.fn().mockReturnValue({
+            totalRequests: 0,
+            successfulRequests: 0,
+            failedRequests: 0,
+            cachedRequests: 0,
+            averageDurationMs: 0,
+            slowestRequest: undefined,
+            recentRequests: [],
+        }),
+    },
 }));
 
 import {
@@ -59,7 +70,7 @@ import {
     exportLogs,
     downloadDebugImage,
 } from '../../src/modules/image-recognition-debug';
-import { logger } from '../../src/modules/logger';
+import { logger, requestTimer } from '../../src/modules/logger';
 
 describe('debug-ui - initDebugPanel', () => {
     beforeEach(() => {
@@ -685,5 +696,515 @@ describe('debug-ui - log filtering', () => {
         // The viewer should only show error logs
         const viewer = document.getElementById('debug-log-viewer');
         expect(viewer?.innerHTML).toContain('Error message');
+    });
+});
+
+// Import additional exports for extended tests
+import {
+    initConfidenceSlider,
+    getConfidenceThreshold,
+    setConfidenceThreshold,
+    updateBreadcrumbViewer,
+    initBreadcrumbControls,
+    updateRequestViewer,
+    updateStateViewer,
+    initStateControls,
+    initDebugTabs,
+    switchDebugTab,
+} from '../../src/modules/debug-ui.ts';
+
+// Mock breadcrumbs module
+vi.mock('../../src/modules/breadcrumbs', () => ({
+    getBreadcrumbs: vi.fn().mockReturnValue([]),
+    clearBreadcrumbs: vi.fn(),
+    exportBreadcrumbs: vi.fn().mockReturnValue('[]'),
+    captureStateSnapshot: vi.fn().mockReturnValue({ test: 'state' }),
+}));
+
+import { getBreadcrumbs, clearBreadcrumbs, exportBreadcrumbs, captureStateSnapshot } from '../../src/modules/breadcrumbs';
+
+describe('debug-ui - confidence slider', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+
+        document.body.innerHTML = `
+            <input type="range" id="debug-confidence-slider" min="0" max="100" value="70" />
+            <span id="debug-confidence-value">70%</span>
+        `;
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should initialize slider with current threshold', () => {
+        initConfidenceSlider();
+
+        const slider = document.getElementById('debug-confidence-slider') as HTMLInputElement;
+        const display = document.getElementById('debug-confidence-value');
+
+        // Default threshold is 0.7 (70%)
+        expect(slider.value).toBe('70');
+        expect(display?.textContent).toBe('70%');
+    });
+
+    it('should update threshold on slider input', () => {
+        initConfidenceSlider();
+
+        const slider = document.getElementById('debug-confidence-slider') as HTMLInputElement;
+        const display = document.getElementById('debug-confidence-value');
+
+        slider.value = '85';
+        slider.dispatchEvent(new Event('input'));
+
+        expect(display?.textContent).toBe('85%');
+        expect(getConfidenceThreshold()).toBe(0.85);
+    });
+
+    it('should get confidence threshold', () => {
+        const threshold = getConfidenceThreshold();
+        expect(typeof threshold).toBe('number');
+        expect(threshold).toBeGreaterThanOrEqual(0);
+        expect(threshold).toBeLessThanOrEqual(1);
+    });
+
+    it('should set confidence threshold programmatically', () => {
+        document.body.innerHTML = `
+            <input type="range" id="debug-confidence-slider" min="0" max="100" value="70" />
+            <span id="debug-confidence-value">70%</span>
+        `;
+
+        setConfidenceThreshold(0.9);
+
+        expect(getConfidenceThreshold()).toBe(0.9);
+
+        const slider = document.getElementById('debug-confidence-slider') as HTMLInputElement;
+        const display = document.getElementById('debug-confidence-value');
+
+        expect(slider.value).toBe('90');
+        expect(display?.textContent).toBe('90%');
+    });
+
+    it('should clamp threshold to valid range', () => {
+        setConfidenceThreshold(1.5);
+        expect(getConfidenceThreshold()).toBe(1);
+
+        setConfidenceThreshold(-0.5);
+        expect(getConfidenceThreshold()).toBe(0);
+    });
+
+    it('should handle missing slider elements gracefully', () => {
+        document.body.innerHTML = '';
+
+        expect(() => initConfidenceSlider()).not.toThrow();
+        expect(() => setConfidenceThreshold(0.5)).not.toThrow();
+    });
+});
+
+describe('debug-ui - breadcrumb viewer', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+
+        document.body.innerHTML = `
+            <div id="debug-breadcrumb-viewer"></div>
+            <button id="debug-clear-breadcrumbs"></button>
+            <button id="debug-export-breadcrumbs"></button>
+        `;
+
+        // Mock URL APIs
+        global.URL.createObjectURL = vi.fn().mockReturnValue('blob:test');
+        global.URL.revokeObjectURL = vi.fn();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should display empty state when no breadcrumbs', () => {
+        vi.mocked(getBreadcrumbs).mockReturnValue([]);
+
+        updateBreadcrumbViewer();
+
+        const viewer = document.getElementById('debug-breadcrumb-viewer');
+        expect(viewer?.innerHTML).toContain('No breadcrumbs yet');
+    });
+
+    it('should display breadcrumb entries', () => {
+        vi.mocked(getBreadcrumbs).mockReturnValue([
+            { timestamp: Date.now(), type: 'action', message: 'User clicked button' },
+            { timestamp: Date.now(), type: 'navigation', message: 'Navigated to items tab' },
+        ]);
+
+        updateBreadcrumbViewer();
+
+        const viewer = document.getElementById('debug-breadcrumb-viewer');
+        expect(viewer?.innerHTML).toContain('User clicked button');
+        expect(viewer?.innerHTML).toContain('Navigated to items tab');
+    });
+
+    it('should display error breadcrumbs with error class', () => {
+        vi.mocked(getBreadcrumbs).mockReturnValue([
+            { timestamp: Date.now(), type: 'error', message: 'Something failed' },
+        ]);
+
+        updateBreadcrumbViewer();
+
+        const viewer = document.getElementById('debug-breadcrumb-viewer');
+        expect(viewer?.innerHTML).toContain('error');
+        expect(viewer?.innerHTML).toContain('Something failed');
+    });
+
+    it('should limit to 30 most recent breadcrumbs', () => {
+        const manyBreadcrumbs = Array.from({ length: 40 }, (_, i) => ({
+            timestamp: Date.now() + i,
+            type: 'action',
+            message: `Breadcrumb ${i}`,
+        }));
+
+        vi.mocked(getBreadcrumbs).mockReturnValue(manyBreadcrumbs);
+
+        updateBreadcrumbViewer();
+
+        const viewer = document.getElementById('debug-breadcrumb-viewer');
+        const entries = viewer?.querySelectorAll('.debug-log-entry');
+        expect(entries?.length).toBe(30);
+    });
+
+    it('should handle missing viewer element', () => {
+        document.body.innerHTML = '';
+        expect(() => updateBreadcrumbViewer()).not.toThrow();
+    });
+
+    it('should clear breadcrumbs on button click', () => {
+        initBreadcrumbControls();
+
+        const clearBtn = document.getElementById('debug-clear-breadcrumbs');
+        clearBtn?.click();
+
+        expect(clearBreadcrumbs).toHaveBeenCalled();
+    });
+
+    it('should export breadcrumbs on button click', () => {
+        initBreadcrumbControls();
+
+        const exportBtn = document.getElementById('debug-export-breadcrumbs');
+        exportBtn?.click();
+
+        expect(exportBreadcrumbs).toHaveBeenCalled();
+    });
+
+    it('should handle missing control buttons gracefully', () => {
+        document.body.innerHTML = '';
+        expect(() => initBreadcrumbControls()).not.toThrow();
+    });
+});
+
+describe('debug-ui - request viewer', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+
+        document.body.innerHTML = `
+            <div id="debug-request-viewer"></div>
+        `;
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should display empty state when no requests', () => {
+        vi.spyOn(requestTimer, 'getStats').mockReturnValue({
+            totalRequests: 0,
+            successfulRequests: 0,
+            failedRequests: 0,
+            cachedRequests: 0,
+            averageDurationMs: 0,
+            slowestRequest: undefined,
+            recentRequests: [],
+        });
+
+        updateRequestViewer();
+
+        const viewer = document.getElementById('debug-request-viewer');
+        expect(viewer?.innerHTML).toContain('No requests tracked yet');
+    });
+
+    it('should display request statistics', () => {
+        vi.spyOn(requestTimer, 'getStats').mockReturnValue({
+            totalRequests: 10,
+            successfulRequests: 8,
+            failedRequests: 2,
+            cachedRequests: 3,
+            averageDurationMs: 150,
+            slowestRequest: undefined,
+            recentRequests: [],
+        });
+
+        updateRequestViewer();
+
+        const viewer = document.getElementById('debug-request-viewer');
+        expect(viewer?.innerHTML).toContain('10');
+        expect(viewer?.innerHTML).toContain('8');
+        expect(viewer?.innerHTML).toContain('2');
+        expect(viewer?.innerHTML).toContain('3');
+        expect(viewer?.innerHTML).toContain('150ms');
+    });
+
+    it('should display slowest request', () => {
+        vi.spyOn(requestTimer, 'getStats').mockReturnValue({
+            totalRequests: 5,
+            successfulRequests: 5,
+            failedRequests: 0,
+            cachedRequests: 0,
+            averageDurationMs: 100,
+            slowestRequest: {
+                url: 'https://example.com/api/slow-endpoint',
+                method: 'GET',
+                startTime: 0,
+                durationMs: 2500,
+                status: 200,
+            },
+            recentRequests: [],
+        });
+
+        updateRequestViewer();
+
+        const viewer = document.getElementById('debug-request-viewer');
+        expect(viewer?.innerHTML).toContain('2500ms');
+        expect(viewer?.innerHTML).toContain('slow-endpoint');
+    });
+
+    it('should display recent requests', () => {
+        vi.spyOn(requestTimer, 'getStats').mockReturnValue({
+            totalRequests: 2,
+            successfulRequests: 1,
+            failedRequests: 1,
+            cachedRequests: 0,
+            averageDurationMs: 100,
+            slowestRequest: undefined,
+            recentRequests: [
+                { url: '/api/success', method: 'GET', startTime: 0, durationMs: 50, status: 200 },
+                { url: '/api/error', method: 'POST', startTime: 0, durationMs: 100, status: 500 },
+            ],
+        });
+
+        updateRequestViewer();
+
+        const viewer = document.getElementById('debug-request-viewer');
+        expect(viewer?.innerHTML).toContain('/api/success');
+        expect(viewer?.innerHTML).toContain('/api/error');
+        expect(viewer?.innerHTML).toContain('50ms');
+        expect(viewer?.innerHTML).toContain('100ms');
+    });
+
+    it('should handle missing viewer element', () => {
+        document.body.innerHTML = '';
+        expect(() => updateRequestViewer()).not.toThrow();
+    });
+
+    it('should show error status class for failed requests', () => {
+        vi.spyOn(requestTimer, 'getStats').mockReturnValue({
+            totalRequests: 1,
+            successfulRequests: 0,
+            failedRequests: 1,
+            cachedRequests: 0,
+            averageDurationMs: 100,
+            slowestRequest: undefined,
+            recentRequests: [
+                { url: '/api/fail', method: 'GET', startTime: 0, durationMs: 100, status: 0 },
+            ],
+        });
+
+        updateRequestViewer();
+
+        const viewer = document.getElementById('debug-request-viewer');
+        expect(viewer?.innerHTML).toContain('error');
+    });
+});
+
+describe('debug-ui - state viewer', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+
+        document.body.innerHTML = `
+            <div id="debug-state-viewer"></div>
+            <button id="debug-refresh-state"></button>
+            <button id="debug-export-state"></button>
+        `;
+
+        // Mock URL APIs
+        global.URL.createObjectURL = vi.fn().mockReturnValue('blob:test');
+        global.URL.revokeObjectURL = vi.fn();
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should display state snapshot as JSON', () => {
+        vi.mocked(captureStateSnapshot).mockReturnValue({
+            currentTab: 'items',
+            buildState: { character: 'test' },
+        });
+
+        updateStateViewer();
+
+        const viewer = document.getElementById('debug-state-viewer');
+        expect(viewer?.innerHTML).toContain('currentTab');
+        expect(viewer?.innerHTML).toContain('items');
+        expect(viewer?.innerHTML).toContain('buildState');
+    });
+
+    it('should escape HTML in JSON', () => {
+        vi.mocked(captureStateSnapshot).mockReturnValue({
+            test: '<script>alert("xss")</script>',
+        });
+
+        updateStateViewer();
+
+        const viewer = document.getElementById('debug-state-viewer');
+        expect(viewer?.innerHTML).not.toContain('<script>');
+    });
+
+    it('should handle missing viewer element', () => {
+        document.body.innerHTML = '';
+        expect(() => updateStateViewer()).not.toThrow();
+    });
+
+    it('should refresh state on button click', () => {
+        initStateControls();
+
+        const refreshBtn = document.getElementById('debug-refresh-state');
+        refreshBtn?.click();
+
+        expect(captureStateSnapshot).toHaveBeenCalled();
+    });
+
+    it('should export state on button click', () => {
+        initStateControls();
+
+        const exportBtn = document.getElementById('debug-export-state');
+        exportBtn?.click();
+
+        expect(captureStateSnapshot).toHaveBeenCalled();
+    });
+
+    it('should handle missing control buttons gracefully', () => {
+        document.body.innerHTML = '';
+        expect(() => initStateControls()).not.toThrow();
+    });
+});
+
+describe('debug-ui - tab switching', () => {
+    beforeEach(() => {
+        vi.clearAllMocks();
+
+        document.body.innerHTML = `
+            <button data-debug-tab="logs">Logs</button>
+            <button data-debug-tab="breadcrumbs">Breadcrumbs</button>
+            <button data-debug-tab="requests">Requests</button>
+            <button data-debug-tab="state">State</button>
+            <div data-debug-content="logs" style="display: block;"></div>
+            <div data-debug-content="breadcrumbs" style="display: none;"></div>
+            <div data-debug-content="requests" style="display: none;"></div>
+            <div data-debug-content="state" style="display: none;"></div>
+            <div id="debug-log-viewer"></div>
+            <div id="debug-breadcrumb-viewer"></div>
+            <div id="debug-request-viewer"></div>
+            <div id="debug-state-viewer"></div>
+        `;
+
+        // Setup mocks for viewer updates
+        vi.mocked(getLogs).mockReturnValue([]);
+        vi.mocked(getBreadcrumbs).mockReturnValue([]);
+        vi.spyOn(requestTimer, 'getStats').mockReturnValue({
+            totalRequests: 0,
+            successfulRequests: 0,
+            failedRequests: 0,
+            cachedRequests: 0,
+            averageDurationMs: 0,
+            slowestRequest: undefined,
+            recentRequests: [],
+        });
+    });
+
+    afterEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should initialize tab switching', () => {
+        initDebugTabs();
+
+        const tabButton = document.querySelector('[data-debug-tab="breadcrumbs"]') as HTMLElement;
+        tabButton?.click();
+
+        const breadcrumbsContent = document.querySelector('[data-debug-content="breadcrumbs"]') as HTMLElement;
+        expect(breadcrumbsContent?.style.display).toBe('block');
+    });
+
+    it('should switch to logs tab', () => {
+        switchDebugTab('logs');
+
+        const logsContent = document.querySelector('[data-debug-content="logs"]') as HTMLElement;
+        const logsTab = document.querySelector('[data-debug-tab="logs"]');
+
+        expect(logsContent?.style.display).toBe('block');
+        expect(logsTab?.classList.contains('active')).toBe(true);
+    });
+
+    it('should switch to breadcrumbs tab', () => {
+        switchDebugTab('breadcrumbs');
+
+        const breadcrumbsContent = document.querySelector('[data-debug-content="breadcrumbs"]') as HTMLElement;
+        expect(breadcrumbsContent?.style.display).toBe('block');
+
+        // Other tabs should be hidden
+        const logsContent = document.querySelector('[data-debug-content="logs"]') as HTMLElement;
+        expect(logsContent?.style.display).toBe('none');
+    });
+
+    it('should switch to requests tab', () => {
+        switchDebugTab('requests');
+
+        const requestsContent = document.querySelector('[data-debug-content="requests"]') as HTMLElement;
+        expect(requestsContent?.style.display).toBe('block');
+    });
+
+    it('should switch to state tab', () => {
+        switchDebugTab('state');
+
+        const stateContent = document.querySelector('[data-debug-content="state"]') as HTMLElement;
+        expect(stateContent?.style.display).toBe('block');
+    });
+
+    it('should update active tab button class', () => {
+        switchDebugTab('requests');
+
+        const requestsTab = document.querySelector('[data-debug-tab="requests"]');
+        const logsTab = document.querySelector('[data-debug-tab="logs"]');
+
+        expect(requestsTab?.classList.contains('active')).toBe(true);
+        expect(logsTab?.classList.contains('active')).toBe(false);
+    });
+
+    it('should update content when switching tabs', () => {
+        switchDebugTab('logs');
+        expect(getLogs).toHaveBeenCalled();
+    });
+
+    it('should call updateBreadcrumbViewer when switching to breadcrumbs', () => {
+        switchDebugTab('breadcrumbs');
+        expect(getBreadcrumbs).toHaveBeenCalled();
+    });
+
+    it('should call updateRequestViewer when switching to requests', () => {
+        const getStatsSpy = vi.spyOn(requestTimer, 'getStats');
+        switchDebugTab('requests');
+        expect(getStatsSpy).toHaveBeenCalled();
+    });
+
+    it('should call updateStateViewer when switching to state', () => {
+        switchDebugTab('state');
+        expect(captureStateSnapshot).toHaveBeenCalled();
     });
 });

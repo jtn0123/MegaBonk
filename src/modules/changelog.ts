@@ -222,6 +222,21 @@ export function renderChangelog(patches: ExtendedPatch[]): void {
         return;
     }
 
+    // Add changelog header
+    const latestDate = patches[0]?.date ? formatChangelogDate(patches[0].date) : 'Unknown';
+    const header = document.createElement('header');
+    header.className = 'changelog-page-header';
+    header.innerHTML = `
+        <h2 class="changelog-page-title">📋 MegaBonk Changelog</h2>
+        <p class="changelog-page-subtitle">Official game updates and patch notes</p>
+        <div class="changelog-page-stats">
+            <span>${patches.length} patches</span>
+            <span>•</span>
+            <span>Latest: ${latestDate}</span>
+        </div>
+    `;
+    container.appendChild(header);
+
     patches.forEach(patch => {
         const entry = document.createElement('article');
         entry.className = 'changelog-entry';

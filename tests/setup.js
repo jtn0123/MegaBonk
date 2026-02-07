@@ -150,6 +150,19 @@ beforeEach(async () => {
     dom.window.Element.prototype.scrollIntoView = vi.fn();
     dom.window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
+    // Mock matchMedia - not available in jsdom
+    dom.window.matchMedia = vi.fn().mockImplementation(query => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+    }));
+    global.matchMedia = dom.window.matchMedia;
+
     // Mock console methods for cleaner test output
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -266,3 +279,46 @@ export function resetAppState() {
         compareItems: [],
     };
 }
+
+// ========================================
+// Feature Flag Test Helpers
+// ========================================
+// Import feature flags for conditional test skipping
+import { FEATURES } from '../src/modules/constants.ts';
+
+/**
+ * Helper to conditionally run or skip tests based on feature flags.
+ * Use this instead of it.skip when a test depends on a disabled feature.
+ *
+ * @example
+ * itWhenFeature('FAVORITES', 'should show favorite button', () => { ... });
+ *
+ * @param {keyof typeof FEATURES} featureName - The feature flag name
+ * @param {string} description - Test description
+ * @param {Function} testFn - Test function
+ */
+export function itWhenFeature(featureName, description, testFn) {
+    const isEnabled = FEATURES[featureName];
+    if (isEnabled) {
+        it(description, testFn);
+    } else {
+        it.skip(`[FEATURE:${featureName}] ${description}`, testFn);
+    }
+}
+
+/**
+ * Async version of itWhenFeature
+ */
+export function itWhenFeatureAsync(featureName, description, testFn) {
+    const isEnabled = FEATURES[featureName];
+    if (isEnabled) {
+        it(description, testFn);
+    } else {
+        it.skip(`[FEATURE:${featureName}] ${description}`, testFn);
+    }
+}
+
+/**
+ * Export FEATURES for direct access in tests
+ */
+export { FEATURES };

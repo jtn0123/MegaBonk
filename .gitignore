@@ -17,7 +17,6 @@ Thumbs.db
 .env.*.local
 
 # Build outputs
-dist/
 build/
 
 # Test coverage
@@ -58,3 +57,4 @@ fix_claude.sh
 training-data/
 test-results/
 test-images/gameplay/debug-grid-overlay.png
+.nyc_output/

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+assets/
+ci-artifacts/
+ci-artifacts-*/
+coverage/
+.capacitor/
+android/
+ios/

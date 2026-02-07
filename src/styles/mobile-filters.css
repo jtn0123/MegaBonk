@@ -1,0 +1,359 @@
+/* ========================================
+   Mobile Filter Bottom Sheet
+   ======================================== */
+
+/* Filter toggle button - shows on mobile only */
+.mobile-filter-btn {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    background: var(--bg-elevated);
+    border: 1px solid var(--bg-subtle);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.mobile-filter-btn:hover,
+.mobile-filter-btn:focus {
+    background: var(--bg-subtle);
+    border-color: var(--accent);
+    outline: none;
+}
+
+.mobile-filter-btn:focus-visible {
+    box-shadow:
+        0 0 0 2px var(--bg-elevated),
+        0 0 0 4px var(--accent);
+}
+
+.mobile-filter-btn .filter-icon {
+    font-size: 1.1rem;
+}
+
+.mobile-filter-btn .filter-badge {
+    display: none;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: var(--accent);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 9px;
+    line-height: 18px;
+    text-align: center;
+}
+
+.mobile-filter-btn.has-filters .filter-badge {
+    display: inline-block;
+}
+
+/* Filter Bottom Sheet Container */
+.filter-bottom-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 160;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.filter-bottom-sheet.active {
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* Backdrop overlay */
+.filter-sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0);
+    backdrop-filter: blur(0);
+    transition:
+        background 0.3s ease,
+        backdrop-filter 0.3s ease;
+}
+
+.filter-bottom-sheet.active .filter-sheet-backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+/* Drawer panel - slides up from bottom */
+.filter-sheet-drawer {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-elevated);
+    border-radius: 16px 16px 0 0;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.3);
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    max-height: 85vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.filter-bottom-sheet.active .filter-sheet-drawer {
+    transform: translateY(0);
+}
+
+/* Drag handle indicator */
+.filter-sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--text-secondary);
+    opacity: 0.3;
+    border-radius: 2px;
+    margin: 12px auto 8px;
+    flex-shrink: 0;
+}
+
+/* Header */
+.filter-sheet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 1rem 1rem;
+    flex-shrink: 0;
+    border-bottom: 1px solid var(--bg-subtle);
+}
+
+.filter-sheet-title {
+    font-weight: 600;
+    font-size: 1.1rem;
+    color: var(--text-primary);
+}
+
+.filter-sheet-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.filter-sheet-clear {
+    padding: 0.4rem 0.75rem;
+    background: transparent;
+    border: 1px solid var(--bg-subtle);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-sheet-clear:hover,
+.filter-sheet-clear:focus {
+    background: var(--bg-subtle);
+    color: var(--text-primary);
+    outline: none;
+}
+
+.filter-sheet-close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: var(--bg-subtle);
+    border: none;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-sheet-close:hover,
+.filter-sheet-close:focus {
+    background: var(--accent);
+    color: white;
+    outline: none;
+}
+
+.filter-sheet-close:focus-visible {
+    box-shadow:
+        0 0 0 2px var(--bg-elevated),
+        0 0 0 4px var(--accent);
+}
+
+/* Filter content area */
+.filter-sheet-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+/* Filter group styling */
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background: var(--bg-subtle);
+    border: 1px solid var(--bg-subtle);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M4.646 5.646a.5.5 0 0 1 .708 0L8 8.293l2.646-2.647a.5.5 0 0 1 .708.708l-3 3a.5.5 0 0 1-.708 0l-3-3a.5.5 0 0 1 0-.708z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    padding-right: 2.5rem;
+}
+
+.filter-group select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(var(--accent-rgb, 99, 102, 241), 0.2);
+}
+
+/* Favorites checkbox styling */
+.filter-group-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg-subtle);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-group-checkbox:hover {
+    background: var(--bg-card);
+}
+
+.filter-group-checkbox input[type='checkbox'] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.filter-group-checkbox .checkbox-label {
+    font-size: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Apply button at bottom */
+.filter-sheet-apply {
+    padding: 0 1rem 0.5rem;
+    flex-shrink: 0;
+}
+
+.filter-sheet-apply button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.filter-sheet-apply button:hover,
+.filter-sheet-apply button:focus {
+    background: var(--accent-hover, #5b21b6);
+    outline: none;
+}
+
+.filter-sheet-apply button:active {
+    transform: scale(0.98);
+}
+
+/* Prevent body scroll when sheet is open */
+body.filter-sheet-open {
+    overflow: hidden;
+}
+
+/* Light theme adjustments */
+[data-theme='light'] .filter-sheet-drawer {
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='light'] .filter-bottom-sheet.active .filter-sheet-backdrop {
+    background: rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile-only display rules */
+@media (max-width: 768px) {
+    .mobile-filter-btn {
+        display: flex;
+    }
+
+    /* Hide desktop filters on mobile */
+    .controls .filters {
+        display: none !important;
+    }
+
+    /* Adjust controls layout for mobile */
+    .controls .container {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+
+    .controls .search-box {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* Hide the desktop filter toggle on mobile */
+    .filter-toggle-btn {
+        display: none !important;
+    }
+
+    /* Adjust item count */
+    .controls .item-count {
+        order: 3;
+        width: 100%;
+        text-align: center;
+        margin-top: 0.25rem;
+    }
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+    .filter-sheet-drawer {
+        transition: none;
+    }
+
+    .filter-sheet-backdrop {
+        transition: none;
+    }
+
+    .filter-sheet-apply button:active {
+        transform: none;
+    }
+}

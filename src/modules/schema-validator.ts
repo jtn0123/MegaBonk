@@ -143,12 +143,13 @@ const ShrineSchema = z.object({
 
 /**
  * Stats schema
+ * Using z.unknown() for mechanics/breakpoints as they contain arbitrary nested data
  */
 const StatsSchema = z.object({
     version: z.string().optional(),
     last_updated: z.string().optional(),
-    mechanics: z.record(z.string(), z.any()).optional(),
-    breakpoints: z.record(z.string(), z.any()).optional(),
+    mechanics: z.record(z.string(), z.unknown()).optional(),
+    breakpoints: z.record(z.string(), z.unknown()).optional(),
 });
 
 /**

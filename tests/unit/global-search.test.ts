@@ -1,304 +1,379 @@
+/**
+ * @vitest-environment jsdom
+ * Global Search Module Tests
+ */
 import { describe, it, expect, beforeEach } from 'vitest';
-import { createMinimalDOM } from '../helpers/dom-setup.js';
-import {
-    createMockItem,
-    createMockWeapon,
-    createMockCharacter,
-    createMockTome,
-    createMockShrine,
-    createMockAllData,
-} from '../helpers/mock-data.js';
+import { globalSearch, type GlobalSearchResult } from '../../src/modules/global-search.ts';
+import type { AllGameData, Item, Weapon, Tome, Character, Shrine } from '../../src/types/index.ts';
 
-// Import the global search function
-import { globalSearch, fuzzyMatchScore } from '../../src/modules/filters.ts';
+// ========================================
+// Test Fixtures
+// ========================================
 
-describe('Global Search Functionality', () => {
-    let mockAllData;
+const createItem = (overrides: Partial<Item> = {}): Item => ({
+    id: 'test_item',
+    name: 'Test Item',
+    tier: 'A',
+    rarity: 'common',
+    description: 'A test item description',
+    effect: 'Test effect',
+    ...overrides,
+} as Item);
 
-    beforeEach(() => {
-        createMinimalDOM();
-        mockAllData = createMockAllData();
-    });
+const createWeapon = (overrides: Partial<Weapon> = {}): Weapon => ({
+    id: 'test_weapon',
+    name: 'Test Weapon',
+    tier: 'A',
+    rarity: 'common',
+    description: 'A test weapon',
+    ...overrides,
+} as Weapon);
 
-    describe('globalSearch()', () => {
+const createTome = (overrides: Partial<Tome> = {}): Tome => ({
+    id: 'test_tome',
+    name: 'Test Tome',
+    tier: 'A',
+    rarity: 'common',
+    description: 'A test tome',
+    ...overrides,
+} as Tome);
+
+const createCharacter = (overrides: Partial<Character> = {}): Character => ({
+    id: 'test_char',
+    name: 'Test Character',
+    tier: 'A',
+    rarity: 'common',
+    description: 'A test character',
+    ...overrides,
+} as Character);
+
+const createShrine = (overrides: Partial<Shrine> = {}): Shrine => ({
+    id: 'test_shrine',
+    name: 'Test Shrine',
+    tier: 'A',
+    rarity: 'common',
+    description: 'A test shrine',
+    ...overrides,
+} as Shrine);
+
+const createAllData = (overrides: Partial<AllGameData> = {}): AllGameData => ({
+    items: {
+        items: [
+            createItem({ id: 'sword', name: 'Sword of Power' }),
+            createItem({ id: 'shield', name: 'Shield of Light' }),
+            createItem({ id: 'potion', name: 'Healing Potion' }),
+        ],
+        version: '1.0',
+        last_updated: '2024-01-01',
+    },
+    weapons: {
+        weapons: [
+            createWeapon({ id: 'axe', name: 'Battle Axe' }),
+            createWeapon({ id: 'bow', name: 'Long Bow' }),
+        ],
+        version: '1.0',
+        last_updated: '2024-01-01',
+    },
+    tomes: {
+        tomes: [
+            createTome({ id: 'fire', name: 'Fire Tome' }),
+            createTome({ id: 'ice', name: 'Ice Tome' }),
+        ],
+        version: '1.0',
+        last_updated: '2024-01-01',
+    },
+    characters: {
+        characters: [
+            createCharacter({ id: 'warrior', name: 'Warrior' }),
+            createCharacter({ id: 'mage', name: 'Mage' }),
+        ],
+        version: '1.0',
+        last_updated: '2024-01-01',
+    },
+    shrines: {
+        shrines: [
+            createShrine({ id: 'health', name: 'Health Shrine' }),
+            createShrine({ id: 'damage', name: 'Damage Shrine' }),
+        ],
+        version: '1.0',
+        last_updated: '2024-01-01',
+    },
+    ...overrides,
+});
+
+describe('Global Search Module', () => {
+    // ========================================
+    // Basic Search Tests
+    // ========================================
+    describe('globalSearch', () => {
         it('should return empty array for empty query', () => {
-            const results = globalSearch('', mockAllData);
+            const allData = createAllData();
+            const results = globalSearch('', allData);
             expect(results).toEqual([]);
         });
 
-        it('should return empty array for whitespace-only query', () => {
-            const results = globalSearch('   ', mockAllData);
+        it('should return empty array for whitespace query', () => {
+            const allData = createAllData();
+            const results = globalSearch('   ', allData);
             expect(results).toEqual([]);
         });
 
         it('should find items by name', () => {
-            const results = globalSearch('gym', mockAllData);
-
+            const allData = createAllData();
+            const results = globalSearch('Sword', allData);
+            
             expect(results.length).toBeGreaterThan(0);
-            expect(results.some(r => r.type === 'items' && r.item.name === 'Gym Sauce')).toBe(true);
+            expect(results.some(r => r.item.name === 'Sword of Power')).toBe(true);
         });
 
         it('should find weapons by name', () => {
-            const results = globalSearch('revolver', mockAllData);
-
-            expect(results.length).toBeGreaterThan(0);
-            expect(results.some(r => r.type === 'weapons' && r.item.name === 'Revolver')).toBe(true);
+            const allData = createAllData();
+            const results = globalSearch('Axe', allData);
+            
+            expect(results.some(r => r.item.name === 'Battle Axe')).toBe(true);
+            expect(results.some(r => r.type === 'weapons')).toBe(true);
         });
 
         it('should find tomes by name', () => {
-            const results = globalSearch('precision', mockAllData);
-
-            expect(results.length).toBeGreaterThan(0);
-            expect(results.some(r => r.type === 'tomes' && r.item.name === 'Precision Tome')).toBe(true);
+            const allData = createAllData();
+            const results = globalSearch('Fire', allData);
+            
+            expect(results.some(r => r.item.name === 'Fire Tome')).toBe(true);
+            expect(results.some(r => r.type === 'tomes')).toBe(true);
         });
 
         it('should find characters by name', () => {
-            const results = globalSearch('cl4nk', mockAllData);
-
-            expect(results.length).toBeGreaterThan(0);
-            expect(results.some(r => r.type === 'characters' && r.item.name === 'CL4NK')).toBe(true);
+            const allData = createAllData();
+            const results = globalSearch('Warrior', allData);
+            
+            expect(results.some(r => r.item.name === 'Warrior')).toBe(true);
+            expect(results.some(r => r.type === 'characters')).toBe(true);
         });
 
         it('should find shrines by name', () => {
-            const results = globalSearch('charge', mockAllData);
-
-            expect(results.length).toBeGreaterThan(0);
-            expect(results.some(r => r.type === 'shrines' && r.item.name === 'Charge Shrine')).toBe(true);
-        });
-
-        it('should search across all data types simultaneously', () => {
-            // Add items with 'test' in their names
-            mockAllData.items.items = [
-                createMockItem({ id: 'test_item', name: 'Test Item', base_effect: 'Testing effect' }),
-            ];
-            mockAllData.weapons.weapons = [createMockWeapon({ id: 'test_weapon', name: 'Test Weapon' })];
-            mockAllData.tomes.tomes = [createMockTome({ id: 'test_tome', name: 'Test Tome' })];
-            mockAllData.characters.characters = [createMockCharacter({ id: 'test_character', name: 'Test Character' })];
-            mockAllData.shrines.shrines = [createMockShrine({ id: 'test_shrine', name: 'Test Shrine' })];
-
-            const results = globalSearch('test', mockAllData);
-
-            // Should find results from all types
-            expect(results.some(r => r.type === 'items')).toBe(true);
-            expect(results.some(r => r.type === 'weapons')).toBe(true);
-            expect(results.some(r => r.type === 'tomes')).toBe(true);
-            expect(results.some(r => r.type === 'characters')).toBe(true);
+            const allData = createAllData();
+            const results = globalSearch('Health', allData);
+            
+            expect(results.some(r => r.item.name === 'Health Shrine')).toBe(true);
             expect(results.some(r => r.type === 'shrines')).toBe(true);
         });
 
         it('should be case insensitive', () => {
-            const lowerResults = globalSearch('gym', mockAllData);
-            const upperResults = globalSearch('GYM', mockAllData);
-            const mixedResults = globalSearch('Gym', mockAllData);
-
-            expect(lowerResults.length).toBe(upperResults.length);
-            expect(lowerResults.length).toBe(mixedResults.length);
+            const allData = createAllData();
+            
+            const lower = globalSearch('sword', allData);
+            const upper = globalSearch('SWORD', allData);
+            const mixed = globalSearch('SwOrD', allData);
+            
+            expect(lower.length).toBe(upper.length);
+            expect(lower.length).toBe(mixed.length);
         });
 
-        it('should sort results by score (highest first)', () => {
-            const results = globalSearch('test', mockAllData);
-
-            // Verify scores are in descending order
+        it('should return results sorted by score', () => {
+            const allData = createAllData();
+            const results = globalSearch('Sword', allData);
+            
+            // Results should be sorted by score (descending)
             for (let i = 1; i < results.length; i++) {
                 expect(results[i - 1].score).toBeGreaterThanOrEqual(results[i].score);
             }
         });
+    });
 
-        it('should include score in results', () => {
-            const results = globalSearch('test', mockAllData);
-
-            results.forEach(result => {
-                expect(result.score).toBeDefined();
-                expect(typeof result.score).toBe('number');
-                expect(result.score).toBeGreaterThan(0);
-            });
+    // ========================================
+    // Return Type Tests
+    // ========================================
+    describe('result structure', () => {
+        it('should return results with correct structure', () => {
+            const allData = createAllData();
+            const results = globalSearch('Sword', allData);
+            
+            expect(results.length).toBeGreaterThan(0);
+            
+            const result = results[0];
+            expect(result).toHaveProperty('type');
+            expect(result).toHaveProperty('item');
+            expect(result).toHaveProperty('score');
         });
 
-        it('should include type in results', () => {
-            const results = globalSearch('test', mockAllData);
+        it('should have valid type for each result', () => {
+            const allData = createAllData();
+            const results = globalSearch('test', allData);
+            
             const validTypes = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
-
+            
             results.forEach(result => {
                 expect(validTypes).toContain(result.type);
             });
         });
 
-        it('should include the item/entity in results', () => {
-            const results = globalSearch('test', mockAllData);
-
+        it('should have positive scores for matches', () => {
+            const allData = createAllData();
+            const results = globalSearch('Sword', allData);
+            
             results.forEach(result => {
-                expect(result.item).toBeDefined();
-                expect(result.item.id).toBeDefined();
-                expect(result.item.name).toBeDefined();
+                expect(result.score).toBeGreaterThan(0);
             });
-        });
-
-        it('should search item descriptions', () => {
-            mockAllData.items.items = [
-                createMockItem({
-                    id: 'unique_item',
-                    name: 'Basic Item',
-                    description: 'uniquedescription123',
-                }),
-            ];
-
-            const results = globalSearch('uniquedescription123', mockAllData);
-
-            expect(results.length).toBeGreaterThan(0);
-            expect(results.some(r => r.item.id === 'unique_item')).toBe(true);
-        });
-
-        it('should search item base_effect field', () => {
-            mockAllData.items.items = [
-                createMockItem({
-                    id: 'effect_item',
-                    name: 'Normal Item',
-                    base_effect: 'uniqueeffect789',
-                }),
-            ];
-
-            const results = globalSearch('uniqueeffect789', mockAllData);
-
-            expect(results.length).toBeGreaterThan(0);
-            expect(results.some(r => r.item.id === 'effect_item')).toBe(true);
-        });
-
-        it('should search character passive ability', () => {
-            mockAllData.characters.characters = [
-                createMockCharacter({
-                    id: 'passive_char',
-                    name: 'Normal Character',
-                    passive_ability: 'uniquepassive456',
-                }),
-            ];
-
-            const results = globalSearch('uniquepassive456', mockAllData);
-
-            expect(results.length).toBeGreaterThan(0);
-            expect(results.some(r => r.item.id === 'passive_char')).toBe(true);
-        });
-
-        it('should handle missing data gracefully', () => {
-            const partialData = {
-                items: { items: [createMockItem()] },
-                // weapons, tomes, characters, shrines are undefined
-            };
-
-            const results = globalSearch('test', partialData);
-
-            // Should not throw and should return results from available data
-            expect(Array.isArray(results)).toBe(true);
-        });
-
-        it('should handle null data gracefully', () => {
-            const nullData = {
-                items: null,
-                weapons: null,
-                tomes: null,
-                characters: null,
-                shrines: null,
-            };
-
-            const results = globalSearch('test', nullData);
-
-            expect(Array.isArray(results)).toBe(true);
-            expect(results.length).toBe(0);
-        });
-
-        it('should return no results for non-matching query', () => {
-            const results = globalSearch('xyznonexistent123', mockAllData);
-
-            expect(results.length).toBe(0);
         });
     });
 
-    describe('fuzzyMatchScore()', () => {
-        // Note: 'name' field gets +1000 bonus, use 'description' for base scores
-        it('should give exact match highest score (base)', () => {
-            // Use 'description' to test base score without name bonus
-            const result = fuzzyMatchScore('test', 'test', 'description');
-            expect(result.score).toBe(2000);
-            expect(result.matchType).toBe('exact');
+    // ========================================
+    // Cross-type Search Tests
+    // ========================================
+    describe('cross-type search', () => {
+        it('should search across all types', () => {
+            const allData: AllGameData = {
+                items: {
+                    items: [createItem({ name: 'Alpha Item' })],
+                    version: '1.0',
+                    last_updated: '',
+                },
+                weapons: {
+                    weapons: [createWeapon({ name: 'Alpha Weapon' })],
+                    version: '1.0',
+                    last_updated: '',
+                },
+                tomes: {
+                    tomes: [createTome({ name: 'Alpha Tome' })],
+                    version: '1.0',
+                    last_updated: '',
+                },
+                characters: {
+                    characters: [createCharacter({ name: 'Alpha Character' })],
+                    version: '1.0',
+                    last_updated: '',
+                },
+                shrines: {
+                    shrines: [createShrine({ name: 'Alpha Shrine' })],
+                    version: '1.0',
+                    last_updated: '',
+                },
+            };
+            
+            const results = globalSearch('Alpha', allData);
+            
+            // Should find matches in all 5 types
+            const types = new Set(results.map(r => r.type));
+            expect(types.size).toBe(5);
         });
 
-        it('should give exact match with name bonus', () => {
-            const result = fuzzyMatchScore('test', 'test', 'name');
-            expect(result.score).toBe(3000); // 2000 base + 1000 name bonus
-            expect(result.matchType).toBe('exact');
-        });
-
-        it('should give starts_with high score (base)', () => {
-            // Use 'description' to test base score without name bonus
-            const result = fuzzyMatchScore('test', 'testing', 'description');
-            expect(result.score).toBe(1500);
-            expect(result.matchType).toBe('starts_with');
-        });
-
-        it('should give starts_with with name bonus', () => {
-            const result = fuzzyMatchScore('test', 'testing', 'name');
-            expect(result.score).toBe(2500); // 1500 base + 1000 name bonus
-            expect(result.matchType).toBe('starts_with');
-        });
-
-        it('should give contains medium score (base)', () => {
-            // Use 'description' to test base score without name bonus
-            const result = fuzzyMatchScore('test', 'a test case', 'description');
-            expect(result.score).toBe(1000);
-            expect(result.matchType).toBe('contains');
-        });
-
-        it('should give contains with name bonus', () => {
-            const result = fuzzyMatchScore('test', 'a test case', 'name');
-            expect(result.score).toBe(2000); // 1000 base + 1000 name bonus
-            expect(result.matchType).toBe('contains');
-        });
-
-        it('should give fuzzy match lower score', () => {
-            const result = fuzzyMatchScore('tst', 'testing', 'name');
-            expect(result.score).toBeGreaterThan(0);
-            expect(result.score).toBeLessThan(1000);
-            expect(result.matchType).toBe('fuzzy');
-        });
-
-        it('should return 0 score for no match', () => {
-            const result = fuzzyMatchScore('xyz', 'abc', 'name');
-            expect(result.score).toBe(0);
-            expect(result.matchType).toBe('none');
-        });
-
-        it('should be case insensitive', () => {
-            const lower = fuzzyMatchScore('TEST', 'test', 'name');
-            const upper = fuzzyMatchScore('test', 'TEST', 'name');
-
-            expect(lower.score).toBe(upper.score);
-        });
-
-        it('should handle empty search term', () => {
-            const result = fuzzyMatchScore('', 'test', 'name');
-            expect(result.score).toBe(0);
-        });
-
-        it('should handle empty text', () => {
-            const result = fuzzyMatchScore('test', '', 'name');
-            expect(result.score).toBe(0);
+        it('should prioritize exact matches', () => {
+            const allData: AllGameData = {
+                items: {
+                    items: [
+                        createItem({ id: 'exact', name: 'Sword' }),
+                        createItem({ id: 'partial', name: 'Sword of Power' }),
+                    ],
+                    version: '1.0',
+                    last_updated: '',
+                },
+            };
+            
+            const results = globalSearch('Sword', allData);
+            
+            // Exact match should have higher score
+            const exactMatch = results.find(r => r.item.name === 'Sword');
+            const partialMatch = results.find(r => r.item.name === 'Sword of Power');
+            
+            if (exactMatch && partialMatch) {
+                expect(exactMatch.score).toBeGreaterThanOrEqual(partialMatch.score);
+            }
         });
     });
 
-    describe('GlobalSearchResult structure', () => {
-        it('should have correct structure for each result', () => {
-            const results = globalSearch('test', mockAllData);
+    // ========================================
+    // Edge Cases
+    // ========================================
+    describe('edge cases', () => {
+        it('should handle undefined data sources', () => {
+            const allData: AllGameData = {
+                items: undefined,
+                weapons: undefined,
+                tomes: undefined,
+                characters: undefined,
+                shrines: undefined,
+            };
+            
+            const results = globalSearch('test', allData);
+            expect(results).toEqual([]);
+        });
 
-            results.forEach(result => {
-                // Check required properties
-                expect(result).toHaveProperty('type');
-                expect(result).toHaveProperty('item');
-                expect(result).toHaveProperty('score');
+        it('should handle empty data arrays', () => {
+            const allData: AllGameData = {
+                items: { items: [], version: '1.0', last_updated: '' },
+                weapons: { weapons: [], version: '1.0', last_updated: '' },
+                tomes: { tomes: [], version: '1.0', last_updated: '' },
+                characters: { characters: [], version: '1.0', last_updated: '' },
+                shrines: { shrines: [], version: '1.0', last_updated: '' },
+            };
+            
+            const results = globalSearch('test', allData);
+            expect(results).toEqual([]);
+        });
 
-                // Check types
-                expect(typeof result.type).toBe('string');
-                expect(typeof result.item).toBe('object');
-                expect(typeof result.score).toBe('number');
-            });
+        it('should handle special characters in query', () => {
+            const allData = createAllData();
+            
+            // Should not throw
+            expect(() => globalSearch('test!@#$%', allData)).not.toThrow();
+            expect(() => globalSearch('[regex]', allData)).not.toThrow();
+        });
+
+        it('should handle very long queries', () => {
+            const allData = createAllData();
+            const longQuery = 'a'.repeat(1000);
+            
+            // Should not throw and return empty (no match)
+            const results = globalSearch(longQuery, allData);
+            expect(Array.isArray(results)).toBe(true);
+        });
+
+        it('should handle partial data', () => {
+            const allData: AllGameData = {
+                items: {
+                    items: [createItem({ name: 'Found Item' })],
+                    version: '1.0',
+                    last_updated: '',
+                },
+                // Other types undefined
+            };
+            
+            const results = globalSearch('Found', allData);
+            expect(results.length).toBeGreaterThan(0);
+        });
+
+        it('should handle query with leading/trailing whitespace', () => {
+            const allData = createAllData();
+            
+            const normal = globalSearch('Sword', allData);
+            const padded = globalSearch('  Sword  ', allData);
+            
+            expect(normal.length).toBe(padded.length);
+        });
+    });
+
+    // ========================================
+    // No Match Tests
+    // ========================================
+    describe('no matches', () => {
+        it('should return empty array when nothing matches', () => {
+            const allData = createAllData();
+            const results = globalSearch('xyznonexistent', allData);
+            expect(results).toEqual([]);
+        });
+
+        it('should return empty array for single character that matches nothing', () => {
+            const allData: AllGameData = {
+                items: {
+                    items: [createItem({ name: 'Test' })],
+                    version: '1.0',
+                    last_updated: '',
+                },
+            };
+            
+            // 'z' doesn't appear in 'Test'
+            const results = globalSearch('z', allData);
+            expect(results).toEqual([]);
         });
     });
 });

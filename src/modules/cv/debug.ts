@@ -4,6 +4,7 @@
 
 import type { CVDetectionResult, ROI } from './types.ts';
 import { loadImageToCanvas } from './detection.ts';
+import { logger } from '../logger.ts';
 
 /**
  * Render debug overlay showing scan regions and detections
@@ -17,13 +18,26 @@ export async function renderDebugOverlay(
     _emptyCells?: Set<number> // Deprecated, kept for compatibility
 ): Promise<void> {
     const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    if (!ctx) {
+        logger.warn({
+            operation: 'cv.debug.render_overlay_no_context',
+            data: { canvasWidth: canvas.width, canvasHeight: canvas.height },
+        });
+        return;
+    }
 
     // Wait for image to load properly (fixes race condition)
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
         const image = new Image();
         image.onload = () => resolve(image);
-        image.onerror = () => reject(new Error('Failed to load image for debug overlay'));
+        image.onerror = event => {
+            const errorMsg = event instanceof ErrorEvent ? event.message : 'Unknown image load error';
+            logger.warn({
+                operation: 'cv.debug.image_load_failed',
+                data: { imageUrlLength: imageDataUrl.length, error: errorMsg },
+            });
+            reject(new Error(`Failed to load image for debug overlay: ${errorMsg}`));
+        };
         image.src = imageDataUrl;
     });
 
@@ -122,37 +136,55 @@ export async function renderDebugOverlay(
 /**
  * Create debug overlay canvas and return as data URL
  * Shows scan regions and detected icons with confidence scores
+ * Returns a fallback placeholder image URL if creation fails
  */
 export async function createDebugOverlay(imageDataUrl: string, detections: CVDetectionResult[]): Promise<string> {
-    const { width, height } = await loadImageToCanvas(imageDataUrl);
+    try {
+        const { width, height } = await loadImageToCanvas(imageDataUrl);
 
-    // Define scan regions (same as used in detectItemsWithCV)
-    const scanRegions: ROI[] = [
-        {
-            x: 0,
-            y: Math.floor(height * 0.8),
-            width: width,
-            height: Math.floor(height * 0.2),
-            label: 'hotbar_region',
-        },
-        {
-            x: 0,
-            y: 0,
-            width: Math.floor(width * 0.25),
-            height: Math.floor(height * 0.4),
-            label: 'equipment_region',
-        },
-    ];
+        // Define scan regions (same as used in detectItemsWithCV)
+        const scanRegions: ROI[] = [
+            {
+                x: 0,
+                y: Math.floor(height * 0.8),
+                width: width,
+                height: Math.floor(height * 0.2),
+                label: 'hotbar_region',
+            },
+            {
+                x: 0,
+                y: 0,
+                width: Math.floor(width * 0.25),
+                height: Math.floor(height * 0.4),
+                label: 'equipment_region',
+            },
+        ];
 
-    // Create canvas for debug overlay
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
+        // Create canvas for debug overlay
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
 
-    // Wait for debug overlay to fully render
-    await renderDebugOverlay(canvas, imageDataUrl, scanRegions, detections);
+        // Wait for debug overlay to fully render
+        await renderDebugOverlay(canvas, imageDataUrl, scanRegions, detections);
 
-    return canvas.toDataURL('image/png');
+        return canvas.toDataURL('image/png');
+    } catch (error) {
+        logger.error({
+            operation: 'cv.debug.create_overlay_failed',
+            error: {
+                name: (error as Error).name,
+                message: (error as Error).message,
+                stack: (error as Error).stack?.split('\n').slice(0, 3).join(' -> '),
+            },
+            data: {
+                imageUrlLength: imageDataUrl.length,
+                detectionsCount: detections.length,
+            },
+        });
+        // Return the original image as fallback instead of failing completely
+        return imageDataUrl;
+    }
 }
 
 // ========================================

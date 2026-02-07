@@ -6,9 +6,11 @@
 
 .container {
     max-width: 1400px;
-    margin: 0 auto;
+    margin-left: auto;
+    margin-right: auto;
     padding: 0 20px;
     width: 100%;
+    box-sizing: border-box;
 }
 
 /* ========================================
@@ -111,4 +113,35 @@ footer a:hover {
 
 .empty-state p {
     margin-bottom: 1rem;
+}
+
+/* ========================================
+   Mobile Header - Compact
+   ======================================== */
+
+@media (max-width: 480px) {
+    header {
+        padding: 0.4rem 0;
+        padding-top: max(0.4rem, env(safe-area-inset-top));
+    }
+
+    header h1 {
+        font-size: 1.15rem;
+        line-height: 1.2;
+    }
+
+    /* Hide "Complete Guide" on small mobile - show just MegaBonk */
+    header h1 .header-subtitle {
+        display: none;
+    }
+
+    .subtitle {
+        font-size: 0.85rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .version-info {
+        gap: 1rem;
+        font-size: 0.75rem;
+    }
 }

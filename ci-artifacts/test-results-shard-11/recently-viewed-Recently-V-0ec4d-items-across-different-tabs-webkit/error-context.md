@@ -1,0 +1,358 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e1]:
+  - banner [ref=e2]:
+    - heading "🎮 MegaBonk Complete Guide" [level=1] [ref=e4]
+  - navigation "Main navigation" [ref=e5]:
+    - tablist "Content categories" [ref=e7]:
+      - tab "📦 Items" [ref=e8] [cursor=pointer]
+      - tab "⚔️ Weapons" [ref=e9] [cursor=pointer]
+      - tab "📚 Tomes" [ref=e10] [cursor=pointer]
+      - tab "👤 Characters" [selected] [ref=e11] [cursor=pointer]
+      - tab "⛩️ Shrines" [ref=e12] [cursor=pointer]
+      - tab "🛠️ Build Planner" [ref=e13] [cursor=pointer]
+      - tab "🧮 Calculator" [ref=e14] [cursor=pointer]
+      - tab "🤖 Advisor" [ref=e15] [cursor=pointer]
+      - tab "📋 Changelog" [ref=e16] [cursor=pointer]
+      - tab "ℹ️ About" [ref=e17] [cursor=pointer]
+  - navigation "Search and filters" [ref=e18]:
+    - generic [ref=e19]:
+      - searchbox "Search items, weapons, tomes, and characters. Supports advanced syntax like tier:SS or damage:>100" [ref=e21]
+      - generic [ref=e22]: 20 characters
+      - generic "Filter options" [ref=e23]:
+        - generic [ref=e24]: "Tier:"
+        - combobox "Tier:" [ref=e25] [cursor=pointer]:
+          - option "All Tiers" [selected]
+          - option "SS Tier"
+          - option "S Tier"
+          - option "A Tier"
+          - option "B Tier"
+          - option "C Tier"
+        - generic [ref=e26]: "Sort:"
+        - combobox "Sort:" [ref=e27] [cursor=pointer]:
+          - option "Name" [selected]
+          - option "Tier"
+  - main [ref=e28]:
+    - generic [ref=e29]:
+      - tabpanel "👤 Characters" [ref=e30]:
+        - generic "Loading content" [ref=e31]:
+          - generic [ref=e32] [cursor=pointer]:
+            - generic [ref=e33]:
+              - img "Amog" [ref=e35]
+              - generic [ref=e36]:
+                - generic [ref=e37]: Amog
+                - text: A Tier
+            - generic [ref=e38]: Poisoned enemies explode, poisoning nearby foes
+            - generic [ref=e39]: Poison chain reactions. DoT specialist.
+            - generic [ref=e40]:
+              - generic [ref=e41]: poison_flask
+              - generic [ref=e42]: Poison DoT chain master
+          - generic [ref=e43] [cursor=pointer]:
+            - generic [ref=e44]:
+              - img "Athena" [ref=e46]
+              - generic [ref=e47]:
+                - generic [ref=e48]: Athena
+                - text: A Tier
+            - generic [ref=e49]: Higher damage at lower hp. Gains thorns.
+            - generic [ref=e50]: Risk/reward damage scaling. thorns for tanky builds.
+            - generic [ref=e51]:
+              - generic [ref=e52]: aegis
+              - generic [ref=e53]: Low hp berserker tank
+          - generic [ref=e54] [cursor=pointer]:
+            - generic [ref=e55]:
+              - img "Bandit" [ref=e57]
+              - generic [ref=e58]:
+                - generic [ref=e59]: Bandit
+                - text: S Tier
+            - generic [ref=e60]: Gain 1% Attack Speed per level
+            - generic [ref=e61]: Attack speed scaling. More attacks = more damage and procs.
+            - generic [ref=e62]:
+              - generic [ref=e63]: dexecutioner
+              - generic [ref=e64]: Rapid-fire attacker
+          - generic [ref=e65] [cursor=pointer]:
+            - generic [ref=e66]:
+              - img "Birdo" [ref=e68]
+              - generic [ref=e69]:
+                - generic [ref=e70]: Birdo
+                - text: B Tier
+            - generic [ref=e71]: Hold Jump to float. +1% Airborne damage per level.
+            - generic [ref=e72]: Airborne damage scaling. Mobility + damage.
+            - generic [ref=e73]:
+              - generic [ref=e74]: tornado
+              - generic [ref=e75]: Airborne damage dealer
+          - generic [ref=e76] [cursor=pointer]:
+            - generic [ref=e77]:
+              - img "Bush" [ref=e79]
+              - generic [ref=e80]:
+                - generic [ref=e81]: Bush
+                - text: S Tier
+            - generic [ref=e82]: Gain 1% Crit damage per level
+            - generic [ref=e83]: Crit damage scaling. Pairs perfectly with crit chance sources.
+            - generic [ref=e84]:
+              - generic [ref=e85]: sniper_rifle
+              - generic [ref=e86]: Crit damage sniper
+          - generic [ref=e87] [cursor=pointer]:
+            - generic [ref=e88]:
+              - img "Calcium" [ref=e90]
+              - generic [ref=e91]:
+                - generic [ref=e92]: Calcium
+                - text: A Tier
+            - generic [ref=e93]: Speed accumulates over time, halved when damaged. damage scales with speed.
+            - generic [ref=e94]: Speed ramps up infinitely if you don't get hit. High skill, high reward.
+            - generic [ref=e95]:
+              - generic [ref=e96]: bone
+              - generic [ref=e97]: Speed demon glass cannon
+          - generic [ref=e98] [cursor=pointer]:
+            - generic [ref=e99]:
+              - img "CL4NK" [ref=e101]
+              - generic [ref=e102]:
+                - generic [ref=e103]: CL4NK
+                - text: SS Tier
+            - generic [ref=e104]: Gain 1% Crit Chance per level
+            - generic [ref=e105]: Guaranteed crit scaling leading to Overcrit. One of the strongest characters.
+            - generic [ref=e106]:
+              - generic [ref=e107]: revolver
+              - generic [ref=e108]: Crit DPS machine
+          - generic [ref=e109] [cursor=pointer]:
+            - generic [ref=e110]:
+              - img "Dicehead" [ref=e112]
+              - generic [ref=e113]:
+                - generic [ref=e114]: Dicehead
+                - text: B Tier
+            - generic [ref=e115]: Gain a random stat per level
+            - generic [ref=e116]: Pure RNG. Random stats each level. Fun chaos.
+            - generic [ref=e117]:
+              - generic [ref=e118]: dice
+              - generic [ref=e119]: RNG chaos master
+          - generic [ref=e120] [cursor=pointer]:
+            - generic [ref=e121]:
+              - img "Fox" [ref=e123]
+              - generic [ref=e124]:
+                - generic [ref=e125]: Fox
+                - text: A Tier
+            - generic [ref=e126]: Gain 2% luck per level
+            - generic [ref=e127]: Increases item rarity with each level. Better drops throughout the run.
+            - generic [ref=e128]:
+              - generic [ref=e129]: firestaff
+              - generic [ref=e130]: luck-based item hunter
+          - generic [ref=e131] [cursor=pointer]:
+            - generic [ref=e132]:
+              - img "Megachad" [ref=e134]
+              - generic [ref=e135]:
+                - generic [ref=e136]: Megachad
+                - text: B Tier
+            - generic [ref=e137]: Flex to stop damage. cooldown -0.2s per level.
+            - generic [ref=e138]: Invulnerability frames. Active defense mechanic.
+            - generic [ref=e139]:
+              - generic [ref=e140]: aura
+              - generic [ref=e141]: Active defense fighter
+          - generic [ref=e142] [cursor=pointer]:
+            - generic [ref=e143]:
+              - img "Monke" [ref=e145]
+              - generic [ref=e146]:
+                - generic [ref=e147]: Monke
+                - text: B Tier
+            - generic [ref=e148]: Climb walls. +2 Max hp per level.
+            - generic [ref=e149]: Mobility + hp scaling. Fun but not top tier.
+            - generic [ref=e150]:
+              - generic [ref=e151]: bananarang
+              - generic [ref=e152]: Mobile tank
+          - generic [ref=e153] [cursor=pointer]:
+            - generic [ref=e154]:
+              - img "Ninja" [ref=e156]
+              - generic [ref=e157]:
+                - generic [ref=e158]: Ninja
+                - text: A Tier
+            - generic [ref=e159]: Execute enemies while evading them
+            - generic [ref=e160]: Execute mechanic on evasion. High skill, high reward.
+            - generic [ref=e161]:
+              - generic [ref=e162]: katana
+              - generic [ref=e163]: evasion execute specialist
+          - generic [ref=e164] [cursor=pointer]:
+            - generic [ref=e165]:
+              - img "Noelle" [ref=e167]
+              - generic [ref=e168]:
+                - generic [ref=e169]: Noelle
+                - text: A Tier
+            - generic [ref=e170]: Gain 1% size per level
+            - generic [ref=e171]: size scaling. Huge AoE potential.
+            - generic [ref=e172]:
+              - generic [ref=e173]: frostwalker
+              - generic [ref=e174]: Giant AoE freezer
+          - generic [ref=e175] [cursor=pointer]:
+            - generic [ref=e176]:
+              - img "Ogre" [ref=e178]
+              - generic [ref=e179]:
+                - generic [ref=e180]: Ogre
+                - text: S Tier
+            - generic [ref=e181]: Gain 1.5% damage per level
+            - generic [ref=e182]: Straight damage scaling. Simple and effective.
+            - generic [ref=e183]:
+              - generic [ref=e184]: axe
+              - generic [ref=e185]: High damage bruiser
+          - generic [ref=e186] [cursor=pointer]:
+            - generic [ref=e187]:
+              - img "Robinette" [ref=e189]
+              - generic [ref=e190]:
+                - generic [ref=e191]: Robinette
+                - text: C Tier
+            - generic [ref=e192]: Gain 2.5% Gold Gain per level (starts with 5% base)
+            - generic [ref=e193]: More gold for shop purchases. Scales better than before (buffed from 1% to 2.5% per level).
+            - generic [ref=e194]:
+              - generic [ref=e195]: bow
+              - generic [ref=e196]: gold farmer
+          - generic [ref=e197] [cursor=pointer]:
+            - generic [ref=e198]:
+              - img "Sir Chadwell" [ref=e200]
+              - generic [ref=e201]:
+                - generic [ref=e202]: Sir Chadwell
+                - text: A Tier
+            - generic [ref=e203]: Gain 1% Difficulty per level
+            - generic [ref=e204]: Increases difficulty for better rewards. Challenge mode.
+            - generic [ref=e205]:
+              - generic [ref=e206]: corrupted_sword
+              - generic [ref=e207]: Challenge difficulty scaling
+          - generic [ref=e208] [cursor=pointer]:
+            - generic [ref=e209]:
+              - img "Sir Oofie" [ref=e211]
+              - generic [ref=e212]:
+                - generic [ref=e213]: Sir Oofie
+                - text: S Tier
+            - generic [ref=e214]: Gain 1% armor per level
+            - generic [ref=e215]: Becomes incredibly tanky. armor reduces damage with hyperbolic scaling.
+            - generic [ref=e216]:
+              - generic [ref=e217]: sword
+              - generic [ref=e218]: Tanky melee fighter
+          - generic [ref=e219] [cursor=pointer]:
+            - generic [ref=e220]:
+              - img "Spaceman" [ref=e222]
+              - generic [ref=e223]:
+                - generic [ref=e224]: Spaceman
+                - text: A Tier
+            - generic [ref=e225]: Gain 1% XP Gain per level (starts with 5% base)
+            - generic [ref=e226]: Faster leveling. Black Hole crowd control.
+            - generic [ref=e227]:
+              - generic [ref=e228]: black_hole
+              - generic [ref=e229]: Fast leveling crowd controller
+          - generic [ref=e230] [cursor=pointer]:
+            - generic [ref=e231]:
+              - img "Tony McZoom" [ref=e233]
+              - generic [ref=e234]:
+                - generic [ref=e235]: Tony McZoom
+                - text: B Tier
+            - generic [ref=e236]: Charge electric attack via movement
+            - generic [ref=e237]: Movement-based attack. Unique mechanic.
+            - generic [ref=e238]:
+              - generic [ref=e239]: wireless_dagger
+              - generic [ref=e240]: Mobile electric attacker
+          - generic [ref=e241] [cursor=pointer]:
+            - generic [ref=e242]:
+              - img "Vlad" [ref=e244]
+              - generic [ref=e245]:
+                - generic [ref=e246]: Vlad
+                - text: S Tier
+            - generic [ref=e247]: Gain 1% Lifesteal per level (starts with 5% base)
+            - generic [ref=e248]: Sustains through combat with lifesteal. Very hard to kill.
+            - generic [ref=e249]:
+              - generic [ref=e250]: blood_magic
+              - generic [ref=e251]: Lifesteal sustain fighter
+      - text: 👤 Select a character to see stats and synergies ⚔️ Select a weapon to see damage and upgrades
+  - dialog "Item Details" [ref=e252]:
+    - generic [ref=e253]:
+      - button "Close modal" [ref=e254] [cursor=pointer]: ×
+      - heading "Item Details" [active] [level=2] [ref=e255]
+      - generic [ref=e256]:
+        - heading "Amog" [level=2] [ref=e257]
+        - img "Amog" [ref=e259]
+        - generic [ref=e260]:
+          - generic [ref=e261]: A Tier
+          - generic [ref=e262]: Poison DoT chain master
+        - generic [ref=e263]:
+          - strong [ref=e264]: Poisoned enemies explode, poisoning nearby foes
+          - paragraph [ref=e265]: Poison chain reactions. DoT specialist.
+        - generic [ref=e266]:
+          - generic [ref=e267]:
+            - strong [ref=e268]: "Starting Weapon:"
+            - text: poison_flask
+          - generic [ref=e269]:
+            - strong [ref=e270]: "Base HP:"
+            - text: "|"
+            - strong [ref=e271]: "Base Damage:"
+          - generic [ref=e272]:
+            - strong [ref=e273]: "Unlock:"
+            - text: Poison 50,000 enemies
+        - generic [ref=e274]:
+          - heading "Best For" [level=3] [ref=e275]
+          - generic [ref=e276]:
+            - generic [ref=e277]: Poison builds
+            - generic [ref=e278]: DoT
+            - generic [ref=e279]: Chain reactions
+        - generic [ref=e280]:
+          - generic [ref=e281]:
+            - heading "Strengths" [level=4] [ref=e282]
+            - list [ref=e283]:
+              - listitem [ref=e284]: ✓ Poison synergy
+              - listitem [ref=e285]: ✓ Chain explosions
+              - listitem [ref=e286]: ✓ DoT
+          - generic [ref=e287]:
+            - heading "Weaknesses" [level=4] [ref=e288]
+            - list [ref=e289]:
+              - listitem [ref=e290]: ✗ Poison Flask weapon
+              - listitem [ref=e291]: ✗ Slower kills
+        - generic [ref=e292]:
+          - heading "Synergies" [level=3] [ref=e293]
+          - generic [ref=e294]:
+            - heading "Weapons" [level=4] [ref=e295]
+            - generic [ref=e297]: poison_flask
+          - generic [ref=e298]:
+            - heading "Items" [level=4] [ref=e299]
+            - generic [ref=e300]:
+              - generic [ref=e301]: moldy_cheese
+              - generic [ref=e302]: toxic_barrel
+              - generic [ref=e303]: gas_mask
+          - generic [ref=e304]:
+            - heading "Tomes" [level=4] [ref=e305]
+            - generic [ref=e306]:
+              - generic [ref=e307]: duration
+              - generic [ref=e308]: damage
+        - generic [ref=e309]:
+          - heading "Build Tips" [level=3] [ref=e310]
+          - paragraph [ref=e311]: Stack poison chance. Chain explosions clear screens.
+        - generic [ref=e312]:
+          - heading "💡 Items Like This" [level=3] [ref=e313]
+          - generic [ref=e314]:
+            - 'button "View Fox: Same tier (A)" [ref=e315] [cursor=pointer]':
+              - img "Fox" [ref=e317]
+              - generic [ref=e318]: Fox
+              - generic [ref=e319]: Same tier (A)
+            - 'button "View Calcium: Same tier (A)" [ref=e320] [cursor=pointer]':
+              - img "Calcium" [ref=e322]
+              - generic [ref=e323]: Calcium
+              - generic [ref=e324]: Same tier (A)
+            - 'button "View Ninja: Same tier (A)" [ref=e325] [cursor=pointer]':
+              - img "Ninja" [ref=e327]
+              - generic [ref=e328]: Ninja
+              - generic [ref=e329]: Same tier (A)
+            - 'button "View Athena: Same tier (A)" [ref=e330] [cursor=pointer]':
+              - img "Athena" [ref=e332]
+              - generic [ref=e333]: Athena
+              - generic [ref=e334]: Same tier (A)
+            - 'button "View Spaceman: Same tier (A)" [ref=e335] [cursor=pointer]':
+              - img "Spaceman" [ref=e337]
+              - generic [ref=e338]: Spaceman
+              - generic [ref=e339]: Same tier (A)
+  - contentinfo [ref=e340]:
+    - generic [ref=e341]:
+      - status [ref=e342]:
+        - generic [ref=e343]: "Version: 1.0.21"
+        - generic [ref=e344]: "Last Updated: 2026-01-26"
+      - paragraph [ref=e345]:
+        - text: Made with ❤️ for MegaBonk players |
+        - link "Play on Steam" [ref=e346]:
+          - /url: https://store.steampowered.com/app/3405340/Megabonk/
+      - paragraph [ref=e347]: Data sourced from official wikis and community guides. Always verify in-game!
+  - button "Toggle theme" [ref=e348] [cursor=pointer]: 🌙
+  - status
+  - generic "Click to view Web Vitals details" [ref=e349] [cursor=pointer]: "🚀 Perf: 100%"
+```
