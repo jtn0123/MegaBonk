@@ -154,6 +154,7 @@ export default defineConfig(async () => {
     }
 
     return {
+        base: process.env.VITE_BASE || '/',
         root: 'src',
         publicDir: false, // No separate public dir, static assets handled separately
         // Define global constants available at build time
@@ -240,6 +241,8 @@ export default defineConfig(async () => {
                               theme_color: '#00ff88',
                               background_color: '#1a1a1a',
                               display: 'standalone',
+                              scope: process.env.VITE_BASE || '/',
+                              start_url: process.env.VITE_BASE || '/',
                               icons: [
                                   {
                                       src: 'icons/icon-192.png',
