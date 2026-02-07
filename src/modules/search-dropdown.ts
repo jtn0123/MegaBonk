@@ -33,6 +33,7 @@ const TYPE_LABELS: Record<EntityType, { label: string; icon: string }> = {
 let focusedIndex = -1;
 let currentResults: GlobalSearchResult[] = [];
 let isDropdownVisible = false;
+let dropdownAbortController: AbortController | null = null;
 
 // ========================================
 // Public API
@@ -214,7 +215,8 @@ export function navigateToResult(result: GlobalSearchResult): void {
     }
 
     // After tab switch, scroll to and highlight the item
-    requestAnimationFrame(() => {
+    // Use setTimeout to allow async tab switch + render to complete
+    setTimeout(() => {
         const entityId = result.item.id;
         const itemCard = document.querySelector(`[data-entity-id="${entityId}"]`) as HTMLElement | null;
         if (itemCard) {
@@ -224,7 +226,7 @@ export function navigateToResult(result: GlobalSearchResult): void {
                 itemCard.classList.remove('search-highlight');
             }, 2000);
         }
-    });
+    }, 300);
 }
 
 // ========================================
@@ -410,35 +412,50 @@ export function setupDropdownClickHandlers(): void {
     const dropdown = safeGetElementById(DROPDOWN_ID);
     if (!dropdown) return;
 
-    dropdown.addEventListener('click', (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        const item = target.closest('.search-dropdown-item') as HTMLElement | null;
+    // Abort previous listeners to prevent stacking
+    if (dropdownAbortController) {
+        dropdownAbortController.abort();
+    }
+    dropdownAbortController = new AbortController();
+    const { signal } = dropdownAbortController;
 
-        if (item) {
-            const indexStr = item.dataset.index;
-            if (indexStr !== undefined) {
-                const index = parseInt(indexStr, 10);
-                const result = currentResults[index];
-                if (!isNaN(index) && index >= 0 && index < currentResults.length && result) {
-                    navigateToResult(result);
+    dropdown.addEventListener(
+        'click',
+        (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            const item = target.closest('.search-dropdown-item') as HTMLElement | null;
+
+            if (item) {
+                const indexStr = item.dataset.index;
+                if (indexStr !== undefined) {
+                    const index = parseInt(indexStr, 10);
+                    const result = currentResults[index];
+                    if (!isNaN(index) && index >= 0 && index < currentResults.length && result) {
+                        navigateToResult(result);
+                    }
                 }
             }
-        }
-    });
+        },
+        { signal }
+    );
 
     // Close dropdown when clicking outside
-    document.addEventListener('click', (e: MouseEvent) => {
-        const target = e.target as HTMLElement;
-        const searchInput = safeGetElementById('searchInput');
-        const dropdownEl = safeGetElementById(DROPDOWN_ID);
+    document.addEventListener(
+        'click',
+        (e: MouseEvent) => {
+            const target = e.target as HTMLElement;
+            const searchInput = safeGetElementById('searchInput');
+            const dropdownEl = safeGetElementById(DROPDOWN_ID);
 
-        if (
-            isDropdownVisible &&
-            target !== searchInput &&
-            !dropdownEl?.contains(target) &&
-            !target.closest('.search-box')
-        ) {
-            hideSearchDropdown();
-        }
-    });
+            if (
+                isDropdownVisible &&
+                target !== searchInput &&
+                !dropdownEl?.contains(target) &&
+                !target.closest('.search-box')
+            ) {
+                hideSearchDropdown();
+            }
+        },
+        { signal }
+    );
 }
