@@ -21,7 +21,7 @@ import { getState, type TabName } from './store.ts';
 import { switchTab } from './events-tabs.ts';
 import { handleSearchResultClick, clearHighlightTimeout, setupSearchListeners } from './events-search.ts';
 
-import type { EntityType } from '../types/index.ts';
+import { normalizeEntityType, type EntityType } from '../types/index.ts';
 
 // ========================================
 // Memory Management: AbortController for event cleanup
@@ -359,16 +359,8 @@ function handleCardClick(target: HTMLElement): void {
     const entityId = card.dataset.entityId;
 
     if (entityType && entityId) {
-        // Map singular entity types to plural tab names
-        const typeMap: Record<string, EntityType> = {
-            item: 'items',
-            weapon: 'weapons',
-            tome: 'tomes',
-            character: 'characters',
-            shrine: 'shrines',
-        };
-        const type = typeMap[entityType] || (entityType as EntityType);
-        openDetailModal(type, entityId);
+        const type = normalizeEntityType(entityType);
+        if (type) openDetailModal(type, entityId);
     }
 }
 
@@ -485,16 +477,8 @@ function handleItemCardClick(target: Element): void {
     const entityId = card.dataset.entityId;
 
     if (entityType && entityId) {
-        // Map singular entity types to plural tab names
-        const typeMap: Record<string, EntityType> = {
-            item: 'items',
-            weapon: 'weapons',
-            tome: 'tomes',
-            character: 'characters',
-            shrine: 'shrines',
-        };
-        const type = typeMap[entityType] || (entityType as EntityType);
-        openDetailModal(type, entityId);
+        const type = normalizeEntityType(entityType);
+        if (type) openDetailModal(type, entityId);
     }
 }
 
@@ -570,9 +554,12 @@ function handleClickDelegation(e: MouseEvent): void {
     if (target.classList.contains('entity-link')) {
         e.preventDefault();
         const htmlTarget = target as HTMLElement;
-        const type = htmlTarget.dataset.entityType as EntityType | undefined;
+        const rawType = htmlTarget.dataset.entityType;
         const id = htmlTarget.dataset.entityId;
-        if (type && id) openDetailModal(type, id);
+        if (rawType && id) {
+            const type = normalizeEntityType(rawType);
+            if (type) openDetailModal(type, id);
+        }
         return;
     }
 
