@@ -819,8 +819,15 @@ describe('CV Templates Module', () => {
             vi.useRealTimers();
             await loadItemTemplates();
 
-            // Wait for setTimeout callbacks to run
-            await new Promise(resolve => setTimeout(resolve, 100));
+            // Wait for nested setTimeout chains to complete:
+            // 1. Outer setTimeout(0) fires loadTemplatesBatch
+            // 2. MockImage setTimeout(0) fires onerror
+            // 3. Promise.all resolves → setTemplatesLoaded(true)
+            // Poll until loaded or timeout after 2s
+            const deadline = Date.now() + 2000;
+            while (!isTemplatesLoaded() && Date.now() < deadline) {
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
 
             global.Image = originalImage;
             vi.useFakeTimers();

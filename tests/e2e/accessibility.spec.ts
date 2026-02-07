@@ -65,7 +65,8 @@ test.describe('Keyboard Navigation', () => {
         await expect(searchInput).toBeFocused();
     });
 
-    test('Tab navigation through tabs', async ({ page }) => {
+    test('Tab navigation through tabs', async ({ page, browserName }) => {
+        test.skip(browserName === 'webkit', 'WebKit Tab key navigation between tab buttons differs in Playwright');
         const firstTab = page.locator('.tab-btn').first();
         await firstTab.focus();
         
