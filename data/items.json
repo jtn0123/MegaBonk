@@ -1,6 +1,6 @@
 {
-  "version": "1.0.21",
-  "last_updated": "2026-01-26",
+  "version": "1.0.22",
+  "last_updated": "2026-02-04",
   "total_items": 80,
   "items": [
     {
@@ -12,27 +12,35 @@
       "unlock_requirement": "Complete 3 challenges",
       "unlock_cost_silver": 18,
       "base_effect": "Weapon upgrades gain +1 to all stats",
-      "scaling_type": "one_and_done",
-      "stacking_behavior": "no_benefit",
-      "stacks_well": false,
-      "stack_cap": 1,
-      "formula": "Each weapon upgrade adds +1 extra to all stats",
+      "scaling_type": "additive",
+      "stacking_behavior": "additive",
+      "stacks_well": true,
+      "stack_cap": null,
+      "formula": "Each weapon upgrade adds +N extra to all stats (where N = number of Anvils)",
       "scaling_per_stack": [
-        1
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
       ],
-      "detailed_description": "Permanently increases all weapon upgrade values by +1. This is a flat bonus that applies to every upgrade you take. Does NOT benefit from additional copies - one is enough!",
+      "detailed_description": "Permanently increases all weapon upgrade values by +1. This is a flat bonus that applies to every upgrade you take. Multiple Anvils stack additively - 2 Anvils give +2 per upgrade, 3 give +3, etc.",
       "synergies": [
         "All weapons",
         "High upgrade frequency builds"
       ],
       "anti_synergies": [],
-      "notes": "ONE-AND-DONE: Do not pick up multiple copies. The effect does not stack.",
-      "graph_type": "flat",
-      "one_and_done": true,
+      "notes": "Stacks additively. Each additional Anvil increases the bonus by +1 per weapon upgrade. Stop collecting once weapon stats are maxed.",
+      "graph_type": "linear_scaling",
+      "one_and_done": false,
       "image": "images/items/anvil.png",
       "tags": [
-        "weapon-upgrade",
-        "one-and-done"
+        "weapon-upgrade"
       ]
     },
     {

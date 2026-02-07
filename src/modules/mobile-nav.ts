@@ -456,22 +456,5 @@ export function initMobileNav(): void {
     });
 }
 
-// ========================================
-// CSS Injection (Deprecated - now in mobile-nav.css)
-// ========================================
-
-/**
- * Inject additional CSS for the more menu
- * @deprecated CSS is now in mobile-nav.css - this function is kept for backwards compatibility
- */
-export function injectMoreMenuStyles(): void {
-    // CSS is now in mobile-nav.css file
-    // This function is kept for backwards compatibility but does nothing
-    logger.debug({
-        operation: 'mobile-nav.styles',
-        data: { note: 'CSS now in mobile-nav.css, injectMoreMenuStyles is deprecated' },
-    });
-}
-
 // Export for external use
 export { hideMoreMenu, showMoreMenu, toggleMoreMenu };

@@ -232,9 +232,9 @@ describe('Module Export Validation', () => {
         const module = await import('../../src/modules/mobile-nav.ts');
 
         expect(typeof module.initMobileNav).toBe('function');
-        expect(typeof module.injectMoreMenuStyles).toBe('function');
         expect(typeof module.showMoreMenu).toBe('function');
         expect(typeof module.hideMoreMenu).toBe('function');
+        expect(typeof module.toggleMoreMenu).toBe('function');
     });
 
     it('should export all expected functions from cv-worker', async () => {

@@ -514,10 +514,21 @@
 
                         <!-- NEW: Scan Build Section -->
                         <div class="advisor-section scan-section">
-                            <h3>📸 Scan Your Build (Beta)</h3>
+                            <h3>
+                                📸 Scan Your Build
+                                <span
+                                    class="beta-badge"
+                                    title="Auto-detection is experimental - manual selection recommended"
+                                    >Beta</span
+                                >
+                            </h3>
                             <p class="scan-subtitle">
                                 Upload a screenshot of your pause menu and manually select the items you see. We'll help
                                 you make the best decisions!
+                            </p>
+                            <p class="scan-warning">
+                                ⚠️ Auto-detection is experimental. For best results, manually select items from the grid
+                                below after uploading.
                             </p>
 
                             <div class="scan-upload-area">
@@ -538,11 +549,19 @@
                             <!-- Auto-Detect Buttons -->
                             <div id="scan-auto-detect-area" class="scan-auto-detect-area" style="display: none">
                                 <div class="scan-detect-buttons">
-                                    <button id="scan-auto-detect-btn" class="btn-primary scan-auto-detect-btn">
-                                        🤖 OCR Only (Phase 2)
+                                    <button
+                                        id="scan-auto-detect-btn"
+                                        class="btn-secondary scan-auto-detect-btn"
+                                        title="Experimental - may not detect items correctly"
+                                    >
+                                        🤖 Try OCR Detection
                                     </button>
-                                    <button id="scan-hybrid-detect-btn" class="btn-primary scan-hybrid-detect-btn">
-                                        🎯 Hybrid: OCR + CV (Phase 3)
+                                    <button
+                                        id="scan-hybrid-detect-btn"
+                                        class="btn-secondary scan-hybrid-detect-btn"
+                                        title="Experimental - icon matching under development"
+                                    >
+                                        🎯 Try Hybrid Detection
                                     </button>
                                 </div>
                                 <!-- Debug Panel -->

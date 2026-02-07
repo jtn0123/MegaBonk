@@ -18,12 +18,12 @@ import { domCache } from './modules/dom-cache.ts';
 import { safeModuleInit, registerErrorBoundary } from './modules/error-boundary.ts';
 import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.ts';
 import { themeManager } from './modules/theme-manager.ts';
-import { initWebVitals, createPerformanceBadge } from './modules/web-vitals.ts';
+import { initWebVitals } from './modules/web-vitals.ts';
 import { setupImageFallbackHandler, setupBlurUpHandler } from './modules/utils.ts';
 import { logger } from './modules/logger.ts';
 import { setupOfflineListeners } from './modules/offline-ui.ts';
 import { scheduleModulePreload } from './modules/events.ts';
-import { initMobileNav, injectMoreMenuStyles } from './modules/mobile-nav.ts';
+import { initMobileNav } from './modules/mobile-nav.ts';
 import { initMobileFilters } from './modules/mobile-filters.ts';
 import { initRecentlyViewed } from './modules/recently-viewed.ts';
 import { initDebugPanel } from './modules/debug-ui.ts';
@@ -357,7 +357,6 @@ async function init(): Promise<void> {
         'web-vitals',
         async () => {
             initWebVitals();
-            createPerformanceBadge();
         },
         { required: false }
     );
@@ -366,7 +365,6 @@ async function init(): Promise<void> {
     await safeModuleInit(
         'mobile-nav',
         async () => {
-            injectMoreMenuStyles();
             initMobileNav();
         },
         { required: false }

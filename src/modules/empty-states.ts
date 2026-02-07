@@ -7,7 +7,7 @@ import { escapeHtml, safeGetElementById } from './utils.ts';
 import { getState } from './store.ts';
 import { getDataForTab } from './data-service.ts';
 import { getFavorites } from './favorites.ts';
-import type { Entity, EntityType } from '../types/index.ts';
+import { normalizeEntityType, type Entity, type EntityType } from '../types/index.ts';
 
 // ========================================
 // Type Definitions
@@ -400,10 +400,12 @@ export function handleEmptyStateClick(target: Element): boolean {
             const entityId = card.dataset.entityId;
 
             if (entityType && entityId) {
-                // Open the detail modal for this item
-                import('./modal.ts').then(({ openDetailModal }) => {
-                    openDetailModal(entityType as EntityType, entityId);
-                });
+                const type = normalizeEntityType(entityType);
+                if (type) {
+                    import('./modal.ts').then(({ openDetailModal }) => {
+                        openDetailModal(type, entityId);
+                    });
+                }
                 return true;
             }
         }

@@ -257,7 +257,9 @@ async function extractCropsFromImage(imagePath, groundTruthData, outputDir, inde
     const calibration = getCalibrationForResolution(width, height);
 
     if (verbose) {
-        console.log(`  Calibration: iconSize=${calibration.iconWidth}x${calibration.iconHeight}, yOffset=${calibration.yOffset}`);
+        console.log(
+            `  Calibration: iconSize=${calibration.iconWidth}x${calibration.iconHeight}, yOffset=${calibration.yOffset}`
+        );
     }
 
     // Get ground truth items
@@ -331,9 +333,12 @@ async function extractCropsFromImage(imagePath, groundTruthData, outputDir, inde
         }
 
         // Validate position is within image bounds
-        if (position.x < 0 || position.y < 0 ||
+        if (
+            position.x < 0 ||
+            position.y < 0 ||
             position.x + position.width > width ||
-            position.y + position.height > height) {
+            position.y + position.height > height
+        ) {
             if (verbose) {
                 console.log(`    Skip ${itemName} (slot ${i}): position out of bounds`);
             }
@@ -351,8 +356,14 @@ async function extractCropsFromImage(imagePath, groundTruthData, outputDir, inde
         ctx.clearRect(0, 0, calibration.iconWidth, calibration.iconHeight);
         ctx.drawImage(
             image,
-            position.x, position.y, position.width, position.height,
-            0, 0, calibration.iconWidth, calibration.iconHeight
+            position.x,
+            position.y,
+            position.width,
+            position.height,
+            0,
+            0,
+            calibration.iconWidth,
+            calibration.iconHeight
         );
 
         // Ensure item directory exists

@@ -19,7 +19,7 @@ function analyzeHotbarPosition(width, height) {
     console.log('='.repeat(40));
 
     // Current code (after my broken fix)
-    const brokenY = Math.floor(height * 0.70);
+    const brokenY = Math.floor(height * 0.7);
     console.log(`❌ My broken fix (70% down): y=${brokenY}`);
 
     // Original code (before my fix)
@@ -65,11 +65,11 @@ async function main() {
     if (args.length === 0) {
         // Test with common resolutions
         console.log('Testing common MegaBonk resolutions:\n');
-        analyzeHotbarPosition(1920, 1080);  // 1080p
-        analyzeHotbarPosition(1280, 800);   // 800p (Steam Deck-ish)
-        analyzeHotbarPosition(1456, 816);   // Weird resolution from screenshots
-        analyzeHotbarPosition(2560, 1440);  // 1440p
-        analyzeHotbarPosition(1280, 720);   // 720p
+        analyzeHotbarPosition(1920, 1080); // 1080p
+        analyzeHotbarPosition(1280, 800); // 800p (Steam Deck-ish)
+        analyzeHotbarPosition(1456, 816); // Weird resolution from screenshots
+        analyzeHotbarPosition(2560, 1440); // 1440p
+        analyzeHotbarPosition(1280, 720); // 720p
 
         console.log('\n' + '='.repeat(50));
         console.log('CONCLUSION: The hotbar is at the BOTTOM 5-10% of screen,');

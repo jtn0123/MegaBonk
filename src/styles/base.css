@@ -52,6 +52,9 @@
     --tier-b: #f59e0b; /* Amber - Situational */
     --tier-c: #ef4444; /* Red - Weak */
 
+    /* Borders */
+    --border-color: rgba(255, 255, 255, 0.1);
+
     /* Transition Timing */
     --transition-fast: 0.15s;
     --transition-base: 0.2s;

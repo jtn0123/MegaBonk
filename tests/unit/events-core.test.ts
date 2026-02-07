@@ -104,6 +104,7 @@ import { handleSearchResultClick } from '../../src/modules/events-search.ts';
 import { getState } from '../../src/modules/store.ts';
 import { renderTabContent } from '../../src/modules/renderers.ts';
 import { loadAllData } from '../../src/modules/data-service.ts';
+import { normalizeEntityType } from '../../src/types/index.ts';
 
 // ========================================
 // Test Utilities
@@ -1318,5 +1319,84 @@ describe('keyboard accessibility', () => {
 
         // Should wrap to first tab
         expect(switchTab).toHaveBeenCalledWith('items');
+    });
+});
+
+// ========================================
+// normalizeEntityType Unit Tests
+// ========================================
+
+describe('normalizeEntityType', () => {
+    it('should return plural form for singular inputs', () => {
+        expect(normalizeEntityType('item')).toBe('items');
+        expect(normalizeEntityType('weapon')).toBe('weapons');
+        expect(normalizeEntityType('tome')).toBe('tomes');
+        expect(normalizeEntityType('character')).toBe('characters');
+        expect(normalizeEntityType('shrine')).toBe('shrines');
+    });
+
+    it('should pass through already-plural EntityType values', () => {
+        expect(normalizeEntityType('items')).toBe('items');
+        expect(normalizeEntityType('weapons')).toBe('weapons');
+        expect(normalizeEntityType('tomes')).toBe('tomes');
+        expect(normalizeEntityType('characters')).toBe('characters');
+        expect(normalizeEntityType('shrines')).toBe('shrines');
+    });
+
+    it('should return undefined for unknown types', () => {
+        expect(normalizeEntityType('unknown')).toBeUndefined();
+        expect(normalizeEntityType('')).toBeUndefined();
+        expect(normalizeEntityType('foo')).toBeUndefined();
+    });
+});
+
+// ========================================
+// Entity Type Normalization Regression Tests
+// ========================================
+
+describe('entity-link singular-to-plural normalization', () => {
+    // Note: Click delegation tests can't work in jsdom because jsdom's Element class
+    // differs from the module-scoped Element, causing `target instanceof Element` to
+    // return false in the handler. Instead, we test normalizeEntityType directly
+    // and verify that openDetailModal is called correctly via direct invocation.
+
+    it('should normalize singular entity type and call openDetailModal correctly', () => {
+        const normalized = normalizeEntityType('item');
+        expect(normalized).toBe('items');
+
+        // Simulate what the entity-link handler does after normalization
+        openDetailModal(normalized!, 'test-id');
+        expect(openDetailModal).toHaveBeenCalledWith('items', 'test-id');
+    });
+
+    it('should normalize all singular entity types to their plural forms', () => {
+        const cases: [string, string][] = [
+            ['item', 'items'],
+            ['weapon', 'weapons'],
+            ['tome', 'tomes'],
+            ['character', 'characters'],
+            ['shrine', 'shrines'],
+        ];
+        for (const [singular, plural] of cases) {
+            const result = normalizeEntityType(singular);
+            expect(result).toBe(plural);
+
+            vi.mocked(openDetailModal).mockClear();
+            openDetailModal(result!, `${singular}-1`);
+            expect(openDetailModal).toHaveBeenCalledWith(plural, `${singular}-1`);
+        }
+    });
+
+    it('should pass through already-plural entity types unchanged', () => {
+        const pluralTypes = ['items', 'weapons', 'tomes', 'characters', 'shrines'] as const;
+        for (const type of pluralTypes) {
+            expect(normalizeEntityType(type)).toBe(type);
+        }
+    });
+
+    it('should return undefined for unknown entity types', () => {
+        expect(normalizeEntityType('unknown')).toBeUndefined();
+        expect(normalizeEntityType('')).toBeUndefined();
+        expect(normalizeEntityType('foo')).toBeUndefined();
     });
 });

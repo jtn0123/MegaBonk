@@ -55,25 +55,25 @@ export interface MarginConfig {
  */
 export const DEFAULT_MARGIN_CONFIG: MarginConfig = {
     // Current baseline: 20% cell margin, 15% template margin
-    baseCellMargin: 0.18,      // Slightly reduced from 0.20
+    baseCellMargin: 0.18, // Slightly reduced from 0.20
     baseTemplateMargin: 0.15,
 
     // Per-rarity adjustments - legendary borders are noticeably thicker
     rarityAdjustments: {
-        common: -0.02,       // Thin gray borders, reduce margin
-        uncommon: -0.01,     // Green borders, slightly thinner
-        rare: 0.0,           // Blue borders, baseline
-        epic: 0.01,          // Purple borders, slightly thicker
-        legendary: 0.03,     // Gold borders, significantly thicker
-        unknown: 0.0,        // Use baseline for unknown
+        common: -0.02, // Thin gray borders, reduce margin
+        uncommon: -0.01, // Green borders, slightly thinner
+        rare: 0.0, // Blue borders, baseline
+        epic: 0.01, // Purple borders, slightly thicker
+        legendary: 0.03, // Gold borders, significantly thicker
+        unknown: 0.0, // Use baseline for unknown
     },
 
     // Resolution adjustments - smaller screens have proportionally thicker borders
     resolutionConfigs: [
-        { minWidth: 0, maxWidth: 1280, marginMultiplier: 1.1 },      // 720p/800p
-        { minWidth: 1280, maxWidth: 1920, marginMultiplier: 1.0 },   // 1080p (baseline)
-        { minWidth: 1920, maxWidth: 2560, marginMultiplier: 0.95 },  // 1440p
-        { minWidth: 2560, maxWidth: 9999, marginMultiplier: 0.9 },   // 4K
+        { minWidth: 0, maxWidth: 1280, marginMultiplier: 1.1 }, // 720p/800p
+        { minWidth: 1280, maxWidth: 1920, marginMultiplier: 1.0 }, // 1080p (baseline)
+        { minWidth: 1920, maxWidth: 2560, marginMultiplier: 0.95 }, // 1440p
+        { minWidth: 2560, maxWidth: 9999, marginMultiplier: 0.9 }, // 4K
     ],
 };
 
@@ -81,8 +81,8 @@ export const DEFAULT_MARGIN_CONFIG: MarginConfig = {
  * Optimized margin configuration (more aggressive tuning)
  */
 export const OPTIMIZED_MARGIN_CONFIG: MarginConfig = {
-    baseCellMargin: 0.16,      // More aggressive center extraction
-    baseTemplateMargin: 0.12,  // More aggressive template center
+    baseCellMargin: 0.16, // More aggressive center extraction
+    baseTemplateMargin: 0.12, // More aggressive template center
 
     rarityAdjustments: {
         common: -0.03,
@@ -145,11 +145,7 @@ export function getMarginConfig(): MarginConfig {
 /**
  * Calculate cell margin for a specific context
  */
-export function calculateCellMargin(
-    cellWidth: number,
-    rarity?: string,
-    imageWidth?: number
-): number {
+export function calculateCellMargin(cellWidth: number, rarity?: string, imageWidth?: number): number {
     const config = activeConfig;
 
     // Base margin
@@ -163,16 +159,14 @@ export function calculateCellMargin(
 
     // Resolution adjustment
     if (imageWidth) {
-        const resConfig = config.resolutionConfigs.find(
-            rc => imageWidth >= rc.minWidth && imageWidth < rc.maxWidth
-        );
+        const resConfig = config.resolutionConfigs.find(rc => imageWidth >= rc.minWidth && imageWidth < rc.maxWidth);
         if (resConfig) {
             margin *= resConfig.marginMultiplier;
         }
     }
 
     // Clamp to safe range (5% - 40%)
-    margin = Math.max(0.05, Math.min(0.40, margin));
+    margin = Math.max(0.05, Math.min(0.4, margin));
 
     return Math.round(cellWidth * margin);
 }
@@ -180,10 +174,7 @@ export function calculateCellMargin(
 /**
  * Calculate template margin for a specific context
  */
-export function calculateTemplateMargin(
-    templateSize: number,
-    rarity?: string
-): number {
+export function calculateTemplateMargin(templateSize: number, rarity?: string): number {
     const config = activeConfig;
 
     // Base margin
@@ -206,7 +197,7 @@ export function calculateTemplateMargin(
  */
 export function describeMargins(cellWidth: number, rarity?: string, imageWidth?: number): string {
     const cellMargin = calculateCellMargin(cellWidth, rarity, imageWidth);
-    const cellMarginPct = (cellMargin / cellWidth * 100).toFixed(1);
+    const cellMarginPct = ((cellMargin / cellWidth) * 100).toFixed(1);
 
     return `Cell margin: ${cellMargin}px (${cellMarginPct}%), Rarity: ${rarity || 'unknown'}`;
 }

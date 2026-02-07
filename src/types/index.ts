@@ -360,6 +360,27 @@ export interface Build {
  */
 export type EntityType = 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines';
 
+const SINGULAR_TO_ENTITY_TYPE: Record<string, EntityType> = {
+    item: 'items',
+    weapon: 'weapons',
+    tome: 'tomes',
+    character: 'characters',
+    shrine: 'shrines',
+};
+
+const VALID_ENTITY_TYPES: ReadonlySet<string> = new Set<string>(['items', 'weapons', 'tomes', 'characters', 'shrines']);
+
+/**
+ * Normalize a singular or plural entity type string to a plural EntityType.
+ * Returns undefined if the input doesn't match any known entity type.
+ */
+export function normalizeEntityType(type: string): EntityType | undefined {
+    if (VALID_ENTITY_TYPES.has(type)) {
+        return type as EntityType;
+    }
+    return SINGULAR_TO_ENTITY_TYPE[type];
+}
+
 /**
  * Validation result
  */
