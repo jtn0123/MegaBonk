@@ -9,7 +9,7 @@
 ## ✨ Core Features
 
 ### 📦 **7 Complete Categories**
-- **Items** (77/77) ✅ COMPLETE - Scaling graphs, stacking behavior, true formulas
+- **Items** (80/80) ✅ COMPLETE - Scaling graphs, stacking behavior, true formulas
 - **Weapons** (29/29) ✅ COMPLETE - Tier rankings, upgrade paths, synergies
 - **Tomes** (23/23) ✅ COMPLETE - Priority rankings, stat scaling, recommendations
 - **Characters** (20/20) ✅ COMPLETE - Passives, strengths/weaknesses, builds
@@ -113,7 +113,7 @@ When the game meta changes:
 ```
 MegaBonk/
 ├── data/
-│   ├── items.json          # 77 items with scaling graphs
+│   ├── items.json          # 80 items with scaling graphs
 │   ├── weapons.json        # 29 weapons with synergies
 │   ├── tomes.json          # 23 tomes with priorities
 │   ├── characters.json     # 20 characters with passives
@@ -348,7 +348,7 @@ This project is open source and available for community use. Data is compiled fr
 
 ## ✅ Recently Added (v1.0.18)
 
-- ✅ **Complete item database** - All 77/77 items
+- ✅ **Complete item database** - All 80/80 items
 - ✅ **Complete weapons** - All 29/29 weapons
 - ✅ **Complete tomes** - All 23/23 tomes
 - ✅ **Build planner stats calculator** - Real-time stat calculations

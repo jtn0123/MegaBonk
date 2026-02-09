@@ -84,8 +84,8 @@ describe('Schema Validator Module', () => {
             expect(result.success).toBe(true);
         });
 
-        it('should accept items with null unlock_requirement', () => {
-            const dataWithNull = {
+        it('should accept items with "none" unlock_requirement', () => {
+            const dataWithNone = {
                 version: '1.0.0',
                 last_updated: '2024-01-01',
                 items: [
@@ -94,11 +94,11 @@ describe('Schema Validator Module', () => {
                         name: 'Locked Item',
                         rarity: 'legendary',
                         tier: 'SS',
-                        unlock_requirement: null,
+                        unlock_requirement: 'none',
                     },
                 ],
             };
-            const result = validateItems(dataWithNull);
+            const result = validateItems(dataWithNone);
             expect(result.success).toBe(true);
         });
 

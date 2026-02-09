@@ -107,7 +107,7 @@ export interface Weapon {
     base_projectile_count?: number;
     attack_pattern?: string;
     upgradeable_stats?: string[] | string;
-    unlock_requirement?: string | null;
+    unlock_requirement?: string;
     unlock_cost_silver?: number;
     unlocked_by_default?: boolean;
     best_for?: string[];
@@ -140,7 +140,7 @@ export interface Tome {
     value_per_level?: string | number;
     max_level?: number;
     unlocked_by_default?: boolean;
-    unlock_requirement?: string | null;
+    unlock_requirement?: string;
     unlock_cost_silver?: number;
     synergies_items?: string[];
     synergies_weapons?: string[];
@@ -185,7 +185,7 @@ export interface Character {
     playstyle?: string;
     base_hp?: number;
     base_damage?: number;
-    unlock_requirement?: string | null;
+    unlock_requirement?: string;
     unlock_cost_silver?: number;
     unlocked_by_default?: boolean;
     best_for?: string[];

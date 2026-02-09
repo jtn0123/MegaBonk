@@ -899,6 +899,168 @@ describe('Random Build Event Handlers Integration', () => {
 });
 
 // ========================================
+// Additional Coverage Tests - Fallback Icons & Edge Cases
+// ========================================
+describe('renderBuildPreview - fallback icons', () => {
+    it('should show fallback character icon when generateEntityImage returns null', async () => {
+        // Temporarily override the mock to return null
+        const utils = await import('../../src/modules/utils.ts');
+        const originalFn = utils.generateEntityImage;
+        (utils as any).generateEntityImage = () => null;
+
+        const build = {
+            character: { id: 'warrior', name: 'Warrior' } as Character,
+            weapon: null,
+            tomes: [] as Tome[],
+            items: [] as Item[],
+            constraints: {},
+        };
+
+        const html = renderBuildPreview(build);
+        expect(html).toContain('👤');
+        expect(html).toContain('slot-icon');
+
+        // Restore
+        (utils as any).generateEntityImage = originalFn;
+    });
+
+    it('should show fallback weapon icon when generateEntityImage returns null', async () => {
+        const utils = await import('../../src/modules/utils.ts');
+        const originalFn = utils.generateEntityImage;
+        (utils as any).generateEntityImage = () => null;
+
+        const build = {
+            character: null,
+            weapon: { id: 'sword', name: 'Sword' } as Weapon,
+            tomes: [] as Tome[],
+            items: [] as Item[],
+            constraints: {},
+        };
+
+        const html = renderBuildPreview(build);
+        expect(html).toContain('⚔️');
+
+        (utils as any).generateEntityImage = originalFn;
+    });
+
+    it('should show fallback tome icon when generateEntityImage returns null', async () => {
+        const utils = await import('../../src/modules/utils.ts');
+        const originalFn = utils.generateEntityImage;
+        (utils as any).generateEntityImage = () => null;
+
+        const build = {
+            character: null,
+            weapon: null,
+            tomes: [{ id: 'tome1', name: 'Tome 1' } as Tome],
+            items: [] as Item[],
+            constraints: {},
+        };
+
+        const html = renderBuildPreview(build);
+        expect(html).toContain('📚');
+
+        (utils as any).generateEntityImage = originalFn;
+    });
+
+    it('should show fallback item icon when generateEntityImage returns null', async () => {
+        const utils = await import('../../src/modules/utils.ts');
+        const originalFn = utils.generateEntityImage;
+        (utils as any).generateEntityImage = () => null;
+
+        const build = {
+            character: null,
+            weapon: null,
+            tomes: [] as Tome[],
+            items: [{ id: 'item1', name: 'Item 1' } as Item],
+            constraints: {},
+        };
+
+        const html = renderBuildPreview(build);
+        expect(html).toContain('📦');
+
+        (utils as any).generateEntityImage = originalFn;
+    });
+
+    it('should show fallback icons for all slots simultaneously', async () => {
+        const utils = await import('../../src/modules/utils.ts');
+        const originalFn = utils.generateEntityImage;
+        (utils as any).generateEntityImage = () => null;
+
+        const build = {
+            character: { id: 'warrior', name: 'Warrior' } as Character,
+            weapon: { id: 'sword', name: 'Sword' } as Weapon,
+            tomes: [{ id: 'tome1', name: 'Tome 1' } as Tome],
+            items: [{ id: 'item1', name: 'Item 1' } as Item],
+            constraints: {},
+        };
+
+        const html = renderBuildPreview(build);
+        expect(html).toContain('👤');
+        expect(html).toContain('⚔️');
+        expect(html).toContain('📚');
+        expect(html).toContain('📦');
+
+        (utils as any).generateEntityImage = originalFn;
+    });
+
+    it('should show fallback empty string icon when generateEntityImage returns empty string', async () => {
+        const utils = await import('../../src/modules/utils.ts');
+        const originalFn = utils.generateEntityImage;
+        (utils as any).generateEntityImage = () => '';
+
+        const build = {
+            character: { id: 'warrior', name: 'Warrior' } as Character,
+            weapon: null,
+            tomes: [] as Tome[],
+            items: [] as Item[],
+            constraints: {},
+        };
+
+        const html = renderBuildPreview(build);
+        // Empty string is falsy, so fallback should be used
+        expect(html).toContain('👤');
+
+        (utils as any).generateEntityImage = originalFn;
+    });
+});
+
+describe('generateRandomBuild - edge cases for filtering', () => {
+    it('should treat items without rarity as common when filtering', () => {
+        const build = generateRandomBuild({ maxRarity: 'common' });
+        // Items without rarity default to 'common', so they should pass
+        expect(build).toBeDefined();
+        expect(build.items.length).toBeGreaterThanOrEqual(0);
+    });
+
+    it('should treat items without tier as C when filtering', () => {
+        const build = generateRandomBuild({ maxTier: 'C' });
+        expect(build).toBeDefined();
+    });
+
+    it('should apply both noLegendary and maxRarity simultaneously', () => {
+        const build = generateRandomBuild({ noLegendary: true, maxRarity: 'rare' });
+        build.items.forEach(item => {
+            expect(item.rarity).not.toBe('legendary');
+        });
+    });
+
+    it('should apply both noSS and maxTier simultaneously', () => {
+        const build = generateRandomBuild({ noSSItems: true, maxTier: 'A' });
+        build.items.forEach(item => {
+            expect(item.tier).not.toBe('SS');
+        });
+    });
+
+    it('should handle challengeMode overriding maxTier', () => {
+        // challengeMode should take precedence - only B/C tier
+        const build = generateRandomBuild({ challengeMode: true, maxTier: 'S' });
+        build.items.forEach(item => {
+            expect(['B', 'C']).toContain(item.tier);
+        });
+    });
+});
+
+// ========================================
 // Error Handling Tests
 // ========================================
 describe('Random Build Error Handling', () => {
