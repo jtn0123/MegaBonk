@@ -530,6 +530,7 @@ export function renderBatchResultsGrid(containerId: string): void {
     if (!container) return;
 
     if (batchResults.length === 0) {
+        // SAFE: static HTML empty state
         container.innerHTML = `
             <div class="batch-empty-state">
                 <p>No screenshots processed yet.</p>
@@ -541,6 +542,7 @@ export function renderBatchResultsGrid(containerId: string): void {
 
     const summary = getBatchSummary();
 
+    // SAFE: summary values are numbers from internal batch processing state
     container.innerHTML = `
         <div class="batch-summary">
             <div class="batch-stat">

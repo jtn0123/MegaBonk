@@ -75,6 +75,7 @@ export function updateFilters(tabName: string): void {
 
     if (tabName === 'items') {
         // DISABLED: Favorites Only checkbox hidden (feature UI disabled)
+        // SAFE: static HTML - filter controls with no dynamic content
         filtersContainer.innerHTML = `
             <label for="rarityFilter">Rarity:</label>
             <select id="rarityFilter">

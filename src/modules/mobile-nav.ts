@@ -59,6 +59,7 @@ function createMoreMenu(): HTMLElement {
 
     const currentTab = getState('currentTab');
 
+    // SAFE: tab values are from hardcoded MORE_MENU_TABS constant
     menu.innerHTML = `
         <div class="more-menu-backdrop" aria-hidden="true"></div>
         <div class="more-menu-drawer" role="document">

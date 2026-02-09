@@ -117,12 +117,16 @@ export async function displayDebugOverlay(
 
         const imagePreview = document.getElementById('scan-image-preview');
         if (imagePreview) {
-            imagePreview.innerHTML = `
-                <img src="${debugOverlayUrl}" alt="Debug Overlay" style="max-width: 100%; border-radius: 8px;" />
-                <p style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;">
-                    Debug Mode: Green=High confidence, Orange=Medium, Red=Low
-                </p>
-            `;
+            imagePreview.innerHTML = ''; // SAFE: clearing content
+            const img = document.createElement('img');
+            img.src = debugOverlayUrl;
+            img.alt = 'Debug Overlay';
+            img.style.cssText = 'max-width: 100%; border-radius: 8px;';
+            const caption = document.createElement('p');
+            caption.style.cssText = 'text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;';
+            caption.textContent = 'Debug Mode: Green=High confidence, Orange=Medium, Red=Low';
+            imagePreview.appendChild(img);
+            imagePreview.appendChild(caption);
         }
         ToastManager.success(
             `Hybrid Detection: ${hybridResults.items.length} items, ${hybridResults.tomes.length} tomes (Debug overlay shown)`

@@ -3,7 +3,7 @@
 // ========================================
 // Handles offline UI indicators and cached data display
 
-import { safeGetElementById } from './utils.ts';
+import { safeGetElementById, escapeHtml } from './utils.ts';
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
 
@@ -121,7 +121,7 @@ export function updateOfflineIndicator(isOffline: boolean): void {
 
         indicator.innerHTML = `
             <span class="offline-icon">📡</span>
-            <span class="offline-message">${message}</span>
+            <span class="offline-message">${escapeHtml(message)}</span>
             <button class="offline-retry-btn" aria-label="Retry connection">Retry</button>
         `;
 

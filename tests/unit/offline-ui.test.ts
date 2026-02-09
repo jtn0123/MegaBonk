@@ -8,6 +8,7 @@ import { FEATURES } from '../../src/modules/constants.ts';
 // Mock dependencies
 vi.mock('../../src/modules/utils.ts', () => ({
     safeGetElementById: vi.fn((id: string) => document.getElementById(id)),
+    escapeHtml: vi.fn((text: string) => text),
 }));
 
 import {
