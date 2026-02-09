@@ -117,7 +117,7 @@
         "Projectile Speed",
         "size"
       ],
-      "unlock_requirement": null,
+      "unlock_requirement": "none",
       "unlock_cost_silver": 0,
       "unlocked_by_default": true,
       "description": "Solid starter weapon. Pierces enemies. Great crit scaling potential.",
@@ -165,7 +165,7 @@
         "Projectile Count",
         "size"
       ],
-      "unlock_requirement": null,
+      "unlock_requirement": "none",
       "unlock_cost_silver": 0,
       "unlocked_by_default": true,
       "description": "Chains lightning between enemies. Excellent for crowd control.",
@@ -296,7 +296,7 @@
         "Projectile Count",
         "size"
       ],
-      "unlock_requirement": null,
+      "unlock_requirement": "none",
       "unlock_cost_silver": 0,
       "unlocked_by_default": true,
       "description": "Classic melee weapon. Reliable starter choice.",
@@ -790,7 +790,7 @@
         "size",
         "Projectile Speed"
       ],
-      "unlock_requirement": null,
+      "unlock_requirement": "none",
       "unlock_cost_silver": 0,
       "unlocked_by_default": true,
       "description": "Shoots explosive fireballs. Fox's signature weapon.",
@@ -1109,7 +1109,7 @@
         "Projectile Speed",
         "knockback"
       ],
-      "unlock_requirement": null,
+      "unlock_requirement": "none",
       "unlock_cost_silver": 0,
       "unlocked_by_default": false,
       "description": "Calcium's starting weapon. Unique ricochet mechanics with 1.5x knockback.",
@@ -1291,7 +1291,7 @@
         "duration",
         "size"
       ],
-      "unlock_requirement": null,
+      "unlock_requirement": "none",
       "unlock_cost_silver": 0,
       "unlocked_by_default": true,
       "description": "Fire trail damages enemies. Excellent for kiting and crowd control.",

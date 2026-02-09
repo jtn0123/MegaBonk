@@ -482,10 +482,10 @@ describe('QA Area 17: Calculator - Edge Cases', () => {
 describe('QA Area 18: Calculator - Stack Cap Warnings', () => {
     const itemsData = loadJsonFile('items.json');
 
-    it('should have stack_cap as number or null for all items', () => {
-        // In the data schema, stack_cap can be a number (cap exists) or null (no cap)
+    it('should have stack_cap as number for all items', () => {
+        // In the data schema, stack_cap is a number: positive = cap, -1 = unlimited
         const itemsWithCaps = itemsData.items.filter((item: any) =>
-            item.stack_cap !== null && item.stack_cap !== undefined
+            item.stack_cap !== undefined && item.stack_cap > 0
         );
         itemsWithCaps.forEach((item: any) => {
             expect(typeof item.stack_cap).toBe('number');
@@ -493,8 +493,8 @@ describe('QA Area 18: Calculator - Stack Cap Warnings', () => {
         });
     });
 
-    it('should have items with no stack cap (null)', () => {
-        const itemsWithoutCaps = itemsData.items.filter((item: any) => item.stack_cap === null);
+    it('should have items with no stack cap (-1 = unlimited)', () => {
+        const itemsWithoutCaps = itemsData.items.filter((item: any) => item.stack_cap === -1);
         expect(itemsWithoutCaps.length).toBeGreaterThan(0);
     });
 

@@ -521,12 +521,12 @@ describe('Bug #25: Empty synergies array handling', () => {
 describe('Bug #26: Null vs undefined stack_cap handling', () => {
     const itemsData = loadJsonFile('items.json');
 
-    it('should confirm items use null for no stack cap', () => {
-        const nullCaps = itemsData.items.filter((item: any) => item.stack_cap === null);
+    it('should confirm items use -1 for no stack cap (unlimited)', () => {
+        const unlimitedCaps = itemsData.items.filter((item: any) => item.stack_cap === -1);
         const undefinedCaps = itemsData.items.filter((item: any) => item.stack_cap === undefined);
 
-        // Should use consistent null/undefined handling
-        expect(nullCaps.length + undefinedCaps.length).toBeGreaterThan(0);
+        // Should use consistent -1/undefined handling for unlimited
+        expect(unlimitedCaps.length + undefinedCaps.length).toBeGreaterThan(0);
     });
 });
 
