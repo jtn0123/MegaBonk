@@ -93,7 +93,7 @@ export function computeBreakpoint(data: BreakpointData, itemId: string, target: 
     stacksNeeded = Math.ceil(target / perStack);
 
     // Cap checks
-    const isCapped = item.stack_cap != null && stacksNeeded > item.stack_cap;
+    const isCapped = item.stack_cap != null && item.stack_cap > 0 && stacksNeeded > item.stack_cap;
     if (isCapped) {
         stacksNeeded = item.stack_cap!;
     }
@@ -196,7 +196,7 @@ export function calculateBreakpoint(): void {
 
     // Bug fix: Track if original calculation exceeded cap BEFORE capping
     // Using === only checks if final value equals cap, not if we were limited
-    const isCapped = item.stack_cap != null && stacksNeeded > item.stack_cap;
+    const isCapped = item.stack_cap != null && item.stack_cap > 0 && stacksNeeded > item.stack_cap;
 
     // Cap checks
     if (isCapped) {
