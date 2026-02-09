@@ -133,6 +133,7 @@ export function showShortcutsModal(): void {
     `
     ).join('');
 
+    // SAFE: categoriesHtml is built from hardcoded SHORTCUT_CONFIG constants
     modal.innerHTML = `
         <div class="modal-content shortcuts-modal-content">
             <button class="modal-close" id="shortcuts-modal-close">&times;</button>

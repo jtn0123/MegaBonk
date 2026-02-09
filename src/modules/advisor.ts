@@ -8,6 +8,7 @@ import type { Item, Tome, Weapon, Shrine, AllGameData } from '../types/index.ts'
 import { recommendBestChoice, type BuildState, type ChoiceOption, type Recommendation } from './recommendation.ts';
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
+import { escapeHtml } from './utils.ts';
 
 /** Union type for entities that can be selected in the advisor */
 type AdvisorEntity = Item | Weapon | Tome | Shrine;
@@ -226,8 +227,8 @@ function showEntityModal(type: 'item' | 'tome'): void {
         const entityCard = document.createElement('button');
         entityCard.className = 'advisor-entity-card';
         entityCard.innerHTML = `
-            <div class="entity-name">${entity.name}</div>
-            <div class="entity-tier">${entity.tier}</div>
+            <div class="entity-name">${escapeHtml(entity.name)}</div>
+            <div class="entity-tier">${escapeHtml(entity.tier)}</div>
         `;
         entityCard.onclick = () => {
             addEntityToCurrentBuild(type, entity);
@@ -324,8 +325,8 @@ function createEntityChip(entity: Item | Tome, onRemove: () => void): HTMLElemen
     const chip = document.createElement('div');
     chip.className = 'advisor-chip';
     chip.innerHTML = `
-        <span class="chip-name">${entity.name}</span>
-        <button class="chip-remove" aria-label="Remove ${entity.name}">&times;</button>
+        <span class="chip-name">${escapeHtml(entity.name)}</span>
+        <button class="chip-remove" aria-label="Remove ${escapeHtml(entity.name)}">&times;</button>
     `;
 
     const removeBtn = chip.querySelector('.chip-remove') as HTMLButtonElement;
@@ -479,8 +480,8 @@ function displayRecommendations(recommendations: Recommendation[]): void {
         let html = `
             <div class="result-header">
                 <div class="result-rank">${emoji} ${rank === 1 ? 'RECOMMENDED' : `#${rank}`}</div>
-                <div class="result-title">${entity.name}</div>
-                <div class="result-tier tier-${entity.tier.toLowerCase()}">${entity.tier}</div>
+                <div class="result-title">${escapeHtml(entity.name)}</div>
+                <div class="result-tier tier-${escapeHtml(entity.tier.toLowerCase())}">${escapeHtml(entity.tier)}</div>
             </div>
             <div class="result-score">
                 <strong>Score:</strong> ${Math.round(rec.score)} |
@@ -491,7 +492,7 @@ function displayRecommendations(recommendations: Recommendation[]): void {
         if (rec.reasoning.length > 0) {
             html += '<div class="result-section"><strong>Why?</strong><ul>';
             rec.reasoning.forEach((r: string) => {
-                html += `<li>✓ ${r}</li>`;
+                html += `<li>✓ ${escapeHtml(r)}</li>`;
             });
             html += '</ul></div>';
         }
@@ -499,7 +500,7 @@ function displayRecommendations(recommendations: Recommendation[]): void {
         if (rec.synergies.length > 0) {
             html += '<div class="result-section"><strong>Synergies:</strong><ul>';
             rec.synergies.forEach((s: string) => {
-                html += `<li class="synergy">• ${s}</li>`;
+                html += `<li class="synergy">• ${escapeHtml(s)}</li>`;
             });
             html += '</ul></div>';
         }
@@ -507,7 +508,7 @@ function displayRecommendations(recommendations: Recommendation[]): void {
         if (rec.warnings.length > 0) {
             html += '<div class="result-section warnings"><strong>Warnings:</strong><ul>';
             rec.warnings.forEach((w: string) => {
-                html += `<li class="warning">⚠️ ${w}</li>`;
+                html += `<li class="warning">⚠️ ${escapeHtml(w)}</li>`;
             });
             html += '</ul></div>';
         }

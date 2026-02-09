@@ -172,6 +172,7 @@ function updateStrategyInfo(strategy: string): void {
 
     const details = strategyDetails[strategy];
     if (details) {
+        // SAFE: strategyDetails values are hardcoded string literals, not user input
         infoDiv.innerHTML = `
             <div class="strategy-details">
                 <p>${details.description}</p>
@@ -298,6 +299,7 @@ function showMetrics(metrics: DetectionMetrics): void {
     const metricsDiv = document.getElementById('scan-detection-metrics');
     if (!metricsDiv) return;
 
+    // SAFE: metrics values are numbers from internal DetectionMetrics, not user input
     metricsDiv.innerHTML = `
         <div class="detection-metrics">
             <h4>Detection Metrics</h4>
