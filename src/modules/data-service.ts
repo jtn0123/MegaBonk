@@ -409,6 +409,7 @@ export async function loadAllData(): Promise<void> {
         const windowWithLoadBuild = window as Window & { loadBuildFromURL?: () => void };
         if (typeof windowWithLoadBuild.loadBuildFromURL === 'function') {
             windowWithLoadBuild.loadBuildFromURL();
+            window.addEventListener('hashchange', () => windowWithLoadBuild.loadBuildFromURL!());
         }
 
         // Initialize advisor with loaded data

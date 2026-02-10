@@ -46,7 +46,12 @@ export function loadRecentlyViewed(): void {
     try {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
-            recentlyViewed = JSON.parse(stored);
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.every(item => item && typeof item.type === 'string' && typeof item.id === 'string')) {
+                recentlyViewed = parsed;
+            } else {
+                recentlyViewed = [];
+            }
             // Clean up old entries (older than 7 days)
             const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
             recentlyViewed = recentlyViewed.filter(entry => entry.timestamp > weekAgo);

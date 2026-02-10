@@ -23,6 +23,7 @@ let currentBuild: BuildState = {
 };
 let selectedItems: Map<string, Item> = new Map();
 let selectedTomes: Map<string, Tome> = new Map();
+let listenersInitialized = false;
 
 /**
  * Initialize the advisor with game data
@@ -33,6 +34,7 @@ export function initAdvisor(gameData: AllGameData): void {
     // Populate character dropdown
     const characterSelect = document.getElementById('advisor-character') as HTMLSelectElement;
     if (characterSelect && gameData.characters?.characters) {
+        characterSelect.innerHTML = '<option value="">Select a character...</option>';
         gameData.characters.characters.forEach(char => {
             const option = document.createElement('option');
             option.value = char.id;
@@ -44,6 +46,7 @@ export function initAdvisor(gameData: AllGameData): void {
     // Populate weapon dropdown
     const weaponSelect = document.getElementById('advisor-weapon') as HTMLSelectElement;
     if (weaponSelect && gameData.weapons?.weapons) {
+        weaponSelect.innerHTML = '<option value="">Select a weapon...</option>';
         gameData.weapons.weapons.forEach(weapon => {
             const option = document.createElement('option');
             option.value = weapon.id;
@@ -123,6 +126,9 @@ export function applyScannedBuild(state: BuildState): void {
  * Setup all event listeners for the advisor
  */
 function setupEventListeners(): void {
+    if (listenersInitialized) return;
+    listenersInitialized = true;
+
     // Character selection
     const characterSelect = document.getElementById('advisor-character') as HTMLSelectElement;
     characterSelect?.addEventListener('change', handleCharacterChange);
@@ -205,6 +211,7 @@ function showEntityModal(type: 'item' | 'tome'): void {
     const modal = document.createElement('div');
     modal.className = 'modal advisor-entity-modal';
     modal.style.display = 'block';
+    document.body.classList.add('modal-open');
 
     const modalContent = document.createElement('div');
     modalContent.className = 'modal-content';
@@ -213,7 +220,7 @@ function showEntityModal(type: 'item' | 'tome'): void {
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close';
     closeBtn.innerHTML = '&times;';
-    closeBtn.onclick = () => modal.remove();
+    closeBtn.onclick = () => { document.body.classList.remove('modal-open'); modal.remove(); };
 
     // Title
     const title = document.createElement('h3');
@@ -232,6 +239,7 @@ function showEntityModal(type: 'item' | 'tome'): void {
         `;
         entityCard.onclick = () => {
             addEntityToCurrentBuild(type, entity);
+            document.body.classList.remove('modal-open');
             modal.remove();
         };
         listContainer.appendChild(entityCard);
@@ -246,6 +254,7 @@ function showEntityModal(type: 'item' | 'tome'): void {
     // Close on outside click
     modal.addEventListener('click', e => {
         if (e.target === modal) {
+            document.body.classList.remove('modal-open');
             modal.remove();
         }
     });
