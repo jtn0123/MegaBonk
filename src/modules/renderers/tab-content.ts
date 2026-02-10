@@ -2,7 +2,7 @@
 // Tab Content Renderer (Orchestrator)
 // ========================================
 
-import { safeGetElementById } from '../utils.ts';
+import { safeGetElementById, processBlurUpImages } from '../utils.ts';
 import { getDataForTab, allData } from '../data-service.ts';
 import type { AllGameData } from '../../types/index.ts';
 import { filterData } from '../filters.ts';
@@ -104,6 +104,9 @@ export async function renderTabContent(tabName: string): Promise<void> {
             renderShrines(filtered as Shrine[]);
             break;
     }
+
+    // Process blur-up images after DOM updates
+    processBlurUpImages();
 }
 
 // ========================================

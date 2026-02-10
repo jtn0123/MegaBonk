@@ -388,10 +388,6 @@ function handleGetRecommendation(): void {
             const entityId = entitySelect?.value;
 
             if (!type || !entityId) {
-                if (i <= 2) {
-                    ToastManager.error(`Please select at least 2 choices`);
-                    return;
-                }
                 continue;
             }
 
@@ -421,7 +417,7 @@ function handleGetRecommendation(): void {
         }
 
         if (choices.length < 2) {
-            ToastManager.error('Please select at least 2 choices to compare');
+            ToastManager.error(`Please fill at least 2 choices (${choices.length}/2 filled)`);
             return;
         }
 
