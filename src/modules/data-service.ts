@@ -8,7 +8,7 @@ import { logger } from './logger.ts';
 import { getSavedTab } from './events.ts';
 import { getState, setState } from './store.ts';
 import { recordDataSync } from './offline-ui.ts';
-import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.ts';
+import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch, ShrinesData, Stats, ItemsData, WeaponsData, TomesData, CharactersData } from '../types/index.ts';
 
 // ========================================
 // Type Definitions
@@ -297,7 +297,7 @@ async function loadDeferredData(): Promise<void> {
             fetchAndValidate('./data/shrines.json', 'shrines'),
             fetchAndValidate('./data/stats.json', 'stats'),
             fetchAndValidate('./data/changelog.json', 'changelog'),
-        ]);
+        ]) as [ShrinesData, Stats, ChangelogData];
 
         const current = getState('allData') as AllGameData;
         setState('allData', { ...current, shrines, stats, changelog });
@@ -331,7 +331,7 @@ export async function loadAllData(): Promise<void> {
             fetchAndValidate('./data/weapons.json', 'weapons'),
             fetchAndValidate('./data/tomes.json', 'tomes'),
             fetchAndValidate('./data/characters.json', 'characters'),
-        ]);
+        ]) as [ItemsData, WeaponsData, TomesData, CharactersData];
 
         // Update store with essential data (deferred fields will be merged later)
         const newData: AllGameData = { items, weapons, tomes, characters };
@@ -367,17 +367,17 @@ export async function loadAllData(): Promise<void> {
                 filesLoaded: ['items', 'weapons', 'tomes', 'characters'],
                 deferredFiles: ['shrines', 'stats', 'changelog'],
                 itemCounts: {
-                    items: (items as Record<string, unknown[]>)?.items?.length || 0,
-                    weapons: (weapons as Record<string, unknown[]>)?.weapons?.length || 0,
-                    tomes: (tomes as Record<string, unknown[]>)?.tomes?.length || 0,
-                    characters: (characters as Record<string, unknown[]>)?.characters?.length || 0,
+                    items: items?.items?.length || 0,
+                    weapons: weapons?.weapons?.length || 0,
+                    tomes: tomes?.tomes?.length || 0,
+                    characters: characters?.characters?.length || 0,
                 },
                 validationResults: {
                     valid: validationResult.valid,
                     errorCount: validationResult.errors.length,
                     warningCount: validationResult.warnings.length,
                 },
-                version: (items as Record<string, unknown>)?.version || 'unknown',
+                version: items?.version || 'unknown',
             },
         });
 
@@ -389,9 +389,8 @@ export async function loadAllData(): Promise<void> {
         // Update version info
         const versionEl = safeGetElementById('version');
         const updatedEl = safeGetElementById('last-updated');
-        const itemsTyped = items as Record<string, unknown> | undefined;
-        if (versionEl) versionEl.textContent = `Version: ${itemsTyped?.version || 'Unknown'}`;
-        if (updatedEl) updatedEl.textContent = `Last Updated: ${itemsTyped?.last_updated || 'Unknown'}`;
+        if (versionEl) versionEl.textContent = `Version: ${items?.version || 'Unknown'}`;
+        if (updatedEl) updatedEl.textContent = `Last Updated: ${items?.last_updated || 'Unknown'}`;
 
         hideLoading();
 
