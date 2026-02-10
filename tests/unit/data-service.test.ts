@@ -701,10 +701,18 @@ describe('data-service', () => {
         });
 
         it('should fail validation for changelog without patches array', async () => {
+            // Changelog is now deferred-loaded, so invalid changelog data
+            // won't cause the main loadAllData to fail. Instead it logs a warning.
             const invalidChangelog = { notPatches: [] };
 
             global.fetch = vi.fn().mockImplementation((url: string) => {
-                const data = url.includes('changelog') ? invalidChangelog : mockAllData.items;
+                let data: unknown = mockAllData.items;
+                if (url.includes('weapons')) data = mockAllData.weapons;
+                else if (url.includes('tomes')) data = mockAllData.tomes;
+                else if (url.includes('characters')) data = mockAllData.characters;
+                else if (url.includes('shrines')) data = mockAllData.shrines;
+                else if (url.includes('stats')) data = mockAllData.stats;
+                else if (url.includes('changelog')) data = invalidChangelog;
                 return Promise.resolve({
                     ok: true,
                     url,
@@ -714,15 +722,11 @@ describe('data-service', () => {
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
+            await loadPromise;
 
-            try {
-                await loadPromise;
-            } catch {
-                // Expected validation failure
-            }
-
-            const { ToastManager } = await import('../../src/modules/toast.ts');
-            expect(ToastManager.error).toHaveBeenCalled();
+            // Main load should succeed (changelog is deferred)
+            const overlay = document.getElementById('loading-overlay');
+            expect(overlay?.style.display).toBe('none');
         });
 
         it('should fail validation for null data', async () => {
