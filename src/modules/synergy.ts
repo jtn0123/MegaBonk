@@ -140,7 +140,8 @@ export function detectAntiSynergies(currentBuild: BuildState): AntiSynergy[] {
     currentBuild.items.forEach((item: Item, index: number) => {
         if (item.anti_synergies && item.anti_synergies.length > 0) {
             const antiSynergyList = item.anti_synergies;
-            currentBuild.items.slice(index + 1).forEach((otherItem: Item) => {
+            currentBuild.items.forEach((otherItem: Item, otherIndex: number) => {
+                if (index === otherIndex) return;
                 if (antiSynergyList.includes(otherItem.name) || antiSynergyList.includes(otherItem.id)) {
                     antiSynergies.push({
                         type: 'item-item',
