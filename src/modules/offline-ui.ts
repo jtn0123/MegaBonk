@@ -149,9 +149,27 @@ export function updateOfflineIndicator(isOffline: boolean): void {
 }
 
 /**
+ * Cleanup function returned by setupOfflineListeners
+ */
+let offlineListenersCleanup: (() => void) | null = null;
+
+/**
+ * Remove offline event listeners to prevent memory leaks
+ */
+export function cleanupOfflineListeners(): void {
+    if (offlineListenersCleanup) {
+        offlineListenersCleanup();
+        offlineListenersCleanup = null;
+    }
+}
+
+/**
  * Setup offline event listeners
  */
 export function setupOfflineListeners(): void {
+    // Clean up any previous listeners first
+    cleanupOfflineListeners();
+
     // Ensure the indicator element exists
     createOfflineIndicator();
 
@@ -176,6 +194,11 @@ export function setupOfflineListeners(): void {
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
+
+    offlineListenersCleanup = () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
+    };
 
     // Initial state check
     if (!navigator.onLine) {

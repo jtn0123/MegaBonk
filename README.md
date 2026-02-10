@@ -88,8 +88,6 @@ Then:
 
 Want a **true standalone APK** that works without your computer?
 
-- **⚡ Ready to Build?**: See `BUILD_APK_INSTRUCTIONS.md` - complete step-by-step guide
-- **Quick Start**: See `ANDROID_QUICK_START.md` for 3 easy options (5-15 minutes)
 - **Full Guide**: See `docs/ANDROID_STANDALONE.md` for detailed instructions
 
 Build methods:
@@ -133,7 +131,6 @@ MegaBonk/
 │   ├── DATA_FORMAT.md      # JSON schema reference
 │   └── SOURCES.md          # Data sources
 ├── serve.py                # One-click launch server
-├── PLAN.md                 # Design documentation
 └── README.md               # This file
 ```
 
@@ -143,8 +140,6 @@ MegaBonk/
 - **[Data Format](docs/DATA_FORMAT.md)** - JSON schemas for all 6 categories
 - **[Sources](docs/SOURCES.md)** - Data sources and verification methods
 - **[Android Standalone](docs/ANDROID_STANDALONE.md)** - Package as true Android APK
-- **[Android Quick Start](ANDROID_QUICK_START.md)** - 3 easy ways to build Android app
-- **[Plan](PLAN.md)** - Original design and architecture
 
 ## 🎯 Use Cases
 
