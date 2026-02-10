@@ -214,6 +214,7 @@ export async function openCompareModal(): Promise<void> {
     compareBody.innerHTML = html;
     modal.style.display = 'block';
     modal.setAttribute('aria-hidden', 'false'); // Announce modal to screen readers
+    document.body.classList.add('modal-open');
 
     // Trigger animation after display is set, then initialize chart
     // Using nested RAF ensures chart init happens after modal is visible
@@ -278,6 +279,7 @@ export async function closeCompareModal(): Promise<void> {
     // Update UI immediately (don't block on chart cleanup)
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true'); // Hide from screen readers
+    document.body.classList.remove('modal-open');
 
     // Destroy compare chart asynchronously to prevent memory leak
     // Using fire-and-forget pattern to avoid blocking modal close

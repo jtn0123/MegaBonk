@@ -226,8 +226,10 @@ export function calculateDPS(stats: CalculatedBuildStats): number {
  * @returns Effective HP value
  */
 export function calculateEffectiveHP(stats: CalculatedBuildStats): number {
-    const armorReduction = stats.armor / (stats.armor + 100); // Diminishing returns formula
-    const evasionMultiplier = 1 / (1 - stats.evasion / 100);
+    const safeArmor = Math.max(stats.armor, -99);
+    const armorReduction = safeArmor / (safeArmor + 100); // Diminishing returns formula
+    const clampedEvasion = Math.min(stats.evasion, 99.9);
+    const evasionMultiplier = 1 / (1 - clampedEvasion / 100);
 
     return stats.hp * (1 / (1 - armorReduction)) * evasionMultiplier;
 }

@@ -137,19 +137,17 @@ export function detectSynergies(currentBuild: BuildState): Synergy[] {
 export function detectAntiSynergies(currentBuild: BuildState): AntiSynergy[] {
     const antiSynergies: AntiSynergy[] = [];
 
-    currentBuild.items.forEach((item: Item) => {
+    currentBuild.items.forEach((item: Item, index: number) => {
         if (item.anti_synergies && item.anti_synergies.length > 0) {
             const antiSynergyList = item.anti_synergies;
-            currentBuild.items.forEach((otherItem: Item) => {
-                if (item.id !== otherItem.id) {
-                    if (antiSynergyList.includes(otherItem.name) || antiSynergyList.includes(otherItem.id)) {
-                        antiSynergies.push({
-                            type: 'item-item',
-                            message: `${item.name} conflicts with ${otherItem.name}`,
-                            source: item.name,
-                            target: otherItem.name,
-                        });
-                    }
+            currentBuild.items.slice(index + 1).forEach((otherItem: Item) => {
+                if (antiSynergyList.includes(otherItem.name) || antiSynergyList.includes(otherItem.id)) {
+                    antiSynergies.push({
+                        type: 'item-item',
+                        message: `${item.name} conflicts with ${otherItem.name}`,
+                        source: item.name,
+                        target: otherItem.name,
+                    });
                 }
             });
         }
