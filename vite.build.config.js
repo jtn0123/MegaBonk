@@ -232,7 +232,7 @@ export default defineConfig(async () => {
                 ? []
                 : [
                       VitePWA({
-                          registerType: 'autoUpdate',
+                          registerType: 'prompt',
                           manifest: {
                               name: 'MegaBonk Complete Guide',
                               short_name: 'MegaBonk',

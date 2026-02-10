@@ -210,7 +210,15 @@ export function saveBuildToHistory(): void {
 
         history.unshift(buildData);
         history = history.slice(0, MAX_BUILD_HISTORY);
-        localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
+        try {
+            localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
+        } catch (e) {
+            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                // Remove oldest entries and retry
+                history.splice(0, Math.ceil(history.length / 2));
+                try { localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history)); } catch {}
+            }
+        }
 
         logger.info({
             operation: 'build.save',
