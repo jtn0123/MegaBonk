@@ -540,6 +540,7 @@ export function resetAdvisor(): void {
     };
     selectedItems.clear();
     selectedTomes.clear();
+    listenersInitialized = false;
 
     // Reset UI
     const characterSelect = document.getElementById('advisor-character') as HTMLSelectElement;

@@ -102,6 +102,7 @@ describe('Advisor Module', () => {
     });
 
     afterEach(() => {
+        resetAdvisor();
         vi.restoreAllMocks();
     });
 

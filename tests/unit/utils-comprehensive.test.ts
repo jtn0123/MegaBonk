@@ -330,7 +330,8 @@ describe('utils - Sorting', () => {
         it('should return original array for unknown sort type', () => {
             const data = [...testData];
             const sorted = sortData(data, 'unknown' as any);
-            expect(sorted).toBe(data);
+            expect(sorted).toEqual(data);
+            expect(sorted).not.toBe(data);
         });
     });
 });
