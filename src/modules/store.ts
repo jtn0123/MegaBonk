@@ -148,28 +148,34 @@ export function getState<K extends keyof AppState>(key: K): AppState[K] {
  * @param key - State key to set
  * @param value - New value
  */
-export function setState<K extends keyof AppState>(key: K, value: AppState[K]): void {
-    state[key] = value;
+export function setState<K extends keyof AppState>(key: K, value: AppState[K] | ((prev: AppState[K]) => AppState[K])): void {
+    const resolvedValue = typeof value === 'function' ? (value as (prev: AppState[K]) => AppState[K])(state[key]) : value;
+    state[key] = resolvedValue;
 
     // Sync to window for backwards compatibility
     if (windowSyncEnabled && typeof window !== 'undefined') {
-        syncStateKeyToWindow(key, value);
+        syncStateKeyToWindow(key, resolvedValue);
     }
 
-    // Notify subscribers
+    // Notify subscribers asynchronously via microtask to batch updates
+    // and prevent mutations during callbacks from affecting other subscribers
     const keySubscribers = subscribers.get(key);
-    if (keySubscribers) {
-        keySubscribers.forEach(callback => {
-            try {
-                callback(value);
-            } catch (error) {
-                const err = error as Error;
-                logger.error({
-                    operation: 'store.subscriber_error',
-                    error: { name: err.name, message: err.message },
-                    data: { key },
-                });
-            }
+    if (keySubscribers && keySubscribers.size > 0) {
+        const snapshot = resolvedValue;
+        const callbacks = [...keySubscribers];
+        queueMicrotask(() => {
+            callbacks.forEach(callback => {
+                try {
+                    callback(snapshot);
+                } catch (error) {
+                    const err = error as Error;
+                    logger.error({
+                        operation: 'store.subscriber_error',
+                        error: { name: err.name, message: err.message },
+                        data: { key },
+                    });
+                }
+            });
         });
     }
 }

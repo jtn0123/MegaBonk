@@ -170,6 +170,17 @@ export function getBuildHistory(): BuildData[] {
                 operation: 'build.history',
                 error: { name: 'ValidationError', message: 'Build history is not an array' },
             });
+            localStorage.removeItem(BUILD_HISTORY_KEY);
+            return [];
+        }
+
+        // Validate basic schema: each entry must be an object with a character field
+        if (!parsed.every((b: unknown) => b && typeof b === 'object' && 'character' in (b as Record<string, unknown>))) {
+            logger.warn({
+                operation: 'build.history',
+                error: { name: 'ValidationError', message: 'Build history contains entries without character field, clearing corrupt data' },
+            });
+            localStorage.removeItem(BUILD_HISTORY_KEY);
             return [];
         }
 
