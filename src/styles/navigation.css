@@ -163,6 +163,8 @@
 }
 
 /* Item count badge */
+/* Canonical .item-count definition — overridden in animations.css (pulse effect),
+   themes.css (light mode), mobile-filters.css, and navigation.css media queries below */
 .item-count {
     font-size: 0.8rem;
     color: var(--text-muted);
@@ -244,8 +246,8 @@
     }
 
     /* Hide item count on mobile - saves space */
-    .item-count {
-        display: none !important;
+    .controls .item-count {
+        display: none;
     }
 
     /* Show filter toggle on mobile - icon only */

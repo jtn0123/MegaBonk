@@ -463,7 +463,7 @@ function showProcessingModal(imageData: string): void {
         content.innerHTML = `
             <div class="build-scan-processing">
                 <div class="build-scan-image-preview">
-                    <img src="${imageData}" alt="Processing screenshot" /><!-- SAFE: imageData is a data URL from FileReader.readAsDataURL -->
+                    <img src="${imageData}" alt="Processing screenshot" loading="lazy" /><!-- SAFE: imageData is a data URL from FileReader.readAsDataURL -->
                 </div>
                 <div class="build-scan-progress">
                     <div class="build-scan-progress-bar">
@@ -512,7 +512,7 @@ function showPreviewModal(imageData: string, detectedBuild: DetectedBuild): void
         content.innerHTML = `
             <div class="build-scan-preview">
                 <div class="build-scan-image-preview">
-                    <img src="${imageData}" alt="Uploaded screenshot" /><!-- SAFE: imageData is a data URL from FileReader.readAsDataURL -->
+                    <img src="${imageData}" alt="Uploaded screenshot" loading="lazy" /><!-- SAFE: imageData is a data URL from FileReader.readAsDataURL -->
                 </div>
 
                 <div class="build-scan-results">

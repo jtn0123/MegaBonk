@@ -44,6 +44,7 @@ export function safeSetValue(id: string, value: string | number): void {
 
 /**
  * Safely set element innerHTML
+ * @deprecated Used only in tests — not called from production code
  */
 export function safeSetHTML(id: string, html: string): void {
     const el = document.getElementById(id);
@@ -313,6 +314,10 @@ export function truncateText(text: string | null | undefined, maxLength: number 
 /**
  * Generate expandable text HTML
  */
+/**
+ * Generate expandable text HTML
+ * @deprecated Used only in tests — not called from production code
+ */
 export function generateExpandableText(text: string, maxLength: number = 120): string {
     const { html, needsExpand, fullText } = truncateText(text, maxLength);
 
@@ -344,6 +349,7 @@ export function generateTierLabel(tier: Tier): string {
 
 /**
  * Generate badge HTML
+ * @deprecated Used only in tests — not called from production code
  */
 export function generateBadge(text: string, className: string = ''): string {
     return `<span class="badge ${className}">${text}</span>`;
@@ -365,6 +371,7 @@ export function generateMetaTags(tags: string[] | null | undefined, limit: numbe
 
 /**
  * Find entity by ID in a data collection
+ * @deprecated Used only in tests — not called from production code
  */
 export function findEntityById<T = Entity>(
     dataCollection: Record<string, T[] | undefined> | undefined | null,

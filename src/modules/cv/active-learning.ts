@@ -4,6 +4,8 @@
 // Prompts users to verify uncertain detections to improve accuracy
 
 import type { Item, AllGameData } from '../../types/index.ts';
+// Dynamically load active-learning CSS only when ML feedback features are active
+import '../../styles/active-learning.css';
 import { logger } from '../logger.ts';
 import { addCorrection, startFeedbackSession, downloadFeedback, getCorrectionCount } from './training-feedback.ts';
 import type { DetectionForFeedback } from './training-feedback.ts';
@@ -325,7 +327,7 @@ export function renderActiveLearningPrompt(uncertain: UncertainDetection): strin
             <div class="al-detection">
                 ${
                     cropDataUrl
-                        ? `<div class="al-crop"><img src="${cropDataUrl}" alt="Detected region" /></div>`
+                        ? `<div class="al-crop"><img src="${cropDataUrl}" alt="Detected region" loading="lazy" /></div>`
                         : '<div class="al-crop-placeholder">No crop available</div>'
                 }
                 <div class="al-detected-info">
