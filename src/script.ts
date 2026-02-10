@@ -32,8 +32,8 @@ import { initPullRefresh } from './modules/pull-refresh.ts';
 // via the tab-loader module when their tabs are first accessed
 // Core modules that may be needed across multiple contexts are still eagerly loaded:
 import './modules/ocr/index.ts';
-import './modules/computer-vision.ts';
-import './modules/test-utils.ts';
+// computer-vision.ts is now lazy-loaded via scan-build.ts (through tab-loader)
+// test-utils.ts removed from production build — only imported by test files directly
 
 // Note: filteredData is now managed by the centralized store (store.ts)
 // Use getState('filteredData') and setState('filteredData', data) for access
