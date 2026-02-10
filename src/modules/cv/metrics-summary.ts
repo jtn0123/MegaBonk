@@ -3,6 +3,8 @@
 // ========================================
 // Displays aggregate detection stats and quality grades
 
+// Dynamically load metrics CSS only when metrics display is active
+import '../../styles/metrics.css';
 import { logger } from '../logger.ts';
 import {
     getAccuracySummary,

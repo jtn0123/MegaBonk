@@ -90,14 +90,14 @@
 /* Batch Processing - Multi-image batch processing, build scan modals */
 @import './batch.css';
 
-/* Debug Panel - Developer debug tools and logging */
-@import './debug.css';
+/* Debug Panel - Loaded dynamically by debug-ui.ts when debug features are active */
+/* @import './debug.css'; */
 
-/* Detection Metrics - CV/OCR accuracy and stats display */
-@import './metrics.css';
+/* Detection Metrics - Loaded dynamically by metrics-summary.ts when metrics are displayed */
+/* @import './metrics.css'; */
 
-/* Active Learning - ML feedback and training prompts */
-@import './active-learning.css';
+/* Active Learning - Loaded dynamically by active-learning.ts when ML feedback is active */
+/* @import './active-learning.css'; */
 
 /* Scan Build Enhanced - CV strategy selector and options */
 @import './scan-build-enhanced.css';

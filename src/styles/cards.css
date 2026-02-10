@@ -8,6 +8,8 @@
    Grid Layout
    ======================================== */
 
+/* Canonical .items-grid definition — overridden in responsive.css (breakpoints),
+   animations.css (staggered fade-in), and cards.css mobile media queries below */
 .items-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 350px), 1fr));
@@ -20,6 +22,8 @@
    Item Cards
    ======================================== */
 
+/* Canonical .item-card definition — overridden in responsive.css (breakpoints),
+   themes.css (light mode), shrines.css (.shrine-card variant), animations.css (fade-in) */
 .item-card {
     background: var(--bg-elevated);
     border-radius: 8px;
@@ -558,25 +562,25 @@
     }
 
     /* Description: hide on mobile - effect is enough */
-    .item-description {
-        display: none !important;
+    .item-card .item-description {
+        display: none;
     }
 
     /* Hide "Click to expand" indicator */
-    .expand-indicator {
-        display: none !important;
+    .item-card .expand-indicator {
+        display: none;
     }
 
     /* Hide scaling charts on mobile */
-    .item-graph-container,
-    .tome-graph-container {
-        display: none !important;
+    .item-card .item-graph-container,
+    .item-card .tome-graph-container {
+        display: none;
     }
 
     /* Hide graph placeholder text on mobile */
-    .item-graph-placeholder,
-    .tome-graph-placeholder {
-        display: none !important;
+    .item-card .item-graph-placeholder,
+    .item-card .tome-graph-placeholder {
+        display: none;
     }
 
     /* Meta tags: right column, third row */

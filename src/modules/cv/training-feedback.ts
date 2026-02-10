@@ -145,7 +145,7 @@ export function clearFeedbackSession(): void {
     try {
         sessionStorage.removeItem(SESSION_STORAGE_KEY);
     } catch (e) {
-        // Ignore
+        logger.debug({ operation: 'feedback.storage_error', data: { error: e } });
     }
 
     logger.info({
@@ -259,7 +259,7 @@ export async function addCorrection(
     try {
         sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
     } catch (e) {
-        // Ignore
+        logger.debug({ operation: 'feedback.storage_error', data: { error: e } });
     }
 
     logger.info({
@@ -290,7 +290,7 @@ export function removeCorrection(correctionId: string): boolean {
     try {
         sessionStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
     } catch (e) {
-        // Ignore
+        logger.debug({ operation: 'feedback.storage_error', data: { error: e } });
     }
 
     return true;
@@ -420,6 +420,6 @@ export function __resetForTesting(): void {
     try {
         sessionStorage.removeItem(SESSION_STORAGE_KEY);
     } catch (e) {
-        // Ignore
+        logger.debug({ operation: 'feedback.storage_error', data: { error: e } });
     }
 }

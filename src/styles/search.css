@@ -161,7 +161,7 @@
 
 .search-highlight {
     animation: searchHighlight 1s ease-in-out 2;
-    border-color: var(--accent) !important;
+    border-color: var(--accent);
 }
 
 @media (max-width: 640px) {
