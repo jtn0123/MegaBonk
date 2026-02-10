@@ -121,6 +121,7 @@ export async function displayDebugOverlay(
             const img = document.createElement('img');
             img.src = debugOverlayUrl;
             img.alt = 'Debug Overlay';
+            img.loading = 'lazy';
             img.style.cssText = 'max-width: 100%; border-radius: 8px;';
             const caption = document.createElement('p');
             caption.style.cssText = 'text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;';

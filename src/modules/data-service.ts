@@ -8,7 +8,7 @@ import { logger } from './logger.ts';
 import { getSavedTab } from './events.ts';
 import { getState, setState } from './store.ts';
 import { recordDataSync } from './offline-ui.ts';
-import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch } from '../types/index.ts';
+import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch, ShrinesData, Stats, ItemsData, WeaponsData, TomesData, CharactersData } from '../types/index.ts';
 
 // ========================================
 // Type Definitions
@@ -273,52 +273,68 @@ async function fetchWithRetry(url: string, maxRetries: number = 4, initialDelay:
 }
 
 /**
- * Load all game data from JSON files
+ * Fetch and parse a single JSON data file with validation
+ */
+async function fetchAndValidate(url: string, type: DataType): Promise<unknown> {
+    const response = await fetchWithRetry(url);
+    if (!response.ok) {
+        throw new Error(`Failed to load ${response.url}: ${response.status} ${response.statusText}`);
+    }
+    const data = await response.json();
+    if (!validateData(data, type)) {
+        throw new Error(`Data validation failed for ${type}. Data may be corrupted.`);
+    }
+    return data;
+}
+
+/**
+ * Load deferred (non-essential) data in the background.
+ * Merges into the existing store without blocking the UI.
+ */
+async function loadDeferredData(): Promise<void> {
+    try {
+        const [shrines, stats, changelog] = await Promise.all([
+            fetchAndValidate('./data/shrines.json', 'shrines'),
+            fetchAndValidate('./data/stats.json', 'stats'),
+            fetchAndValidate('./data/changelog.json', 'changelog'),
+        ]) as [ShrinesData, Stats, ChangelogData];
+
+        const current = getState('allData') as AllGameData;
+        setState('allData', { ...current, shrines, stats, changelog });
+
+        logger.debug({
+            operation: 'data.deferred_load',
+            data: { filesLoaded: ['shrines', 'stats', 'changelog'] },
+        });
+    } catch (error) {
+        const err = error as Error;
+        logger.warn({
+            operation: 'data.deferred_load',
+            error: { name: err.name, message: err.message, module: 'data-service' },
+        });
+    }
+}
+
+/**
+ * Load all game data from JSON files.
+ * Essential data (items, weapons, tomes, characters) loads first;
+ * secondary data (shrines, stats, changelog) is deferred.
  */
 export async function loadAllData(): Promise<void> {
     showLoading();
     const loadStartTime = performance.now();
 
     try {
-        const responses = await Promise.all([
-            fetchWithRetry('./data/items.json'),
-            fetchWithRetry('./data/weapons.json'),
-            fetchWithRetry('./data/tomes.json'),
-            fetchWithRetry('./data/characters.json'),
-            fetchWithRetry('./data/shrines.json'),
-            fetchWithRetry('./data/stats.json'),
-            fetchWithRetry('./data/changelog.json'),
-        ]);
+        // Phase 1: Load essential data needed for the default tab
+        const [items, weapons, tomes, characters] = await Promise.all([
+            fetchAndValidate('./data/items.json', 'items'),
+            fetchAndValidate('./data/weapons.json', 'weapons'),
+            fetchAndValidate('./data/tomes.json', 'tomes'),
+            fetchAndValidate('./data/characters.json', 'characters'),
+        ]) as [ItemsData, WeaponsData, TomesData, CharactersData];
 
-        // Check for HTTP errors and parse JSON safely
-        const [items, weapons, tomes, characters, shrines, stats, changelog] = await Promise.all(
-            responses.map(async r => {
-                if (!r.ok) {
-                    throw new Error(`Failed to load ${r.url}: ${r.status} ${r.statusText}`);
-                }
-                return r.json();
-            })
-        );
-
-        // Validate all data
-        const dataTypes: Array<{ data: unknown; type: DataType }> = [
-            { data: items, type: 'items' },
-            { data: weapons, type: 'weapons' },
-            { data: tomes, type: 'tomes' },
-            { data: characters, type: 'characters' },
-            { data: shrines, type: 'shrines' },
-            { data: stats, type: 'stats' },
-            { data: changelog, type: 'changelog' },
-        ];
-
-        for (const { data, type } of dataTypes) {
-            if (!validateData(data, type)) {
-                throw new Error(`Data validation failed for ${type}. Data may be corrupted.`);
-            }
-        }
-
-        // Update store as single source of truth
-        const newData = { items, weapons, tomes, characters, shrines, stats, changelog };
+        // Update store with essential data (deferred fields will be merged later)
+        const newData: AllGameData = { items, weapons, tomes, characters };
         setState('allData', newData);
 
         // Invalidate build stats cache when data changes
@@ -348,13 +364,13 @@ export async function loadAllData(): Promise<void> {
             durationMs: loadDuration,
             success: true,
             data: {
-                filesLoaded: ['items', 'weapons', 'tomes', 'characters', 'shrines', 'stats', 'changelog'],
+                filesLoaded: ['items', 'weapons', 'tomes', 'characters'],
+                deferredFiles: ['shrines', 'stats', 'changelog'],
                 itemCounts: {
                     items: items?.items?.length || 0,
                     weapons: weapons?.weapons?.length || 0,
                     tomes: tomes?.tomes?.length || 0,
                     characters: characters?.characters?.length || 0,
-                    shrines: shrines?.shrines?.length || 0,
                 },
                 validationResults: {
                     valid: validationResult.valid,
@@ -408,6 +424,9 @@ export async function loadAllData(): Promise<void> {
         if (typeof windowWithScanBuild.initScanBuild === 'function') {
             windowWithScanBuild.initScanBuild(newData);
         }
+
+        // Phase 2: Load deferred data (shrines, stats, changelog) in background
+        loadDeferredData();
     } catch (error) {
         const loadDuration = Math.round(performance.now() - loadStartTime);
         const err = error as Error;

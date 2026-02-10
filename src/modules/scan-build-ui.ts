@@ -41,6 +41,7 @@ export function displayUploadedImage(
     const img = document.createElement('img');
     img.src = uploadedImage; // Set via property, not innerHTML
     img.alt = 'Uploaded build screenshot';
+    img.loading = 'lazy';
     img.className = 'scan-preview-image';
 
     const clearBtn = document.createElement('button');

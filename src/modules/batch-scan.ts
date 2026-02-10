@@ -565,7 +565,7 @@ export function renderBatchResultsGrid(containerId: string): void {
                     result => `
                 <div class="batch-result-card ${result.status}" data-id="${result.id}">
                     <div class="batch-thumbnail">
-                        ${result.thumbnail ? `<img src="${result.thumbnail}" alt="${escapeHtml(result.filename)}" />` : '<div class="batch-thumbnail-placeholder">Loading...</div>'}
+                        ${result.thumbnail ? `<img src="${result.thumbnail}" alt="${escapeHtml(result.filename)}" loading="lazy" />` : '<div class="batch-thumbnail-placeholder">Loading...</div>'}
                         <div class="batch-status-badge status-${result.status}">
                             ${result.status === 'complete' ? '✓' : result.status === 'error' ? '✗' : '...'}
                         </div>

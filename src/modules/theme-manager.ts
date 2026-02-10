@@ -105,7 +105,7 @@ const DARK_THEME: Readonly<ThemeVariables> = Object.freeze({
     '--rarity-common': '#6b9b6b',
     '--rarity-uncommon': '#5bb8d0',
     '--rarity-rare': '#c94de0',
-    '--rarity-epic': '#8b5cf6',
+    '--rarity-epic': '#9b75ff',
     '--rarity-legendary': '#f0a800',
 
     '--bg-primary': '#0f0f14',

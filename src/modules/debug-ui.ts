@@ -6,6 +6,9 @@
 // Enhanced with breadcrumb display and new debug controls
 // ========================================
 
+// Dynamically load debug CSS only when debug features are active
+import '../styles/debug.css';
+
 import {
     setDebugEnabled,
     isDebugEnabled,

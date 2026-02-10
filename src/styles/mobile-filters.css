@@ -314,8 +314,8 @@ body.filter-sheet-open {
     }
 
     /* Hide desktop filters on mobile */
-    .controls .filters {
-        display: none !important;
+    body .controls .filters {
+        display: none;
     }
 
     /* Adjust controls layout for mobile */
@@ -330,8 +330,8 @@ body.filter-sheet-open {
     }
 
     /* Hide the desktop filter toggle on mobile */
-    .filter-toggle-btn {
-        display: none !important;
+    body .filter-toggle-btn {
+        display: none;
     }
 
     /* Adjust item count */
