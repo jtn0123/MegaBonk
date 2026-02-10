@@ -21,3 +21,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=megabonk
+      - name: Smoke test
+        run: |
+          sleep 30  # Wait for deploy propagation
+          curl -sf https://megabonk.neuhard.dev/ | grep -q 'MegaBonk' || exit 1
