@@ -159,6 +159,44 @@ export function analyzeDetectionErrors(
 /**
  * Diagnose why an error occurred
  */
+function diagnoseMissed(detectedCount: number, expectedCount: number, confidences: number[]): string[] {
+    const reasons: string[] = [];
+    if (detectedCount === 0) {
+        reasons.push('Item completely missed - template may be missing or incorrect');
+        reasons.push('Item may be obscured by visual effects or particles');
+        reasons.push('Item color/appearance may differ from template');
+    } else {
+        reasons.push(`Only ${detectedCount}/${expectedCount} detected - possible duplicate detection failure`);
+        reasons.push('Some items may be partially occluded');
+    }
+    if (confidences.length > 0 && confidences[0] !== undefined && confidences[0] < 0.7) {
+        reasons.push(`Low confidence (${confidences[0].toFixed(2)}) - template match may be weak`);
+    }
+    return reasons;
+}
+
+function diagnoseOverDetected(confidences: number[]): string[] {
+    const reasons: string[] = [
+        'Duplicate detection - same item matched multiple times',
+        'Similar-looking items may be confused',
+    ];
+    if (confidences.some(c => c < 0.75)) {
+        reasons.push('Some detections have low confidence - may be false matches');
+    }
+    return reasons;
+}
+
+function diagnoseSpurious(itemName: string, confidences: number[]): string[] {
+    const reasons: string[] = ['Item not in ground truth - may be visual similarity to other items'];
+    if (itemName.includes('wrench') || itemName.includes('medkit')) {
+        reasons.push('Common items may be over-detected due to visual similarity');
+    }
+    if (confidences.length > 0 && confidences[0] !== undefined && confidences[0] < 0.6) {
+        reasons.push(`Very low confidence (${confidences[0].toFixed(2)}) suggests false positive`);
+    }
+    return reasons;
+}
+
 function diagnoseError(
     itemName: string,
     detectedCount: number,
@@ -166,41 +204,16 @@ function diagnoseError(
     confidences: number[],
     errorType: 'missed' | 'over-detected' | 'spurious'
 ): string[] {
-    const reasons: string[] = [];
-
     if (errorType === 'missed') {
-        if (detectedCount === 0) {
-            reasons.push('Item completely missed - template may be missing or incorrect');
-            reasons.push('Item may be obscured by visual effects or particles');
-            reasons.push('Item color/appearance may differ from template');
-        } else {
-            reasons.push(`Only ${detectedCount}/${expectedCount} detected - possible duplicate detection failure`);
-            reasons.push('Some items may be partially occluded');
-        }
-
-        if (confidences.length > 0 && confidences[0] !== undefined && confidences[0] < 0.7) {
-            reasons.push(`Low confidence (${confidences[0].toFixed(2)}) - template match may be weak`);
-        }
-    } else if (errorType === 'over-detected') {
-        reasons.push('Duplicate detection - same item matched multiple times');
-        reasons.push('Similar-looking items may be confused');
-
-        if (confidences.some(c => c < 0.75)) {
-            reasons.push('Some detections have low confidence - may be false matches');
-        }
-    } else if (errorType === 'spurious') {
-        reasons.push('Item not in ground truth - may be visual similarity to other items');
-
-        if (itemName.includes('wrench') || itemName.includes('medkit')) {
-            reasons.push('Common items may be over-detected due to visual similarity');
-        }
-
-        if (confidences.length > 0 && confidences[0] !== undefined && confidences[0] < 0.6) {
-            reasons.push(`Very low confidence (${confidences[0].toFixed(2)}) suggests false positive`);
-        }
+        return diagnoseMissed(detectedCount, expectedCount, confidences);
     }
-
-    return reasons;
+    if (errorType === 'over-detected') {
+        return diagnoseOverDetected(confidences);
+    }
+    if (errorType === 'spurious') {
+        return diagnoseSpurious(itemName, confidences);
+    }
+    return [];
 }
 
 /**

@@ -252,27 +252,27 @@ export function rgbToHSV(r: number, g: number, b: number): HSVColor {
 /**
  * Get color category from HSV
  */
-export function getColorCategoryHSV(hsv: HSVColor): string {
-    // Low saturation = grayscale
-    if (hsv.s < 15) {
-        if (hsv.v < 25) return 'black';
-        if (hsv.v > 75) return 'white';
-        return 'gray';
-    }
+function getGrayscaleCategory(v: number): string {
+    if (v < 25) return 'black';
+    if (v > 75) return 'white';
+    return 'gray';
+}
 
-    // Categorize by hue
-    const h = hsv.h;
-
+function getHueCategory(h: number): string {
     if (h < 30 || h >= 330) return 'red';
-    if (h >= 30 && h < 60) return 'orange';
-    if (h >= 60 && h < 90) return 'yellow';
-    if (h >= 90 && h < 150) return 'green';
-    if (h >= 150 && h < 180) return 'cyan';
-    if (h >= 180 && h < 240) return 'blue';
-    if (h >= 240 && h < 300) return 'purple';
-    if (h >= 300 && h < 330) return 'magenta';
-
+    if (h < 60) return 'orange';
+    if (h < 90) return 'yellow';
+    if (h < 150) return 'green';
+    if (h < 180) return 'cyan';
+    if (h < 240) return 'blue';
+    if (h < 300) return 'purple';
+    if (h < 330) return 'magenta';
     return 'mixed';
+}
+
+export function getColorCategoryHSV(hsv: HSVColor): string {
+    if (hsv.s < 15) return getGrayscaleCategory(hsv.v);
+    return getHueCategory(hsv.h);
 }
 
 /**
@@ -401,34 +401,39 @@ function extractBorderDominantColor(imageData: ImageData): string {
 /**
  * Get dominant color category from RGB (helper function)
  */
+function getLowSaturationColor(avgR: number, avgG: number, avgB: number): string {
+    const brightness = (avgR + avgG + avgB) / 3;
+    if (brightness < 60) return 'black';
+    if (brightness > 200) return 'white';
+    return 'gray';
+}
+
+function getRedDominantColor(avgR: number, avgG: number, avgB: number): string {
+    if (avgG > avgB * 1.3) return 'orange';
+    if (avgR > 180 && avgG > 140) return 'yellow';
+    return 'red';
+}
+
+function getGreenDominantColor(avgR: number, avgG: number, avgB: number): string {
+    if (avgB > avgR * 1.3) return 'cyan';
+    if (avgG > 180 && avgB < 100) return 'lime';
+    return 'green';
+}
+
+function getBlueDominantColor(avgR: number, avgG: number, _avgB: number): string {
+    if (avgR > avgG * 1.3) return 'purple';
+    return 'blue';
+}
+
 function getDominantColorRGB(avgR: number, avgG: number, avgB: number): string {
     const maxChannel = Math.max(avgR, avgG, avgB);
     const minChannel = Math.min(avgR, avgG, avgB);
     const diff = maxChannel - minChannel;
 
-    // Low saturation = gray/white/black
-    if (diff < 30) {
-        const brightness = (avgR + avgG + avgB) / 3;
-        if (brightness < 60) return 'black';
-        if (brightness > 200) return 'white';
-        return 'gray';
-    }
-
-    // High saturation = color
-    if (avgR > avgG && avgR > avgB) {
-        if (avgG > avgB * 1.3) return 'orange';
-        if (avgR > 180 && avgG > 140) return 'yellow';
-        return 'red';
-    } else if (avgG > avgR && avgG > avgB) {
-        if (avgB > avgR * 1.3) return 'cyan';
-        if (avgG > 180 && avgB < 100) return 'lime';
-        return 'green';
-    } else if (avgB > avgR && avgB > avgG) {
-        if (avgR > avgG * 1.3) return 'purple';
-        if (avgB > 180 && avgG < 100) return 'blue';
-        return 'blue';
-    }
-
+    if (diff < 30) return getLowSaturationColor(avgR, avgG, avgB);
+    if (avgR > avgG && avgR > avgB) return getRedDominantColor(avgR, avgG, avgB);
+    if (avgG > avgR && avgG > avgB) return getGreenDominantColor(avgR, avgG, avgB);
+    if (avgB > avgR && avgB > avgG) return getBlueDominantColor(avgR, avgG, avgB);
     if (avgR > 150 && avgG < 100 && avgB > 150) return 'magenta';
     if (avgR > 100 && avgG > 100 && avgB < 80) return 'brown';
 

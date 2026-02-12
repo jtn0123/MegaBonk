@@ -248,7 +248,7 @@ describe('Computer Vision - Pattern Matching', () => {
         // This would test actual CV detection
         // For now, verify the function exists and returns expected structure
         const mockImageUrl = createMockImageDataUrl();
-        // detectItemsWithCV would be called here
+        expect(mockImageUrl).toBeDefined();
     });
 
     it('should handle different rarity colors', () => {

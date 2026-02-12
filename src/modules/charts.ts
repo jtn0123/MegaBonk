@@ -130,7 +130,7 @@ interface ChartDataset {
 // ========================================
 
 // Chart instances storage (for cleanup)
-export let chartInstances: Record<string, Chart> = {};
+export const chartInstances: Record<string, Chart> = {};
 
 // ========================================
 // Exported Functions
@@ -529,5 +529,5 @@ export function destroyAllCharts(): void {
             chartInstances[canvasId].destroy();
         }
     });
-    chartInstances = {};
+    Object.keys(chartInstances).forEach(key => delete chartInstances[key]);
 }

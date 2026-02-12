@@ -65,93 +65,82 @@ interface BuildArchetype {
 /**
  * Detect build archetype based on current items and tomes
  */
+interface ArchetypeCounts {
+    damage: number;
+    tank: number;
+    crit: number;
+    proc: number;
+    speed: number;
+}
+
+function matchesAny(text: string, ...keywords: string[]): boolean {
+    return keywords.some(k => text.includes(k));
+}
+
+function categorizeItem(item: { name?: string; base_effect?: string; description?: string }): ArchetypeCounts {
+    const itemName = item.name?.toLowerCase() || '';
+    const effect = item.base_effect?.toLowerCase() || '';
+    const desc = item.description?.toLowerCase() || '';
+    const all = `${itemName} ${effect} ${desc}`;
+
+    return {
+        damage: matchesAny(all, 'damage') ? 1 : 0,
+        tank: matchesAny(itemName, 'hp', 'health', 'beefy') || matchesAny(effect, 'hp') ? 1 : 0,
+        crit: matchesAny(itemName, 'crit', 'juice', 'fork') || matchesAny(effect, 'crit') ? 1 : 0,
+        proc: matchesAny(itemName, 'proc', 'chance', 'bonk', 'meatball') ? 1 : 0,
+        speed: matchesAny(all, 'attack speed') || matchesAny(itemName, 'speed') ? 1 : 0,
+    };
+}
+
+function categorizeTome(tome: { stat_affected?: string }): ArchetypeCounts {
+    const stat = tome.stat_affected?.toLowerCase() || '';
+    return {
+        damage: stat.includes('damage') ? 2 : 0,
+        tank: matchesAny(stat, 'health', 'hp') ? 2 : 0,
+        crit: stat.includes('crit') ? 2 : 0,
+        proc: 0,
+        speed: matchesAny(stat, 'attack speed', 'cooldown') ? 2 : 0,
+    };
+}
+
 function detectBuildArchetype(build: BuildState): BuildArchetype {
-    let damageCount = 0;
-    let tankCount = 0;
-    let critCount = 0;
-    let procCount = 0;
-    let speedCount = 0;
+    const counts: ArchetypeCounts = { damage: 0, tank: 0, crit: 0, proc: 0, speed: 0 };
 
-    // Analyze items
     for (const item of build.items) {
-        const itemName = item.name?.toLowerCase() || '';
-        const effect = item.base_effect?.toLowerCase() || '';
-        const desc = item.description?.toLowerCase() || '';
-
-        if (itemName.includes('damage') || effect.includes('damage') || desc.includes('damage')) {
-            damageCount++;
-        }
-        if (
-            itemName.includes('hp') ||
-            itemName.includes('health') ||
-            effect.includes('hp') ||
-            itemName.includes('beefy')
-        ) {
-            tankCount++;
-        }
-        if (
-            itemName.includes('crit') ||
-            effect.includes('crit') ||
-            itemName.includes('juice') ||
-            itemName.includes('fork')
-        ) {
-            critCount++;
-        }
-        if (
-            itemName.includes('proc') ||
-            itemName.includes('chance') ||
-            itemName.includes('bonk') ||
-            itemName.includes('meatball')
-        ) {
-            procCount++;
-        }
-        if (itemName.includes('speed') || itemName.includes('attack speed') || effect.includes('attack speed')) {
-            speedCount++;
-        }
+        const c = categorizeItem(item);
+        counts.damage += c.damage;
+        counts.tank += c.tank;
+        counts.crit += c.crit;
+        counts.proc += c.proc;
+        counts.speed += c.speed;
     }
 
-    // Analyze tomes
     for (const tome of build.tomes) {
-        const statAffected = tome.stat_affected?.toLowerCase() || '';
-
-        if (statAffected.includes('damage')) damageCount += 2;
-        if (statAffected.includes('health') || statAffected.includes('hp')) tankCount += 2;
-        if (statAffected.includes('crit')) critCount += 2;
-        if (statAffected.includes('attack speed') || statAffected.includes('cooldown')) speedCount += 2;
+        const c = categorizeTome(tome);
+        counts.damage += c.damage;
+        counts.tank += c.tank;
+        counts.crit += c.crit;
+        counts.speed += c.speed;
     }
 
-    const total = damageCount + tankCount + critCount + procCount + speedCount;
+    const total = counts.damage + counts.tank + counts.crit + counts.proc + counts.speed;
 
-    if (total === 0) {
-        return { type: 'mixed', strength: 0 };
-    }
+    if (total === 0) return { type: 'mixed', strength: 0 };
 
-    // Determine dominant archetype
     const scores = [
-        { type: 'damage' as const, count: damageCount },
-        { type: 'tank' as const, count: tankCount },
-        { type: 'crit' as const, count: critCount },
-        { type: 'proc' as const, count: procCount },
-        { type: 'speed' as const, count: speedCount },
+        { type: 'damage' as const, count: counts.damage },
+        { type: 'tank' as const, count: counts.tank },
+        { type: 'crit' as const, count: counts.crit },
+        { type: 'proc' as const, count: counts.proc },
+        { type: 'speed' as const, count: counts.speed },
     ];
 
     scores.sort((a, b) => b.count - a.count);
 
-    // Guard against empty scores array before accessing first element
-    if (scores.length === 0) {
-        return { type: 'mixed', strength: 0 };
-    }
-
-    // Safe: length check above guarantees scores[0] exists
     const dominant = scores[0]!;
-
     const strength = dominant.count / total;
 
-    // If no clear winner (difference < 20%), it's mixed
-    if (strength < 0.3) {
-        return { type: 'mixed', strength: 0.5 };
-    }
-
+    if (strength < 0.3) return { type: 'mixed', strength: 0.5 };
     return { type: dominant.type, strength };
 }
 
@@ -269,47 +258,38 @@ function calculateSynergyScore(
 /**
  * Check for redundancy (already have similar items)
  */
-function calculateRedundancyPenalty(choice: ChoiceOption, build: BuildState): { penalty: number; reason?: string } {
-    if (choice.type !== 'item') {
-        return { penalty: 0 };
+const EFFECT_KEYWORDS = ['damage', 'crit', 'hp'];
+
+function countSimilarEffects(itemEffect: string, buildItems: Array<{ base_effect?: string }>): number {
+    let count = 0;
+    for (const buildItem of buildItems) {
+        const buildEffect = buildItem.base_effect?.toLowerCase() || '';
+        for (const keyword of EFFECT_KEYWORDS) {
+            if (itemEffect.includes(keyword) && buildEffect.includes(keyword)) {
+                count++;
+                break;
+            }
+        }
     }
+    return count;
+}
+
+function calculateRedundancyPenalty(choice: ChoiceOption, build: BuildState): { penalty: number; reason?: string } {
+    if (choice.type !== 'item') return { penalty: 0 };
 
     const item = choice.entity as Item;
+    const hasAlready = build.items.some(i => i.id === item.id);
 
-    // Check for "one and done" items
-    if (item.one_and_done) {
-        const hasAlready = build.items.some(i => i.id === item.id);
-        if (hasAlready) {
-            return { penalty: 100, reason: 'ONE-AND-DONE item already in build' };
-        }
+    if (item.one_and_done && hasAlready) {
+        return { penalty: 100, reason: 'ONE-AND-DONE item already in build' };
     }
 
-    // Check if we already have this exact item and it doesn't stack well
-    if (item.stacks_well === false) {
-        const hasAlready = build.items.some(i => i.id === item.id);
-        if (hasAlready) {
-            return { penalty: 50, reason: 'Item does not stack well' };
-        }
+    if (item.stacks_well === false && hasAlready) {
+        return { penalty: 50, reason: 'Item does not stack well' };
     }
 
-    // Count similar items (diminishing returns)
     const itemEffect = item.base_effect?.toLowerCase() || '';
-    let similarCount = 0;
-
-    for (const buildItem of build.items) {
-        const buildEffect = buildItem.base_effect?.toLowerCase() || '';
-
-        // Check for similar effects
-        if (itemEffect.includes('damage') && buildEffect.includes('damage')) {
-            similarCount++;
-        } else if (itemEffect.includes('crit') && buildEffect.includes('crit')) {
-            similarCount++;
-        } else if (itemEffect.includes('hp') && buildEffect.includes('hp')) {
-            similarCount++;
-        }
-    }
-
-    // Penalty increases with more similar items
+    const similarCount = countSimilarEffects(itemEffect, build.items);
     const penalty = Math.min(similarCount * 10, 40);
 
     if (penalty > 0) {

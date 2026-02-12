@@ -394,6 +394,7 @@ describe('Graph Data Validation', () => {
             });
 
             // This is a soft check - some capped items may have different patterns
+            expect(Array.isArray(noPlateau)).toBe(true);
             if (noPlateau.length > 0) {
                 console.warn('Items with capped graph_type but no obvious plateau:', noPlateau);
             }

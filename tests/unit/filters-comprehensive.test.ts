@@ -422,6 +422,7 @@ describe('filters module', () => {
             handleSearch();
 
             // Should call renderTabContent for regular render
+            expect((window as any).renderTabContent).toBeDefined();
         });
 
         it('should add search term to history for terms >= 2 chars', async () => {

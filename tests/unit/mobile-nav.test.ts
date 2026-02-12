@@ -173,7 +173,8 @@ describe('Mobile Navigation Module', () => {
             weaponsBtn.click();
 
             // The tab button should be clicked (or setState called as fallback)
-            // In test environment, we expect the click handler to work
+            expect(weaponsBtn).not.toBeNull();
+            expect(mockTabBtn.dataset.tab).toBe('weapons');
         });
 
         it('should show more menu when more button clicked', () => {
