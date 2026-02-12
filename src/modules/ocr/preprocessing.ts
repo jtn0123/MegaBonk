@@ -9,7 +9,9 @@
  */
 export function preprocessForDigits(canvas: HTMLCanvasElement): HTMLCanvasElement {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) return canvas;
+    if (!ctx) {
+        throw new Error('Failed to get 2D context for preprocessing');
+    }
 
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const data = imageData.data;

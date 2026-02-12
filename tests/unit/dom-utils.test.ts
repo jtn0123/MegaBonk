@@ -749,16 +749,13 @@ describe('DOM Utilities Module', () => {
         });
 
         it('should add .json extension if missing', () => {
-            downloadJson({}, 'mydata');
-            
-            const appendedEl = document.body.appendChild as any;
-            // The filename should include .json
+            expect(() => downloadJson({}, 'mydata')).not.toThrow();
+            expect(createObjectURLSpy).toHaveBeenCalled();
         });
 
         it('should not duplicate .json extension', () => {
-            downloadJson({}, 'mydata.json');
-            
-            // Filename should be mydata.json, not mydata.json.json
+            expect(() => downloadJson({}, 'mydata.json')).not.toThrow();
+            expect(createObjectURLSpy).toHaveBeenCalled();
         });
 
         it('should handle arrays', () => {

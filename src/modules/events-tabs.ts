@@ -35,8 +35,7 @@ const TAB_SWITCH_DEBOUNCE_MS = 100;
 // Lock to prevent concurrent tab switches (race condition fix)
 let tabSwitchInProgress = false;
 
-// Current tab state - kept for backwards compatibility
-export let currentTab: TabName = getState('currentTab');
+// Current tab state is managed via getState('currentTab')
 
 /**
  * Reset internal timers for testing purposes
@@ -118,7 +117,6 @@ async function cleanupPreviousTab(previousTab: TabName): Promise<void> {
  */
 function updateTabState(tabName: TabName, previousTab: TabName): void {
     setState('currentTab', tabName);
-    currentTab = tabName;
     localStorage.setItem(TAB_STORAGE_KEY, tabName);
     logger.setContext('currentTab', tabName);
 

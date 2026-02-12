@@ -253,8 +253,8 @@ describe('sleep', () => {
         
         await vi.advanceTimersByTimeAsync(10000);
         
-        await sleepPromise;
-        // If we get here without timing out, the test passes
+        const result = await sleepPromise;
+        expect(result).toBeUndefined();
     });
 
     it('should be usable in async/await patterns', async () => {

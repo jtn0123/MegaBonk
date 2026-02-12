@@ -265,6 +265,7 @@ describe('ToastManager', () => {
             
             vi.advanceTimersByTime(0);
             // Should still work, treated as 0 or immediate
+            expect(toast).toBeDefined();
         });
     });
 });

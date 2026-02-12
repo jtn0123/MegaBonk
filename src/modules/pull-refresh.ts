@@ -145,7 +145,6 @@ function handleTouchMove(e: TouchEvent): void {
 
     // Only allow pulling down
     if (distance < 0) {
-        distance = 0;
         state.isPulling = false;
         return;
     }
