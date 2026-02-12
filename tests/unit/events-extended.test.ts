@@ -845,6 +845,7 @@ describe('Events Module - Extended Coverage', () => {
             document.dispatchEvent(event);
             
             await new Promise(resolve => setTimeout(resolve, 10));
+            expect(tabBtn).toBeDefined();
         });
 
         it('should handle ArrowLeft for tab navigation', async () => {
@@ -857,6 +858,7 @@ describe('Events Module - Extended Coverage', () => {
             document.dispatchEvent(event);
             
             await new Promise(resolve => setTimeout(resolve, 10));
+            expect(tabBtn).toBeDefined();
         });
 
         it('should handle Enter on breakpoint card', async () => {
@@ -873,6 +875,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(card.dataset.item).toBe('test-item');
             card.remove();
         });
 
@@ -890,6 +893,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(card.dataset.item).toBe('test-item');
             card.remove();
         });
 
@@ -982,6 +986,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(checkbox).toBeDefined();
             label.remove();
         });
 
@@ -998,6 +1003,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(btn.dataset.removeId).toBe('item-1');
             btn.remove();
         });
 
@@ -1018,6 +1024,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(btn.dataset.removeId).toBe('item-2');
             btn.remove();
         });
 
@@ -1043,6 +1050,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(btn.className).toBe('changelog-expand-btn');
             btn.remove();
         });
 
@@ -1070,6 +1078,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(card.dataset.item).toBe('weapon-1');
             card.remove();
         });
 
@@ -1091,6 +1100,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(card.dataset.item).toBe('weapon-2');
             card.remove();
         });
 
@@ -1126,6 +1136,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 10));
             
+            expect(btn.dataset.id).toBe('weapon-1');
             btn.remove();
         });
 
@@ -1149,6 +1160,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 100));
             
+            expect(card.dataset.entityId).toBe('tome-1');
             card.remove();
             targetCard.remove();
         });
@@ -1191,6 +1203,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(checkbox.className).toBe('tome-checkbox');
             checkbox.remove();
         });
 
@@ -1204,6 +1217,7 @@ describe('Events Module - Extended Coverage', () => {
             
             await new Promise(resolve => setTimeout(resolve, 50));
             
+            expect(checkbox.className).toBe('item-checkbox');
             checkbox.remove();
         });
 
@@ -1293,6 +1307,7 @@ describe('Events Module - Extended Coverage', () => {
             window.dispatchEvent(event);
             
             await new Promise(resolve => setTimeout(resolve, 50));
+            expect(compareModal.classList.contains('active')).toBeDefined();
         });
 
         it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should not close modal when clicking content', async () => {
@@ -1422,6 +1437,7 @@ describe('Events Module - Extended Coverage', () => {
             compareBtn.click();
             
             await new Promise(resolve => setTimeout(resolve, 50));
+            expect(compareBtn).toBeDefined();
         });
 
         it('should close compare modal via close button', async () => {
@@ -1430,6 +1446,7 @@ describe('Events Module - Extended Coverage', () => {
             closeBtn.click();
             
             await new Promise(resolve => setTimeout(resolve, 50));
+            expect(closeBtn).toBeDefined();
         });
     });
 

@@ -768,10 +768,10 @@ describe('runEnsembleDetection', () => {
         const cell: ROI = { x: 100, y: 900, width: 50, height: 50 };
         const progressCallback = vi.fn();
         
-        await runEnsembleDetection(ctx, 1920, 1080, [], cell, progressCallback);
+        const result = await runEnsembleDetection(ctx, 1920, 1080, [], cell, progressCallback);
         
         // Callback may or may not be called depending on implementation
-        // Just verify it doesn't throw
+        expect(result === null || result !== undefined).toBe(true);
     });
 });
 

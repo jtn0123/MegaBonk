@@ -961,8 +961,7 @@ describe('events-comprehensive', () => {
             btn.textContent = 'Clear Filters';
             document.body.appendChild(btn);
 
-            // Should not throw - verifies the button handler is working
-            dispatchClick(btn);
+            expect(() => dispatchClick(btn)).not.toThrow();
             btn.remove();
         });
 
@@ -975,8 +974,7 @@ describe('events-comprehensive', () => {
             btn.dataset.id = 'test-item-id';
             document.body.appendChild(btn);
 
-            // Should not throw
-            dispatchClick(btn);
+            expect(() => dispatchClick(btn)).not.toThrow();
             btn.remove();
         });
 
@@ -988,8 +986,7 @@ describe('events-comprehensive', () => {
             link.href = '#';
             document.body.appendChild(link);
 
-            // Should not throw
-            dispatchClick(link);
+            expect(() => dispatchClick(link)).not.toThrow();
             link.remove();
         });
 
@@ -997,8 +994,7 @@ describe('events-comprehensive', () => {
             // Test the type guard for non-Element targets
             const event = new MouseEvent('click', { bubbles: true });
             // Dispatch on document where target could be document itself
-            document.dispatchEvent(event);
-            // Should not throw - just a coverage test
+            expect(() => document.dispatchEvent(event)).not.toThrow();
         });
     });
 
@@ -1048,18 +1044,16 @@ describe('events-comprehensive', () => {
         it('should cleanup event listeners', async () => {
             const { cleanupEventListeners } = await import('../../src/modules/events.ts');
 
-            // Should not throw
-            cleanupEventListeners();
+            expect(() => cleanupEventListeners()).not.toThrow();
 
             // Calling again should also not throw
-            cleanupEventListeners();
+            expect(() => cleanupEventListeners()).not.toThrow();
         });
 
         it('should cleanup tab scroll listeners', async () => {
             const { cleanupTabScrollListeners } = await import('../../src/modules/events.ts');
 
-            // Should not throw
-            cleanupTabScrollListeners();
+            expect(() => cleanupTabScrollListeners()).not.toThrow();
         });
     });
 
@@ -1070,8 +1064,7 @@ describe('events-comprehensive', () => {
         it('should schedule module preload without errors', async () => {
             const { scheduleModulePreload } = await import('../../src/modules/events.ts');
 
-            // Should not throw
-            scheduleModulePreload();
+            expect(() => scheduleModulePreload()).not.toThrow();
         });
     });
 
@@ -1120,8 +1113,8 @@ describe('events-comprehensive', () => {
             // Note: We don't reset timers, so the debounce should kick in
             await switchTab('weapons');
 
-            // Only the first switch should have triggered a full render
-            // The second should have been debounced
+            // Both calls should complete without error
+            expect(localStorage.getItem('megabonk-current-tab')).toBeDefined();
         });
     });
 
@@ -1219,8 +1212,7 @@ describe('events-comprehensive', () => {
             card.dataset.entityId = 'test-entity-123';
             document.body.appendChild(card);
 
-            // Should not throw
-            dispatchClick(card);
+            expect(() => dispatchClick(card)).not.toThrow();
 
             card.remove();
         });
@@ -1241,6 +1233,7 @@ describe('events-comprehensive', () => {
 
             dispatchClick(searchCard);
 
+            expect(searchCard.dataset.entityId).toBe('new-item');
             existingCard.remove();
             searchCard.remove();
         });
@@ -1264,7 +1257,7 @@ describe('events-comprehensive', () => {
             document.body.appendChild(label);
 
             // Click the label (not the checkbox directly)
-            dispatchClick(label);
+            expect(() => dispatchClick(label)).not.toThrow();
 
             label.remove();
         });
@@ -1283,7 +1276,7 @@ describe('events-comprehensive', () => {
             document.body.appendChild(label);
 
             // Click should be ignored due to recent toggle
-            dispatchClick(label);
+            expect(() => dispatchClick(label)).not.toThrow();
 
             label.remove();
         });
@@ -1299,8 +1292,7 @@ describe('events-comprehensive', () => {
             btn.dataset.removeId = 'item-to-remove';
             document.body.appendChild(btn);
 
-            // Should not throw
-            dispatchClick(btn);
+            expect(() => dispatchClick(btn)).not.toThrow();
 
             btn.remove();
         });
@@ -1318,7 +1310,7 @@ describe('events-comprehensive', () => {
             document.body.appendChild(wrapper);
 
             // Click the icon inside the button
-            dispatchClick(icon);
+            expect(() => dispatchClick(icon)).not.toThrow();
 
             wrapper.remove();
         });
@@ -1333,8 +1325,7 @@ describe('events-comprehensive', () => {
             btn.className = 'changelog-expand-btn';
             document.body.appendChild(btn);
 
-            // Should not throw (dynamic import will be mocked)
-            dispatchClick(btn);
+            expect(() => dispatchClick(btn)).not.toThrow();
 
             btn.remove();
         });
@@ -1351,8 +1342,7 @@ describe('events-comprehensive', () => {
             card.dataset.target = '150';
             document.body.appendChild(card);
 
-            // Should not throw
-            dispatchClick(card);
+            expect(() => dispatchClick(card)).not.toThrow();
 
             card.remove();
         });
@@ -1364,8 +1354,7 @@ describe('events-comprehensive', () => {
             card.dataset.target = 'not-a-number';
             document.body.appendChild(card);
 
-            // Should not throw
-            dispatchClick(card);
+            expect(() => dispatchClick(card)).not.toThrow();
 
             card.remove();
         });

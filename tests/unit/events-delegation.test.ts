@@ -584,13 +584,11 @@ describe('Events - Delegation and Handler Coverage', () => {
         });
 
         it('should setup scroll listener', () => {
-            setupEventListeners();
-            // Should not throw
+            expect(() => setupEventListeners()).not.toThrow();
         });
 
         it('should setup resize listener', () => {
-            setupEventListeners();
-            // Should not throw
+            expect(() => setupEventListeners()).not.toThrow();
         });
 
         it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should handle scroll events', async () => {

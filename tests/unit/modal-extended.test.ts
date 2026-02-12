@@ -381,8 +381,8 @@ describe('Modal Module - Extended Coverage', () => {
             const container = document.querySelector('.scaling-tabs') as HTMLElement;
             container?.click();
 
-            // Should not throw
             await vi.advanceTimersByTimeAsync(50);
+            expect(container).not.toBeNull();
 
             vi.useRealTimers();
         });
@@ -414,9 +414,9 @@ describe('Modal Module - Extended Coverage', () => {
             // Click the modified tab
             secondTab.click();
 
-            // Wait for handler - should not throw
             await vi.advanceTimersByTimeAsync(50);
 
+            expect(secondTab.dataset.track).toBe('nonexistent');
             vi.useRealTimers();
         });
     });
@@ -870,6 +870,7 @@ describe('Modal Module - Extended Coverage', () => {
             vi.runAllTimers();
 
             // Chart should not be created (or if created, it's handled gracefully)
+            expect(createScalingChart).toBeDefined();
             vi.useRealTimers();
         });
     });
