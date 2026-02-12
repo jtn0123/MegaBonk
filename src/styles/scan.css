@@ -22,7 +22,7 @@
     font-weight: 600;
     padding: 0.15rem 0.5rem;
     background: rgba(255, 193, 7, 0.2);
-    color: #ffc107;
+    color: #ffd54f;
     border: 1px solid rgba(255, 193, 7, 0.4);
     border-radius: 4px;
     vertical-align: middle;
@@ -95,8 +95,8 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    background: rgba(255, 59, 48, 0.9);
-    color: white;
+    background: rgba(204, 40, 30, 0.95);
+    color: #ffffff;
     border: none;
     border-radius: 50%;
     width: 36px;
@@ -562,19 +562,19 @@
 
 .scan-detection-item .confidence.confidence-high {
     background: rgba(0, 255, 136, 0.2);
-    color: #00ff88;
+    color: #33ffaa;
     border: 1px solid rgba(0, 255, 136, 0.4);
 }
 
 .scan-detection-item .confidence.confidence-medium {
     background: rgba(255, 193, 7, 0.2);
-    color: #ffc107;
+    color: #ffd54f;
     border: 1px solid rgba(255, 193, 7, 0.4);
 }
 
 .scan-detection-item .confidence.confidence-low {
     background: rgba(255, 99, 71, 0.2);
-    color: #ff6347;
+    color: #ff8570;
     border: 1px solid rgba(255, 99, 71, 0.4);
 }
 
@@ -584,7 +584,7 @@
     background: rgba(255, 99, 71, 0.15);
     border: 1px solid rgba(255, 99, 71, 0.4);
     border-radius: 6px;
-    color: #ff6347;
+    color: #ff8570;
     font-size: 0.9rem;
 }
 

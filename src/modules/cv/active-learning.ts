@@ -161,7 +161,7 @@ function calculateSimilarityScore(detection: DetectionForFeedback, item: Item): 
     score += commonWords.length * 0.2;
 
     // First letter match
-    if (detectedName[0] === itemName[0]) {
+    if (itemName.length > 0 && detectedName.startsWith(itemName.charAt(0))) {
         score += 0.1;
     }
 

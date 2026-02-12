@@ -127,7 +127,7 @@
 
 .al-btn-correct {
     background: rgba(0, 255, 136, 0.15);
-    color: #00ff88;
+    color: #33ffaa;
     border: 1px solid rgba(0, 255, 136, 0.3);
 }
 
@@ -138,7 +138,7 @@
 
 .al-btn-wrong {
     background: rgba(255, 99, 71, 0.15);
-    color: #ff6347;
+    color: #ff8570;
     border: 1px solid rgba(255, 99, 71, 0.3);
 }
 

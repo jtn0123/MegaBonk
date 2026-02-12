@@ -506,7 +506,14 @@ export function updateRequestViewer(): void {
     html += '<hr><h4>Recent Requests</h4>';
 
     stats.recentRequests.reverse().forEach(req => {
-        const statusClass = (req.status ?? 0) === 0 ? 'error' : (req.status ?? 0) >= 400 ? 'warning' : 'success';
+        let statusClass: string;
+        if ((req.status ?? 0) === 0) {
+            statusClass = 'error';
+        } else if ((req.status ?? 0) >= 400) {
+            statusClass = 'warning';
+        } else {
+            statusClass = 'success';
+        }
         html += `
             <div class="debug-log-entry ${statusClass}">
                 <span class="debug-log-time">${req.durationMs || 0}ms</span>

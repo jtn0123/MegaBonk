@@ -377,14 +377,12 @@ export function handleEmptyStateClick(target: Element): boolean {
 
         switch (action) {
             case 'browse':
+            case 'clear-filters':
                 // Clear filters and show all items
                 clearFiltersAndSearch();
                 return true;
             case 'clear-search':
                 clearSearch();
-                return true;
-            case 'clear-filters':
-                clearFiltersAndSearch();
                 return true;
         }
     }

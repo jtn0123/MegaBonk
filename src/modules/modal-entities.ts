@@ -95,12 +95,17 @@ export async function renderTomeModal(data: Tome): Promise<string> {
  * @returns HTML content
  */
 export function renderShrineModal(data: Shrine): string {
+    let reusableBadge = '';
+    if (data.reusable !== undefined) {
+        reusableBadge = data.reusable ? '<span class="badge">Reusable</span>' : '<span class="badge">One-time</span>';
+    }
+
     return `
         <div class="shrine-modal-header">
             <span class="shrine-icon-modal">${escapeHtml(data.icon || '')}</span>
             <div class="item-badges">
                 ${data.type ? `<span class="badge">${escapeHtml(data.type.replace('_', ' '))}</span>` : ''}
-                ${data.reusable !== undefined ? (data.reusable ? '<span class="badge">Reusable</span>' : '<span class="badge">One-time</span>') : ''}
+                ${reusableBadge}
             </div>
         </div>
         <div class="shrine-description-full">
