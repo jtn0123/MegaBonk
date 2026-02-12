@@ -35,6 +35,15 @@ export function renderWeapons(weapons: Weapon[]): void {
         // DISABLED: Favorites feature UI hidden (module kept for data persistence)
         // const isFav = typeof isFavorite === 'function' ? isFavorite('weapons', weapon.id) : false;
 
+        let statsArray: string[] | null;
+        if (Array.isArray(weapon.upgradeable_stats)) {
+            statsArray = weapon.upgradeable_stats;
+        } else if (weapon.upgradeable_stats) {
+            statsArray = [weapon.upgradeable_stats];
+        } else {
+            statsArray = null;
+        }
+
         card.innerHTML = `
             <div class="item-header">
                 ${imageHtml}
@@ -51,7 +60,7 @@ export function renderWeapons(weapons: Weapon[]): void {
             <div class="item-effect">${escapeHtml(weapon.attack_pattern)}</div>
             <div class="item-description">${escapeHtml(weapon.description)}</div>
             <div class="item-meta">
-                ${generateMetaTags(Array.isArray(weapon.upgradeable_stats) ? weapon.upgradeable_stats : weapon.upgradeable_stats ? [weapon.upgradeable_stats] : null, 4)}
+                ${generateMetaTags(statsArray, 4)}
             </div>
         `;
 

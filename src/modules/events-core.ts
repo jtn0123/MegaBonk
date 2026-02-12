@@ -466,20 +466,10 @@ function isMobileViewport(): boolean {
 
 /**
  * Handle item card click (for mobile - whole card is tappable)
- * Bug fix: Use card's data attributes directly instead of looking for hidden view-details-btn
+ * Delegates to handleCardClick which uses card's data attributes.
  */
 function handleItemCardClick(target: Element): void {
-    const card = target.closest('.item-card') as HTMLElement | null;
-    if (!card) return;
-
-    // Use card's data attributes (same as handleCardClick)
-    const entityType = card.dataset.entityType as EntityType | undefined;
-    const entityId = card.dataset.entityId;
-
-    if (entityType && entityId) {
-        const type = normalizeEntityType(entityType);
-        if (type) openDetailModal(type, entityId);
-    }
+    handleCardClick(target as HTMLElement);
 }
 
 /**

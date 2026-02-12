@@ -145,7 +145,14 @@ export async function detectIconsWithSlidingWindow(
 
                     // Apply scale-aware confidence adjustment
                     // Smaller icons naturally have lower similarity due to pixelation
-                    const scaleAdjustment = scaleSize < 40 ? -0.02 : scaleSize > 60 ? 0.01 : 0;
+                    let scaleAdjustment: number;
+                    if (scaleSize < 40) {
+                        scaleAdjustment = -0.02;
+                    } else if (scaleSize > 60) {
+                        scaleAdjustment = 0.01;
+                    } else {
+                        scaleAdjustment = 0;
+                    }
                     const adjustedThreshold = minConfidence + scaleAdjustment;
 
                     if (similarity > adjustedThreshold && (!bestMatch || similarity > bestMatch.similarity)) {

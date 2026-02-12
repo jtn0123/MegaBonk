@@ -561,43 +561,52 @@ export function renderBatchResultsGrid(containerId: string): void {
 
         <div class="batch-results-grid">
             ${batchResults
-                .map(
-                    result => `
+                .map(result => {
+                    let statusIcon: string;
+                    if (result.status === 'complete') {
+                        statusIcon = '✓';
+                    } else if (result.status === 'error') {
+                        statusIcon = '✗';
+                    } else {
+                        statusIcon = '...';
+                    }
+
+                    let statusDetail: string;
+                    if (result.status === 'complete' && result.stats) {
+                        statusDetail = `
+                            <div class="batch-stats">
+                                <span>${result.stats.totalItems} items</span>
+                                <span>${Math.round(result.stats.avgConfidence * 100)}%</span>
+                            </div>`;
+                    } else if (result.status === 'error') {
+                        statusDetail = `<div class="batch-error">${escapeHtml(result.error || 'Unknown error')}</div>`;
+                    } else {
+                        statusDetail = '<div class="batch-processing">Processing...</div>';
+                    }
+
+                    const actionsHtml = result.status === 'complete'
+                        ? `<div class="batch-actions">
+                            <button class="btn-small batch-view-btn" data-id="${result.id}">View</button>
+                            <button class="btn-small batch-apply-btn" data-id="${result.id}">Apply</button>
+                        </div>`
+                        : '';
+
+                    return `
                 <div class="batch-result-card ${result.status}" data-id="${result.id}">
                     <div class="batch-thumbnail">
                         ${result.thumbnail ? `<img src="${result.thumbnail}" alt="${escapeHtml(result.filename)}" loading="lazy" />` : '<div class="batch-thumbnail-placeholder">Loading...</div>'}
                         <div class="batch-status-badge status-${result.status}">
-                            ${result.status === 'complete' ? '✓' : result.status === 'error' ? '✗' : '...'}
+                            ${statusIcon}
                         </div>
                     </div>
                     <div class="batch-info">
                         <div class="batch-filename">${escapeHtml(result.filename)}</div>
-                        ${
-                            result.status === 'complete' && result.stats
-                                ? `
-                            <div class="batch-stats">
-                                <span>${result.stats.totalItems} items</span>
-                                <span>${Math.round(result.stats.avgConfidence * 100)}%</span>
-                            </div>
-                        `
-                                : result.status === 'error'
-                                  ? `<div class="batch-error">${escapeHtml(result.error || 'Unknown error')}</div>`
-                                  : '<div class="batch-processing">Processing...</div>'
-                        }
+                        ${statusDetail}
                     </div>
-                    ${
-                        result.status === 'complete'
-                            ? `
-                        <div class="batch-actions">
-                            <button class="btn-small batch-view-btn" data-id="${result.id}">View</button>
-                            <button class="btn-small batch-apply-btn" data-id="${result.id}">Apply</button>
-                        </div>
-                    `
-                            : ''
-                    }
+                    ${actionsHtml}
                 </div>
-            `
-                )
+            `;
+                })
                 .join('')}
         </div>
 

@@ -262,7 +262,14 @@ function renderRarityBreakdown(byRarity: Record<string, number>): string {
  */
 export function renderSystemAccuracyBadge(accuracy: SystemAccuracy): string {
     const gradeClass = `grade-${accuracy.grade.toLowerCase()}`;
-    const trendIcon = accuracy.trend === 'improving' ? '↑' : accuracy.trend === 'declining' ? '↓' : '→';
+    let trendIcon: string;
+    if (accuracy.trend === 'improving') {
+        trendIcon = '↑';
+    } else if (accuracy.trend === 'declining') {
+        trendIcon = '↓';
+    } else {
+        trendIcon = '→';
+    }
     const trendClass = accuracy.trend;
 
     return `

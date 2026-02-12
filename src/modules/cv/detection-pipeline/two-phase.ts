@@ -53,7 +53,14 @@ export async function detectIconsWithTwoPhase(
 
     // If grid detection failed or low confidence, fall back to sliding window
     if (!grid || grid.confidence < 0.4 || grid.columns < 3) {
-        const failureReason = !grid ? 'no_grid' : grid.confidence < 0.4 ? 'low_confidence' : 'too_few_columns';
+        let failureReason: string;
+        if (!grid) {
+            failureReason = 'no_grid';
+        } else if (grid.confidence < 0.4) {
+            failureReason = 'low_confidence';
+        } else {
+            failureReason = 'too_few_columns';
+        }
         logger.info({
             operation: 'cv.two_phase.fallback_to_sliding_window',
             data: { reason: failureReason },
@@ -150,7 +157,7 @@ export async function detectIconsWithTwoPhase(
         }
     }
 
-    const templateMatchingTime = performance.now() - gridStartTime - (metrics.isEnabled() ? 0 : 0);
+    const templateMatchingTime = performance.now() - gridStartTime;
     metrics.recordTemplateMatchingTime(templateMatchingTime);
 
     logger.info({

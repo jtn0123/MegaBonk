@@ -24,43 +24,35 @@ export function renderWeaponModal(data: Weapon): string {
     // Build synergies section if any exist (all values escaped)
     const hasSynergies =
         data.synergies_items?.length || data.synergies_tomes?.length || data.synergies_characters?.length;
-    const synergiesHtml = hasSynergies
-        ? `
-        <div class="synergies-section">
-            <h3>Synergies</h3>
-            ${
-                data.synergies_items?.length
-                    ? `
-                <div class="synergy-group">
+    let synergiesHtml = '';
+    if (hasSynergies) {
+        const itemsHtml = data.synergies_items?.length
+            ? `<div class="synergy-group">
                     <h4>Items</h4>
                     <div class="synergy-list">${data.synergies_items.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
-                </div>
-            `
-                    : ''
-            }
-            ${
-                data.synergies_tomes?.length
-                    ? `
-                <div class="synergy-group">
+                </div>`
+            : '';
+        const tomesHtml = data.synergies_tomes?.length
+            ? `<div class="synergy-group">
                     <h4>Tomes</h4>
                     <div class="synergy-list">${data.synergies_tomes.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
-                </div>
-            `
-                    : ''
-            }
-            ${
-                data.synergies_characters?.length
-                    ? `
-                <div class="synergy-group">
+                </div>`
+            : '';
+        const charsHtml = data.synergies_characters?.length
+            ? `<div class="synergy-group">
                     <h4>Characters</h4>
                     <div class="synergy-list">${data.synergies_characters.map(s => `<span class="synergy-tag">${escapeHtml(s)}</span>`).join('')}</div>
+                </div>`
+            : '';
+        synergiesHtml = `
+        <div class="synergies-section">
+            <h3>Synergies</h3>
+            ${itemsHtml}
+            ${tomesHtml}
+            ${charsHtml}
                 </div>
-            `
-                    : ''
-            }
-        </div>
-    `
-        : '';
+    `;
+    }
 
     // Build pros/cons section if any exist (all values escaped)
     const hasProsOrCons = data.pros?.length || data.cons?.length;

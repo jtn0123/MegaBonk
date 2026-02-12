@@ -34,6 +34,11 @@ export function renderShrines(shrines: Shrine[]): void {
         // DISABLED: Favorites feature UI hidden (module kept for data persistence)
         // const isFav = typeof isFavorite === 'function' ? isFavorite('shrines', shrine.id) : false;
 
+        let reusableTag = '';
+        if (shrine.reusable !== undefined) {
+            reusableTag = shrine.reusable ? '<span class="meta-tag">Reusable</span>' : '<span class="meta-tag">One-time</span>';
+        }
+
         card.innerHTML = `
             <div class="item-header">
                 <span class="shrine-icon-large">${escapeHtml(shrine.icon || '')}</span>
@@ -50,7 +55,7 @@ export function renderShrines(shrines: Shrine[]): void {
             <div class="item-effect">${escapeHtml(shrine.description)}</div>
             <div class="item-description">${shrine.reward ? escapeHtml(shrine.reward) : ''}</div>
             <div class="item-meta">
-                ${shrine.reusable !== undefined ? (shrine.reusable ? '<span class="meta-tag">Reusable</span>' : '<span class="meta-tag">One-time</span>') : ''}
+                ${reusableTag}
             </div>
         `;
 

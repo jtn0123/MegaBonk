@@ -528,7 +528,10 @@ export class Logger {
         } else {
             // Development: formatted output
             const duration = event.durationMs ? ` (${event.durationMs}ms)` : '';
-            const success = event.success !== undefined ? (event.success ? ' OK' : ' FAIL') : '';
+            let success = '';
+            if (event.success !== undefined) {
+                success = event.success ? ' OK' : ' FAIL';
+            }
 
             method(
                 `%c[${levelName}]%c ${event.operation}${duration}${success}`,
