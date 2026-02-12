@@ -81,6 +81,23 @@ export function loadFavorites(): boolean {
             const parsed = JSON.parse(stored);
             // Validate structure before setting state
             if (typeof parsed === 'object' && parsed !== null) {
+                // Migrate data if needed
+                const FAVORITES_VERSION = 1;
+                if (!parsed._version || parsed._version < FAVORITES_VERSION) {
+                    // Ensure all expected keys exist with defaults
+                    if (!Array.isArray(parsed.items)) parsed.items = [];
+                    if (!Array.isArray(parsed.weapons)) parsed.weapons = [];
+                    if (!Array.isArray(parsed.tomes)) parsed.tomes = [];
+                    if (!Array.isArray(parsed.characters)) parsed.characters = [];
+                    if (!Array.isArray(parsed.shrines)) parsed.shrines = [];
+                    parsed._version = FAVORITES_VERSION;
+                    // Persist migrated data
+                    try {
+                        localStorage.setItem(FAVORITES_KEY, JSON.stringify(parsed));
+                    } catch {
+                        // Best effort migration persist
+                    }
+                }
                 setState('favorites', parsed as FavoritesState);
                 return true;
             }

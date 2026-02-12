@@ -299,8 +299,7 @@ async function loadDeferredData(): Promise<void> {
             fetchAndValidate('./data/changelog.json', 'changelog'),
         ]) as [ShrinesData, Stats, ChangelogData];
 
-        const current = getState('allData') as AllGameData;
-        setState('allData', { ...current, shrines, stats, changelog });
+        setState('allData', (prev: AllGameData) => ({ ...prev, shrines, stats, changelog }));
 
         logger.debug({
             operation: 'data.deferred_load',

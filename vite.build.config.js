@@ -173,6 +173,12 @@ export default defineConfig(async () => {
                 input: {
                     main: './src/index.html',
                 },
+                output: {
+                    manualChunks: {
+                        'chart': ['chart.js'],
+                        'fuse': ['fuse.js'],
+                    },
+                },
             },
             // Code splitting strategy
             chunkSizeWarningLimit: 500,
