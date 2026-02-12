@@ -118,6 +118,18 @@ export function setupImageFallbackHandler(): void {
  * When images with data-blur-up load, removes blur by adding loaded class
  * Should be called once on page load
  */
+/**
+ * Process blur-up images that have finished loading.
+ * Call this after any DOM update that may add new images (tab switches, filter results, modal opens).
+ */
+export function processBlurUpImages(): void {
+    document.querySelectorAll('img[data-blur-up="true"]').forEach(img => {
+        if (img instanceof HTMLImageElement && img.complete && img.naturalHeight > 0) {
+            img.classList.add('blur-up-loaded');
+        }
+    });
+}
+
 export function setupBlurUpHandler(): void {
     // Guard against duplicate attachment
     if (imageLoadHandlerAttached) {
@@ -125,17 +137,8 @@ export function setupBlurUpHandler(): void {
     }
     imageLoadHandlerAttached = true;
 
-    // Handle already-loaded images (from cache)
-    const processLoadedImages = (): void => {
-        document.querySelectorAll('img[data-blur-up="true"]').forEach(img => {
-            if (img instanceof HTMLImageElement && img.complete && img.naturalHeight > 0) {
-                img.classList.add('blur-up-loaded');
-            }
-        });
-    };
-
     // Initial pass for cached images
-    processLoadedImages();
+    processBlurUpImages();
 
     // Listen for new image loads (use capture to catch all)
     document.addEventListener(
@@ -151,30 +154,6 @@ export function setupBlurUpHandler(): void {
         },
         true
     ); // Use capture phase to catch load events on images
-
-    // Use MutationObserver to handle dynamically added images
-    const observer = new MutationObserver(mutations => {
-        mutations.forEach(mutation => {
-            mutation.addedNodes.forEach(node => {
-                if (node instanceof HTMLElement) {
-                    // Check if the node itself is a blur-up image
-                    if (node instanceof HTMLImageElement && node.dataset.blurUp === 'true') {
-                        if (node.complete && node.naturalHeight > 0) {
-                            node.classList.add('blur-up-loaded');
-                        }
-                    }
-                    // Check for blur-up images within added elements
-                    node.querySelectorAll?.('img[data-blur-up="true"]')?.forEach(img => {
-                        if (img instanceof HTMLImageElement && img.complete && img.naturalHeight > 0) {
-                            img.classList.add('blur-up-loaded');
-                        }
-                    });
-                }
-            });
-        });
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
 }
 
 /**
@@ -249,29 +228,30 @@ function hasRarity(obj: unknown): obj is { rarity: Rarity } {
  * Sort data array by specified field
  * @param data - Array to sort
  * @param sortBy - Field to sort by ('name', 'tier', 'rarity')
- * @returns Sorted array (mutates original)
+ * @returns New sorted array (does not mutate the original)
  */
 export function sortData<T extends Entity[]>(data: T, sortBy: SortBy): T {
+    // Return a shallow copy to avoid mutating the input array
     if (sortBy === 'name') {
-        return data.sort((a, b) => {
+        return [...data].sort((a, b) => {
             const aName = hasName(a) ? a.name : '';
             const bName = hasName(b) ? b.name : '';
             return aName.localeCompare(bName);
         }) as T;
     } else if (sortBy === 'tier') {
-        return data.sort((a, b) => {
+        return [...data].sort((a, b) => {
             const aTier = hasTier(a) ? a.tier : undefined;
             const bTier = hasTier(b) ? b.tier : undefined;
             return (TIER_ORDER[aTier as Tier] ?? 99) - (TIER_ORDER[bTier as Tier] ?? 99);
         }) as T;
     } else if (sortBy === 'rarity') {
-        return data.sort((a, b) => {
+        return [...data].sort((a, b) => {
             const aRarity = hasRarity(a) ? a.rarity : undefined;
             const bRarity = hasRarity(b) ? b.rarity : undefined;
             return (RARITY_ORDER[aRarity as Rarity] ?? 99) - (RARITY_ORDER[bRarity as Rarity] ?? 99);
         }) as T;
     }
-    return data;
+    return [...data] as T;
 }
 
 // ========================================
@@ -283,9 +263,12 @@ export function sortData<T extends Entity[]>(data: T, sortBy: SortBy): T {
  */
 export function escapeHtml(text: string | null | undefined): string {
     if (!text) return '';
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML.replace(/"/g, '&quot;');
+    return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
 }
 
 /**

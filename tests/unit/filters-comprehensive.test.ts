@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 vi.mock('../../src/modules/utils.ts', () => ({
     safeGetElementById: vi.fn((id: string) => document.getElementById(id)),
     safeQuerySelectorAll: vi.fn((selector: string) => document.querySelectorAll(selector)),
-    sortData: vi.fn(),
+    sortData: vi.fn((data: any) => data),
 }));
 
 vi.mock('../../src/modules/logger.ts', () => ({

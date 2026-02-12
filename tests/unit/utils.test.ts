@@ -345,7 +345,8 @@ describe('utils - sorting', () => {
         it('should return same array for invalid sortBy', () => {
             const data = [{ name: 'Item' }];
             const sorted = sortData(data as any, 'invalid' as any);
-            expect(sorted).toBe(data);
+            expect(sorted).toEqual(data);
+            expect(sorted).not.toBe(data);
         });
 
         it('should handle case-insensitive name sorting', () => {

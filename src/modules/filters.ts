@@ -310,7 +310,7 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
     const standardSortByEl = safeGetElementById('sortBy');
     const standardSortBy = isSelectElement(standardSortByEl) ? standardSortByEl.value : null;
     if (standardSortBy) {
-        sortData(filtered, standardSortBy as SortBy);
+        filtered = sortData(filtered, standardSortBy as SortBy);
     }
 
     logFilterEvent(filterStartTime, tabName, searchQuery, originalCount, filtered.length);

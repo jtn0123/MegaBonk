@@ -116,6 +116,9 @@ export const BUILD_TEMPLATES: Readonly<BuildTemplatesMap> = Object.freeze({
 
 const BUILD_HISTORY_KEY = 'megabonk_build_history';
 let eventsInitialized = false;
+let cachedTomeMap: Map<string, Tome> | null = null;
+let cachedItemMap: Map<string, Item> | null = null;
+let cachedAllData: typeof allData | null = null;
 
 /**
  * Get the current build from the store (never stale)
@@ -135,6 +138,16 @@ const currentBuild: Build = new Proxy({} as Build, {
         (build as Record<keyof Build, unknown>)[prop] = value;
         setState('currentBuild', build);
         return true;
+    },
+    ownKeys() {
+        return Object.keys(getCurrentBuildFromStore());
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+        const build = getCurrentBuildFromStore();
+        if (prop in build) {
+            return { configurable: true, enumerable: true, value: build[prop as keyof Build] };
+        }
+        return undefined;
     },
 });
 
@@ -197,7 +210,15 @@ export function saveBuildToHistory(): void {
 
         history.unshift(buildData);
         history = history.slice(0, MAX_BUILD_HISTORY);
-        localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
+        try {
+            localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
+        } catch (e) {
+            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
+                // Remove oldest entries and retry
+                history.splice(0, Math.ceil(history.length / 2));
+                try { localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history)); } catch {}
+            }
+        }
 
         logger.info({
             operation: 'build.save',
@@ -419,11 +440,20 @@ export function setupBuildPlannerEvents(): void {
 
 export function updateBuildAnalysis(): void {
     // Sync checkbox selections to build state
+    // Invalidate cached maps if allData reference changed
+    if (cachedAllData !== allData) {
+        cachedTomeMap = null;
+        cachedItemMap = null;
+        cachedAllData = allData;
+    }
+
     const selectedTomes = getSelectedTomeIds();
     if (allData.tomes?.tomes) {
-        const tomeMap = new Map(allData.tomes.tomes.map((t: Tome) => [t.id, t]));
+        if (!cachedTomeMap) {
+            cachedTomeMap = new Map(allData.tomes.tomes.map((t: Tome) => [t.id, t]));
+        }
         currentBuild.tomes = selectedTomes
-            .map((id: string) => tomeMap.get(id))
+            .map((id: string) => cachedTomeMap!.get(id))
             .filter((t): t is Tome => t !== undefined);
     } else {
         currentBuild.tomes = [];
@@ -431,9 +461,11 @@ export function updateBuildAnalysis(): void {
 
     const selectedItems = getSelectedItemIds();
     if (allData.items?.items) {
-        const itemMap = new Map(allData.items.items.map((i: Item) => [i.id, i]));
+        if (!cachedItemMap) {
+            cachedItemMap = new Map(allData.items.items.map((i: Item) => [i.id, i]));
+        }
         currentBuild.items = selectedItems
-            .map((id: string) => itemMap.get(id))
+            .map((id: string) => cachedItemMap!.get(id))
             .filter((i): i is Item => i !== undefined);
     } else {
         currentBuild.items = [];
@@ -512,7 +544,8 @@ export function loadBuildFromURL(): boolean {
     if (!hash || !hash.includes('build=')) return false;
 
     try {
-        const encoded = hash.split('build=')[1];
+        const params = new URLSearchParams(hash.substring(1));
+        const encoded = params.get('build');
         if (!encoded) {
             ToastManager.error('Invalid build link');
             return false;

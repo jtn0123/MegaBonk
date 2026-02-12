@@ -122,7 +122,7 @@ export function hasItemWeaponSynergy(item: Item, weapon: Weapon): boolean {
         (syn: string) =>
             syn.length > 0 &&
             weaponName.length > 0 &&
-            (syn.toLowerCase().includes(weaponName) || weaponName.includes(syn.toLowerCase()))
+            (weaponName.includes(syn.toLowerCase()) || syn.toLowerCase().includes(weaponName))
     );
 }
 

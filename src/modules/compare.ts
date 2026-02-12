@@ -20,6 +20,7 @@ import { activateFocusTrap, deactivateFocusTrap } from './modal-core.ts';
 
 // Flag to prevent double-close race condition
 let isModalClosing = false;
+let compareSessionId = 0;
 
 /**
  * Reset internal state for testing
@@ -83,6 +84,7 @@ export function updateCompareButton(): void {
  * Open the comparison modal
  */
 export async function openCompareModal(): Promise<void> {
+    compareSessionId++;
     const compareItems = getState('compareItems') || [];
     if (compareItems.length < 2) {
         ToastManager.warning('Select at least 2 items to compare!');
@@ -214,6 +216,7 @@ export async function openCompareModal(): Promise<void> {
     compareBody.innerHTML = html;
     modal.style.display = 'block';
     modal.setAttribute('aria-hidden', 'false'); // Announce modal to screen readers
+    document.body.classList.add('modal-open');
 
     // Trigger animation after display is set, then initialize chart
     // Using nested RAF ensures chart init happens after modal is visible
@@ -278,11 +281,15 @@ export async function closeCompareModal(): Promise<void> {
     // Update UI immediately (don't block on chart cleanup)
     modal.classList.remove('active');
     modal.setAttribute('aria-hidden', 'true'); // Hide from screen readers
+    document.body.classList.remove('modal-open');
 
     // Destroy compare chart asynchronously to prevent memory leak
     // Using fire-and-forget pattern to avoid blocking modal close
+    const closeSessionId = compareSessionId;
     import('./charts.ts')
         .then(({ chartInstances }) => {
+            // Abort if a new compare session started while we were awaiting
+            if (closeSessionId !== compareSessionId) return;
             const instances = chartInstances as Record<string, { destroy: () => void }>;
             if (instances && instances['compare-scaling-chart']) {
                 instances['compare-scaling-chart'].destroy();

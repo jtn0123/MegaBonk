@@ -116,7 +116,7 @@ function applyTomeBonus(stats: CalculatedBuildStats, tome: Tome): void {
     // Bug fix: Handle different value formats correctly
     // Decimal values < 1 (like 0.08) represent percentages that need *100
     // Integer values >= 1 (like 7, 25) are already the correct value
-    const value = safeRawValue < 1 && safeRawValue > 0 ? safeRawValue * 100 : safeRawValue;
+    const value = Math.abs(safeRawValue) < 1 && safeRawValue !== 0 ? safeRawValue * 100 : safeRawValue;
 
     // Apply tome bonus: value per level * tome level
     if (tome.stat_affected === 'Damage') stats.damage += value * tomeLevel;
@@ -214,7 +214,8 @@ export function calculateBuildStats(build: Build, useCache: boolean = true): Cal
  */
 export function calculateDPS(stats: CalculatedBuildStats): number {
     const baseDamage = stats.damage;
-    const critMultiplier = 1 + (stats.crit_chance / 100) * (stats.crit_damage / 100 - 1);
+    const safeCritDmg = Math.max(stats.crit_damage, 100);
+    const critMultiplier = 1 + (stats.crit_chance / 100) * (safeCritDmg / 100 - 1);
     const attackSpeedMultiplier = 1 + stats.attack_speed / 100;
 
     return baseDamage * critMultiplier * attackSpeedMultiplier * stats.projectiles;
@@ -226,8 +227,10 @@ export function calculateDPS(stats: CalculatedBuildStats): number {
  * @returns Effective HP value
  */
 export function calculateEffectiveHP(stats: CalculatedBuildStats): number {
-    const armorReduction = stats.armor / (stats.armor + 100); // Diminishing returns formula
-    const evasionMultiplier = 1 / (1 - stats.evasion / 100);
+    const safeArmor = Math.max(stats.armor, -99);
+    const armorReduction = safeArmor / (safeArmor + 100); // Diminishing returns formula
+    const clampedEvasion = Math.min(stats.evasion, 99.9);
+    const evasionMultiplier = 1 / (1 - clampedEvasion / 100);
 
     return stats.hp * (1 / (1 - armorReduction)) * evasionMultiplier;
 }
