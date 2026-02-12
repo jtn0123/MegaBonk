@@ -22,7 +22,7 @@ try {
     const canvas = require('canvas');
     createCanvas = canvas.createCanvas;
     loadImage = canvas.loadImage;
-} catch (e) {
+} catch {
     console.error('Warning: canvas module not available. Install with: npm install canvas');
     process.exit(1);
 }
@@ -266,7 +266,7 @@ function calculateHistogramSimilarity(imgData1, imgData2) {
 }
 
 // Combined similarity score (weighted average of metrics)
-function calculateCombinedScore(imgData1, imgData2) {
+function _calculateCombinedScore(imgData1, imgData2) {
     const ncc = calculateNCC(imgData1, imgData2);
     const ssim = calculateSSIM(imgData1, imgData2);
     const hist = calculateHistogramSimilarity(imgData1, imgData2);
@@ -313,7 +313,7 @@ class SimpleCVEngine {
                         item,
                         imageData: imageData.data,
                     });
-                } catch (e) {
+                } catch {
                     // Template not found
                 }
             }

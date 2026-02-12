@@ -4,7 +4,7 @@
  */
 
 const fs = require('fs');
-const path = require('path');
+const _path = require('path');
 
 // Get image dimensions from file
 async function getImageDimensions(imagePath) {
@@ -33,7 +33,7 @@ function analyzeHotbarPosition(width, height) {
     console.log(`✅ Actual hotbar (~92% down): y=${correctY}`);
 
     // Grid sizes
-    const gridSizes = {
+    const _gridSizes = {
         '720p': { old: 48, new: 40 },
         '800p': { old: 52, new: 44 },
         '1080p': { old: 64, new: 52 },

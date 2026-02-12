@@ -22,7 +22,7 @@ try {
     const canvas = require('canvas');
     createCanvas = canvas.createCanvas;
     loadImage = canvas.loadImage;
-} catch (e) {
+} catch {
     console.error('Warning: canvas module not available. Install with: npm install canvas');
     console.error('This script requires the canvas module to process images.');
     process.exit(1);
@@ -124,7 +124,7 @@ function nameToId(name) {
         .replace(/^_|_$/g, '');
 }
 
-function parseResolution(resStr) {
+function _parseResolution(resStr) {
     if (!resStr) return null;
     const match = resStr.match(/(\d+)x(\d+)/);
     if (!match) return null;

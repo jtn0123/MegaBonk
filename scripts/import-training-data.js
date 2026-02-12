@@ -53,7 +53,7 @@ function dataURLToBuffer(dataURL) {
 }
 
 // Simple pixel-based similarity check (very basic)
-function calculateSimpleSimilarity(buffer1, buffer2) {
+function _calculateSimpleSimilarity(buffer1, buffer2) {
     if (buffer1.length !== buffer2.length) return 0;
 
     let matching = 0;
