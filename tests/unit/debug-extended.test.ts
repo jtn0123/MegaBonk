@@ -1507,7 +1507,7 @@ describe('debug-ui extended - cleanup', () => {
         cleanupDebugPanel();
         cleanupDebugPanel();
 
-        // Should not throw
-        vi.advanceTimersByTime(10000);
+        // Should not throw after multiple cleanups
+        expect(() => vi.advanceTimersByTime(10000)).not.toThrow();
     });
 });

@@ -800,7 +800,7 @@ describe('Branch Coverage - Grid Cell States', () => {
             { x: 64, y: 0, width: 64, height: 64 },
         ];
 
-        renderGridOverlay(canvas, gridCells, 0);
+        expect(() => renderGridOverlay(canvas, gridCells, 0)).not.toThrow();
     });
 
     it('should use gray for processed cells', () => {
@@ -810,7 +810,7 @@ describe('Branch Coverage - Grid Cell States', () => {
         ];
         const processed = new Set([0]);
 
-        renderGridOverlay(canvas, gridCells, 1, processed);
+        expect(() => renderGridOverlay(canvas, gridCells, 1, processed)).not.toThrow();
     });
 
     it('should use light gray for pending cells', () => {
@@ -819,7 +819,7 @@ describe('Branch Coverage - Grid Cell States', () => {
             { x: 64, y: 0, width: 64, height: 64 },
         ];
 
-        renderGridOverlay(canvas, gridCells);
+        expect(() => renderGridOverlay(canvas, gridCells)).not.toThrow();
     });
 });
 

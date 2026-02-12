@@ -322,6 +322,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
                 const event = new KeyboardEvent('keydown', { key: 'g', bubbles: true });
                 textarea.dispatchEvent(event);
 
+                expect(document.activeElement).toBe(textarea);
                 textarea.remove();
             });
 

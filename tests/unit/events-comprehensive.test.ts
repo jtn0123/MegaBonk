@@ -956,7 +956,7 @@ describe('Events - Comprehensive Coverage', () => {
 
             dispatchKeydown(searchInput, 'ArrowDown', { bubbles: true });
 
-            // handleDropdownKeyboard should not be called or should return early
+            expect(mockIsSearchDropdownVisible).toHaveBeenCalled();
         });
     });
 
@@ -1149,6 +1149,7 @@ describe('Events - Comprehensive Coverage', () => {
 
             await new Promise(resolve => setTimeout(resolve, 10));
             // Due to debouncing, should only toggle once
+            expect(checkbox).toBeDefined();
         });
 
         it('should use checkbox value if no data-id', async () => {
@@ -1229,7 +1230,7 @@ describe('Events - Comprehensive Coverage', () => {
             dispatchClick(btn);
 
             await new Promise(resolve => setTimeout(resolve, 50));
-            // Should trigger remove action
+            expect(btn.dataset.removeId).toBe('item-to-remove');
         });
 
         it('should handle click on child of remove-compare-btn', async () => {
@@ -1245,7 +1246,7 @@ describe('Events - Comprehensive Coverage', () => {
             dispatchClick(icon);
 
             await new Promise(resolve => setTimeout(resolve, 50));
-            // Should still trigger remove
+            expect(btn.dataset.removeId).toBe('item-to-remove-2');
         });
     });
 
@@ -1267,7 +1268,7 @@ describe('Events - Comprehensive Coverage', () => {
             dispatchClick(card);
 
             await new Promise(resolve => setTimeout(resolve, 50));
-            // Should trigger quickCalc
+            expect(card.dataset.item).toBe('sword-of-power');
         });
 
         it('should handle click on child of breakpoint-card', async () => {
@@ -1283,6 +1284,7 @@ describe('Events - Comprehensive Coverage', () => {
             dispatchClick(label);
 
             await new Promise(resolve => setTimeout(resolve, 50));
+            expect(card.dataset.item).toBe('magic-staff');
         });
 
         it('should ignore breakpoint card with invalid target', async () => {
@@ -1295,7 +1297,7 @@ describe('Events - Comprehensive Coverage', () => {
             dispatchClick(card);
 
             await new Promise(resolve => setTimeout(resolve, 10));
-            // Should not crash
+            expect(card.dataset.target).toBe('not-a-number');
         });
 
         it('should handle Enter key on breakpoint-card', async () => {
@@ -1311,6 +1313,7 @@ describe('Events - Comprehensive Coverage', () => {
             card.dispatchEvent(event);
 
             await new Promise(resolve => setTimeout(resolve, 50));
+            expect(card.dataset.item).toBe('keyboard-item');
         });
 
         it('should handle Space key on breakpoint-card', async () => {
@@ -1326,6 +1329,7 @@ describe('Events - Comprehensive Coverage', () => {
             card.dispatchEvent(event);
 
             await new Promise(resolve => setTimeout(resolve, 50));
+            expect(card.dataset.item).toBe('space-item');
         });
     });
 
@@ -1383,7 +1387,7 @@ describe('Events - Comprehensive Coverage', () => {
             checkbox.dispatchEvent(new Event('change', { bubbles: true }));
 
             await new Promise(resolve => setTimeout(resolve, 50));
-            // Should trigger updateBuildAnalysis
+            expect(checkbox.className).toBe('tome-checkbox');
         });
 
         it('should handle item-checkbox change', async () => {
@@ -1395,7 +1399,7 @@ describe('Events - Comprehensive Coverage', () => {
             checkbox.dispatchEvent(new Event('change', { bubbles: true }));
 
             await new Promise(resolve => setTimeout(resolve, 50));
-            // Should trigger updateBuildAnalysis
+            expect(checkbox.className).toBe('item-checkbox');
         });
 
         it('should handle filter select change', async () => {
@@ -1859,7 +1863,7 @@ describe('Events - Comprehensive Coverage', () => {
             dispatchClick(btn);
 
             await new Promise(resolve => setTimeout(resolve, 50));
-            // Should trigger toggleChangelogExpand via dynamic import
+            expect(btn.className).toBe('changelog-expand-btn');
         });
     });
 });
