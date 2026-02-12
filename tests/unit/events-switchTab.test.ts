@@ -101,7 +101,7 @@ vi.mock('../../src/modules/store.ts', () => ({
 }));
 
 // Import after mocks
-import { switchTab, __resetTimersForTesting, currentTab } from '../../src/modules/events.ts';
+import { switchTab, __resetTimersForTesting } from '../../src/modules/events.ts';
 
 describe('switchTab - Extended Coverage', () => {
     beforeEach(() => {

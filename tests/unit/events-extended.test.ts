@@ -118,7 +118,6 @@ import {
     getSavedTab,
     scheduleModulePreload,
     __resetTimersForTesting,
-    currentTab,
 } from '../../src/modules/events.ts';
 
 describe('Events Module - Extended Coverage', () => {
@@ -1453,8 +1452,8 @@ describe('Events Module - Extended Coverage', () => {
     // currentTab Export Tests
     // ========================================
     describe('currentTab export', () => {
-        it('should export currentTab variable', () => {
-            expect(currentTab).toBeDefined();
+        it('should provide current tab via getCurrentTab', () => {
+            expect(getCurrentTab()).toBeDefined();
         });
     });
 

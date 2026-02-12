@@ -91,13 +91,8 @@
 @import './batch.css';
 
 /* Debug Panel - Loaded dynamically by debug-ui.ts when debug features are active */
-/* @import './debug.css'; */
-
 /* Detection Metrics - Loaded dynamically by metrics-summary.ts when metrics are displayed */
-/* @import './metrics.css'; */
-
 /* Active Learning - Loaded dynamically by active-learning.ts when ML feedback is active */
-/* @import './active-learning.css'; */
 
 /* Scan Build Enhanced - CV strategy selector and options */
 @import './scan-build-enhanced.css';

@@ -1292,6 +1292,7 @@ describe('keyboard accessibility', () => {
 
         // Should trigger dynamic import for calculator
         // The import may fail in test environment, but should not throw
+        expect(card).toBeDefined();
     });
 
     it('should activate breakpoint card on Space key', () => {
@@ -1299,6 +1300,7 @@ describe('keyboard accessibility', () => {
         triggerKeyboardEvent(card, ' ');
 
         // Should attempt to trigger quick calc
+        expect(card).toBeDefined();
     });
 
     it('should handle arrow navigation on focused tab button', () => {

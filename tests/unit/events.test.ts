@@ -601,7 +601,7 @@ describe('events-comprehensive', () => {
                 window.dispatchEvent(event);
 
                 // closeModal should not be called for content clicks
-                // Note: This depends on the implementation checking properly
+                expect(modal.classList.contains('active')).toBe(true);
             }
         });
     });

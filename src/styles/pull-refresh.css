@@ -71,8 +71,8 @@
 }
 
 .pull-refresh-indicator.threshold-reached .pull-refresh-spinner {
-    border-top-color: var(--accent, #00ff88);
     border-color: rgba(0, 255, 136, 0.3);
+    border-top-color: var(--accent, #00ff88);
     transform: rotate(360deg);
 }
 

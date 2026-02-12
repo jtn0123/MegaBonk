@@ -17,7 +17,7 @@ export function __resetTimersForTesting(): void {
 }
 
 // Re-export tab management
-export { currentTab, getCurrentTab, switchTab, getSavedTab, scheduleModulePreload, VALID_TABS } from './events-tabs.ts';
+export { getCurrentTab, switchTab, getSavedTab, scheduleModulePreload, VALID_TABS } from './events-tabs.ts';
 
 // Re-export search functionality
 export { handleSearchResultClick, clearHighlightTimeout, setupSearchListeners } from './events-search.ts';

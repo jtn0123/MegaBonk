@@ -538,10 +538,10 @@ describe('Events Tabs Module', () => {
     });
 
     describe('currentTab Export', () => {
-        it('should export currentTab variable', async () => {
-            const { currentTab } = await import('../../src/modules/events-tabs.ts');
+        it('should provide current tab via getCurrentTab', async () => {
+            const { getCurrentTab } = await import('../../src/modules/events-tabs.ts');
             
-            expect(currentTab).toBeDefined();
+            expect(getCurrentTab()).toBeDefined();
         });
     });
 });
