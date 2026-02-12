@@ -56,7 +56,7 @@ export default defineConfig({
             ],
             reportsDirectory: './coverage/unit',
             clean: true,
-            all: false, // Only include tested files
+            all: true, // Include all source files for SonarQube coverage
             // Thresholds updated 2026-01-10 after adding comprehensive unit tests:
             // New test files added:
             //   - filters-advanced.test.js (72 tests) - search history, filter state, fuzzy search
