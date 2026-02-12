@@ -1,7 +1,0 @@
-projectKey=MegaBonk
-serverUrl=http://10.27.27.99:9100
-serverVersion=26.2.0.119303
-branch=main
-dashboardUrl=http://10.27.27.99:9100/dashboard?id=MegaBonk&branch=main
-ceTaskId=c1d1785e-592b-459a-adf9-47cecb6b46ce
-ceTaskUrl=http://10.27.27.99:9100/api/ce/task?id=c1d1785e-592b-459a-adf9-47cecb6b46ce

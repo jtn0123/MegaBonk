@@ -69,3 +69,4 @@ workbox-*.js.map
 # Debug files
 debug-test.ts
 ci-artifacts*/
+.scannerwork/
