@@ -268,7 +268,8 @@ describe('Keyboard Shortcuts - Real Integration Tests', () => {
             input.dispatchEvent(event);
 
             // Modal should NOT be shown since we're in an input
-            // Note: Since we're simulating, the actual target check happens in handler
+            const modal = document.getElementById('shortcuts-modal');
+            expect(modal).toBeNull();
         });
 
         it('should handle tab navigation keys', () => {

@@ -294,6 +294,36 @@ function readFileAsDataURL(file: File): Promise<string> {
     });
 }
 
+async function tryAutoDetectGrid(
+    img: HTMLImageElement,
+    width: number,
+    height: number,
+    report: (progress: number, status: string) => void
+): Promise<void> {
+    try {
+        report(15, 'Auto-detecting grid...');
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.drawImage(img, 0, 0);
+            const autoResult = await autoDetectGrid(ctx, width, height);
+            if (autoResult.success && autoResult.calibration) {
+                logger.info({
+                    operation: 'build_planner_scan.auto_grid_success',
+                    data: { calibration: autoResult.calibration },
+                });
+            }
+        }
+    } catch (error) {
+        logger.warn({
+            operation: 'build_planner_scan.auto_grid_failed',
+            error: { name: (error as Error).name, message: (error as Error).message },
+        });
+    }
+}
+
 /**
  * Detect build from image using CV and OCR
  */
@@ -322,28 +352,7 @@ async function detectBuildFromImage(imageData: string, onProgress?: ProgressCall
 
     // If no preset, try auto-detection
     if (!gridConfig && presetsLoaded) {
-        try {
-            report(15, 'Auto-detecting grid...');
-            const canvas = document.createElement('canvas');
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                ctx.drawImage(img, 0, 0);
-                const autoResult = await autoDetectGrid(ctx, width, height);
-                if (autoResult.success && autoResult.calibration) {
-                    logger.info({
-                        operation: 'build_planner_scan.auto_grid_success',
-                        data: { calibration: autoResult.calibration },
-                    });
-                }
-            }
-        } catch (error) {
-            logger.warn({
-                operation: 'build_planner_scan.auto_grid_failed',
-                error: { name: (error as Error).name, message: (error as Error).message },
-            });
-        }
+        await tryAutoDetectGrid(img, width, height, report);
     }
 
     // Run OCR detection

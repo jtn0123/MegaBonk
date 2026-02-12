@@ -260,14 +260,14 @@ export function getSessionTemplateItems(): string[] {
  * Get all available training data sources
  */
 export function getAvailableSources(): string[] {
-    return Array.from(availableSources).sort();
+    return Array.from(availableSources).sort((a, b) => a.localeCompare(b));
 }
 
 /**
  * Get currently enabled sources
  */
 export function getEnabledSources(): string[] {
-    return Array.from(enabledSources).sort();
+    return Array.from(enabledSources).sort((a, b) => a.localeCompare(b));
 }
 
 /**

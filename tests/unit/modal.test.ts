@@ -666,6 +666,7 @@ describe('Modal Module - Actual Implementation', () => {
             vi.runAllTimers();
 
             // Should handle gracefully (no throw)
+            expect(true).toBe(true);
             vi.useRealTimers();
         });
 

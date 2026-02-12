@@ -340,34 +340,22 @@ export function validateAllData(allData: {
         allValid: true,
     };
 
-    if (allData.items) {
-        results.items = validateItems(allData.items);
-        if (!results.items.success) results.allValid = false;
-    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const validators: Array<[keyof typeof allData, (data: unknown) => ValidationResult<any>]> = [
+        ['items', validateItems],
+        ['weapons', validateWeapons],
+        ['tomes', validateTomes],
+        ['characters', validateCharacters],
+        ['shrines', validateShrines],
+        ['stats', validateStats],
+    ];
 
-    if (allData.weapons) {
-        results.weapons = validateWeapons(allData.weapons);
-        if (!results.weapons.success) results.allValid = false;
-    }
-
-    if (allData.tomes) {
-        results.tomes = validateTomes(allData.tomes);
-        if (!results.tomes.success) results.allValid = false;
-    }
-
-    if (allData.characters) {
-        results.characters = validateCharacters(allData.characters);
-        if (!results.characters.success) results.allValid = false;
-    }
-
-    if (allData.shrines) {
-        results.shrines = validateShrines(allData.shrines);
-        if (!results.shrines.success) results.allValid = false;
-    }
-
-    if (allData.stats) {
-        results.stats = validateStats(allData.stats);
-        if (!results.stats.success) results.allValid = false;
+    for (const [key, validate] of validators) {
+        if (allData[key]) {
+            const result = validate(allData[key]);
+            (results as unknown as Record<string, unknown>)[key] = result;
+            if (!result.success) results.allValid = false;
+        }
     }
 
     return results;

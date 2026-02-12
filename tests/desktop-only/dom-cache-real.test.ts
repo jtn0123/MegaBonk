@@ -381,7 +381,7 @@ describe('DOM Cache Helper Functions', () => {
             invalidateDOMCache();
 
             // After invalidation, cache is empty until next access
-            // But next access triggers auto-init
+            expect(domCache.get('searchInput')).toBeUndefined();
         });
     });
 
