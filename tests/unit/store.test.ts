@@ -18,6 +18,9 @@ import {
     type TabName,
 } from '../../src/modules/store.ts';
 
+/** Flush pending queueMicrotask callbacks */
+const flushMicrotasks = () => new Promise<void>(r => queueMicrotask(r));
+
 describe('State Store', () => {
     beforeEach(() => {
         vi.clearAllMocks();
@@ -137,11 +140,12 @@ describe('State Store', () => {
     // subscribe Tests
     // ========================================
     describe('subscribe', () => {
-        it('should call subscriber when state changes', () => {
+        it('should call subscriber when state changes', async () => {
             const callback = vi.fn();
             subscribe('currentTab', callback);
             
             setState('currentTab', 'weapons');
+            await flushMicrotasks();
             
             expect(callback).toHaveBeenCalledWith('weapons');
         });
@@ -155,7 +159,7 @@ describe('State Store', () => {
             expect(callback).not.toHaveBeenCalled();
         });
 
-        it('should call multiple subscribers', () => {
+        it('should call multiple subscribers', async () => {
             const callback1 = vi.fn();
             const callback2 = vi.fn();
             
@@ -163,6 +167,7 @@ describe('State Store', () => {
             subscribe('currentTab', callback2);
             
             setState('currentTab', 'shrines');
+            await flushMicrotasks();
             
             expect(callback1).toHaveBeenCalledWith('shrines');
             expect(callback2).toHaveBeenCalledWith('shrines');
@@ -178,7 +183,7 @@ describe('State Store', () => {
             expect(callback).not.toHaveBeenCalled();
         });
 
-        it('should handle unsubscribe correctly with multiple subscribers', () => {
+        it('should handle unsubscribe correctly with multiple subscribers', async () => {
             const callback1 = vi.fn();
             const callback2 = vi.fn();
             
@@ -187,18 +192,20 @@ describe('State Store', () => {
             
             unsub1();
             setState('currentTab', 'advisor');
+            await flushMicrotasks();
             
             expect(callback1).not.toHaveBeenCalled();
             expect(callback2).toHaveBeenCalledWith('advisor');
         });
 
-        it('should receive new value in subscriber', () => {
+        it('should receive new value in subscriber', async () => {
             let receivedValue: TabName | null = null;
             subscribe('currentTab', (value) => {
                 receivedValue = value;
             });
             
             setState('currentTab', 'changelog');
+            await flushMicrotasks();
             
             expect(receivedValue).toBe('changelog');
         });
@@ -321,7 +328,7 @@ describe('State Store', () => {
             expect(() => setState('currentTab', 'weapons')).not.toThrow();
         });
 
-        it('should continue calling other subscribers after one throws', () => {
+        it('should continue calling other subscribers after one throws', async () => {
             const errorCallback = vi.fn().mockImplementation(() => {
                 throw new Error('Subscriber error');
             });
@@ -331,6 +338,7 @@ describe('State Store', () => {
             subscribe('currentTab', normalCallback);
             
             setState('currentTab', 'weapons');
+            await flushMicrotasks();
             
             // Both should have been called - normal callback should still work
             expect(errorCallback).toHaveBeenCalledWith('weapons');
@@ -358,7 +366,7 @@ describe('State Store', () => {
             expect(callback2).not.toHaveBeenCalled();
         });
 
-        it('should allow new subscriptions after clearing', () => {
+        it('should allow new subscriptions after clearing', async () => {
             const callback = vi.fn();
             
             subscribe('currentTab', callback);
@@ -368,6 +376,7 @@ describe('State Store', () => {
             subscribe('currentTab', newCallback);
             
             setState('currentTab', 'tomes');
+            await flushMicrotasks();
             
             expect(callback).not.toHaveBeenCalled();
             expect(newCallback).toHaveBeenCalledWith('tomes');
@@ -685,7 +694,7 @@ describe('State Store', () => {
     // Additional Subscribe Edge Cases
     // ========================================
     describe('subscribe edge cases', () => {
-        it('should clean up subscriber map when last subscriber unsubscribes', () => {
+        it('should clean up subscriber map when last subscriber unsubscribes', async () => {
             const callback = vi.fn();
             const unsubscribe = subscribe('currentTab', callback);
             
@@ -696,12 +705,13 @@ describe('State Store', () => {
             subscribe('currentTab', newCallback);
             
             setState('currentTab', 'weapons');
+            await flushMicrotasks();
             
             expect(callback).not.toHaveBeenCalled();
             expect(newCallback).toHaveBeenCalledWith('weapons');
         });
 
-        it('should handle subscribing to multiple keys', () => {
+        it('should handle subscribing to multiple keys', async () => {
             const results: string[] = [];
             
             subscribe('currentTab', (val) => results.push(`tab:${val}`));
@@ -709,6 +719,7 @@ describe('State Store', () => {
             
             setState('currentTab', 'tomes');
             setState('compareItems', ['a', 'b', 'c']);
+            await flushMicrotasks();
             
             expect(results).toContain('tab:tomes');
             expect(results).toContain('items:3');

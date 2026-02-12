@@ -19,6 +19,9 @@ import {
     type TabName,
 } from '../../src/modules/store.ts';
 
+/** Flush pending queueMicrotask callbacks */
+const flushMicrotasks = () => new Promise<void>(r => queueMicrotask(r));
+
 // Mock logger
 vi.mock('../../src/modules/logger.ts', () => ({
     logger: {
@@ -68,7 +71,7 @@ describe('State Store - Comprehensive Coverage', () => {
             expect(callback3).not.toHaveBeenCalled();
         });
 
-        it('should allow new subscriptions after clear', () => {
+        it('should allow new subscriptions after clear', async () => {
             const callback = vi.fn();
             subscribe('currentTab', callback);
             clearSubscribers();
@@ -78,6 +81,7 @@ describe('State Store - Comprehensive Coverage', () => {
             subscribe('currentTab', newCallback);
 
             setState('currentTab', 'tomes');
+            await flushMicrotasks();
 
             expect(callback).not.toHaveBeenCalled();
             expect(newCallback).toHaveBeenCalledWith('tomes');
@@ -560,6 +564,7 @@ describe('State Store - Comprehensive Coverage', () => {
             subscribe('currentTab', successCallback);
 
             setState('currentTab', 'weapons');
+            await flushMicrotasks();
 
             expect(logger.error).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -581,6 +586,7 @@ describe('State Store - Comprehensive Coverage', () => {
             });
 
             setState('compareItems', ['item']);
+            await flushMicrotasks();
 
             expect(logger.error).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -674,13 +680,14 @@ describe('State Store - Comprehensive Coverage', () => {
             expect(window.compareItems).toEqual([]);
         });
 
-        it('should preserve subscribers after reset', () => {
+        it('should preserve subscribers after reset', async () => {
             const callback = vi.fn();
             subscribe('currentTab', callback);
 
             resetStore();
 
             setState('currentTab', 'tomes');
+            await flushMicrotasks();
             expect(callback).toHaveBeenCalledWith('tomes');
         });
     });
@@ -689,7 +696,7 @@ describe('State Store - Comprehensive Coverage', () => {
     // Edge Cases
     // ========================================
     describe('advanced edge cases', () => {
-        it('should handle concurrent subscriptions and unsubscriptions', () => {
+        it('should handle concurrent subscriptions and unsubscriptions', async () => {
             const callbacks: vi.Mock[] = [];
             const unsubscribes: (() => void)[] = [];
 
@@ -706,6 +713,7 @@ describe('State Store - Comprehensive Coverage', () => {
             }
 
             setState('currentTab', 'weapons');
+            await flushMicrotasks();
 
             // Even numbered should be called, odd should not
             for (let i = 0; i < 10; i++) {
@@ -717,7 +725,7 @@ describe('State Store - Comprehensive Coverage', () => {
             }
         });
 
-        it('should handle subscription during state update', () => {
+        it('should handle subscription during state update', async () => {
             const laterCallback = vi.fn();
 
             subscribe('currentTab', () => {
@@ -726,7 +734,9 @@ describe('State Store - Comprehensive Coverage', () => {
             });
 
             setState('currentTab', 'weapons');
+            await flushMicrotasks();
             setState('compareItems', ['test']);
+            await flushMicrotasks();
 
             expect(laterCallback).toHaveBeenCalledWith(['test']);
         });

@@ -725,8 +725,8 @@ describe('Build Planner Extended Coverage', () => {
             
             const history = getBuildHistory();
             
-            // null should be filtered out
-            expect(history.length).toBe(1);
+            // null entries fail schema validation, so corrupt data is cleared
+            expect(history.length).toBe(0);
         });
     });
 
