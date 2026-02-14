@@ -139,6 +139,7 @@ export interface Tome {
     stat_affected?: string;
     value_per_level?: string | number;
     max_level?: number;
+    value_cap?: number;
     unlocked_by_default?: boolean;
     unlock_requirement?: string;
     unlock_cost_silver?: number;

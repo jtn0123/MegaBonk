@@ -86,6 +86,7 @@ const TomeSchema = z.object({
     unlock_requirement: z.string().optional(),
     unlock_cost_silver: z.number().optional(),
     max_level: z.number().optional(),
+    value_cap: z.number().optional(),
     description: z.string().optional(),
     priority: z.number().optional(),
     recommended_for: z.array(z.string()).optional(),
