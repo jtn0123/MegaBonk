@@ -110,23 +110,23 @@
 
 .category-pill.balance {
     background: rgba(59, 130, 246, 0.2);
-    color: #7ab8ff;
+    color: #93c5fd;
 }
 .category-pill.new_content {
     background: rgba(34, 197, 94, 0.2);
-    color: #6ee7a0;
+    color: #86efac;
 }
 .category-pill.bug_fixes {
     background: rgba(168, 85, 247, 0.2);
-    color: #d4a0ff;
+    color: #d8b4fe;
 }
 .category-pill.removed {
     background: rgba(239, 68, 68, 0.2);
-    color: #ff9090;
+    color: #fca5a5;
 }
 .category-pill.other {
     background: rgba(156, 163, 175, 0.2);
-    color: #b8bfc9;
+    color: #d1d5db;
 }
 
 .changelog-changes {
@@ -186,7 +186,7 @@
 }
 
 .changelog-item.buff::before {
-    background: #4ade80;
+    background: #86efac;
 }
 .changelog-item.nerf::before {
     background: #f87171;

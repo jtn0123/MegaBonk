@@ -45,11 +45,11 @@ export function getBuildCacheKey(build: Build): string {
         build.weapon?.id || '',
         build.tomes
             .map((t: Tome) => t.id)
-            .sort()
+            .sort((a, b) => a.localeCompare(b))
             .join(','),
         build.items
             .map((i: Item) => i.id)
-            .sort()
+            .sort((a, b) => a.localeCompare(b))
             .join(','),
     ].join('|');
 }

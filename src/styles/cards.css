@@ -341,7 +341,7 @@
 /* Semantic tag color coding */
 .meta-tag.tag-stacks-well {
     background: rgba(16, 185, 129, 0.15);
-    color: #34d399;
+    color: #6ee7b7;
     border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
@@ -351,7 +351,7 @@
 
 .meta-tag.tag-one-and-done {
     background: rgba(245, 158, 11, 0.15);
-    color: #fbbf24;
+    color: #fde68a;
     border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
@@ -361,7 +361,7 @@
 
 .meta-tag.tag-limited {
     background: rgba(156, 163, 175, 0.15);
-    color: #b8bfc9;
+    color: #d1d5db;
     border: 1px solid rgba(156, 163, 175, 0.3);
 }
 

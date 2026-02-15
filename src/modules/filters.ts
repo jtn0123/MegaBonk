@@ -194,7 +194,7 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
                         fuzzyMatchScore(searchTerm, tags, 'tags'),
                     ];
 
-                    const bestMatch = matches.reduce((best, current) => (current.score > best.score ? current : best));
+                    const bestMatch = matches.reduce<(typeof matches)[0] | undefined>((best, current) => (!best || current.score > best.score ? current : best), undefined)!;
 
                     return {
                         item: { ...item, _matchContext: bestMatch } as Entity & ItemWithMatchContext,

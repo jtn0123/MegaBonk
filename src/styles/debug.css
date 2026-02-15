@@ -75,7 +75,7 @@
 .debug-expand-btn:hover {
     background: rgba(0, 255, 136, 0.2);
     border-color: #00ff88;
-    color: #33ffaa;
+    color: #5eead4;
 }
 
 .debug-expand-icon {
@@ -242,11 +242,11 @@
 
 .debug-log-entry.warn {
     background: rgba(255, 204, 0, 0.1);
-    color: #f9e68c;
+    color: #fef08a;
 }
 
 .debug-log-entry.info {
-    color: #4ecdc4;
+    color: #5eead4;
 }
 
 .debug-log-entry.debug {

@@ -64,7 +64,6 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
-    continue-on-error: true  # Don't block PRs - report only
 
     steps:
       - name: Checkout code
