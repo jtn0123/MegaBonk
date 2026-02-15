@@ -106,6 +106,8 @@ export interface ChartableTome {
     tier?: string;
     stat_affected?: string;
     value_per_level?: string | number;
+    max_level?: number;
+    value_cap?: number;
 }
 
 /**
@@ -443,7 +445,7 @@ export function createCompareChart(canvasId: string, items: ChartableItem[]): Ch
  * @param maxLevels - Maximum levels to calculate
  * @returns Array of progression values or null
  */
-export function calculateTomeProgression(tome: Tome | ChartableTome, maxLevels: number = 10): number[] | null {
+export function calculateTomeProgression(tome: Tome | ChartableTome, maxLevels?: number): number[] | null {
     // Check for null/undefined before calling .match()
     const valueStr = tome?.value_per_level;
     if (!valueStr || typeof valueStr !== 'string') return null;
@@ -461,8 +463,19 @@ export function calculateTomeProgression(tome: Tome | ChartableTome, maxLevels: 
     const isEvasion = statLower.includes('evasion');
     const isArmor = statLower.includes('armor');
 
-    return Array.from({ length: maxLevels }, (_, i) => {
-        const internalValue = (isMultiplier ? perLevel * 100 : perLevel) * (i + 1);
+    // Use tome's max_level if available, then explicit param, then default 10
+    const effectiveMaxLevels = maxLevels ?? ('max_level' in tome && tome.max_level ? tome.max_level : 10);
+
+    // Value cap (e.g., XP Tome caps at 1000% = 10x multiplier)
+    const valueCap = 'value_cap' in tome ? (tome as Tome).value_cap : undefined;
+
+    return Array.from({ length: effectiveMaxLevels }, (_, i) => {
+        let internalValue = (isMultiplier ? perLevel * 100 : perLevel) * (i + 1);
+
+        // Apply value cap if defined (e.g., 1000 for 10x / 1000%)
+        if (valueCap !== undefined && internalValue > valueCap) {
+            internalValue = valueCap;
+        }
 
         if (isHyperbolic && isEvasion) {
             // Evasion formula: actual = internal / (1 + internal)

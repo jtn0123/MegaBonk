@@ -583,6 +583,7 @@
       "unlock_requirement": "Break 20 pots in a single run",
       "unlock_cost_silver": 12,
       "max_level": 99,
+      "value_cap": 1000,
       "description": "Increases XP gain. CAPPED AT 10x (1000%). Faster leveling = more upgrades.",
       "priority": 1,
       "recommended_for": [
