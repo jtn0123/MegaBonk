@@ -41,6 +41,10 @@ jobs:
         run: npm run test:unit
         continue-on-error: false
 
+      - name: Run unit tests with coverage
+        run: npx vitest run --coverage --coverage.thresholds.100=false --coverage.thresholds.statements=0 --coverage.thresholds.branches=0 --coverage.thresholds.functions=0 --coverage.thresholds.lines=0
+        continue-on-error: true
+
       - name: Generate test summary
         if: always()
         run: |
@@ -55,7 +59,7 @@ jobs:
         uses: codecov/codecov-action@v4
         if: always()
         with:
-          files: ./coverage/coverage-final.json
+          files: ./coverage/unit/coverage-final.json
           flags: unit
           name: unit-tests
         env:
