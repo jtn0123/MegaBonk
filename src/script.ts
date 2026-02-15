@@ -175,6 +175,7 @@ export function cleanupUpdateNotification(): void {
 function showUpdateNotification(registration: ServiceWorkerRegistration): void {
     const notification = document.createElement('div');
     notification.className = 'update-notification';
+    // SAFE: static HTML - no dynamic content interpolated
     notification.innerHTML = `
         <div class="update-content">
             <span class="update-icon">🎉</span>

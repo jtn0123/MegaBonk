@@ -219,7 +219,8 @@ function showEntityModal(type: 'item' | 'tome'): void {
     // Close button
     const closeBtn = document.createElement('button');
     closeBtn.className = 'close';
-    closeBtn.innerHTML = '&times;';
+    closeBtn.textContent = '\u00D7';
+    closeBtn.setAttribute('aria-label', 'Close dialog');
     closeBtn.onclick = () => { document.body.classList.remove('modal-open'); modal.remove(); };
 
     // Title
@@ -233,10 +234,15 @@ function showEntityModal(type: 'item' | 'tome'): void {
     entities.forEach(entity => {
         const entityCard = document.createElement('button');
         entityCard.className = 'advisor-entity-card';
-        entityCard.innerHTML = `
-            <div class="entity-name">${escapeHtml(entity.name)}</div>
-            <div class="entity-tier">${escapeHtml(entity.tier)}</div>
-        `;
+        entityCard.setAttribute('aria-label', `Select ${entity.name} (${entity.tier})`);
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'entity-name';
+        nameDiv.textContent = entity.name;
+        const tierDiv = document.createElement('div');
+        tierDiv.className = 'entity-tier';
+        tierDiv.textContent = entity.tier;
+        entityCard.appendChild(nameDiv);
+        entityCard.appendChild(tierDiv);
         entityCard.onclick = () => {
             addEntityToCurrentBuild(type, entity);
             document.body.classList.remove('modal-open');
@@ -333,12 +339,15 @@ function updateCurrentBuildDisplay(): void {
 function createEntityChip(entity: Item | Tome, onRemove: () => void): HTMLElement {
     const chip = document.createElement('div');
     chip.className = 'advisor-chip';
-    chip.innerHTML = `
-        <span class="chip-name">${escapeHtml(entity.name)}</span>
-        <button class="chip-remove" aria-label="Remove ${escapeHtml(entity.name)}">&times;</button>
-    `;
-
-    const removeBtn = chip.querySelector('.chip-remove') as HTMLButtonElement;
+    const chipName = document.createElement('span');
+    chipName.className = 'chip-name';
+    chipName.textContent = entity.name;
+    const removeBtn = document.createElement('button');
+    removeBtn.className = 'chip-remove';
+    removeBtn.setAttribute('aria-label', `Remove ${entity.name}`);
+    removeBtn.textContent = '\u00D7';
+    chip.appendChild(chipName);
+    chip.appendChild(removeBtn);
     removeBtn.onclick = onRemove;
 
     return chip;

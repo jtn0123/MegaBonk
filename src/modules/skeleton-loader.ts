@@ -217,6 +217,7 @@ export function showSkeletonLoading(
         .map(() => generateCard())
         .join('');
 
+    // SAFE: static HTML - skeleton placeholders with no user content
     container.innerHTML = `<div class="skeleton-container">${skeletons}</div>`;
     container.setAttribute('aria-busy', 'true');
     container.setAttribute('aria-label', 'Loading content');
@@ -245,6 +246,7 @@ export function showTabSkeletonLoading(
         .map(() => generateCard())
         .join('');
 
+    // SAFE: static HTML - skeleton placeholders with no user content
     container.innerHTML = `<div class="skeleton-container">${skeletons}</div>`;
     container.setAttribute('aria-busy', 'true');
     container.setAttribute('aria-label', 'Loading content');
