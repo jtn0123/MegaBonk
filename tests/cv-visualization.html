@@ -446,7 +446,7 @@
                 const values = lines[i].split(',');
                 const row = {};
                 headers.forEach((h, j) => {
-                    let val = values[j]?.trim().replace(/^"|"$/g, '');
+                    let val = values[j]?.trim().replace(/(^"|"$)/g, '');
                     if (!isNaN(parseFloat(val))) val = parseFloat(val);
                     row[h] = val;
                 });

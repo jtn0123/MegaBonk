@@ -39,27 +39,27 @@
 
 .metrics-grade.grade-a .grade-letter {
     background: rgba(0, 255, 136, 0.2);
-    color: #33ffaa;
+    color: #5eead4;
 }
 
 .metrics-grade.grade-b .grade-letter {
     background: rgba(34, 197, 94, 0.2);
-    color: #4ade80;
+    color: #86efac;
 }
 
 .metrics-grade.grade-c .grade-letter {
     background: rgba(255, 193, 7, 0.2);
-    color: #ffd54f;
+    color: #fde047;
 }
 
 .metrics-grade.grade-d .grade-letter {
     background: rgba(255, 152, 0, 0.2);
-    color: #ffad33;
+    color: #fbbf24;
 }
 
 .metrics-grade.grade-f .grade-letter {
     background: rgba(255, 99, 71, 0.2);
-    color: #ff8570;
+    color: #fca5a1;
 }
 
 .metrics-grade .grade-label {
@@ -332,27 +332,27 @@
 
 .metrics-compact .compact-grade.grade-a {
     background: rgba(0, 255, 136, 0.2);
-    color: #33ffaa;
+    color: #5eead4;
 }
 
 .metrics-compact .compact-grade.grade-b {
     background: rgba(34, 197, 94, 0.2);
-    color: #4ade80;
+    color: #86efac;
 }
 
 .metrics-compact .compact-grade.grade-c {
     background: rgba(255, 193, 7, 0.2);
-    color: #ffd54f;
+    color: #fde047;
 }
 
 .metrics-compact .compact-grade.grade-d {
     background: rgba(255, 152, 0, 0.2);
-    color: #ffad33;
+    color: #fbbf24;
 }
 
 .metrics-compact .compact-grade.grade-f {
     background: rgba(255, 99, 71, 0.2);
-    color: #ff8570;
+    color: #fca5a1;
 }
 
 .metrics-compact .compact-conf {

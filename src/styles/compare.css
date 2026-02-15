@@ -65,8 +65,6 @@
 
 .floating-compare-btn {
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
     background: var(--accent);
     color: white;
     border: none;
