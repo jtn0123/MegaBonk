@@ -78,7 +78,7 @@ export function updateFilters(tabName: string): void {
         // SAFE: static HTML - filter controls with no dynamic content
         filtersContainer.innerHTML = `
             <label for="rarityFilter">Rarity:</label>
-            <select id="rarityFilter">
+            <select id="rarityFilter" aria-label="Filter by rarity">
                 <option value="all">All Rarities</option>
                 <option value="common">Common</option>
                 <option value="uncommon">Uncommon</option>
@@ -87,7 +87,7 @@ export function updateFilters(tabName: string): void {
                 <option value="legendary">Legendary</option>
             </select>
             <label for="tierFilter">Tier:</label>
-            <select id="tierFilter">
+            <select id="tierFilter" aria-label="Filter by tier">
                 <option value="all">All Tiers</option>
                 <option value="SS">SS Tier</option>
                 <option value="S">S Tier</option>
@@ -96,13 +96,13 @@ export function updateFilters(tabName: string): void {
                 <option value="C">C Tier</option>
             </select>
             <label for="stackingFilter">Stacking:</label>
-            <select id="stackingFilter">
+            <select id="stackingFilter" aria-label="Filter by stacking">
                 <option value="all">All</option>
                 <option value="stacks_well">Stacks Well</option>
                 <option value="one_and_done">One-and-Done</option>
             </select>
             <label for="sortBy">Sort:</label>
-            <select id="sortBy">
+            <select id="sortBy" aria-label="Sort order">
                 <option value="name">Name</option>
                 <option value="tier">Tier</option>
                 <option value="rarity">Rarity</option>
@@ -110,9 +110,10 @@ export function updateFilters(tabName: string): void {
         `;
     } else if (['weapons', 'tomes', 'characters'].includes(tabName)) {
         // DISABLED: Favorites Only checkbox hidden (feature UI disabled)
+        // SAFE: static HTML - filter controls with no dynamic content
         filtersContainer.innerHTML = `
             <label for="tierFilter">Tier:</label>
-            <select id="tierFilter">
+            <select id="tierFilter" aria-label="Filter by tier">
                 <option value="all">All Tiers</option>
                 <option value="SS">SS Tier</option>
                 <option value="S">S Tier</option>
@@ -121,16 +122,17 @@ export function updateFilters(tabName: string): void {
                 <option value="C">C Tier</option>
             </select>
             <label for="sortBy">Sort:</label>
-            <select id="sortBy">
+            <select id="sortBy" aria-label="Sort order">
                 <option value="name">Name</option>
                 <option value="tier">Tier</option>
             </select>
         `;
     } else if (tabName === 'shrines') {
         // DISABLED: Favorites Only checkbox hidden (feature UI disabled)
+        // SAFE: static HTML - filter controls with no dynamic content
         filtersContainer.innerHTML = `
             <label for="typeFilter">Type:</label>
-            <select id="typeFilter">
+            <select id="typeFilter" aria-label="Filter by type">
                 <option value="all">All Types</option>
                 <option value="stat_upgrade">Stat Upgrade</option>
                 <option value="combat">Combat</option>
@@ -139,9 +141,10 @@ export function updateFilters(tabName: string): void {
             </select>
         `;
     } else if (tabName === 'changelog') {
+        // SAFE: static HTML - filter controls with no dynamic content
         filtersContainer.innerHTML = `
             <label for="categoryFilter">Category:</label>
-            <select id="categoryFilter">
+            <select id="categoryFilter" aria-label="Filter by category">
                 <option value="all">All Categories</option>
                 <option value="balance">Balance Changes</option>
                 <option value="new_content">New Content</option>
@@ -150,7 +153,7 @@ export function updateFilters(tabName: string): void {
                 <option value="other">Other</option>
             </select>
             <label for="sortBy">Sort:</label>
-            <select id="sortBy">
+            <select id="sortBy" aria-label="Sort order">
                 <option value="date_desc">Newest First</option>
                 <option value="date_asc">Oldest First</option>
             </select>
@@ -164,88 +167,146 @@ export function updateFilters(tabName: string): void {
  * @param tabName - Current tab name
  * @returns Filtered data array
  */
-export function filterData(data: Entity[], tabName: string): Entity[] {
-    const filterStartTime = performance.now();
-    const originalCount = data.length;
-    let filtered = [...data];
+/**
+ * Apply text search with fuzzy matching and scoring
+ */
+function applySearchFilter(filtered: Entity[], searchQuery: string): Entity[] {
+    if (!searchQuery.trim()) return filtered;
 
-    const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-    const searchQuery = searchInput?.value || '';
+    const criteria = parseAdvancedSearch(searchQuery);
 
-    // Advanced search with fuzzy matching
-    if (searchQuery.trim()) {
-        const criteria = parseAdvancedSearch(searchQuery);
+    if (criteria.text.length > 0) {
+        const searchTerm = criteria.text.join(' ').toLowerCase();
+        filtered = filtered
+            .map(item => {
+                const name = item.name || '';
+                const description = item.description || '';
+                const baseEffect = isItem(item) ? item.base_effect || '' : '';
+                const tags = (item.tags || []).join(' ');
 
-        // Apply text search with match context
-        if (criteria.text.length > 0) {
-            const searchTerm = criteria.text.join(' ').toLowerCase();
+                const matches = [
+                    fuzzyMatchScore(searchTerm, name, 'name'),
+                    fuzzyMatchScore(searchTerm, description, 'description'),
+                    fuzzyMatchScore(searchTerm, baseEffect, 'effect'),
+                    fuzzyMatchScore(searchTerm, tags, 'tags'),
+                ];
 
-            filtered = filtered
-                .map(item => {
-                    const name = item.name || '';
-                    const description = item.description || '';
-                    const baseEffect = isItem(item) ? item.base_effect || '' : '';
-                    const tags = (item.tags || []).join(' ');
+                const bestMatch = matches.reduce<(typeof matches)[0] | undefined>((best, current) => (!best || current.score > best.score ? current : best), undefined)!;
 
-                    const matches = [
-                        fuzzyMatchScore(searchTerm, name, 'name'),
-                        fuzzyMatchScore(searchTerm, description, 'description'),
-                        fuzzyMatchScore(searchTerm, baseEffect, 'effect'),
-                        fuzzyMatchScore(searchTerm, tags, 'tags'),
-                    ];
-
-                    const bestMatch = matches.reduce<(typeof matches)[0] | undefined>((best, current) => (!best || current.score > best.score ? current : best), undefined)!;
-
-                    return {
-                        item: { ...item, _matchContext: bestMatch } as Entity & ItemWithMatchContext,
-                        score: bestMatch.score,
-                    };
-                })
-                .filter(result => result.score > 0)
-                .sort((a, b) => b.score - a.score)
-                .map(result => result.item as Entity);
-        }
-
-        // Apply advanced filter criteria
-        if (Object.keys(criteria.filters).length > 0) {
-            filtered = filtered.filter(item =>
-                matchesAdvancedFilters(item as unknown as Record<string, unknown>, criteria.filters)
-            );
-        }
+                return {
+                    item: { ...item, _matchContext: bestMatch } as Entity & ItemWithMatchContext,
+                    score: bestMatch.score,
+                };
+            })
+            .filter(result => result.score > 0)
+            .sort((a, b) => b.score - a.score)
+            .map(result => result.item as Entity);
     }
 
-    // Favorites filter
+    if (Object.keys(criteria.filters).length > 0) {
+        filtered = filtered.filter(item =>
+            matchesAdvancedFilters(item as unknown as Record<string, unknown>, criteria.filters)
+        );
+    }
+
+    return filtered;
+}
+
+/**
+ * Apply common dropdown filters (favorites, tier)
+ */
+function applyCommonFilters(filtered: Entity[], tabName: string): Entity[] {
     const favoritesOnlyEl = safeGetElementById('favoritesOnly');
     const favoritesOnly = isInputElement(favoritesOnlyEl) ? favoritesOnlyEl.checked : false;
     if (favoritesOnly) {
         filtered = filtered.filter(item => isFavorite(tabName as EntityType, item.id));
     }
 
-    // Tier filter
     const tierFilterEl = safeGetElementById('tierFilter');
     const tierFilter = isSelectElement(tierFilterEl) ? tierFilterEl.value : 'all';
     if (tierFilter && tierFilter !== 'all') {
         filtered = filtered.filter(item => item.tier === tierFilter);
     }
 
-    // Rarity filter (items only)
-    if (tabName === 'items') {
-        const rarityFilterEl = safeGetElementById('rarityFilter');
-        const rarityFilter = isSelectElement(rarityFilterEl) ? rarityFilterEl.value : 'all';
-        if (rarityFilter && rarityFilter !== 'all') {
-            filtered = filtered.filter(item => isItem(item) && item.rarity === rarityFilter);
-        }
+    return filtered;
+}
 
-        const stackingFilterEl = safeGetElementById('stackingFilter');
-        const stackingFilter = isSelectElement(stackingFilterEl) ? stackingFilterEl.value : 'all';
-        if (stackingFilter === 'stacks_well') {
-            filtered = filtered.filter(item => isItem(item) && item.stacks_well === true);
-        } else if (stackingFilter === 'one_and_done') {
-            filtered = filtered.filter(item => isItem(item) && item.one_and_done === true);
-        }
+/**
+ * Apply item-specific filters (rarity, stacking)
+ */
+function applyItemFilters(filtered: Entity[]): Entity[] {
+    const rarityFilterEl = safeGetElementById('rarityFilter');
+    const rarityFilter = isSelectElement(rarityFilterEl) ? rarityFilterEl.value : 'all';
+    if (rarityFilter && rarityFilter !== 'all') {
+        filtered = filtered.filter(item => isItem(item) && item.rarity === rarityFilter);
     }
 
-    // Type filter (shrines only)
+    const stackingFilterEl = safeGetElementById('stackingFilter');
+    const stackingFilter = isSelectElement(stackingFilterEl) ? stackingFilterEl.value : 'all';
+    if (stackingFilter === 'stacks_well') {
+        filtered = filtered.filter(item => isItem(item) && item.stacks_well === true);
+    } else if (stackingFilter === 'one_and_done') {
+        filtered = filtered.filter(item => isItem(item) && item.one_and_done === true);
+    }
+
+    return filtered;
+}
+
+/**
+ * Apply changelog-specific filtering and date sorting
+ */
+function applyChangelogFilters(filtered: Entity[]): Entity[] {
+    type PatchWithCategories = ChangelogPatch & {
+        categories?: Record<string, unknown[]>;
+    };
+    const patches = filtered as unknown as PatchWithCategories[];
+    const categoryFilterEl = safeGetElementById('categoryFilter');
+    const categoryFilter = isSelectElement(categoryFilterEl) ? categoryFilterEl.value : 'all';
+    if (categoryFilter && categoryFilter !== 'all') {
+        const filteredPatches = patches.filter(patch => {
+            const categoryItems = patch.categories?.[categoryFilter];
+            return categoryItems != null && categoryItems.length > 0;
+        });
+        filtered = filteredPatches as unknown as Entity[];
+    }
+
+    // Date sorting - pre-compute date values for O(n) instead of O(n log n) date parsing
+    const sortByEl = safeGetElementById('sortBy');
+    const sortBy = isSelectElement(sortByEl) ? sortByEl.value : 'date_desc';
+    const patchesForSort = filtered as unknown as ChangelogPatch[];
+
+    const dateCache = new Map<string, number>();
+    const defaultValue = sortBy === 'date_asc' ? Infinity : -Infinity;
+    patchesForSort.forEach(patch => {
+        const dateKey = patch.date ?? '';
+        if (!dateCache.has(dateKey)) {
+            const d = new Date(dateKey);
+            dateCache.set(dateKey, !dateKey || isNaN(d.getTime()) ? defaultValue : d.getTime());
+        }
+    });
+
+    const compareFn = sortBy === 'date_asc'
+        ? (a: ChangelogPatch, b: ChangelogPatch) => (dateCache.get(a.date ?? '') ?? defaultValue) - (dateCache.get(b.date ?? '') ?? defaultValue)
+        : (a: ChangelogPatch, b: ChangelogPatch) => (dateCache.get(b.date ?? '') ?? defaultValue) - (dateCache.get(a.date ?? '') ?? defaultValue);
+    patchesForSort.sort(compareFn);
+
+    return patchesForSort as unknown as Entity[];
+}
+
+export function filterData(data: Entity[], tabName: string): Entity[] {
+    const filterStartTime = performance.now();
+    const originalCount = data.length;
+
+    const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
+    const searchQuery = searchInput?.value || '';
+
+    let filtered = applySearchFilter([...data], searchQuery);
+    filtered = applyCommonFilters(filtered, tabName);
+
+    if (tabName === 'items') {
+        filtered = applyItemFilters(filtered);
+    }
+
     if (tabName === 'shrines') {
         const typeFilterEl = safeGetElementById('typeFilter');
         const typeFilter = isSelectElement(typeFilterEl) ? typeFilterEl.value : 'all';
@@ -254,56 +315,10 @@ export function filterData(data: Entity[], tabName: string): Entity[] {
         }
     }
 
-    // Changelog-specific filtering
     if (tabName === 'changelog') {
-        type PatchWithCategories = ChangelogPatch & {
-            categories?: Record<string, unknown[]>;
-        };
-        const patches = filtered as unknown as PatchWithCategories[];
-        const categoryFilterEl = safeGetElementById('categoryFilter');
-        const categoryFilter = isSelectElement(categoryFilterEl) ? categoryFilterEl.value : 'all';
-        if (categoryFilter && categoryFilter !== 'all') {
-            const filteredPatches = patches.filter(patch => {
-                if (patch.categories && categoryFilter in patch.categories) {
-                    const categoryItems = patch.categories[categoryFilter];
-                    return categoryItems && categoryItems.length > 0;
-                }
-                return false;
-            });
-            filtered = filteredPatches as unknown as Entity[];
-        }
-
-        // Date sorting - pre-compute date values for O(n) instead of O(n log n) date parsing
-        const sortByEl = safeGetElementById('sortBy');
-        const sortBy = isSelectElement(sortByEl) ? sortByEl.value : 'date_desc';
-        const patchesForSort = filtered as unknown as ChangelogPatch[];
-
-        // Pre-compute date values once (avoids repeated parsing during sort comparisons)
-        const dateCache = new Map<string, number>();
-        const defaultValue = sortBy === 'date_asc' ? Infinity : -Infinity;
-        patchesForSort.forEach(patch => {
-            // Bug fix: Handle undefined/null patch.date to prevent Map key issues and invalid dates
-            const dateKey = patch.date ?? '';
-            if (!dateCache.has(dateKey)) {
-                const d = new Date(dateKey);
-                // If date is empty or invalid, use default value for proper sorting
-                dateCache.set(dateKey, !dateKey || isNaN(d.getTime()) ? defaultValue : d.getTime());
-            }
-        });
-
-        // Sort using cached date values
-        if (sortBy === 'date_asc') {
-            patchesForSort.sort(
-                (a, b) => (dateCache.get(a.date ?? '') ?? defaultValue) - (dateCache.get(b.date ?? '') ?? defaultValue)
-            );
-        } else {
-            patchesForSort.sort(
-                (a, b) => (dateCache.get(b.date ?? '') ?? defaultValue) - (dateCache.get(a.date ?? '') ?? defaultValue)
-            );
-        }
-
-        logFilterEvent(filterStartTime, tabName, searchQuery, originalCount, patchesForSort.length);
-        return patchesForSort as unknown as Entity[];
+        filtered = applyChangelogFilters(filtered);
+        logFilterEvent(filterStartTime, tabName, searchQuery, originalCount, filtered.length);
+        return filtered;
     }
 
     // Standard sorting
