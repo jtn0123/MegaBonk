@@ -6,10 +6,15 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: sonar-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   sonarqube:
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork == false
     runs-on: [self-hosted, sonar]
+    timeout-minutes: 30
     permissions:
       contents: read
       pull-requests: read
@@ -39,7 +44,26 @@ jobs:
         run: npm run test:coverage:merge
         continue-on-error: true
 
-      - uses: sonarsource/sonarqube-scan-action@v5
+      - name: Verify coverage files exist
+        run: |
+          echo "=== Coverage files ==="
+          ls -la coverage/unit/lcov.info 2>/dev/null && echo "Unit lcov: $(wc -l < coverage/unit/lcov.info) lines" || echo "WARNING: No unit lcov.info!"
+          ls -la coverage/merged/lcov.info 2>/dev/null && echo "Merged lcov: $(wc -l < coverage/merged/lcov.info) lines" || echo "INFO: No merged lcov.info (E2E may have been skipped)"
+          echo "=== Sample SF paths from unit lcov ==="
+          grep "^SF:" coverage/unit/lcov.info 2>/dev/null | head -5
+          echo "=== Non-zero coverage lines (sample) ==="
+          grep "^DA:" coverage/unit/lcov.info 2>/dev/null | grep -v ",0$" | head -5
+
+      - uses: sonarsource/sonarqube-scan-action@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.verbose=true
+
+      - uses: sonarsource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
