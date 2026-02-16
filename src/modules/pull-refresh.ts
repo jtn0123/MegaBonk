@@ -11,9 +11,14 @@ import { ToastManager } from './toast.ts';
 // Constants
 // ========================================
 
-const PULL_THRESHOLD = 120; // Pixels to pull before refresh triggers (increased from 80 to reduce accidental triggers)
-const MAX_PULL_DISTANCE = 150; // Maximum visual pull distance
-const RESISTANCE_FACTOR = 0.3; // Resistance when pulling past threshold (reduced for smoother feel)
+/** Pull-to-refresh configuration (exported for testing) */
+export const PULL_REFRESH_CONFIG = {
+    PULL_THRESHOLD: 100, // Pixels to pull before refresh triggers
+    MAX_PULL_DISTANCE: 160, // Maximum visual pull distance
+    RESISTANCE_FACTOR: 0.4, // Resistance when pulling past threshold (higher = more dampening)
+    MIN_TOUCH_DURATION_MS: 180, // Minimum touch duration to prevent quick flick triggers
+    COOLDOWN_MS: 2000, // Cooldown period after a refresh before allowing another
+};
 
 // ========================================
 // State
@@ -22,16 +27,20 @@ const RESISTANCE_FACTOR = 0.3; // Resistance when pulling past threshold (reduce
 interface PullRefreshState {
     startY: number;
     currentY: number;
+    startTime: number;
     isPulling: boolean;
     isRefreshing: boolean;
+    lastRefreshTime: number;
     indicator: HTMLElement | null;
 }
 
 const state: PullRefreshState = {
     startY: 0,
     currentY: 0,
+    startTime: 0,
     isPulling: false,
     isRefreshing: false,
+    lastRefreshTime: 0,
     indicator: null,
 };
 
@@ -50,7 +59,14 @@ function isTouchDevice(): boolean {
  * Check if page is scrolled to the top
  */
 function isAtTop(): boolean {
-    return window.scrollY <= 0;
+    return window.scrollY === 0;
+}
+
+/**
+ * Check if cooldown period has elapsed since last refresh
+ */
+function isCooldownElapsed(): boolean {
+    return Date.now() - state.lastRefreshTime >= PULL_REFRESH_CONFIG.COOLDOWN_MS;
 }
 
 // ========================================
@@ -79,8 +95,8 @@ function createIndicator(): HTMLElement {
 function updateIndicator(distance: number, isRefreshing: boolean = false): void {
     if (!state.indicator) return;
 
-    const progress = Math.min(distance / PULL_THRESHOLD, 1);
-    const clampedDistance = Math.min(distance, MAX_PULL_DISTANCE);
+    const progress = Math.min(distance / PULL_REFRESH_CONFIG.PULL_THRESHOLD, 1);
+    const clampedDistance = Math.min(distance, PULL_REFRESH_CONFIG.MAX_PULL_DISTANCE);
 
     state.indicator.style.setProperty('--pull-distance', `${clampedDistance}px`);
     state.indicator.style.setProperty('--pull-progress', `${progress}`);
@@ -89,7 +105,7 @@ function updateIndicator(distance: number, isRefreshing: boolean = false): void 
     if (textEl) {
         if (isRefreshing) {
             textEl.textContent = 'Refreshing...';
-        } else if (distance >= PULL_THRESHOLD) {
+        } else if (distance >= PULL_REFRESH_CONFIG.PULL_THRESHOLD) {
             textEl.textContent = 'Release to refresh';
         } else {
             textEl.textContent = 'Pull to refresh';
@@ -97,7 +113,7 @@ function updateIndicator(distance: number, isRefreshing: boolean = false): void 
     }
 
     state.indicator.classList.toggle('active', distance > 0);
-    state.indicator.classList.toggle('threshold-reached', distance >= PULL_THRESHOLD);
+    state.indicator.classList.toggle('threshold-reached', distance >= PULL_REFRESH_CONFIG.PULL_THRESHOLD);
     state.indicator.classList.toggle('refreshing', isRefreshing);
 }
 
@@ -120,13 +136,14 @@ function resetIndicator(): void {
 // ========================================
 
 function handleTouchStart(e: TouchEvent): void {
-    // Only enable when at top of page and not already refreshing
-    if (!isAtTop() || state.isRefreshing) return;
+    // Only enable when at top of page, not refreshing, and cooldown elapsed
+    if (!isAtTop() || state.isRefreshing || !isCooldownElapsed()) return;
 
     const touch = e.touches[0];
     if (!touch) return;
 
     state.startY = touch.clientY;
+    state.startTime = Date.now();
     state.isPulling = true;
 }
 
@@ -150,9 +167,9 @@ function handleTouchMove(e: TouchEvent): void {
     }
 
     // Apply resistance after threshold
-    if (distance > PULL_THRESHOLD) {
-        const overPull = distance - PULL_THRESHOLD;
-        distance = PULL_THRESHOLD + overPull * RESISTANCE_FACTOR;
+    if (distance > PULL_REFRESH_CONFIG.PULL_THRESHOLD) {
+        const overPull = distance - PULL_REFRESH_CONFIG.PULL_THRESHOLD;
+        distance = PULL_REFRESH_CONFIG.PULL_THRESHOLD + overPull * PULL_REFRESH_CONFIG.RESISTANCE_FACTOR;
     }
 
     // Prevent default scrolling when pulling
@@ -169,7 +186,9 @@ async function handleTouchEnd(): Promise<void> {
 
     const distance = state.currentY - state.startY;
 
-    if (distance >= PULL_THRESHOLD && !state.isRefreshing) {
+    const touchDuration = Date.now() - state.startTime;
+
+    if (distance >= PULL_REFRESH_CONFIG.PULL_THRESHOLD && !state.isRefreshing && touchDuration >= PULL_REFRESH_CONFIG.MIN_TOUCH_DURATION_MS) {
         await triggerRefresh();
     } else {
         resetIndicator();
@@ -177,6 +196,7 @@ async function handleTouchEnd(): Promise<void> {
 
     state.startY = 0;
     state.currentY = 0;
+    state.startTime = 0;
 }
 
 // ========================================
@@ -188,7 +208,7 @@ async function handleTouchEnd(): Promise<void> {
  */
 async function triggerRefresh(): Promise<void> {
     state.isRefreshing = true;
-    updateIndicator(PULL_THRESHOLD, true);
+    updateIndicator(PULL_REFRESH_CONFIG.PULL_THRESHOLD, true);
 
     logger.info({
         operation: 'pull-refresh.triggered',
@@ -221,6 +241,7 @@ async function triggerRefresh(): Promise<void> {
         ToastManager.error('Failed to refresh data');
     } finally {
         state.isRefreshing = false;
+        state.lastRefreshTime = Date.now();
         resetIndicator();
     }
 }

@@ -67,7 +67,7 @@ async function simulatePullGesture(
     for (let i = 1; i <= steps; i++) {
         const currentY = startY + deltaY * i;
         document.dispatchEvent(createTouchEvent('touchmove', currentY));
-        await new Promise(resolve => setTimeout(resolve, 10));
+        await new Promise(resolve => setTimeout(resolve, 40));
     }
 
     // Touch end
@@ -140,6 +140,10 @@ describe('Pull-to-Refresh', () => {
         const pullRefreshModule = await import('../../src/modules/pull-refresh.ts');
         initPullRefresh = pullRefreshModule.initPullRefresh;
         cleanupPullRefresh = pullRefreshModule.cleanupPullRefresh;
+
+        // Disable new sensitivity guards for existing tests
+        pullRefreshModule.PULL_REFRESH_CONFIG.MIN_TOUCH_DURATION_MS = 0;
+        pullRefreshModule.PULL_REFRESH_CONFIG.COOLDOWN_MS = 0;
 
         const dataService = await import('../../src/modules/data-service.ts');
         loadAllData = dataService.loadAllData as ReturnType<typeof vi.fn>;
@@ -285,7 +289,7 @@ describe('Pull-to-Refresh', () => {
 
         it('should show threshold-reached state', async () => {
             document.dispatchEvent(createTouchEvent('touchstart', 0));
-            document.dispatchEvent(createTouchEvent('touchmove', 150)); // Past 120px threshold
+            document.dispatchEvent(createTouchEvent('touchmove', 150)); // Past 100px threshold
 
             const indicator = document.querySelector('.pull-refresh-indicator');
             const text = indicator?.querySelector('.pull-refresh-text');
@@ -302,10 +306,10 @@ describe('Pull-to-Refresh', () => {
             const pullDistance = indicator?.style.getPropertyValue('--pull-distance');
 
             // Should be clamped due to resistance
-            // 120 + (80 * 0.3) = 144px, but max is 150
+            // 100 + (100 * 0.4) = 140px, max is 160
             if (pullDistance) {
                 const distance = parseFloat(pullDistance);
-                expect(distance).toBeLessThanOrEqual(150);
+                expect(distance).toBeLessThanOrEqual(160);
             }
         });
 
@@ -678,7 +682,7 @@ describe('Pull-to-Refresh', () => {
 
         it('should set --pull-progress CSS variable', () => {
             document.dispatchEvent(createTouchEvent('touchstart', 0));
-            document.dispatchEvent(createTouchEvent('touchmove', 60)); // 50% of 120
+            document.dispatchEvent(createTouchEvent('touchmove', 50)); // 50% of 100
 
             const indicator = document.querySelector('.pull-refresh-indicator') as HTMLElement;
             const progress = indicator?.style.getPropertyValue('--pull-progress');
@@ -703,7 +707,7 @@ describe('Pull-to-Refresh', () => {
             const indicator = document.querySelector('.pull-refresh-indicator') as HTMLElement;
             const pullDistance = indicator?.style.getPropertyValue('--pull-distance');
 
-            expect(parseFloat(pullDistance || '0')).toBeLessThanOrEqual(150);
+            expect(parseFloat(pullDistance || '0')).toBeLessThanOrEqual(160);
         });
     });
 
@@ -750,6 +754,10 @@ describe('Pull-to-Refresh Integration', () => {
         const pullRefreshModule = await import('../../src/modules/pull-refresh.ts');
         initPullRefresh = pullRefreshModule.initPullRefresh;
         cleanupPullRefresh = pullRefreshModule.cleanupPullRefresh;
+
+        // Disable new sensitivity guards for existing tests
+        pullRefreshModule.PULL_REFRESH_CONFIG.MIN_TOUCH_DURATION_MS = 0;
+        pullRefreshModule.PULL_REFRESH_CONFIG.COOLDOWN_MS = 0;
 
         const dataService = await import('../../src/modules/data-service.ts');
         loadAllData = dataService.loadAllData as ReturnType<typeof vi.fn>;
