@@ -13,10 +13,11 @@ import { ToastManager } from './toast.ts';
 
 /** Pull-to-refresh configuration (exported for testing) */
 export const PULL_REFRESH_CONFIG = {
-    PULL_THRESHOLD: 100, // Pixels to pull before refresh triggers
-    MAX_PULL_DISTANCE: 160, // Maximum visual pull distance
-    RESISTANCE_FACTOR: 0.4, // Resistance when pulling past threshold (higher = more dampening)
-    MIN_TOUCH_DURATION_MS: 180, // Minimum touch duration to prevent quick flick triggers
+    PULL_THRESHOLD: 70, // Pixels to pull before refresh triggers (matches Twitter/Gmail)
+    SPINNER_SHOW_THRESHOLD: 40, // Pixels before spinner becomes visible
+    MAX_PULL_DISTANCE: 140, // Maximum visual pull distance
+    RESISTANCE_FACTOR: 0.4, // Base resistance factor
+    MAX_VELOCITY: 2.0, // px/ms — reject fast flicks above this velocity
     COOLDOWN_MS: 2000, // Cooldown period after a refresh before allowing another
 };
 
@@ -28,6 +29,9 @@ interface PullRefreshState {
     startY: number;
     currentY: number;
     startTime: number;
+    lastMoveY: number;
+    lastMoveTime: number;
+    velocity: number;
     isPulling: boolean;
     isRefreshing: boolean;
     lastRefreshTime: number;
@@ -38,6 +42,9 @@ const state: PullRefreshState = {
     startY: 0,
     currentY: 0,
     startTime: 0,
+    lastMoveY: 0,
+    lastMoveTime: 0,
+    velocity: 0,
     isPulling: false,
     isRefreshing: false,
     lastRefreshTime: 0,
@@ -112,7 +119,7 @@ function updateIndicator(distance: number, isRefreshing: boolean = false): void 
         }
     }
 
-    state.indicator.classList.toggle('active', distance > 0);
+    state.indicator.classList.toggle('active', distance >= PULL_REFRESH_CONFIG.SPINNER_SHOW_THRESHOLD);
     state.indicator.classList.toggle('threshold-reached', distance >= PULL_REFRESH_CONFIG.PULL_THRESHOLD);
     state.indicator.classList.toggle('refreshing', isRefreshing);
 }
@@ -144,6 +151,9 @@ function handleTouchStart(e: TouchEvent): void {
 
     state.startY = touch.clientY;
     state.startTime = Date.now();
+    state.lastMoveY = touch.clientY;
+    state.lastMoveTime = Date.now();
+    state.velocity = 0;
     state.isPulling = true;
 }
 
@@ -158,6 +168,7 @@ function handleTouchMove(e: TouchEvent): void {
     if (!touch) return;
 
     state.currentY = touch.clientY;
+    const now = Date.now();
     let distance = state.currentY - state.startY;
 
     // Only allow pulling down
@@ -166,10 +177,20 @@ function handleTouchMove(e: TouchEvent): void {
         return;
     }
 
-    // Apply resistance after threshold
+    // Track velocity for flick rejection
+    const dt = now - state.lastMoveTime;
+    if (dt > 0) {
+        const dy = Math.abs(touch.clientY - state.lastMoveY);
+        state.velocity = dy / dt; // px/ms
+    }
+    state.lastMoveY = touch.clientY;
+    state.lastMoveTime = now;
+
+    // Rubber band feel: exponential dampening increases with distance
     if (distance > PULL_REFRESH_CONFIG.PULL_THRESHOLD) {
         const overPull = distance - PULL_REFRESH_CONFIG.PULL_THRESHOLD;
-        distance = PULL_REFRESH_CONFIG.PULL_THRESHOLD + overPull * PULL_REFRESH_CONFIG.RESISTANCE_FACTOR;
+        const dampening = PULL_REFRESH_CONFIG.RESISTANCE_FACTOR * Math.exp(-overPull / 200);
+        distance = PULL_REFRESH_CONFIG.PULL_THRESHOLD + overPull * dampening;
     }
 
     // Prevent default scrolling when pulling
@@ -186,9 +207,10 @@ async function handleTouchEnd(): Promise<void> {
 
     const distance = state.currentY - state.startY;
 
-    const touchDuration = Date.now() - state.startTime;
+    // Reject fast flicks — only deliberate pulls trigger refresh
+    const isFastFlick = state.velocity > PULL_REFRESH_CONFIG.MAX_VELOCITY;
 
-    if (distance >= PULL_REFRESH_CONFIG.PULL_THRESHOLD && !state.isRefreshing && touchDuration >= PULL_REFRESH_CONFIG.MIN_TOUCH_DURATION_MS) {
+    if (distance >= PULL_REFRESH_CONFIG.PULL_THRESHOLD && !state.isRefreshing && !isFastFlick) {
         await triggerRefresh();
     } else {
         resetIndicator();
@@ -197,6 +219,9 @@ async function handleTouchEnd(): Promise<void> {
     state.startY = 0;
     state.currentY = 0;
     state.startTime = 0;
+    state.lastMoveY = 0;
+    state.lastMoveTime = 0;
+    state.velocity = 0;
 }
 
 // ========================================
