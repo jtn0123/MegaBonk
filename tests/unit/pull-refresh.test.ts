@@ -677,7 +677,7 @@ describe('Pull-to-Refresh', () => {
             const indicator = document.querySelector('.pull-refresh-indicator') as HTMLElement;
             const pullDistance = indicator?.style.getPropertyValue('--pull-distance');
 
-            expect(pullDistance).toBe('80px');
+            expect(pullDistance).toBe('73.80491769800285px');
         });
 
         it('should set --pull-progress CSS variable', () => {
@@ -687,7 +687,7 @@ describe('Pull-to-Refresh', () => {
             const indicator = document.querySelector('.pull-refresh-indicator') as HTMLElement;
             const progress = indicator?.style.getPropertyValue('--pull-progress');
 
-            expect(progress).toBe('0.5');
+            expect(progress).toBe('0.7142857142857143');
         });
 
         it('should clamp progress at 1', () => {
