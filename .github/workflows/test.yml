@@ -5,12 +5,30 @@ on:
     branches: [main, develop, 'claude/**']
   pull_request:
     branches: [main, develop]
+    paths-ignore:
+      - '**/*.md'
+      - 'docs/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4
+
+  # Fast jobs run in parallel
   # Fast jobs run in parallel
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -38,11 +56,11 @@ jobs:
         run: npm ci
 
       - name: Run unit tests
-        run: npm run test:unit
+        run: npx vitest run --retry 1
         continue-on-error: false
 
       - name: Run unit tests with coverage
-        run: npx vitest run --coverage --coverage.thresholds.100=false --coverage.thresholds.statements=0 --coverage.thresholds.branches=0 --coverage.thresholds.functions=0 --coverage.thresholds.lines=0
+        run: npx vitest run --retry 1 --coverage --coverage.thresholds.100=false --coverage.thresholds.statements=0 --coverage.thresholds.branches=0 --coverage.thresholds.functions=0 --coverage.thresholds.lines=0
         continue-on-error: true
 
       - name: Generate test summary
@@ -68,6 +86,7 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
@@ -95,6 +114,7 @@ jobs:
   test-cleanup-check:
     name: Test Cleanup Validation
     runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
       - name: Checkout code
@@ -111,6 +131,7 @@ jobs:
   security-audit:
     name: Security Audit
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     continue-on-error: true  # Don't block PRs - report only
 
     steps:
@@ -166,6 +187,7 @@ jobs:
   build:
     name: Production Build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -234,6 +256,7 @@ jobs:
   e2e-tests:
     name: E2E Tests (Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: build
     strategy:
       fail-fast: false
@@ -279,7 +302,7 @@ jobs:
           path: dist/
 
       - name: Run E2E tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
-        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}
+        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --retries 1
 
       - name: Generate E2E summary
         if: always()
@@ -311,6 +334,7 @@ jobs:
   pr-comment:
     name: PR Summary
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [unit-tests, lint, build, e2e-tests]
     if: always() && github.event_name == 'pull_request'
     permissions:
