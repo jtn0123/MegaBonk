@@ -8,10 +8,15 @@ on:
   #   branches: [ main, develop ]
   workflow_dispatch:  # Manual trigger only for now
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   cv-strategy-comparison:
     name: CV Strategy Comparison
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
       matrix:
@@ -47,6 +52,7 @@ jobs:
   cv-full-comparison:
     name: Full Strategy Comparison
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     needs: cv-strategy-comparison
 
     steps:
@@ -98,6 +104,7 @@ jobs:
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout code
@@ -129,6 +136,7 @@ jobs:
   e2e-tests:
     name: E2E Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
@@ -158,6 +166,7 @@ jobs:
   performance-check:
     name: Performance Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     needs: cv-full-comparison
 
     steps:
@@ -220,6 +229,7 @@ jobs:
   build:
     name: Build Check
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout code
