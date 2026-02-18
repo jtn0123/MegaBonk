@@ -5,6 +5,7 @@
 
 import { safeGetElementById, escapeHtml } from './utils.ts';
 import { getDataForTab } from './data-service.ts';
+import { showWhatsNewModal } from './whats-new.ts';
 
 // ========================================
 // Build-time Constants (injected by Vite)
@@ -134,6 +135,13 @@ export function renderAbout(): void {
                             <span>View source code and contribute</span>
                         </div>
                     </a>
+                    <a href="#" class="about-link" id="about-whats-new-btn">
+                        <span class="about-link-icon">✨</span>
+                        <div class="about-link-text">
+                            <strong>What's New</strong>
+                            <span>See recent changes and updates</span>
+                        </div>
+                    </a>
                     <a href="${GITHUB_REPO_URL}/releases" 
                        target="_blank" 
                        rel="noopener noreferrer" 
@@ -179,6 +187,15 @@ export function renderAbout(): void {
             </div>
         </div>
     `;
+
+    // Wire up What's New button
+    const whatsNewBtn = document.getElementById('about-whats-new-btn');
+    if (whatsNewBtn) {
+        whatsNewBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            showWhatsNewModal();
+        });
+    }
 }
 
 /**

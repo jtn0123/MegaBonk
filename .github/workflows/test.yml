@@ -5,15 +5,44 @@ on:
     branches: [main, develop, 'claude/**']
   pull_request:
     branches: [main, develop]
-    paths-ignore:
-      - '**/*.md'
-      - 'docs/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
+  # Detect which paths changed to skip irrelevant jobs
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      src: ${{ steps.filter.outputs.src }}
+      e2e: ${{ steps.filter.outputs.e2e }}
+      workflows: ${{ steps.filter.outputs.workflows }}
+      deps: ${{ steps.filter.outputs.deps }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'tests/**'
+              - 'vite.build.config.js'
+              - 'vitest.config.*'
+              - 'tsconfig*.json'
+            e2e:
+              - 'src/**'
+              - 'e2e/**'
+              - 'playwright.config.*'
+              - 'vite.build.config.js'
+            workflows:
+              - '.github/**'
+            deps:
+              - 'package.json'
+              - 'package-lock.json'
+
   dependency-review:
     name: Dependency Review
     runs-on: ubuntu-latest
@@ -23,12 +52,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/dependency-review-action@v4
 
-  # Fast jobs run in parallel
-  # Fast jobs run in parallel
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    needs: [changes]
+    if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
 
     steps:
       - name: Checkout code
@@ -95,6 +124,8 @@ jobs:
     name: Lint
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: [changes]
+    if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
 
     steps:
       - name: Checkout code
@@ -123,6 +154,8 @@ jobs:
     name: Test Cleanup Validation
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    needs: [changes]
+    if: needs.changes.outputs.src == 'true'
 
     steps:
       - name: Checkout code
@@ -140,7 +173,9 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    continue-on-error: true  # Don't block PRs - report only
+    needs: [changes]
+    if: needs.changes.outputs.deps == 'true'
+    continue-on-error: true
 
     steps:
       - name: Checkout code
@@ -158,10 +193,8 @@ jobs:
         run: |
           echo "## Security Audit Report" >> $GITHUB_STEP_SUMMARY
 
-          # Run audit and capture output
           AUDIT_OUTPUT=$(npm audit --json 2>/dev/null || true)
 
-          # Parse vulnerabilities
           CRITICAL=$(echo "$AUDIT_OUTPUT" | jq '.metadata.vulnerabilities.critical // 0')
           HIGH=$(echo "$AUDIT_OUTPUT" | jq '.metadata.vulnerabilities.high // 0')
           MODERATE=$(echo "$AUDIT_OUTPUT" | jq '.metadata.vulnerabilities.moderate // 0')
@@ -174,28 +207,27 @@ jobs:
           echo "| 🟡 Moderate | $MODERATE |" >> $GITHUB_STEP_SUMMARY
           echo "| 🟢 Low | $LOW |" >> $GITHUB_STEP_SUMMARY
 
-          # Fail on critical vulnerabilities only
           if [ "$CRITICAL" -gt 0 ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "❌ **Critical vulnerabilities found!** Please run \`npm audit fix\` or review manually." >> $GITHUB_STEP_SUMMARY
+            echo "❌ **Critical vulnerabilities found!**" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
-          # Fail on high vulnerabilities
           if [ "$HIGH" -gt 0 ]; then
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "❌ **High severity vulnerabilities found!** Please run \`npm audit fix\` or review manually." >> $GITHUB_STEP_SUMMARY
+            echo "❌ **High severity vulnerabilities found!**" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "✅ No critical or high vulnerabilities" >> $GITHUB_STEP_SUMMARY
 
-  # Build job - needed by E2E tests
   build:
     name: Production Build
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    needs: [changes]
+    if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
 
     steps:
       - name: Checkout code
@@ -235,10 +267,8 @@ jobs:
           echo "| Main CSS | ${CSS_SIZE_KB}KB |" >> $GITHUB_STEP_SUMMARY
           echo "| **Total** | **${TOTAL_SIZE_KB}KB** |" >> $GITHUB_STEP_SUMMARY
 
-          # Save bundle size for trending
           echo "${MAIN_SIZE_KB}" > bundle-size.txt
 
-          # Chart.js adds ~200KB, so 400KB limit accounts for app + charts
           if [ $MAIN_SIZE_KB -gt 400 ]; then
             echo "❌ Main bundle too large: ${MAIN_SIZE_KB}KB (max: 400KB)" >> $GITHUB_STEP_SUMMARY
             exit 1
@@ -260,12 +290,12 @@ jobs:
           path: dist/
           retention-days: 7
 
-  # E2E tests depend on build - now with sharding for parallelism!
   e2e-tests:
     name: E2E Tests (Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    needs: build
+    needs: [changes, build]
+    if: needs.changes.outputs.e2e == 'true' || needs.changes.outputs.deps == 'true'
     strategy:
       fail-fast: false
       matrix:
@@ -338,12 +368,11 @@ jobs:
           path: test-results/
           retention-days: 30
 
-  # Post PR comment with results (only on PRs)
   pr-comment:
     name: PR Summary
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: [unit-tests, lint, build, e2e-tests]
+    needs: [changes, unit-tests, lint, build, e2e-tests]
     if: always() && github.event_name == 'pull_request'
     permissions:
       pull-requests: write
@@ -351,6 +380,7 @@ jobs:
     steps:
       - name: Download bundle size
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: bundle-size
           path: ./artifacts
@@ -360,63 +390,61 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            
-            // Get bundle size
+
             let bundleSize = 'N/A';
             try {
               bundleSize = fs.readFileSync('./artifacts/bundle-size.txt', 'utf8').trim();
             } catch (e) {}
-            
-            // Determine job statuses
+
             const jobs = {
               'Unit Tests': '${{ needs.unit-tests.result }}',
               'Lint': '${{ needs.lint.result }}',
               'Build': '${{ needs.build.result }}',
               'E2E Tests': '${{ needs.e2e-tests.result }}'
             };
-            
+
             const statusEmoji = {
               'success': '✅',
               'failure': '❌',
               'cancelled': '⏹️',
               'skipped': '⏭️'
             };
-            
+
             let jobsTable = Object.entries(jobs)
               .map(([name, status]) => `| ${name} | ${statusEmoji[status] || '❓'} ${status} |`)
               .join('\n');
-            
+
             const body = `## 🤖 CI Summary
-            
+
             | Job | Status |
             |-----|--------|
             ${jobsTable}
-            
+
             ### 📦 Bundle Size
             **Main JS:** ${bundleSize}KB
-            
+
             <details>
             <summary>📋 What to do if tests fail?</summary>
-            
+
             - **Unit Tests**: Check the test output in the Actions tab
-            - **Lint**: Run \`bun run lint:fix\` locally
+            - **Lint**: Run \`npm run lint\` locally
             - **E2E Tests**: Check Playwright report artifacts
+            - **Skipped jobs**: Path filters detected no relevant changes
             </details>
-            
+
             ---
             *Updated: ${new Date().toISOString()}*`;
-            
-            // Find existing comment
+
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: context.issue.number
             });
-            
-            const botComment = comments.find(c => 
+
+            const botComment = comments.find(c =>
               c.user.type === 'Bot' && c.body.includes('🤖 CI Summary')
             );
-            
+
             if (botComment) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
