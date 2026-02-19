@@ -307,73 +307,74 @@ function matchPattern(binary: boolean[][], pattern: number[][]): number {
     return matches / total;
 }
 
+const NEIGHBOR_DELTAS = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
+
+/**
+ * BFS flood fill from a starting point, returning bounding box
+ */
+function floodFillBounds(
+    binary: boolean[][],
+    visited: boolean[][],
+    startX: number,
+    startY: number,
+    width: number,
+    height: number
+): { minX: number; maxX: number; minY: number; maxY: number } {
+    let minX = startX, maxX = startX, minY = startY, maxY = startY;
+    const queue: [number, number][] = [[startX, startY]];
+    if (visited[startY]) visited[startY][startX] = true;
+
+    while (queue.length > 0) {
+        const [x, y] = queue.shift()!;
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+
+        for (const [dx, dy] of NEIGHBOR_DELTAS) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx < 0 || nx >= width || ny < 0 || ny >= height) continue;
+            if (!binary[ny]?.[nx] || visited[ny]?.[nx]) continue;
+            if (visited[ny]) visited[ny][nx] = true;
+            queue.push([nx, ny]);
+        }
+    }
+
+    return { minX, maxX, minY, maxY };
+}
+
+/**
+ * Check if a component's dimensions qualify it as a valid digit component
+ */
+function isValidComponent(compWidth: number, compHeight: number, imageWidth: number): boolean {
+    return compWidth >= 3 && compHeight >= 5 && compWidth <= imageWidth / 2;
+}
+
 /**
  * Find connected components in binary image (for digit segmentation)
  */
 function findComponents(binary: boolean[][]): { x: number; y: number; width: number; height: number }[] {
     const height = binary.length;
     const width = binary[0]?.length ?? 0;
-    const visited = Array(height)
-        .fill(null)
-        .map(() => Array(width).fill(false));
+    const visited = Array(height).fill(null).map(() => Array(width).fill(false)) as boolean[][];
     const components: { x: number; y: number; width: number; height: number }[] = [];
 
     for (let startY = 0; startY < height; startY++) {
         for (let startX = 0; startX < width; startX++) {
-            if (binary[startY]?.[startX] && !visited[startY]?.[startX]) {
-                // BFS to find component bounds
-                let minX = startX,
-                    maxX = startX;
-                let minY = startY,
-                    maxY = startY;
-                const queue: [number, number][] = [[startX, startY]];
-                const visitedRow = visited[startY];
-                if (visitedRow) visitedRow[startX] = true;
+            if (!binary[startY]?.[startX] || visited[startY]?.[startX]) continue;
 
-                while (queue.length > 0) {
-                    const coord = queue.shift()!;
-                    const x = coord[0];
-                    const y = coord[1];
+            const bounds = floodFillBounds(binary, visited, startX, startY, width, height);
+            const compWidth = bounds.maxX - bounds.minX + 1;
+            const compHeight = bounds.maxY - bounds.minY + 1;
 
-                    minX = Math.min(minX, x);
-                    maxX = Math.max(maxX, x);
-                    minY = Math.min(minY, y);
-                    maxY = Math.max(maxY, y);
-
-                    // Check neighbors
-                    const neighbors = [
-                        [-1, 0],
-                        [1, 0],
-                        [0, -1],
-                        [0, 1],
-                    ] as const;
-                    for (const delta of neighbors) {
-                        const nx = x + delta[0];
-                        const ny = y + delta[1];
-
-                        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
-                            if (binary[ny]?.[nx] && !visited[ny]?.[nx]) {
-                                if (visited[ny]) visited[ny][nx] = true;
-                                queue.push([nx, ny]);
-                            }
-                        }
-                    }
-                }
-
-                const compWidth = maxX - minX + 1;
-                const compHeight = maxY - minY + 1;
-
-                // Filter out noise (too small or too large)
-                if (compWidth >= 3 && compHeight >= 5 && compWidth <= width / 2) {
-                    components.push({ x: minX, y: minY, width: compWidth, height: compHeight });
-                }
+            if (isValidComponent(compWidth, compHeight, width)) {
+                components.push({ x: bounds.minX, y: bounds.minY, width: compWidth, height: compHeight });
             }
         }
     }
 
-    // Sort left to right
     components.sort((a, b) => a.x - b.x);
-
     return components;
 }
 
