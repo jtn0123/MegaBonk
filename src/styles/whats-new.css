@@ -1,0 +1,162 @@
+/* ========================================
+   What's New Modal
+   ======================================== */
+
+.whats-new-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    animation: whats-new-fade-in 0.2s ease;
+}
+
+@keyframes whats-new-fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.whats-new-panel {
+    background: var(--card-bg, #fff);
+    border: 1px solid var(--border-color, #e2e8f0);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    width: 100%;
+    max-width: 32rem;
+    max-height: 80vh;
+    overflow-y: auto;
+    animation: whats-new-slide-up 0.25s ease;
+}
+
+@keyframes whats-new-slide-up {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.whats-new-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.whats-new-title-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.whats-new-sparkle {
+    font-size: 1.25rem;
+}
+
+.whats-new-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-color, #1a202c);
+}
+
+.whats-new-commit {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #718096);
+}
+
+.whats-new-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    font-size: 1.25rem;
+    color: var(--text-secondary, #718096);
+    border-radius: 0.5rem;
+    transition: background 0.15s;
+}
+
+.whats-new-close:hover {
+    background: var(--hover-bg, #f7fafc);
+}
+
+.whats-new-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.whats-new-loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary, #718096);
+}
+
+.whats-new-empty {
+    text-align: center;
+    padding: 1rem;
+    color: var(--text-secondary, #718096);
+}
+
+.whats-new-release {
+    border-bottom: 1px solid var(--border-color, #e2e8f0);
+    padding-bottom: 1rem;
+}
+
+.whats-new-release:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.whats-new-release-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.whats-new-version {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--accent-color, #4299e1);
+}
+
+.whats-new-date {
+    font-size: 0.75rem;
+    color: var(--text-secondary, #718096);
+}
+
+.whats-new-release-link,
+.whats-new-github-link {
+    font-size: 0.75rem;
+    color: var(--accent-color, #4299e1);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+}
+
+.whats-new-release-link:hover,
+.whats-new-github-link:hover {
+    opacity: 1;
+}
+
+.whats-new-release-body {
+    font-size: 0.875rem;
+    color: var(--text-color, #2d3748);
+    line-height: 1.6;
+}
+
+.whats-new-release-body ul {
+    margin: 0.5rem 0;
+    padding-left: 1.25rem;
+}
+
+.whats-new-release-body li {
+    margin-bottom: 0.25rem;
+}
+
+.whats-new-release-body h3,
+.whats-new-release-body h4 {
+    margin: 0.75rem 0 0.25rem;
+    font-size: 0.875rem;
+}

@@ -28,6 +28,7 @@ import { initMobileFilters } from './modules/mobile-filters.ts';
 import { initRecentlyViewed } from './modules/recently-viewed.ts';
 import { initDebugPanel } from './modules/debug-ui.ts';
 import { initPullRefresh } from './modules/pull-refresh.ts';
+import { initWhatsNew } from './modules/whats-new.ts';
 // Note: Tab-specific modules (advisor, build-planner, calculator, changelog, about) are now lazy-loaded
 // via the tab-loader module when their tabs are first accessed
 // Core modules that may be needed across multiple contexts are still eagerly loaded:
@@ -406,6 +407,9 @@ async function init(): Promise<void> {
         },
         { required: false }
     );
+
+    // Show What's New modal on version update
+    initWhatsNew();
 
     // Schedule preloading of common modules after initial render
     // This warms the module cache for frequently-used tabs

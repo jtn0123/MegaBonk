@@ -1,101 +1,190 @@
 name: SonarQube
 
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_run:
+    workflows: ["Test Suite"]
+    types: [completed]
 
 concurrency:
-  group: sonar-${{ github.head_ref || github.ref }}
+  group: sonar-${{ github.event.workflow_run.head_branch }}
   cancel-in-progress: true
 
 jobs:
   sonarqube:
     name: SonarQube Scan
-    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork == false
+    if: always()
     runs-on: [self-hosted, sonar]
     timeout-minutes: 10
     permissions:
       contents: read
-      pull-requests: read
+      pull-requests: write
+      statuses: write
     steps:
       - uses: actions/checkout@v4
         with:
+          repository: ${{ github.event.workflow_run.head_repository.full_name }}
+          ref: ${{ github.event.workflow_run.head_sha }}
           fetch-depth: 0
 
-      # Wait for Test Suite workflow to finish and find its run ID
-      - name: Wait for Test workflow
-        id: wait-test
-        continue-on-error: true
+      - name: Get PR info
+        id: pr-info
         uses: actions/github-script@v7
         with:
           script: |
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const branch = context.payload.pull_request?.head?.ref || context.ref?.replace('refs/heads/', '');
-            const headSha = context.payload.pull_request?.head?.sha || context.sha;
-            const triggerTime = new Date(Date.now() - 600000).toISOString();
-            console.log(`Looking for Test Suite workflow on branch=${branch} sha=${headSha}`);
-
-            for (let i = 0; i < 30; i++) {
-              const runs = await github.rest.actions.listWorkflowRunsForRepo({
-                owner, repo,
-                branch: branch,
-                head_sha: headSha,
-                status: 'completed',
-                per_page: 10,
-                created: `>=${triggerTime.split('T')[0]}`
-              });
-
-              const testRun = runs.data.workflow_runs
-                .filter(r => r.name === 'Test Suite' && r.status === 'completed' && r.head_sha === headSha)
-                .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
-
-              if (testRun) {
-                core.setOutput('run_id', testRun.id);
-                console.log(`Found Test Suite run: ${testRun.id} (created ${testRun.created_at})`);
-                return;
-              }
-
-              console.log(`Waiting for Test Suite workflow... (attempt ${i + 1}/30)`);
-              await new Promise(r => setTimeout(r, 30000));
+            const pr = context.payload.workflow_run.pull_requests?.[0];
+            if (pr) {
+              core.setOutput('is_pr', 'true');
+              core.setOutput('pr_number', pr.number.toString());
+              core.setOutput('pr_branch', '${{ github.event.workflow_run.head_branch }}');
+              core.setOutput('pr_base', pr.base.ref);
+            } else {
+              core.setOutput('is_pr', 'false');
             }
-            core.setFailed('Test Suite workflow did not complete in time');
 
-      - name: Download unit coverage
-        if: steps.wait-test.outputs.run_id
+      - name: Download coverage artifacts
         continue-on-error: true
-        uses: actions/download-artifact@v4
-        with:
-          name: unit-coverage
-          path: coverage/unit/
-          run-id: ${{ steps.wait-test.outputs.run_id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Verify coverage files
-        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Coverage files:"
-          find coverage/ -name "*.info" -o -name "*.json" 2>/dev/null | head -20
+          RUN_ID=${{ github.event.workflow_run.id }}
+          echo "Downloading coverage from Test Suite run $RUN_ID..."
+
+          mkdir -p coverage/unit
+          gh run download "$RUN_ID" -n "unit-coverage" -D coverage/unit/ 2>/dev/null || echo "No coverage artifact found"
+
           if [ -f coverage/unit/lcov.info ]; then
             echo "✅ lcov.info found ($(wc -l < coverage/unit/lcov.info) lines)"
           else
             echo "⚠️ No lcov.info found — scan will proceed without coverage"
+            echo "TN:" > coverage/unit/lcov.info
           fi
 
-      - uses: sonarsource/sonarqube-scan-action@v7
-        continue-on-error: true
+      - name: SonarQube Scan
+        uses: sonarsource/sonarqube-scan-action@v7
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         with:
           args: >
-            -Dsonar.verbose=true
+            ${{ steps.pr-info.outputs.is_pr == 'true' && format('-Dsonar.pullrequest.key={0} -Dsonar.pullrequest.branch={1} -Dsonar.pullrequest.base={2}', steps.pr-info.outputs.pr_number, steps.pr-info.outputs.pr_branch, steps.pr-info.outputs.pr_base) || '' }}
 
-      - uses: sonarsource/sonarqube-quality-gate-action@v1
-        continue-on-error: true
+      - name: SonarQube Quality Gate
+        id: quality-gate
+        uses: sonarsource/sonarqube-quality-gate-action@v1
         timeout-minutes: 5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Post SonarQube summary to PR
+        if: always() && steps.pr-info.outputs.is_pr == 'true'
+        uses: actions/github-script@v7
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          script: |
+            const prNumber = parseInt('${{ steps.pr-info.outputs.pr_number }}');
+            const sonarUrl = process.env.SONAR_HOST_URL;
+            const sonarToken = process.env.SONAR_TOKEN;
+            const projectKey = 'MegaBonk';
+
+            const auth = Buffer.from(sonarToken + ':').toString('base64');
+            const headers = { 'Authorization': `Basic ${auth}` };
+
+            let measures = {};
+            let gateStatus = 'UNKNOWN';
+
+            try {
+              const gateRes = await fetch(`${sonarUrl}/api/qualitygates/project_status?projectKey=${projectKey}&pullRequest=${prNumber}`, { headers });
+              if (gateRes.ok) {
+                const gateData = await gateRes.json();
+                gateStatus = gateData.projectStatus?.status || 'UNKNOWN';
+              }
+
+              const metricsToFetch = [
+                'new_bugs', 'new_vulnerabilities', 'new_code_smells',
+                'new_coverage', 'new_duplicated_lines_density',
+                'new_security_hotspots', 'new_reliability_rating',
+                'new_security_rating', 'new_maintainability_rating'
+              ].join(',');
+
+              const measuresRes = await fetch(`${sonarUrl}/api/measures/component?component=${projectKey}&pullRequest=${prNumber}&metricKeys=${metricsToFetch}`, { headers });
+              if (measuresRes.ok) {
+                const measuresData = await measuresRes.json();
+                for (const m of (measuresData.component?.measures || [])) {
+                  measures[m.metric] = m.period?.value ?? m.value ?? 'N/A';
+                }
+              }
+            } catch (e) {
+              console.log('Failed to fetch SonarQube data:', e.message);
+            }
+
+            const gateIcon = gateStatus === 'OK' ? '✅' : gateStatus === 'ERROR' ? '❌' : '⚠️';
+            const ratingMap = { '1.0': 'A', '2.0': 'B', '3.0': 'C', '4.0': 'D', '5.0': 'E' };
+            const rating = (val) => ratingMap[val] || val || 'N/A';
+            const num = (val) => val ?? 'N/A';
+            const pct = (val) => val ? `${parseFloat(val).toFixed(1)}%` : 'N/A';
+
+            const body = [
+              `## ${gateIcon} SonarQube Analysis`,
+              '',
+              `**Quality Gate:** ${gateStatus === 'OK' ? 'Passed' : gateStatus === 'ERROR' ? 'Failed' : gateStatus}`,
+              '',
+              '### New Code',
+              `| Metric | Value |`,
+              `|--------|-------|`,
+              `| 🐛 Bugs | ${num(measures.new_bugs)} |`,
+              `| 🔓 Vulnerabilities | ${num(measures.new_vulnerabilities)} |`,
+              `| 🔥 Security Hotspots | ${num(measures.new_security_hotspots)} |`,
+              `| 🧹 Code Smells | ${num(measures.new_code_smells)} |`,
+              `| 📊 Coverage | ${pct(measures.new_coverage)} |`,
+              `| 📋 Duplication | ${pct(measures.new_duplicated_lines_density)} |`,
+              '',
+              '### Ratings',
+              `| | Reliability | Security | Maintainability |`,
+              `|---|---|---|---|`,
+              `| Grade | ${rating(measures.new_reliability_rating)} | ${rating(measures.new_security_rating)} | ${rating(measures.new_maintainability_rating)} |`,
+              '',
+              `[View full analysis on SonarQube](${sonarUrl}/dashboard?id=${projectKey}&pullRequest=${prNumber})`,
+              '',
+              `---`,
+              `*SonarQube · \`${'${{ github.event.workflow_run.head_sha }}'.substring(0, 7)}\` · ${new Date().toISOString().replace('T', ' ').substring(0, 19)} UTC*`
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+              body
+            });
+
+      - name: Post commit status
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = '${{ github.event.workflow_run.head_sha }}';
+            const gate = '${{ steps.quality-gate.outcome }}';
+            let state, description;
+            if (gate === 'success') {
+              state = 'success';
+              description = 'Quality gate passed';
+            } else if (gate === 'failure') {
+              state = 'failure';
+              description = 'Quality gate failed';
+            } else {
+              state = 'error';
+              description = 'Quality gate check did not complete';
+            }
+            const runUrl = `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`;
+
+            await github.rest.repos.createCommitStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: sha,
+              state: state,
+              target_url: runUrl,
+              description: description,
+              context: 'SonarQube Quality Gate'
+            });

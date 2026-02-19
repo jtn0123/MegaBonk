@@ -131,6 +131,7 @@
 
 /* About Tab - App info and credits */
 @import './about.css';
+@import './whats-new.css';
 
 /* Mobile Navigation - Bottom nav bar */
 @import './mobile-nav.css';
