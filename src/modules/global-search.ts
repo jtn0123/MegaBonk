@@ -24,41 +24,59 @@ export interface GlobalSearchResult {
 // Global Search
 // ========================================
 
+// Score thresholds for early termination within field search
+// These are boosted to account for name field bonus (+1000) in fuzzy-match.ts
+const EXACT_MATCH_SCORE = 3000; // 2000 base + 1000 name bonus
+const STARTS_WITH_SCORE = 2500; // 1500 base + 1000 name bonus
+
+const SEARCH_FIELDS = [
+    'name',
+    'base_effect',
+    'attack_pattern',
+    'passive_ability',
+    'reward',
+    'description',
+    'effect',
+    'passive',
+] as const;
+
+/**
+ * Score a single entity against a search term by checking fields and tags
+ */
+function scoreEntity(searchTerm: string, item: Entity): number {
+    let bestScore = 0;
+
+    for (const field of SEARCH_FIELDS) {
+        const value = (item as unknown as Record<string, unknown>)[field];
+        if (typeof value !== 'string' || !value) continue;
+
+        const match = fuzzyMatchScore(searchTerm, value, field);
+        if (match.score <= bestScore) continue;
+
+        bestScore = match.score;
+        if (bestScore >= EXACT_MATCH_SCORE) break;
+        if (bestScore >= STARTS_WITH_SCORE && field === 'name') break;
+    }
+
+    if (bestScore < STARTS_WITH_SCORE && Array.isArray(item.tags)) {
+        const tagScore = fuzzyMatchScore(searchTerm, item.tags.join(' '), 'tags').score;
+        if (tagScore > bestScore) bestScore = tagScore;
+    }
+
+    return bestScore;
+}
+
 /**
  * Search across all data types (items, weapons, tomes, characters, shrines)
  * Returns results sorted by match score
  * Optimized with early termination and result limits
- * @param query - Search query
- * @param allData - All game data
- * @returns Sorted array of search results
  */
 export function globalSearch(query: string, allData: AllGameData): GlobalSearchResult[] {
-    if (!query || !query.trim()) {
-        return [];
-    }
+    if (!query?.trim()) return [];
 
     const results: GlobalSearchResult[] = [];
     const searchTerm = query.trim().toLowerCase();
 
-    // Prioritize fields by importance
-    const searchFields = [
-        'name',
-        'base_effect',
-        'attack_pattern',
-        'passive_ability',
-        'reward',
-        'description',
-        'effect',
-        'passive',
-    ];
-
-    // Score thresholds for early termination within field search
-    // These are boosted to account for name field bonus (+1000) in fuzzy-match.ts
-    const EXACT_MATCH_SCORE = 3000; // 2000 base + 1000 name bonus
-    const STARTS_WITH_SCORE = 2500; // 1500 base + 1000 name bonus
-    // MAX_GLOBAL_SEARCH_RESULTS and MAX_SEARCH_RESULTS_PER_TYPE imported from constants.ts
-
-    // Define data sources with their types
     const dataSources: Array<{ type: EntityType; data: Entity[] | undefined }> = [
         { type: 'items', data: allData.items?.items },
         { type: 'weapons', data: allData.weapons?.weapons },
@@ -67,61 +85,25 @@ export function globalSearch(query: string, allData: AllGameData): GlobalSearchR
         { type: 'shrines', data: allData.shrines?.shrines },
     ];
 
-    // Search each data type - don't break early to ensure all types are searched
     for (const { type, data } of dataSources) {
         if (!data) continue;
 
         let resultsForType = 0;
 
         for (const item of data) {
-            // Limit results per type to ensure variety across all data types
-            if (resultsForType >= MAX_SEARCH_RESULTS_PER_TYPE) {
-                break;
-            }
+            if (resultsForType >= MAX_SEARCH_RESULTS_PER_TYPE) break;
 
-            let bestScore = 0;
+            const bestScore = scoreEntity(searchTerm, item);
+            if (bestScore <= 0) continue;
 
-            // Check fields in priority order
-            for (const field of searchFields) {
-                const value = (item as unknown as Record<string, unknown>)[field];
-                if (typeof value === 'string' && value) {
-                    const match = fuzzyMatchScore(searchTerm, value, field);
-                    if (match.score > bestScore) {
-                        bestScore = match.score;
-                        // Early termination for high-quality matches within item
-                        if (bestScore >= STARTS_WITH_SCORE && field === 'name') {
-                            break;
-                        }
-                        if (bestScore >= EXACT_MATCH_SCORE) {
-                            break;
-                        }
-                    }
-                }
-            }
-
-            // Check tags if no strong match yet
-            if (bestScore < STARTS_WITH_SCORE) {
-                const tags = item.tags;
-                if (Array.isArray(tags)) {
-                    const tagsString = tags.join(' ');
-                    const match = fuzzyMatchScore(searchTerm, tagsString, 'tags');
-                    if (match.score > bestScore) {
-                        bestScore = match.score;
-                    }
-                }
-            }
-
-            if (bestScore > 0) {
-                results.push({
-                    type,
-                    item: item as Item | Weapon | Tome | Character | Shrine,
-                    score: bestScore,
-                });
-                resultsForType++;
-            }
+            results.push({
+                type,
+                item: item as Item | Weapon | Tome | Character | Shrine,
+                score: bestScore,
+            });
+            resultsForType++;
         }
     }
 
-    // Sort by score (highest first) and limit total results
     return results.sort((a, b) => b.score - a.score).slice(0, MAX_GLOBAL_SEARCH_RESULTS);
 }
