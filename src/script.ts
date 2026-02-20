@@ -447,3 +447,4 @@ async function init(): Promise<void> {
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', init);
+
