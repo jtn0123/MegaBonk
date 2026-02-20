@@ -550,6 +550,25 @@ export function shareBuildURL(): void {
 // URL Handling
 // ========================================
 
+/**
+ * Recursively strips prototype-pollution keys from a parsed JSON object.
+ * Guards against crafted build links containing __proto__ payloads.
+ * See: SEC-2026-0220-005
+ */
+function sanitizeParsed(obj: unknown): unknown {
+    if (obj === null || typeof obj !== 'object') return obj;
+    const clean = obj as Record<string, unknown>;
+    delete clean['__proto__'];
+    delete clean['constructor'];
+    delete clean['prototype'];
+    for (const key of Object.keys(clean)) {
+        if (typeof clean[key] === 'object' && clean[key] !== null) {
+            sanitizeParsed(clean[key]);
+        }
+    }
+    return clean;
+}
+
 export function loadBuildFromURL(): boolean {
     const hash = window.location.hash;
     if (!hash || !hash.includes('build=')) return false;
@@ -589,6 +608,7 @@ export function loadBuildFromURL(): boolean {
         }
 
         const decoded = JSON.parse(decodedString);
+        sanitizeParsed(decoded);
 
         if (!isValidURLBuildData(decoded)) {
             ToastManager.error('Invalid build data format');
