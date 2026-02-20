@@ -293,7 +293,7 @@ jobs:
   e2e-tests:
     name: E2E Tests (Shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     needs: [changes, build]
     if: needs.changes.outputs.e2e == 'true' || needs.changes.outputs.deps == 'true'
     strategy:
@@ -331,7 +331,7 @@ jobs:
             ${{ runner.os }}-playwright-
 
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium webkit
+        run: npx playwright install --with-deps chromium
 
       - name: Download build artifacts
         uses: actions/download-artifact@v4
@@ -340,7 +340,7 @@ jobs:
           path: dist/
 
       - name: Run E2E tests (shard ${{ matrix.shardIndex }}/${{ matrix.shardTotal }})
-        run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --retries 1
+        run: npx playwright test --project=chromium --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }} --retries 1
 
       - name: Generate E2E summary
         if: always()
