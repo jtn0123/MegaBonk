@@ -168,7 +168,7 @@ export default defineConfig(async () => {
         build: {
             outDir: '../dist',
             emptyOutDir: true,
-            sourcemap: true,
+            sourcemap: 'hidden',
             rollupOptions: {
                 input: {
                     main: './src/index.html',
