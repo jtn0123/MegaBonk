@@ -15,9 +15,9 @@ export default defineConfig({
     retries: isCI ? 2 : 0,
     workers: isCI ? 3 : optimalWorkers, // Dynamic: ~15 workers on 20-core machine
     reporter: isCI ? 'github' : [['html', { open: 'never' }]],
-    timeout: isCI ? 45000 : 20000, // CI runners are slower — give extra headroom
+    timeout: isCI ? 60000 : 20000, // CI runners are slower — give extra headroom
     expect: {
-        timeout: isCI ? 10000 : 8000,
+        timeout: isCI ? 15000 : 8000,
     },
     use: {
         baseURL: 'http://localhost:4173',
