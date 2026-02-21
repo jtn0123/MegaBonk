@@ -1,0 +1,14 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:4173",
+      "localStorage": [
+        {
+          "name": "megabonk-last-seen-version",
+          "value": "99.99.99"
+        }
+      ]
+    }
+  ]
+}
