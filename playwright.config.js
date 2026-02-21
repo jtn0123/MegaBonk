@@ -24,6 +24,10 @@ export default defineConfig({
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: process.env.CI ? 'retain-on-failure' : 'off', // Disable video locally for speed
+        // Pre-seed localStorage so the "What's New" modal doesn't appear.
+        // On CI, localStorage is empty → modal overlay covers tab buttons →
+        // Playwright click() hangs for 60s waiting for actionability.
+        storageState: './tests/e2e/storage-state.json',
     },
     projects: [
         {
