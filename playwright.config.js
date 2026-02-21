@@ -13,17 +13,24 @@ export default defineConfig({
     fullyParallel: true,
     forbidOnly: isCI,
     retries: isCI ? 2 : 0,
-    workers: isCI ? 2 : optimalWorkers, // Dynamic: ~15 workers on 20-core machine
+    workers: isCI ? 3 : optimalWorkers, // Dynamic: ~15 workers on 20-core machine
     reporter: isCI ? 'github' : [['html', { open: 'never' }]],
-    timeout: 20000, // Reduced from 30s - fail faster
+    timeout: isCI ? 60000 : 20000, // CI runners are slower — give extra headroom
     expect: {
-        timeout: 8000, // Reduced from 10s
+        timeout: isCI ? 15000 : 8000,
     },
     use: {
         baseURL: 'http://localhost:4173',
         trace: 'on-first-retry',
         screenshot: 'only-on-failure',
         video: process.env.CI ? 'retain-on-failure' : 'off', // Disable video locally for speed
+        // Pre-seed localStorage so the "What's New" modal doesn't appear.
+        // On CI, localStorage is empty → modal overlay covers tab buttons →
+        // Playwright click() hangs for 60s waiting for actionability.
+        storageState: './tests/e2e/storage-state.json',
+        // Reduce motion so CSS transitions/animations don't block Playwright's
+        // "stable" actionability check (tab buttons have transition: all 0.2s).
+        reducedMotion: 'reduce',
     },
     projects: [
         {
@@ -47,7 +54,7 @@ export default defineConfig({
     webServer: {
         // CI: full build + preview for production-like testing
         // Local: dev server for faster iteration (start with npm run dev -- --port 4173)
-        command: isCI ? 'npm run build && npm run preview -- --port 4173' : 'npm run dev -- --port 4173',
+        command: isCI ? 'npm run preview -- --port 4173' : 'npm run dev -- --port 4173',
         url: 'http://localhost:4173',
         reuseExistingServer: true,
         timeout: 120 * 1000,
