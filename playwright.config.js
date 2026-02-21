@@ -28,6 +28,9 @@ export default defineConfig({
         // On CI, localStorage is empty → modal overlay covers tab buttons →
         // Playwright click() hangs for 60s waiting for actionability.
         storageState: './tests/e2e/storage-state.json',
+        // Reduce motion so CSS transitions/animations don't block Playwright's
+        // "stable" actionability check (tab buttons have transition: all 0.2s).
+        reducedMotion: 'reduce',
     },
     projects: [
         {
