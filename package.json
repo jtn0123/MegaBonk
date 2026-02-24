@@ -135,7 +135,12 @@
     "vitest": "^4.0.17"
   },
   "overrides": {
-    "tar": "7.5.7"
+    "tar": ">=7.5.8",
+    "minimatch": ">=10.2.1",
+    "glob": ">=10.5.1",
+    "serve": {
+      "ajv": ">=8.17.2"
+    }
   },
   "lint-staged": {
     "src/**/*.ts": [
