@@ -12,7 +12,7 @@ test.describe('Random Build Generator', () => {
     test.beforeEach(async ({ page }) => {
         // Clear localStorage and navigate to build planner tab
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="build-planner"]');

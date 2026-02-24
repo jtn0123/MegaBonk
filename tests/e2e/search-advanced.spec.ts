@@ -12,7 +12,7 @@ test.describe('Search History', () => {
     test.beforeEach(async ({ page }) => {
         // Clear localStorage to start fresh
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -165,7 +165,7 @@ test.describe('Search History', () => {
 test.describe('Search History Dropdown', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -311,7 +311,7 @@ test.describe('Search History Dropdown', () => {
 test.describe('Search History Keyboard Navigation', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -505,7 +505,7 @@ test.describe('Search History Keyboard Navigation', () => {
 test.describe('Clear Search History', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -582,7 +582,7 @@ test.describe('Clear Search History', () => {
 test.describe('Search Suggestions', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -683,7 +683,7 @@ test.describe('Search Suggestions', () => {
 test.describe.skip('Search History ARIA Accessibility', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
