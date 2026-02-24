@@ -43,7 +43,7 @@ jobs:
         run: bun run tests/offline-cv-runner.ts --strategies ${{ matrix.strategy }} --output test-results/cv-${{ matrix.strategy }}
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: cv-results-${{ matrix.strategy }}
@@ -76,7 +76,7 @@ jobs:
         run: bun run test:cv:ci
 
       - name: Upload comparison report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: cv-comparison-report
@@ -157,7 +157,7 @@ jobs:
         run: bun run test:e2e
 
       - name: Upload Playwright report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         if: always()
         with:
           name: playwright-report
