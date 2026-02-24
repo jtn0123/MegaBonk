@@ -760,7 +760,7 @@ export function downloadDebugImage(dataUrl: string, filename: string = 'debug-ov
 export function registerDebugCommands(): void {
     if (typeof window === 'undefined') return;
 
-    (window as unknown as Record<string, unknown>).cvDebug = {
+    window.cvDebug = {
         enable: () => setDebugEnabled(true),
         disable: () => setDebugEnabled(false),
         getLogs: () => getLogs(),

@@ -291,7 +291,7 @@ export async function closeCompareModal(): Promise<void> {
             // Abort if a new compare session started while we were awaiting
             if (closeSessionId !== compareSessionId) return;
             const instances = chartInstances as Record<string, { destroy: () => void }>;
-            if (instances && instances['compare-scaling-chart']) {
+            if (instances?.['compare-scaling-chart']) {
                 instances['compare-scaling-chart'].destroy();
                 delete instances['compare-scaling-chart'];
             }

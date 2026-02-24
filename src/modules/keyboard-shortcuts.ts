@@ -228,7 +228,7 @@ export function setupKeyboardShortcuts(): void {
     keydownHandler = (e: KeyboardEvent) => {
         // Ignore shortcuts when typing in inputs
         const target = e.target as HTMLElement;
-        if (target && target.matches && target.matches('input, textarea, select')) {
+        if (target?.matches?.('input, textarea, select')) {
             return;
         }
 
@@ -285,7 +285,7 @@ export function setupKeyboardShortcuts(): void {
         // Escape - clear search and focus
         if (e.key === 'Escape') {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
-            if (searchInput && searchInput.value) {
+            if (searchInput?.value) {
                 e.preventDefault();
                 searchInput.value = '';
                 searchInput.dispatchEvent(new Event('input', { bubbles: true }));

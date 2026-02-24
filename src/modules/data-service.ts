@@ -398,31 +398,27 @@ export async function loadAllData(): Promise<void> {
 
         // Initialize UI - restore saved tab or default to 'items'
         // Note: switchTab is a global function from script.js
-        const windowWithSwitchTab = window as Window & { switchTab?: (tab: string) => void };
-        if (typeof windowWithSwitchTab.switchTab === 'function') {
-            windowWithSwitchTab.switchTab(getSavedTab());
+        if (typeof window.switchTab === 'function') {
+            window.switchTab(getSavedTab());
         }
 
         // Load build from URL if present
         // Note: loadBuildFromURL is a global function from build-planner.js
-        const windowWithLoadBuild = window as Window & { loadBuildFromURL?: () => void };
-        if (typeof windowWithLoadBuild.loadBuildFromURL === 'function') {
-            windowWithLoadBuild.loadBuildFromURL();
-            window.addEventListener('hashchange', () => windowWithLoadBuild.loadBuildFromURL!());
+        if (typeof window.loadBuildFromURL === 'function') {
+            window.loadBuildFromURL();
+            window.addEventListener('hashchange', () => window.loadBuildFromURL?.());
         }
 
         // Initialize advisor with loaded data
         // Note: initAdvisor is a global function from advisor.ts
-        const windowWithAdvisor = window as Window & { initAdvisor?: (data: AllGameData) => void };
-        if (typeof windowWithAdvisor.initAdvisor === 'function') {
-            windowWithAdvisor.initAdvisor(newData);
+        if (typeof window.initAdvisor === 'function') {
+            window.initAdvisor(newData);
         }
 
         // Initialize scan build module
         // Note: initScanBuild is a global function from scan-build.ts
-        const windowWithScanBuild = window as Window & { initScanBuild?: (data: AllGameData) => void };
-        if (typeof windowWithScanBuild.initScanBuild === 'function') {
-            windowWithScanBuild.initScanBuild(newData);
+        if (typeof window.initScanBuild === 'function') {
+            window.initScanBuild(newData);
         }
 
         // Phase 2: Load deferred data (shrines, stats, changelog) in background

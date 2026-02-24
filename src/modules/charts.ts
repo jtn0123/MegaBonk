@@ -451,7 +451,7 @@ export function calculateTomeProgression(tome: Tome | ChartableTome, maxLevels?:
     if (!valueStr || typeof valueStr !== 'string') return null;
     // Parse numeric value from strings like "+7% crit chance" or "+0.08x (8% damage)"
     const match = valueStr.match(/[+-]?([\d.]+)/);
-    if (!match || !match[1]) return null;
+    if (!match?.[1]) return null;
 
     const perLevel = parseFloat(match[1]);
     // Scale appropriately - percentages stay as-is, multipliers get scaled

@@ -51,7 +51,7 @@ export async function detectStackCount(imageDataUrl: string): Promise<StackCount
         const countMatch = rawText.match(/[x×X]?(\d{1,2})/);
         let count: number | null = null;
 
-        if (countMatch && countMatch[1]) {
+        if (countMatch?.[1]) {
             const parsed = parseInt(countMatch[1], 10);
             // Valid counts are typically 1-20 in MegaBonk
             if (!isNaN(parsed) && parsed >= 1 && parsed <= 30) {

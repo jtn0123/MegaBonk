@@ -157,7 +157,7 @@ function updateTabUI(tabName: TabName): void {
     document.querySelectorAll<HTMLElement>('.tab-content').forEach(content => {
         content.classList.remove('active');
     });
-    const tabContent = document.getElementById(`${tabName}-tab`) as HTMLElement | null;
+    const tabContent = document.getElementById(`${tabName}-tab`);
     if (tabContent) {
         tabContent.classList.add('active');
     }

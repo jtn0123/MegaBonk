@@ -305,9 +305,8 @@ export function deleteBuildFromHistory(index: number): void {
         localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
         ToastManager.success(`Deleted "${buildName}" from history`);
 
-        const windowWithModal = window as Window & { showBuildHistoryModal?: () => void };
-        if (typeof windowWithModal.showBuildHistoryModal === 'function') {
-            windowWithModal.showBuildHistoryModal();
+        if (typeof window.showBuildHistoryModal === 'function') {
+            window.showBuildHistoryModal();
         }
     } catch {
         ToastManager.error('Failed to delete build from history');
@@ -571,7 +570,7 @@ function sanitizeParsed(obj: unknown): unknown {
 
 export function loadBuildFromURL(): boolean {
     const hash = window.location.hash;
-    if (!hash || !hash.includes('build=')) return false;
+    if (!hash?.includes('build=')) return false;
 
     try {
         const params = new URLSearchParams(hash.substring(1));
