@@ -41,7 +41,7 @@ function analyzeHotbarPosition(width, height) {
         '4K': { old: 96, new: 80 },
     };
 
-    let resolution = 'unknown';
+    let resolution;
     if (height <= 720) resolution = '720p';
     else if (height <= 800) resolution = '800p';
     else if (height <= 1080) resolution = '1080p';
