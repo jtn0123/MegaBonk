@@ -122,7 +122,7 @@ export function renderItemModal(data: Item): string {
 
         // Check if modal is still active before continuing
         const modal = safeGetElementById('itemModal');
-        if (!modal || !modal.classList.contains('active')) {
+        if (!modal?.classList.contains('active')) {
             return; // Modal closed, stop trying
         }
 

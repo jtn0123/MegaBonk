@@ -99,7 +99,7 @@ function handleModalKeydown(e: KeyboardEvent): void {
     // Guard: Check if modal element still exists in DOM and is active
     // This prevents stale listeners from causing errors on abnormal modal close
     const modal = safeGetElementById('itemModal');
-    if (!modal || !modal.classList.contains('active')) {
+    if (!modal?.classList.contains('active')) {
         deactivateFocusTrap(); // Clean up stale listener
         return;
     }
@@ -174,8 +174,7 @@ export function activateFocusTrap(modal: HTMLElement): void {
             }
             // Check if modal display was set to none or active class removed
             if (mutation.type === 'attributes' && mutation.target === modal) {
-                const modalEl = modal as HTMLElement;
-                if (modalEl.style.display === 'none' || !modalEl.classList.contains('active')) {
+                if (modal.style.display === 'none' || !modal.classList.contains('active')) {
                     deactivateFocusTrap();
                     return;
                 }

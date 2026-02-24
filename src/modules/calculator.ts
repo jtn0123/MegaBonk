@@ -176,7 +176,7 @@ export function calculateBreakpoint(): void {
 
     // Find item
     const item = allData.items?.items?.find((i: Item) => i.id === itemId);
-    if (!item || !item.scaling_per_stack || item.scaling_per_stack.length === 0) {
+    if (!item?.scaling_per_stack || item.scaling_per_stack.length === 0) {
         ToastManager.error('Item not found or has no scaling data');
         return;
     }

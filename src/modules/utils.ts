@@ -164,7 +164,7 @@ export function generateEntityImage(
     altText: string,
     className: string = 'entity-image'
 ): string {
-    if (!entity || !entity.image) return '';
+    if (!entity?.image) return '';
     return generateResponsiveImage(entity.image, altText, className);
 }
 
@@ -177,7 +177,7 @@ export function generateModalImage(
     altText: string,
     type: string
 ): string {
-    if (!entity || !entity.image) return '';
+    if (!entity?.image) return '';
     return generateResponsiveImage(entity.image, altText, `modal-${type}-image`);
 }
 
@@ -343,7 +343,7 @@ export function generateBadge(text: string, className: string = ''): string {
  * Bug fix: Escape tag content to prevent XSS
  */
 export function generateMetaTags(tags: string[] | null | undefined, limit: number = 0): string {
-    if (!tags || !tags.length) return '';
+    if (!tags?.length) return '';
     const displayTags = limit > 0 ? tags.slice(0, limit) : tags;
     return displayTags.map(tag => `<span class="meta-tag">${escapeHtml(tag)}</span>`).join(' ');
 }

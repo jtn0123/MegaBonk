@@ -52,7 +52,7 @@ export async function detectItemCounts(imageDataUrl: string, cells: ROI[]): Prom
 
             // Parse count (look for patterns like "x5", "5", "×3")
             const countMatch = text.match(/[x×]?(\d+)/);
-            if (countMatch && countMatch[1]) {
+            if (countMatch?.[1]) {
                 const count = parseInt(countMatch[1], 10);
                 if (!isNaN(count) && count > 1 && count <= 20) {
                     counts.set(cell.label || '', count);

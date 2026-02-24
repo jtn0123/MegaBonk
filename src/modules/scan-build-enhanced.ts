@@ -457,12 +457,9 @@ function showStrategyComparison(results: StrategyResult[]): void {
     comparisonDiv.style.display = 'block';
 }
 
-// Export for window access — use type assertion to satisfy both SonarQube and TypeScript
+// Export for window access
 if (typeof window !== 'undefined') {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).initEnhancedScanBuild = initEnhancedScanBuild;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).handleEnhancedHybridDetect = handleEnhancedHybridDetect;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).compareStrategiesOnImage = compareStrategiesOnImage;
+    window.initEnhancedScanBuild = initEnhancedScanBuild;
+    window.handleEnhancedHybridDetect = handleEnhancedHybridDetect;
+    window.compareStrategiesOnImage = compareStrategiesOnImage;
 }

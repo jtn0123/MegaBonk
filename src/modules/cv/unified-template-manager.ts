@@ -446,7 +446,7 @@ export async function loadTemplatesBatch(
 export function groupTemplatesByColor(items: Item[]): void {
     items.forEach(item => {
         const template = templateStore.get(item.id);
-        if (!template || !template.dominantColor) return;
+        if (!template?.dominantColor) return;
 
         const colorCategory = template.dominantColor;
 

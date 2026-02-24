@@ -208,7 +208,7 @@ export function withErrorBoundary<TArgs extends unknown[], TReturn>(
                 }
 
                 // Execute registered boundary fallback
-                if (boundary && boundary.fallback) {
+                if (boundary?.fallback) {
                     try {
                         return (await boundary.fallback(err)) as Awaited<TReturn>;
                     } catch (boundaryError) {

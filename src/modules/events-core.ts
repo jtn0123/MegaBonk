@@ -189,7 +189,7 @@ function handleEscapeKey(): void {
                 operation: 'import.compare',
                 error: { name: 'ImportError', message: err.message },
             });
-            const compareModal = safeGetElementById('compareModal') as HTMLElement | null;
+            const compareModal = safeGetElementById('compareModal');
             if (compareModal) {
                 compareModal.style.display = 'none';
                 compareModal.classList.remove('active');
@@ -723,10 +723,10 @@ export function setupModalListeners(): void {
         if (now - lastModalCloseTime < MODAL_CLOSE_DEBOUNCE_MS) return;
 
         const target = e.target as HTMLElement;
-        const itemModal = safeGetElementById('itemModal') as HTMLElement | null;
-        const compareModal = safeGetElementById('compareModal') as HTMLElement | null;
+        const itemModal = safeGetElementById('itemModal');
+        const compareModal = safeGetElementById('compareModal');
 
-        if (itemModal && itemModal.classList.contains('active')) {
+        if (itemModal?.classList.contains('active')) {
             const modalContent = itemModal.querySelector('.modal-content');
             if (target === itemModal || (itemModal.contains(target) && !modalContent?.contains(target))) {
                 lastModalCloseTime = now;
@@ -735,7 +735,7 @@ export function setupModalListeners(): void {
             }
         }
 
-        if (compareModal && compareModal.classList.contains('active')) {
+        if (compareModal?.classList.contains('active')) {
             const modalContent = compareModal.querySelector('.modal-content');
             if (target === compareModal || (compareModal.contains(target) && !modalContent?.contains(target))) {
                 lastModalCloseTime = now;
@@ -783,7 +783,7 @@ export function setupCompareButtonListener(): void {
  */
 export function setupFilterToggle(): void {
     const toggleBtn = safeGetElementById('filter-toggle-btn') as HTMLButtonElement | null;
-    const filters = safeGetElementById('filters') as HTMLElement | null;
+    const filters = safeGetElementById('filters');
 
     if (!toggleBtn || !filters) return;
 
@@ -870,7 +870,7 @@ export function setupEventListeners(): void {
  * Show loading overlay
  */
 export function showLoading(): void {
-    const overlay = safeGetElementById('loading-overlay') as HTMLElement | null;
+    const overlay = safeGetElementById('loading-overlay');
     if (overlay) overlay.style.display = 'flex';
 }
 
@@ -878,7 +878,7 @@ export function showLoading(): void {
  * Hide loading overlay
  */
 export function hideLoading(): void {
-    const overlay = safeGetElementById('loading-overlay') as HTMLElement | null;
+    const overlay = safeGetElementById('loading-overlay');
     if (overlay) overlay.style.display = 'none';
 }
 
@@ -888,7 +888,7 @@ export function hideLoading(): void {
  * @param {boolean} isRetryable - Whether to show retry button
  */
 export function showErrorMessage(message: string, isRetryable: boolean = true): void {
-    let errorContainer = safeGetElementById('error-container') as HTMLElement | null;
+    let errorContainer = safeGetElementById('error-container');
     let isNewContainer = false;
 
     if (!errorContainer) {
@@ -941,6 +941,6 @@ export function showErrorMessage(message: string, isRetryable: boolean = true): 
  * Dismiss error message
  */
 export function dismissError(): void {
-    const errorContainer = safeGetElementById('error-container') as HTMLElement | null;
+    const errorContainer = safeGetElementById('error-container');
     if (errorContainer) errorContainer.style.display = 'none';
 }

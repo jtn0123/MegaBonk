@@ -690,6 +690,11 @@ declare global {
 
         // Data service functions (from data-service.ts)
         loadAllData?: () => Promise<void>;
+        loadBuildFromURL?: () => void;
+        showBuildHistoryModal?: () => void;
+
+        // Debug commands (from image-recognition-debug.ts)
+        cvDebug?: Record<string, unknown>;
 
         // Test utilities (from test-utils.ts)
         testUtils?: {

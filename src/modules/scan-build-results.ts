@@ -231,11 +231,8 @@ export function applyToAdvisor(state: SelectionState, onBuildStateChange: ((stat
 
     // Also call the global applyScannedBuild function if available
     // Use typed window lookup for better type safety
-    const windowWithApply = window as Window & {
-        applyScannedBuild?: (state: BuildState) => void;
-    };
-    if (typeof windowWithApply.applyScannedBuild === 'function') {
-        windowWithApply.applyScannedBuild(buildState);
+    if (typeof window.applyScannedBuild === 'function') {
+        window.applyScannedBuild(buildState);
     }
 
     ToastManager.success('Build state applied to advisor!');
