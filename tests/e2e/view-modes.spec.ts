@@ -198,7 +198,7 @@ test.describe('View Modes - Persistence', () => {
     test.beforeEach(async ({ page }) => {
         // Clear localStorage to start fresh
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -256,7 +256,7 @@ test.describe('View Modes - Persistence', () => {
 
     test('default view is grid', async ({ page }) => {
         // Clear localStorage and reload
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         
@@ -270,7 +270,7 @@ test.describe('View Modes - Persistence', () => {
 test.describe('Empty States', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });

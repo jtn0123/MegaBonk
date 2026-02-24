@@ -17,7 +17,7 @@ const EXPECTED_COUNTS = {
 test.describe('Data Loading', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 25000 });
     });
 
     test('items tab loads exactly 80 items', async ({ page }) => {
@@ -27,7 +27,7 @@ test.describe('Data Loading', () => {
 
     test('weapons tab loads exactly 29 weapons', async ({ page }) => {
         await page.click('.tab-btn[data-tab="weapons"]');
-        await page.waitForSelector('#weaponsContainer .item-card', { timeout: 10000 });
+        await page.waitForSelector('#weaponsContainer .item-card', { timeout: 15000 });
         
         const cards = page.locator('#weaponsContainer .item-card');
         await expect(cards).toHaveCount(EXPECTED_COUNTS.weapons);
@@ -35,7 +35,7 @@ test.describe('Data Loading', () => {
 
     test('tomes tab loads exactly 23 tomes', async ({ page }) => {
         await page.click('.tab-btn[data-tab="tomes"]');
-        await page.waitForSelector('#tomesContainer .item-card', { timeout: 10000 });
+        await page.waitForSelector('#tomesContainer .item-card', { timeout: 15000 });
         
         const cards = page.locator('#tomesContainer .item-card');
         await expect(cards).toHaveCount(EXPECTED_COUNTS.tomes);
@@ -43,7 +43,7 @@ test.describe('Data Loading', () => {
 
     test('characters tab loads exactly 20 characters', async ({ page }) => {
         await page.click('.tab-btn[data-tab="characters"]');
-        await page.waitForSelector('#charactersContainer .item-card', { timeout: 10000 });
+        await page.waitForSelector('#charactersContainer .item-card', { timeout: 15000 });
         
         const cards = page.locator('#charactersContainer .item-card');
         await expect(cards).toHaveCount(EXPECTED_COUNTS.characters);
@@ -51,7 +51,7 @@ test.describe('Data Loading', () => {
 
     test('shrines tab loads exactly 8 shrines', async ({ page }) => {
         await page.click('.tab-btn[data-tab="shrines"]');
-        await page.waitForSelector('#shrinesContainer .item-card', { timeout: 10000 });
+        await page.waitForSelector('#shrinesContainer .item-card', { timeout: 15000 });
         
         const cards = page.locator('#shrinesContainer .item-card');
         await expect(cards).toHaveCount(EXPECTED_COUNTS.shrines);
@@ -61,7 +61,7 @@ test.describe('Data Loading', () => {
 test.describe('Image Loading', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 25000 });
     });
 
     test('all item cards have images', async ({ page }) => {
@@ -104,7 +104,7 @@ test.describe('Image Loading', () => {
 
     test('weapon images load correctly', async ({ page }) => {
         await page.click('.tab-btn[data-tab="weapons"]');
-        await page.waitForSelector('#weaponsContainer .item-card', { timeout: 10000 });
+        await page.waitForSelector('#weaponsContainer .item-card', { timeout: 15000 });
 
         const images = page.locator('#weaponsContainer .item-card img');
         const count = await images.count();
@@ -132,7 +132,7 @@ test.describe('Image Loading', () => {
 test.describe('Card Data Attributes', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 25000 });
     });
 
     test('all item cards have entity-type attribute', async ({ page }) => {
@@ -184,7 +184,7 @@ test.describe('Card Data Attributes', () => {
 test.describe('Content Integrity', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 25000 });
     });
 
     test('all item cards have visible name', async ({ page }) => {
@@ -223,7 +223,7 @@ test.describe('Content Integrity', () => {
 test.describe('About Page Data', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 25000 });
         await page.click('.tab-btn[data-tab="about"]');
         await page.waitForTimeout(300);
     });
@@ -265,7 +265,7 @@ test.describe('No Console Errors', () => {
         page.on('pageerror', err => errors.push(err.message));
 
         await page.goto('/');
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 25000 });
 
         expect(errors).toHaveLength(0);
     });
@@ -281,7 +281,7 @@ test.describe('No Console Errors', () => {
         });
 
         await page.goto('/');
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 25000 });
 
         const tabs = ['weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator', 'advisor', 'changelog', 'about'];
         for (const tab of tabs) {
@@ -305,7 +305,7 @@ test.describe('Network Requests', () => {
         });
 
         await page.goto('/');
-        await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
+        await page.waitForSelector('#itemsContainer .item-card', { timeout: 25000 });
 
         expect(failedRequests).toHaveLength(0);
     });

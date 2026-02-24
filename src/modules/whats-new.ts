@@ -32,8 +32,13 @@ interface Release {
  */
 export function shouldShowWhatsNew(): boolean {
     const currentVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0';
+    if (currentVersion === '0.0.0') return false;
     const lastSeen = localStorage.getItem(STORAGE_KEY);
-    return lastSeen !== currentVersion && currentVersion !== '0.0.0';
+    // Already seen this version
+    if (lastSeen === currentVersion) return false;
+    // Sentinel value: suppress modal unconditionally (used by E2E storageState)
+    if (lastSeen === 'DISMISS_ALL') return false;
+    return lastSeen !== currentVersion;
 }
 
 /**

@@ -15,7 +15,7 @@ test.describe('Recently Viewed', () => {
     test.beforeEach(async ({ page }) => {
         // Clear localStorage and navigate fresh
         await page.goto('/');
-        await page.evaluate(() => localStorage.clear());
+        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
