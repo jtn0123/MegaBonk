@@ -5,7 +5,7 @@
 
 import { allData } from './data-service.ts';
 import { ToastManager } from './toast.ts';
-import { safeGetElementById } from './utils.ts';
+import { escapeHtml, safeGetElementById } from './utils.ts';
 import { onModalOpened } from './recently-viewed.ts';
 import { renderSimilarItemsSection, setupSimilarItemsHandlers } from './similar-items.ts';
 import type { EntityType, Item, Weapon, Tome, Character, Shrine } from '../types/index.ts';
@@ -254,7 +254,7 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
     const modalBody = safeGetElementById('modalBody');
     if (!modal || !modalBody) return;
 
-    let content = `<h2 id="modal-title">${data.name}</h2>`;
+    let content = `<h2 id="modal-title">${escapeHtml(data.name)}</h2>`;
 
     if (type === 'items') {
         content += renderItemModal(data as Item);

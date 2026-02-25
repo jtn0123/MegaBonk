@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: codelytv/pr-size-labeler@v1
+      - uses: codelytv/pr-size-labeler@0b7f116f59d1830881bc1cc88be32b005ab09ffa # v1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           xs_max_size: 10
