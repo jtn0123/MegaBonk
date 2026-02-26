@@ -14,7 +14,7 @@
 }
 
 .debug-panel.active {
-    border-color: #00ff88;
+    border-color: #4ade80;
     box-shadow: 0 0 12px rgba(0, 255, 136, 0.15);
 }
 
@@ -45,7 +45,7 @@
     width: 18px;
     height: 18px;
     cursor: pointer;
-    accent-color: #00ff88;
+    accent-color: #4ade80;
 }
 
 .debug-toggle-text {
@@ -74,8 +74,8 @@
 
 .debug-expand-btn:hover {
     background: rgba(0, 255, 136, 0.2);
-    border-color: #00ff88;
-    color: #5eead4;
+    border-color: #4ade80;
+    color: #99f6e4;
 }
 
 .debug-expand-icon {
@@ -142,7 +142,7 @@
     width: 14px;
     height: 14px;
     cursor: pointer;
-    accent-color: #00ff88;
+    accent-color: #4ade80;
 }
 
 /* Debug Stats */
@@ -170,7 +170,7 @@
 .debug-stat-value {
     font-size: 1rem;
     font-weight: 600;
-    color: #00ff88;
+    color: #4ade80;
     font-family: 'JetBrains Mono', monospace;
 }
 
@@ -237,16 +237,16 @@
 
 .debug-log-entry.error {
     background: rgba(255, 59, 48, 0.1);
-    color: #ff8a8a;
+    color: #ffb3b3;
 }
 
 .debug-log-entry.warn {
     background: rgba(255, 204, 0, 0.1);
-    color: #fef08a;
+    color: #fef9c3;
 }
 
 .debug-log-entry.info {
-    color: #5eead4;
+    color: #99f6e4;
 }
 
 .debug-log-entry.debug {
@@ -276,8 +276,8 @@
 
 .debug-action-btn:hover:not(:disabled) {
     background: rgba(0, 255, 136, 0.2);
-    border-color: #00ff88;
-    color: #00ff88;
+    border-color: #4ade80;
+    color: #4ade80;
 }
 
 .debug-action-btn:disabled {
