@@ -265,7 +265,7 @@ export function calculateHistogramWidth(imageData: ImageData): number {
  * Returns ratio of center variance to edge variance
  *
  * Why it works: Item icons are centered, so center region should be
- * more detailed than edges. Uniform backgrounds have ratio ~1.0
+ * more detailed than edges. Uniform backgrounds have ratio ~1
  */
 export function calculateCenterEdgeRatio(imageData: ImageData): number {
     const pixels = imageData.data;
@@ -328,7 +328,7 @@ export function calculateCenterEdgeRatio(imageData: ImageData): number {
     }
 
     // Calculate variances
-    if (centerCount === 0 || edgeCount === 0) return 1.0;
+    if (centerCount === 0 || edgeCount === 0) return 1;
 
     const centerMeanR = centerSumR / centerCount;
     const centerMeanG = centerSumG / centerCount;

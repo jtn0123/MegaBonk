@@ -50,7 +50,7 @@ export interface TrainingIndex {
 
 export interface TrainingTemplate {
     imageData: ImageData;
-    weight: number; // 1.2 for corrected, 1.0 for verified, 0.8 for uncorrected
+    weight: number; // 1.2 for corrected, 1 for verified, 0.8 for uncorrected
     resolution: string;
     validationType: string;
     sourceImage: string; // e.g., "pc-1080p/level_803_russian_stress_test.jpg"
@@ -327,7 +327,7 @@ function getTemplateWeight(validationType: string): number {
         case 'corrected_from_empty':
             return 1.2; // Most valuable - human-labeled
         case 'verified':
-            return 1.0; // Confirmed correct
+            return 1; // Confirmed correct
         default:
             return 0.8; // Unreviewed
     }

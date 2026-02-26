@@ -253,7 +253,7 @@ export function setupKeyboardShortcuts(): void {
                 'advisor',
                 'changelog',
             ];
-            const tabIndex = parseInt(e.key) - 1;
+            const tabIndex = Number.parseInt(e.key) - 1;
             const tabBtn = document.querySelector<HTMLElement>(`[data-tab="${tabs[tabIndex]}"]`);
             if (tabBtn) {
                 tabBtn.click();

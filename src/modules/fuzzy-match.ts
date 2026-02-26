@@ -209,41 +209,52 @@ export function parseAdvancedSearch(query: string): AdvancedSearchCriteria {
  * @param filters - Filter criteria
  * @returns True if item matches all filters
  */
+/**
+ * Compare a numeric value against a threshold with the given operator
+ */
+function compareNumeric(raw: string | number, operator: string, thresholdStr: string): boolean {
+    const threshold = Number.parseFloat(thresholdStr);
+    const numValue = typeof raw === 'number' ? raw : Number.parseFloat(raw);
+    if (Number.isNaN(threshold) || Number.isNaN(numValue)) return false;
+    switch (operator) {
+        case '>=': return numValue >= threshold;
+        case '<=': return numValue <= threshold;
+        case '>': return numValue > threshold;
+        case '<': return numValue < threshold;
+        default: return false;
+    }
+}
+
+/**
+ * Check if a single filter condition matches an item value
+ */
+function matchesSingleFilter(itemValue: unknown, filterValue: string): boolean {
+    if (itemValue === undefined || itemValue === null) return false;
+
+    const strValue = typeof itemValue === 'object' ? JSON.stringify(itemValue) : String(itemValue);
+
+    if (filterValue.startsWith('>=')) {
+        return compareNumeric(strValue, '>=', filterValue.substring(2));
+    }
+    if (filterValue.startsWith('<=')) {
+        return compareNumeric(strValue, '<=', filterValue.substring(2));
+    }
+    if (filterValue.startsWith('>')) {
+        return compareNumeric(strValue, '>', filterValue.substring(1));
+    }
+    if (filterValue.startsWith('<')) {
+        return compareNumeric(strValue, '<', filterValue.substring(1));
+    }
+    if (filterValue.startsWith('!')) {
+        return strValue.toLowerCase() !== filterValue.substring(1).toLowerCase();
+    }
+    return strValue.toLowerCase() === filterValue.toLowerCase();
+}
+
 export function matchesAdvancedFilters(item: Record<string, unknown>, filters: Record<string, string>): boolean {
     for (const [key, value] of Object.entries(filters)) {
-        const itemValue = item[key];
-
-        if (itemValue === undefined || itemValue === null) {
-            return false;
-        }
-
-        if (value === undefined || value === null) {
-            continue;
-        }
-
-        // Handle comparison operators
-        if (value.startsWith('>=')) {
-            const threshold = parseFloat(value.substring(2));
-            const numValue = parseFloat(String(itemValue));
-            if (isNaN(threshold) || isNaN(numValue) || numValue < threshold) return false;
-        } else if (value.startsWith('<=')) {
-            const threshold = parseFloat(value.substring(2));
-            const numValue = parseFloat(String(itemValue));
-            if (isNaN(threshold) || isNaN(numValue) || numValue > threshold) return false;
-        } else if (value.startsWith('>')) {
-            const threshold = parseFloat(value.substring(1));
-            const numValue = parseFloat(String(itemValue));
-            if (isNaN(threshold) || isNaN(numValue) || numValue <= threshold) return false;
-        } else if (value.startsWith('<')) {
-            const threshold = parseFloat(value.substring(1));
-            const numValue = parseFloat(String(itemValue));
-            if (isNaN(threshold) || isNaN(numValue) || numValue >= threshold) return false;
-        } else if (value.startsWith('!')) {
-            if (String(itemValue).toLowerCase() === value.substring(1).toLowerCase()) return false;
-        } else {
-            // Exact match (case insensitive)
-            if (String(itemValue).toLowerCase() !== value.toLowerCase()) return false;
-        }
+        if (value === undefined || value === null) continue;
+        if (!matchesSingleFilter(item[key], value)) return false;
     }
 
     return true;

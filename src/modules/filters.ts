@@ -281,7 +281,7 @@ function applyChangelogFilters(filtered: Entity[]): Entity[] {
         const dateKey = patch.date ?? '';
         if (!dateCache.has(dateKey)) {
             const d = new Date(dateKey);
-            dateCache.set(dateKey, !dateKey || isNaN(d.getTime()) ? defaultValue : d.getTime());
+            dateCache.set(dateKey, !dateKey || Number.isNaN(d.getTime()) ? defaultValue : d.getTime());
         }
     });
 

@@ -40,7 +40,7 @@ export interface SceneAnalysis {
  * Preprocessing configuration based on scene
  */
 export interface PreprocessConfig {
-    /** Contrast enhancement factor (1.0 = no change) */
+    /** Contrast enhancement factor (1 = no change) */
     contrastFactor: number;
     /** Whether to apply color normalization */
     normalizeColors: boolean;
@@ -320,8 +320,8 @@ export function getPreprocessConfig(scene: SceneAnalysis): PreprocessConfig {
     }
 
     // Clamp values to safe ranges
-    config.contrastFactor = Math.max(1.0, Math.min(2.0, config.contrastFactor));
-    config.sharpeningFactor = Math.max(0, Math.min(1.0, config.sharpeningFactor));
+    config.contrastFactor = Math.max(1, Math.min(2, config.contrastFactor));
+    config.sharpeningFactor = Math.max(0, Math.min(1, config.sharpeningFactor));
     config.brightnessAdjust = Math.max(-50, Math.min(50, config.brightnessAdjust));
 
     return config;
@@ -342,7 +342,7 @@ export function applyAdaptivePreprocessing(imageData: SimpleImageData): SimpleIm
     }
 
     // Apply contrast enhancement
-    if (config.contrastFactor !== 1.0) {
+    if (config.contrastFactor !== 1) {
         processed = enhanceContrastAdaptive(processed, config.contrastFactor);
     }
 

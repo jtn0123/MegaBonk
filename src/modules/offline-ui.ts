@@ -45,7 +45,7 @@ export function recordDataSync(): void {
 export function getLastSyncTime(): number | null {
     try {
         const stored = localStorage.getItem(LAST_SYNC_KEY);
-        return stored ? parseInt(stored, 10) : null;
+        return stored ? Number.parseInt(stored, 10) : null;
     } catch {
         return null;
     }
@@ -196,8 +196,8 @@ export function setupOfflineListeners(): void {
     window.addEventListener('offline', handleOffline);
 
     offlineListenersCleanup = () => {
-        window.removeEventListener('online', handleOnline);
-        window.removeEventListener('offline', handleOffline);
+        globalThis.removeEventListener('online', handleOnline);
+        globalThis.removeEventListener('offline', handleOffline);
     };
 
     // Initial state check

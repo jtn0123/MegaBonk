@@ -90,7 +90,7 @@ function setScrollPosition(y: number) {
  */
 function mockTouchDevice(isTouch: boolean) {
     if (isTouch) {
-        Object.defineProperty(window, 'ontouchstart', {
+        Object.defineProperty(globalThis, 'ontouchstart', {
             value: () => {},
             configurable: true,
         });
@@ -99,7 +99,7 @@ function mockTouchDevice(isTouch: boolean) {
             configurable: true,
         });
     } else {
-        delete (window as Record<string, unknown>).ontouchstart;
+        delete (globalThis as Record<string, unknown>).ontouchstart;
         Object.defineProperty(navigator, 'maxTouchPoints', {
             value: 0,
             configurable: true,
@@ -227,7 +227,7 @@ describe('Pull-to-Refresh', () => {
     describe('Touch Detection', () => {
         it('should detect touch via ontouchstart', () => {
             mockTouchDevice(false);
-            Object.defineProperty(window, 'ontouchstart', {
+            Object.defineProperty(globalThis, 'ontouchstart', {
                 value: () => {},
                 configurable: true,
             });
@@ -239,7 +239,7 @@ describe('Pull-to-Refresh', () => {
         });
 
         it('should detect touch via maxTouchPoints', () => {
-            delete (window as Record<string, unknown>).ontouchstart;
+            delete (globalThis as Record<string, unknown>).ontouchstart;
             Object.defineProperty(navigator, 'maxTouchPoints', {
                 value: 1,
                 configurable: true,
@@ -718,11 +718,11 @@ describe('Pull-to-Refresh', () => {
     describe('Global Exports', () => {
         it('should export initPullRefresh to window', () => {
             // The module should have assigned to window
-            expect(typeof (window as unknown as Record<string, unknown>).initPullRefresh).toBe('function');
+            expect(typeof (globalThis as unknown as Record<string, unknown>).initPullRefresh).toBe('function');
         });
 
         it('should export cleanupPullRefresh to window', () => {
-            expect(typeof (window as unknown as Record<string, unknown>).cleanupPullRefresh).toBe('function');
+            expect(typeof (globalThis as unknown as Record<string, unknown>).cleanupPullRefresh).toBe('function');
         });
     });
 });

@@ -14,6 +14,8 @@ import { saveFilterState } from './filter-state.ts';
 // Types
 // ========================================
 
+type FilterInputElement = HTMLInputElement | HTMLSelectElement;
+
 interface FilterConfig {
     id: string;
     label: string;
@@ -298,13 +300,13 @@ function syncFiltersToSheet(): void {
     const sheet = safeGetElementById('filter-bottom-sheet');
     if (!sheet) return;
 
-    const sheetInputs = sheet.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-filter-id]');
+    const sheetInputs = sheet.querySelectorAll<FilterInputElement>('[data-filter-id]');
 
     sheetInputs.forEach(sheetInput => {
         const filterId = sheetInput.dataset.filterId;
         if (!filterId) return;
 
-        const mainInput = safeGetElementById(filterId) as HTMLInputElement | HTMLSelectElement | null;
+        const mainInput = safeGetElementById(filterId) as FilterInputElement | null;
 
         if (mainInput) {
             if (sheetInput instanceof HTMLInputElement && sheetInput.type === 'checkbox') {
@@ -323,13 +325,13 @@ function applyFiltersFromSheet(): void {
     const sheet = safeGetElementById('filter-bottom-sheet');
     if (!sheet) return;
 
-    const sheetInputs = sheet.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-filter-id]');
+    const sheetInputs = sheet.querySelectorAll<FilterInputElement>('[data-filter-id]');
 
     sheetInputs.forEach(sheetInput => {
         const filterId = sheetInput.dataset.filterId;
         if (!filterId) return;
 
-        const mainInput = safeGetElementById(filterId) as HTMLInputElement | HTMLSelectElement | null;
+        const mainInput = safeGetElementById(filterId) as FilterInputElement | null;
 
         if (mainInput) {
             if (sheetInput instanceof HTMLInputElement && sheetInput.type === 'checkbox') {
@@ -357,7 +359,7 @@ function clearSheetFilters(): void {
     const sheet = safeGetElementById('filter-bottom-sheet');
     if (!sheet) return;
 
-    const sheetInputs = sheet.querySelectorAll<HTMLInputElement | HTMLSelectElement>('[data-filter-id]');
+    const sheetInputs = sheet.querySelectorAll<FilterInputElement>('[data-filter-id]');
 
     sheetInputs.forEach(sheetInput => {
         if (sheetInput instanceof HTMLInputElement && sheetInput.type === 'checkbox') {
@@ -377,7 +379,7 @@ function countActiveFilters(): number {
     const filters = TAB_FILTERS[currentTab || ''] || [];
 
     filters.forEach(filter => {
-        const input = safeGetElementById(filter.id) as HTMLInputElement | HTMLSelectElement | null;
+        const input = safeGetElementById(filter.id) as FilterInputElement | null;
         if (!input) return;
 
         if (input instanceof HTMLInputElement && input.type === 'checkbox') {
@@ -400,7 +402,7 @@ function updateFilterBadge(): void {
     if (!btn) return;
 
     const count = countActiveFilters();
-    const badge = btn.querySelector('.filter-badge') as HTMLElement | null;
+    const badge = btn.querySelector<HTMLElement>('.filter-badge');
 
     if (badge) {
         badge.textContent = count.toString();
@@ -448,11 +450,9 @@ function handleFocusTrap(e: KeyboardEvent): void {
             e.preventDefault();
             lastElement?.focus();
         }
-    } else {
-        if (document.activeElement === lastElement) {
-            e.preventDefault();
-            firstElement?.focus();
-        }
+    } else if (document.activeElement === lastElement) {
+        e.preventDefault();
+        firstElement?.focus();
     }
 }
 
@@ -474,17 +474,17 @@ export function showFilterSheet(): void {
         return;
     }
 
-    if (!sheet) {
-        sheet = createFilterSheet(currentTab);
-        document.body.appendChild(sheet);
-        setupSheetEventListeners(sheet);
-    } else {
+    if (sheet) {
         // Update content if tab changed
         const content = sheet.querySelector('#filter-sheet-content');
         if (content) {
             const filters = TAB_FILTERS[currentTab] || [];
             content.innerHTML = renderFilterGroups(filters);
         }
+    } else {
+        sheet = createFilterSheet(currentTab);
+        document.body.appendChild(sheet);
+        setupSheetEventListeners(sheet);
     }
 
     // Sync current filter values
@@ -500,7 +500,7 @@ export function showFilterSheet(): void {
 
     // Focus first input after animation
     requestAnimationFrame(() => {
-        const firstInput = sheet!.querySelector('select, input') as HTMLElement;
+        const firstInput = sheet!.querySelector<HTMLElement>('select, input');
         firstInput?.focus();
     });
 

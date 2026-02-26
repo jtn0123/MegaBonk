@@ -62,16 +62,16 @@ export const DEFAULT_MARGIN_CONFIG: MarginConfig = {
     rarityAdjustments: {
         common: -0.02, // Thin gray borders, reduce margin
         uncommon: -0.01, // Green borders, slightly thinner
-        rare: 0.0, // Blue borders, baseline
+        rare: 0, // Blue borders, baseline
         epic: 0.01, // Purple borders, slightly thicker
         legendary: 0.03, // Gold borders, significantly thicker
-        unknown: 0.0, // Use baseline for unknown
+        unknown: 0, // Use baseline for unknown
     },
 
     // Resolution adjustments - smaller screens have proportionally thicker borders
     resolutionConfigs: [
         { minWidth: 0, maxWidth: 1280, marginMultiplier: 1.1 }, // 720p/800p
-        { minWidth: 1280, maxWidth: 1920, marginMultiplier: 1.0 }, // 1080p (baseline)
+        { minWidth: 1280, maxWidth: 1920, marginMultiplier: 1 }, // 1080p (baseline)
         { minWidth: 1920, maxWidth: 2560, marginMultiplier: 0.95 }, // 1440p
         { minWidth: 2560, maxWidth: 9999, marginMultiplier: 0.9 }, // 4K
     ],
@@ -87,15 +87,15 @@ export const OPTIMIZED_MARGIN_CONFIG: MarginConfig = {
     rarityAdjustments: {
         common: -0.03,
         uncommon: -0.02,
-        rare: 0.0,
+        rare: 0,
         epic: 0.02,
         legendary: 0.04,
-        unknown: 0.0,
+        unknown: 0,
     },
 
     resolutionConfigs: [
         { minWidth: 0, maxWidth: 1280, marginMultiplier: 1.15 },
-        { minWidth: 1280, maxWidth: 1920, marginMultiplier: 1.0 },
+        { minWidth: 1280, maxWidth: 1920, marginMultiplier: 1 },
         { minWidth: 1920, maxWidth: 2560, marginMultiplier: 0.92 },
         { minWidth: 2560, maxWidth: 9999, marginMultiplier: 0.85 },
     ],
@@ -110,7 +110,7 @@ export const CONSERVATIVE_MARGIN_CONFIG: MarginConfig = {
 
     rarityAdjustments: {
         common: -0.01,
-        uncommon: 0.0,
+        uncommon: 0,
         rare: 0.01,
         epic: 0.02,
         legendary: 0.04,
@@ -119,7 +119,7 @@ export const CONSERVATIVE_MARGIN_CONFIG: MarginConfig = {
 
     resolutionConfigs: [
         { minWidth: 0, maxWidth: 1280, marginMultiplier: 1.05 },
-        { minWidth: 1280, maxWidth: 1920, marginMultiplier: 1.0 },
+        { minWidth: 1280, maxWidth: 1920, marginMultiplier: 1 },
         { minWidth: 1920, maxWidth: 2560, marginMultiplier: 0.98 },
         { minWidth: 2560, maxWidth: 9999, marginMultiplier: 0.95 },
     ],

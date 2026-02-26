@@ -6,9 +6,8 @@
 import type { Item } from '../../types/index.ts';
 import type { ROI } from '../computer-vision.ts';
 import type { CVStrategy, ColorProfile } from '../cv-strategy.ts';
-import { getConfidenceThresholds, compareColorProfiles, getSimilarityPenalty } from '../cv-strategy.ts';
+import { getConfidenceThresholds, compareColorProfiles, getSimilarityPenalty, extractColorProfile } from '../cv-strategy.ts';
 import { isEmptyCell, detectBorderRarity } from '../cv/color.ts';
-import { extractColorProfile } from '../cv-strategy.ts';
 import { calculateSimilarity } from './similarity.ts';
 import { resizeImageData } from './utils.ts';
 import { getEnhancedTemplate, getTemplatesByRarity, getTemplatesByColor } from './templates.ts';

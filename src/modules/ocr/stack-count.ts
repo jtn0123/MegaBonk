@@ -52,9 +52,9 @@ export async function detectStackCount(imageDataUrl: string): Promise<StackCount
         let count: number | null = null;
 
         if (countMatch?.[1]) {
-            const parsed = parseInt(countMatch[1], 10);
+            const parsed = Number.parseInt(countMatch[1], 10);
             // Valid counts are typically 1-20 in MegaBonk
-            if (!isNaN(parsed) && parsed >= 1 && parsed <= 30) {
+            if (!Number.isNaN(parsed) && parsed >= 1 && parsed <= 30) {
                 count = parsed;
             }
         }

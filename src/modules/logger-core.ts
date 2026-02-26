@@ -47,11 +47,11 @@ export interface LoggerConfig {
  * Keep 100% of errors/slow requests, sample the rest
  */
 export interface SamplingConfig {
-    /** Always send errors (default: 1.0 = 100%) */
+    /** Always send errors (default: 1 = 100%) */
     errorSampleRate: number;
     /** Threshold in ms for "slow" requests */
     slowRequestThresholdMs: number;
-    /** Always send slow requests (default: 1.0 = 100%) */
+    /** Always send slow requests (default: 1 = 100%) */
     slowRequestSampleRate: number;
     /** Sample rate for normal successful requests (default: 0.05 = 5%) */
     defaultSampleRate: number;
@@ -291,9 +291,9 @@ export class Logger {
             includeStackTrace: !this.isProduction(),
             maxContextSize: 10000,
             sampling: {
-                errorSampleRate: 1.0, // Keep 100% of errors
+                errorSampleRate: 1, // Keep 100% of errors
                 slowRequestThresholdMs: 1000, // 1 second threshold
-                slowRequestSampleRate: 1.0, // Keep 100% of slow requests
+                slowRequestSampleRate: 1, // Keep 100% of slow requests
                 defaultSampleRate: 0.05, // Sample 5% of normal requests
             },
         };

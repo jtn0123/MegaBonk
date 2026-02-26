@@ -354,7 +354,7 @@ export function initConfidenceSlider(): void {
         valueDisplay.textContent = `${Math.round(currentConfidenceThreshold * 100)}%`;
 
         eventManager.add(slider, 'input', () => {
-            currentConfidenceThreshold = parseInt(slider.value, 10) / 100;
+            currentConfidenceThreshold = Number.parseInt(slider.value, 10) / 100;
             valueDisplay.textContent = `${slider.value}%`;
 
             logger.debug({

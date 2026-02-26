@@ -29,7 +29,7 @@ export function initChartsAsync(chartInitFn: 'initializeItemCharts' | 'initializ
 }
 
 /** Tabs that don't have countable data entities */
-const NON_DATA_TABS = ['calculator', 'advisor', 'about', 'build-planner'];
+const NON_DATA_TABS = new Set(['calculator', 'advisor', 'about', 'build-planner']);
 
 /**
  * Update item count badge
@@ -41,7 +41,7 @@ export function updateStats(filtered: Entity[], tabName: string): void {
     if (!itemCount) return;
 
     // Hide count badge for non-data tabs (Calculator, Advisor, About, Build Planner)
-    if (NON_DATA_TABS.includes(tabName)) {
+    if (NON_DATA_TABS.has(tabName)) {
         itemCount.style.display = 'none';
         return;
     }

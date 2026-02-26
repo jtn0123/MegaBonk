@@ -428,9 +428,9 @@ export function setupDropdownClickHandlers(): void {
             if (item) {
                 const indexStr = item.dataset.index;
                 if (indexStr !== undefined) {
-                    const index = parseInt(indexStr, 10);
+                    const index = Number.parseInt(indexStr, 10);
                     const result = currentResults[index];
-                    if (!isNaN(index) && index >= 0 && index < currentResults.length && result) {
+                    if (!Number.isNaN(index) && index >= 0 && index < currentResults.length && result) {
                         navigateToResult(result);
                     }
                 }

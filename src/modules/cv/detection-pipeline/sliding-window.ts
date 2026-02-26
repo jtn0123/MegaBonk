@@ -4,7 +4,7 @@
 
 import type { Item } from '../../../types/index.ts';
 import { logger } from '../../logger.ts';
-import type { CVDetectionResult, ROI } from '../types.ts';
+import type { CVDetectionResult, ROI, TemplateData } from '../types.ts';
 import { getItemTemplates, getTemplatesByColor } from '../state.ts';
 import { getDominantColor, getColorCandidates, isEmptyCell, calculateColorVariance } from '../color.ts';
 import { getTrainingTemplatesForItem, isTrainingDataLoaded } from '../training.ts';
@@ -12,7 +12,6 @@ import { getDynamicMinConfidence } from '../detection-config.ts';
 import { nonMaxSuppression } from '../detection-utils.ts';
 import { getAdaptiveIconSizes } from '../detection-grid.ts';
 import { matchTemplate, matchTemplateMulti } from '../detection-matching.ts';
-import type { TemplateData } from '../types.ts';
 import type { SlidingWindowOptions, ProgressCallback } from './types.ts';
 
 /** Context passed to window processing helpers */

@@ -162,14 +162,14 @@ export function calculateBreakpoint(): void {
     }
 
     const itemId = select.value;
-    const target = parseFloat(input.value);
+    const target = Number.parseFloat(input.value);
 
     if (!itemId) {
         resultDiv.style.display = 'none';
         return;
     }
 
-    if (isNaN(target) || target <= 0) {
+    if (Number.isNaN(target) || target <= 0) {
         ToastManager.warning('Please enter a valid target value');
         return;
     }

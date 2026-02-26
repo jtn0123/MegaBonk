@@ -451,17 +451,15 @@ window.initScanBuild = initScanBuild;
 // When this module is lazily loaded (e.g., when advisor tab is first visited),
 // data may already be available. Initialize immediately if so.
 // This fixes a race condition where data loads before the module is imported.
-(async function selfInit() {
-    // Dynamic import to avoid circular dependency
-    const { getAllData } = await import('./data-service.ts');
-    const existingData = getAllData();
+// Dynamic import to avoid circular dependency
+const { getAllData } = await import('./data-service.ts');
+const existingData = getAllData();
 
-    // If data is already loaded and we haven't been initialized yet
-    if (existingData && Object.keys(existingData).length > 0 && Object.keys(allData).length === 0) {
-        initScanBuild(existingData);
-        logger.debug({
-            operation: 'scan_build.self_init',
-            data: { itemsCount: existingData.items?.items?.length || 0 },
-        });
-    }
-})();
+// If data is already loaded and we haven't been initialized yet
+if (existingData && Object.keys(existingData).length > 0 && Object.keys(allData).length === 0) {
+    initScanBuild(existingData);
+    logger.debug({
+        operation: 'scan_build.self_init',
+        data: { itemsCount: existingData.items?.items?.length || 0 },
+    });
+}

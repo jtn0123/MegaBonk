@@ -258,9 +258,9 @@ function resizeBinary(binary: boolean[][], targetWidth: number, targetHeight: nu
     const srcWidth = binary[0]?.length ?? 0;
 
     if (srcWidth === 0 || srcHeight === 0) {
-        return Array(targetHeight)
+        return new Array(targetHeight)
             .fill(null)
-            .map(() => Array(targetWidth).fill(false));
+            .map(() => new Array(targetWidth).fill(false));
     }
 
     const result: boolean[][] = [];
@@ -357,7 +357,7 @@ function isValidComponent(compWidth: number, compHeight: number, imageWidth: num
 function findComponents(binary: boolean[][]): { x: number; y: number; width: number; height: number }[] {
     const height = binary.length;
     const width = binary[0]?.length ?? 0;
-    const visited = Array(height).fill(null).map(() => Array(width).fill(false)) as boolean[][];
+    const visited = new Array(height).fill(null).map(() => new Array(width).fill(false)) as boolean[][];
     const components: { x: number; y: number; width: number; height: number }[] = [];
 
     for (let startY = 0; startY < height; startY++) {

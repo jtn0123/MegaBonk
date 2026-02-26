@@ -78,9 +78,11 @@ export async function renderItems(items: Item[]): Promise<void> {
         // const isFav = typeof isFavorite === 'function' ? isFavorite('items', item.id) : false;
 
         // Compare checkbox - only render if feature is enabled
+        const isCompared = compareItems.includes(item.id);
+        const checkedAttr = isCompared ? 'checked' : '';
         const compareCheckboxHtml = FEATURES.COMPARE_ITEMS
             ? `<label class="compare-checkbox-label" title="Add to comparison">
-                    <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${compareItems.includes(item.id) ? 'checked' : ''}>
+                    <input type="checkbox" class="compare-checkbox" data-id="${item.id}" ${checkedAttr}>
                     <span>+</span>
                 </label>`
             : '';

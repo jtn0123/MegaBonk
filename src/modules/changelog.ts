@@ -144,7 +144,7 @@ export function formatChangelogDate(dateStr: string): string {
     // YYYY-MM-DD format is parsed as UTC midnight when using explicit UTC parsing
     const date = new Date(dateStr + 'T00:00:00Z');
     // Validate date is valid before formatting
-    if (isNaN(date.getTime())) {
+    if (Number.isNaN(date.getTime())) {
         return 'Invalid Date';
     }
     return date.toLocaleDateString('en-US', {

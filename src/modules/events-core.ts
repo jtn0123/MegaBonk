@@ -252,8 +252,8 @@ function handleBreakpointCardActivation(e: KeyboardEvent, target: HTMLElement): 
     const itemId = target.dataset.item;
     const targetVal = target.dataset.target;
     if (itemId && targetVal) {
-        const parsedTarget = parseInt(targetVal, 10);
-        if (!isNaN(parsedTarget)) {
+        const parsedTarget = Number.parseInt(targetVal, 10);
+        if (!Number.isNaN(parsedTarget)) {
             import('./calculator.ts')
                 .then(({ quickCalc }) => quickCalc(itemId, parsedTarget))
                 .catch(err => {
@@ -373,7 +373,7 @@ function handleCompareCheckboxClick(e: MouseEvent, target: Element): void {
     if (!checkbox) return;
 
     const now = Date.now();
-    const lastToggle = parseInt(checkbox.dataset.lastToggle || '0', 10);
+    const lastToggle = Number.parseInt(checkbox.dataset.lastToggle || '0', 10);
     if (now - lastToggle < 100) return;
     checkbox.dataset.lastToggle = now.toString();
 
@@ -417,8 +417,8 @@ function handleBreakpointCardClick(target: Element): void {
     const itemId = card?.dataset.item;
     const targetVal = card?.dataset.target;
     if (itemId && targetVal) {
-        const parsedTarget = parseInt(targetVal, 10);
-        if (!isNaN(parsedTarget)) {
+        const parsedTarget = Number.parseInt(targetVal, 10);
+        if (!Number.isNaN(parsedTarget)) {
             import('./calculator.ts')
                 .then(({ quickCalc }) => quickCalc(itemId, parsedTarget))
                 .catch(err =>

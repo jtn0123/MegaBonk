@@ -416,7 +416,7 @@ export function recommendBestChoice(currentBuild: BuildState, choices: ChoiceOpt
         }
 
         // Calculate confidence (0-1)
-        const confidence = Math.min(synergies.length * 0.2 + (antiSynergies.length === 0 ? 0.3 : 0) + 0.5, 1.0);
+        const confidence = Math.min(synergies.length * 0.2 + (antiSynergies.length === 0 ? 0.3 : 0) + 0.5, 1);
 
         recommendations.push({
             choice,
