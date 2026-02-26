@@ -31,7 +31,7 @@ interface Release {
  * Shows when the app version is newer than the last seen version
  */
 export function shouldShowWhatsNew(): boolean {
-    const currentVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0';
+    const currentVersion = __APP_VERSION__ ?? '0.0.0';
     if (currentVersion === '0.0.0') return false;
     const lastSeen = localStorage.getItem(STORAGE_KEY);
     // Already seen this version
@@ -45,7 +45,7 @@ export function shouldShowWhatsNew(): boolean {
  * Mark the current version as seen
  */
 export function dismissWhatsNew(): void {
-    const currentVersion = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0';
+    const currentVersion = __APP_VERSION__ ?? '0.0.0';
     localStorage.setItem(STORAGE_KEY, currentVersion);
 }
 
@@ -79,13 +79,13 @@ async function fetchReleases(limit = 5): Promise<Release[]> {
 function markdownToHtml(md: string): string {
     if (!md) return '<p>No release notes available.</p>';
     return escapeHtml(md)
-        .replace(/^### (.+)$/gm, '<h4>$1</h4>')
-        .replace(/^## (.+)$/gm, '<h3>$1</h3>')
-        .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^[*-] (.+)$/gm, '<li>$1</li>')
-        .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-        .replace(/\n{2,}/g, '<br>')
-        .replace(/\n/g, ' ');
+        .replaceAll(/^### (.+)$/gm, '<h4>$1</h4>')
+        .replaceAll(/^## (.+)$/gm, '<h3>$1</h3>')
+        .replaceAll(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+        .replaceAll(/^[*-] (.+)$/gm, '<li>$1</li>')
+        .replaceAll(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
+        .replaceAll(/\n{2,}/g, '<br>')
+        .replaceAll('\n', ' ');
 }
 
 // ========================================
@@ -99,9 +99,9 @@ export async function showWhatsNewModal(): Promise<void> {
     // Don't create duplicate modals
     if (document.getElementById('whats-new-modal')) return;
 
-    const version = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0';
-    const commit = typeof __GIT_COMMIT__ !== 'undefined' ? __GIT_COMMIT__ : 'dev';
-    const commitShort = commit !== 'dev' ? commit.substring(0, 7) : '';
+    const version = __APP_VERSION__ ?? '0.0.0';
+    const commit = __GIT_COMMIT__ ?? 'dev';
+    const commitShort = commit === 'dev' ? '' : commit.substring(0, 7);
 
     const overlay = document.createElement('div');
     overlay.id = 'whats-new-modal';

@@ -159,7 +159,7 @@ export function renderItemModal(data: Item): string {
             const effectiveCap = getEffectiveStackCap(data);
             const chartOptions: ChartOptions = {
                 scalingFormulaType: data.scaling_formula_type || 'linear',
-                hyperbolicConstant: data.hyperbolic_constant || 1.0,
+                hyperbolicConstant: data.hyperbolic_constant || 1,
                 maxStacks: data.max_stacks || 0,
             };
             if (firstTrack) {
@@ -181,7 +181,7 @@ export function renderItemModal(data: Item): string {
             const effectiveCap = getEffectiveStackCap(data);
             const chartOptions: ChartOptions = {
                 scalingFormulaType: data.scaling_formula_type || 'linear',
-                hyperbolicConstant: data.hyperbolic_constant || 1.0,
+                hyperbolicConstant: data.hyperbolic_constant || 1,
                 maxStacks: data.max_stacks || 0,
             };
             createScalingChart(
@@ -250,7 +250,7 @@ function setupScalingTabHandlers(data: Item): void {
         const effectiveCap = getEffectiveStackCap(data);
         const chartOptions: ChartOptions = {
             scalingFormulaType: data.scaling_formula_type || 'linear',
-            hyperbolicConstant: data.hyperbolic_constant || 1.0,
+            hyperbolicConstant: data.hyperbolic_constant || 1,
             maxStacks: data.max_stacks || 0,
         };
         createScalingChart(

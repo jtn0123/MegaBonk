@@ -47,10 +47,10 @@ describe('data-service', () => {
         createMinimalDOM();
 
         // Setup window globals
-        (window as any).switchTab = vi.fn();
-        (window as any).loadBuildFromURL = vi.fn();
-        (window as any).initAdvisor = vi.fn();
-        (window as any).initScanBuild = vi.fn();
+        (globalThis as any).switchTab = vi.fn();
+        (globalThis as any).loadBuildFromURL = vi.fn();
+        (globalThis as any).initAdvisor = vi.fn();
+        (globalThis as any).initScanBuild = vi.fn();
         (window as any).allData = mockAllData;
 
         // Mock performance.now
@@ -373,7 +373,7 @@ describe('data-service', () => {
             await vi.advanceTimersByTimeAsync(100);
             await loadPromise;
 
-            expect((window as any).switchTab).toHaveBeenCalledWith('items');
+            expect((globalThis as any).switchTab).toHaveBeenCalledWith('items');
         });
 
         it('should call loadBuildFromURL if available', async () => {
@@ -381,7 +381,7 @@ describe('data-service', () => {
             await vi.advanceTimersByTimeAsync(100);
             await loadPromise;
 
-            expect((window as any).loadBuildFromURL).toHaveBeenCalled();
+            expect((globalThis as any).loadBuildFromURL).toHaveBeenCalled();
         });
 
         it('should call initAdvisor with data if available', async () => {
@@ -389,7 +389,7 @@ describe('data-service', () => {
             await vi.advanceTimersByTimeAsync(100);
             await loadPromise;
 
-            expect((window as any).initAdvisor).toHaveBeenCalled();
+            expect((globalThis as any).initAdvisor).toHaveBeenCalled();
         });
 
         it('should call initScanBuild with data if available', async () => {
@@ -397,7 +397,7 @@ describe('data-service', () => {
             await vi.advanceTimersByTimeAsync(100);
             await loadPromise;
 
-            expect((window as any).initScanBuild).toHaveBeenCalled();
+            expect((globalThis as any).initScanBuild).toHaveBeenCalled();
         });
 
         it('should handle fetch failure and show error', async () => {
@@ -438,7 +438,7 @@ describe('data-service', () => {
         });
 
         it('should not call switchTab if function is not available', async () => {
-            delete (window as any).switchTab;
+            delete (globalThis as any).switchTab;
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
@@ -448,7 +448,7 @@ describe('data-service', () => {
         });
 
         it('should not call loadBuildFromURL if function is not available', async () => {
-            delete (window as any).loadBuildFromURL;
+            delete (globalThis as any).loadBuildFromURL;
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
@@ -458,7 +458,7 @@ describe('data-service', () => {
         });
 
         it('should not call initAdvisor if function is not available', async () => {
-            delete (window as any).initAdvisor;
+            delete (globalThis as any).initAdvisor;
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
@@ -468,7 +468,7 @@ describe('data-service', () => {
         });
 
         it('should not call initScanBuild if function is not available', async () => {
-            delete (window as any).initScanBuild;
+            delete (globalThis as any).initScanBuild;
 
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);

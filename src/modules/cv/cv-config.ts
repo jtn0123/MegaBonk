@@ -116,7 +116,7 @@ const DEFAULT_CONFIG: CVConfig = {
         minHeight: 240,
         maxWidth: 4096,
         maxHeight: 2160,
-        minAspectRatio: 1.0,
+        minAspectRatio: 1,
         maxAspectRatio: 2.5,
         uniformImageVarianceThreshold: 100,
     },

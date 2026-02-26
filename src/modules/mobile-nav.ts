@@ -32,7 +32,7 @@ const MORE_MENU_TABS: MoreMenuConfig[] = [
     { tab: 'about', label: 'About', icon: 'ℹ️' },
 ];
 
-const MORE_TAB_NAMES = MORE_MENU_TABS.map(t => t.tab);
+const MORE_TAB_NAMES = new Set(MORE_MENU_TABS.map(t => t.tab));
 
 // ========================================
 // State
@@ -140,12 +140,10 @@ function handleFocusTrap(e: KeyboardEvent): void {
             e.preventDefault();
             lastElement?.focus();
         }
-    } else {
+    } else if (document.activeElement === lastElement) {
         // Tab: moving forwards
-        if (document.activeElement === lastElement) {
-            e.preventDefault();
-            firstElement?.focus();
-        }
+        e.preventDefault();
+        firstElement?.focus();
     }
 }
 
@@ -167,8 +165,8 @@ function handleKeyboardNavigation(e: KeyboardEvent): void {
         case 'ArrowDown':
         case 'ArrowRight': {
             e.preventDefault();
-            const items = Array.from(menu.querySelectorAll('.more-menu-item')) as HTMLElement[];
-            const currentIndex = items.findIndex(item => item === document.activeElement);
+            const items = Array.from(menu.querySelectorAll<HTMLElement>('.more-menu-item'));
+            const currentIndex = items.indexOf(document.activeElement as HTMLElement);
             const nextIndex = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
             items[nextIndex]?.focus();
             break;
@@ -177,8 +175,8 @@ function handleKeyboardNavigation(e: KeyboardEvent): void {
         case 'ArrowUp':
         case 'ArrowLeft': {
             e.preventDefault();
-            const items = Array.from(menu.querySelectorAll('.more-menu-item')) as HTMLElement[];
-            const currentIndex = items.findIndex(item => item === document.activeElement);
+            const items = Array.from(menu.querySelectorAll<HTMLElement>('.more-menu-item'));
+            const currentIndex = items.indexOf(document.activeElement as HTMLElement);
             const prevIndex = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
             items[prevIndex]?.focus();
             break;
@@ -231,7 +229,7 @@ function showMoreMenu(): void {
 
     // Focus the first menu item after animation
     requestAnimationFrame(() => {
-        const firstItem = menu!.querySelector('.more-menu-item') as HTMLElement;
+        const firstItem = menu!.querySelector<HTMLElement>('.more-menu-item');
         firstItem?.focus();
     });
 
@@ -295,7 +293,7 @@ function setupMenuEventListeners(menu: HTMLElement): void {
     const itemsContainer = menu.querySelector('.more-menu-items');
     itemsContainer?.addEventListener('click', (e: Event) => {
         const target = e.target as HTMLElement;
-        const item = target.closest('.more-menu-item') as HTMLElement | null;
+        const item = target.closest<HTMLElement>('.more-menu-item');
 
         if (item) {
             const tab = item.dataset.tab;
@@ -349,7 +347,7 @@ function updateMobileNavState(currentTab: string): void {
     const navItems = safeQuerySelectorAll('.mobile-bottom-nav .nav-item');
 
     // Check if current tab is in the "more" menu
-    const isMoreTab = MORE_TAB_NAMES.includes(currentTab);
+    const isMoreTab = MORE_TAB_NAMES.has(currentTab);
     const currentMoreTab = isMoreTab ? MORE_MENU_TABS.find(t => t.tab === currentTab) : null;
 
     navItems.forEach(item => {

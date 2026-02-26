@@ -118,7 +118,7 @@ export const DEFAULT_STRATEGY: DetectionStrategy = {
     id: 'default',
     name: 'Balanced',
     description: 'Balanced precision/recall with standard preprocessing',
-    weight: 1.0,
+    weight: 1,
     preprocessing: {
         contrastEnhance: true,
         contrastFactor: 1.5,
@@ -225,7 +225,7 @@ export const COLOR_FOCUSED_STRATEGY: DetectionStrategy = {
     weight: 0.85,
     preprocessing: {
         contrastEnhance: false,
-        contrastFactor: 1.0,
+        contrastFactor: 1,
         colorNormalize: false,
         edgeEnhance: false,
     },
@@ -253,15 +253,15 @@ export const FAST_STRATEGY: DetectionStrategy = {
     minConfidence: 0.5,
     preprocessing: {
         contrastEnhance: false,
-        contrastFactor: 1.0,
+        contrastFactor: 1,
         colorNormalize: false,
         edgeEnhance: false,
     },
     metricWeights: {
         ssim: 0.5,
         ncc: 0.5,
-        histogram: 0.0,
-        edge: 0.0,
+        histogram: 0,
+        edge: 0,
     },
     templates: {
         useRanking: true,

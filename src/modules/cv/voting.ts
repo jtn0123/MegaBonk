@@ -136,16 +136,16 @@ export function getVotingConfig(): VotingConfig {
  */
 function getTemplateWeight(templateId: string, config: VotingConfig): number {
     if (!config.usePerformanceWeighting) {
-        return 1.0;
+        return 1;
     }
 
     const ranking = getTemplateRanking(templateId);
     if (!ranking) {
-        return 1.0; // No history, use default weight
+        return 1; // No history, use default weight
     }
 
     // Base weight from success rate
-    let weight = 0.5 + ranking.successRate * 0.5; // Range: 0.5 to 1.0
+    let weight = 0.5 + ranking.successRate * 0.5; // Range: 0.5 to 1
 
     // Boost for templates with higher rank scores (more reliable)
     const dataBonus = Math.min(ranking.rankScore / 100, 0.2); // Up to 0.2 bonus

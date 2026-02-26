@@ -398,27 +398,27 @@ export async function loadAllData(): Promise<void> {
 
         // Initialize UI - restore saved tab or default to 'items'
         // Note: switchTab is a global function from script.js
-        if (typeof window.switchTab === 'function') {
-            window.switchTab(getSavedTab());
+        if (typeof globalThis.switchTab === 'function') {
+            globalThis.switchTab(getSavedTab());
         }
 
         // Load build from URL if present
         // Note: loadBuildFromURL is a global function from build-planner.js
-        if (typeof window.loadBuildFromURL === 'function') {
-            window.loadBuildFromURL();
-            window.addEventListener('hashchange', () => window.loadBuildFromURL?.());
+        if (typeof globalThis.loadBuildFromURL === 'function') {
+            globalThis.loadBuildFromURL();
+            globalThis.addEventListener('hashchange', () => globalThis.loadBuildFromURL?.());
         }
 
         // Initialize advisor with loaded data
         // Note: initAdvisor is a global function from advisor.ts
-        if (typeof window.initAdvisor === 'function') {
-            window.initAdvisor(newData);
+        if (typeof globalThis.initAdvisor === 'function') {
+            globalThis.initAdvisor(newData);
         }
 
         // Initialize scan build module
         // Note: initScanBuild is a global function from scan-build.ts
-        if (typeof window.initScanBuild === 'function') {
-            window.initScanBuild(newData);
+        if (typeof globalThis.initScanBuild === 'function') {
+            globalThis.initScanBuild(newData);
         }
 
         // Phase 2: Load deferred data (shrines, stats, changelog) in background

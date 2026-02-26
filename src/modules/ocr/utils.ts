@@ -82,8 +82,8 @@ export function extractItemCounts(text: string): Map<string, number> {
             const name = match[1]?.trim();
             const countStr = match[2];
             if (name && countStr) {
-                const count = parseInt(countStr, 10);
-                if (!isNaN(count) && count > 0) {
+                const count = Number.parseInt(countStr, 10);
+                if (!Number.isNaN(count) && count > 0) {
                     counts.set(name.toLowerCase(), count);
                 }
             }

@@ -108,7 +108,7 @@ function applyTomeBonus(stats: CalculatedBuildStats, tome: Tome): void {
     // - "+25 Max HP" - absolute value, use as-is
     const valueStr = tome.value_per_level || '';
     const match = String(valueStr).match(/[+-]?\d+(?:\.\d+)?/);
-    const rawValue = match ? parseFloat(match[0]) : 0;
+    const rawValue = match ? Number.parseFloat(match[0]) : 0;
     // Bug fix: Use Number.isFinite to catch both NaN and Infinity values
     // Clamp to reasonable bounds to prevent overflow from malformed data
     const safeRawValue = Number.isFinite(rawValue) ? Math.max(-1000, Math.min(1000, rawValue)) : 0;
@@ -179,9 +179,9 @@ export function calculateBuildStats(build: Build, useCache: boolean = true): Cal
     // Use parseFloat instead of parseInt for decimal damage values
     if (build.weapon) {
         const baseDamage = build.weapon.base_damage ?? build.weapon.baseDamage;
-        // Handle undefined/null: parseFloat(String(undefined)) returns NaN, and NaN || 0 still gives NaN
+        // Handle undefined/null: Number.parseFloat(String(undefined)) returns NaN, and NaN || 0 still gives NaN
         // Bug fix: Use Number.isFinite instead of Number.isNaN to also catch Infinity values
-        const parsedDamage = baseDamage != null ? parseFloat(String(baseDamage)) : 0;
+        const parsedDamage = baseDamage == null ? 0 : Number.parseFloat(String(baseDamage));
         stats.damage += Number.isFinite(parsedDamage) ? parsedDamage : 0;
     }
 

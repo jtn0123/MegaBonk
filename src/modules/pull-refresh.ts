@@ -17,7 +17,7 @@ export const PULL_REFRESH_CONFIG = {
     SPINNER_SHOW_THRESHOLD: 40, // Pixels before spinner becomes visible
     MAX_PULL_DISTANCE: 140, // Maximum visual pull distance
     RESISTANCE_FACTOR: 0.4, // Base resistance factor
-    MAX_VELOCITY: 2.0, // px/ms — reject fast flicks above this velocity
+    MAX_VELOCITY: 2, // px/ms — reject fast flicks above this velocity
     COOLDOWN_MS: 2000, // Cooldown period after a refresh before allowing another
 };
 
@@ -59,7 +59,7 @@ const state: PullRefreshState = {
  * Check if we're on a touch device
  */
 function isTouchDevice(): boolean {
-    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    return 'ontouchstart' in globalThis || navigator.maxTouchPoints > 0;
 }
 
 /**
@@ -324,8 +324,8 @@ export function cleanupPullRefresh(): void {
 // Global Exports
 // ========================================
 
-if (typeof window !== 'undefined') {
-    Object.assign(window, {
+if (typeof globalThis !== 'undefined') {
+    Object.assign(globalThis, {
         initPullRefresh,
         cleanupPullRefresh,
     });

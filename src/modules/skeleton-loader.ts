@@ -241,7 +241,7 @@ export function showTabSkeletonLoading(
 
     const generateCard = getSkeletonGenerator(tabName);
 
-    const skeletons = Array(count)
+    const skeletons = new Array(count)
         .fill(null)
         .map(() => generateCard())
         .join('');

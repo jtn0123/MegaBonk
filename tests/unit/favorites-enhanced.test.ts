@@ -221,9 +221,8 @@ describe('Favorites Module - Enhanced Coverage', () => {
             localStorage.setItem('megabonk_favorites', '"not an object"');
 
             const result = loadFavorites();
-            // Strings are not objects, so they're ignored
-            // But localStorage is available, so it returns true (no favorites stored is still success)
-            expect(result).toBe(true);
+            // Strings are not objects, so applyStoredFavorites returns false
+            expect(result).toBe(false);
             // Favorites should remain at default empty state
             expect(getState('favorites').items).toEqual([]);
         });
@@ -232,9 +231,8 @@ describe('Favorites Module - Enhanced Coverage', () => {
             localStorage.setItem('megabonk_favorites', 'null');
 
             const result = loadFavorites();
-            // null fails the `parsed !== null` check, so state is not set
-            // But localStorage is available, so it returns true
-            expect(result).toBe(true);
+            // null fails the typeof/null check in applyStoredFavorites, returns false
+            expect(result).toBe(false);
             // Favorites should remain at default empty state
             expect(getState('favorites').items).toEqual([]);
         });

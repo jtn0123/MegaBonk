@@ -63,55 +63,64 @@ function isLocalStorageAvailable(): boolean {
  * @returns True if favorites were loaded successfully (including when no favorites are stored),
  *          false if localStorage is unavailable
  */
+/**
+ * Safely show a toast warning, handling case where ToastManager isn't initialized
+ */
+function safeWarning(message: string): void {
+    try {
+        ToastManager.warning(message);
+    } catch {
+        // ToastManager not initialized yet, fail silently
+    }
+}
+
+const FAVORITES_VERSION = 1;
+
+/**
+ * Migrate favorites data to current schema version
+ */
+function migrateFavoritesData(parsed: Record<string, unknown>): void {
+    if (parsed._version && (parsed._version as number) >= FAVORITES_VERSION) return;
+
+    const arrayKeys = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
+    for (const key of arrayKeys) {
+        if (!Array.isArray(parsed[key])) parsed[key] = [];
+    }
+    parsed._version = FAVORITES_VERSION;
+
+    try {
+        localStorage.setItem(FAVORITES_KEY, JSON.stringify(parsed));
+    } catch {
+        // Best effort migration persist
+    }
+}
+
+/**
+ * Parse and apply stored favorites data
+ */
+function applyStoredFavorites(stored: string): boolean {
+    const parsed = JSON.parse(stored);
+    if (typeof parsed !== 'object' || parsed === null) return false;
+
+    migrateFavoritesData(parsed as Record<string, unknown>);
+    setState('favorites', parsed as FavoritesState);
+    return true;
+}
+
 export function loadFavorites(): boolean {
-    // First check if localStorage is available
     if (!isLocalStorageAvailable()) {
         console.debug('[favorites] localStorage unavailable - favorites will not persist');
-        try {
-            ToastManager.warning('Favorites will not be saved in this browser mode.');
-        } catch {
-            // ToastManager not initialized yet, fail silently
-        }
+        safeWarning('Favorites will not be saved in this browser mode.');
         return false;
     }
 
     try {
         const stored = localStorage.getItem(FAVORITES_KEY);
-        if (stored) {
-            const parsed = JSON.parse(stored);
-            // Validate structure before setting state
-            if (typeof parsed === 'object' && parsed !== null) {
-                // Migrate data if needed
-                const FAVORITES_VERSION = 1;
-                if (!parsed._version || parsed._version < FAVORITES_VERSION) {
-                    // Ensure all expected keys exist with defaults
-                    if (!Array.isArray(parsed.items)) parsed.items = [];
-                    if (!Array.isArray(parsed.weapons)) parsed.weapons = [];
-                    if (!Array.isArray(parsed.tomes)) parsed.tomes = [];
-                    if (!Array.isArray(parsed.characters)) parsed.characters = [];
-                    if (!Array.isArray(parsed.shrines)) parsed.shrines = [];
-                    parsed._version = FAVORITES_VERSION;
-                    // Persist migrated data
-                    try {
-                        localStorage.setItem(FAVORITES_KEY, JSON.stringify(parsed));
-                    } catch {
-                        // Best effort migration persist
-                    }
-                }
-                setState('favorites', parsed as FavoritesState);
-                return true;
-            }
-        }
-        // No favorites stored, but localStorage is available - this is success
+        if (stored) return applyStoredFavorites(stored);
         return true;
     } catch (error) {
-        // Parse error or other issue
         console.debug('[favorites] Failed to parse stored favorites:', (error as Error).message);
-        try {
-            ToastManager.warning('Could not load saved favorites. Using fresh list.');
-        } catch {
-            // ToastManager not initialized yet, fail silently
-        }
+        safeWarning('Could not load saved favorites. Using fresh list.');
         return false;
     }
 }

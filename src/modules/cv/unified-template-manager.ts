@@ -95,7 +95,7 @@ const CONFIG = {
         ground_truth: 1.5,
         corrected: 1.3,
         corrected_from_empty: 1.2,
-        verified: 1.0,
+        verified: 1,
         unreviewed: 0.8,
         default: 0.7,
     } as Record<TemplateSource, number>,

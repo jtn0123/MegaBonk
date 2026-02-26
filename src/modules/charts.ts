@@ -143,10 +143,10 @@ export const chartInstances: Record<string, Chart> = {};
  * Formula: actual = internal / (constant + internal)
  * Used for items like Cursed Grabbies, Key where displayed % uses diminishing returns
  * @param values - Array of "internal" percentage values (e.g., [5, 10, 15...])
- * @param constant - The hyperbolic constant (default 1.0 for standard formula)
+ * @param constant - The hyperbolic constant (default 1 for standard formula)
  * @returns Array of actual percentage values after hyperbolic transformation
  */
-export function applyHyperbolicScaling(values: number[], constant: number = 1.0): number[] {
+export function applyHyperbolicScaling(values: number[], constant: number = 1): number[] {
     return values.map((v: number) => {
         const internal = v / 100;
         const denominator = constant + internal;
@@ -160,10 +160,10 @@ export function applyHyperbolicScaling(values: number[], constant: number = 1.0)
  * Generate hyperbolic scaling values for a given per-stack increment
  * @param perStack - The displayed increment per stack (e.g., 5 for "5% per stack")
  * @param maxStacks - Maximum stacks to calculate (default 10)
- * @param constant - Hyperbolic constant (default 1.0)
+ * @param constant - Hyperbolic constant (default 1)
  * @returns Array of actual values after hyperbolic transformation
  */
-export function generateHyperbolicValues(perStack: number, maxStacks: number = 10, constant: number = 1.0): number[] {
+export function generateHyperbolicValues(perStack: number, maxStacks: number = 10, constant: number = 1): number[] {
     const internalValues = Array.from({ length: maxStacks }, (_, i) => perStack * (i + 1));
     return applyHyperbolicScaling(internalValues, constant);
 }
@@ -238,7 +238,7 @@ export function createScalingChart(
     // Apply hyperbolic transformation if specified
     let processedData = data;
     if (options.scalingFormulaType === 'hyperbolic') {
-        processedData = applyHyperbolicScaling(data, options.hyperbolicConstant || 1.0);
+        processedData = applyHyperbolicScaling(data, options.hyperbolicConstant || 1);
     }
 
     // Apply stack cap if provided
@@ -396,7 +396,7 @@ export function createCompareChart(canvasId: string, items: ChartableItem[]): Ch
         let chartData = item.scaling_per_stack?.slice(0, 10) || [];
         // Apply hyperbolic transformation if item uses hyperbolic scaling
         if (item.scaling_formula_type === 'hyperbolic') {
-            chartData = applyHyperbolicScaling(chartData, item.hyperbolic_constant || 1.0);
+            chartData = applyHyperbolicScaling(chartData, item.hyperbolic_constant || 1);
         }
         return {
             label: item.name,
@@ -453,7 +453,7 @@ export function calculateTomeProgression(tome: Tome | ChartableTome, maxLevels?:
     const match = valueStr.match(/[+-]?([\d.]+)/);
     if (!match?.[1]) return null;
 
-    const perLevel = parseFloat(match[1]);
+    const perLevel = Number.parseFloat(match[1]);
     // Scale appropriately - percentages stay as-is, multipliers get scaled
     const isMultiplier = valueStr.includes('x');
     const isHyperbolic = valueStr.toLowerCase().includes('hyperbolic');
@@ -503,7 +503,7 @@ export function initializeItemCharts(): void {
             const effectiveCap = getEffectiveStackCap(item);
             const chartOptions: ChartOptions = {
                 scalingFormulaType: item.scaling_formula_type || 'linear',
-                hyperbolicConstant: item.hyperbolic_constant || 1.0,
+                hyperbolicConstant: item.hyperbolic_constant || 1,
                 maxStacks: item.max_stacks || undefined,
             };
             createScalingChart(

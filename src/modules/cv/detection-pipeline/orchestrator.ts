@@ -87,7 +87,7 @@ async function detectHotbarItems(
     // Fall back to sliding window
     logger.info({
         operation: 'cv.two_phase_fallback',
-        data: { reason: !twoPhaseResult.gridUsed ? 'grid_detection_failed' : 'no_detections' },
+        data: { reason: twoPhaseResult.gridUsed ? 'no_detections' : 'grid_detection_failed' },
     });
     progressCallback?.(25, 'Falling back to sliding window...');
 

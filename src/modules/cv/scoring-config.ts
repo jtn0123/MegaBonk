@@ -50,7 +50,7 @@ export interface RarityThresholds {
  * Complete scoring configuration
  */
 export interface ScoringConfig {
-    /** Metric weights (should sum to ~1.0) */
+    /** Metric weights (should sum to ~1) */
     weights: MetricWeights;
     /** Agreement bonus settings */
     agreement: AgreementConfig;
@@ -90,7 +90,7 @@ export const DEFAULT_SCORING_CONFIG: ScoringConfig = {
     rarityThresholds: {
         common: -0.03, // Lower threshold (common items are easy to identify)
         uncommon: -0.02, // Slightly lower
-        rare: 0.0, // No adjustment
+        rare: 0, // No adjustment
         epic: 0.02, // Slightly higher (rarer = need more confidence)
         legendary: 0.05, // Higher threshold (rarest items need highest confidence)
         unknown: 0.05, // Higher threshold when uncertain
@@ -121,7 +121,7 @@ export const PRECISION_SCORING_CONFIG: ScoringConfig = {
     rarityThresholds: {
         common: -0.02, // Lower threshold (common items are easy to identify)
         uncommon: -0.01, // Slightly lower
-        rare: 0.0,
+        rare: 0,
         epic: 0.02, // Higher (rarer = need more confidence)
         legendary: 0.04, // Highest (rarest items need highest confidence)
         unknown: 0.08,
@@ -153,7 +153,7 @@ export const RECALL_SCORING_CONFIG: ScoringConfig = {
         common: -0.05, // Most lenient (common items easy to identify)
         uncommon: -0.03,
         rare: -0.02,
-        epic: 0.0, // Neutral
+        epic: 0, // Neutral
         legendary: 0.03, // Stricter (rarest items need more confidence)
         unknown: 0.02,
     },
@@ -169,23 +169,23 @@ export const FAST_SCORING_CONFIG: ScoringConfig = {
     weights: {
         ssim: 0.5,
         ncc: 0.5,
-        histogram: 0.0, // Skip histogram
-        edge: 0.0, // Skip edge
+        histogram: 0, // Skip histogram
+        edge: 0, // Skip edge
     },
     agreement: {
         enabled: false, // Disable for speed
         threshold: 0.55,
         minMetricsForBonus: 2,
-        bonusPerMetric: 0.0,
-        maxBonus: 0.0,
+        bonusPerMetric: 0,
+        maxBonus: 0,
     },
     baseThreshold: 0.5,
     rarityThresholds: {
-        common: 0.0,
-        uncommon: 0.0,
-        rare: 0.0,
-        epic: 0.0,
-        legendary: 0.0,
+        common: 0,
+        uncommon: 0,
+        rare: 0,
+        epic: 0,
+        legendary: 0,
         unknown: 0.05,
     },
     minConfidence: 0.4,

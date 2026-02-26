@@ -545,7 +545,7 @@ export function isString(value: unknown): value is string {
  * Type guard to check if value is a number
  */
 export function isNumber(value: unknown): value is number {
-    return typeof value === 'number' && !isNaN(value);
+    return typeof value === 'number' && !Number.isNaN(value);
 }
 
 // ========================================
@@ -557,6 +557,9 @@ export function isNumber(value: unknown): value is number {
  */
 declare const __APP_VERSION__: string;
 declare const __CACHE_VERSION__: string;
+declare const __BUILD_DATE__: string;
+declare const __GIT_COMMIT__: string;
+declare const __GIT_BRANCH__: string;
 
 /**
  * Global objects and functions available throughout the application
@@ -708,4 +711,24 @@ declare global {
             getGridPositions?: (width: number, height: number) => unknown[];
         };
     }
+}
+
+// Augment globalThis to include Window properties (for S7764 compliance: globalThis over window)
+declare global {
+    // eslint-disable-next-line no-var
+    var switchTab: Window['switchTab'];
+    // eslint-disable-next-line no-var
+    var loadBuildFromURL: Window['loadBuildFromURL'];
+    // eslint-disable-next-line no-var
+    var initAdvisor: Window['initAdvisor'];
+    // eslint-disable-next-line no-var
+    var initScanBuild: Window['initScanBuild'];
+    // eslint-disable-next-line no-var
+    var applyScannedBuild: Window['applyScannedBuild'];
+    // eslint-disable-next-line no-var
+    var showBuildHistoryModal: Window['showBuildHistoryModal'];
+    // eslint-disable-next-line no-var
+    var initPullRefresh: (() => void) | undefined;
+    // eslint-disable-next-line no-var
+    var cleanupPullRefresh: (() => void) | undefined;
 }

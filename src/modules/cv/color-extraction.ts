@@ -91,23 +91,32 @@ function getAchromaticSecondary(lightness: number): string {
 /**
  * Determine chromatic primary/secondary from dominant channel
  */
+function classifyRedDominant(avgR: number, avgG: number, avgB: number): string {
+    if (avgG > avgB * 1.5 && avgG > 100) return avgG > 180 ? 'yellow' : 'orange';
+    if (avgB > avgG * 1.2 && avgB > 80) return 'magenta';
+    return avgR > 200 ? 'bright_red' : 'dark_red';
+}
+
+function classifyGreenDominant(avgR: number, avgG: number, avgB: number): string {
+    if (avgB > avgR * 1.3 && avgB > 80) return 'cyan';
+    if (avgR > avgB && avgR > 100) return 'lime';
+    return avgG > 200 ? 'bright_green' : 'forest';
+}
+
+function classifyBlueDominant(avgR: number, avgG: number, avgB: number): string {
+    if (avgR > avgG * 1.3 && avgR > 80) return 'purple';
+    if (avgG > avgR && avgG > 100) return 'sky';
+    return avgB > 200 ? 'bright_blue' : 'navy';
+}
+
 function classifyChromatic(avgR: number, avgG: number, avgB: number): { primary: string; secondary: string } {
     if (avgR >= avgG && avgR >= avgB) {
-        // Red dominant
-        if (avgG > avgB * 1.5 && avgG > 100) return { primary: 'red', secondary: avgG > 180 ? 'yellow' : 'orange' };
-        if (avgB > avgG * 1.2 && avgB > 80) return { primary: 'red', secondary: 'magenta' };
-        return { primary: 'red', secondary: avgR > 200 ? 'bright_red' : 'dark_red' };
+        return { primary: 'red', secondary: classifyRedDominant(avgR, avgG, avgB) };
     }
     if (avgG >= avgR && avgG >= avgB) {
-        // Green dominant
-        if (avgB > avgR * 1.3 && avgB > 80) return { primary: 'green', secondary: 'cyan' };
-        if (avgR > avgB && avgR > 100) return { primary: 'green', secondary: 'lime' };
-        return { primary: 'green', secondary: avgG > 200 ? 'bright_green' : 'forest' };
+        return { primary: 'green', secondary: classifyGreenDominant(avgR, avgG, avgB) };
     }
-    // Blue dominant
-    if (avgR > avgG * 1.3 && avgR > 80) return { primary: 'blue', secondary: 'purple' };
-    if (avgG > avgR && avgG > 100) return { primary: 'blue', secondary: 'sky' };
-    return { primary: 'blue', secondary: avgB > 200 ? 'bright_blue' : 'navy' };
+    return { primary: 'blue', secondary: classifyBlueDominant(avgR, avgG, avgB) };
 }
 
 /**

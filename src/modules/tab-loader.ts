@@ -70,8 +70,8 @@ async function loadAdvisorModule(): Promise<void> {
     // This is needed because data-service.ts loads before scan-build.ts (lazy-loaded)
     const { getState } = await import('./store.ts');
     const allData = getState('allData');
-    if (typeof window.initScanBuild === 'function' && allData && Object.keys(allData).length > 0) {
-        window.initScanBuild(allData);
+    if (typeof globalThis.initScanBuild === 'function' && allData && Object.keys(allData).length > 0) {
+        globalThis.initScanBuild(allData);
     }
 
     logger.debug({

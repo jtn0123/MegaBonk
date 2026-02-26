@@ -6,7 +6,7 @@
 import { logger } from '../logger.ts';
 import { getOrCreateWorker, terminateOCRWorker } from './worker.ts';
 import { withTimeout, sleep, OCR_TIMEOUT_MS, OCR_MAX_RETRIES } from './utils.ts';
-import type { TesseractResult, OCRProgressCallback } from './types.ts';
+import type { OCRProgressCallback } from './types.ts';
 
 /**
  * Extract text from image using Tesseract OCR
@@ -56,7 +56,7 @@ export async function extractTextFromImage(
             const recognizePromise = worker.recognize(imageDataUrl);
 
             // Wrap with timeout to prevent indefinite waiting
-            const result = (await withTimeout(recognizePromise, timeoutMs, 'OCR recognition')) as TesseractResult;
+            const result = await withTimeout(recognizePromise, timeoutMs, 'OCR recognition');
 
             // Clear progress interval
             if (progressInterval) {

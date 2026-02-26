@@ -213,7 +213,7 @@ export async function trackedFetch(url: string, options?: RequestInit): Promise<
 
     try {
         const response = await fetch(url, options);
-        const size = parseInt(response.headers.get('content-length') || '0', 10);
+        const size = Number.parseInt(response.headers.get('content-length') || '0', 10);
         const cached = response.headers.get('x-cache') === 'HIT';
 
         timer.endRequest(requestId, response.status, size, cached);

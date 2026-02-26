@@ -264,7 +264,7 @@ export function renderConfidenceHeatmap(
 
     // Group detections by confidence bands
     const bands = [
-        { min: 0.9, max: 1.0, color: 'rgba(0, 255, 0, 0.3)' },
+        { min: 0.9, max: 1, color: 'rgba(0, 255, 0, 0.3)' },
         { min: 0.8, max: 0.9, color: 'rgba(128, 255, 0, 0.3)' },
         { min: 0.7, max: 0.8, color: 'rgba(255, 255, 0, 0.3)' },
         { min: threshold, max: 0.7, color: 'rgba(255, 165, 0, 0.3)' },

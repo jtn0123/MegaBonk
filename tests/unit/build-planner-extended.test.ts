@@ -813,7 +813,7 @@ describe('Build Planner Extended Coverage', () => {
     describe('Build History - Load with callback', () => {
         it('should call showBuildHistoryModal if available on delete', () => {
             const mockShowModal = vi.fn();
-            (window as any).showBuildHistoryModal = mockShowModal;
+            (globalThis as any).showBuildHistoryModal = mockShowModal;
             
             const builds = [
                 { name: 'Build 1', character: 'cl4nk', timestamp: Date.now() },
@@ -824,7 +824,7 @@ describe('Build Planner Extended Coverage', () => {
             
             expect(mockShowModal).toHaveBeenCalled();
             
-            delete (window as any).showBuildHistoryModal;
+            delete (globalThis as any).showBuildHistoryModal;
         });
     });
 

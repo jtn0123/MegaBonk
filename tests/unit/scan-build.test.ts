@@ -1517,7 +1517,7 @@ describe('scan-build - Apply to Advisor', () => {
     afterEach(() => {
         vi.restoreAllMocks();
         document.body.innerHTML = '';
-        delete (window as any).applyScannedBuild;
+        delete (globalThis as any).applyScannedBuild;
     });
 
     it('should call callback when apply button clicked', async () => {
@@ -1567,7 +1567,7 @@ describe('scan-build - Apply to Advisor', () => {
 
     it('should call window.applyScannedBuild if available', async () => {
         const gameData = createMockGameData();
-        (window as any).applyScannedBuild = vi.fn();
+        (globalThis as any).applyScannedBuild = vi.fn();
 
         initScanBuild(gameData);
 
@@ -1601,7 +1601,7 @@ describe('scan-build - Apply to Advisor', () => {
         applyBtn?.click();
 
         await vi.waitFor(() => {
-            expect((window as any).applyScannedBuild).toHaveBeenCalled();
+            expect((globalThis as any).applyScannedBuild).toHaveBeenCalled();
         });
     });
 

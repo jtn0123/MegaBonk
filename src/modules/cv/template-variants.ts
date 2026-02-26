@@ -245,7 +245,7 @@ export function getRecommendedVariant(sceneType: string): VariantType {
  */
 export function scoreVariantMatch(variant: TemplateVariant, cellBrightness: number, cellContrast: number): number {
     // Base score
-    let score = 1.0;
+    let score = 1;
 
     // Adjust based on cell brightness
     if (cellBrightness < 80) {
