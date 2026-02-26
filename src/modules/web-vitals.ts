@@ -132,10 +132,16 @@ function formatValue(name: MetricName, value: number): string {
  * Log metric to console
  * @param metric - Web Vitals metric object
  */
+function getRatingEmoji(rating: string): string {
+    if (rating === 'good') return '✅';
+    if (rating === 'needs-improvement') return '⚠️';
+    return '❌';
+}
+
 function logMetric(metric: WebVitalsMetric): void {
     const { name, value, rating, delta, id } = metric;
     const formattedValue = formatValue(name as MetricName, value);
-    const emoji = rating === 'good' ? '✅' : rating === 'needs-improvement' ? '⚠️' : '❌';
+    const emoji = getRatingEmoji(rating);
 
     console.log(`[Web Vitals] ${emoji} ${name}: ${formattedValue} (${rating})`);
 
@@ -252,7 +258,7 @@ export function logSummary(): void {
     }
 
     collectedMetrics.forEach(([name, data]) => {
-        const emoji = data.rating === 'good' ? '✅' : data.rating === 'needs-improvement' ? '⚠️' : '❌';
+        const emoji = getRatingEmoji(data.rating);
         console.log(`${emoji} ${name}: ${data.formattedValue} (${data.rating})`);
     });
 

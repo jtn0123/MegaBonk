@@ -148,7 +148,7 @@ function updateTabState(tabName: TabName, previousTab: TabName): void {
 function updateTabUI(tabName: TabName): void {
     // Update tab buttons
     document.querySelectorAll<HTMLButtonElement>('.tab-btn').forEach(btn => {
-        const isActive = btn.getAttribute('data-tab') === tabName;
+        const isActive = btn.dataset.tab === tabName;
         btn.classList.toggle('active', isActive);
         btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
     });

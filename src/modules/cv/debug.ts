@@ -214,6 +214,12 @@ export const defaultDebugOptions: DebugVisualizationOptions = {
  * Render live grid overlay during scanning
  * Shows the cell grid being scanned in real-time
  */
+function getConfidenceColor(confidence: number): string {
+    if (confidence >= 0.85) return 'rgba(0, 255, 0, 0.8)';
+    if (confidence >= 0.7) return 'rgba(255, 165, 0, 0.8)';
+    return 'rgba(255, 0, 0, 0.8)';
+}
+
 export function renderGridOverlay(
     canvas: HTMLCanvasElement,
     gridCells: ROI[],
@@ -404,12 +410,7 @@ export async function renderStrategyComparison(
             const pos = detection.position;
             const confidence = detection.confidence;
 
-            const color =
-                confidence >= 0.85
-                    ? 'rgba(0, 255, 0, 0.8)'
-                    : confidence >= 0.7
-                      ? 'rgba(255, 165, 0, 0.8)'
-                      : 'rgba(255, 0, 0, 0.8)';
+            const color = getConfidenceColor(confidence);
 
             ctx.strokeStyle = color;
             ctx.lineWidth = 2;
@@ -479,12 +480,7 @@ export function renderConfidenceHistogram(
 
         // Bar color based on bin
         const confidence = (i + 0.5) / 10;
-        ctx.fillStyle =
-            confidence >= 0.85
-                ? 'rgba(0, 255, 0, 0.8)'
-                : confidence >= 0.7
-                  ? 'rgba(255, 165, 0, 0.8)'
-                  : 'rgba(255, 0, 0, 0.8)';
+        ctx.fillStyle = getConfidenceColor(confidence);
 
         ctx.fillRect(x, y, barWidth, height);
 

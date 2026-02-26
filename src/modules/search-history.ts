@@ -148,7 +148,7 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement, onSelec
         { signal: abortController.signal }
     );
 
-    const historyItems = dropdown.querySelectorAll('.search-history-item');
+    const historyItems = dropdown.querySelectorAll<HTMLElement>('.search-history-item');
     let currentIndex = -1;
 
     // Update active item state
@@ -167,7 +167,7 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement, onSelec
     const selectCurrentItem = (): void => {
         if (currentIndex >= 0 && currentIndex < historyItems.length) {
             const item = historyItems[currentIndex] as HTMLElement;
-            const term = item.getAttribute('data-term');
+            const term = item.dataset.term;
             if (term && searchInput) {
                 searchInput.value = term;
                 onSelect(term);
@@ -181,7 +181,7 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement, onSelec
         item.addEventListener(
             'click',
             () => {
-                const term = item.getAttribute('data-term');
+                const term = item.dataset.term;
                 if (term && searchInput) {
                     searchInput.value = term;
                     onSelect(term);

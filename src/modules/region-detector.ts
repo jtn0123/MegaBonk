@@ -386,58 +386,58 @@ export function getRegionsOfInterest(regions: ScreenRegions): RegionOfInterest[]
             ? (hotbarSlots[hotbarSlots.length - 1]?.x ?? 0) + (hotbarSlots[0]?.width ?? 0) - (hotbarSlots[0]?.x ?? 0)
             : 0;
 
-    rois.push({
-        type: 'items_hotbar',
-        label: 'Items Hotbar',
-        x: hotbarSlots[0]?.x ?? 0,
-        y: regions.itemsHotbar.baseY,
-        width: totalHotbarWidth,
-        height: regions.itemsHotbar.slotSize,
-        confidence: 0.9,
-        slots: hotbarSlots,
-    });
-
     // Weapons region
     const weaponSlots = generateWeaponSlots(regions);
-    rois.push({
-        type: 'weapons_region',
-        label: 'Weapons',
-        x: regions.weaponsRegion.x,
-        y: regions.weaponsRegion.y,
-        width:
-            regions.weaponsRegion.cols * regions.weaponsRegion.slotSize +
-            (regions.weaponsRegion.cols - 1) * regions.weaponsRegion.spacing,
-        height:
-            regions.weaponsRegion.rows * regions.weaponsRegion.slotSize +
-            (regions.weaponsRegion.rows - 1) * regions.weaponsRegion.spacing,
-        confidence: 0.9,
-        slots: weaponSlots,
-    });
 
     // Tomes region
     const tomeSlots = generateTomeSlots(regions);
-    rois.push({
-        type: 'tomes_region',
-        label: 'Tomes',
-        x: regions.tomesRegion.x,
-        y: regions.tomesRegion.y,
-        width:
-            regions.tomesRegion.cols * regions.tomesRegion.slotSize +
-            (regions.tomesRegion.cols - 1) * regions.tomesRegion.spacing,
-        height:
-            regions.tomesRegion.rows * regions.tomesRegion.slotSize +
-            (regions.tomesRegion.rows - 1) * regions.tomesRegion.spacing,
-        confidence: 0.9,
-        slots: tomeSlots,
-    });
 
-    // Character portrait
-    rois.push({
-        type: 'character_portrait',
-        label: 'Character',
-        ...regions.characterPortrait,
-        confidence: 0.85,
-    });
+    rois.push(
+        {
+            type: 'items_hotbar',
+            label: 'Items Hotbar',
+            x: hotbarSlots[0]?.x ?? 0,
+            y: regions.itemsHotbar.baseY,
+            width: totalHotbarWidth,
+            height: regions.itemsHotbar.slotSize,
+            confidence: 0.9,
+            slots: hotbarSlots,
+        },
+        {
+            type: 'weapons_region',
+            label: 'Weapons',
+            x: regions.weaponsRegion.x,
+            y: regions.weaponsRegion.y,
+            width:
+                regions.weaponsRegion.cols * regions.weaponsRegion.slotSize +
+                (regions.weaponsRegion.cols - 1) * regions.weaponsRegion.spacing,
+            height:
+                regions.weaponsRegion.rows * regions.weaponsRegion.slotSize +
+                (regions.weaponsRegion.rows - 1) * regions.weaponsRegion.spacing,
+            confidence: 0.9,
+            slots: weaponSlots,
+        },
+        {
+            type: 'tomes_region',
+            label: 'Tomes',
+            x: regions.tomesRegion.x,
+            y: regions.tomesRegion.y,
+            width:
+                regions.tomesRegion.cols * regions.tomesRegion.slotSize +
+                (regions.tomesRegion.cols - 1) * regions.tomesRegion.spacing,
+            height:
+                regions.tomesRegion.rows * regions.tomesRegion.slotSize +
+                (regions.tomesRegion.rows - 1) * regions.tomesRegion.spacing,
+            confidence: 0.9,
+            slots: tomeSlots,
+        },
+        {
+            type: 'character_portrait',
+            label: 'Character',
+            ...regions.characterPortrait,
+            confidence: 0.85,
+        }
+    );
 
     return rois;
 }

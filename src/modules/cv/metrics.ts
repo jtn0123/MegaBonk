@@ -281,9 +281,7 @@ class CVMetricsCollector {
         else histogram['0.5-0.6']++;
 
         // Track by rarity
-        if (!this.currentRun.detectionsByRarity) {
-            this.currentRun.detectionsByRarity = {};
-        }
+        this.currentRun.detectionsByRarity ??= {};
         this.currentRun.detectionsByRarity[rarity] = (this.currentRun.detectionsByRarity[rarity] || 0) + 1;
     }
 

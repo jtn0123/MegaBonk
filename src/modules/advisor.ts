@@ -122,6 +122,12 @@ export function applyScannedBuild(state: BuildState): void {
     });
 }
 
+function getRankEmoji(rank: number): string {
+    if (rank === 1) return '🎯';
+    if (rank === 2) return '🥈';
+    return '🥉';
+}
+
 /**
  * Setup all event listeners for the advisor
  */
@@ -489,7 +495,7 @@ function displayRecommendations(recommendations: Recommendation[]): void {
 
         const entity = rec.choice.entity;
         const rank = index + 1;
-        const emoji = rank === 1 ? '🎯' : rank === 2 ? '🥈' : '🥉';
+        const emoji = getRankEmoji(rank);
 
         let html = `
             <div class="result-header">
