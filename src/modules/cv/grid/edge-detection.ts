@@ -79,33 +79,26 @@ export function detectIconEdges(
 /**
  * Filter edges to keep only those with consistent spacing
  */
-export function filterByConsistentSpacing(edges: number[]): number[] {
-    if (edges.length < 3) return edges;
-
-    // Calculate gaps
+function calculateGaps(edges: number[]): Array<{ gap: number; fromIdx: number; toIdx: number }> {
     const gaps: Array<{ gap: number; fromIdx: number; toIdx: number }> = [];
     for (let i = 1; i < edges.length; i++) {
         const current = edges[i];
         const previous = edges[i - 1];
         if (current === undefined || previous === undefined) continue;
-
         const gap = current - previous;
         if (gap > 20 && gap < 120) {
             gaps.push({ gap, fromIdx: i - 1, toIdx: i });
         }
     }
+    return gaps;
+}
 
-    if (gaps.length < 2) return edges;
-
-    // Find mode gap (most common spacing)
+function findModeGap(gaps: Array<{ gap: number }>, tolerance: number): { modeGap: number; modeCount: number } {
     const gapCounts = new Map<number, number>();
-    const tolerance = 4;
-
     for (const { gap } of gaps) {
         const bucket = Math.round(gap / tolerance) * tolerance;
         gapCounts.set(bucket, (gapCounts.get(bucket) || 0) + 1);
     }
-
     let modeGap = 0;
     let modeCount = 0;
     for (const [bucket, count] of gapCounts) {
@@ -114,10 +107,19 @@ export function filterByConsistentSpacing(edges: number[]): number[] {
             modeGap = bucket;
         }
     }
+    return { modeGap, modeCount };
+}
 
+export function filterByConsistentSpacing(edges: number[]): number[] {
+    if (edges.length < 3) return edges;
+
+    const gaps = calculateGaps(edges);
+    if (gaps.length < 2) return edges;
+
+    const tolerance = 4;
+    const { modeGap, modeCount } = findModeGap(gaps, tolerance);
     if (modeCount < 2) return edges;
 
-    // Keep edges that fit the mode spacing
     const consistentIndices = new Set<number>();
     for (const { gap, fromIdx, toIdx } of gaps) {
         if (Math.abs(gap - modeGap) <= tolerance) {

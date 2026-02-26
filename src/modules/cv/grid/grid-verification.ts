@@ -115,45 +115,14 @@ export function clusterByY(
     return rows;
 }
 
-/**
- * Verify that detections form a consistent grid pattern
- * Uses row-aware verification and adaptive tolerance for better accuracy
- */
-export function verifyGridPattern(detections: CVDetectionResult[], expectedIconSize: number): GridVerificationResult {
-    // Need at least 3 detections to verify a pattern
-    if (detections.length < 3) {
-        return {
-            isValid: true, // Trust small sets
-            confidence: 0.5,
-            filteredDetections: detections,
-            gridParams: null,
-        };
-    }
+type Position = { x: number; y: number; detection: CVDetectionResult };
 
-    // Extract positions
-    const positions = detections
-        .filter(d => d.position)
-        .map(d => ({
-            x: d.position!.x,
-            y: d.position!.y,
-            detection: d,
-        }));
+function makeSmallSetResult(detections: CVDetectionResult[]): GridVerificationResult {
+    return { isValid: true, confidence: 0.5, filteredDetections: detections, gridParams: null };
+}
 
-    if (positions.length < 3) {
-        return {
-            isValid: true,
-            confidence: 0.5,
-            filteredDetections: detections,
-            gridParams: null,
-        };
-    }
-
-    // Phase 1: Cluster into rows (row-aware approach)
-    const yClusterTolerance = expectedIconSize * 0.3;
-    const rows = clusterByY(positions, yClusterTolerance);
-
-    // Phase 2: Calculate X spacings within each row
-    const allXSpacings: number[] = [];
+function collectXSpacings(rows: Position[][], expectedIconSize: number): number[] {
+    const spacings: number[] = [];
     for (const row of rows) {
         if (row.length < 2) continue;
         const sortedRow = [...row].sort((a, b) => a.x - b.x);
@@ -161,36 +130,73 @@ export function verifyGridPattern(detections: CVDetectionResult[], expectedIconS
             const current = sortedRow[i];
             const previous = sortedRow[i - 1];
             if (!current || !previous) continue;
-
             const gap = current.x - previous.x;
-            if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) {
-                allXSpacings.push(gap);
-            }
+            if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) spacings.push(gap);
         }
     }
+    return spacings;
+}
 
-    // Phase 3: Calculate Y spacings between row centers
-    const ySpacings: number[] = [];
-    if (rows.length > 1) {
-        // Calculate row centers
-        const rowCenters = rows
-            .map(row => {
-                const avgY = row.reduce((sum, p) => sum + p.y, 0) / row.length;
-                return avgY;
-            })
-            .sort((a, b) => a - b);
+function collectYSpacings(rows: Position[][], expectedIconSize: number): number[] {
+    if (rows.length <= 1) return [];
+    const rowCenters = rows
+        .map(row => row.reduce((sum, p) => sum + p.y, 0) / row.length)
+        .sort((a, b) => a - b);
+    const spacings: number[] = [];
+    for (let i = 1; i < rowCenters.length; i++) {
+        const current = rowCenters[i];
+        const previous = rowCenters[i - 1];
+        if (current === undefined || previous === undefined) continue;
+        const gap = current - previous;
+        if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) spacings.push(gap);
+    }
+    return spacings;
+}
 
-        for (let i = 1; i < rowCenters.length; i++) {
-            const current = rowCenters[i];
-            const previous = rowCenters[i - 1];
-            if (current === undefined || previous === undefined) continue;
+function filterRowDetections(
+    rows: Position[][],
+    xSpacing: number,
+    tolerance: number
+): Position[] {
+    const filtered: Position[] = [];
+    for (const row of rows) {
+        if (row.length === 0) continue;
+        const sortedRow = [...row].sort((a, b) => a.x - b.x);
+        const firstInRow = sortedRow[0];
+        if (firstInRow) filtered.push(firstInRow);
 
-            const gap = current - previous;
-            if (gap > expectedIconSize * 0.5 && gap < expectedIconSize * 2.5) {
-                ySpacings.push(gap);
-            }
+        for (let i = 1; i < sortedRow.length; i++) {
+            const current = sortedRow[i];
+            const previous = sortedRow[i - 1];
+            if (!current || !previous) continue;
+            const gap = current.x - previous.x;
+            const isConsistentSpacing = Math.abs(gap - xSpacing) <= tolerance;
+            const isMultipleSpacing =
+                (gap > xSpacing * 1.5 && Math.abs((gap % xSpacing) - 0) <= tolerance) ||
+                Math.abs((gap % xSpacing) - xSpacing) <= tolerance;
+            if (isConsistentSpacing || isMultipleSpacing) filtered.push(current);
         }
     }
+    return filtered;
+}
+
+/**
+ * Verify that detections form a consistent grid pattern
+ * Uses row-aware verification and adaptive tolerance for better accuracy
+ */
+export function verifyGridPattern(detections: CVDetectionResult[], expectedIconSize: number): GridVerificationResult {
+    if (detections.length < 3) return makeSmallSetResult(detections);
+
+    const positions: Position[] = detections
+        .filter(d => d.position)
+        .map(d => ({ x: d.position!.x, y: d.position!.y, detection: d }));
+
+    if (positions.length < 3) return makeSmallSetResult(detections);
+
+    const yClusterTolerance = expectedIconSize * 0.3;
+    const rows = clusterByY(positions, yClusterTolerance);
+    const allXSpacings = collectXSpacings(rows, expectedIconSize);
+    const ySpacings = collectYSpacings(rows, expectedIconSize);
 
     // Find mode spacing with variance tracking
     const baseTolerance = Math.max(6, expectedIconSize * 0.15);
@@ -207,43 +213,7 @@ export function verifyGridPattern(detections: CVDetectionResult[], expectedIconS
     const yTolerance = calculateAdaptiveTolerance(ySpacings, expectedIconSize, yMode.stdDev);
     const tolerance = Math.max(xTolerance, yTolerance);
 
-    // Phase 4: Filter detections using row-aware validation
-    // Instead of strict grid origin check, verify that items are consistently spaced
-    const filtered: typeof positions = [];
-
-    for (const row of rows) {
-        if (row.length === 0) continue;
-
-        // For each row, verify X spacing between adjacent items
-        const sortedRow = [...row].sort((a, b) => a.x - b.x);
-
-        // Always include the first item in each row
-        const firstInRow = sortedRow[0];
-        if (firstInRow) {
-            filtered.push(firstInRow);
-        }
-
-        // Check remaining items: they should be at consistent spacing from previous
-        for (let i = 1; i < sortedRow.length; i++) {
-            const current = sortedRow[i];
-            const previous = sortedRow[i - 1];
-            if (!current || !previous) continue;
-
-            const gap = current.x - previous.x;
-
-            // Accept if gap is close to expected spacing (within tolerance)
-            const isConsistentSpacing = Math.abs(gap - xSpacing) <= tolerance;
-
-            // Also accept if gap is a multiple of spacing (skipped slots)
-            const isMultipleSpacing =
-                (gap > xSpacing * 1.5 && Math.abs((gap % xSpacing) - 0) <= tolerance) ||
-                Math.abs((gap % xSpacing) - xSpacing) <= tolerance;
-
-            if (isConsistentSpacing || isMultipleSpacing) {
-                filtered.push(current);
-            }
-        }
-    }
+    const filtered = filterRowDetections(rows, xSpacing, tolerance);
 
     // Calculate confidence based on how many detections fit
     const fitRatio = filtered.length / positions.length;

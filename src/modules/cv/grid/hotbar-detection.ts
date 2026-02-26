@@ -9,6 +9,29 @@ import type { HotbarRegion } from './grid-types.ts';
  * Enhanced hotbar region detection using rarity border analysis
  * Returns the Y coordinates of the detected hotbar band
  */
+function scoreWindow(
+    windowSlice: Array<{ y: number; rarityRatio: number; colorfulRatio: number; variance: number }>,
+    height: number
+): number {
+    const avgRarityRatio = windowSlice.reduce((s, d) => s + d.rarityRatio, 0) / windowSlice.length;
+    const avgColorful = windowSlice.reduce((s, d) => s + d.colorfulRatio, 0) / windowSlice.length;
+    const avgVariance = windowSlice.reduce((s, d) => s + d.variance, 0) / windowSlice.length;
+
+    let score = 0;
+    if (avgRarityRatio > 0.01) score += avgRarityRatio * 200;
+    if (avgColorful > 0.03) score += avgColorful * 80;
+    if (avgVariance > 200) score += Math.min(30, avgVariance / 50);
+
+    const firstStrip = windowSlice[0];
+    if (firstStrip) {
+        const yPosition = firstStrip.y / height;
+        if (yPosition > 0.88) score += 30;
+        else if (yPosition > 0.82) score += 15;
+    }
+
+    return score;
+}
+
 export function detectHotbarRegion(ctx: CanvasRenderingContext2D, width: number, height: number): HotbarRegion {
     // Scan bottom 35% of screen (hotbar is at very bottom)
     const scanStartY = Math.floor(height * 0.65);
@@ -48,39 +71,11 @@ export function detectHotbarRegion(ctx: CanvasRenderingContext2D, width: number,
 
     for (let i = 0; i < strips.length - windowSize; i++) {
         const windowSlice = strips.slice(i, i + windowSize);
-
-        const avgRarityRatio = windowSlice.reduce((s, d) => s + d.rarityRatio, 0) / windowSlice.length;
-        const avgColorful = windowSlice.reduce((s, d) => s + d.colorfulRatio, 0) / windowSlice.length;
-        const avgVariance = windowSlice.reduce((s, d) => s + d.variance, 0) / windowSlice.length;
-
-        let score = 0;
-
-        // Rarity borders are a strong signal
-        if (avgRarityRatio > 0.01) {
-            score += avgRarityRatio * 200;
-        }
-
-        // Colorful pixels indicate icons
-        if (avgColorful > 0.03) {
-            score += avgColorful * 80;
-        }
-
-        // High variance means varied content (icons)
-        if (avgVariance > 200) {
-            score += Math.min(30, avgVariance / 50);
-        }
-
-        // Prefer lower on screen (hotbar is at very bottom)
         const firstStrip = windowSlice[0];
         const lastStrip = windowSlice[windowSlice.length - 1];
         if (!firstStrip || !lastStrip) continue;
 
-        const yPosition = firstStrip.y / height;
-        if (yPosition > 0.88) {
-            score += 30;
-        } else if (yPosition > 0.82) {
-            score += 15;
-        }
+        const score = scoreWindow(windowSlice, height);
 
         if (score > bestScore) {
             bestScore = score;

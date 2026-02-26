@@ -147,6 +147,13 @@ function detectBuildArchetype(build: BuildState): BuildArchetype {
 /**
  * Calculate synergy score between choice and current build
  */
+function hasSynergyMatch(synergyList: string[], targetName: string): boolean {
+    const target = targetName.toLowerCase();
+    return synergyList.some(
+        s => s.length >= 3 && (s.toLowerCase().includes(target) || target.includes(s.toLowerCase()))
+    );
+}
+
 function calculateSynergyScore(
     choice: ChoiceOption,
     build: BuildState
@@ -163,31 +170,12 @@ function calculateSynergyScore(
         const charSynergies = build.character?.synergies_items ?? [];
         const charWeaponSynergies = build.character?.synergies_weapons ?? [];
 
-        // Bug fix: Require minimum 3-char match length to prevent false positives
-        // (e.g., "or" matching "sword", "a" matching everything)
-        // Also filter out empty strings which would match everything
-        if (
-            choice.type === 'item' &&
-            charSynergies.some(
-                s =>
-                    s.length >= 3 &&
-                    (s.toLowerCase().includes(entityName.toLowerCase()) ||
-                        entityName.toLowerCase().includes(s.toLowerCase()))
-            )
-        ) {
+        if (choice.type === 'item' && hasSynergyMatch(charSynergies, entityName)) {
             score += 20;
             synergies.push(`Synergizes with ${build.character.name}`);
         }
 
-        if (
-            choice.type === 'weapon' &&
-            charWeaponSynergies.some(
-                s =>
-                    s.length >= 3 &&
-                    (s.toLowerCase().includes(entityName.toLowerCase()) ||
-                        entityName.toLowerCase().includes(s.toLowerCase()))
-            )
-        ) {
+        if (choice.type === 'weapon' && hasSynergyMatch(charWeaponSynergies, entityName)) {
             score += 20;
             synergies.push(`Great synergy with ${build.character.name}`);
         }
@@ -202,17 +190,7 @@ function calculateSynergyScore(
         const allWeaponSynergies = [...itemSynergies, ...itemSynergiesWeapons];
         const weapon = build.weapon;
 
-        // Bug fix: Require minimum 3-char match length and filter empty strings
-        // to prevent false positives from short/empty synergy entries
-        if (
-            allWeaponSynergies.some(
-                s =>
-                    s.length >= 3 &&
-                    (s.toLowerCase() === weapon.name.toLowerCase() ||
-                        s.toLowerCase().includes(weapon.name.toLowerCase()) ||
-                        weapon.name.toLowerCase().includes(s.toLowerCase()))
-            )
-        ) {
+        if (hasSynergyMatch(allWeaponSynergies, weapon.name)) {
             score += 15;
             synergies.push(`Synergizes with ${weapon.name}`);
         }
@@ -223,30 +201,13 @@ function calculateSynergyScore(
         const itemEntity = entity as Item;
         const itemSynergies = itemEntity?.synergies ?? [];
 
-        // Bug fix: Require minimum 3-char match length and filter empty strings
-        if (
-            itemSynergies.some(
-                s =>
-                    s.length >= 3 &&
-                    (s.toLowerCase().includes(buildItem.name.toLowerCase()) ||
-                        buildItem.name.toLowerCase().includes(s.toLowerCase()))
-            )
-        ) {
+        if (hasSynergyMatch(itemSynergies, buildItem.name)) {
             score += 10;
             synergies.push(`Synergizes with ${buildItem.name}`);
         }
 
-        // Check for anti-synergies
-        // Bug fix: Same minimum length check for anti-synergies
         const antiSyns = itemEntity?.anti_synergies ?? itemEntity?.antiSynergies ?? [];
-        if (
-            antiSyns.some(
-                s =>
-                    s.length >= 3 &&
-                    (s.toLowerCase().includes(buildItem.name.toLowerCase()) ||
-                        buildItem.name.toLowerCase().includes(s.toLowerCase()))
-            )
-        ) {
+        if (hasSynergyMatch(antiSyns, buildItem.name)) {
             score -= 30;
             antiSynergies.push(`Anti-synergy with ${buildItem.name}`);
         }

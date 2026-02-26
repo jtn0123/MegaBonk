@@ -370,45 +370,46 @@ export function generateCompareEmptyState(): string {
  * Handle clicks on empty state elements
  * This should be called from event delegation in events-core.ts
  */
+function handleActionButton(target: Element): boolean {
+    if (!target.classList.contains('empty-state-action')) return false;
+    const action = (target as HTMLElement).dataset.action;
+    switch (action) {
+        case 'browse':
+        case 'clear-filters':
+            clearFiltersAndSearch();
+            return true;
+        case 'clear-search':
+            clearSearch();
+            return true;
+        default:
+            return false;
+    }
+}
+
+function handleSuggestionCard(target: Element): boolean {
+    const card = target.classList.contains('suggestion-card')
+        ? (target as HTMLElement)
+        : (target.closest('.suggestion-card') as HTMLElement | null);
+    if (!card) return false;
+
+    const entityType = card.dataset.entityType;
+    const entityId = card.dataset.entityId;
+    if (!entityType || !entityId) return false;
+
+    const type = normalizeEntityType(entityType);
+    if (!type) return false;
+
+    import('./modal.ts').then(({ openDetailModal }) => {
+        openDetailModal(type, entityId);
+    });
+    return true;
+}
+
 export function handleEmptyStateClick(target: Element): boolean {
-    // Handle action button clicks
-    if (target.classList.contains('empty-state-action')) {
-        const action = (target as HTMLElement).dataset.action;
-
-        switch (action) {
-            case 'browse':
-            case 'clear-filters':
-                // Clear filters and show all items
-                clearFiltersAndSearch();
-                return true;
-            case 'clear-search':
-                clearSearch();
-                return true;
-        }
-    }
-
-    // Handle suggestion card clicks
+    if (handleActionButton(target)) return true;
     if (target.classList.contains('suggestion-card') || target.closest('.suggestion-card')) {
-        const card = target.classList.contains('suggestion-card')
-            ? (target as HTMLElement)
-            : (target.closest('.suggestion-card') as HTMLElement);
-
-        if (card) {
-            const entityType = card.dataset.entityType;
-            const entityId = card.dataset.entityId;
-
-            if (entityType && entityId) {
-                const type = normalizeEntityType(entityType);
-                if (type) {
-                    import('./modal.ts').then(({ openDetailModal }) => {
-                        openDetailModal(type, entityId);
-                    });
-                }
-                return true;
-            }
-        }
+        return handleSuggestionCard(target);
     }
-
     return false;
 }
 

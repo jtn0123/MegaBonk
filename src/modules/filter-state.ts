@@ -113,53 +113,40 @@ function isValidFilterState(state: unknown): state is FilterState {
  * Restore filter state for a specific tab
  * @param tabName - Tab name
  */
+function restoreInputValue(id: string, value: unknown): void {
+    if (typeof value !== 'string') return;
+    const el = safeGetElementById(id);
+    if (isInputElement(el)) el.value = value;
+}
+
+function restoreSelectValue(id: string, value: unknown): void {
+    if (typeof value !== 'string') return;
+    const el = safeGetElementById(id);
+    if (isSelectElement(el)) el.value = value;
+}
+
+function restoreCheckbox(id: string, value: unknown): void {
+    if (typeof value !== 'boolean') return;
+    const el = safeGetElementById(id);
+    if (isInputElement(el)) el.checked = value;
+}
+
 export function restoreFilterState(tabName: string): void {
-    if (!tabName || TABS_WITHOUT_FILTERS.includes(tabName)) {
-        return;
-    }
+    if (!tabName || TABS_WITHOUT_FILTERS.includes(tabName)) return;
 
     try {
         const allStates = getAllFilterStates();
         const state = allStates[tabName];
-
-        // Bug fix: Validate state structure before using it
         if (!state || !isValidFilterState(state)) return;
 
-        // Restore search input
-        const searchInputEl = safeGetElementById('searchInput');
-        if (isInputElement(searchInputEl) && typeof state.search === 'string') {
-            searchInputEl.value = state.search;
-        }
+        restoreInputValue('searchInput', state.search);
+        restoreCheckbox('favoritesOnly', state.favoritesOnly);
+        restoreSelectValue('tierFilter', state.tierFilter);
+        restoreSelectValue('sortBy', state.sortBy);
 
-        // Restore favorites checkbox
-        const favoritesOnlyEl = safeGetElementById('favoritesOnly');
-        if (isInputElement(favoritesOnlyEl) && typeof state.favoritesOnly === 'boolean') {
-            favoritesOnlyEl.checked = state.favoritesOnly;
-        }
-
-        // Restore tier filter
-        const tierFilterEl = safeGetElementById('tierFilter');
-        if (isSelectElement(tierFilterEl) && typeof state.tierFilter === 'string') {
-            tierFilterEl.value = state.tierFilter;
-        }
-
-        // Restore sort order
-        const sortByEl = safeGetElementById('sortBy');
-        if (isSelectElement(sortByEl) && typeof state.sortBy === 'string') {
-            sortByEl.value = state.sortBy;
-        }
-
-        // Restore items-specific filters
         if (tabName === 'items') {
-            const rarityFilterEl = safeGetElementById('rarityFilter');
-            if (isSelectElement(rarityFilterEl) && typeof state.rarityFilter === 'string') {
-                rarityFilterEl.value = state.rarityFilter;
-            }
-
-            const stackingFilterEl = safeGetElementById('stackingFilter');
-            if (isSelectElement(stackingFilterEl) && typeof state.stackingFilter === 'string') {
-                stackingFilterEl.value = state.stackingFilter;
-            }
+            restoreSelectValue('rarityFilter', state.rarityFilter);
+            restoreSelectValue('stackingFilter', state.stackingFilter);
         }
     } catch (error) {
         console.debug('[filter-state] sessionStorage unavailable:', (error as Error).message);

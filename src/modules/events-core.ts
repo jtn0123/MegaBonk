@@ -265,33 +265,43 @@ function handleBreakpointCardActivation(e: KeyboardEvent, target: HTMLElement): 
 /**
  * Handle keyboard events for navigation, shortcuts, and accessibility
  */
+function handleSearchShortcut(e: KeyboardEvent, target: HTMLElement): boolean {
+    if (!((e.ctrlKey && e.key === 'k') || e.key === '/')) return false;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return true;
+    e.preventDefault();
+    const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
+    if (searchInput) { searchInput.focus(); searchInput.select(); }
+    return true;
+}
+
+function handleActivationKey(e: KeyboardEvent, target: HTMLElement): boolean {
+    if (e.key !== 'Enter' && e.key !== ' ') return false;
+
+    if (target.classList.contains('breakpoint-card')) {
+        handleBreakpointCardActivation(e, target);
+        return true;
+    }
+    if (target.classList.contains('suggestion-card')) {
+        e.preventDefault();
+        import('./empty-states.ts')
+            .then(({ handleEmptyStateClick }) => handleEmptyStateClick(target))
+            .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
+        return true;
+    }
+    if (target.classList.contains('clickable-card')) {
+        e.preventDefault();
+        handleCardClick(target);
+        return true;
+    }
+    return false;
+}
+
 function handleKeydownDelegation(e: KeyboardEvent): void {
     const target = e.target as HTMLElement;
-    const isSearchInputFocused = target.id === 'searchInput';
 
-    if (isSearchInputFocused && isSearchDropdownVisible()) {
-        if (handleDropdownKeyboard(e)) {
-            return;
-        }
-    }
-
-    if (e.key === 'Escape') {
-        handleEscapeKey();
-        return;
-    }
-
-    if ((e.ctrlKey && e.key === 'k') || e.key === '/') {
-        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
-            return;
-        }
-        e.preventDefault();
-        const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-        if (searchInput) {
-            searchInput.focus();
-            searchInput.select();
-        }
-        return;
-    }
+    if (target.id === 'searchInput' && isSearchDropdownVisible() && handleDropdownKeyboard(e)) return;
+    if (e.key === 'Escape') { handleEscapeKey(); return; }
+    if (handleSearchShortcut(e, target)) return;
 
     if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && target.classList.contains('tab-btn')) {
         handleTabArrowNavigation(e, target as HTMLButtonElement);
@@ -299,35 +309,11 @@ function handleKeydownDelegation(e: KeyboardEvent): void {
     }
 
     if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') {
-            handleNumberKeyTabSwitch(e);
-        }
+        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') handleNumberKeyTabSwitch(e);
         return;
     }
 
-    if ((e.key === 'Enter' || e.key === ' ') && target.classList.contains('breakpoint-card')) {
-        handleBreakpointCardActivation(e, target);
-        return;
-    }
-
-    // Handle Enter/Space on suggestion cards (accessibility)
-    if ((e.key === 'Enter' || e.key === ' ') && target.classList.contains('suggestion-card')) {
-        e.preventDefault();
-        import('./empty-states.ts')
-            .then(({ handleEmptyStateClick }) => {
-                handleEmptyStateClick(target);
-            })
-            .catch(err =>
-                logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } })
-            );
-        return;
-    }
-
-    // Handle Enter/Space on item cards (accessibility) - opens detail modal
-    if ((e.key === 'Enter' || e.key === ' ') && target.classList.contains('clickable-card')) {
-        e.preventDefault();
-        handleCardClick(target);
-    }
+    handleActivationKey(e, target);
 }
 
 // ========================================
@@ -471,72 +457,68 @@ function handleItemCardClick(target: Element): void {
 /**
  * Handle click events via delegation
  */
-function handleClickDelegation(e: MouseEvent): void {
-    const target = e.target;
-
-    if (!(target instanceof Element)) {
-        return;
-    }
-
+function handleCardAreaClick(e: MouseEvent, target: Element): boolean {
     if (target.classList.contains('view-details-btn')) {
         handleViewDetailsClick(target as HTMLElement);
-        return;
+        return true;
     }
-
-    // On mobile, make entire card tappable (but not if clicking specific elements)
     if (isMobileViewport() && target.closest('.item-card')) {
-        // Don't trigger if clicking on interactive elements within the card
-        const isInteractive = target.closest('.favorite-btn, .compare-checkbox-label, .expandable-text, a, button');
-        if (!isInteractive) {
+        if (!target.closest('.favorite-btn, .compare-checkbox-label, .expandable-text, a, button')) {
             handleItemCardClick(target);
-            return;
+            return true;
         }
     }
-
-    // Handle card click to open detail modal (but not if clicking interactive elements)
     if (
         target.closest('.item-card') &&
-        !target.closest('.favorite-btn') &&
-        !target.closest('.compare-checkbox-label') &&
-        !target.closest('.expandable-text') &&
+        !target.closest('.favorite-btn, .compare-checkbox-label, .expandable-text') &&
         !target.classList.contains('view-details-btn')
     ) {
         handleCardClick(target as HTMLElement);
-        return;
+        return true;
     }
-
     if (target.closest('.compare-checkbox-label') && !target.classList.contains('compare-checkbox')) {
         handleCompareCheckboxClick(e, target);
-        return;
+        return true;
     }
+    return false;
+}
 
+function handleUIElementClick(target: Element): boolean {
     if (target.classList.contains('expandable-text') || target.closest('.expandable-text')) {
-        const expandable = target.classList.contains('expandable-text')
-            ? (target as HTMLElement)
-            : (target.closest('.expandable-text') as HTMLElement | null);
+        const expandable = (target.classList.contains('expandable-text') ? target : target.closest('.expandable-text')) as HTMLElement | null;
         if (expandable) toggleTextExpand(expandable);
-        return;
+        return true;
     }
-
     if (target.classList.contains('remove-compare-btn') || target.closest('.remove-compare-btn')) {
         handleRemoveCompareClick(target);
-        return;
+        return true;
     }
-
     if (target.classList.contains('btn-secondary') && target.textContent?.includes('Clear Filters')) {
         clearFilters();
-        return;
+        return true;
     }
+    if (target.classList.contains('favorite-btn') || target.closest('.favorite-btn')) {
+        handleFavoriteClick(target);
+        return true;
+    }
+    if (target.closest('.breakpoint-card')) {
+        handleBreakpointCardClick(target);
+        return true;
+    }
+    if (target.closest('.search-result-card')) {
+        handleSearchResultClick(target);
+        return true;
+    }
+    return false;
+}
 
+function handleDynamicImportClick(e: MouseEvent, target: Element): boolean {
     if (target.classList.contains('changelog-expand-btn')) {
         import('./changelog.ts')
             .then(({ toggleChangelogExpand }) => toggleChangelogExpand(target as HTMLButtonElement))
-            .catch(err =>
-                logger.warn({ operation: 'import.changelog', error: { name: 'ImportError', message: err.message } })
-            );
-        return;
+            .catch(err => logger.warn({ operation: 'import.changelog', error: { name: 'ImportError', message: err.message } }));
+        return true;
     }
-
     if (target.classList.contains('entity-link')) {
         e.preventDefault();
         const htmlTarget = target as HTMLElement;
@@ -546,35 +528,23 @@ function handleClickDelegation(e: MouseEvent): void {
             const type = normalizeEntityType(rawType);
             if (type) openDetailModal(type, id);
         }
-        return;
+        return true;
     }
-
-    if (target.closest('.breakpoint-card')) {
-        handleBreakpointCardClick(target);
-        return;
-    }
-
-    if (target.classList.contains('favorite-btn') || target.closest('.favorite-btn')) {
-        handleFavoriteClick(target);
-        return;
-    }
-
-    if (target.closest('.search-result-card')) {
-        handleSearchResultClick(target);
-        return;
-    }
-
-    // Handle empty state action buttons and suggestion cards
     if (target.classList.contains('empty-state-action') || target.closest('.suggestion-card')) {
         import('./empty-states.ts')
-            .then(({ handleEmptyStateClick }) => {
-                handleEmptyStateClick(target);
-            })
-            .catch(err =>
-                logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } })
-            );
-        return;
+            .then(({ handleEmptyStateClick }) => handleEmptyStateClick(target))
+            .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
+        return true;
     }
+    return false;
+}
+
+function handleClickDelegation(e: MouseEvent): void {
+    const target = e.target;
+    if (!(target instanceof Element)) return;
+    if (handleCardAreaClick(e, target)) return;
+    if (handleUIElementClick(target)) return;
+    handleDynamicImportClick(e, target);
 }
 
 // ========================================

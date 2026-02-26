@@ -13,6 +13,32 @@ import type { OCRProgressCallback } from './types.ts';
  * Includes timeout protection and retry logic
  * Tesseract is lazy-loaded on first use
  */
+async function attemptRecognition(
+    imageDataUrl: string,
+    progressCallback: OCRProgressCallback | undefined,
+    timeoutMs: number
+): Promise<string> {
+    const worker = await getOrCreateWorker();
+
+    let lastProgress = 0;
+    const progressInterval = progressCallback
+        ? setInterval(() => {
+              if (lastProgress < 90) {
+                  lastProgress += 10;
+                  progressCallback(lastProgress, `Recognizing text... ${lastProgress}%`);
+              }
+          }, 500)
+        : null;
+
+    try {
+        const recognizePromise = worker.recognize(imageDataUrl);
+        const result = await withTimeout(recognizePromise, timeoutMs, 'OCR recognition');
+        return result.data.text;
+    } finally {
+        if (progressInterval) clearInterval(progressInterval);
+    }
+}
+
 export async function extractTextFromImage(
     imageDataUrl: string,
     progressCallback?: OCRProgressCallback,
@@ -21,7 +47,6 @@ export async function extractTextFromImage(
 ): Promise<string> {
     let lastError: Error | null = null;
 
-    // Initialize worker (reused across calls)
     if (progressCallback) {
         progressCallback(0, 'Loading OCR engine...');
     }
@@ -37,33 +62,7 @@ export async function extractTextFromImage(
                 progressCallback(0, `Retrying OCR (attempt ${attempt + 1}/${maxRetries + 1})...`);
             }
 
-            // Get or create reusable worker
-            const worker = await getOrCreateWorker();
-
-            // Progress tracking for recognition
-            let lastProgress = 0;
-            const progressInterval = progressCallback
-                ? setInterval(() => {
-                      // Simulate progress since worker.recognize doesn't have progress callback
-                      if (lastProgress < 90) {
-                          lastProgress += 10;
-                          progressCallback(lastProgress, `Recognizing text... ${lastProgress}%`);
-                      }
-                  }, 500)
-                : null;
-
-            // Use worker.recognize instead of Tesseract.recognize (reuses worker)
-            const recognizePromise = worker.recognize(imageDataUrl);
-
-            // Wrap with timeout to prevent indefinite waiting
-            const result = await withTimeout(recognizePromise, timeoutMs, 'OCR recognition');
-
-            // Clear progress interval
-            if (progressInterval) {
-                clearInterval(progressInterval);
-            }
-
-            const extractedText = result.data.text;
+            const extractedText = await attemptRecognition(imageDataUrl, progressCallback, timeoutMs);
 
             logger.info({
                 operation: 'ocr.extract_text',
@@ -71,7 +70,6 @@ export async function extractTextFromImage(
                     phase: 'complete',
                     attempt: attempt + 1,
                     textLength: extractedText.length,
-                    confidence: result.data.confidence,
                     textPreview: extractedText.substring(0, 500).replaceAll('\n', ' | '),
                 },
             });
