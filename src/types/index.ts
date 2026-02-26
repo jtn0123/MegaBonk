@@ -613,7 +613,7 @@ declare global {
         ) => Promise<{ canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; width: number; height: number }>;
         calculateSimilarity?: (imageData1: ImageData, imageData2: ImageData) => number;
         calculateIoU?: (box1: { x: number; y: number; width: number; height: number }, box2: { x: number; y: number; width: number; height: number }) => number;
-        nonMaxSuppression?: (detections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[], iouThreshold?: number) => { type: string; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[];
+        nonMaxSuppression?: (detections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[], iouThreshold?: number) => { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[];
         getAdaptiveIconSizes?: (width: number, height: number) => number[];
         extractCountRegion?: (cell: { x: number; y: number; width: number; height: number; label?: string }) => { x: number; y: number; width: number; height: number; label?: string };
         detectHotbarRegion?: (
@@ -629,7 +629,7 @@ declare global {
         ) => { iconSize: number; confidence: number; method: string };
         resizeImageData?: (imageData: ImageData, targetWidth: number, targetHeight: number) => ImageData | null;
         fitsGrid?: (value: number, gridStart: number, spacing: number, tolerance: number) => boolean;
-        verifyGridPattern?: (detections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[], expectedIconSize: number) => { isValid: boolean; confidence: number; filteredDetections: unknown[]; gridParams: { xSpacing: number; ySpacing: number; tolerance: number } | null };
+        verifyGridPattern?: (detections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[], expectedIconSize: number) => { isValid: boolean; confidence: number; filteredDetections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[]; gridParams: { xSpacing: number; ySpacing: number; tolerance: number } | null };
         runEnsembleDetection?: (
             ctx: CanvasRenderingContext2D,
             width: number,
@@ -668,7 +668,7 @@ declare global {
 
         // Advisor functions (from advisor.ts)
         initAdvisor?: (gameData: AllGameData) => void;
-        applyScannedBuild?: (state: { character: Character | null; weapon: Weapon | null; items: Item[]; tomes: Tome[]; stats?: { hp?: number; damage?: number; speed?: number; critChance?: number } }) => void;
+        applyScannedBuild?: (state: Build & { stats?: { hp?: number; damage?: number; speed?: number; critChance?: number } }) => void;
 
         // UI functions (from events.ts, renderers.ts)
         switchTab?: (tabId: 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator' | 'advisor' | 'changelog' | 'about') => Promise<void>;
@@ -678,7 +678,7 @@ declare global {
         // Filter functions (from filters.ts)
         clearFilters?: () => void;
         toggleTextExpand?: (element: HTMLElement) => void;
-        globalSearch?: (query: string, allData: AllGameData) => { type: string; item: Item | Weapon | Tome | Character | Shrine; score: number }[];
+        globalSearch?: (query: string, allData: AllGameData) => { type: EntityType; item: Item | Weapon | Tome | Character | Shrine; score: number }[];
 
         // Offline UI functions (from offline-ui.ts)
         recordDataSync?: () => void;
