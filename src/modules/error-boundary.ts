@@ -388,7 +388,7 @@ export function exportErrorReport(error: Error, moduleName?: string): string {
  */
 export function initGlobalErrorHandlers(): void {
     // Handle uncaught promise rejections
-    if (typeof globalThis.window !== 'undefined') {
+    if (globalThis.window !== undefined) {
         window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
             const error = event.reason instanceof Error ? event.reason : new Error(String(event.reason));
 

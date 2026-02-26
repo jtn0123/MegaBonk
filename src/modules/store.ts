@@ -153,7 +153,7 @@ export function setState<K extends keyof AppState>(key: K, value: AppState[K] | 
     state[key] = resolvedValue;
 
     // Sync to window for backwards compatibility
-    if (windowSyncEnabled && typeof globalThis.window !== 'undefined') {
+    if (windowSyncEnabled && globalThis.window !== undefined) {
         syncStateKeyToWindow(key, resolvedValue);
     }
 
@@ -212,7 +212,7 @@ export function resetStore(): void {
     state = deepCloneInitialState();
 
     // Clear window properties if sync is enabled
-    if (windowSyncEnabled && typeof globalThis.window !== 'undefined') {
+    if (windowSyncEnabled && globalThis.window !== undefined) {
         window.currentTab = state.currentTab;
         window.filteredData = state.filteredData;
         window.allData = state.allData;
@@ -239,7 +239,7 @@ export function enableWindowSync(): void {
     windowSyncEnabled = true;
 
     // Sync current state to window
-    if (typeof globalThis.window !== 'undefined') {
+    if (globalThis.window !== undefined) {
         window.currentTab = state.currentTab;
         window.filteredData = state.filteredData;
         window.allData = state.allData;
@@ -314,7 +314,7 @@ export function batchUpdate(updates: Partial<AppState>): void {
             changedKeys.add(key);
 
             // Sync to window
-            if (windowSyncEnabled && typeof globalThis.window !== 'undefined') {
+            if (windowSyncEnabled && globalThis.window !== undefined) {
                 syncStateKeyToWindow(key, value as AppState[typeof key]);
             }
         }

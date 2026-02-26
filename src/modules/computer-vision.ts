@@ -45,7 +45,7 @@ import {
     clearDetectionCache,
 } from './cv/index.ts';
 
-if (typeof globalThis.window !== 'undefined') {
+if (globalThis.window !== undefined) {
     // Core
     window.initCV = initCV;
 

@@ -56,7 +56,7 @@ export {
 } from './cv-enhanced/index.ts';
 
 // Export for window (browser compatibility)
-if (typeof globalThis.window !== 'undefined') {
+if (globalThis.window !== undefined) {
     import('./cv-enhanced/detection.ts').then(({ initEnhancedCV, detectItemsWithEnhancedCV }) => {
         window.initEnhancedCV = initEnhancedCV;
         window.detectItemsWithEnhancedCV = detectItemsWithEnhancedCV;

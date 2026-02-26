@@ -114,7 +114,7 @@ export async function renderTabContent(tabName: string): Promise<void> {
 // Register renderTabContent for type-safe cross-module access
 registerFunction('renderTabContent', renderTabContent);
 // Keep window assignment for backwards compatibility during migration
-if (typeof globalThis.window !== 'undefined') {
+if (globalThis.window !== undefined) {
     // Type assertions: functions use specific types but window uses generic types for flexibility
     window.renderTabContent = renderTabContent as typeof window.renderTabContent;
     window.renderGlobalSearchResults = renderGlobalSearchResults as typeof window.renderGlobalSearchResults;
