@@ -342,12 +342,12 @@ export function captureStateSnapshot(): Record<string, unknown> {
                 : null,
             compareItemsCount: compareItems?.length ?? 0,
             windowSize: {
-                width: typeof window !== 'undefined' ? window.innerWidth : 0,
-                height: typeof window !== 'undefined' ? window.innerHeight : 0,
+                width: typeof globalThis.window !== 'undefined' ? window.innerWidth : 0,
+                height: typeof globalThis.window !== 'undefined' ? window.innerHeight : 0,
             },
             userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
             online: typeof navigator !== 'undefined' ? navigator.onLine : true,
-            url: typeof window !== 'undefined' ? window.location.href : 'unknown',
+            url: typeof globalThis.window !== 'undefined' ? window.location.href : 'unknown',
         };
     } catch (error) {
         return {

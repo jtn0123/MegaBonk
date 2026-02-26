@@ -4,7 +4,6 @@
 
 import { safeGetElementById, processBlurUpImages } from '../utils.ts';
 import { getDataForTab, allData } from '../data-service.ts';
-import type { AllGameData } from '../../types/index.ts';
 import { filterData } from '../filters.ts';
 import { setState } from '../store.ts';
 import { registerFunction } from '../registry.ts';
@@ -33,7 +32,7 @@ export async function renderTabContent(tabName: string): Promise<void> {
         renderBuildPlanner();
         // Initialize screenshot import feature
         const { initBuildPlannerScan } = await import('../build-planner-scan.ts');
-        initBuildPlannerScan(allData as AllGameData);
+        initBuildPlannerScan(allData);
         // Hide item count badge for build planner tab
         updateStats([], tabName);
         return;
@@ -115,7 +114,7 @@ export async function renderTabContent(tabName: string): Promise<void> {
 // Register renderTabContent for type-safe cross-module access
 registerFunction('renderTabContent', renderTabContent);
 // Keep window assignment for backwards compatibility during migration
-if (typeof window !== 'undefined') {
+if (typeof globalThis.window !== 'undefined') {
     // Type assertions: functions use specific types but window uses generic types for flexibility
     window.renderTabContent = renderTabContent as typeof window.renderTabContent;
     window.renderGlobalSearchResults = renderGlobalSearchResults as typeof window.renderGlobalSearchResults;

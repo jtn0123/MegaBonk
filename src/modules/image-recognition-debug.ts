@@ -47,7 +47,7 @@ const DEFAULT_DEBUG_OPTIONS: DebugOverlayOptions = {
 
 // Safe localStorage access for SSR/testing environments
 function getLocalStorage(): Storage | null {
-    if (typeof window !== 'undefined' && window.localStorage) {
+    if (typeof globalThis.window !== 'undefined' && window.localStorage) {
         return window.localStorage;
     }
     return null;
@@ -758,7 +758,7 @@ export function downloadDebugImage(dataUrl: string, filename: string = 'debug-ov
  * Register debug commands on window for console access
  */
 export function registerDebugCommands(): void {
-    if (typeof window === 'undefined') return;
+    if (typeof globalThis.window === 'undefined') return;
 
     window.cvDebug = {
         enable: () => setDebugEnabled(true),
@@ -776,6 +776,6 @@ export function registerDebugCommands(): void {
 }
 
 // Auto-register debug commands
-if (typeof window !== 'undefined') {
+if (typeof globalThis.window !== 'undefined') {
     registerDebugCommands();
 }

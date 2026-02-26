@@ -149,15 +149,15 @@ export function getEntityForEntry(entry: RecentlyViewedEntry): Entity | null {
 
     switch (type) {
         case 'items':
-            return findEntity(allData.items?.items as Item[] | undefined, (i: Item) => i.id === id);
+            return findEntity(allData.items?.items, (i: Item) => i.id === id);
         case 'weapons':
-            return findEntity(allData.weapons?.weapons as Weapon[] | undefined, (w: Weapon) => w.id === id);
+            return findEntity(allData.weapons?.weapons, (w: Weapon) => w.id === id);
         case 'tomes':
-            return findEntity(allData.tomes?.tomes as Tome[] | undefined, (t: Tome) => t.id === id);
+            return findEntity(allData.tomes?.tomes, (t: Tome) => t.id === id);
         case 'characters':
-            return findEntity(allData.characters?.characters as Character[] | undefined, (c: Character) => c.id === id);
+            return findEntity(allData.characters?.characters, (c: Character) => c.id === id);
         case 'shrines':
-            return findEntity(allData.shrines?.shrines as Shrine[] | undefined, (s: Shrine) => s.id === id);
+            return findEntity(allData.shrines?.shrines, (s: Shrine) => s.id === id);
         default:
             return null;
     }

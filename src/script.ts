@@ -45,7 +45,7 @@ import './modules/ocr/index.ts';
 function setupErrorTracking(): void {
     // Catch uncaught JavaScript errors
     window.onerror = (message, source, lineno, colno, error) => {
-        const err = error as Error | undefined;
+        const err = error;
         logger.error({
             operation: 'error.unhandled',
             error: {

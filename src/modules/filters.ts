@@ -424,7 +424,7 @@ export function clearFilters(): void {
 // Global Scope Exports (backwards compatibility)
 // ========================================
 
-if (typeof window !== 'undefined') {
+if (typeof globalThis.window !== 'undefined') {
     Object.assign(window, {
         updateFilters,
         filterData,

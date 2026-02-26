@@ -119,7 +119,7 @@ export function findInCollection<T extends { [K in IdKey]: string }, IdKey exten
     idKey: IdKey = 'id' as IdKey
 ): T | undefined {
     const collection = collections?.[collectionKey];
-    const items = collection?.[collectionKey] as T[] | undefined;
+    const items = collection?.[collectionKey];
     return items?.find(item => item[idKey] === id);
 }
 
