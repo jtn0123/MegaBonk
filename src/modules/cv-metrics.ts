@@ -98,7 +98,7 @@ export interface StrategyComparison {
  */
 class MetricsTracker {
     private runs: DetectionMetrics[] = [];
-    private maxRuns = 100; // Keep last 100 runs
+    private readonly maxRuns = 100; // Keep last 100 runs
 
     /**
      * Start a new metrics tracking session
@@ -260,9 +260,9 @@ class MetricsTracker {
         report += '|----------|-----------|------------|----------------|-----------|--------|----------|\n';
 
         metricsToReport.forEach(m => {
-            const precision = m.precision !== undefined ? m.precision.toFixed(3) : 'N/A';
-            const recall = m.recall !== undefined ? m.recall.toFixed(3) : 'N/A';
-            const f1 = m.f1Score !== undefined ? m.f1Score.toFixed(3) : 'N/A';
+            const precision = m.precision === undefined ? 'N/A' : m.precision.toFixed(3);
+            const recall = m.recall === undefined ? 'N/A' : m.recall.toFixed(3);
+            const f1 = m.f1Score === undefined ? 'N/A' : m.f1Score.toFixed(3);
 
             report += `| ${m.strategyName} | ${m.totalTime}ms | ${m.totalDetections} | ${m.averageConfidence.toFixed(2)} | ${precision} | ${recall} | ${f1} |\n`;
         });
@@ -312,7 +312,7 @@ class MetricsTracker {
  * Metrics tracking session
  */
 class MetricsSession {
-    private startTime: number;
+    private readonly startTime: number;
     private loadStartTime?: number;
     private preprocessStartTime?: number;
     private matchingStartTime?: number;
@@ -340,9 +340,9 @@ class MetricsSession {
     };
 
     constructor(
-        private strategy: CVStrategy,
-        private strategyName: string,
-        private tracker: MetricsTracker
+        private readonly strategy: CVStrategy,
+        private readonly strategyName: string,
+        private readonly tracker: MetricsTracker
     ) {
         this.startTime = performance.now();
     }

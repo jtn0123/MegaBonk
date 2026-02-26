@@ -89,11 +89,11 @@ export async function getOrCreateWorker(): Promise<Awaited<ReturnType<typeof imp
             });
 
             // Only assign if still no active worker (prevent overwriting)
-            if (!activeWorker) {
-                activeWorker = worker;
-            } else {
+            if (activeWorker) {
                 // Another caller won the race, terminate the duplicate
                 await worker.terminate();
+            } else {
+                activeWorker = worker;
             }
 
             logger.info({

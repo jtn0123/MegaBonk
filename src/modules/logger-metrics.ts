@@ -26,9 +26,9 @@ import { Logger, LogLevel, WideEvent, EventContext, EventError } from './logger-
  * ```
  */
 export class EventBuilder {
-    private event: Partial<WideEvent>;
+    private readonly event: Partial<WideEvent>;
     private data: Record<string, unknown> = {};
-    private startTime: number;
+    private readonly startTime: number;
 
     constructor(operation: string) {
         this.startTime = performance.now();

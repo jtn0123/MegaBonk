@@ -331,9 +331,9 @@ export function drawDebugRegions(
             ctx.fillStyle = region.color;
 
             const labelText =
-                region.confidence !== undefined
-                    ? `${region.label} (${(region.confidence * 100).toFixed(1)}%)`
-                    : region.label;
+                region.confidence === undefined
+                    ? region.label
+                    : `${region.label} (${(region.confidence * 100).toFixed(1)}%)`;
 
             // Draw label background
             const textMetrics = ctx.measureText(labelText);

@@ -231,7 +231,7 @@ async function loadModuleWithCache(loader: TabModuleLoader): Promise<void> {
 export function preloadCommonModules(): void {
     // Use requestIdleCallback if available, otherwise setTimeout
     const schedulePreload =
-        typeof requestIdleCallback !== 'undefined' ? requestIdleCallback : (cb: () => void) => setTimeout(cb, 1000);
+        typeof requestIdleCallback === 'undefined' ? (cb: () => void) => setTimeout(cb, 1000) : requestIdleCallback;
 
     schedulePreload(() => {
         // Preload compare module (often used from items tab)

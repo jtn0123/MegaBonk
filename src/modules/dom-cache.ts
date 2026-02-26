@@ -12,7 +12,7 @@ type CachedElement = HTMLElement | Element | NodeListOf<Element> | null;
  * DOM element cache with automatic invalidation
  */
 class DOMCache {
-    private cache: Map<string, CachedElement>;
+    private readonly cache: Map<string, CachedElement>;
     private initialized: boolean;
 
     constructor() {

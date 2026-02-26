@@ -255,7 +255,7 @@ const WORKER_RESTART_DELAY_MS = 500;
 
 class CVWorkerManager {
     private worker: Worker | null = null;
-    private pendingRequests: Map<
+    private readonly pendingRequests: Map<
         string,
         {
             resolve: (result: DetectionResult[]) => void;

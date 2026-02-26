@@ -368,7 +368,7 @@ function truncateText(text: string, maxLength: number): string {
  * Escape regex special characters
  */
 function escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return str.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**

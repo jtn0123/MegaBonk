@@ -278,9 +278,9 @@ export interface ValidationEvent extends WideEvent {
 export class Logger {
     private static instance: Logger;
     private config: LoggerConfig;
-    private sessionId: string;
+    private readonly sessionId: string;
     private globalContext: Record<string, unknown> = {};
-    private correlationStack: string[] = [];
+    private readonly correlationStack: string[] = [];
 
     private constructor() {
         this.sessionId = this.generateSessionId();
@@ -496,7 +496,7 @@ export class Logger {
             ...this.globalContext,
             ...eventContext,
             sessionId: this.sessionId,
-            online: typeof navigator !== 'undefined' ? navigator.onLine : true,
+            online: typeof navigator === 'undefined' ? true : navigator.onLine,
         };
 
         // Add viewport size if in browser
@@ -569,7 +569,7 @@ export class Logger {
     /**
      * Send event to remote endpoint (batched with tail sampling)
      */
-    private remoteBuffer: WideEvent[] = [];
+    private readonly remoteBuffer: WideEvent[] = [];
     private remoteFlushTimeout: ReturnType<typeof setTimeout> | null = null;
 
     private sendToRemote(event: WideEvent): void {
