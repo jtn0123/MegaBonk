@@ -54,7 +54,7 @@ export function setupSearchListeners(getListenerOptions: GetListenerOptionsFn): 
  * @param target - The clicked element
  */
 export async function handleSearchResultClick(target: Element): Promise<void> {
-    const card = target.closest('.search-result-card') as HTMLElement | null;
+    const card = target.closest<HTMLElement>('.search-result-card');
     const tabType = card?.dataset.tabType as TabName | undefined;
     const entityId = card?.dataset.entityId;
 

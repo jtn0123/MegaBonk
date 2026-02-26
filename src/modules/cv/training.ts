@@ -592,7 +592,7 @@ export function getTrainingDataVersion(): TrainingDataVersion | null {
     for (const itemData of Object.values(trainingIndex.items)) {
         for (const sample of itemData.samples) {
             if (sample.validation_type in sourceCounts) {
-                sourceCounts[sample.validation_type as keyof typeof sourceCounts]++;
+                sourceCounts[sample.validation_type]++;
             }
         }
     }

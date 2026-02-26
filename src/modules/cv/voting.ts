@@ -289,7 +289,7 @@ export function combineVotes(votes: TemplateVote[], config?: Partial<VotingConfi
     }
 
     // Get rarity from first vote for threshold check
-    const rarity = votes.find(v => v.itemId === winner!.itemId)?.rarity;
+    const rarity = votes.find(v => v.itemId === winner.itemId)?.rarity;
 
     return {
         itemId: winner.itemId,

@@ -229,7 +229,7 @@ function showMoreMenu(): void {
 
     // Focus the first menu item after animation
     requestAnimationFrame(() => {
-        const firstItem = menu!.querySelector<HTMLElement>('.more-menu-item');
+        const firstItem = menu?.querySelector<HTMLElement>('.more-menu-item');
         firstItem?.focus();
     });
 
@@ -393,7 +393,7 @@ function updateMobileNavState(currentTab: string): void {
  */
 function handleNavClick(e: Event): void {
     const target = e.target as HTMLElement;
-    const navItem = target.closest('.nav-item') as HTMLElement | null;
+    const navItem = target.closest<HTMLElement>('.nav-item');
 
     if (!navItem) return;
 

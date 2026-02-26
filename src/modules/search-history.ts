@@ -137,7 +137,7 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement, onSelec
     };
 
     // Clear button handler
-    const clearBtn = dropdown.querySelector('.clear-history-btn') as HTMLButtonElement | null;
+    const clearBtn = dropdown.querySelector<HTMLButtonElement>('.clear-history-btn');
     clearBtn?.addEventListener(
         'click',
         e => {
@@ -158,7 +158,7 @@ export function showSearchHistoryDropdown(searchInput: HTMLInputElement, onSelec
             item.classList.toggle('active', isActive);
             item.setAttribute('aria-selected', isActive ? 'true' : 'false');
             if (isActive) {
-                (item as HTMLElement).focus();
+                item.focus();
             }
         });
     };

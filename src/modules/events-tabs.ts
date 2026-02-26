@@ -254,6 +254,5 @@ registerFunction('switchTab', switchTab);
 
 // Keep window assignment for backwards compatibility during migration
 if (globalThis.window !== undefined) {
-    // Type assertion: switchTab accepts TabName but window type uses string for flexibility
-    window.switchTab = switchTab as typeof window.switchTab;
+    window.switchTab = switchTab;
 }

@@ -389,7 +389,7 @@ function handleActionButton(target: Element): boolean {
 function handleSuggestionCard(target: Element): boolean {
     const card = target.classList.contains('suggestion-card')
         ? (target as HTMLElement)
-        : (target.closest('.suggestion-card') as HTMLElement | null);
+        : target.closest<HTMLElement>('.suggestion-card');
     if (!card) return false;
 
     const entityType = card.dataset.entityType;

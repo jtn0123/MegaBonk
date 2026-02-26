@@ -606,22 +606,22 @@ declare global {
             useWorkers?: boolean
         ) => Promise<unknown[]>;
         detectGridPositions?: (width: number, height: number, gridSize?: number) => unknown[];
-        detectItemCounts?: (imageDataUrl: string, cells: unknown[]) => Promise<Map<string, number>>;
+        detectItemCounts?: (imageDataUrl: string, cells: { x: number; y: number; width: number; height: number; label?: string }[]) => Promise<Map<string, number>>;
         loadImageToCanvas?: (
             imageDataUrl: string,
             timeoutMs?: number
         ) => Promise<{ canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; width: number; height: number }>;
         calculateSimilarity?: (imageData1: ImageData, imageData2: ImageData) => number;
-        calculateIoU?: (box1: unknown, box2: unknown) => number;
-        nonMaxSuppression?: (detections: unknown[], iouThreshold?: number) => unknown[];
+        calculateIoU?: (box1: { x: number; y: number; width: number; height: number }, box2: { x: number; y: number; width: number; height: number }) => number;
+        nonMaxSuppression?: (detections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[], iouThreshold?: number) => { type: string; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[];
         getAdaptiveIconSizes?: (width: number, height: number) => number[];
-        extractCountRegion?: (cell: unknown) => unknown;
+        extractCountRegion?: (cell: { x: number; y: number; width: number; height: number; label?: string }) => { x: number; y: number; width: number; height: number; label?: string };
         detectHotbarRegion?: (
             ctx: CanvasRenderingContext2D,
             width: number,
             height: number
         ) => { topY: number; bottomY: number; confidence: number };
-        detectIconEdges?: (ctx: CanvasRenderingContext2D, width: number, bandRegion: unknown) => number[];
+        detectIconEdges?: (ctx: CanvasRenderingContext2D, width: number, bandRegion: { topY: number; bottomY: number }) => number[];
         detectIconScale?: (
             ctx: CanvasRenderingContext2D,
             width: number,
@@ -629,19 +629,20 @@ declare global {
         ) => { iconSize: number; confidence: number; method: string };
         resizeImageData?: (imageData: ImageData, targetWidth: number, targetHeight: number) => ImageData | null;
         fitsGrid?: (value: number, gridStart: number, spacing: number, tolerance: number) => boolean;
-        verifyGridPattern?: (detections: unknown[], expectedIconSize: number) => unknown;
+        verifyGridPattern?: (detections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[], expectedIconSize: number) => { isValid: boolean; confidence: number; filteredDetections: unknown[]; gridParams: { xSpacing: number; ySpacing: number; tolerance: number } | null };
         runEnsembleDetection?: (
             ctx: CanvasRenderingContext2D,
             width: number,
             height: number,
-            items: unknown[],
-            cell: unknown
-        ) => Promise<unknown>;
+            items: Item[],
+            cell: { x: number; y: number; width: number; height: number; label?: string },
+            progressCallback?: (progress: number, status: string) => void
+        ) => Promise<{ itemId: string; confidence: number; position: { x: number; y: number; width: number; height: number }; bestStrategy: string; strategyResults: unknown[] } | null>;
         getCVMetrics?: () => unknown;
         getDetectionConfig?: (width?: number, height?: number) => unknown;
 
         // CV color functions
-        extractDominantColors?: (imageData: ImageData) => string[];
+        extractDominantColors?: (imageData: ImageData, numColors?: number) => { r: number; g: number; b: number; frequency: number }[];
         getDominantColor?: (imageData: ImageData) => string;
         calculateColorVariance?: (imageData: ImageData) => number;
         isEmptyCell?: (imageData: ImageData) => boolean;
@@ -667,18 +668,17 @@ declare global {
 
         // Advisor functions (from advisor.ts)
         initAdvisor?: (gameData: AllGameData) => void;
-        applyScannedBuild?: (state: unknown) => void;
+        applyScannedBuild?: (state: { character: Character | null; weapon: Weapon | null; items: Item[]; tomes: Tome[]; stats?: { hp?: number; damage?: number; speed?: number; critChance?: number } }) => void;
 
         // UI functions (from events.ts, renderers.ts)
-        // Note: These use string for flexibility with both TabName and general strings
-        switchTab?: (tabId: string) => void;
+        switchTab?: (tabId: 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator' | 'advisor' | 'changelog' | 'about') => Promise<void>;
         renderTabContent?: (tabId: string) => void;
-        renderGlobalSearchResults?: (results: unknown[], currentTab?: string, searchQuery?: string) => void;
+        renderGlobalSearchResults?: (results: { type: EntityType; item: Item | Weapon | Tome | Character | Shrine; score: number }[], currentTab?: string, searchQuery?: string) => void;
 
         // Filter functions (from filters.ts)
         clearFilters?: () => void;
         toggleTextExpand?: (element: HTMLElement) => void;
-        globalSearch?: (query: string, allData: AllGameData) => unknown[];
+        globalSearch?: (query: string, allData: AllGameData) => { type: string; item: Item | Weapon | Tome | Character | Shrine; score: number }[];
 
         // Offline UI functions (from offline-ui.ts)
         recordDataSync?: () => void;
@@ -700,16 +700,8 @@ declare global {
         cvDebug?: Record<string, unknown>;
 
         // Test utilities (from test-utils.ts)
-        testUtils?: {
-            calculateAccuracyMetrics?: (...args: unknown[]) => unknown;
-            calculateF1Score?: (...args: unknown[]) => unknown;
-            detectResolution?: (width: number, height: number) => unknown;
-            detectUILayout?: (...args: unknown[]) => unknown;
-            generateTestReport?: (...args: unknown[]) => unknown;
-            runAutomatedTest?: (...args: unknown[]) => unknown;
-            compareDetectionResults?: (...args: unknown[]) => unknown;
-            getGridPositions?: (width: number, height: number) => unknown[];
-        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        testUtils?: Record<string, (...args: any[]) => any>;
     }
 }
 
