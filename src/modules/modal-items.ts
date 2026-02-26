@@ -210,13 +210,13 @@ export function renderItemModal(data: Item): string {
  */
 function setupScalingTabHandlers(data: Item): void {
     // Use event delegation on the container to avoid memory leaks
-    const container = document.querySelector('.scaling-tabs') as HTMLElement | null;
+    const container = document.querySelector<HTMLElement>('.scaling-tabs');
     if (!container) return;
 
     // Store handler reference for potential cleanup
     const handleTabClick = async (e: Event): Promise<void> => {
         const target = e.target as HTMLElement;
-        const tab = target.closest(`.scaling-tab[data-item-id="${data.id}"]`) as HTMLButtonElement | null;
+        const tab = target.closest<HTMLButtonElement>(`.scaling-tab[data-item-id="${data.id}"]`);
         if (!tab) return;
 
         // Update active state and ARIA

@@ -407,7 +407,6 @@ export function compareDetectionResults(
 // Global Assignments
 // ========================================
 if (globalThis.window !== undefined) {
-    // Type assertion: functions use specific types but window interface uses generic types for flexibility
     window.testUtils = {
         calculateAccuracyMetrics,
         calculateF1Score,
@@ -416,5 +415,5 @@ if (globalThis.window !== undefined) {
         generateTestReport,
         runAutomatedTest,
         compareDetectionResults,
-    } as typeof window.testUtils;
+    };
 }

@@ -500,7 +500,7 @@ export function showFilterSheet(): void {
 
     // Focus first input after animation
     requestAnimationFrame(() => {
-        const firstInput = sheet!.querySelector<HTMLElement>('select, input');
+        const firstInput = sheet?.querySelector<HTMLElement>('select, input');
         firstInput?.focus();
     });
 

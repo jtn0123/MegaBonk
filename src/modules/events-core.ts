@@ -333,7 +333,7 @@ function handleViewDetailsClick(target: HTMLElement): void {
  * Handle item card click to open detail modal
  */
 function handleCardClick(target: HTMLElement): void {
-    const card = target.closest('.item-card') as HTMLElement | null;
+    const card = target.closest<HTMLElement>('.item-card');
     if (!card) return;
 
     // Map card classes/data to entity types
@@ -351,7 +351,7 @@ function handleCardClick(target: HTMLElement): void {
  */
 function handleCompareCheckboxClick(e: MouseEvent, target: Element): void {
     const label = target.closest('.compare-checkbox-label') as HTMLElement;
-    const checkbox = label?.querySelector('.compare-checkbox') as HTMLInputElement | null;
+    const checkbox = label?.querySelector<HTMLInputElement>('.compare-checkbox') ?? null;
     if (!checkbox) return;
 
     const now = Date.now();
@@ -377,7 +377,7 @@ function handleCompareCheckboxClick(e: MouseEvent, target: Element): void {
 function handleRemoveCompareClick(target: Element): void {
     const btn = target.classList.contains('remove-compare-btn')
         ? (target as HTMLElement)
-        : (target.closest('.remove-compare-btn') as HTMLElement | null);
+        : target.closest<HTMLElement>('.remove-compare-btn');
     const id = btn?.dataset.removeId;
     if (id) {
         import('./compare.ts')
@@ -395,7 +395,7 @@ function handleRemoveCompareClick(target: Element): void {
  * Handle breakpoint card click for quick calc
  */
 function handleBreakpointCardClick(target: Element): void {
-    const card = target.closest('.breakpoint-card') as HTMLElement | null;
+    const card = target.closest<HTMLElement>('.breakpoint-card');
     const itemId = card?.dataset.item;
     const targetVal = card?.dataset.target;
     if (itemId && targetVal) {
@@ -623,8 +623,8 @@ export function setupTabButtonListeners(): void {
  * Setup tab scroll indicators for mobile
  */
 export function setupTabScrollIndicators(): void {
-    const tabContainer = document.querySelector('.tabs .container') as HTMLElement | null;
-    const tabButtons = document.querySelector('.tab-buttons') as HTMLElement | null;
+    const tabContainer = document.querySelector<HTMLElement>('.tabs .container');
+    const tabButtons = document.querySelector<HTMLElement>('.tab-buttons');
 
     if (!tabContainer || !tabButtons) return;
 
@@ -768,7 +768,7 @@ export function setupFilterToggle(): void {
  * Setup sticky search bar that hides on scroll down, shows on scroll up
  */
 export function setupStickySearchHideOnScroll(): void {
-    const controls = document.querySelector('.controls') as HTMLElement | null;
+    const controls = document.querySelector<HTMLElement>('.controls');
     if (!controls) return;
 
     // Only enable on mobile

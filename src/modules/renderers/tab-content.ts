@@ -115,7 +115,6 @@ export async function renderTabContent(tabName: string): Promise<void> {
 registerFunction('renderTabContent', renderTabContent);
 // Keep window assignment for backwards compatibility during migration
 if (globalThis.window !== undefined) {
-    // Type assertions: functions use specific types but window uses generic types for flexibility
-    window.renderTabContent = renderTabContent as typeof window.renderTabContent;
-    window.renderGlobalSearchResults = renderGlobalSearchResults as typeof window.renderGlobalSearchResults;
+    window.renderTabContent = renderTabContent;
+    window.renderGlobalSearchResults = renderGlobalSearchResults;
 }

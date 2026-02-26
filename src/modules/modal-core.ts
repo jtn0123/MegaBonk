@@ -143,7 +143,7 @@ export function activateFocusTrap(modal: HTMLElement): void {
 
         // Focus the modal title for better screen reader context
         // Make title programmatically focusable and focus it
-        const modalTitle = modal.querySelector('#modal-title, h2') as HTMLElement | null;
+        const modalTitle = modal.querySelector<HTMLElement>('#modal-title, h2');
         if (modalTitle) {
             modalTitle.tabIndex = -1;
             modalTitle.focus();

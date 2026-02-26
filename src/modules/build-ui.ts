@@ -209,7 +209,7 @@ export function setWeaponSelection(weaponId: string): void {
  * @param tomeIds - Array of tome IDs to check
  */
 export function setTomeCheckboxes(tomeIds: string[]): void {
-    const tomeCheckboxes = document.querySelectorAll('.tome-checkbox') as NodeListOf<HTMLInputElement>;
+    const tomeCheckboxes = document.querySelectorAll<HTMLInputElement>('.tome-checkbox');
     const checkboxMap = new Map<string, HTMLInputElement>();
     tomeCheckboxes.forEach(cb => checkboxMap.set(cb.value, cb));
 
@@ -224,7 +224,7 @@ export function setTomeCheckboxes(tomeIds: string[]): void {
  * @param itemIds - Array of item IDs to check
  */
 export function setItemCheckboxes(itemIds: string[]): void {
-    const itemCheckboxes = document.querySelectorAll('.item-checkbox') as NodeListOf<HTMLInputElement>;
+    const itemCheckboxes = document.querySelectorAll<HTMLInputElement>('.item-checkbox');
     const checkboxMap = new Map<string, HTMLInputElement>();
     itemCheckboxes.forEach(cb => checkboxMap.set(cb.value, cb));
 

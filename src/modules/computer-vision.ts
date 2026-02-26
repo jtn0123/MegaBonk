@@ -49,29 +49,28 @@ if (globalThis.window !== undefined) {
     // Core
     window.initCV = initCV;
 
-    // Detection - use type assertions for functions with concrete parameter types
-    // The Window interface uses `unknown` for flexibility, but actual functions use specific types
+
     window.detectItemsWithCV = detectItemsWithCV;
     window.detectGridPositions = detectGridPositions;
-    window.detectItemCounts = detectItemCounts as typeof window.detectItemCounts;
+    window.detectItemCounts = detectItemCounts;
     window.loadImageToCanvas = loadImageToCanvas;
     window.calculateSimilarity = calculateSimilarity;
-    window.calculateIoU = calculateIoU as typeof window.calculateIoU;
-    window.nonMaxSuppression = nonMaxSuppression as typeof window.nonMaxSuppression;
+    window.calculateIoU = calculateIoU;
+    window.nonMaxSuppression = nonMaxSuppression;
     window.getAdaptiveIconSizes = getAdaptiveIconSizes;
-    window.extractCountRegion = extractCountRegion as typeof window.extractCountRegion;
+    window.extractCountRegion = extractCountRegion;
     window.detectHotbarRegion = detectHotbarRegion;
-    window.detectIconEdges = detectIconEdges as typeof window.detectIconEdges;
+    window.detectIconEdges = detectIconEdges;
     window.detectIconScale = detectIconScale;
     window.resizeImageData = resizeImageData;
     window.fitsGrid = fitsGrid;
-    window.verifyGridPattern = verifyGridPattern as typeof window.verifyGridPattern;
-    window.runEnsembleDetection = runEnsembleDetection as typeof window.runEnsembleDetection;
+    window.verifyGridPattern = verifyGridPattern;
+    window.runEnsembleDetection = runEnsembleDetection;
     window.getCVMetrics = getCVMetrics;
     window.getDetectionConfig = getDetectionConfig;
 
     // Color - extractDominantColors returns objects, Window interface expects strings for simplicity
-    window.extractDominantColors = extractDominantColors as unknown as typeof window.extractDominantColors;
+    window.extractDominantColors = extractDominantColors;
     window.getDominantColor = getDominantColor;
     window.calculateColorVariance = calculateColorVariance;
     window.isEmptyCell = isEmptyCell;

@@ -96,7 +96,7 @@ export function createProgressIndicator(initialStatus: string = 'Initializing...
 
         update: (progress: number, status: string) => {
             const textEl = progressDiv.querySelector('.scan-progress-text');
-            const fillEl = progressDiv.querySelector('.scan-progress-fill') as HTMLElement | null;
+            const fillEl = progressDiv.querySelector<HTMLElement>('.scan-progress-fill');
 
             if (textEl) {
                 textEl.textContent = status;

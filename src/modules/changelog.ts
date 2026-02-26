@@ -304,7 +304,7 @@ export function renderChangelog(patches: ExtendedPatch[]): void {
  * @param e - Click event
  */
 export function handleExpandClick(e: Event): void {
-    const button = (e.target as HTMLElement).closest('.changelog-expand-btn') as HTMLButtonElement | null;
+    const button = (e.target as HTMLElement).closest<HTMLButtonElement>('.changelog-expand-btn');
     if (button) {
         toggleChangelogExpand(button);
     }

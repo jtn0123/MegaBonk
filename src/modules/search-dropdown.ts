@@ -218,7 +218,7 @@ export function navigateToResult(result: GlobalSearchResult): void {
     // Use setTimeout to allow async tab switch + render to complete
     setTimeout(() => {
         const entityId = result.item.id;
-        const itemCard = document.querySelector(`[data-entity-id="${entityId}"]`) as HTMLElement | null;
+        const itemCard = document.querySelector<HTMLElement>(`[data-entity-id="${entityId}"]`);
         if (itemCard) {
             itemCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
             itemCard.classList.add('search-highlight');
@@ -423,7 +423,7 @@ export function setupDropdownClickHandlers(): void {
         'click',
         (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            const item = target.closest('.search-dropdown-item') as HTMLElement | null;
+            const item = target.closest<HTMLElement>('.search-dropdown-item');
 
             if (item) {
                 const indexStr = item.dataset.index;
