@@ -102,6 +102,45 @@ export function registerErrorBoundary(moduleName: string, fallbackFn: (error: Er
  * @param options - Configuration options
  * @returns Wrapped function with error handling
  */
+function logBoundaryError(err: Error, moduleName: string, phase: string, data?: Record<string, unknown>): void {
+    logger.error({
+        operation: 'error.boundary',
+        error: { name: err.name, message: err.message, stack: err.stack, module: moduleName },
+        data: { phase, ...data },
+    });
+}
+
+async function invokeErrorHandler(
+    onError: ((error: Error, retryCount: number) => void | Promise<void>) | null,
+    err: Error,
+    retries: number,
+    moduleName: string
+): Promise<void> {
+    if (!onError) return;
+    try {
+        await onError(err, retries);
+    } catch (handlerError) {
+        logBoundaryError(handlerError as Error, moduleName, 'handler_failed');
+    }
+}
+
+async function tryFallback<TReturn>(
+    fallback: ((error: Error) => unknown) | null | undefined,
+    err: Error,
+    moduleName: string,
+    phase: string
+): Promise<{ value: Awaited<TReturn>; ok: true } | { ok: false }> {
+    if (!fallback) return { ok: false };
+    try {
+        const value = (await fallback(err)) as Awaited<TReturn>;
+        return { value, ok: true };
+    } catch (fallbackError) {
+        logBoundaryError(fallbackError as Error, moduleName, phase, { recoveryAttempted: true, recoverySucceeded: false });
+        if (phase === 'fallback_failed') throw fallbackError;
+        return { ok: false };
+    }
+}
+
 export function withErrorBoundary<TArgs extends unknown[], TReturn>(
     moduleName: string,
     fn: (...args: TArgs) => TReturn,
@@ -119,57 +158,22 @@ export function withErrorBoundary<TArgs extends unknown[], TReturn>(
             } catch (error) {
                 const err = error as Error;
 
-                // Record error in breadcrumbs
                 recordError(err, moduleName);
-
-                // Capture state snapshot for debugging
                 const stateSnapshot = captureStateSnapshot();
-                const recentBreadcrumbs = getRecentBreadcrumbs(60000); // Last 60 seconds
+                const recentBreadcrumbs = getRecentBreadcrumbs(60000);
 
-                // Log error with wide event including state snapshot
-                logger.error({
-                    operation: 'error.boundary',
-                    error: {
-                        name: err.name,
-                        message: err.message,
-                        stack: err.stack,
-                        module: moduleName,
-                    },
-                    data: {
-                        retries,
-                        maxRetries,
-                        phase: 'caught',
-                        stateSnapshot,
-                        breadcrumbCount: recentBreadcrumbs.length,
-                    },
+                logBoundaryError(err, moduleName, 'caught', {
+                    retries, maxRetries, stateSnapshot,
+                    breadcrumbCount: recentBreadcrumbs.length,
                 });
 
-                // Update boundary stats
                 if (boundary) {
                     boundary.errorCount++;
                     boundary.lastError = err;
                 }
 
-                // Call custom error handler
-                if (onError) {
-                    try {
-                        await onError(err, retries);
-                    } catch (handlerError) {
-                        const hErr = handlerError as Error;
-                        logger.error({
-                            operation: 'error.boundary',
-                            error: {
-                                name: hErr.name,
-                                message: hErr.message,
-                                stack: hErr.stack,
-                                module: moduleName,
-                            },
-                            data: { phase: 'handler_failed' },
-                        });
-                    }
-                }
+                await invokeErrorHandler(onError, err, retries, moduleName);
 
-                // Retry logic
                 if (retries < maxRetries) {
                     retries++;
                     const delay = Math.min(1000 * Math.pow(2, retries), 10000);
@@ -177,58 +181,17 @@ export function withErrorBoundary<TArgs extends unknown[], TReturn>(
                     continue;
                 }
 
-                // Show user notification if not silent
                 if (!silent) {
                     try {
                         ToastManager.error(`An error occurred in ${moduleName}. Some features may not work correctly.`);
-                    } catch {
-                        // ToastManager not initialized yet, fail silently
-                    }
+                    } catch { /* ToastManager not initialized */ }
                 }
 
-                // Execute fallback
-                if (fallback) {
-                    try {
-                        return (await fallback(err)) as Awaited<TReturn>;
-                    } catch (fallbackError) {
-                        const fErr = fallbackError as Error;
-                        logger.error({
-                            operation: 'error.boundary',
-                            error: {
-                                name: fErr.name,
-                                message: fErr.message,
-                                stack: fErr.stack,
-                                module: moduleName,
-                            },
-                            data: { phase: 'fallback_failed', recoveryAttempted: true, recoverySucceeded: false },
-                        });
-                        // Re-throw fallback error so caller knows recovery failed
-                        throw fErr;
-                    }
-                }
+                const fallbackResult = await tryFallback<TReturn>(fallback, err, moduleName, 'fallback_failed');
+                if (fallbackResult.ok) return fallbackResult.value;
 
-                // Execute registered boundary fallback
-                if (boundary?.fallback) {
-                    try {
-                        return (await boundary.fallback(err)) as Awaited<TReturn>;
-                    } catch (boundaryError) {
-                        const bErr = boundaryError as Error;
-                        logger.error({
-                            operation: 'error.boundary',
-                            error: {
-                                name: bErr.name,
-                                message: bErr.message,
-                                stack: bErr.stack,
-                                module: moduleName,
-                            },
-                            data: {
-                                phase: 'boundary_fallback_failed',
-                                recoveryAttempted: true,
-                                recoverySucceeded: false,
-                            },
-                        });
-                    }
-                }
+                const boundaryResult = await tryFallback<TReturn>(boundary?.fallback, err, moduleName, 'boundary_fallback_failed');
+                if (boundaryResult.ok) return boundaryResult.value;
 
                 // Re-throw if no recovery options
                 throw err;

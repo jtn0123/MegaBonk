@@ -226,112 +226,77 @@ export function setupKeyboardShortcuts(): void {
     cleanupKeyboardShortcuts();
 
     keydownHandler = (e: KeyboardEvent) => {
-        // Ignore shortcuts when typing in inputs
         const target = e.target as HTMLElement;
-        if (target?.matches?.('input, textarea, select')) {
-            return;
-        }
+        if (target?.matches?.('input, textarea, select')) return;
 
-        // Help modal toggle
+        if (handleShortcutKey(e)) return;
+    };
+
+    function handleShortcutKey(e: KeyboardEvent): boolean {
         if (e.key === '?' || (e.shiftKey && e.key === '?')) {
             e.preventDefault();
             showShortcutsModal();
-            return;
+            return true;
         }
 
-        // Tab navigation (1-9)
         if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-            const tabs = [
-                'items',
-                'weapons',
-                'tomes',
-                'characters',
-                'shrines',
-                'build-planner',
-                'calculator',
-                'advisor',
-                'changelog',
-            ];
-            const tabIndex = Number.parseInt(e.key) - 1;
-            const tabBtn = document.querySelector<HTMLElement>(`[data-tab="${tabs[tabIndex]}"]`);
-            if (tabBtn) {
-                tabBtn.click();
-            }
-            return;
+            return handleTabNavigation(e);
         }
 
-        // Search focus
         if (e.key === '/' || (e.ctrlKey && e.key === 'f')) {
-            e.preventDefault();
-            const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
-            if (searchInput) {
-                searchInput.focus();
-                searchInput.select();
-            }
-            return;
+            return handleSearchFocus(e);
         }
 
-        // Clear filters
         if (e.ctrlKey && e.key === 'k') {
-            e.preventDefault();
-            const clearBtn = document.querySelector<HTMLElement>('[onclick="clearFilters()"]');
-            if (clearBtn) {
-                clearBtn.click();
-            }
-            return;
+            return handleClearFilters(e);
         }
 
-        // Escape - clear search and focus
         if (e.key === 'Escape') {
-            const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
-            if (searchInput?.value) {
-                e.preventDefault();
-                searchInput.value = '';
-                searchInput.dispatchEvent(new Event('input', { bubbles: true }));
-                searchInput.blur();
-            }
-            return;
+            return handleEscape();
         }
 
-        // View toggles
-        if (e.key.toLowerCase() === 'g') {
-            e.preventDefault();
-            const gridBtn = document.querySelector<HTMLElement>('[data-view="grid"]');
-            if (gridBtn) {
-                gridBtn.click();
-            }
-            return;
-        }
+        return handleViewToggle(e);
+    }
 
-        if (e.key.toLowerCase() === 'l') {
-            e.preventDefault();
-            const listBtn = document.querySelector<HTMLElement>('[data-view="list"]');
-            if (listBtn) {
-                listBtn.click();
-            }
-            return;
-        }
+    function handleTabNavigation(e: KeyboardEvent): boolean {
+        e.preventDefault();
+        const tabs = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator', 'advisor', 'changelog'];
+        const tabIndex = Number.parseInt(e.key) - 1;
+        document.querySelector<HTMLElement>(`[data-tab="${tabs[tabIndex]}"]`)?.click();
+        return true;
+    }
 
-        if (e.key.toLowerCase() === 'c') {
-            e.preventDefault();
-            const compareBtn = document.getElementById('compare-mode-toggle');
-            if (compareBtn) {
-                compareBtn.click();
-            }
-            return;
-        }
+    function handleSearchFocus(e: KeyboardEvent): boolean {
+        e.preventDefault();
+        const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
+        if (searchInput) { searchInput.focus(); searchInput.select(); }
+        return true;
+    }
 
-        // Theme toggle
-        if (e.key.toLowerCase() === 't') {
-            e.preventDefault();
-            const themeBtn = document.getElementById('theme-toggle');
-            if (themeBtn) {
-                themeBtn.click();
-            }
-            return;
-        }
-    };
+    function handleClearFilters(e: KeyboardEvent): boolean {
+        e.preventDefault();
+        document.querySelector<HTMLElement>('[onclick="clearFilters()"]')?.click();
+        return true;
+    }
+
+    function handleEscape(): boolean {
+        const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
+        if (!searchInput?.value) return true;
+        searchInput.value = '';
+        searchInput.dispatchEvent(new Event('input', { bubbles: true }));
+        searchInput.blur();
+        return true;
+    }
+
+    function handleViewToggle(e: KeyboardEvent): boolean {
+        const key = e.key.toLowerCase();
+        const viewMap: Record<string, string> = { g: '[data-view="grid"]', l: '[data-view="list"]', c: '#compare-mode-toggle', t: '#theme-toggle' };
+        const selector = viewMap[key];
+        if (!selector) return false;
+        e.preventDefault();
+        document.querySelector<HTMLElement>(selector)?.click();
+        return true;
+    }
 
     document.addEventListener('keydown', keydownHandler);
 }
