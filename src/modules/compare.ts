@@ -141,13 +141,12 @@ export async function openCompareModal(): Promise<void> {
 
                 <div class="compare-section">
                     <h4>Stacking</h4>
-                    ${
-                        item.stacks_well === undefined
-                            ? '<p class="neutral">Stacking behavior unknown</p>'
-                            : `<p class="${item.stacks_well ? 'positive' : 'negative'}">
-                            ${item.stacks_well ? '✓ Stacks Well' : '✗ One-and-Done'}
-                        </p>`
-                    }
+                    ${(() => {
+                        if (item.stacks_well === undefined) return '<p class="neutral">Stacking behavior unknown</p>';
+                        const cls = item.stacks_well ? 'positive' : 'negative';
+                        const label = item.stacks_well ? '✓ Stacks Well' : '✗ One-and-Done';
+                        return `<p class="${cls}">${label}</p>`;
+                    })()}
                 </div>
 
                 <div class="compare-section">

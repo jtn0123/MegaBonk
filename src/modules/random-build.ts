@@ -51,7 +51,7 @@ const DEFAULT_ITEM_COUNT = 6;
 function randomElement<T>(array: T[]): T | null {
     if (array.length === 0) return null;
     const element = array[Math.floor(Math.random() * array.length)];
-    return element === undefined ? null : element;
+    return element ?? null;
 }
 
 /**

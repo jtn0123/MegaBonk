@@ -104,7 +104,7 @@ function getCompareableItems(tabName: EntityType, limit: number = 4): SuggestedI
     const byTier: Record<string, Entity[]> = {};
     data.forEach(item => {
         const tier = item.tier || 'C';
-        if (!byTier[tier]) byTier[tier] = [];
+        byTier[tier] ??= [];
         byTier[tier].push(item);
     });
 

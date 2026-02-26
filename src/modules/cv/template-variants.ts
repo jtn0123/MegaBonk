@@ -114,45 +114,48 @@ export function generateVariants(
     ];
 
     if (config.generateBrightness) {
-        variants.push({
-            type: 'bright',
-            imageData: adjustBrightness(original, config.brightAdjust),
-            description: `Brightness +${config.brightAdjust}`,
-        });
-
-        variants.push({
-            type: 'dark',
-            imageData: adjustBrightness(original, config.darkAdjust),
-            description: `Brightness ${config.darkAdjust}`,
-        });
+        variants.push(
+            {
+                type: 'bright',
+                imageData: adjustBrightness(original, config.brightAdjust),
+                description: `Brightness +${config.brightAdjust}`,
+            },
+            {
+                type: 'dark',
+                imageData: adjustBrightness(original, config.darkAdjust),
+                description: `Brightness ${config.darkAdjust}`,
+            }
+        );
     }
 
     if (config.generateContrast) {
-        variants.push({
-            type: 'high_contrast',
-            imageData: adjustContrast(original, config.highContrastFactor),
-            description: `Contrast x${config.highContrastFactor}`,
-        });
-
-        variants.push({
-            type: 'low_contrast',
-            imageData: adjustContrast(original, config.lowContrastFactor),
-            description: `Contrast x${config.lowContrastFactor}`,
-        });
+        variants.push(
+            {
+                type: 'high_contrast',
+                imageData: adjustContrast(original, config.highContrastFactor),
+                description: `Contrast x${config.highContrastFactor}`,
+            },
+            {
+                type: 'low_contrast',
+                imageData: adjustContrast(original, config.lowContrastFactor),
+                description: `Contrast x${config.lowContrastFactor}`,
+            }
+        );
     }
 
     if (config.generateColorTemp) {
-        variants.push({
-            type: 'warm',
-            imageData: adjustColorTemperature(original, config.colorTempShift),
-            description: `Warm (hell biome)`,
-        });
-
-        variants.push({
-            type: 'cool',
-            imageData: adjustColorTemperature(original, -config.colorTempShift),
-            description: `Cool (snow biome)`,
-        });
+        variants.push(
+            {
+                type: 'warm',
+                imageData: adjustColorTemperature(original, config.colorTempShift),
+                description: `Warm (hell biome)`,
+            },
+            {
+                type: 'cool',
+                imageData: adjustColorTemperature(original, -config.colorTempShift),
+                description: `Cool (snow biome)`,
+            }
+        );
     }
 
     return variants;

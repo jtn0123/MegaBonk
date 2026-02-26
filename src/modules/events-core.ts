@@ -66,9 +66,7 @@ function isAbortSignalSupported(): boolean {
 // Cache the result - check once at module load
 let _abortSignalSupported: boolean | null = null;
 function getAbortSignalSupported(): boolean {
-    if (_abortSignalSupported === null) {
-        _abortSignalSupported = isAbortSignalSupported();
-    }
+    _abortSignalSupported ??= isAbortSignalSupported();
     return _abortSignalSupported;
 }
 
@@ -81,9 +79,7 @@ function getEventAbortSignal(): AbortSignal | undefined {
         return undefined;
     }
 
-    if (!eventAbortController) {
-        eventAbortController = new AbortController();
-    }
+    eventAbortController ??= new AbortController();
     return eventAbortController.signal;
 }
 
@@ -215,7 +211,7 @@ function handleTabArrowNavigation(e: KeyboardEvent, target: HTMLButtonElement): 
     const nextTab = tabButtons[nextIndex];
     if (nextTab) {
         nextTab.focus();
-        const tabName = nextTab.getAttribute('data-tab') as TabName | null;
+        const tabName = (nextTab.dataset.tab ?? null) as TabName | null;
         if (tabName && typeof switchTab === 'function') {
             switchTab(tabName);
         }
@@ -645,7 +641,7 @@ export function setupTabButtonListeners(): void {
         btn.addEventListener(
             'click',
             () => {
-                const tabName = btn.getAttribute('data-tab') as TabName | null;
+                const tabName = (btn.dataset.tab ?? null) as TabName | null;
                 if (tabName) switchTab(tabName);
             },
             getListenerOptions()

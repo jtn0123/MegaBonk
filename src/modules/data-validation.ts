@@ -200,7 +200,10 @@ export function validateCrossReferences(allData: AllGameData | null | undefined)
                     if (typeof synergy === 'object' && synergy !== null && 'with' in synergy) {
                         const synergyWith = (synergy as { with?: string | string[] }).with;
                         // Check if synergy references valid entities
-                        const refs = Array.isArray(synergyWith) ? synergyWith : synergyWith ? [synergyWith] : [];
+                        let refs: string[];
+                        if (Array.isArray(synergyWith)) refs = synergyWith;
+                        else if (synergyWith) refs = [synergyWith];
+                        else refs = [];
                         refs.forEach(ref => {
                             if (
                                 !itemIds.has(ref) &&
@@ -243,7 +246,10 @@ export function validateCrossReferences(allData: AllGameData | null | undefined)
         }
         if ('upgrades_to' in weapon) {
             const upgradesTo = (weapon as { upgrades_to?: string | string[] }).upgrades_to;
-            const upgradeTo = Array.isArray(upgradesTo) ? upgradesTo : upgradesTo ? [upgradesTo] : [];
+            let upgradeTo: string[];
+            if (Array.isArray(upgradesTo)) upgradeTo = upgradesTo;
+            else if (upgradesTo) upgradeTo = [upgradesTo];
+            else upgradeTo = [];
             upgradeTo.forEach(target => {
                 if (!weaponIds.has(target)) {
                     errors.push(`weapons[${index}] (${weapon.name}): upgrades_to '${target}' not found in weapons`);
@@ -311,8 +317,7 @@ export function validateAllData(allData: AllGameData | null | undefined): Compre
     // Validate rarity and tier values
     if (allData.items?.items) {
         allData.items.items.forEach((item, index) => {
-            errors.push(...validateRarity(item, 'items', index));
-            errors.push(...validateTier(item, 'items', index));
+            errors.push(...validateRarity(item, 'items', index), ...validateTier(item, 'items', index));
         });
     }
 

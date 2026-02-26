@@ -162,12 +162,16 @@ export function analyzeDetectionErrors(
 function diagnoseMissed(detectedCount: number, expectedCount: number, confidences: number[]): string[] {
     const reasons: string[] = [];
     if (detectedCount === 0) {
-        reasons.push('Item completely missed - template may be missing or incorrect');
-        reasons.push('Item may be obscured by visual effects or particles');
-        reasons.push('Item color/appearance may differ from template');
+        reasons.push(
+            'Item completely missed - template may be missing or incorrect',
+            'Item may be obscured by visual effects or particles',
+            'Item color/appearance may differ from template'
+        );
     } else {
-        reasons.push(`Only ${detectedCount}/${expectedCount} detected - possible duplicate detection failure`);
-        reasons.push('Some items may be partially occluded');
+        reasons.push(
+            `Only ${detectedCount}/${expectedCount} detected - possible duplicate detection failure`,
+            'Some items may be partially occluded'
+        );
     }
     if (confidences.length > 0 && confidences[0] !== undefined && confidences[0] < 0.7) {
         reasons.push(`Low confidence (${confidences[0].toFixed(2)}) - template match may be weak`);

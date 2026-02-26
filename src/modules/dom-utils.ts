@@ -143,9 +143,7 @@ export function createEventListenerManager(): EventListenerManager {
     let abortController: AbortController | null = null;
 
     const ensureAbortController = () => {
-        if (!abortController) {
-            abortController = new AbortController();
-        }
+        abortController ??= new AbortController();
         return abortController;
     };
 

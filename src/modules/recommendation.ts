@@ -440,7 +440,10 @@ export function recommendBestChoice(currentBuild: BuildState, choices: ChoiceOpt
  */
 export function formatRecommendation(rec: Recommendation, rank: number): string {
     const entity = rec.choice.entity;
-    const emoji = rank === 1 ? '🎯' : rank === 2 ? '🥈' : '🥉';
+    let emoji: string;
+    if (rank === 1) emoji = '🎯';
+    else if (rank === 2) emoji = '🥈';
+    else emoji = '🥉';
 
     let text = `${emoji} ${rank === 1 ? 'RECOMMENDED: ' : `#${rank}: `}${entity.name} (${entity.tier}-tier)\n`;
     text += `Score: ${Math.round(rec.score)} | Confidence: ${Math.round(rec.confidence * 100)}%\n\n`;

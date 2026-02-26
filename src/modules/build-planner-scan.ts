@@ -84,10 +84,7 @@ export async function initBuildPlannerScan(gameData: AllGameData): Promise<void>
                     operation: 'build_planner_scan.templates_load_failed',
                     error: { name: (error as Error).name, message: (error as Error).message },
                 });
-            })
-    );
-
-    loadPromises.push(
+            }),
         loadGridPresets()
             .then(() => {
                 presetsLoaded = true;
@@ -537,55 +534,25 @@ function showPreviewModal(imageData: string, detectedBuild: DetectedBuild): void
                                 <span>Avg confidence: ${Math.round(avgConfidence * 100)}%</span>
                             </div>
 
-                            ${
-                                detectedBuild.character
-                                    ? `
-                                <div class="build-scan-section">
-                                    <h4>Character</h4>
-                                    <div class="build-scan-entity">${escapeHtml(detectedBuild.character.name)}</div>
-                                </div>
-                            `
-                                    : ''
-                            }
+                            ${renderBuildSection('Character', detectedBuild.character ? `<div class="build-scan-entity">${escapeHtml(detectedBuild.character.name)}</div>` : null)}
 
-                            ${
-                                detectedBuild.weapon
-                                    ? `
-                                <div class="build-scan-section">
-                                    <h4>Weapon</h4>
-                                    <div class="build-scan-entity">${escapeHtml(detectedBuild.weapon.name)}</div>
-                                </div>
-                            `
-                                    : ''
-                            }
+                            ${renderBuildSection('Weapon', detectedBuild.weapon ? `<div class="build-scan-entity">${escapeHtml(detectedBuild.weapon.name)}</div>` : null)}
 
-                            ${
-                                detectedBuild.items.length > 0
-                                    ? `
-                                <div class="build-scan-section">
-                                    <h4>Items</h4>
+                            ${renderBuildSection('Items', detectedBuild.items.length > 0 ? `
                                     <div class="build-scan-items-list">
                                         ${detectedBuild.items
                                             .map(
                                                 ({ item, count, confidence }) => `
                                             <div class="build-scan-item ${getConfidenceClass(confidence)}">
-                                                <span class="item-name">${escapeHtml(item.name)}${count > 1 ? ` x${count}` : ''}</span>
+                                                <span class="item-name">${escapeHtml(formatItemCount(item.name, count))}</span>
                                                 <span class="item-confidence">${Math.round(confidence * 100)}%</span>
                                             </div>
                                         `
                                             )
                                             .join('')}
-                                    </div>
-                                </div>
-                            `
-                                    : ''
-                            }
+                                    </div>` : null)}
 
-                            ${
-                                detectedBuild.tomes.length > 0
-                                    ? `
-                                <div class="build-scan-section">
-                                    <h4>Tomes</h4>
+                            ${renderBuildSection('Tomes', detectedBuild.tomes.length > 0 ? `
                                     <div class="build-scan-items-list">
                                         ${detectedBuild.tomes
                                             .map(
@@ -597,11 +564,7 @@ function showPreviewModal(imageData: string, detectedBuild: DetectedBuild): void
                                         `
                                             )
                                             .join('')}
-                                    </div>
-                                </div>
-                            `
-                                    : ''
-                            }
+                                    </div>` : null)}
                         `
                     }
                 </div>
@@ -635,6 +598,21 @@ function showPreviewModal(imageData: string, detectedBuild: DetectedBuild): void
 /**
  * Get CSS class based on confidence level
  */
+function renderBuildSection(title: string, content: string | null): string {
+    if (!content) return '';
+    return `
+        <div class="build-scan-section">
+            <h4>${title}</h4>
+            ${content}
+        </div>
+    `;
+}
+
+function formatItemCount(name: string, count: number): string {
+    const suffix = count > 1 ? ` x${count}` : '';
+    return `${name}${suffix}`;
+}
+
 function getConfidenceClass(confidence: number): string {
     if (confidence >= 0.8) return 'confidence-high';
     if (confidence >= 0.5) return 'confidence-medium';

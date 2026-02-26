@@ -59,17 +59,21 @@ export async function renderItems(items: Item[]): Promise<void> {
 
         // Determine if this item should show a scaling graph
         const showGraph = item.scaling_per_stack && !item.one_and_done && item.graph_type !== 'flat';
-        const graphHtml = showGraph
-            ? `
+        let graphHtml: string;
+        if (showGraph) {
+            graphHtml = `
             <div class="item-graph-container">
                 <canvas id="chart-${item.id}" class="scaling-chart"></canvas>
             </div>
-        `
-            : `
+        `;
+        } else {
+            const placeholderText = item.one_and_done ? 'One-and-done: no scaling benefit from stacks' : 'Flat bonus: does not scale';
+            graphHtml = `
             <div class="item-graph-placeholder">
-                <span>${item.one_and_done ? 'One-and-done: no scaling benefit from stacks' : 'Flat bonus: does not scale'}</span>
+                <span>${placeholderText}</span>
             </div>
         `;
+        }
 
         // Handle expandable description
         const { html: descHtml, needsExpand, fullText } = truncateText(item.detailed_description, 120);

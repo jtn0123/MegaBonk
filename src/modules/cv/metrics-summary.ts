@@ -203,31 +203,32 @@ export function renderMetricsSummary(metrics: MetricsSummary): string {
                 </div>
             </div>
 
-            ${
-                metrics.weakDetections.length > 0
-                    ? `
-                <div class="metrics-weak">
-                    <h4>Low Confidence Detections</h4>
-                    <ul>
-                        ${metrics.weakDetections
-                            .slice(0, 5)
-                            .map(
-                                d => `
-                            <li>
-                                <span class="weak-item-name">${escapeHtml(d.itemName)}</span>
-                                <span class="weak-item-conf">${formatPercent(d.confidence)}</span>
-                            </li>
-                        `
-                            )
-                            .join('')}
-                    </ul>
-                    ${metrics.weakDetections.length > 5 ? `<p class="weak-more">+${metrics.weakDetections.length - 5} more</p>` : ''}
-                </div>
-            `
-                    : ''
-            }
+            ${renderWeakDetections(metrics)}
 
             ${Object.keys(metrics.byRarity).length > 0 ? renderRarityBreakdown(metrics.byRarity) : ''}
+        </div>
+    `;
+}
+
+function renderWeakDetections(metrics: MetricsSummary): string {
+    if (metrics.weakDetections.length === 0) return '';
+    const listHtml = metrics.weakDetections
+        .slice(0, 5)
+        .map(d => `
+            <li>
+                <span class="weak-item-name">${escapeHtml(d.itemName)}</span>
+                <span class="weak-item-conf">${formatPercent(d.confidence)}</span>
+            </li>
+        `)
+        .join('');
+    const moreHtml = metrics.weakDetections.length > 5
+        ? `<p class="weak-more">+${metrics.weakDetections.length - 5} more</p>`
+        : '';
+    return `
+        <div class="metrics-weak">
+            <h4>Low Confidence Detections</h4>
+            <ul>${listHtml}</ul>
+            ${moreHtml}
         </div>
     `;
 }

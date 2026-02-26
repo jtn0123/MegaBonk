@@ -186,7 +186,7 @@ class ThemeManager {
         });
 
         // Update data-theme attribute
-        root.setAttribute('data-theme', theme);
+        root.dataset.theme = theme;
 
         // Update current theme
         this.currentTheme = theme;
