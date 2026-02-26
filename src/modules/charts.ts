@@ -151,7 +151,7 @@ export function applyHyperbolicScaling(values: number[], constant: number = 1): 
         const internal = v / 100;
         const denominator = constant + internal;
         // Guard against division by zero
-        const actual = denominator !== 0 ? internal / denominator : 0;
+        const actual = denominator === 0 ? 0 : internal / denominator;
         return Math.round(actual * 10000) / 100; // Round to 2 decimal places
     });
 }

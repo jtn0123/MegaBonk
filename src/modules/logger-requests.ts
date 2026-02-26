@@ -43,9 +43,9 @@ export interface RequestStats {
  */
 export class RequestTimer {
     private static instance: RequestTimer;
-    private requests: Map<string, RequestTiming> = new Map();
+    private readonly requests: Map<string, RequestTiming> = new Map();
     private completedRequests: RequestTiming[] = [];
-    private maxCompletedRequests = 100;
+    private readonly maxCompletedRequests = 100;
 
     private constructor() {}
 

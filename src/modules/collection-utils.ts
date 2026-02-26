@@ -135,7 +135,7 @@ export function safeGet<T>(array: T[] | undefined | null, index: number, default
         return defaultValue;
     }
     const item = array[index];
-    return item !== undefined ? item : defaultValue;
+    return item === undefined ? defaultValue : item;
 }
 
 /**

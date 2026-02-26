@@ -46,11 +46,11 @@ const FORMULA_VARIABLES = [
  */
 function escapeHtml(text: string): string {
     return text
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
 }
 
 /**
@@ -105,13 +105,13 @@ function parseFractions(formula: string): string {
     let result = formula;
 
     // Handle parenthesized denominators: X / (...)
-    result = result.replace(/(\w+(?:\s*[%×*]?\s*\w+)*)\s*\/\s*\(([^)]+)\)/g, (_, num, den) =>
+    result = result.replaceAll(/(\w+(?:\s*[%×*]?\s*\w+)*)\s*\/\s*\(([^)]+)\)/g, (_, num, den) =>
         renderFraction(num, `(${den})`)
     );
 
     // Handle simple fractions: X / Y (word or number)
     // But avoid replacing already-processed fractions or "/" in text like "stack/copy"
-    result = result.replace(/(\d+(?:\.\d+)?|\w+)\s*\/\s*(\d+(?:\.\d+)?)/g, (match, num, den) => {
+    result = result.replaceAll(/(\d+(?:\.\d+)?|\w+)\s*\/\s*(\d+(?:\.\d+)?)/g, (match, num, den) => {
         // Skip if it's a word/word pattern like "stack/copy"
         if (/^[a-zA-Z]+\/[a-zA-Z]+$/.test(match)) {
             return match;
@@ -156,12 +156,12 @@ export function renderFormula(formula: string): string {
 
     // Style standalone equals signs (surrounded by whitespace, indicating math equals not HTML attribute)
     // This must be done BEFORE adding HTML with class= attributes
-    processed = processed.replace(/(\s)=(\s)/g, '$1<span class="formula-eq">=</span>$2');
+    processed = processed.replaceAll(/(\s)=(\s)/g, '$1<span class="formula-eq">=</span>$2');
     // Also handle = at start of string or after certain chars
     processed = processed.replace(/^=(\s)/, '<span class="formula-eq">=</span>$1');
 
     // Style multiplication symbol
-    processed = processed.replace(/×/g, '<span class="formula-op">×</span>');
+    processed = processed.replaceAll('×', '<span class="formula-op">×</span>');
 
     // Highlight variables (this adds HTML with class= attributes)
     processed = highlightVariables(processed);
@@ -171,12 +171,12 @@ export function renderFormula(formula: string): string {
     let withFractions = formula;
 
     // Handle parenthesized denominators: X / (...)
-    withFractions = withFractions.replace(/(\w+(?:\s*[%×*]?\s*\w+)*)\s*\/\s*\(([^)]+)\)/g, (_, num, den) =>
+    withFractions = withFractions.replaceAll(/(\w+(?:\s*[%×*]?\s*\w+)*)\s*\/\s*\(([^)]+)\)/g, (_, num, den) =>
         renderFraction(num, `(${den})`)
     );
 
     // Handle simple word/number over number fractions
-    withFractions = withFractions.replace(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/g, (_, num, den) =>
+    withFractions = withFractions.replaceAll(/(\d+(?:\.\d+)?)\s*\/\s*(\d+(?:\.\d+)?)/g, (_, num, den) =>
         renderFraction(num, den)
     );
 
@@ -186,8 +186,8 @@ export function renderFormula(formula: string): string {
         let finalHtml = withFractions;
 
         // Style operators FIRST (before adding HTML with class= attributes)
-        finalHtml = finalHtml.replace(/(\s)=(\s)/g, '$1<span class="formula-eq">=</span>$2');
-        finalHtml = finalHtml.replace(/×/g, '<span class="formula-op">×</span>');
+        finalHtml = finalHtml.replaceAll(/(\s)=(\s)/g, '$1<span class="formula-eq">=</span>$2');
+        finalHtml = finalHtml.replaceAll('×', '<span class="formula-op">×</span>');
 
         // Then highlight variables (this adds HTML with class= attributes)
         finalHtml = highlightVariables(finalHtml);

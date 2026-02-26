@@ -207,16 +207,16 @@ function showMoreMenu(): void {
 
     let menu = safeGetElementById('more-menu');
 
-    if (!menu) {
-        menu = createMoreMenu();
-        document.body.appendChild(menu);
-        setupMenuEventListeners(menu);
-    } else {
+    if (menu) {
         // Update items in case current tab changed
         const currentTab = getState('currentTab');
         if (currentTab) {
             updateMenuItems(currentTab);
         }
+    } else {
+        menu = createMoreMenu();
+        document.body.appendChild(menu);
+        setupMenuEventListeners(menu);
     }
 
     isMenuOpen = true;

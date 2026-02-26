@@ -359,7 +359,7 @@ export function downloadFeedback(): boolean {
     const blob = new Blob([jsonString], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
 
-    const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-').slice(0, 19);
     const filename = `megabonk-feedback-${timestamp}.json`;
 
     const a = document.createElement('a');

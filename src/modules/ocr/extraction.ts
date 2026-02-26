@@ -72,7 +72,7 @@ export async function extractTextFromImage(
                     attempt: attempt + 1,
                     textLength: extractedText.length,
                     confidence: result.data.confidence,
-                    textPreview: extractedText.substring(0, 500).replace(/\n/g, ' | '),
+                    textPreview: extractedText.substring(0, 500).replaceAll('\n', ' | '),
                 },
             });
 

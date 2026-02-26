@@ -58,10 +58,10 @@ export function renderAbout(): void {
     const container = safeGetElementById('aboutContainer');
     if (!container) return;
 
-    const version = typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '1.0.0';
-    const buildDate = typeof __BUILD_DATE__ !== 'undefined' ? __BUILD_DATE__ : new Date().toISOString();
-    const gitCommit = typeof __GIT_COMMIT__ !== 'undefined' ? __GIT_COMMIT__ : 'dev';
-    const gitBranch = typeof __GIT_BRANCH__ !== 'undefined' ? __GIT_BRANCH__ : 'main';
+    const version = typeof __APP_VERSION__ === 'undefined' ? '1.0.0' : __APP_VERSION__;
+    const buildDate = typeof __BUILD_DATE__ === 'undefined' ? new Date().toISOString() : __BUILD_DATE__;
+    const gitCommit = typeof __GIT_COMMIT__ === 'undefined' ? 'dev' : __GIT_COMMIT__;
+    const gitBranch = typeof __GIT_BRANCH__ === 'undefined' ? 'main' : __GIT_BRANCH__;
 
     // Get dynamic counts from loaded data
     const counts = getDataCounts();

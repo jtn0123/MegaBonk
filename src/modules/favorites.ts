@@ -180,10 +180,10 @@ export function isFavorite(tabName: EntityType, itemId: string): boolean {
 export function toggleFavorite(tabName: EntityType, itemId: string): boolean {
     const favorites = getState('favorites');
     const newFavorites = { ...favorites };
-    if (!newFavorites[tabName]) {
-        newFavorites[tabName] = [];
-    } else {
+    if (newFavorites[tabName]) {
         newFavorites[tabName] = [...newFavorites[tabName]];
+    } else {
+        newFavorites[tabName] = [];
     }
 
     const index = newFavorites[tabName].indexOf(itemId);

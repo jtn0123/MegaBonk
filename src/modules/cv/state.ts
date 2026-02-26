@@ -30,8 +30,8 @@ const detectionCache = new Map<string, { results: CVDetectionResult[]; timestamp
  * Provides O(1) get/set operations with automatic eviction
  */
 class LRUCache<K, V> {
-    private cache: Map<K, V>;
-    private maxSize: number;
+    private readonly cache: Map<K, V>;
+    private readonly maxSize: number;
 
     constructor(maxSize: number) {
         this.cache = new Map();

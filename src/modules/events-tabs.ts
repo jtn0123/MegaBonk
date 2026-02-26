@@ -226,10 +226,10 @@ export async function switchTab(tabName: TabName): Promise<void> {
  */
 export function scheduleModulePreload(): void {
     // Use requestIdleCallback if available for non-blocking preload
-    if (typeof requestIdleCallback !== 'undefined') {
-        requestIdleCallback(() => preloadCommonModules());
-    } else {
+    if (typeof requestIdleCallback === 'undefined') {
         setTimeout(preloadCommonModules, 2000);
+    } else {
+        requestIdleCallback(() => preloadCommonModules());
     }
 }
 
