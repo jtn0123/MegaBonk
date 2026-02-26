@@ -184,10 +184,10 @@ export function generateRandomBuild(constraints: BuildConstraints = {}): RandomB
     });
 
     return {
-        character: character as Character | null,
-        weapon: weapon as Weapon | null,
-        tomes: selectedTomes as Tome[],
-        items: selectedItems as Item[],
+        character: character,
+        weapon: weapon,
+        tomes: selectedTomes,
+        items: selectedItems,
         constraints,
     };
 }

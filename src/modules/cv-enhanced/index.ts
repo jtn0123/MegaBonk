@@ -44,7 +44,7 @@ export { resizeImageData, loadImage, createCanvasFromImage } from './utils.ts';
 export { resetEnhancedTemplates as resetEnhancedCVState } from './templates.ts';
 
 // Export for window (browser compatibility)
-if (typeof window !== 'undefined') {
+if (globalThis.window !== undefined) {
     // Dynamic import to avoid circular dependencies
     import('./detection.ts').then(({ initEnhancedCV, detectItemsWithEnhancedCV }) => {
         window.initEnhancedCV = initEnhancedCV;

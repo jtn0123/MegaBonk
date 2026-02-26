@@ -210,7 +210,7 @@ export function setupOfflineListeners(): void {
 // Global Scope Exports (backwards compatibility)
 // ========================================
 
-if (typeof window !== 'undefined') {
+if (globalThis.window !== undefined) {
     Object.assign(window, {
         recordDataSync,
         getLastSyncTime,

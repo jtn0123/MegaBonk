@@ -215,7 +215,7 @@ export function getBuildCompleteness(build: Build): number {
 export function validateBuildData(data: unknown): BuildData | null {
     if (!isValidBuildEntry(data)) return null;
 
-    const buildData = data as BuildData;
+    const buildData = data;
 
     // Sanitize string fields
     if (buildData.character && typeof buildData.character !== 'string') return null;

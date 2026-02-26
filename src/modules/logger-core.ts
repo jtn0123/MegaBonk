@@ -500,7 +500,7 @@ export class Logger {
         };
 
         // Add viewport size if in browser
-        if (typeof window !== 'undefined') {
+        if (globalThis.window !== undefined) {
             context.viewportSize = {
                 width: window.innerWidth,
                 height: window.innerHeight,
