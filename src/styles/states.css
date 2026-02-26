@@ -488,7 +488,7 @@
     background: rgba(74, 144, 226, 0.3);
     border: 1px solid #4a90e2;
     border-radius: 4px;
-    color: #e8f0fe;
+    color: #ffffff;
     font-size: 0.8rem;
     cursor: pointer;
     transition: background 0.2s ease;
@@ -715,7 +715,7 @@
 }
 
 .suggestion-tier.tier-C {
-    background: linear-gradient(135deg, #6b7b7c, #556364);
+    background: linear-gradient(135deg, #4a5556, #3d4748);
     color: #fff;
 }
 
