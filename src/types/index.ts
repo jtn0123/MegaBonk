@@ -3,6 +3,7 @@
 // ========================================
 // Central type definitions for the entire application
 // NOTE: Properties use snake_case to match JSON data structure.
+// v1.0.1 - ensure coverage runs with workflow changes
 // This is intentional for 1:1 JSON mapping without transformation.
 // ========================================
 
