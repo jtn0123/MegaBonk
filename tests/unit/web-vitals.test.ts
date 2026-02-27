@@ -39,6 +39,7 @@ describe('Web Vitals Module', () => {
 
         // Mock console methods
         vi.spyOn(console, 'log').mockImplementation(() => {});
+        vi.spyOn(console, 'debug').mockImplementation(() => {});
         vi.spyOn(console, 'groupCollapsed').mockImplementation(() => {});
         vi.spyOn(console, 'groupEnd').mockImplementation(() => {});
         vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -255,7 +256,7 @@ describe('Web Vitals Module', () => {
         it('should log "No metrics collected yet" when no metrics are available', () => {
             logSummary();
             expect(console.groupCollapsed).toHaveBeenCalledWith('[Web Vitals] Performance Summary');
-            expect(console.log).toHaveBeenCalledWith('No metrics collected yet');
+            expect(console.debug).toHaveBeenCalledWith('No metrics collected yet');
             expect(console.groupEnd).toHaveBeenCalled();
         });
     });
@@ -279,7 +280,7 @@ describe('Web Vitals Module', () => {
             lcpCallback(mockMetric as any);
 
             // Check that the metric was logged
-            expect(console.log).toHaveBeenCalledWith(
+            expect(console.debug).toHaveBeenCalledWith(
                 expect.stringContaining('[Web Vitals]')
             );
         });
@@ -334,7 +335,7 @@ describe('Web Vitals Module', () => {
             const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
             lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
 
-            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('✅'));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('✅'));
         });
 
         it('should log with correct emoji for needs-improvement rating', () => {
@@ -343,7 +344,7 @@ describe('Web Vitals Module', () => {
             const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
             lcpCallback({ name: 'LCP', value: 3000, rating: 'needs-improvement', delta: 3000, id: 'lcp-1' } as any);
 
-            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('⚠️'));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('⚠️'));
         });
 
         it('should log with correct emoji for poor rating', () => {
@@ -352,7 +353,7 @@ describe('Web Vitals Module', () => {
             const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
             lcpCallback({ name: 'LCP', value: 5000, rating: 'poor', delta: 5000, id: 'lcp-1' } as any);
 
-            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('❌'));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('❌'));
         });
     });
 
@@ -371,9 +372,9 @@ describe('Web Vitals Module', () => {
             logSummary();
 
             expect(console.groupCollapsed).toHaveBeenCalledWith('[Web Vitals] Performance Summary');
-            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('LCP'));
-            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('CLS'));
-            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('Overall Score'));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('LCP'));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('CLS'));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('Overall Score'));
             expect(console.groupEnd).toHaveBeenCalled();
         });
 
@@ -388,7 +389,7 @@ describe('Web Vitals Module', () => {
             logSummary();
 
             // Should log an overall score line (format varies based on accumulated metrics)
-            expect(console.log).toHaveBeenCalledWith(expect.stringMatching(/Overall Score: \d+%/));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringMatching(/Overall Score: \d+%/));
         });
 
         it('should include metrics fraction in score', () => {
@@ -402,7 +403,7 @@ describe('Web Vitals Module', () => {
             logSummary();
 
             // Should log a fraction like "(N/M metrics good)"
-            expect(console.log).toHaveBeenCalledWith(expect.stringMatching(/\d+\/\d+ metrics good/));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringMatching(/\d+\/\d+ metrics good/));
         });
 
         it('should log each metric with correct emoji', () => {
@@ -418,8 +419,8 @@ describe('Web Vitals Module', () => {
             logSummary();
 
             // Should have both good (✅) and needs-improvement (⚠️) emojis
-            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('✅'));
-            expect(console.log).toHaveBeenCalledWith(expect.stringContaining('⚠️'));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('✅'));
+            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('⚠️'));
         });
     });
 
