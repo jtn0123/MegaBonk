@@ -116,13 +116,15 @@ async function loadTemplateWithRetry(
             // Try WebP first
             const img = await loadImage(imagePath);
             return { success: true, image: img };
-        } catch {
+        } catch (error) {
+            console.debug('[cv/templates] image load failed:', error);
             // Try PNG fallback on first failure of WebP
             if (attempt === 0 && item.image) {
                 try {
                     const pngImg = await loadImage(item.image);
                     return { success: true, image: pngImg };
-                } catch {
+                } catch (error) {
+                    console.debug('[cv/templates] PNG fallback load failed:', error);
                     // Continue to retry logic
                 }
             }
