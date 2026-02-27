@@ -1,5 +1,6 @@
 # 🎮 MegaBonk Complete Guide
 
+![GitHub release](https://img.shields.io/github/v/release/jtn0123/MegaBonk)
 [![CI](https://github.com/jtn0123/MegaBonk/actions/workflows/test.yml/badge.svg)](https://github.com/jtn0123/MegaBonk/actions/workflows/test.yml)
 [![codecov](https://codecov.io/gh/jtn0123/MegaBonk/branch/main/graph/badge.svg)](https://codecov.io/gh/jtn0123/MegaBonk)
 [![Lighthouse](https://github.com/jtn0123/MegaBonk/actions/workflows/lighthouse.yml/badge.svg)](https://github.com/jtn0123/MegaBonk/actions/workflows/lighthouse.yml)
