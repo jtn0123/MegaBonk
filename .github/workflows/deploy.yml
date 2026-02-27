@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: 22
       - run: npm ci
       - run: npm run build
         env:
@@ -65,11 +65,15 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 20
+          node-version: 22
       - run: npm ci
+      - name: Read version from package.json
+        id: version
+        run: echo "APP_VERSION=$(node -p 'require(\"./package.json\").version')" >> "$GITHUB_OUTPUT"
       - run: npm run build
         env:
           VITE_BASE: /megabonk/
+          VITE_APP_VERSION: ${{ steps.version.outputs.APP_VERSION }}
       - uses: cloudflare/wrangler-action@da0e0dfe58b7a431659754fdf3f186c529afbe65 # v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
