@@ -5,6 +5,7 @@ on:
     branches: [main, develop, 'claude/**']
   pull_request:
     branches: [main, develop]
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -366,7 +367,7 @@ jobs:
   sonarqube:
     name: SonarQube Scan
     needs: [unit-tests, e2e-tests]
-    if: always()
+    if: always() && needs.unit-tests.result == 'success'
     runs-on: [self-hosted, sonar]
     timeout-minutes: 10
     concurrency:
