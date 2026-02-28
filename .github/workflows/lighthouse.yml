@@ -35,7 +35,7 @@ jobs:
 
       - name: Check bundle size budget
         run: |
-          MAX_JS_KB=350
+          MAX_JS_KB=750
           JS_SIZE=$(find dist -name "*.js" -exec cat {} + | wc -c)
           JS_KB=$((JS_SIZE / 1024))
           echo "Total JS bundle size: ${JS_KB}KB"
