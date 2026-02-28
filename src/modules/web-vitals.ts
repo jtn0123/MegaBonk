@@ -143,7 +143,7 @@ function logMetric(metric: WebVitalsMetric): void {
     const formattedValue = formatValue(name as MetricName, value);
     const emoji = getRatingEmoji(rating);
 
-    console.log(`[Web Vitals] ${emoji} ${name}: ${formattedValue} (${rating})`);
+    console.debug(`[Web Vitals] ${emoji} ${name}: ${formattedValue} (${rating})`);
 
     // Store metric
     metrics[name as MetricName] = {
@@ -252,14 +252,14 @@ export function logSummary(): void {
     >;
 
     if (collectedMetrics.length === 0) {
-        console.log('No metrics collected yet');
+        console.debug('No metrics collected yet');
         console.groupEnd();
         return;
     }
 
     collectedMetrics.forEach(([name, data]) => {
         const emoji = getRatingEmoji(data.rating);
-        console.log(`${emoji} ${name}: ${data.formattedValue} (${data.rating})`);
+        console.debug(`${emoji} ${name}: ${data.formattedValue} (${data.rating})`);
     });
 
     // Overall score
@@ -267,7 +267,7 @@ export function logSummary(): void {
     const total = collectedMetrics.length;
     const score = Math.round((goodCount / total) * 100);
 
-    console.log(`\nOverall Score: ${score}% (${goodCount}/${total} metrics good)`);
+    console.debug(`\nOverall Score: ${score}% (${goodCount}/${total} metrics good)`);
     console.groupEnd();
 }
 

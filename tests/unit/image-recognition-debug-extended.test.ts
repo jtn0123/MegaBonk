@@ -1299,6 +1299,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         let consoleSpy: {
             groupCollapsed: ReturnType<typeof vi.spyOn>;
             groupEnd: ReturnType<typeof vi.spyOn>;
+            debug: ReturnType<typeof vi.spyOn>;
             log: ReturnType<typeof vi.spyOn>;
             table: ReturnType<typeof vi.spyOn>;
             trace: ReturnType<typeof vi.spyOn>;
@@ -1308,6 +1309,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
             consoleSpy = {
                 groupCollapsed: vi.spyOn(console, 'groupCollapsed').mockImplementation(() => {}),
                 groupEnd: vi.spyOn(console, 'groupEnd').mockImplementation(() => {}),
+                debug: vi.spyOn(console, 'debug').mockImplementation(() => {}),
                 log: vi.spyOn(console, 'log').mockImplementation(() => {}),
                 table: vi.spyOn(console, 'table').mockImplementation(() => {}),
                 trace: vi.spyOn(console, 'trace').mockImplementation(() => {}),
@@ -1334,16 +1336,16 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
             expect(consoleSpy.table).toHaveBeenCalled();
         });
 
-        it('should use console.log for primitive data', () => {
+        it('should use console.debug for primitive data', () => {
             log('test', 'String data', 'just a string');
 
-            expect(consoleSpy.log).toHaveBeenCalledWith('just a string');
+            expect(consoleSpy.debug).toHaveBeenCalledWith('just a string');
         });
 
         it('should not use console.table for null data', () => {
             log('test', 'Null data', null);
 
-            expect(consoleSpy.log).toHaveBeenCalledWith(null);
+            expect(consoleSpy.debug).toHaveBeenCalledWith(null);
         });
 
         it('should format different log levels with different styles', () => {

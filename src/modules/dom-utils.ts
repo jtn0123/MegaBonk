@@ -174,8 +174,8 @@ export function createEventListenerManager(): EventListenerManager {
                 const cleanup = cleanups.pop();
                 try {
                     cleanup?.();
-                } catch {
-                    // Element may have been removed from DOM
+                } catch (error) {
+                    console.debug('[dom-utils] cleanup failed (element may have been removed):', error);
                 }
             }
 

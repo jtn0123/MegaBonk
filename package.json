@@ -136,7 +136,7 @@
   },
   "overrides": {
     "tar": ">=7.5.8",
-    "minimatch": ">=10.2.1",
+    "minimatch": ">=10.2.3",
     "glob": ">=10.5.1",
     "serve": {
       "ajv": ">=8.17.2"

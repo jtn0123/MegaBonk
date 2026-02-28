@@ -56,7 +56,8 @@ export async function getChartModule(): Promise<ChartModule | null> {
     try {
         cachedChartModule = await import('./charts.ts');
         return cachedChartModule;
-    } catch {
+    } catch (error) {
+        console.debug('[modal-core] charts module import failed:', error);
         return null;
     }
 }

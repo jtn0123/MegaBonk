@@ -144,7 +144,7 @@ export function log(category: string, message: string, data?: unknown, level: De
             if (typeof data === 'object' && data !== null) {
                 console.table(data);
             } else {
-                console.log(data);
+                console.debug(data);
             }
         }
         console.trace('Stack trace');
