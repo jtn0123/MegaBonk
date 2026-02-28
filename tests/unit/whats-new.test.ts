@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { shouldShowWhatsNew, dismissWhatsNew, showWhatsNewModal, initWhatsNew } from '../../src/modules/whats-new.ts';
+import { shouldShowWhatsNew, dismissWhatsNew, showWhatsNewModal, initWhatsNew, initFooterVersion } from '../../src/modules/whats-new.ts';
 
 describe('whats-new', () => {
     beforeEach(() => {
@@ -282,5 +282,47 @@ describe('whats-new', () => {
             vi.advanceTimersByTime(600);
             expect(fetchSpy).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe('initFooterVersion', () => {
+    beforeEach(() => {
+        document.body.innerHTML = '';
+    });
+
+    it('should set version text and click handler on #app-version badge', () => {
+        document.body.innerHTML = '<span id="app-version"></span>';
+        initFooterVersion();
+        const badge = document.getElementById('app-version')!;
+        expect(badge.textContent).toMatch(/^App v/);
+        expect(badge.style.cursor).toBe('pointer');
+        expect(badge.title).toBe("Click to see what's new");
+    });
+
+    it('should open whats-new modal when badge is clicked', async () => {
+        document.body.innerHTML = '<span id="app-version"></span>';
+        initFooterVersion();
+        const badge = document.getElementById('app-version')!;
+        badge.click();
+        // Wait for modal to appear
+        await vi.waitFor(() => {
+            expect(document.getElementById('whats-new-modal')).not.toBeNull();
+        });
+    });
+
+    it('should open whats-new modal when footer link is clicked', async () => {
+        document.body.innerHTML = '<a id="footer-whats-new" href="#">What\'s New</a>';
+        initFooterVersion();
+        const link = document.getElementById('footer-whats-new')!;
+        link.click();
+        await vi.waitFor(() => {
+            expect(document.getElementById('whats-new-modal')).not.toBeNull();
+        });
+    });
+
+    it('should do nothing when elements are not found', () => {
+        document.body.innerHTML = '<div>no matching elements</div>';
+        // Should not throw
+        expect(() => initFooterVersion()).not.toThrow();
     });
 });
