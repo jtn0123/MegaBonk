@@ -145,3 +145,23 @@ footer a:hover {
         font-size: 0.75rem;
     }
 }
+
+/* App version badge in footer */
+.app-version-badge {
+    background: var(--accent, #4a9eff);
+    color: white;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.75rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
+
+.footer-whats-new-link {
+    text-decoration: none;
+    color: var(--accent, #4a9eff);
+}
+
+.footer-whats-new-link:hover {
+    text-decoration: underline;
+}

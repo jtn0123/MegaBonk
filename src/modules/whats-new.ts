@@ -190,3 +190,28 @@ export function initWhatsNew(): void {
 // - showWhatsNewModal()
 // - initWhatsNew()
 // ========================================
+
+/**
+ * Initialize the footer version badge and What's New link
+ */
+export function initFooterVersion(): void {
+    const badge = document.getElementById('app-version');
+    if (badge) {
+        const version = typeof __APP_VERSION__ === 'undefined' ? '0.0.0' : __APP_VERSION__;
+        badge.textContent = `App v${version}`;
+        badge.title = 'Click to see what\'s new';
+        badge.style.cursor = 'pointer';
+        badge.addEventListener('click', (e) => {
+            e.preventDefault();
+            showWhatsNewModal();
+        });
+    }
+
+    const whatsNewLink = document.getElementById('footer-whats-new');
+    if (whatsNewLink) {
+        whatsNewLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            showWhatsNewModal();
+        });
+    }
+}
