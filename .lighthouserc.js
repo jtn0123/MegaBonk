@@ -6,11 +6,11 @@ module.exports = {
         },
         assert: {
             assertions: {
-                // Performance - relaxed thresholds for a game data app with charts
-                'categories:performance': ['warn', { minScore: 0.6 }],
-                'categories:accessibility': ['error', { minScore: 0.85 }],
-                'categories:best-practices': ['warn', { minScore: 0.8 }],
-                'categories:seo': ['warn', { minScore: 0.8 }],
+                // Performance budgets — fail CI if scores drop below thresholds
+                'categories:performance': ['error', { minScore: 0.75 }],
+                'categories:accessibility': ['error', { minScore: 0.9 }],
+                'categories:best-practices': ['error', { minScore: 0.85 }],
+                'categories:seo': ['error', { minScore: 0.95 }],
 
                 // Known issues - don't fail on these
                 'aria-allowed-attr': 'off',
@@ -20,7 +20,7 @@ module.exports = {
                 'installable-manifest': 'off',
                 'lcp-lazy-loaded': 'off',
                 'non-composited-animations': 'off',
-                'total-byte-weight': ['warn', { maxNumericValue: 5000000 }],
+                'total-byte-weight': ['error', { maxNumericValue: 1500000 }],
                 'unused-css-rules': 'off',
                 'unused-javascript': 'off',
                 'uses-responsive-images': 'off',
