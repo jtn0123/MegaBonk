@@ -16,6 +16,7 @@ export default defineConfig({
             'tests/unit/**/*.test.js',
             'tests/unit/**/*.test.ts',
             'tests/integration/**/*.test.js',
+            'tests/integration/**/*.test.ts',
             'tests/performance/**/*.test.ts',
         ],
         // Note: tests/archived/ contains old .js files replaced by TypeScript versions
