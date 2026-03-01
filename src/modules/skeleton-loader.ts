@@ -167,6 +167,56 @@ function generateWeaponSkeletonCard(): string {
     `;
 }
 
+
+/**
+ * Generate a skeleton for the build planner tab
+ */
+function generateBuildPlannerSkeleton(): string {
+    return `
+        <div class="skeleton-card skeleton-card--planner">
+            <div class="skeleton-element" style="height: 24px; width: 60%; margin-bottom: 0.5rem;"></div>
+            <div class="skeleton-element" style="height: 16px; width: 80%; margin-bottom: 1rem;"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="skeleton-element" style="height: 120px; border-radius: 8px;"></div>
+                <div class="skeleton-element" style="height: 120px; border-radius: 8px;"></div>
+            </div>
+            <div class="skeleton-element" style="height: 80px; margin-top: 1rem; border-radius: 8px;"></div>
+        </div>
+    `;
+}
+
+/**
+ * Generate a skeleton for the calculator tab
+ */
+function generateCalculatorSkeleton(): string {
+    return `
+        <div class="skeleton-card skeleton-card--calculator">
+            <div class="skeleton-element" style="height: 24px; width: 50%; margin-bottom: 0.5rem;"></div>
+            <div class="skeleton-element" style="height: 16px; width: 70%; margin-bottom: 1rem;"></div>
+            <div class="skeleton-element" style="height: 40px; width: 100%; margin-bottom: 0.5rem; border-radius: 6px;"></div>
+            <div class="skeleton-element" style="height: 40px; width: 100%; margin-bottom: 0.5rem; border-radius: 6px;"></div>
+            <div class="skeleton-element" style="height: 40px; width: 40%; border-radius: 6px;"></div>
+        </div>
+    `;
+}
+
+/**
+ * Generate a skeleton for the advisor tab
+ */
+function generateAdvisorSkeleton(): string {
+    return `
+        <div class="skeleton-card skeleton-card--advisor">
+            <div class="skeleton-element" style="height: 24px; width: 50%; margin-bottom: 0.5rem;"></div>
+            <div class="skeleton-element" style="height: 16px; width: 80%; margin-bottom: 1rem;"></div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div class="skeleton-element" style="height: 100px; border-radius: 8px;"></div>
+                <div class="skeleton-element" style="height: 100px; border-radius: 8px;"></div>
+            </div>
+            <div class="skeleton-element" style="height: 40px; width: 50%; border-radius: 6px;"></div>
+        </div>
+    `;
+}
+
 /**
  * Get skeleton generator for a specific tab
  */
@@ -182,6 +232,12 @@ function getSkeletonGenerator(tabName: string): () => string {
             return generateCharacterSkeletonCard;
         case 'shrines':
             return generateShrineSkeletonCard;
+        case 'build-planner':
+            return generateBuildPlannerSkeleton;
+        case 'calculator':
+            return generateCalculatorSkeleton;
+        case 'advisor':
+            return generateAdvisorSkeleton;
         default:
             return () => generateItemSkeletonCard(false);
     }
@@ -294,6 +350,9 @@ export function showTabSkeleton(tabName: string): void {
         tomes: { id: 'tomesContainer', count: 6 },
         characters: { id: 'charactersContainer', count: 6 },
         shrines: { id: 'shrinesContainer', count: 4 },
+        'build-planner': { id: 'buildPlannerContainer', count: 1 },
+        calculator: { id: 'calculator-tab', count: 1 },
+        advisor: { id: 'advisor-tab', count: 1 },
     };
 
     const config = containerMap[tabName];
@@ -313,6 +372,9 @@ export function hideTabSkeleton(tabName: string): void {
         tomes: 'tomesContainer',
         characters: 'charactersContainer',
         shrines: 'shrinesContainer',
+        'build-planner': 'buildPlannerContainer',
+        calculator: 'calculator-tab',
+        advisor: 'advisor-tab',
     };
 
     const containerId = containerMap[tabName];

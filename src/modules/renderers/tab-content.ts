@@ -10,6 +10,7 @@ import { registerFunction } from '../registry.ts';
 import type { Entity, ChangelogPatch } from '../../types/index.ts';
 
 import { updateStats } from './common.ts';
+import { hideTabSkeleton } from '../skeleton-loader.ts';
 import { renderItems } from './items.ts';
 import { renderWeapons } from './weapons.ts';
 import { renderTomes } from './tomes.ts';
@@ -35,6 +36,7 @@ export async function renderTabContent(tabName: string): Promise<void> {
         initBuildPlannerScan(allData);
         // Hide item count badge for build planner tab
         updateStats([], tabName);
+        hideTabSkeleton(tabName);
         return;
     }
 
@@ -50,12 +52,14 @@ export async function renderTabContent(tabName: string): Promise<void> {
         }
         // Hide item count badge for calculator tab
         updateStats([], tabName);
+        hideTabSkeleton(tabName);
         return;
     }
 
     if (tabName === 'advisor') {
         // Advisor has its own content, just hide the count badge
         updateStats([], tabName);
+        hideTabSkeleton(tabName);
         return;
     }
 
@@ -106,6 +110,9 @@ export async function renderTabContent(tabName: string): Promise<void> {
 
     // Process blur-up images after DOM updates
     processBlurUpImages();
+
+    // Hide skeleton after content renders
+    hideTabSkeleton(tabName);
 }
 
 // ========================================
