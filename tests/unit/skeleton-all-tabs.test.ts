@@ -35,19 +35,21 @@ describe('Skeleton Loading for All Data Tabs', () => {
         });
     }
 
-    it('should not show skeleton for static-content tabs (build-planner, calculator, advisor)', () => {
-        // These tabs have static HTML and skip skeleton loading
-        // showTabSkeleton is a no-op for tabs not in the container map
+    it('should gracefully skip skeleton for static-content tabs', () => {
+        // Static-content tabs (build-planner, calculator, advisor) have
+        // pre-rendered HTML that should not be replaced by skeletons.
+        // showTabSkeleton is a no-op for tabs not in the container map.
         for (const tab of ['build-planner', 'calculator', 'advisor']) {
             const container = document.createElement('div');
-            container.id = `${tab}-test`;
+            container.id = `${tab}-container`;
             container.innerHTML = '<p>Static content</p>';
             document.body.appendChild(container);
+
+            showTabSkeleton(tab);
+
+            // Content should be preserved (no skeleton injected)
+            expect(container.innerHTML).toBe('<p>Static content</p>');
+            expect(isShowingSkeleton(`${tab}-container`)).toBe(false);
         }
-        // Calling showTabSkeleton on an unmapped tab does nothing
-        showTabSkeleton('build-planner');
-        showTabSkeleton('calculator');
-        showTabSkeleton('advisor');
-        // No error thrown, no crash
     });
 });
