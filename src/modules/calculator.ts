@@ -278,6 +278,8 @@ function renderResults(result: CalculatorResult): void {
         .join('');
 
     resultDiv.style.display = 'block';
+    resultDiv.setAttribute('aria-live', 'polite');
+    resultDiv.setAttribute('aria-label', 'Breakpoint calculation result');
     resultDiv.innerHTML = `
         <div class="calc-result-content">
             <h3>📊 Calculation Result</h3>
