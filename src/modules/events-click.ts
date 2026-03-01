@@ -122,7 +122,7 @@ export function handleFavoriteClick(target: Element): void {
         btn.textContent = nowFavorited ? '⭐' : '☆';
         btn.title = nowFavorited ? 'Remove from favorites' : 'Add to favorites';
         btn.setAttribute('aria-label', nowFavorited ? 'Remove from favorites' : 'Add to favorites');
-        if (typeof ToastManager !== 'undefined') {
+        if (ToastManager !== undefined) {
             ToastManager.success(nowFavorited ? 'Added to favorites' : 'Removed from favorites');
         }
     }

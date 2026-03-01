@@ -197,6 +197,7 @@ export function initWhatsNew(): void {
 export function initFooterVersion(): void {
     const badge = document.getElementById('app-version');
     if (badge) {
+        // SonarQube S7741 false positive: typeof guard needed because __APP_VERSION__ is a Vite define replaced at build time
         const version = typeof __APP_VERSION__ === 'undefined' ? '0.0.0' : __APP_VERSION__;
         badge.textContent = `App v${version}`;
         badge.title = 'Click to see what\'s new';
