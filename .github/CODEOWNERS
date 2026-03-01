@@ -1,0 +1,5 @@
+# Core modules - require review
+src/modules/events-core.ts @jtn0123
+src/modules/data-service.ts @jtn0123
+src/modules/store.ts @jtn0123
+.github/workflows/ @jtn0123
