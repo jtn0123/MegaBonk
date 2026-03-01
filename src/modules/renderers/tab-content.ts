@@ -10,6 +10,7 @@ import { registerFunction } from '../registry.ts';
 import type { Entity, ChangelogPatch } from '../../types/index.ts';
 
 import { updateStats } from './common.ts';
+import { hideTabSkeleton } from '../skeleton-loader.ts';
 import { renderItems } from './items.ts';
 import { renderWeapons } from './weapons.ts';
 import { renderTomes } from './tomes.ts';
@@ -106,6 +107,9 @@ export async function renderTabContent(tabName: string): Promise<void> {
 
     // Process blur-up images after DOM updates
     processBlurUpImages();
+
+    // Hide skeleton after content renders
+    hideTabSkeleton(tabName);
 }
 
 // ========================================
