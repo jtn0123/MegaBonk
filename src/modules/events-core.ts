@@ -1,36 +1,71 @@
 // ========================================
 // Core Events Module
-// Event delegation infrastructure and handlers
+// Event delegation infrastructure and orchestrator
+// Re-exports from keyboard, click, and resize sub-modules
 // ========================================
 
-import { ToastManager } from './toast.ts';
-import { safeGetElementById, debounce, escapeHtml } from './utils.ts';
+import { safeGetElementById, escapeHtml } from './utils.ts';
 import { logger } from './logger.ts';
 import { loadAllData } from './data-service.ts';
 import { closeModal, openDetailModal } from './modal.ts';
-import { toggleFavorite } from './favorites.ts';
 import { clearFilters, saveFilterState } from './filters.ts';
 import {
-    handleDropdownKeyboard,
-    isSearchDropdownVisible,
-    hideSearchDropdown,
     setupDropdownClickHandlers,
 } from './search-dropdown.ts';
 import { renderTabContent } from './renderers.ts';
 import { getState, type TabName } from './store.ts';
 import { switchTab } from './events-tabs.ts';
-import { handleSearchResultClick, clearHighlightTimeout, setupSearchListeners } from './events-search.ts';
+import { clearHighlightTimeout, setupSearchListeners, handleSearchResultClick } from './events-search.ts';
+import { normalizeEntityType } from '../types/index.ts';
 
-import { normalizeEntityType, type EntityType } from '../types/index.ts';
+// Import from sub-modules
+import { handleKeydownDelegation } from './events-keyboard.ts';
+import {
+    handleViewDetailsClick,
+    handleCardClick,
+    handleCompareCheckboxClick,
+    handleRemoveCompareClick,
+    handleBreakpointCardClick,
+    handleFavoriteClick,
+} from './events-click.ts';
+import {
+    isMobileViewport,
+    cleanupTabScrollListeners,
+    setupTabScrollIndicators as _setupTabScrollIndicators,
+    setupStickySearchHideOnScroll as _setupStickySearchHideOnScroll,
+} from './events-resize.ts';
+
+// Re-export keyboard module
+export {
+    handleEscapeKey,
+    handleTabArrowNavigation,
+    handleNumberKeyTabSwitch,
+    handleSearchShortcut,
+    handleActivationKey,
+    handleBreakpointCardActivation,
+    handleKeydownDelegation,
+} from './events-keyboard.ts';
+
+// Re-export click module
+export {
+    handleViewDetailsClick,
+    handleCardClick,
+    handleCompareCheckboxClick,
+    handleRemoveCompareClick,
+    handleBreakpointCardClick,
+    handleFavoriteClick,
+} from './events-click.ts';
+
+// Re-export resize module
+export {
+    isMobileViewport,
+    cleanupTabScrollListeners,
+} from './events-resize.ts';
 
 // ========================================
 // Memory Management: AbortController for event cleanup
 // ========================================
 let eventAbortController: AbortController | null = null;
-
-// Track scroll/resize listener cleanup functions to prevent memory leaks
-let scrollListenerCleanup: (() => void) | null = null;
-let resizeListenerCleanup: (() => void) | null = null;
 
 // Track modal close timing to prevent double-handling from click+touchend events
 let lastModalCloseTime = 0;
@@ -96,21 +131,6 @@ export function getListenerOptions(options?: { passive?: boolean }): AddEventLis
 }
 
 /**
- * Clean up tab scroll/resize listeners
- * Prevents memory leaks from accumulated listeners
- */
-export function cleanupTabScrollListeners(): void {
-    if (scrollListenerCleanup) {
-        scrollListenerCleanup();
-        scrollListenerCleanup = null;
-    }
-    if (resizeListenerCleanup) {
-        resizeListenerCleanup();
-        resizeListenerCleanup = null;
-    }
-}
-
-/**
  * Cleanup all event listeners registered via getEventAbortSignal()
  * Call this when reinitializing the app or cleaning up
  */
@@ -166,297 +186,16 @@ export function toggleTextExpand(element: HTMLElement): void {
 }
 
 // ========================================
-// Keyboard Event Handlers
+// Click Delegation (stays in core to avoid circular deps)
 // ========================================
-
-/**
- * Handle Escape key to close modals and dropdowns
- */
-function handleEscapeKey(): void {
-    if (isSearchDropdownVisible()) {
-        hideSearchDropdown();
-        return;
-    }
-    closeModal();
-    import('./compare.ts')
-        .then(({ closeCompareModal }) => closeCompareModal())
-        .catch(err => {
-            logger.warn({
-                operation: 'import.compare',
-                error: { name: 'ImportError', message: err.message },
-            });
-            const compareModal = safeGetElementById('compareModal');
-            if (compareModal) {
-                compareModal.style.display = 'none';
-                compareModal.classList.remove('active');
-            }
-        });
-}
-
-/**
- * Handle arrow key navigation between tabs
- */
-function handleTabArrowNavigation(e: KeyboardEvent, target: HTMLButtonElement): void {
-    e.preventDefault();
-    const tabButtons = Array.from(document.querySelectorAll<HTMLButtonElement>('.tab-btn'));
-    if (tabButtons.length === 0) return;
-    const currentIndex = tabButtons.indexOf(target);
-    if (currentIndex === -1) return;
-
-    const nextIndex =
-        e.key === 'ArrowRight'
-            ? (currentIndex + 1) % tabButtons.length
-            : (currentIndex - 1 + tabButtons.length) % tabButtons.length;
-
-    const nextTab = tabButtons[nextIndex];
-    if (nextTab) {
-        nextTab.focus();
-        const tabName = (nextTab.dataset.tab ?? null) as TabName | null;
-        if (tabName && typeof switchTab === 'function') {
-            switchTab(tabName);
-        }
-    }
-}
-
-/**
- * Handle number key shortcuts for tab switching
- */
-function handleNumberKeyTabSwitch(e: KeyboardEvent): void {
-    const tabMap: Record<string, TabName> = {
-        1: 'items',
-        2: 'weapons',
-        3: 'tomes',
-        4: 'characters',
-        5: 'shrines',
-        6: 'build-planner',
-        7: 'calculator',
-        8: 'advisor',
-        9: 'changelog',
-    };
-    const tabName = tabMap[e.key];
-    if (tabName && typeof switchTab === 'function') {
-        e.preventDefault();
-        switchTab(tabName);
-    }
-}
-
-/**
- * Handle Enter/Space activation on breakpoint cards
- */
-function handleBreakpointCardActivation(e: KeyboardEvent, target: HTMLElement): void {
-    e.preventDefault();
-    const itemId = target.dataset.item;
-    const targetVal = target.dataset.target;
-    if (itemId && targetVal) {
-        const parsedTarget = Number.parseInt(targetVal, 10);
-        if (!Number.isNaN(parsedTarget)) {
-            import('./calculator.ts')
-                .then(({ quickCalc }) => quickCalc(itemId, parsedTarget))
-                .catch(err => {
-                    logger.warn({
-                        operation: 'import.calculator',
-                        error: { name: 'ImportError', message: err.message },
-                    });
-                });
-        }
-    }
-}
-
-/**
- * Handle keyboard events for navigation, shortcuts, and accessibility
- */
-function handleSearchShortcut(e: KeyboardEvent, target: HTMLElement): boolean {
-    if (!((e.ctrlKey && e.key === 'k') || e.key === '/')) return false;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return true;
-    e.preventDefault();
-    const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-    if (searchInput) { searchInput.focus(); searchInput.select(); }
-    return true;
-}
-
-function handleActivationKey(e: KeyboardEvent, target: HTMLElement): boolean {
-    if (e.key !== 'Enter' && e.key !== ' ') return false;
-
-    if (target.classList.contains('breakpoint-card')) {
-        handleBreakpointCardActivation(e, target);
-        return true;
-    }
-    if (target.classList.contains('suggestion-card')) {
-        e.preventDefault();
-        import('./empty-states.ts')
-            .then(({ handleEmptyStateClick }) => handleEmptyStateClick(target))
-            .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
-        return true;
-    }
-    if (target.classList.contains('clickable-card')) {
-        e.preventDefault();
-        handleCardClick(target);
-        return true;
-    }
-    return false;
-}
-
-function handleKeydownDelegation(e: KeyboardEvent): void {
-    const target = e.target as HTMLElement;
-
-    if (target.id === 'searchInput' && isSearchDropdownVisible() && handleDropdownKeyboard(e)) return;
-    if (e.key === 'Escape') { handleEscapeKey(); return; }
-    if (handleSearchShortcut(e, target)) return;
-
-    if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && target.classList.contains('tab-btn')) {
-        handleTabArrowNavigation(e, target as HTMLButtonElement);
-        return;
-    }
-
-    if (e.key >= '1' && e.key <= '9' && !e.ctrlKey && !e.altKey && !e.metaKey) {
-        if (target.tagName !== 'INPUT' && target.tagName !== 'TEXTAREA') handleNumberKeyTabSwitch(e);
-        return;
-    }
-
-    handleActivationKey(e, target);
-}
-
-// ========================================
-// Click Event Handlers
-// ========================================
-
-/**
- * Handle View Details button click
- */
-function handleViewDetailsClick(target: HTMLElement): void {
-    const type = target.dataset.type as EntityType | undefined;
-    const id = target.dataset.id;
-    if (type && id) openDetailModal(type, id);
-}
-
-/**
- * Handle item card click to open detail modal
- */
-function handleCardClick(target: HTMLElement): void {
-    const card = target.closest<HTMLElement>('.item-card');
-    if (!card) return;
-
-    // Map card classes/data to entity types
-    const entityType = card.dataset.entityType as EntityType | undefined;
-    const entityId = card.dataset.entityId;
-
-    if (entityType && entityId) {
-        const type = normalizeEntityType(entityType);
-        if (type) openDetailModal(type, entityId);
-    }
-}
-
-/**
- * Handle compare checkbox click with debouncing
- */
-function handleCompareCheckboxClick(e: MouseEvent, target: Element): void {
-    const label = target.closest('.compare-checkbox-label') as HTMLElement;
-    const checkbox = label?.querySelector<HTMLInputElement>('.compare-checkbox') ?? null;
-    if (!checkbox) return;
-
-    const now = Date.now();
-    const lastToggle = Number.parseInt(checkbox.dataset.lastToggle || '0', 10);
-    if (now - lastToggle < 100) return;
-    checkbox.dataset.lastToggle = now.toString();
-
-    const id = checkbox.dataset.id || checkbox.value;
-    if (id) {
-        e.preventDefault();
-        checkbox.checked = !checkbox.checked;
-        import('./compare.ts')
-            .then(({ toggleCompareItem }) => toggleCompareItem(id))
-            .catch(err =>
-                logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } })
-            );
-    }
-}
-
-/**
- * Handle remove from comparison button click
- */
-function handleRemoveCompareClick(target: Element): void {
-    const btn = target.classList.contains('remove-compare-btn')
-        ? (target as HTMLElement)
-        : target.closest<HTMLElement>('.remove-compare-btn');
-    const id = btn?.dataset.removeId;
-    if (id) {
-        import('./compare.ts')
-            .then(({ toggleCompareItem, updateCompareDisplay }) => {
-                toggleCompareItem(id);
-                updateCompareDisplay();
-            })
-            .catch(err =>
-                logger.warn({ operation: 'import.compare', error: { name: 'ImportError', message: err.message } })
-            );
-    }
-}
-
-/**
- * Handle breakpoint card click for quick calc
- */
-function handleBreakpointCardClick(target: Element): void {
-    const card = target.closest<HTMLElement>('.breakpoint-card');
-    const itemId = card?.dataset.item;
-    const targetVal = card?.dataset.target;
-    if (itemId && targetVal) {
-        const parsedTarget = Number.parseInt(targetVal, 10);
-        if (!Number.isNaN(parsedTarget)) {
-            import('./calculator.ts')
-                .then(({ quickCalc }) => quickCalc(itemId, parsedTarget))
-                .catch(err =>
-                    logger.warn({
-                        operation: 'import.calculator',
-                        error: { name: 'ImportError', message: err.message },
-                    })
-                );
-        }
-    }
-}
-
-/**
- * Handle favorite button click
- */
-function handleFavoriteClick(target: Element): void {
-    const btn = (
-        target.classList.contains('favorite-btn') ? target : target.closest('.favorite-btn')
-    ) as HTMLButtonElement | null;
-    const tabName = btn?.dataset.tab as TabName | undefined;
-    const itemId = btn?.dataset.id;
-
-    const isEntityTab = (tab: TabName | undefined): tab is EntityType => {
-        return tab === 'items' || tab === 'weapons' || tab === 'tomes' || tab === 'characters' || tab === 'shrines';
-    };
-
-    if (btn && tabName && isEntityTab(tabName) && itemId && typeof toggleFavorite === 'function') {
-        const nowFavorited = toggleFavorite(tabName, itemId);
-        btn.classList.toggle('favorited', nowFavorited);
-        btn.textContent = nowFavorited ? '⭐' : '☆';
-        btn.title = nowFavorited ? 'Remove from favorites' : 'Add to favorites';
-        btn.setAttribute('aria-label', nowFavorited ? 'Remove from favorites' : 'Add to favorites');
-        if (typeof ToastManager !== 'undefined') {
-            ToastManager.success(nowFavorited ? 'Added to favorites' : 'Removed from favorites');
-        }
-    }
-}
-
-/**
- * Check if we're on mobile (≤480px)
- */
-function isMobileViewport(): boolean {
-    return window.matchMedia('(max-width: 480px)').matches;
-}
 
 /**
  * Handle item card click (for mobile - whole card is tappable)
- * Delegates to handleCardClick which uses card's data attributes.
  */
 function handleItemCardClick(target: Element): void {
     handleCardClick(target as HTMLElement);
 }
 
-/**
- * Handle click events via delegation
- */
 function handleCardAreaClick(e: MouseEvent, target: Element): boolean {
     if (target.classList.contains('view-details-btn')) {
         handleViewDetailsClick(target as HTMLElement);
@@ -551,9 +290,6 @@ function handleClickDelegation(e: MouseEvent): void {
 // Change Event Handlers
 // ========================================
 
-/**
- * Handle change events via delegation
- */
 function handleChangeDelegation(e: Event): void {
     const target = e.target as HTMLElement;
 
@@ -623,39 +359,7 @@ export function setupTabButtonListeners(): void {
  * Setup tab scroll indicators for mobile
  */
 export function setupTabScrollIndicators(): void {
-    const tabContainer = document.querySelector<HTMLElement>('.tabs .container');
-    const tabButtons = document.querySelector<HTMLElement>('.tab-buttons');
-
-    if (!tabContainer || !tabButtons) return;
-
-    cleanupTabScrollListeners();
-
-    const updateTabScrollIndicators = (): void => {
-        const canScrollLeft = tabButtons.scrollLeft > 5;
-        const canScrollRight = tabButtons.scrollLeft < tabButtons.scrollWidth - tabButtons.clientWidth - 5;
-        tabContainer.classList.toggle('can-scroll-left', canScrollLeft);
-        tabContainer.classList.toggle('can-scroll-right', canScrollRight);
-    };
-
-    let scrollRAFPending = false;
-    const throttledScrollHandler = (): void => {
-        if (scrollRAFPending) return;
-        scrollRAFPending = true;
-        requestAnimationFrame(() => {
-            updateTabScrollIndicators();
-            scrollRAFPending = false;
-        });
-    };
-
-    const debouncedResizeHandler = debounce(updateTabScrollIndicators, 100);
-
-    tabButtons.addEventListener('scroll', throttledScrollHandler, getListenerOptions({ passive: true }));
-    window.addEventListener('resize', debouncedResizeHandler, getListenerOptions());
-
-    scrollListenerCleanup = () => tabButtons.removeEventListener('scroll', throttledScrollHandler);
-    resizeListenerCleanup = () => window.removeEventListener('resize', debouncedResizeHandler);
-
-    setTimeout(updateTabScrollIndicators, 100);
+    _setupTabScrollIndicators(getListenerOptions);
 }
 
 /**
@@ -768,49 +472,7 @@ export function setupFilterToggle(): void {
  * Setup sticky search bar that hides on scroll down, shows on scroll up
  */
 export function setupStickySearchHideOnScroll(): void {
-    const controls = document.querySelector<HTMLElement>('.controls');
-    if (!controls) return;
-
-    // Only enable on mobile
-    const isMobile = window.matchMedia('(max-width: 768px)');
-    if (!isMobile.matches) return;
-
-    let lastScrollY = window.scrollY;
-    let ticking = false;
-    const scrollThreshold = 10; // Minimum scroll to trigger hide/show
-
-    const handleScroll = (): void => {
-        if (ticking) return;
-
-        ticking = true;
-        requestAnimationFrame(() => {
-            const currentScrollY = window.scrollY;
-            const scrollDelta = currentScrollY - lastScrollY;
-
-            // Don't hide if we're at the top
-            if (currentScrollY <= 0) {
-                controls.classList.remove('controls-hidden');
-            } else if (scrollDelta > scrollThreshold) {
-                // Scrolling down - hide
-                controls.classList.add('controls-hidden');
-            } else if (scrollDelta < -scrollThreshold) {
-                // Scrolling up - show
-                controls.classList.remove('controls-hidden');
-            }
-
-            lastScrollY = currentScrollY;
-            ticking = false;
-        });
-    };
-
-    window.addEventListener('scroll', handleScroll, getListenerOptions({ passive: true }));
-
-    // Re-check on resize
-    isMobile.addEventListener('change', e => {
-        if (!e.matches) {
-            controls.classList.remove('controls-hidden');
-        }
-    });
+    _setupStickySearchHideOnScroll(getListenerOptions);
 }
 
 /**
