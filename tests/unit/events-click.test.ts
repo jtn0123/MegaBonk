@@ -13,7 +13,7 @@ vi.mock('../../src/modules/toast.ts', () => ({
 }));
 
 vi.mock('../../src/modules/logger.ts', () => ({
-    logger: { warn: vi.fn(), info: vi.fn(), debug: vi.fn(), error: vi.fn() },
+    logger: { warn: vi.fn(), info: vi.fn(), debug: vi.fn(), error: vi.fn(), setContext: vi.fn() },
 }));
 
 vi.mock('../../src/modules/modal.ts', () => ({
