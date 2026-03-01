@@ -36,7 +36,6 @@ export async function renderTabContent(tabName: string): Promise<void> {
         initBuildPlannerScan(allData);
         // Hide item count badge for build planner tab
         updateStats([], tabName);
-        hideTabSkeleton(tabName);
         return;
     }
 
@@ -52,14 +51,12 @@ export async function renderTabContent(tabName: string): Promise<void> {
         }
         // Hide item count badge for calculator tab
         updateStats([], tabName);
-        hideTabSkeleton(tabName);
         return;
     }
 
     if (tabName === 'advisor') {
         // Advisor has its own content, just hide the count badge
         updateStats([], tabName);
-        hideTabSkeleton(tabName);
         return;
     }
 

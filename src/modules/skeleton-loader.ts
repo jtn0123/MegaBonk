@@ -350,9 +350,6 @@ export function showTabSkeleton(tabName: string): void {
         tomes: { id: 'tomesContainer', count: 6 },
         characters: { id: 'charactersContainer', count: 6 },
         shrines: { id: 'shrinesContainer', count: 4 },
-        'build-planner': { id: 'buildPlannerContainer', count: 1 },
-        calculator: { id: 'calculator-tab', count: 1 },
-        advisor: { id: 'advisor-tab', count: 1 },
     };
 
     const config = containerMap[tabName];
@@ -372,9 +369,6 @@ export function hideTabSkeleton(tabName: string): void {
         tomes: 'tomesContainer',
         characters: 'charactersContainer',
         shrines: 'shrinesContainer',
-        'build-planner': 'buildPlannerContainer',
-        calculator: 'calculator-tab',
-        advisor: 'advisor-tab',
     };
 
     const containerId = containerMap[tabName];
