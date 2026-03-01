@@ -164,17 +164,28 @@ describe('mobile-filter-logic', () => {
             expect(countActiveFilters(tabFilters)).toBe(1);
         });
 
-        it('should count non-default select values', () => {
-            // Use checkbox which doesn't have instanceof issues in this test setup
-            document.body.innerHTML = '<input type="checkbox" id="fav2" checked />';
+        it('should count multiple active checkbox filters', () => {
+            document.body.innerHTML = `
+                <input type="checkbox" id="fav" checked />
+                <input type="checkbox" id="owned" checked />
+            `;
             vi.mocked(getState).mockReturnValue('items');
             const tabFilters: Record<string, FilterConfig[]> = {
                 items: [
-                    { id: 'fav2', label: 'Favorites', type: 'checkbox' },
+                    { id: 'fav', label: 'Favorites', type: 'checkbox' },
+                    { id: 'owned', label: 'Owned Only', type: 'checkbox' },
                 ],
             };
-            // Checkbox counts work, select instanceof check fails due to jsdom cross-realm
-            expect(countActiveFilters(tabFilters)).toBe(1);
+            expect(countActiveFilters(tabFilters)).toBe(2);
+        });
+
+        it('should not count unchecked checkboxes', () => {
+            document.body.innerHTML = '<input type="checkbox" id="fav" />';
+            vi.mocked(getState).mockReturnValue('items');
+            const tabFilters: Record<string, FilterConfig[]> = {
+                items: [{ id: 'fav', label: 'Favorites', type: 'checkbox' }],
+            };
+            expect(countActiveFilters(tabFilters)).toBe(0);
         });
 
         it('should not count default select values', () => {

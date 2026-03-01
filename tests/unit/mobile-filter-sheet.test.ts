@@ -146,38 +146,65 @@ describe('mobile-filter-sheet', () => {
     describe('handleFocusTrap', () => {
         it('should do nothing when not Tab key', () => {
             const e = new KeyboardEvent('keydown', { key: 'Enter' });
+            vi.spyOn(e, 'preventDefault');
             handleFocusTrap(e, true);
-            // No error
+            expect(e.preventDefault).not.toHaveBeenCalled();
         });
 
         it('should do nothing when sheet is not open', () => {
             const e = new KeyboardEvent('keydown', { key: 'Tab' });
+            vi.spyOn(e, 'preventDefault');
             handleFocusTrap(e, false);
+            expect(e.preventDefault).not.toHaveBeenCalled();
         });
 
-        it('should trap focus forward at last element', () => {
+        it('should attempt focus trap on Tab when sheet is open', () => {
             const sheet = createFilterSheet('items', sampleFilters);
             sheet.id = 'filter-bottom-sheet';
             document.body.appendChild(sheet);
 
-            const focusable = Array.from(
-                sheet.querySelectorAll<HTMLElement>('button:not([disabled]), select, input')
-            ).filter(el => el.offsetParent !== null || true); // jsdom has no layout
+            // Get focusable elements within the sheet
+            const focusable = sheet.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), select, input'
+            );
+            expect(focusable.length).toBeGreaterThan(0);
 
+            // Focus the last focusable element
+            const last = focusable[focusable.length - 1];
+            last.focus();
+
+            const e = new KeyboardEvent('keydown', { key: 'Tab' });
+            vi.spyOn(e, 'preventDefault');
+            handleFocusTrap(e, true);
+            // In jsdom, offsetParent is null so the focusable filter may
+            // exclude elements, but the function should still execute
+            // without errors. With real DOM layout, it would trap focus.
+        });
+
+        it('should handle Shift+Tab at first element', () => {
+            const sheet = createFilterSheet('items', sampleFilters);
+            sheet.id = 'filter-bottom-sheet';
+            document.body.appendChild(sheet);
+
+            const focusable = sheet.querySelectorAll<HTMLElement>(
+                'button:not([disabled]), select, input'
+            );
             if (focusable.length > 0) {
-                const last = focusable[focusable.length - 1];
-                last.focus();
-
-                const e = new KeyboardEvent('keydown', { key: 'Tab' });
-                vi.spyOn(e, 'preventDefault');
-                handleFocusTrap(e, true);
-                // In jsdom, offsetParent is null so elements may be filtered out
+                focusable[0].focus();
             }
+
+            const e = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true });
+            vi.spyOn(e, 'preventDefault');
+            handleFocusTrap(e, true);
+            // Function executes focus trap logic without errors
         });
 
         it('should do nothing without sheet in DOM', () => {
             const e = new KeyboardEvent('keydown', { key: 'Tab' });
+            vi.spyOn(e, 'preventDefault');
             handleFocusTrap(e, true);
+            // No sheet found, no error thrown, no preventDefault
+            expect(e.preventDefault).not.toHaveBeenCalled();
         });
     });
 });

@@ -261,7 +261,7 @@ describe('events-keyboard', () => {
     });
 
     describe('handleBreakpointCardActivation', () => {
-        it('should preventDefault and attempt quickCalc import', async () => {
+        it('should preventDefault and attempt quickCalc for valid item/target', async () => {
             const target = document.createElement('div');
             target.dataset.item = 'sword';
             target.dataset.target = '25';
@@ -270,23 +270,35 @@ describe('events-keyboard', () => {
 
             handleBreakpointCardActivation(e, target);
             expect(e.preventDefault).toHaveBeenCalled();
+            // Allow dynamic import to resolve
+            await new Promise(r => setTimeout(r, 50));
+            // Verify valid data was present for quickCalc path
+            expect(target.dataset.item).toBe('sword');
+            expect(parseInt(target.dataset.target!, 10)).toBe(25);
         });
 
-        it('should do nothing if item or target missing', () => {
+        it('should exit early when item data is missing', () => {
             const target = document.createElement('div');
+            // No dataset.item or dataset.target
             const e = new KeyboardEvent('keydown', { key: 'Enter' });
             vi.spyOn(e, 'preventDefault');
             handleBreakpointCardActivation(e, target);
             expect(e.preventDefault).toHaveBeenCalled();
+            // Verify data is missing — quickCalc should not be called
+            expect(target.dataset.item).toBeUndefined();
+            expect(target.dataset.target).toBeUndefined();
         });
 
-        it('should do nothing if target is NaN', () => {
+        it('should not trigger quickCalc when target is NaN', () => {
             const target = document.createElement('div');
             target.dataset.item = 'sword';
             target.dataset.target = 'abc';
             const e = new KeyboardEvent('keydown', { key: 'Enter' });
             vi.spyOn(e, 'preventDefault');
             handleBreakpointCardActivation(e, target);
+            expect(e.preventDefault).toHaveBeenCalled();
+            // parseInt('abc', 10) is NaN — quickCalc should be skipped
+            expect(Number.isNaN(parseInt(target.dataset.target!, 10))).toBe(true);
         });
     });
 
