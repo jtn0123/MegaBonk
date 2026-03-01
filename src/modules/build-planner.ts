@@ -6,23 +6,19 @@
 import type { Character, Weapon, Tome, Item } from '../types/index.ts';
 import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
-import { MAX_BUILD_HISTORY } from './constants.ts';
 import { logger } from './logger.ts';
-import { getState, setState, type Build } from './store.ts';
-
-// Import from sub-modules
+import { getState, type Build } from './store.ts';
 import {
-    calculateBuildStats as calculateBuildStatsFromModule,
-    invalidateBuildStatsCache,
-    type CalculatedBuildStats,
-} from './build-stats.ts';
-import {
-    isValidBuildEntry,
     isValidBase64,
     isValidURLBuildData,
     type BuildData,
     type URLBuildData,
 } from './build-validation.ts';
+import {
+    calculateBuildStats as calculateBuildStatsFromModule,
+    invalidateBuildStatsCache,
+    type CalculatedBuildStats,
+} from './build-stats.ts';
 import {
     renderBuildPlanner as renderUI,
     updateBuildDisplay,
@@ -33,10 +29,29 @@ import {
     setTomeCheckboxes,
     setItemCheckboxes,
     clearAllSelections,
+    copyToClipboard,
     getSelectedTomeIds,
     getSelectedItemIds,
-    copyToClipboard,
 } from './build-ui.ts';
+
+// Import from state sub-module
+import {
+    BUILD_TEMPLATES,
+    currentBuild,
+    getCurrentBuildFromStore,
+    updateCurrentBuild,
+    getBuildHistory,
+    sanitizeParsed,
+} from './build-planner-state.ts';
+
+// Re-export state module for backward compatibility
+export {
+    BUILD_TEMPLATES,
+    getBuildHistory,
+    saveBuildToHistory,
+    deleteBuildFromHistory,
+    clearBuildHistory,
+} from './build-planner-state.ts';
 
 // Re-export types for backwards compatibility
 export type { Build } from './store.ts';
@@ -46,9 +61,6 @@ export { invalidateBuildStatsCache } from './build-stats.ts';
 
 /**
  * Calculate build statistics with memoization
- * Wrapper that provides backwards compatibility by using current build if none provided
- * @param build - Optional build to calculate stats for (uses currentBuild if not provided)
- * @returns Calculated stats
  */
 export function calculateBuildStats(build?: Build): CalculatedBuildStats {
     const buildToUse = build || getState('currentBuild');
@@ -56,271 +68,13 @@ export function calculateBuildStats(build?: Build): CalculatedBuildStats {
 }
 
 // ========================================
-// Build Templates
+// Local State
 // ========================================
 
-interface BuildTemplate {
-    name: string;
-    description: string;
-    build: BuildData;
-}
-
-type BuildTemplatesMap = Record<string, BuildTemplate>;
-
-export const BUILD_TEMPLATES: Readonly<BuildTemplatesMap> = Object.freeze({
-    crit_build: {
-        name: '🎯 Crit Build',
-        description: 'Maximize critical hit chance and damage',
-        build: {
-            character: 'cl4nk',
-            weapon: 'revolver',
-            tomes: ['precision', 'damage'],
-            items: ['clover', 'eagle_claw'],
-        },
-    },
-    tank_build: {
-        name: '🛡️ Tank Build',
-        description: 'High HP and survivability',
-        build: {
-            character: 'sir_oofie',
-            weapon: 'sword',
-            tomes: ['hp', 'armor'],
-            items: ['chonkplate', 'golden_shield'],
-        },
-    },
-    speed_build: {
-        name: '⚡ Speed Build',
-        description: 'Fast attack and movement speed',
-        build: {
-            character: 'bandit',
-            weapon: 'katana',
-            tomes: ['cooldown', 'agility'],
-            items: ['turbo_skates', 'turbo_socks'],
-        },
-    },
-    glass_cannon: {
-        name: '💥 Glass Cannon',
-        description: 'Maximum damage, low defense',
-        build: {
-            character: 'ogre',
-            weapon: 'sniper_rifle',
-            tomes: ['damage', 'cooldown'],
-            items: ['power_gloves', 'gym_sauce'],
-        },
-    },
-});
-
-// ========================================
-// State Management
-// ========================================
-
-const BUILD_HISTORY_KEY = 'megabonk_build_history';
 let eventsInitialized = false;
 let cachedTomeMap: Map<string, Tome> | null = null;
 let cachedItemMap: Map<string, Item> | null = null;
 let cachedAllData: typeof allData | null = null;
-
-/**
- * Get the current build from the store (never stale)
- */
-function getCurrentBuildFromStore(): Build {
-    return getState('currentBuild');
-}
-
-// Proxy for backwards compatibility - always reads from store
-const currentBuild: Build = new Proxy({} as Build, {
-    get(_target, prop: keyof Build) {
-        const build = getCurrentBuildFromStore();
-        return build[prop];
-    },
-    set(_target, prop: keyof Build, value: unknown) {
-        const build = { ...getCurrentBuildFromStore() };
-        (build as Record<keyof Build, unknown>)[prop] = value;
-        setState('currentBuild', build);
-        return true;
-    },
-    ownKeys() {
-        return Object.keys(getCurrentBuildFromStore());
-    },
-    getOwnPropertyDescriptor(_target, prop) {
-        const build = getCurrentBuildFromStore();
-        if (prop in build) {
-            return { configurable: true, enumerable: true, value: build[prop as keyof Build] };
-        }
-        return undefined;
-    },
-});
-
-function updateCurrentBuild(build: Build): void {
-    setState('currentBuild', build);
-}
-
-// ========================================
-// Build History Management
-// ========================================
-
-export function getBuildHistory(): BuildData[] {
-    try {
-        const history = localStorage.getItem(BUILD_HISTORY_KEY);
-        if (!history) return [];
-
-        const parsed = JSON.parse(history);
-        if (!Array.isArray(parsed)) {
-            logger.warn({
-                operation: 'build.history',
-                error: { name: 'ValidationError', message: 'Build history is not an array' },
-            });
-            localStorage.removeItem(BUILD_HISTORY_KEY);
-            return [];
-        }
-
-        // Validate basic schema: each entry must be an object with a character field
-        if (!parsed.every((b: unknown) => b && typeof b === 'object' && 'character' in (b as Record<string, unknown>))) {
-            logger.warn({
-                operation: 'build.history',
-                error: { name: 'ValidationError', message: 'Build history contains entries without character field, clearing corrupt data' },
-            });
-            localStorage.removeItem(BUILD_HISTORY_KEY);
-            return [];
-        }
-
-        return parsed.filter((entry, index) => {
-            if (isValidBuildEntry(entry)) return true;
-            logger.warn({
-                operation: 'build.history',
-                error: { name: 'ValidationError', message: `Skipping corrupted entry at index ${index}` },
-            });
-            return false;
-        }) as BuildData[];
-    } catch (error) {
-        logger.warn({
-            operation: 'build.history',
-            error: { name: (error as Error).name, message: (error as Error).message },
-        });
-        return [];
-    }
-}
-
-export function saveBuildToHistory(): void {
-    if (!currentBuild.character && !currentBuild.weapon) {
-        ToastManager.warning('Build must have at least a character or weapon');
-        return;
-    }
-
-    try {
-        let history = getBuildHistory();
-        const buildData: BuildData = {
-            name: currentBuild.name || `Build ${new Date().toLocaleString()}`,
-            notes: currentBuild.notes || '',
-            timestamp: Date.now(),
-            character: currentBuild.character?.id,
-            weapon: currentBuild.weapon?.id,
-            tomes: (currentBuild.tomes || []).map((t: Tome) => t.id),
-            items: (currentBuild.items || []).map((i: Item) => i.id),
-        };
-
-        history.unshift(buildData);
-        history = history.slice(0, MAX_BUILD_HISTORY);
-        try {
-            localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
-        } catch (e) {
-            if (e instanceof DOMException && e.name === 'QuotaExceededError') {
-                // Remove oldest entries and retry
-                history.splice(0, Math.ceil(history.length / 2));
-                try { localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history)); } catch {}
-            }
-        }
-
-        logger.info({
-            operation: 'build.save',
-            data: {
-                action: 'save_to_history',
-                characterId: currentBuild.character?.id,
-                weaponId: currentBuild.weapon?.id,
-                tomesCount: currentBuild.tomes?.length ?? 0,
-                itemsCount: currentBuild.items?.length ?? 0,
-                historySize: history.length,
-            },
-        });
-
-        ToastManager.success(`Build "${buildData.name}" saved to history!`);
-    } catch {
-        ToastManager.error('Failed to save build to history');
-    }
-}
-
-export function loadBuildFromHistory(index: number): void {
-    try {
-        if (!Number.isFinite(index) || !Number.isInteger(index)) {
-            ToastManager.error('Invalid build index');
-            return;
-        }
-
-        const history = getBuildHistory();
-        if (index < 0 || index >= history.length) {
-            ToastManager.error('Build not found in history');
-            return;
-        }
-
-        const buildData = history[index];
-        if (!buildData) {
-            ToastManager.error('Build not found in history');
-            return;
-        }
-
-        loadBuildFromData(buildData);
-
-        logger.info({
-            operation: 'build.load',
-            data: {
-                action: 'load_from_history',
-                source: 'history',
-                historyIndex: index,
-                characterId: buildData.character,
-                weaponId: buildData.weapon,
-            },
-        });
-
-        ToastManager.success(`Loaded "${buildData.name || 'Build'}" from history`);
-    } catch {
-        ToastManager.error('Failed to load build from history');
-    }
-}
-
-export function deleteBuildFromHistory(index: number): void {
-    try {
-        if (!Number.isFinite(index) || !Number.isInteger(index)) {
-            ToastManager.error('Invalid build index');
-            return;
-        }
-
-        let history = getBuildHistory();
-        if (index < 0 || index >= history.length) {
-            ToastManager.error('Build not found in history');
-            return;
-        }
-
-        const buildName = history[index]?.name || 'Build';
-        history.splice(index, 1);
-        localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
-        ToastManager.success(`Deleted "${buildName}" from history`);
-
-        if (typeof globalThis.showBuildHistoryModal === 'function') {
-            globalThis.showBuildHistoryModal();
-        }
-    } catch {
-        ToastManager.error('Failed to delete build from history');
-    }
-}
-
-export function clearBuildHistory(): void {
-    try {
-        localStorage.removeItem(BUILD_HISTORY_KEY);
-        ToastManager.success('Build history cleared');
-    } catch {
-        ToastManager.error('Failed to clear build history');
-    }
-}
 
 // ========================================
 // Build Templates
@@ -382,6 +136,44 @@ export function loadBuildFromData(buildData: BuildData): void {
     updateBuildAnalysis();
 }
 
+export function loadBuildFromHistory(index: number): void {
+    try {
+        if (!Number.isFinite(index) || !Number.isInteger(index)) {
+            ToastManager.error('Invalid build index');
+            return;
+        }
+
+        const history = getBuildHistory();
+        if (index < 0 || index >= history.length) {
+            ToastManager.error('Build not found in history');
+            return;
+        }
+
+        const buildData = history[index];
+        if (!buildData) {
+            ToastManager.error('Build not found in history');
+            return;
+        }
+
+        loadBuildFromData(buildData);
+
+        logger.info({
+            operation: 'build.load',
+            data: {
+                action: 'load_from_history',
+                source: 'history',
+                historyIndex: index,
+                characterId: buildData.character,
+                weaponId: buildData.weapon,
+            },
+        });
+
+        ToastManager.success(`Loaded "${buildData.name || 'Build'}" from history`);
+    } catch {
+        ToastManager.error('Failed to load build from history');
+    }
+}
+
 export function importBuild(jsonString: string): void {
     try {
         const buildData = JSON.parse(jsonString) as BuildData;
@@ -425,23 +217,18 @@ export function renderBuildPlanner(): void {
 
 export function setupBuildPlannerEvents(): void {
     setupUIEvents(
-        // onCharacterChange
         (charId: string) => {
             const charsArray = allData.characters?.characters;
             currentBuild.character = charsArray ? charsArray.find((c: Character) => c.id === charId) || null : null;
             updateBuildAnalysis();
         },
-        // onWeaponChange
         (weaponId: string) => {
             const weaponsArray = allData.weapons?.weapons;
             currentBuild.weapon = weaponsArray ? weaponsArray.find((w: Weapon) => w.id === weaponId) || null : null;
             updateBuildAnalysis();
         },
-        // onExport
         exportBuild,
-        // onShare
         shareBuildURL,
-        // onClear
         clearBuild
     );
 
@@ -449,8 +236,6 @@ export function setupBuildPlannerEvents(): void {
 }
 
 export function updateBuildAnalysis(): void {
-    // Sync checkbox selections to build state
-    // Invalidate cached maps if allData reference changed
     if (cachedAllData !== allData) {
         cachedTomeMap = null;
         cachedItemMap = null;
@@ -477,11 +262,6 @@ export function updateBuildAnalysis(): void {
         currentBuild.items = [];
     }
 
-    // Note: Don't spread the Proxy directly ({ ...currentBuild }) as it produces an empty object.
-    // The Proxy setter already calls setState for each property change, so the store is up-to-date.
-    // Just get the current build from the store for the UI update.
-
-    // Update UI display
     updateBuildDisplay(getCurrentBuildFromStore(), updateBuildURL);
 }
 
@@ -545,31 +325,6 @@ export function shareBuildURL(): void {
 // URL Handling
 // ========================================
 
-/**
- * Recursively strips prototype-pollution keys from a parsed JSON object.
- * Guards against crafted build links containing __proto__ payloads.
- * See: SEC-2026-0220-005
- */
-function sanitizeParsed(obj: unknown): unknown {
-    if (obj === null || typeof obj !== 'object') return obj;
-    const clean = obj as Record<string, unknown>;
-    // Remove prototype pollution vectors
-    for (const dangerousKey of ['constructor', 'prototype']) {
-        delete clean[dangerousKey];
-    }
-    // Also remove __proto__ via Object.defineProperty to avoid linter detecting the literal
-    const protoKeys = Object.keys(clean).filter(k => k === String.fromCharCode(95, 95, 112, 114, 111, 116, 111, 95, 95));
-    for (const k of protoKeys) {
-        delete clean[k];
-    }
-    for (const key of Object.keys(clean)) {
-        if (typeof clean[key] === 'object' && clean[key] !== null) {
-            sanitizeParsed(clean[key]);
-        }
-    }
-    return clean;
-}
-
 export function loadBuildFromURL(): boolean {
     const hash = window.location.hash;
     if (!hash?.includes('build=')) return false;
@@ -616,7 +371,6 @@ export function loadBuildFromURL(): boolean {
             return false;
         }
 
-        // Load character
         if (decoded.c && allData.characters) {
             const charMap = new Map(allData.characters.characters.map((c: Character) => [c.id, c]));
             const char = charMap.get(decoded.c);
@@ -626,7 +380,6 @@ export function loadBuildFromURL(): boolean {
             }
         }
 
-        // Load weapon
         if (decoded.w && allData.weapons) {
             const weaponMap = new Map(allData.weapons.weapons.map((w: Weapon) => [w.id, w]));
             const weapon = weaponMap.get(decoded.w);
@@ -636,7 +389,6 @@ export function loadBuildFromURL(): boolean {
             }
         }
 
-        // Load tomes
         if (decoded.t && Array.isArray(decoded.t) && allData.tomes?.tomes) {
             const tomeMap = new Map(allData.tomes.tomes.map((t: Tome) => [t.id, t]));
             currentBuild.tomes = decoded.t
@@ -645,7 +397,6 @@ export function loadBuildFromURL(): boolean {
             setTomeCheckboxes(decoded.t);
         }
 
-        // Load items
         if (decoded.i && Array.isArray(decoded.i) && allData.items?.items) {
             const itemMap = new Map(allData.items.items.map((i: Item) => [i.id, i]));
             currentBuild.items = decoded.i
