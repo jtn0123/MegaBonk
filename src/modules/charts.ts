@@ -230,6 +230,8 @@ export function createScalingChart(
         return null;
     }
 
+    canvas.setAttribute('aria-label', `Scaling chart: ${label} (${scalingType || 'linear'} scaling)`);
+
     // Destroy existing chart if present
     if (chartInstances[canvasId]) {
         chartInstances[canvasId].destroy();
@@ -381,6 +383,8 @@ export function createCompareChart(canvasId: string, items: ChartableItem[]): Ch
         });
         return null;
     }
+
+    canvas.setAttribute('aria-label', `Comparison chart: ${items.map((i: ChartableItem) => i.name).join(', ')}`);
 
     if (chartInstances[canvasId]) {
         chartInstances[canvasId].destroy();

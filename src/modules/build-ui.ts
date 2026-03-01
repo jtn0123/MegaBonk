@@ -123,6 +123,8 @@ export function renderStatsDisplay(stats: CalculatedBuildStats): void {
     const statsDisplay = safeGetElementById('build-stats');
     if (!statsDisplay) return;
 
+    statsDisplay.setAttribute('aria-live', 'polite');
+    statsDisplay.setAttribute('aria-label', 'Build statistics');
     statsDisplay.innerHTML = `
         <div class="stat-card"><div class="stat-icon">⚔️</div><div class="stat-info"><div class="stat-label">Total Damage</div><div class="stat-value">${stats.damage.toFixed(0)}%</div></div></div>
         <div class="stat-card"><div class="stat-icon">❤️</div><div class="stat-info"><div class="stat-label">Max HP</div><div class="stat-value">${stats.hp.toFixed(0)}</div></div></div>
@@ -144,6 +146,8 @@ export function renderSynergiesDisplay(synergies: string[]): void {
     const synergiesDisplay = safeGetElementById('build-synergies');
     if (!synergiesDisplay) return;
 
+    synergiesDisplay.setAttribute('aria-live', 'polite');
+    synergiesDisplay.setAttribute('aria-label', 'Build synergies');
     synergiesDisplay.innerHTML =
         synergies.length > 0
             ? `<h4>🔗 Synergies Found:</h4><ul>${synergies.map((s: string) => `<li>${s}</li>`).join('')}</ul>`

@@ -481,6 +481,8 @@ function displayRecommendations(recommendations: Recommendation[]): void {
     if (!resultsDiv || !resultsContent) return;
 
     resultsContent.innerHTML = '';
+    resultsDiv.setAttribute('aria-live', 'polite');
+    resultsDiv.setAttribute('aria-label', 'Advisor recommendations');
 
     if (recommendations.length === 0) {
         resultsContent.innerHTML = '<p>No recommendations available.</p>';
@@ -495,6 +497,7 @@ function displayRecommendations(recommendations: Recommendation[]): void {
 
         const entity = rec.choice.entity;
         const rank = index + 1;
+        card.setAttribute('aria-label', `Recommendation ${rank}: ${entity.name}`);
         const emoji = getRankEmoji(rank);
 
         let html = `
