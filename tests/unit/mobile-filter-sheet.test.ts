@@ -196,7 +196,8 @@ describe('mobile-filter-sheet', () => {
             const e = new KeyboardEvent('keydown', { key: 'Tab', shiftKey: true });
             vi.spyOn(e, 'preventDefault');
             handleFocusTrap(e, true);
-            // Function executes focus trap logic without errors
+            // Verify focusable elements exist in the sheet
+            expect(focusable.length).toBeGreaterThan(0);
         });
 
         it('should do nothing without sheet in DOM', () => {

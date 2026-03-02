@@ -70,14 +70,18 @@ describe('events-resize', () => {
         it('should be callable multiple times safely', () => {
             cleanupTabScrollListeners();
             cleanupTabScrollListeners();
+            expect(() => cleanupTabScrollListeners()).not.toThrow();
         });
     });
 
     describe('setupStickySearchHideOnScroll', () => {
         it('should do nothing without .controls element', () => {
+            const addSpy = vi.spyOn(window, 'addEventListener');
             const getListenerOptions = vi.fn(() => undefined);
             setupStickySearchHideOnScroll(getListenerOptions);
-            // No error thrown
+            const scrollCalls = addSpy.mock.calls.filter(c => c[0] === 'scroll');
+            expect(scrollCalls.length).toBe(0);
+            addSpy.mockRestore();
         });
 
         it('should do nothing on desktop viewport', () => {
@@ -145,7 +149,8 @@ describe('events-resize', () => {
             // Call twice to exercise cleanup
             setupTabScrollIndicators(getListenerOptions);
             setupTabScrollIndicators(getListenerOptions);
-            // cleanup called internally - no error
+            // Verify no error and setup completes
+            expect(() => setupTabScrollIndicators(getListenerOptions)).not.toThrow();
         });
     });
 });

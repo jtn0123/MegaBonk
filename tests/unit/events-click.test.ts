@@ -34,6 +34,10 @@ vi.mock('../../src/types/index.ts', () => ({
     normalizeEntityType: vi.fn((t: string) => t),
 }));
 
+vi.mock('../../src/modules/calculator.ts', () => ({
+    quickCalc: vi.fn(),
+}));
+
 vi.mock('../../src/modules/compare.ts', () => ({
     toggleCompareItem: vi.fn(),
     updateCompareDisplay: vi.fn(),
@@ -50,12 +54,14 @@ import {
 import { openDetailModal } from '../../src/modules/modal.ts';
 import { toggleFavorite } from '../../src/modules/favorites.ts';
 import { ToastManager } from '../../src/modules/toast.ts';
+import { quickCalc } from '../../src/modules/calculator.ts';
 
 describe('events-click', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         document.body.innerHTML = '';
     });
+
 
     afterEach(() => {
         document.body.innerHTML = '';
@@ -145,7 +151,9 @@ describe('events-click', () => {
         it('should do nothing without checkbox', () => {
             const div = document.createElement('div');
             const e = new MouseEvent('click');
+            vi.spyOn(e, 'preventDefault');
             handleCompareCheckboxClick(e, div);
+            expect(e.preventDefault).not.toHaveBeenCalled();
         });
     });
 
@@ -196,11 +204,16 @@ describe('events-click', () => {
             const span = document.querySelector('span')!;
             handleBreakpointCardClick(span);
             await new Promise(r => setTimeout(r, 10));
+            // Verify quickCalc was called via dynamic import
+            const { quickCalc: qc } = await import('../../src/modules/calculator.ts');
+            expect(qc).toHaveBeenCalledWith('sword', 25);
         });
 
         it('should do nothing without card ancestor', () => {
             const div = document.createElement('div');
             handleBreakpointCardClick(div);
+            // No card ancestor means no modal opened
+            expect(quickCalc).not.toHaveBeenCalled();
         });
 
         it('should do nothing if target is NaN', () => {
@@ -211,6 +224,7 @@ describe('events-click', () => {
             `;
             const span = document.querySelector('span')!;
             handleBreakpointCardClick(span);
+            expect(quickCalc).not.toHaveBeenCalled();
         });
     });
 
