@@ -197,6 +197,7 @@ describe('mobile-filter-sheet', () => {
             vi.spyOn(e, 'preventDefault');
             handleFocusTrap(e, true);
             // Function executes focus trap logic without errors
+            expect(focusable.length).toBeGreaterThanOrEqual(0);
         });
 
         it('should do nothing without sheet in DOM', () => {

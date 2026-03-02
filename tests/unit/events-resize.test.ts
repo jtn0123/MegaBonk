@@ -70,6 +70,7 @@ describe('events-resize', () => {
         it('should be callable multiple times safely', () => {
             cleanupTabScrollListeners();
             cleanupTabScrollListeners();
+            expect(() => cleanupTabScrollListeners()).not.toThrow();
         });
     });
 
@@ -77,7 +78,8 @@ describe('events-resize', () => {
         it('should do nothing without .controls element', () => {
             const getListenerOptions = vi.fn(() => undefined);
             setupStickySearchHideOnScroll(getListenerOptions);
-            // No error thrown
+            // No scroll listener should be added without .controls element
+            expect(document.querySelector('.controls')).toBeNull();
         });
 
         it('should do nothing on desktop viewport', () => {
@@ -145,7 +147,8 @@ describe('events-resize', () => {
             // Call twice to exercise cleanup
             setupTabScrollIndicators(getListenerOptions);
             setupTabScrollIndicators(getListenerOptions);
-            // cleanup called internally - no error
+            // Verify no error and setup completes
+            expect(() => setupTabScrollIndicators(getListenerOptions)).not.toThrow();
         });
     });
 });

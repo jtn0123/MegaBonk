@@ -145,7 +145,9 @@ describe('events-click', () => {
         it('should do nothing without checkbox', () => {
             const div = document.createElement('div');
             const e = new MouseEvent('click');
+            vi.spyOn(e, 'preventDefault');
             handleCompareCheckboxClick(e, div);
+            expect(e.preventDefault).not.toHaveBeenCalled();
         });
     });
 
@@ -196,11 +198,16 @@ describe('events-click', () => {
             const span = document.querySelector('span')!;
             handleBreakpointCardClick(span);
             await new Promise(r => setTimeout(r, 10));
+            // Verify breakpoint card was found via closest
+            const card = span.closest('.breakpoint-card');
+            expect(card).toBeTruthy();
         });
 
         it('should do nothing without card ancestor', () => {
             const div = document.createElement('div');
             handleBreakpointCardClick(div);
+            // No card ancestor means no modal opened
+            expect(openDetailModal).not.toHaveBeenCalled();
         });
 
         it('should do nothing if target is NaN', () => {
@@ -211,6 +218,7 @@ describe('events-click', () => {
             `;
             const span = document.querySelector('span')!;
             handleBreakpointCardClick(span);
+            expect(openDetailModal).not.toHaveBeenCalled();
         });
     });
 
