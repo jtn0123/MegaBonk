@@ -148,7 +148,7 @@ footer a:hover {
 
 /* App version badge in footer */
 .app-version-badge {
-    background: var(--accent, #4a9eff);
+    background: var(--accent, #2a7acc);
     color: white;
     padding: 0.15rem 0.5rem;
     border-radius: 0.75rem;

@@ -247,7 +247,7 @@ export function sanitizeParsed(obj: unknown): unknown {
     for (const dangerousKey of ['constructor', 'prototype']) {
         delete clean[dangerousKey];
     }
-    const protoKeys = Object.keys(clean).filter(k => k === String.fromCharCode(95, 95, 112, 114, 111, 116, 111, 95, 95));
+    const protoKeys = Object.keys(clean).filter(k => k === '__proto__');
     for (const k of protoKeys) {
         delete clean[k];
     }
