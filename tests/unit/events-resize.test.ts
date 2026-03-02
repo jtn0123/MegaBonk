@@ -76,10 +76,12 @@ describe('events-resize', () => {
 
     describe('setupStickySearchHideOnScroll', () => {
         it('should do nothing without .controls element', () => {
+            const addSpy = vi.spyOn(window, 'addEventListener');
             const getListenerOptions = vi.fn(() => undefined);
             setupStickySearchHideOnScroll(getListenerOptions);
-            // No scroll listener should be added without .controls element
-            expect(document.querySelector('.controls')).toBeNull();
+            const scrollCalls = addSpy.mock.calls.filter(c => c[0] === 'scroll');
+            expect(scrollCalls.length).toBe(0);
+            addSpy.mockRestore();
         });
 
         it('should do nothing on desktop viewport', () => {
