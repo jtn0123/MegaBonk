@@ -272,6 +272,16 @@ jobs:
 
           echo "✅ Bundle size within limits" >> $GITHUB_STEP_SUMMARY
 
+      - name: Check total JS bundle size
+        run: |
+          TOTAL=$(find dist/assets -name '*.js' -exec wc -c {} + | tail -1 | awk '{print $1}')
+          TOTAL_KB=$((TOTAL / 1024))
+          echo "Total JS bundle: ${TOTAL_KB}KB"
+          if [ "$TOTAL_KB" -gt 300 ]; then
+            echo "::error::Bundle size ${TOTAL_KB}KB exceeds 300KB limit"
+            exit 1
+          fi
+
       - name: Upload bundle size artifact
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:

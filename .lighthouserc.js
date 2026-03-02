@@ -9,7 +9,7 @@ module.exports = {
             assertions: {
                 // Performance budgets — fail CI if scores drop below thresholds
                 // Performance threshold kept realistic for CI headless environment
-                'categories:performance': ['error', { minScore: 0.55, aggregationMethod: 'optimistic' }],
+                'categories:performance': ['error', { minScore: 0.65, aggregationMethod: 'optimistic' }],
                 'categories:accessibility': ['error', { minScore: 0.9 }],
                 'categories:best-practices': ['error', { minScore: 0.85 }],
                 'categories:seo': ['error', { minScore: 0.95 }],
