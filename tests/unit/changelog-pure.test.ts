@@ -3,7 +3,7 @@
  * Changelog Module Pure Function Tests
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { findEntityInData } from '../../src/modules/changelog.ts';
+import { findEntityInData, renderChangelog } from '../../src/modules/changelog.ts';
 
 // Mock data-service with test data
 vi.mock('../../src/modules/data-service.ts', () => ({
@@ -166,6 +166,62 @@ describe('Changelog Module', () => {
         it.each(entityTypes)('should handle %s type lookup', (type) => {
             // Each type should work without throwing
             expect(() => findEntityInData(type, 'test_id')).not.toThrow();
+        });
+    });
+
+    describe('renderChangelog release links', () => {
+        beforeEach(() => {
+            const container = document.createElement('div');
+            container.id = 'changelogContainer';
+            document.body.appendChild(container);
+        });
+
+        afterEach(() => {
+            document.body.innerHTML = '';
+        });
+
+        it('should render version numbers as links to GitHub releases', () => {
+            const patches = [
+                {
+                    id: 'patch-1',
+                    version: '1.6.1',
+                    title: 'Hotfix',
+                    date: '2024-01-15',
+                    summary: 'A hotfix patch',
+                    categories: {},
+                },
+            ];
+
+            renderChangelog(patches as any);
+
+            const versionLink = document.querySelector('.changelog-version');
+            expect(versionLink).toBeTruthy();
+            expect(versionLink!.tagName).toBe('A');
+            expect(versionLink!.getAttribute('href')).toBe(
+                'https://github.com/jtn0123/MegaBonk/releases/tag/v1.6.1'
+            );
+            expect(versionLink!.getAttribute('target')).toBe('_blank');
+            expect(versionLink!.getAttribute('rel')).toBe('noopener noreferrer');
+            expect(versionLink!.getAttribute('aria-label')).toBe('View release v1.6.1 on GitHub');
+            expect(versionLink!.textContent).toBe('v1.6.1');
+        });
+
+        it('should escape version strings in release links', () => {
+            const patches = [
+                {
+                    id: 'patch-2',
+                    version: '2.0.0',
+                    title: 'Major Update',
+                    date: '2024-06-01',
+                    categories: {},
+                },
+            ];
+
+            renderChangelog(patches as any);
+
+            const links = document.querySelectorAll('a.changelog-version');
+            expect(links.length).toBe(1);
+            expect(links[0].getAttribute('href')).toContain('v2.0.0');
         });
     });
 });
