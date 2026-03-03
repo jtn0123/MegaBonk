@@ -6,6 +6,8 @@
 //
 // NOTE: This file has been refactored into smaller modules under cv-enhanced/
 // This file now serves as a backwards-compatible re-export of all functionality.
+//
+// See src/modules/cv/ARCHITECTURE.md for architecture details.
 // ========================================
 
 // Re-export everything from the modular structure

@@ -3,6 +3,9 @@
 // ========================================
 // This file re-exports from the cv/ directory for backwards compatibility.
 // All CV functionality has been split into smaller, focused modules.
+//
+// See src/modules/cv/ARCHITECTURE.md for a full architecture overview,
+// pipeline flow, module map, and extension guides.
 // ========================================
 
 // Re-export everything from the cv module

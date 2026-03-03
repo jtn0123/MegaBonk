@@ -43,7 +43,21 @@ interface EnhancedHybridResult {
 let currentStrategy = 'optimized'; // Default to optimized
 
 /**
- * Initialize enhanced scan build with strategy support
+ * Initialize the enhanced scan-build module with strategy support.
+ *
+ * Initializes the enhanced CV engine, loads enhanced templates, and sets up
+ * the strategy selector UI (dropdown with current/optimized/fast/accurate/balanced presets).
+ *
+ * @param gameData - The full game data object containing items, tomes, characters, and weapons.
+ * @remarks Logs an error if enhanced templates fail to load and continues initialization.
+ *
+ * @example
+ * ```ts
+ * import { initEnhancedScanBuild } from './scan-build-enhanced.ts';
+ *
+ * const gameData = await fetchGameData();
+ * await initEnhancedScanBuild(gameData);
+ * ```
  */
 export async function initEnhancedScanBuild(gameData: AllGameData): Promise<void> {
     // Initialize enhanced CV
@@ -186,7 +200,21 @@ function updateStrategyInfo(strategy: string): void {
 }
 
 /**
- * Enhanced hybrid detect with strategy support
+ * Run enhanced hybrid detection (OCR + CV) using the currently selected strategy.
+ *
+ * Executes OCR and enhanced CV in sequence, combines their results, aggregates
+ * duplicates, and records detection metrics. Shows a progress indicator during processing.
+ *
+ * @param imageDataUrl - Base64 data URL of the screenshot to analyze.
+ * @returns An {@link EnhancedHybridResult} containing detected items, tomes,
+ *   character, weapon, and optional metrics.
+ * @throws If no image is provided, or if OCR/CV processing throws an error.
+ *
+ * @example
+ * ```ts
+ * const result = await handleEnhancedHybridDetect(screenshotDataUrl);
+ * console.log(`Found ${result.items.length} items`);
+ * ```
  */
 export async function handleEnhancedHybridDetect(imageDataUrl: string): Promise<EnhancedHybridResult> {
     if (!imageDataUrl) {
@@ -372,7 +400,19 @@ function updateProgressIndicator(progressDiv: HTMLDivElement | null, progress: n
 }
 
 /**
- * Compare strategies on current image
+ * Benchmark all five strategy presets against the same image and display a comparison table.
+ *
+ * Runs each strategy (current, optimized, fast, accurate, balanced) sequentially,
+ * records detection count, time, and average confidence, then renders results
+ * in the `#scan-strategy-comparison` element. Restores the original strategy when done.
+ *
+ * @param imageDataUrl - Base64 data URL of the screenshot to benchmark.
+ *
+ * @example
+ * ```ts
+ * await compareStrategiesOnImage(screenshotDataUrl);
+ * // Results are rendered into the DOM
+ * ```
  */
 export async function compareStrategiesOnImage(imageDataUrl: string): Promise<void> {
     if (!imageDataUrl) {

@@ -79,7 +79,24 @@ function getSelectionState(): SelectionState {
 // ========================================
 
 /**
- * Initialize the scan build module with game data
+ * Initialize the scan build module with game data.
+ *
+ * Sets up OCR and CV engines, preloads item templates for template matching,
+ * and attaches all DOM event listeners for the scan-build UI.
+ *
+ * @param gameData - The full game data object containing items, tomes, characters, and weapons.
+ * @param stateChangeCallback - Optional callback invoked whenever the build state changes
+ *   (e.g., after applying detection results to the advisor).
+ *
+ * @example
+ * ```ts
+ * import { initScanBuild } from './scan-build.ts';
+ *
+ * const gameData = await fetchGameData();
+ * initScanBuild(gameData, (buildState) => {
+ *   console.log('Build updated:', buildState);
+ * });
+ * ```
  */
 export function initScanBuild(gameData: AllGameData, stateChangeCallback?: BuildStateCallback): void {
     allData = gameData;
@@ -149,7 +166,10 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
 }
 
 /**
- * Cleanup event listeners to prevent memory leaks
+ * Remove all event listeners registered by the scan-build module.
+ *
+ * Call this when tearing down the scan-build UI to prevent memory leaks.
+ * Automatically called by `__resetForTesting()` and at the start of `setupEventListeners()`.
  */
 export function cleanupEventListeners(): void {
     eventListenerManager.removeAll();
@@ -405,7 +425,18 @@ function handleApplyToAdvisor(): void {
 // ========================================
 
 /**
- * Get current scan state
+ * Get the current scan state snapshot.
+ *
+ * Returns the selected items (with counts), tomes, character, and weapon
+ * that the user has chosen or that were auto-detected.
+ *
+ * @returns The current {@link ScanState} including all selections.
+ *
+ * @example
+ * ```ts
+ * const state = getState();
+ * console.log(`${state.selectedItems.size} items selected`);
+ * ```
  */
 export function getState(): ScanState {
     return getScanState(getSelectionState());
@@ -415,7 +446,11 @@ export function getState(): ScanState {
 export { getState as getScanState };
 
 /**
- * Reset module state for testing
+ * Reset all module state for testing purposes.
+ *
+ * Clears event listeners, cancels pending uploads, releases the detection mutex,
+ * and resets all internal state (selected items, tomes, character, weapon, etc.).
+ * **Only intended for use in test suites.**
  */
 export function __resetForTesting(): void {
     // Clean up event listeners to prevent memory leaks
