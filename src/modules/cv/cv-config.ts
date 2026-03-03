@@ -77,6 +77,141 @@ export interface ImageValidationConfig {
 }
 
 /**
+ * Grid layout configuration
+ * Controls spatial ratios for hotbar detection, region definitions, and grid building
+ */
+export interface GridConfig {
+    /** Where hotbar starts vertically (ratio of screen height) */
+    hotbarYRatio: number;
+    /** Where to start scanning for hotbar band (ratio of screen height) */
+    scanStartYRatio: number;
+    /** Horizontal sample start for hotbar detection (ratio of screen width) */
+    sampleStartXRatio: number;
+    /** Horizontal sample width for hotbar detection (ratio of screen width) */
+    sampleWidthRatio: number;
+    /** Y position threshold for hotbar detection bonus (ratio of screen height) */
+    hotbarThresholdY: number;
+    /** Y position threshold for inventory detection bonus (ratio of screen height) */
+    inventoryThresholdY: number;
+    /** Center detection region X (ratio of screen width) */
+    centerRegionX: number;
+    /** Center detection region Y (ratio of screen height) */
+    centerRegionY: number;
+    /** Center detection region width (ratio of screen width) */
+    centerRegionW: number;
+    /** Center detection region height (ratio of screen height) */
+    centerRegionH: number;
+    /** Top detection region X (ratio of screen width) */
+    topRegionX: number;
+    /** Top detection region Y (ratio of screen height) */
+    topRegionY: number;
+    /** Top detection region width (ratio of screen width) */
+    topRegionW: number;
+    /** Top detection region height (ratio of screen height) */
+    topRegionH: number;
+    /** Maximum hotbar band height as ratio of screen height */
+    maxBandHeightRatio: number;
+    /** Minimum hotbar band height as ratio of screen height */
+    minBandHeightRatio: number;
+    /** Fallback hotbar start position if no band found (ratio of screen height) */
+    fallbackHotbarStart: number;
+    /** Don't place grid rows above this Y ratio */
+    maxRowYRatio: number;
+    /** Minimum absolute icon size in pixels (below = false positive) */
+    minAbsoluteIconSize: number;
+    /** Minimum hotbar band confidence to consider screen non-empty */
+    minBandConfidence: number;
+    /** Minimum rarity border edges required */
+    minEdgesRequired: number;
+    /** Minimum metrics confidence for valid detection */
+    minMetricsConfidence: number;
+    /** Minimum valid cells for consistent detection */
+    minValidCells: number;
+}
+
+/**
+ * Color analysis configuration
+ * Controls thresholds for color matching, empty cell detection, and rarity classification
+ */
+export interface ColorConfig {
+    /** Minimum colorfulness ratio to consider (for hotbar band scoring) */
+    colorfulThreshold: number;
+    /** Minimum rarity signal ratio (for hotbar band scoring) */
+    rarityThreshold: number;
+    /** Variance below this = likely empty cell */
+    emptyVarianceThreshold: number;
+    /** Variance below this with low colorful ratio = suspicious cell */
+    suspiciousVarianceThreshold: number;
+    /** Mean brightness below this = empty cell */
+    emptyBrightnessThreshold: number;
+    /** Colorful ratio below this (with low variance) = suspicious cell */
+    suspiciousColorfulRatio: number;
+    /** Max brightness for inventory background pixels */
+    inventoryBgBrightnessMax: number;
+    /** Max saturation spread for inventory background pixels */
+    inventoryBgSaturationMax: number;
+    /** Ratio of dark low-sat pixels to classify as inventory background */
+    inventoryBgRatio: number;
+    /** Minimum ratio of border pixels matching a rarity to accept */
+    minVoteRatio: number;
+}
+
+/**
+ * Preprocessing configuration
+ * Controls adaptive preprocessing thresholds for scene analysis and image enhancement
+ */
+export interface PreprocessingConfig {
+    /** Brightness below this = dark scene */
+    darkBrightnessThreshold: number;
+    /** Brightness above this = bright scene */
+    brightBrightnessThreshold: number;
+    /** Contrast (std dev) below this = low contrast */
+    lowContrastThreshold: number;
+    /** Contrast (std dev) above this = high contrast */
+    highContrastThreshold: number;
+    /** Default contrast enhancement factor */
+    defaultContrastFactor: number;
+    /** Contrast factor for dark scenes */
+    darkContrastFactor: number;
+    /** Contrast factor for bright scenes */
+    brightContrastFactor: number;
+    /** Brightness adjustment for dark scenes */
+    darkBrightnessAdjust: number;
+    /** Brightness adjustment for bright scenes */
+    brightBrightnessAdjust: number;
+    /** Contrast multiplier for low-contrast scenes */
+    lowContrastMultiplier: number;
+    /** Contrast multiplier for high-contrast scenes */
+    highContrastMultiplier: number;
+    /** Sharpening factor for low-noise images */
+    lowNoiseSharpeningFactor: number;
+    /** Sharpening factor for medium-noise images */
+    mediumNoiseSharpeningFactor: number;
+    /** Contrast factor when heavy effects detected */
+    heavyEffectsContrastFactor: number;
+    /** Max contrast factor for hell biome */
+    hellContrastMax: number;
+    /** Brightness adjustment for snow biome */
+    snowBrightnessAdjust: number;
+    /** Contrast factor for snow biome */
+    snowContrastFactor: number;
+    /** Brightness adjustment for dark environments */
+    darkEnvBrightnessAdjust: number;
+    /** Contrast factor for dark environments */
+    darkEnvContrastFactor: number;
+    /** Brightness threshold for effect pixel detection */
+    effectBrightnessThreshold: number;
+    /** Saturation threshold for effect pixel detection */
+    effectSaturationThreshold: number;
+    /** Ratio of effect pixels to classify as heavy effects */
+    effectRatioThreshold: number;
+    /** Noise variance below this = low noise */
+    lowNoiseThreshold: number;
+    /** Noise variance above this = high noise */
+    highNoiseThreshold: number;
+}
+
+/**
  * Complete CV configuration
  */
 export interface CVConfig {
@@ -84,6 +219,9 @@ export interface CVConfig {
     cache: CacheConfig;
     performance: PerformanceConfig;
     imageValidation: ImageValidationConfig;
+    grid: GridConfig;
+    color: ColorConfig;
+    preprocessing: PreprocessingConfig;
 }
 
 // ========================================
@@ -119,6 +257,69 @@ const DEFAULT_CONFIG: CVConfig = {
         minAspectRatio: 1,
         maxAspectRatio: 2.5,
         uniformImageVarianceThreshold: 100,
+    },
+    grid: {
+        hotbarYRatio: 0.8,
+        scanStartYRatio: 0.7,
+        sampleStartXRatio: 0.15,
+        sampleWidthRatio: 0.7,
+        hotbarThresholdY: 0.88,
+        inventoryThresholdY: 0.82,
+        centerRegionX: 0.15,
+        centerRegionY: 0.15,
+        centerRegionW: 0.7,
+        centerRegionH: 0.7,
+        topRegionX: 0.2,
+        topRegionY: 0.15,
+        topRegionW: 0.6,
+        topRegionH: 0.2,
+        maxBandHeightRatio: 0.12,
+        minBandHeightRatio: 0.06,
+        fallbackHotbarStart: 0.88,
+        maxRowYRatio: 0.7,
+        minAbsoluteIconSize: 22,
+        minBandConfidence: 0.4,
+        minEdgesRequired: 3,
+        minMetricsConfidence: 0.3,
+        minValidCells: 3,
+    },
+    color: {
+        colorfulThreshold: 0.03,
+        rarityThreshold: 0.01,
+        emptyVarianceThreshold: 400,
+        suspiciousVarianceThreshold: 600,
+        emptyBrightnessThreshold: 30,
+        suspiciousColorfulRatio: 0.1,
+        inventoryBgBrightnessMax: 80,
+        inventoryBgSaturationMax: 40,
+        inventoryBgRatio: 0.6,
+        minVoteRatio: 0.1,
+    },
+    preprocessing: {
+        darkBrightnessThreshold: 70,
+        brightBrightnessThreshold: 180,
+        lowContrastThreshold: 30,
+        highContrastThreshold: 70,
+        defaultContrastFactor: 1.5,
+        darkContrastFactor: 1.3,
+        brightContrastFactor: 1.4,
+        darkBrightnessAdjust: 20,
+        brightBrightnessAdjust: -10,
+        lowContrastMultiplier: 1.2,
+        highContrastMultiplier: 0.85,
+        lowNoiseSharpeningFactor: 0.4,
+        mediumNoiseSharpeningFactor: 0.2,
+        heavyEffectsContrastFactor: 1.2,
+        hellContrastMax: 1.4,
+        snowBrightnessAdjust: -15,
+        snowContrastFactor: 1.6,
+        darkEnvBrightnessAdjust: 25,
+        darkEnvContrastFactor: 1.3,
+        effectBrightnessThreshold: 200,
+        effectSaturationThreshold: 60,
+        effectRatioThreshold: 0.05,
+        lowNoiseThreshold: 50,
+        highNoiseThreshold: 200,
     },
 };
 
@@ -168,6 +369,27 @@ export function getImageValidationConfig(): Readonly<ImageValidationConfig> {
 }
 
 /**
+ * Get grid layout configuration
+ */
+export function getGridConfig(): Readonly<GridConfig> {
+    return currentConfig.grid;
+}
+
+/**
+ * Get color analysis configuration
+ */
+export function getColorConfig(): Readonly<ColorConfig> {
+    return currentConfig.color;
+}
+
+/**
+ * Get preprocessing configuration
+ */
+export function getPreprocessingConfig(): Readonly<PreprocessingConfig> {
+    return currentConfig.preprocessing;
+}
+
+/**
  * Update CV configuration with partial values
  * Deep merges provided values with current configuration
  */
@@ -177,6 +399,9 @@ export function updateCVConfig(
         cache: Partial<CacheConfig>;
         performance: Partial<PerformanceConfig>;
         imageValidation: Partial<ImageValidationConfig>;
+        grid: Partial<GridConfig>;
+        color: Partial<ColorConfig>;
+        preprocessing: Partial<PreprocessingConfig>;
     }>
 ): void {
     if (updates.detection) {
@@ -190,6 +415,15 @@ export function updateCVConfig(
     }
     if (updates.imageValidation) {
         currentConfig.imageValidation = { ...currentConfig.imageValidation, ...updates.imageValidation };
+    }
+    if (updates.grid) {
+        currentConfig.grid = { ...currentConfig.grid, ...updates.grid };
+    }
+    if (updates.color) {
+        currentConfig.color = { ...currentConfig.color, ...updates.color };
+    }
+    if (updates.preprocessing) {
+        currentConfig.preprocessing = { ...currentConfig.preprocessing, ...updates.preprocessing };
     }
 
     logger.info({

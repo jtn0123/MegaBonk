@@ -4,6 +4,7 @@
 
 import { logger } from '../logger.ts';
 import { detectResolution, detectUILayout } from '../test-utils.ts';
+import { getGridConfig } from './cv-config.ts';
 import type { ROI } from './types.ts';
 
 // ========================================
@@ -19,8 +20,10 @@ export function detectScreenType(
     width: number,
     height: number
 ): 'pause_menu' | 'gameplay' {
-    // Sample bottom 20% of screen (where hotbar is during gameplay)
-    const hotbarY = Math.floor(height * 0.8);
+    const gridCfg = getGridConfig();
+
+    // Sample bottom portion of screen (where hotbar is during gameplay)
+    const hotbarY = Math.floor(height * gridCfg.hotbarYRatio);
     const hotbarHeight = height - hotbarY;
     const imageData = ctx.getImageData(0, hotbarY, width, hotbarHeight);
     const pixels = imageData.data;
@@ -155,27 +158,29 @@ function detectPauseMenuRegions(
     height: number,
     uiLayout: 'pc' | 'steam_deck' | 'unknown'
 ): { inventory?: ROI; stats?: ROI; character?: ROI; pauseMenu?: ROI } {
+    const gridCfg = getGridConfig();
+
     if (uiLayout === 'steam_deck') {
-        // Steam Deck: More compact layout
+        // Steam Deck: More compact layout — uses center/top region config
         return {
             pauseMenu: {
-                x: Math.floor(width * 0.15),
-                y: Math.floor(height * 0.15),
-                width: Math.floor(width * 0.7),
-                height: Math.floor(height * 0.7),
+                x: Math.floor(width * gridCfg.centerRegionX),
+                y: Math.floor(height * gridCfg.centerRegionY),
+                width: Math.floor(width * gridCfg.centerRegionW),
+                height: Math.floor(height * gridCfg.centerRegionH),
                 label: 'pause_menu',
             },
             stats: {
-                x: Math.floor(width * 0.2),
-                y: Math.floor(height * 0.15),
-                width: Math.floor(width * 0.6),
-                height: Math.floor(height * 0.2),
+                x: Math.floor(width * gridCfg.topRegionX),
+                y: Math.floor(height * gridCfg.topRegionY),
+                width: Math.floor(width * gridCfg.topRegionW),
+                height: Math.floor(height * gridCfg.topRegionH),
                 label: 'stats',
             },
             inventory: {
-                x: Math.floor(width * 0.2),
+                x: Math.floor(width * gridCfg.topRegionX),
                 y: Math.floor(height * 0.4),
-                width: Math.floor(width * 0.6),
+                width: Math.floor(width * gridCfg.topRegionW),
                 height: Math.floor(height * 0.45),
                 label: 'inventory',
             },
@@ -184,17 +189,17 @@ function detectPauseMenuRegions(
         // PC: Standard layout
         return {
             pauseMenu: {
-                x: Math.floor(width * 0.15),
+                x: Math.floor(width * gridCfg.centerRegionX),
                 y: Math.floor(height * 0.1),
-                width: Math.floor(width * 0.7),
-                height: Math.floor(height * 0.8),
+                width: Math.floor(width * gridCfg.centerRegionW),
+                height: Math.floor(height * gridCfg.hotbarYRatio),
                 label: 'pause_menu',
             },
             stats: {
                 x: Math.floor(width * 0.25),
-                y: Math.floor(height * 0.15),
+                y: Math.floor(height * gridCfg.topRegionY),
                 width: Math.floor(width * 0.5),
-                height: Math.floor(height * 0.2),
+                height: Math.floor(height * gridCfg.topRegionH),
                 label: 'stats',
             },
             inventory: {

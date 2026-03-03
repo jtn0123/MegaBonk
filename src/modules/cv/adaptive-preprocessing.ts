@@ -5,6 +5,8 @@
 // Based on ablation testing results showing contrast enhancement
 // provides +1.8% F1 improvement
 
+import { getPreprocessingConfig as getPreprocessingCfg } from './cv-config.ts';
+
 /**
  * Simple image data interface
  */
@@ -125,10 +127,11 @@ export function analyzeScene(imageData: SimpleImageData): SceneAnalysis {
     const hasHeavyEffects = detectHeavyEffects(imageData, avgSaturation);
 
     // Determine brightness level
+    const ppCfg = getPreprocessingCfg();
     let brightnessLevel: 'dark' | 'normal' | 'bright';
-    if (avgBrightness < 70) {
+    if (avgBrightness < ppCfg.darkBrightnessThreshold) {
         brightnessLevel = 'dark';
-    } else if (avgBrightness > 180) {
+    } else if (avgBrightness > ppCfg.brightBrightnessThreshold) {
         brightnessLevel = 'bright';
     } else {
         brightnessLevel = 'normal';
@@ -136,9 +139,9 @@ export function analyzeScene(imageData: SimpleImageData): SceneAnalysis {
 
     // Determine contrast level
     let contrastLevel: 'low' | 'normal' | 'high';
-    if (contrast < 30) {
+    if (contrast < ppCfg.lowContrastThreshold) {
         contrastLevel = 'low';
-    } else if (contrast > 70) {
+    } else if (contrast > ppCfg.highContrastThreshold) {
         contrastLevel = 'high';
     } else {
         contrastLevel = 'normal';
@@ -148,11 +151,11 @@ export function analyzeScene(imageData: SimpleImageData): SceneAnalysis {
     let environmentHint: 'normal' | 'hell' | 'snow' | 'dark' | 'bright' = 'normal';
     if (avgR > avgG * 1.5 && avgR > avgB * 1.5) {
         environmentHint = 'hell'; // Red dominant = hell biome
-    } else if (avgBrightness > 180 && avgSaturation < 30) {
+    } else if (avgBrightness > ppCfg.brightBrightnessThreshold && avgSaturation < 30) {
         environmentHint = 'snow'; // Bright and desaturated = snow
     } else if (avgBrightness < 50) {
         environmentHint = 'dark'; // Very dark = crypt or night
-    } else if (avgBrightness > 200) {
+    } else if (avgBrightness > ppCfg.effectBrightnessThreshold) {
         environmentHint = 'bright';
     }
 
@@ -209,8 +212,9 @@ function estimateNoiseLevel(imageData: SimpleImageData, avgBrightness: number): 
     // Normalize by brightness (darker images tend to have lower variance)
     const normalizedVar = avgLocalVar / Math.max(avgBrightness / 128, 0.5);
 
-    if (normalizedVar < 50) return 'low';
-    if (normalizedVar > 200) return 'high';
+    const ppCfg = getPreprocessingCfg();
+    if (normalizedVar < ppCfg.lowNoiseThreshold) return 'low';
+    if (normalizedVar > ppCfg.highNoiseThreshold) return 'high';
     return 'medium';
 }
 
@@ -218,6 +222,7 @@ function estimateNoiseLevel(imageData: SimpleImageData, avgBrightness: number): 
  * Detect heavy visual effects (particles, explosions, etc)
  */
 function detectHeavyEffects(imageData: SimpleImageData, _avgSaturation: number): boolean {
+    const ppCfg = getPreprocessingCfg();
     const pixels = imageData.data;
     const pixelCount = pixels.length / 4;
 
@@ -236,21 +241,23 @@ function detectHeavyEffects(imageData: SimpleImageData, _avgSaturation: number):
         const saturation = max > 0 ? ((max - min) / max) * 100 : 0;
 
         // Bright, highly saturated pixels indicate effects
-        if (brightness > 200 && saturation > 60) {
+        if (brightness > ppCfg.effectBrightnessThreshold && saturation > ppCfg.effectSaturationThreshold) {
             effectPixels++;
         }
     }
 
     const effectRatio = effectPixels / (pixelCount / 4);
-    return effectRatio > 0.05; // >5% effect pixels
+    return effectRatio > ppCfg.effectRatioThreshold;
 }
 
 /**
  * Get optimal preprocessing configuration for a scene
  */
 export function getPreprocessConfig(scene: SceneAnalysis): PreprocessConfig {
+    const ppCfg = getPreprocessingCfg();
+
     const config: PreprocessConfig = {
-        contrastFactor: 1.5, // Default from ablation testing
+        contrastFactor: ppCfg.defaultContrastFactor,
         normalizeColors: true,
         sharpeningFactor: 0,
         reduceNoise: false,
@@ -260,25 +267,25 @@ export function getPreprocessConfig(scene: SceneAnalysis): PreprocessConfig {
     // Adjust based on brightness
     switch (scene.brightnessLevel) {
         case 'dark':
-            config.contrastFactor = 1.3; // Less aggressive contrast for dark scenes
-            config.brightnessAdjust = 20; // Slight brightness boost
+            config.contrastFactor = ppCfg.darkContrastFactor;
+            config.brightnessAdjust = ppCfg.darkBrightnessAdjust;
             break;
         case 'bright':
-            config.contrastFactor = 1.4;
-            config.brightnessAdjust = -10; // Slight brightness reduction
+            config.contrastFactor = ppCfg.brightContrastFactor;
+            config.brightnessAdjust = ppCfg.brightBrightnessAdjust;
             break;
         case 'normal':
-            config.contrastFactor = 1.5; // Standard contrast
+            config.contrastFactor = ppCfg.defaultContrastFactor;
             break;
     }
 
     // Adjust based on existing contrast
     switch (scene.contrastLevel) {
         case 'low':
-            config.contrastFactor *= 1.2; // Boost contrast more for low-contrast scenes
+            config.contrastFactor *= ppCfg.lowContrastMultiplier;
             break;
         case 'high':
-            config.contrastFactor *= 0.85; // Reduce contrast enhancement for high-contrast scenes
+            config.contrastFactor *= ppCfg.highContrastMultiplier;
             break;
     }
 
@@ -286,36 +293,34 @@ export function getPreprocessConfig(scene: SceneAnalysis): PreprocessConfig {
     switch (scene.noiseLevel) {
         case 'high':
             config.reduceNoise = true;
-            config.sharpeningFactor = 0; // Don't sharpen noisy images
+            config.sharpeningFactor = 0;
             break;
         case 'medium':
-            config.sharpeningFactor = 0.2; // Light sharpening
+            config.sharpeningFactor = ppCfg.mediumNoiseSharpeningFactor;
             break;
         case 'low':
-            config.sharpeningFactor = 0.4; // More sharpening for clean images
+            config.sharpeningFactor = ppCfg.lowNoiseSharpeningFactor;
             break;
     }
 
     // Handle heavy effects (particles, explosions)
     if (scene.hasHeavyEffects) {
-        config.normalizeColors = false; // Don't normalize when effects distort colors
-        config.contrastFactor = 1.2; // Less aggressive contrast
+        config.normalizeColors = false;
+        config.contrastFactor = ppCfg.heavyEffectsContrastFactor;
     }
 
     // Environment-specific adjustments
     switch (scene.environmentHint) {
         case 'hell':
-            // Red-heavy scenes need different handling
-            config.contrastFactor = Math.min(config.contrastFactor, 1.4);
+            config.contrastFactor = Math.min(config.contrastFactor, ppCfg.hellContrastMax);
             break;
         case 'snow':
-            // Bright scenes with low saturation
-            config.brightnessAdjust = -15;
-            config.contrastFactor = 1.6; // Need more contrast
+            config.brightnessAdjust = ppCfg.snowBrightnessAdjust;
+            config.contrastFactor = ppCfg.snowContrastFactor;
             break;
         case 'dark':
-            config.brightnessAdjust = 25;
-            config.contrastFactor = 1.3;
+            config.brightnessAdjust = ppCfg.darkEnvBrightnessAdjust;
+            config.contrastFactor = ppCfg.darkEnvContrastFactor;
             break;
     }
 

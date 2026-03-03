@@ -39,6 +39,8 @@ import type {
     ProgressCallback,
 } from './grid-types.ts';
 
+import { getGridConfig } from './cv-config.ts';
+
 // Import from sub-modules
 import {
     detectHotbarBand as _detectHotbarBand,
@@ -201,14 +203,13 @@ export async function autoDetectGrid(
         const validation = validateGrid(ctx, gridResult.positions);
 
         // Pass 6: Empty screen detection
-        // Icons smaller than 22px absolute are likely false positives from UI elements
-        const minAbsoluteIconSize = 22;
-        const iconsTooSmall = metrics.iconWidth < minAbsoluteIconSize || metrics.iconHeight < minAbsoluteIconSize;
+        const gridCfg = getGridConfig();
+        const iconsTooSmall = metrics.iconWidth < gridCfg.minAbsoluteIconSize || metrics.iconHeight < gridCfg.minAbsoluteIconSize;
 
-        const isLikelyEmpty = bandRegion.confidence < 0.4 && borderResult.edges.length < 3 && metrics.isDefault;
+        const isLikelyEmpty = bandRegion.confidence < gridCfg.minBandConfidence && borderResult.edges.length < gridCfg.minEdgesRequired && metrics.isDefault;
 
         const hasInconsistentDetection =
-            borderResult.edges.length >= 2 && metrics.confidence < 0.3 && validation.validCells.length < 3;
+            borderResult.edges.length >= 2 && metrics.confidence < gridCfg.minMetricsConfidence && validation.validCells.length < gridCfg.minValidCells;
 
         // Collect failure reasons for UI display
         const failureReasons: FailureReason[] = [];

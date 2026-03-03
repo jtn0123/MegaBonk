@@ -3,6 +3,7 @@
 // Cell validation, grid validation, preset comparison
 // ========================================
 
+import { getColorConfig } from './cv-config.ts';
 import type {
     BandRegion,
     CellValidation,
@@ -113,11 +114,10 @@ function validateCell(imageData: ImageData): CellValidation {
 
     const colorfulRatio = colorfulPixels / count;
 
-    // Determine cell status
-    // Variance <400 or brightness <30 = likely empty
-    const isEmpty = totalVariance < 400 || meanBrightness < 30;
-    // Variance <600 and colorful ratio <0.1 = suspicious
-    const isSuspicious = totalVariance < 600 && colorfulRatio < 0.1;
+    // Determine cell status using configured thresholds
+    const colorCfg = getColorConfig();
+    const isEmpty = totalVariance < colorCfg.emptyVarianceThreshold || meanBrightness < colorCfg.emptyBrightnessThreshold;
+    const isSuspicious = totalVariance < colorCfg.suspiciousVarianceThreshold && colorfulRatio < colorCfg.suspiciousColorfulRatio;
 
     return {
         isEmpty,
