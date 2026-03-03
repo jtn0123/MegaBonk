@@ -27,7 +27,23 @@ export interface DetectionResults {
 }
 
 /**
- * Combine OCR and CV detection results into unified hybrid results
+ * Combine OCR and CV detection results into a unified hybrid result set.
+ *
+ * Merges item and tome detections from both sources, deduplicates overlapping
+ * matches, aggregates item counts, and selects the best character/weapon
+ * (OCR takes priority, CV as fallback).
+ *
+ * @param ocrResults - Results from `autoDetectFromImage` (OCR-based detection).
+ * @param cvResults - Results from `detectItemsWithCV` (template-matching detection).
+ * @returns A combined {@link DetectionResults} object with a `rawText` field set to `'hybrid_detection'`.
+ *
+ * @example
+ * ```ts
+ * const ocrResults = await autoDetectFromImage(imageUrl);
+ * const cvResults = await detectItemsWithCV(imageUrl);
+ * const combined = combineHybridResults(ocrResults, cvResults);
+ * console.log(`Hybrid found ${combined.items.length} items`);
+ * ```
  */
 export function combineHybridResults(
     ocrResults: Awaited<ReturnType<typeof autoDetectFromImage>>,
@@ -104,7 +120,15 @@ export function combineHybridResults(
 }
 
 /**
- * Display debug overlay if debug mode is enabled
+ * Display a debug overlay on the image preview when debug mode is active.
+ *
+ * When debug mode is enabled, renders confidence-colored bounding boxes
+ * (green = high, orange = medium, red = low) over the uploaded image.
+ * When disabled, shows a plain success toast with detection counts.
+ *
+ * @param image - Base64 data URL of the original screenshot.
+ * @param cvResults - Raw CV detection results with position data for overlay rendering.
+ * @param hybridResults - Combined results used for count display in the toast message.
  */
 export async function displayDebugOverlay(
     image: string,
@@ -141,7 +165,15 @@ export async function displayDebugOverlay(
 }
 
 /**
- * Handle auto-detect (OCR only) with CV fallback
+ * Run auto-detection using OCR with an automatic CV fallback.
+ *
+ * First attempts OCR-based text recognition. If no items are found,
+ * falls back to icon-based CV template matching. Uses a mutex to
+ * prevent concurrent detection runs and shows a progress indicator.
+ *
+ * @param uploadedImage - Base64 data URL of the uploaded screenshot.
+ * @param detectionMutex - Mutex to prevent overlapping detection operations.
+ * @param onResults - Callback invoked with the final {@link DetectionResults}.
  */
 export async function runAutoDetect(
     uploadedImage: string,
@@ -248,7 +280,18 @@ export async function runAutoDetect(
 }
 
 /**
- * Handle hybrid detect (OCR + CV)
+ * Run hybrid detection combining OCR and CV for maximum accuracy.
+ *
+ * Runs OCR and CV sequentially, combines results via {@link combineHybridResults},
+ * and optionally displays a debug overlay. Checks template loading state and
+ * warns if templates failed to load (reduced accuracy). Uses a mutex to prevent
+ * concurrent detection runs.
+ *
+ * @param uploadedImage - Base64 data URL of the uploaded screenshot.
+ * @param detectionMutex - Mutex to prevent overlapping detection operations.
+ * @param templatesLoaded - Whether item templates have finished loading.
+ * @param templatesLoadError - Error from template loading, if any (enables degraded mode).
+ * @param onResults - Callback invoked with the final {@link DetectionResults}.
  */
 export async function runHybridDetect(
     uploadedImage: string,
