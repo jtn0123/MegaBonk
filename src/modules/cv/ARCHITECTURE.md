@@ -8,7 +8,7 @@ The Computer Vision (CV) module provides automated item detection from in-game s
 
 ## Pipeline Flow
 
-```
+```text
 Image Input (data URL)
   │
   ├─ loadImageToCanvas()                    [detection-processing.ts]
@@ -68,7 +68,7 @@ Image Input (data URL)
 Handles the actual detection logic:
 
 - `runAutoDetect`: OCR first, CV fallback if OCR finds nothing
-- `runHybridDetect`: Parallel OCR + CV, results combined via `combineHybridResults`
+- `runHybridDetect`: Sequential OCR then CV, results combined via `combineHybridResults`
 - `combineHybridResults`: Merges OCR and CV results, deduplicates, aggregates counts
 - Debug overlay rendering when debug mode is enabled
 
@@ -200,6 +200,7 @@ A `CVStrategy` (defined in `cv-strategy.ts`) is a configuration object controlli
 ### Adding a New Strategy
 
 1. Define the preset in `STRATEGY_PRESETS` in `src/modules/cv-strategy.ts`:
+
    ```typescript
    myStrategy: {
        colorFiltering: 'rarity-first',
@@ -213,6 +214,7 @@ A `CVStrategy` (defined in `cv-strategy.ts`) is a configuration object controlli
        multiPassEnabled: true,
    },
    ```
+
 2. Optionally add a matching `DetectionStrategy` in `ensemble-detector.ts` if it requires custom per-cell logic (similarity weights, sampling rates, etc.).
 3. Update `scan-build-enhanced.ts` strategy descriptions to include the new option in the UI dropdown.
 
@@ -229,6 +231,7 @@ A `CVStrategy` (defined in `cv-strategy.ts`) is a configuration object controlli
 ### Template Format
 
 A `TemplateData` object (from `types.ts`) contains:
+
 ```typescript
 interface TemplateData {
     canvas: HTMLCanvasElement;   // Rendered template

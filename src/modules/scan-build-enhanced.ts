@@ -49,7 +49,7 @@ let currentStrategy = 'optimized'; // Default to optimized
  * the strategy selector UI (dropdown with current/optimized/fast/accurate/balanced presets).
  *
  * @param gameData - The full game data object containing items, tomes, characters, and weapons.
- * @throws Logs an error if enhanced templates fail to load (does not throw to caller).
+ * @remarks Logs an error if enhanced templates fail to load and continues initialization.
  *
  * @example
  * ```ts
@@ -208,7 +208,7 @@ function updateStrategyInfo(strategy: string): void {
  * @param imageDataUrl - Base64 data URL of the screenshot to analyze.
  * @returns An {@link EnhancedHybridResult} containing detected items, tomes,
  *   character, weapon, and optional metrics.
- * @throws If no image is provided or if both OCR and CV fail.
+ * @throws If no image is provided, or if OCR/CV processing throws an error.
  *
  * @example
  * ```ts
