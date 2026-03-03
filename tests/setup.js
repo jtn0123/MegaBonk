@@ -6,6 +6,27 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 
 // ========================================
+// Build-time Constants (Fallback for forks pool)
+// ========================================
+// Vite's define replacement may not apply in all fork contexts.
+// Set globals as fallback so typeof checks in source code resolve correctly.
+if (typeof globalThis.__APP_VERSION__ === 'undefined') {
+    globalThis.__APP_VERSION__ = '0.0.0-test';
+}
+if (typeof globalThis.__GIT_COMMIT__ === 'undefined') {
+    globalThis.__GIT_COMMIT__ = 'abc1234';
+}
+if (typeof globalThis.__CACHE_VERSION__ === 'undefined') {
+    globalThis.__CACHE_VERSION__ = 'test';
+}
+if (typeof globalThis.__BUILD_DATE__ === 'undefined') {
+    globalThis.__BUILD_DATE__ = '2026-01-01T00:00:00Z';
+}
+if (typeof globalThis.__GIT_BRANCH__ === 'undefined') {
+    globalThis.__GIT_BRANCH__ = 'test';
+}
+
+// ========================================
 // Auto-Mock Common Modules
 // ========================================
 // These mocks are applied globally to all tests to reduce boilerplate.

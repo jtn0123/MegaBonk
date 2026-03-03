@@ -6,8 +6,17 @@
 import { escapeHtml } from './utils.ts';
 
 // Build-time constants (injected by Vite)
+// Use typeof checks to avoid ReferenceError when define replacement doesn't apply
 declare const __APP_VERSION__: string;
 declare const __GIT_COMMIT__: string;
+
+function getAppVersion(): string {
+    return typeof __APP_VERSION__ !== 'undefined' ? __APP_VERSION__ : '0.0.0';
+}
+
+function getGitCommit(): string {
+    return typeof __GIT_COMMIT__ !== 'undefined' ? __GIT_COMMIT__ : 'dev';
+}
 
 const GITHUB_REPO_URL = 'https://github.com/jtn0123/MegaBonk';
 const STORAGE_KEY = 'megabonk-last-seen-version';
@@ -31,7 +40,7 @@ interface Release {
  * Shows when the app version is newer than the last seen version
  */
 export function shouldShowWhatsNew(): boolean {
-    const currentVersion = __APP_VERSION__ ?? '0.0.0';
+    const currentVersion = getAppVersion();
     if (currentVersion === '0.0.0') return false;
     const lastSeen = localStorage.getItem(STORAGE_KEY);
     // Already seen this version
@@ -45,7 +54,7 @@ export function shouldShowWhatsNew(): boolean {
  * Mark the current version as seen
  */
 export function dismissWhatsNew(): void {
-    const currentVersion = __APP_VERSION__ ?? '0.0.0';
+    const currentVersion = getAppVersion();
     localStorage.setItem(STORAGE_KEY, currentVersion);
 }
 
@@ -99,8 +108,8 @@ export async function showWhatsNewModal(): Promise<void> {
     // Don't create duplicate modals
     if (document.getElementById('whats-new-modal')) return;
 
-    const version = __APP_VERSION__ ?? '0.0.0';
-    const commit = __GIT_COMMIT__ ?? 'dev';
+    const version = getAppVersion();
+    const commit = getGitCommit();
     const commitShort = commit === 'dev' ? '' : commit.substring(0, 7);
 
     const overlay = document.createElement('div');
@@ -197,8 +206,7 @@ export function initWhatsNew(): void {
 export function initFooterVersion(): void {
     const badge = document.getElementById('app-version');
     if (badge) {
-        // SonarQube S7741 false positive: typeof guard needed because __APP_VERSION__ is a Vite define replaced at build time
-        const version = typeof __APP_VERSION__ === 'undefined' ? '0.0.0' : __APP_VERSION__;
+        const version = getAppVersion();
         badge.textContent = `App v${version}`;
         badge.title = 'Click to see what\'s new';
         badge.style.cursor = 'pointer';
