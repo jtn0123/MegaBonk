@@ -90,10 +90,13 @@ describe('color-utils', () => {
             for (const [, def] of Object.entries(RARITY_BORDER_COLORS)) {
                 expect(def.h[0]).toBeGreaterThanOrEqual(0);
                 expect(def.h[1]).toBeLessThanOrEqual(360);
+                expect(def.h[0]).toBeLessThanOrEqual(def.h[1]);
                 expect(def.s[0]).toBeGreaterThanOrEqual(0);
                 expect(def.s[1]).toBeLessThanOrEqual(100);
+                expect(def.s[0]).toBeLessThanOrEqual(def.s[1]);
                 expect(def.l[0]).toBeGreaterThanOrEqual(0);
                 expect(def.l[1]).toBeLessThanOrEqual(100);
+                expect(def.l[0]).toBeLessThanOrEqual(def.l[1]);
             }
         });
 
@@ -101,10 +104,13 @@ describe('color-utils', () => {
             for (const [, def] of Object.entries(RARITY_BORDER_COLORS)) {
                 expect(def.rgb.r[0]).toBeGreaterThanOrEqual(0);
                 expect(def.rgb.r[1]).toBeLessThanOrEqual(255);
+                expect(def.rgb.r[0]).toBeLessThanOrEqual(def.rgb.r[1]);
                 expect(def.rgb.g[0]).toBeGreaterThanOrEqual(0);
                 expect(def.rgb.g[1]).toBeLessThanOrEqual(255);
+                expect(def.rgb.g[0]).toBeLessThanOrEqual(def.rgb.g[1]);
                 expect(def.rgb.b[0]).toBeGreaterThanOrEqual(0);
                 expect(def.rgb.b[1]).toBeLessThanOrEqual(255);
+                expect(def.rgb.b[0]).toBeLessThanOrEqual(def.rgb.b[1]);
             }
         });
     });
@@ -226,12 +232,13 @@ describe('color-utils', () => {
     });
 
     describe('calculateCenterEdgeRatio', () => {
-        it('should return ~1 for uniform image', () => {
+        it('should return ~0 for uniform image', () => {
             const imageData = createImageData(20, 20, () => [100, 100, 100, 255]);
             const ratio = calculateCenterEdgeRatio(imageData);
             // Uniform → edge variance ≈ center variance ≈ 0
             // Formula: centerVariance / (edgeVariance + 1) ≈ 0/1 = 0
-            expect(ratio).toBeLessThan(1.5);
+            expect(ratio).toBeGreaterThanOrEqual(0);
+            expect(ratio).toBeLessThan(0.2);
         });
 
         it('should return higher ratio when center has more detail', () => {

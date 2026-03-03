@@ -181,13 +181,10 @@ describe('color-matching', () => {
     });
 
     describe('detectBorderRarity', () => {
-        it('should return null for uniform gray border', () => {
+        it('should classify uniform gray border as common or null', () => {
             const imageData = createImageData(20, 20, () => [200, 200, 200, 255]);
             const rarity = detectBorderRarity(imageData);
-            // May match common (gray) or null
-            if (rarity !== null) {
-                expect(rarity).toBe('common');
-            }
+            expect([null, 'common']).toContain(rarity);
         });
 
         it('should detect green border as uncommon', () => {

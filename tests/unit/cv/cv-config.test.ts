@@ -31,7 +31,7 @@ describe('cv-config', () => {
             expect(config.imageValidation).toBeDefined();
         });
 
-        it('should return readonly object', () => {
+        it('should return default minConfidence of 0.5', () => {
             const config = getCVConfig();
             expect(config.detection.minConfidence).toBe(0.5);
         });

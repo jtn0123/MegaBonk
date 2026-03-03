@@ -70,7 +70,7 @@ describe('sliding-window', () => {
             const items = [{ id: 'item1', name: 'Test', rarity: 'common' }] as any[];
             const result = await detectIconsWithSlidingWindow(ctx, 200, 200, items);
 
-            expect(result).toBeInstanceOf(Array);
+            expect(result).toEqual([]);
         });
 
         it('should skip empty cells', async () => {
