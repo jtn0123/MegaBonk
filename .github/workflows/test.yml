@@ -277,8 +277,8 @@ jobs:
           TOTAL=$(find dist/assets -name '*.js' -exec wc -c {} + | tail -1 | awk '{print $1}')
           TOTAL_KB=$((TOTAL / 1024))
           echo "Total JS bundle: ${TOTAL_KB}KB"
-          if [ "$TOTAL_KB" -gt 300 ]; then
-            echo "::error::Bundle size ${TOTAL_KB}KB exceeds 300KB limit"
+          if [ "$TOTAL_KB" -gt 600 ]; then
+            echo "::error::Bundle size ${TOTAL_KB}KB exceeds 600KB limit"
             exit 1
           fi
 

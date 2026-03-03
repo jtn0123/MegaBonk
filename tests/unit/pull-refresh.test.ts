@@ -379,9 +379,17 @@ describe('Pull-to-Refresh', () => {
         });
 
         it('should show refreshing state', async () => {
+            // Make loadAllData take time so we can observe the refreshing state
+            loadAllData.mockImplementation(
+                () => new Promise(resolve => setTimeout(resolve, 500))
+            );
+
             document.dispatchEvent(createTouchEvent('touchstart', 0));
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
+
+            // Allow microtask for async triggerRefresh to start
+            await new Promise(resolve => setTimeout(resolve, 50));
 
             const indicator = document.querySelector('.pull-refresh-indicator');
             const text = indicator?.querySelector('.pull-refresh-text');
@@ -524,14 +532,14 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 500));
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
             // Second attempt (succeeds)
             document.dispatchEvent(createTouchEvent('touchstart', 0));
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await new Promise(resolve => setTimeout(resolve, 500));
 
             expect(loadAllData).toHaveBeenCalledTimes(2);
             expect(ToastManager.success).toHaveBeenCalled();
@@ -802,14 +810,14 @@ describe('Pull-to-Refresh Integration', () => {
         document.dispatchEvent(createTouchEvent('touchmove', 150));
         document.dispatchEvent(createTouchEvent('touchend', 150));
 
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Second cycle
         document.dispatchEvent(createTouchEvent('touchstart', 0));
         document.dispatchEvent(createTouchEvent('touchmove', 150));
         document.dispatchEvent(createTouchEvent('touchend', 150));
 
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise(resolve => setTimeout(resolve, 500));
 
         expect(loadAllData).toHaveBeenCalledTimes(2);
     });

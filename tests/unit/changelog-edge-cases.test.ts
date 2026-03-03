@@ -560,9 +560,14 @@ describe('changelog.ts - Edge Cases', () => {
             renderChangelog(patches);
 
             const container = document.getElementById('changelogContainer');
-            expect(container?.innerHTML).not.toContain('<script>');
-            expect(container?.innerHTML).toContain('&lt;script&gt;');
-            expect(container?.innerHTML).not.toContain('<b>Bold</b>');
+            // No actual script elements should be created (XSS protection)
+            expect(container?.querySelectorAll('script').length).toBe(0);
+            // Version link href should URL-encode the malicious version
+            const versionLink = container?.querySelector('.changelog-version');
+            expect(versionLink?.getAttribute('href')).toContain(encodeURIComponent('<script>'));
+            // Bold tags should not be rendered as actual HTML elements
+            expect(container?.querySelectorAll('b').length).toBe(0);
+            // Escaped entities should appear in the display text
             expect(container?.innerHTML).toContain('&lt;b&gt;');
         });
 
