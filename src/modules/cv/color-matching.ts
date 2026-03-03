@@ -14,6 +14,7 @@ import {
     calculateEdgeDensity,
 } from './color-utils.js';
 import { extractBorderPixels, type DetailedColorCategory } from './color-extraction.js';
+import { getColorConfig } from './cv-config.ts';
 
 /**
  * Check if a color matches a specific rarity border color
@@ -98,6 +99,7 @@ export function matchColorCategories(category1: DetailedColorCategory, category2
  * Inventory backgrounds are typically dark, low-saturation colors.
  */
 export function isInventoryBackground(imageData: ImageData): boolean {
+    const colorCfg = getColorConfig();
     const pixels = imageData.data;
     let darkLowSatPixels = 0;
     let count = 0;
@@ -119,16 +121,14 @@ export function isInventoryBackground(imageData: ImageData): boolean {
             const minChannel = Math.min(r, g, b);
             const saturation = maxChannel - minChannel;
 
-            // Dark (< 80 brightness) and low saturation (< 40 spread)
-            if (brightness < 80 && saturation < 40) {
+            if (brightness < colorCfg.inventoryBgBrightnessMax && saturation < colorCfg.inventoryBgSaturationMax) {
                 darkLowSatPixels++;
             }
             count++;
         }
     }
 
-    // If >60% of center pixels are dark & low-saturation, likely empty background
-    return count > 0 && darkLowSatPixels / count > 0.6;
+    return count > 0 && darkLowSatPixels / count > colorCfg.inventoryBgRatio;
 }
 
 /**
@@ -303,9 +303,9 @@ export function detectBorderRarity(imageData: ImageData): string | null {
         }
     }
 
-    // Require at least 10% of border pixels to match
-    const minVoteRatio = 0.1;
-    if (bestVotes < totalPixels * minVoteRatio) {
+    // Require minimum ratio of border pixels to match
+    const colorCfg = getColorConfig();
+    if (bestVotes < totalPixels * colorCfg.minVoteRatio) {
         return null;
     }
 

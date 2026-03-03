@@ -4,6 +4,7 @@
 // ========================================
 
 import { detectRarityAtPixel } from './color.ts';
+import { getGridConfig, getColorConfig } from './cv-config.ts';
 import type {
     AutoGridConfig,
     BandRegion,
@@ -26,12 +27,15 @@ import type {
  * Returns the Y coordinates where the item bar exists
  */
 export function detectHotbarBand(ctx: CanvasRenderingContext2D, width: number, height: number): BandRegion {
-    // Scan bottom 30% of screen (hotbar is usually at very bottom)
-    const scanStartY = Math.floor(height * 0.7);
+    const gridCfg = getGridConfig();
+    const colorCfg = getColorConfig();
 
-    // Only sample center 70% of width (where hotbar items are, avoiding UI edges)
-    const sampleStartX = Math.floor(width * 0.15);
-    const sampleWidth = Math.floor(width * 0.7);
+    // Scan bottom portion of screen (hotbar is usually at very bottom)
+    const scanStartY = Math.floor(height * gridCfg.scanStartYRatio);
+
+    // Only sample center portion of width (where hotbar items are, avoiding UI edges)
+    const sampleStartX = Math.floor(width * gridCfg.sampleStartXRatio);
+    const sampleWidth = Math.floor(width * gridCfg.sampleWidthRatio);
 
     // Analyze horizontal strips
     const stripData: StripData[] = [];
@@ -117,12 +121,12 @@ export function detectHotbarBand(ctx: CanvasRenderingContext2D, width: number, h
         }
 
         // Colorful pixels
-        if (avgColorful > 0.03) {
+        if (avgColorful > colorCfg.colorfulThreshold) {
             score += avgColorful * 80;
         }
 
-        // BONUS: Rarity border colors detected (strong signal, >1% threshold)
-        if (avgRarity > 0.01) {
+        // BONUS: Rarity border colors detected (strong signal)
+        if (avgRarity > colorCfg.rarityThreshold) {
             score += avgRarity * 150;
         }
 
@@ -132,9 +136,9 @@ export function detectHotbarBand(ctx: CanvasRenderingContext2D, width: number, h
         if (!firstStrip || !lastStrip) continue;
 
         const yPosition = firstStrip.y / height;
-        if (yPosition > 0.88) {
+        if (yPosition > gridCfg.hotbarThresholdY) {
             score += 25;
-        } else if (yPosition > 0.82) {
+        } else if (yPosition > gridCfg.inventoryThresholdY) {
             score += 15;
         }
 
@@ -147,14 +151,13 @@ export function detectHotbarBand(ctx: CanvasRenderingContext2D, width: number, h
 
     // Fallback if no band found
     if (bestBandStart === -1) {
-        bestBandStart = Math.floor(height * 0.88);
+        bestBandStart = Math.floor(height * gridCfg.fallbackHotbarStart);
         bestBandEnd = height - 5;
     }
 
     // Constrain band height - hotbar is typically 1-2 icon rows (~60-120px at 1080p)
-    // Max band height is ~12% of screen height (covers 2 full icon rows with margin)
-    const maxBandHeight = Math.floor(height * 0.12);
-    const minBandHeight = Math.floor(height * 0.06); // ~43px at 720p, ~65px at 1080p
+    const maxBandHeight = Math.floor(height * gridCfg.maxBandHeightRatio);
+    const minBandHeight = Math.floor(height * gridCfg.minBandHeightRatio);
 
     // If band is too tall, constrain it to reasonable size
     const currentHeight = bestBandEnd - bestBandStart;
@@ -191,9 +194,11 @@ export function detectRarityBorders(
     const { topY, bottomY } = bandRegion;
     const bandHeight = bottomY - topY;
 
-    // RESTRICT: Only scan center 70% of width (hotbar is centered, avoid UI edges)
-    const scanStartX = Math.floor(width * 0.15);
-    const scanEndX = Math.floor(width * 0.85);
+    const gridCfg = getGridConfig();
+
+    // RESTRICT: Only scan center portion of width (hotbar is centered, avoid UI edges)
+    const scanStartX = Math.floor(width * gridCfg.sampleStartXRatio);
+    const scanEndX = Math.floor(width * (1 - gridCfg.sampleStartXRatio));
 
     // Scan multiple horizontal lines within the band
     const scanLines = [
@@ -605,12 +610,14 @@ export function buildPreciseGrid(
         startX = Math.round((width - totalGridWidth) / 2);
     }
 
+    const gridCfg = getGridConfig();
+
     // Build grid positions
     for (let row = 0; row < numRows; row++) {
         const rowY = firstRowY - row * rowHeight;
 
         // Don't place rows too high up
-        if (rowY < height * 0.7) break;
+        if (rowY < height * gridCfg.maxRowYRatio) break;
 
         for (let col = 0; col < iconsPerRow; col++) {
             const cellX = startX + col * cellStride;
