@@ -815,6 +815,18 @@ describe('computeBreakpoint - Pure Function', () => {
                     scaling_per_stack: [10, 15, 18],
                     stacks_well: false,
                 } as any,
+                {
+                    id: 'uncapped-negative',
+                    name: 'Unlimited Negative Cap',
+                    scaling_per_stack: [10],
+                    stack_cap: -1,
+                } as any,
+                {
+                    id: 'uncapped-zero',
+                    name: 'Zero Cap Should Be Ignored',
+                    scaling_per_stack: [10],
+                    stack_cap: 0,
+                } as any,
             ],
         },
     };
@@ -865,6 +877,18 @@ describe('computeBreakpoint - Pure Function', () => {
         // 40 / 8 = 5 stacks, which equals the cap but isn't exceeding it
         expect(result.stacksNeeded).toBe(5);
         // isCapped is only true when stacksNeeded > stack_cap (exceeded cap)
+        expect(result.isCapped).toBe(false);
+    });
+
+    it('should ignore negative stack caps as unlimited', () => {
+        const result = computeBreakpoint(mockData, 'uncapped-negative', 100);
+        expect(result.stacksNeeded).toBe(10);
+        expect(result.isCapped).toBe(false);
+    });
+
+    it('should ignore zero stack caps as uncapped', () => {
+        const result = computeBreakpoint(mockData, 'uncapped-zero', 100);
+        expect(result.stacksNeeded).toBe(10);
         expect(result.isCapped).toBe(false);
     });
 
