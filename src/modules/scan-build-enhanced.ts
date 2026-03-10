@@ -32,7 +32,7 @@ interface StrategyResult {
 }
 
 /** Enhanced hybrid detection result */
-interface EnhancedHybridResult {
+export interface EnhancedHybridResult {
     items: EnhancedDetectionItem[];
     tomes: EnhancedDetectionItem[];
     character: DetectionResult | null;

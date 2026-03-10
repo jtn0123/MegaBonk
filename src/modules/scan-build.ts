@@ -9,7 +9,14 @@ import type { Item, Tome, AllGameData, Character, Weapon } from '../types/index.
 import { ToastManager } from './toast.ts';
 import { logger } from './logger.ts';
 import { initOCR } from './ocr/index.ts';
-import { initCV, loadItemTemplates } from './computer-vision.ts';
+import {
+    addCorrection,
+    initActiveLearning,
+    initCV,
+    loadItemTemplates,
+    startFeedbackSession,
+    clearFeedbackSession,
+} from './computer-vision.ts';
 import { MAX_FILE_SIZE_BYTES } from './constants.ts';
 import { MAX_ITEM_COUNT } from './constants.ts';
 import { createMutex, createDebouncedAsync } from './async-utils.ts';
@@ -22,18 +29,47 @@ import {
     clearImageDisplay,
     showItemSelectionGrid,
     updateSelectionSummary,
+    updateItemCardCount,
     type SelectionState,
 } from './scan-build-ui.ts';
-import { runAutoDetect, runHybridDetect, type DetectionResults } from './scan-build-detection.ts';
+import { runAutoDetect, runHybridDetect } from './scan-build-detection.ts';
 import {
     applyDetectionResults,
+    applyItemCorrection,
     applyToAdvisor,
+    createDisplayDetectionResult,
+    getTrustSummary,
     getScanState,
     markDetectionReviewed,
     resetDetectionReviewState,
+    setDetectionReviewActions,
     type ScanState,
     type BuildState,
+    type DisplayDetectionResult,
+    type DetectionResults,
 } from './scan-build-results.ts';
+import {
+    analyzeScanPreflight,
+    clearScanPreflightReport,
+    renderScanPreflightReport,
+    type ScanPreflightReport,
+} from './scan-build-preflight.ts';
+import {
+    abandonCurrentScanSession,
+    clearCurrentScanSession,
+    exportStoredScanReports,
+    finalizeScanSession,
+    recordDetectionSummary,
+    recordPreflight,
+    startScanSession,
+} from './scan-build-session.ts';
+import { openScanCorrectionModal, type ScanCorrection } from './scan-build-corrections.ts';
+import {
+    compareStrategiesOnImage,
+    handleEnhancedHybridDetect,
+    initEnhancedScanBuild,
+    type EnhancedHybridResult,
+} from './scan-build-enhanced.ts';
 
 // Re-export types for consumers
 export type { ScanState, BuildState, DetectionResults };
@@ -49,6 +85,10 @@ let selectedCharacter: Character | null = null;
 let selectedWeapon: Weapon | null = null;
 let templatesLoaded: boolean = false;
 let templatesLoadError: Error | null = null;
+let currentPreflightReport: ScanPreflightReport | null = null;
+let enhancedCVReady = false;
+let enhancedCVInitError: Error | null = null;
+let pendingDetectionMethod: 'ocr' | 'hybrid' | 'enhanced_hybrid' | null = null;
 
 // Event listener cleanup - use centralized manager for easy cleanup
 const eventListenerManager = createEventListenerManager();
@@ -109,6 +149,27 @@ export function initScanBuild(gameData: AllGameData, stateChangeCallback?: Build
     // Initialize OCR and CV modules
     initOCR(gameData);
     initCV(gameData);
+    initActiveLearning(gameData);
+    setDetectionReviewActions({
+        onOpenCorrection: handleOpenCorrection,
+    });
+
+    void initEnhancedScanBuild(gameData)
+        .then(() => {
+            enhancedCVReady = true;
+            enhancedCVInitError = null;
+        })
+        .catch(error => {
+            enhancedCVReady = false;
+            enhancedCVInitError = error as Error;
+            logger.warn({
+                operation: 'scan_build.enhanced_init_failed',
+                error: {
+                    name: (error as Error).name,
+                    message: (error as Error).message,
+                },
+            });
+        });
 
     // Preload item templates for template matching
     // Track loading status for better error handling during detection
@@ -212,6 +273,16 @@ function setupEventListeners(): void {
     // Hybrid detect button (OCR + CV)
     const hybridDetectBtn = document.getElementById('scan-hybrid-detect-btn');
     if (hybridDetectBtn) eventListenerManager.addWithSignal(hybridDetectBtn, 'click', handleHybridDetect);
+
+    const compareStrategiesBtn = document.getElementById('scan-compare-strategies-btn');
+    if (compareStrategiesBtn) {
+        eventListenerManager.addWithSignal(compareStrategiesBtn, 'click', handleCompareStrategies);
+    }
+
+    const exportReportBtn = document.getElementById('scan-export-report-btn');
+    if (exportReportBtn) {
+        eventListenerManager.addWithSignal(exportReportBtn, 'click', handleExportReport);
+    }
 }
 
 // ========================================
@@ -258,14 +329,21 @@ async function handleFileSelect(e: Event): Promise<void> {
 async function processFileUploadAsync(file: File): Promise<void> {
     return new Promise((resolve, reject) => {
         try {
+            startScanSession({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+            });
+
             // Read file as data URL
             const reader = new FileReader();
-            reader.onload = event => {
+            reader.onload = async event => {
                 const result = event.target?.result;
                 if (typeof result === 'string') {
                     uploadedImage = result;
                     displayUploadedImage(uploadedImage, eventListenerManager, clearUploadedImage);
                     showGrid();
+                    await runPreflightForCurrentImage(true);
                     ToastManager.success('Image uploaded! Now select the items you see');
                     resolve();
                 } else {
@@ -308,7 +386,11 @@ function clearUploadedImage(): void {
     selectedTomes.clear();
     selectedCharacter = null;
     selectedWeapon = null;
+    currentPreflightReport = null;
     resetDetectionReviewState();
+    clearFeedbackSession();
+    clearScanPreflightReport();
+    abandonCurrentScanSession();
 
     clearImageDisplay();
     ToastManager.info('Image cleared');
@@ -392,6 +474,143 @@ function showGrid(): void {
  */
 function handleDetectionResults(results: DetectionResults): void {
     applyDetectionResults(results, allData, getSelectionState(), showGrid, updateSummary);
+    if (pendingDetectionMethod) {
+        recordDetectionSummary(pendingDetectionMethod, results, getTrustSummary());
+        pendingDetectionMethod = null;
+    }
+}
+
+function mapEnhancedResults(results: EnhancedHybridResult): DetectionResults {
+    return {
+        items: results.items.map(result =>
+            createDisplayDetectionResult(
+                {
+                    type: 'item',
+                    entity: result.entity as Item,
+                    confidence: result.confidence,
+                    rawText: `enhanced_${result.entity.name}`,
+                    count: result.count,
+                },
+                'hybrid',
+                ['enhanced strategy']
+            )
+        ),
+        tomes: results.tomes.map(result =>
+            createDisplayDetectionResult(
+                {
+                    type: 'tome',
+                    entity: result.entity as Tome,
+                    confidence: result.confidence,
+                    rawText: `enhanced_${result.entity.name}`,
+                },
+                'hybrid',
+                ['enhanced strategy']
+            )
+        ),
+        character: results.character ? createDisplayDetectionResult(results.character, 'ocr') : null,
+        weapon: results.weapon ? createDisplayDetectionResult(results.weapon, 'ocr') : null,
+    };
+}
+
+async function runPreflightForCurrentImage(force: boolean = false): Promise<ScanPreflightReport | null> {
+    if (!uploadedImage) return null;
+    if (currentPreflightReport && !force) {
+        return currentPreflightReport;
+    }
+
+    try {
+        const report = await analyzeScanPreflight(uploadedImage);
+        currentPreflightReport = report;
+        renderScanPreflightReport(report);
+        recordPreflight(report);
+        startFeedbackSession(uploadedImage, report.imageWidth, report.imageHeight);
+        return report;
+    } catch (error) {
+        logger.warn({
+            operation: 'scan_build.preflight_failed',
+            error: {
+                name: (error as Error).name,
+                message: (error as Error).message,
+            },
+        });
+        ToastManager.warning('Preflight could not analyze this screenshot. Detection can still continue.');
+        return null;
+    }
+}
+
+async function maybeWarnForPreflight(): Promise<void> {
+    const report = await runPreflightForCurrentImage();
+    if (!report) return;
+
+    if (report.status === 'high_risk') {
+        ToastManager.warning('Preflight flagged this screenshot as high risk. Detection may need manual correction.');
+    } else if (report.status === 'warn') {
+        ToastManager.info('Preflight found some scan risks. Review flagged detections after running CV.');
+    }
+}
+
+async function handleOpenCorrection(result: DisplayDetectionResult): Promise<void> {
+    if (!uploadedImage || result.type !== 'item') return;
+
+    const allItems = allData.items?.items || [];
+    if (allItems.length === 0) {
+        ToastManager.error('No items available for correction');
+        return;
+    }
+
+    await openScanCorrectionModal({
+        detection: result,
+        allItems,
+        imageDataUrl: uploadedImage,
+        onSubmit: applyExplicitCorrection,
+    });
+}
+
+async function applyExplicitCorrection(correction: ScanCorrection): Promise<void> {
+    const correctedItem = allData.items?.items?.find(item => item.id === correction.correctedItemId);
+    if (!correctedItem) {
+        ToastManager.error('Corrected item was not found in game data');
+        return;
+    }
+
+    const currentDetected = selectedItems.get(correction.detectedItemId);
+    const correctionCount = Math.max(1, correction.count || 1);
+    const currentDetectedCount = currentDetected?.count || 0;
+    const remainingDetectedCount = Math.max(0, currentDetectedCount - correctionCount);
+
+    if (remainingDetectedCount === 0) {
+        selectedItems.delete(correction.detectedItemId);
+    } else if (currentDetected) {
+        selectedItems.set(correction.detectedItemId, {
+            item: currentDetected.item,
+            count: remainingDetectedCount,
+        });
+    }
+    updateItemCardCount(correction.detectedItemId, remainingDetectedCount);
+
+    const existingCorrected = selectedItems.get(correctedItem.id);
+    const nextCorrectedCount = (existingCorrected?.count || 0) + correctionCount;
+    selectedItems.set(correctedItem.id, { item: correctedItem, count: nextCorrectedCount });
+    updateItemCardCount(correctedItem.id, nextCorrectedCount);
+
+    applyItemCorrection(correction.detectedItemId, correctedItem);
+
+    await addCorrection(
+        {
+            detectedItemId: correction.detectedItemId,
+            detectedItemName: correction.detectedItemName,
+            confidence: correction.confidence,
+            x: correction.crop?.x || 0,
+            y: correction.crop?.y || 0,
+            width: correction.crop?.width || 0,
+            height: correction.crop?.height || 0,
+            cropDataUrl: correction.crop?.dataUrl,
+        },
+        correctedItem
+    );
+
+    updateSummary();
+    ToastManager.success(`Corrected ${correction.detectedItemName} to ${correction.correctedItemName}`);
 }
 
 /**
@@ -403,6 +622,8 @@ async function handleAutoDetect(): Promise<void> {
         return;
     }
 
+    await maybeWarnForPreflight();
+    pendingDetectionMethod = 'ocr';
     await runAutoDetect(uploadedImage, detectionMutex, handleDetectionResults);
 }
 
@@ -415,7 +636,86 @@ async function handleHybridDetect(): Promise<void> {
         return;
     }
 
+    await maybeWarnForPreflight();
+    const useEnhancedHybrid = (document.getElementById('scan-use-enhanced-hybrid') as HTMLInputElement | null)?.checked;
+
+    if (useEnhancedHybrid) {
+        pendingDetectionMethod = 'enhanced_hybrid';
+        if (!enhancedCVReady) {
+            if (enhancedCVInitError) {
+                ToastManager.warning(
+                    'Enhanced CV is unavailable right now. Falling back to the standard hybrid detector.'
+                );
+            }
+            pendingDetectionMethod = 'hybrid';
+            await runHybridDetect(
+                uploadedImage,
+                detectionMutex,
+                templatesLoaded,
+                templatesLoadError,
+                handleDetectionResults
+            );
+            return;
+        }
+
+        if (!detectionMutex.tryAcquire()) {
+            ToastManager.info('Detection already in progress...');
+            return;
+        }
+
+        try {
+            const enhancedResults = await handleEnhancedHybridDetect(uploadedImage);
+            handleDetectionResults(mapEnhancedResults(enhancedResults));
+        } catch (error) {
+            if (detectionMutex.isLocked()) {
+                detectionMutex.release();
+            }
+            logger.warn({
+                operation: 'scan_build.enhanced_detect_failed',
+                error: {
+                    name: (error as Error).name,
+                    message: (error as Error).message,
+                },
+            });
+            ToastManager.warning('Enhanced CV failed. Falling back to the standard hybrid detector.');
+            pendingDetectionMethod = 'hybrid';
+            await runHybridDetect(
+                uploadedImage,
+                detectionMutex,
+                templatesLoaded,
+                templatesLoadError,
+                handleDetectionResults
+            );
+            return;
+        } finally {
+            if (detectionMutex.isLocked()) {
+                detectionMutex.release();
+            }
+        }
+
+        return;
+    }
+
+    pendingDetectionMethod = 'hybrid';
     await runHybridDetect(uploadedImage, detectionMutex, templatesLoaded, templatesLoadError, handleDetectionResults);
+}
+
+async function handleCompareStrategies(): Promise<void> {
+    if (!uploadedImage) {
+        ToastManager.error('Please upload an image first');
+        return;
+    }
+
+    if (!enhancedCVReady) {
+        ToastManager.warning('Enhanced CV is not ready yet.');
+        return;
+    }
+
+    await compareStrategiesOnImage(uploadedImage);
+}
+
+function handleExportReport(): void {
+    exportStoredScanReports();
 }
 
 // ========================================
@@ -427,6 +727,7 @@ async function handleHybridDetect(): Promise<void> {
  */
 function handleApplyToAdvisor(): void {
     applyToAdvisor(getSelectionState(), onBuildStateChange);
+    finalizeScanSession(getTrustSummary());
 }
 
 // ========================================
@@ -482,6 +783,14 @@ export function __resetForTesting(): void {
     onBuildStateChange = null;
     templatesLoaded = false;
     templatesLoadError = null;
+    currentPreflightReport = null;
+    enhancedCVReady = false;
+    enhancedCVInitError = null;
+    pendingDetectionMethod = null;
+    clearCurrentScanSession();
+    clearFeedbackSession();
+    clearScanPreflightReport();
+    document.querySelector('.scan-correction-modal')?.remove();
     resetDetectionReviewState();
 }
 

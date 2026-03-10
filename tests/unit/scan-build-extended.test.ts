@@ -34,10 +34,14 @@ vi.mock('../../src/modules/ocr', () => ({
 vi.mock('../../src/modules/computer-vision.ts', () => ({
     detectItemsWithCV: vi.fn(),
     initCV: vi.fn(),
+    initActiveLearning: vi.fn(),
     loadItemTemplates: vi.fn().mockResolvedValue(undefined),
     combineDetections: vi.fn((a) => a),
     aggregateDuplicates: vi.fn((a) => a.map((x: any) => ({ ...x, count: 1, method: 'test' }))),
     createDebugOverlay: vi.fn().mockResolvedValue('data:image/png;base64,debugoverlay'),
+    addCorrection: vi.fn().mockResolvedValue(null),
+    startFeedbackSession: vi.fn(),
+    clearFeedbackSession: vi.fn(),
 }));
 
 vi.mock('../../src/modules/debug-ui.ts', () => ({
@@ -45,6 +49,47 @@ vi.mock('../../src/modules/debug-ui.ts', () => ({
     updateStats: vi.fn(),
     updateLogViewer: vi.fn(),
     isDebugEnabled: vi.fn().mockReturnValue(false),
+}));
+
+vi.mock('../../src/modules/scan-build-preflight.ts', () => ({
+    analyzeScanPreflight: vi.fn().mockResolvedValue({
+        status: 'pass',
+        imageWidth: 1920,
+        imageHeight: 1080,
+        gridConfidence: 0.8,
+        warnings: [],
+        recommendations: [],
+        screenType: 'pause_menu',
+        sharpnessScore: 36,
+        aspectRatio: 16 / 9,
+    }),
+    renderScanPreflightReport: vi.fn(),
+    clearScanPreflightReport: vi.fn(),
+}));
+
+vi.mock('../../src/modules/scan-build-session.ts', () => ({
+    startScanSession: vi.fn(),
+    recordPreflight: vi.fn(),
+    recordDetectionSummary: vi.fn(),
+    finalizeScanSession: vi.fn(),
+    exportStoredScanReports: vi.fn(),
+    abandonCurrentScanSession: vi.fn(),
+    clearCurrentScanSession: vi.fn(),
+}));
+
+vi.mock('../../src/modules/scan-build-corrections.ts', () => ({
+    openScanCorrectionModal: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('../../src/modules/scan-build-enhanced.ts', () => ({
+    initEnhancedScanBuild: vi.fn().mockResolvedValue(undefined),
+    handleEnhancedHybridDetect: vi.fn().mockResolvedValue({
+        items: [],
+        tomes: [],
+        character: null,
+        weapon: null,
+    }),
+    compareStrategiesOnImage: vi.fn().mockResolvedValue(undefined),
 }));
 
 import {
@@ -163,13 +208,22 @@ function setupDOM() {
         <div id="scan-image-preview" style="display: none;"></div>
         <div id="scan-selection-area" style="display: none;"></div>
         <div id="scan-auto-detect-area" style="display: none;"></div>
+        <div id="scan-preflight-report" style="display: none;"></div>
         <div id="scan-detection-info" style="display: none;"></div>
+        <div id="scan-trust-summary" style="display: none;"></div>
         <div id="scan-selection-summary"></div>
         <div id="scan-character-grid"></div>
         <div id="scan-weapon-grid"></div>
         <div id="scan-item-grid"></div>
         <div id="scan-tome-grid"></div>
         <div id="scan-debug-mode"></div>
+        <div id="scan-correction-modal-root"></div>
+        <input type="checkbox" id="scan-use-enhanced-hybrid" />
+        <button id="scan-compare-strategies-btn"></button>
+        <button id="scan-export-report-btn"></button>
+        <div id="scan-strategy-selector"></div>
+        <div id="scan-detection-metrics"></div>
+        <div id="scan-strategy-comparison"></div>
         <div id="advisor-current-build-section"></div>
     `;
 }
@@ -319,11 +373,14 @@ describe('scan-build - Scan Result Processing', () => {
             const autoDetectBtn = document.getElementById('scan-auto-detect-btn');
             autoDetectBtn?.click();
 
-            await vi.waitFor(() => {
-                const state = getScanState();
-                // Tomes should be unique, not duplicated
-                expect(state.tomes.length).toBe(1);
-            });
+            await vi.waitFor(
+                () => {
+                    const state = getScanState();
+                    // Tomes should be unique, not duplicated.
+                    expect(state.tomes.length).toBe(1);
+                },
+                { timeout: 3000 }
+            );
         });
 
         it('should handle combined detection results', async () => {

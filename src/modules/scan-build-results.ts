@@ -15,11 +15,18 @@ import type { SelectionState } from './scan-build-ui.ts';
 export type DetectionSourceMethod = 'ocr' | 'cv' | 'hybrid';
 export type DetectionReviewLevel = 'safe' | 'review' | 'risky';
 
+export interface DetectionCorrection {
+    entityId: string;
+    entityName: string;
+}
+
 export interface DisplayDetectionResult extends DetectionResult {
     count?: number;
+    position?: { x: number; y: number; width: number; height: number };
     sourceMethod: DetectionSourceMethod;
     reviewLevel: DetectionReviewLevel;
     reviewReasons: string[];
+    correction?: DetectionCorrection;
 }
 
 /**
@@ -32,17 +39,38 @@ export interface DetectionResults {
     weapon: DisplayDetectionResult | null;
 }
 
+export interface TrustSummary {
+    safeCount: number;
+    reviewCount: number;
+    riskyCount: number;
+    totalFlaggedCount: number;
+    unresolvedRiskyCount: number;
+    reviewedCount: number;
+    manualReviewCount: number;
+    explicitCorrectionCount: number;
+}
+
+interface DetectionReviewActions {
+    onOpenCorrection?: (result: DisplayDetectionResult) => void;
+}
+
 interface DetectionTrustState {
     results: DetectionResults | null;
     correctedKeys: Set<string>;
     correctedCount: number;
+    manualReviewCount: number;
+    explicitCorrectionCount: number;
 }
 
 const detectionTrustState: DetectionTrustState = {
     results: null,
     correctedKeys: new Set(),
     correctedCount: 0,
+    manualReviewCount: 0,
+    explicitCorrectionCount: 0,
 };
+
+const detectionReviewActions: DetectionReviewActions = {};
 
 function getDetectionKey(type: DisplayDetectionResult['type'], entityId: string): string {
     return `${type}:${entityId}`;
@@ -118,9 +146,22 @@ function getUnresolvedDetectionsByLevel(level: DetectionReviewLevel): DisplayDet
     });
 }
 
-function getTrustSummary(): { safeCount: number; reviewCount: number; riskyCount: number } {
+export function setDetectionReviewActions(actions: DetectionReviewActions): void {
+    detectionReviewActions.onOpenCorrection = actions.onOpenCorrection;
+}
+
+export function getTrustSummary(): TrustSummary {
     if (!detectionTrustState.results) {
-        return { safeCount: 0, reviewCount: 0, riskyCount: 0 };
+        return {
+            safeCount: 0,
+            reviewCount: 0,
+            riskyCount: 0,
+            totalFlaggedCount: 0,
+            unresolvedRiskyCount: 0,
+            reviewedCount: 0,
+            manualReviewCount: 0,
+            explicitCorrectionCount: 0,
+        };
     }
 
     const allResults = getResultsList(detectionTrustState.results);
@@ -128,6 +169,11 @@ function getTrustSummary(): { safeCount: number; reviewCount: number; riskyCount
         safeCount: allResults.filter(result => result.reviewLevel === 'safe').length,
         reviewCount: allResults.filter(result => result.reviewLevel === 'review').length,
         riskyCount: allResults.filter(result => result.reviewLevel === 'risky').length,
+        totalFlaggedCount: allResults.filter(result => result.reviewLevel !== 'safe').length,
+        unresolvedRiskyCount: getUnresolvedDetectionsByLevel('risky').length,
+        reviewedCount: detectionTrustState.correctedCount,
+        manualReviewCount: detectionTrustState.manualReviewCount,
+        explicitCorrectionCount: detectionTrustState.explicitCorrectionCount,
     };
 }
 
@@ -135,6 +181,9 @@ export function resetDetectionReviewState(): void {
     detectionTrustState.results = null;
     detectionTrustState.correctedKeys.clear();
     detectionTrustState.correctedCount = 0;
+    detectionTrustState.manualReviewCount = 0;
+    detectionTrustState.explicitCorrectionCount = 0;
+    renderTrustSummary();
 }
 
 export function markDetectionReviewed(type: DisplayDetectionResult['type'], entityId: string): void {
@@ -151,7 +200,22 @@ export function markDetectionReviewed(type: DisplayDetectionResult['type'], enti
 
     detectionTrustState.correctedKeys.add(key);
     detectionTrustState.correctedCount += 1;
+    detectionTrustState.manualReviewCount += 1;
     renderDetectionReview(detectionTrustState.results);
+}
+
+export function applyItemCorrection(detectedItemId: string, correctedItem: Item): void {
+    if (!detectionTrustState.results) return;
+
+    const result = detectionTrustState.results.items.find(item => item.entity.id === detectedItemId);
+    if (!result) return;
+
+    result.correction = {
+        entityId: correctedItem.id,
+        entityName: correctedItem.name,
+    };
+    detectionTrustState.explicitCorrectionCount += 1;
+    markDetectionReviewed('item', detectedItemId);
 }
 
 /**
@@ -167,7 +231,7 @@ export function getConfidenceClass(confidence: number): string {
  * Build a UI-facing detection result with review metadata.
  */
 export function createDisplayDetectionResult(
-    result: DetectionResult & { count?: number },
+    result: DetectionResult & { count?: number; position?: { x: number; y: number; width: number; height: number } },
     sourceMethod: DetectionSourceMethod,
     reviewReasons: string[] = []
 ): DisplayDetectionResult {
@@ -196,16 +260,32 @@ function renderDetectionSection(title: string, results: DisplayDetectionResult[]
                 .join('');
             const countHtml = result.count && result.count > 1 ? ` x${result.count}` : '';
             const reviewedHtml = isCorrected ? '<span class="scan-reviewed-badge">Reviewed</span>' : '';
+            const correctionHtml = result.correction
+                ? `<span class="scan-correction-note">Corrected to ${escapeHtml(result.correction.entityName)}</span>`
+                : '';
+            const actionHtml =
+                result.reviewLevel === 'safe' || isCorrected
+                    ? ''
+                    : `<div class="scan-detection-item-actions">
+                        <button type="button" class="scan-inline-action" data-mark-reviewed="true" data-review-type="${escapeHtml(result.type)}" data-review-id="${escapeHtml(result.entity.id)}">Mark reviewed</button>
+                        ${
+                            result.type === 'item'
+                                ? `<button type="button" class="scan-inline-action" data-open-correction="true" data-review-id="${escapeHtml(result.entity.id)}">Correct</button>`
+                                : ''
+                        }
+                    </div>`;
 
             return `<div class="scan-detection-item ${getReviewClass(result.reviewLevel)} ${isCorrected ? 'is-corrected' : ''}">
                 <div class="scan-detection-main">
                     <span class="scan-detection-name">${escapeHtml(result.entity.name)}${countHtml}</span>
                     <span class="scan-source-badge source-${escapeHtml(result.sourceMethod)}">${getSourceLabel(result.sourceMethod)}</span>
                     ${reviewedHtml}
+                    ${correctionHtml}
                 </div>
                 <div class="scan-detection-meta">
                     <span class="confidence ${getConfidenceClass(result.confidence)}">${Math.round(result.confidence * 100)}%</span>
                     ${reasonHtml ? `<div class="scan-reason-list">${reasonHtml}</div>` : ''}
+                    ${actionHtml}
                 </div>
             </div>`;
         })
@@ -232,6 +312,59 @@ function attachReviewQueueHandlers(container: HTMLElement): void {
             target?.focus?.();
         });
     });
+
+    container.querySelectorAll<HTMLElement>('[data-mark-reviewed]').forEach(button => {
+        button.addEventListener('click', () => {
+            const type = button.dataset.reviewType as DisplayDetectionResult['type'] | undefined;
+            const entityId = button.dataset.reviewId;
+            if (!type || !entityId) return;
+            markDetectionReviewed(type, entityId);
+        });
+    });
+
+    container.querySelectorAll<HTMLElement>('[data-open-correction]').forEach(button => {
+        button.addEventListener('click', () => {
+            const entityId = button.dataset.reviewId;
+            if (!entityId || !detectionTrustState.results || !detectionReviewActions.onOpenCorrection) return;
+
+            const result = detectionTrustState.results.items.find(item => item.entity.id === entityId);
+            if (!result) return;
+            detectionReviewActions.onOpenCorrection(result);
+        });
+    });
+}
+
+function renderTrustSummary(): void {
+    const container = document.getElementById('scan-trust-summary');
+    if (!container) return;
+
+    const summary = getTrustSummary();
+    if (summary.totalFlaggedCount === 0 && summary.reviewedCount === 0) {
+        container.innerHTML = '';
+        container.style.display = 'none';
+        return;
+    }
+
+    const unresolvedCopy =
+        summary.unresolvedRiskyCount > 0
+            ? `${summary.unresolvedRiskyCount} risky result${summary.unresolvedRiskyCount === 1 ? '' : 's'} still need attention.`
+            : 'No unresolved risky results remain.';
+
+    container.innerHTML = `
+        <div class="scan-trust-summary-main">
+            <div>
+                <div class="scan-trust-summary-title">Trust Summary</div>
+                <div class="scan-trust-summary-copy">${unresolvedCopy}</div>
+            </div>
+            <div class="scan-trust-summary-stats">
+                <span class="scan-trust-chip review">${summary.totalFlaggedCount} flagged</span>
+                <span class="scan-trust-chip risky">${summary.unresolvedRiskyCount} unresolved risky</span>
+                <span class="scan-trust-chip reviewed">${summary.reviewedCount} reviewed</span>
+                <span class="scan-trust-chip corrected">${summary.explicitCorrectionCount} corrected</span>
+            </div>
+        </div>
+    `;
+    container.style.display = 'block';
 }
 
 /**
@@ -288,11 +421,7 @@ export function renderDetectionReview(results: DetectionResults): void {
             const reasons = result.reviewReasons
                 .map(reason => `<span class="scan-reason-chip">${escapeHtml(reason)}</span>`)
                 .join('');
-            html += `<button type="button"
-                class="scan-review-queue-item ${getReviewClass(result.reviewLevel)}"
-                data-review-target="true"
-                data-review-type="${escapeHtml(result.type)}"
-                data-review-id="${escapeHtml(result.entity.id)}">
+            html += `<div class="scan-review-queue-item ${getReviewClass(result.reviewLevel)}">
                 <div class="scan-review-queue-main">
                     <span class="scan-review-name">${escapeHtml(result.entity.name)}</span>
                     <span class="scan-review-type">${escapeHtml(result.type)}</span>
@@ -302,7 +431,16 @@ export function renderDetectionReview(results: DetectionResults): void {
                     <span class="confidence ${getConfidenceClass(result.confidence)}">${Math.round(result.confidence * 100)}%</span>
                     <div class="scan-reason-list">${reasons}</div>
                 </div>
-            </button>`;
+                <div class="scan-review-queue-actions">
+                    <button type="button" class="scan-inline-action" data-review-target="true" data-review-type="${escapeHtml(result.type)}" data-review-id="${escapeHtml(result.entity.id)}">Jump to selection</button>
+                    <button type="button" class="scan-inline-action" data-mark-reviewed="true" data-review-type="${escapeHtml(result.type)}" data-review-id="${escapeHtml(result.entity.id)}">Mark reviewed</button>
+                    ${
+                        result.type === 'item'
+                            ? `<button type="button" class="scan-inline-action" data-open-correction="true" data-review-id="${escapeHtml(result.entity.id)}">Correct</button>`
+                            : ''
+                    }
+                </div>
+            </div>`;
         });
         html += '</div>';
     }
@@ -315,6 +453,7 @@ export function renderDetectionReview(results: DetectionResults): void {
     html += '<p class="scan-detection-hint">💡 Review and adjust selections below if needed</p></div>';
     container.innerHTML = html;
     container.style.display = 'block';
+    renderTrustSummary();
     attachReviewQueueHandlers(container);
 }
 
@@ -358,7 +497,7 @@ export function applyDetectionResults(
         if (!detection.entity) return;
         const item = detection.entity as Item;
         const currentCount = itemCounts.get(item.id) || 0;
-        itemCounts.set(item.id, currentCount + 1);
+        itemCounts.set(item.id, currentCount + (detection.count || 1));
     });
 
     itemCounts.forEach((count, itemId) => {

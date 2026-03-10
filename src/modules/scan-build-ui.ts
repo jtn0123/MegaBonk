@@ -371,7 +371,7 @@ export function updateItemCardCount(itemId: string, count: number): void {
         countDisplay.textContent = count.toString();
     }
 
-    card.classList.add('selected');
+    card.classList.toggle('selected', count > 0);
 }
 
 /**

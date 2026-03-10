@@ -24,11 +24,14 @@ vi.mock('../../src/modules/logger.ts', () => ({
 }));
 
 import {
+    applyItemCorrection,
     applyToAdvisor,
     createDisplayDetectionResult,
+    getTrustSummary,
     markDetectionReviewed,
     renderDetectionReview,
     resetDetectionReviewState,
+    setDetectionReviewActions,
     type DetectionResults,
 } from '../../src/modules/scan-build-results.ts';
 import { logger } from '../../src/modules/logger.ts';
@@ -78,8 +81,10 @@ describe('scan-build-results trust layer', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         resetDetectionReviewState();
+        setDetectionReviewActions({});
         document.body.innerHTML = `
             <div id="scan-detection-info"></div>
+            <div id="scan-trust-summary"></div>
             <div id="scan-character-grid"><button data-id="clank">CL4NK</button></div>
             <div id="scan-weapon-grid"><button data-id="hammer">Hammer</button></div>
             <div id="scan-grid-items-container"><button data-id="wrench">Wrench</button></div>
@@ -173,6 +178,61 @@ describe('scan-build-results trust layer', () => {
         expect(detectionInfo.innerHTML).toContain('Reviewed');
     });
 
+    it('should expose correction action callbacks for item detections', () => {
+        const onOpenCorrection = vi.fn();
+        setDetectionReviewActions({ onOpenCorrection });
+
+        const results: DetectionResults = {
+            character: null,
+            weapon: null,
+            items: [
+                createDisplayDetectionResult({
+                    type: 'item',
+                    entity: mockItem('wrench', 'Wrench'),
+                    confidence: 0.55,
+                    rawText: 'wrench',
+                }, 'ocr'),
+            ],
+            tomes: [],
+        };
+
+        renderDetectionReview(results);
+
+        const correctButton = document.querySelector('[data-open-correction="true"]') as HTMLButtonElement;
+        expect(correctButton).not.toBeNull();
+        correctButton.click();
+
+        expect(onOpenCorrection).toHaveBeenCalledWith(expect.objectContaining({
+            entity: expect.objectContaining({ id: 'wrench' }),
+        }));
+    });
+
+    it('should track explicit item corrections in the trust summary', () => {
+        const results: DetectionResults = {
+            character: null,
+            weapon: null,
+            items: [
+                createDisplayDetectionResult({
+                    type: 'item',
+                    entity: mockItem('wrench', 'Wrench'),
+                    confidence: 0.4,
+                    rawText: 'wrench',
+                    count: 2,
+                }, 'cv'),
+            ],
+            tomes: [],
+        };
+
+        renderDetectionReview(results);
+        applyItemCorrection('wrench', mockItem('battery', 'Battery'));
+
+        const trustSummary = getTrustSummary();
+        expect(trustSummary.explicitCorrectionCount).toBe(1);
+        expect(trustSummary.reviewedCount).toBe(1);
+        expect(document.getElementById('scan-detection-info')!.innerHTML).toContain('Corrected to Battery');
+        expect(document.getElementById('scan-trust-summary')!.innerHTML).toContain('1 corrected');
+    });
+
     it('should warn when applying with unresolved risky detections', () => {
         const results: DetectionResults = {
             character: null,
@@ -257,6 +317,11 @@ describe('scan-build-results trust layer', () => {
                         reviewCount: 1,
                         riskyCount: 1,
                         correctedCount: 1,
+                        reviewedCount: 1,
+                        manualReviewCount: 1,
+                        explicitCorrectionCount: 0,
+                        totalFlaggedCount: 2,
+                        unresolvedRiskyCount: 1,
                         appliedWithUnresolvedRisky: true,
                     },
                 }),

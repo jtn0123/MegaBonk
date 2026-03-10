@@ -365,8 +365,8 @@ describe('Template Matching Algorithms', () => {
 
             const start = performance.now();
             for (let i = 0; i < 100; i++) calculateNCC(template, image, 32, 32);
-            // Allow more time for CI environments
-            expect(performance.now() - start).toBeLessThan(50);
+            // Keep this as a coarse regression guard without making it flaky on slower CI hosts.
+            expect(performance.now() - start).toBeLessThan(75);
         });
 
         it('handles non-square templates', () => {

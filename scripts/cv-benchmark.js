@@ -9,6 +9,7 @@
  *   node scripts/cv-benchmark.js                    # Run full benchmark
  *   node scripts/cv-benchmark.js --quick            # Run on subset (3 images)
  *   node scripts/cv-benchmark.js --image <path>     # Run on specific image
+ *   node scripts/cv-benchmark.js --mode <mode>      # Run one template mode
  *   node scripts/cv-benchmark.js --compare          # Compare to last run
  *   node scripts/cv-benchmark.js --history          # Show history summary
  */
@@ -37,12 +38,17 @@ const CONFIG = {
     BENCHMARK_HISTORY_PATH: path.join(__dirname, '..', 'data', 'benchmark-history.json'),
     ITEMS_PATH: path.join(__dirname, '..', 'data', 'items.json'),
     TEMPLATES_PATH: path.join(__dirname, '..', 'src', 'images', 'items'),
+    TRAINING_INDEX_PATH: path.join(__dirname, '..', 'data', 'training-data', 'index.json'),
+    TRAINING_BASE_PATH: path.join(__dirname, '..', 'data', 'training-data'),
 
     // Detection settings
     // Note: With current static templates, max similarity is ~25-30%
     // Training data crops would yield better results
     DEFAULT_THRESHOLD: 0.45, // Restored - need template replacement to improve
     BASE_RESOLUTION: 720,
+    DEFAULT_TEMPLATE_MODES: ['primary_only', 'primary_plus_training', 'training_preferred'],
+    MIN_TRAINING_SAMPLES: 3,
+    MAX_TRAINING_TEMPLATES_PER_ITEM: 4,
 
     // Grid calibration presets
     // NOTE: These are tuned for the hotbar at the bottom of the screen
@@ -283,8 +289,11 @@ function calculateCombinedScore(imgData1, imgData2) {
 // ========================================
 
 class SimpleCVEngine {
-    constructor() {
+    constructor(options = {}) {
+        this.templateMode = options.templateMode || 'primary_only';
+        this.minTrainingSamples = options.minTrainingSamples || CONFIG.MIN_TRAINING_SAMPLES;
         this.templates = new Map();
+        this.trainingTemplates = new Map();
         this.itemsData = null;
     }
 
@@ -297,6 +306,11 @@ class SimpleCVEngine {
         if (!this.itemsData?.items) {
             console.error('Could not load items.json');
             return;
+        }
+
+        let trainingIndex = null;
+        if (this.templateMode !== 'primary_only' && fs.existsSync(CONFIG.TRAINING_INDEX_PATH)) {
+            trainingIndex = JSON.parse(fs.readFileSync(CONFIG.TRAINING_INDEX_PATH, 'utf8'));
         }
 
         // Load template images
@@ -317,9 +331,84 @@ class SimpleCVEngine {
                     // Template not found
                 }
             }
+
+            const trainingItem = trainingIndex?.items?.[item.id];
+            if (trainingItem?.sample_count >= this.minTrainingSamples) {
+                const trainingVariants = [];
+                for (const sample of trainingItem.samples.slice(0, CONFIG.MAX_TRAINING_TEMPLATES_PER_ITEM)) {
+                    const samplePath = path.join(CONFIG.TRAINING_BASE_PATH, sample.file);
+                    if (!fs.existsSync(samplePath)) continue;
+
+                    try {
+                        const img = await loadImage(samplePath);
+                        const canvas = createCanvas(40, 40);
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, 40, 40);
+                        const imageData = ctx.getImageData(0, 0, 40, 40);
+                        trainingVariants.push({
+                            imageData: imageData.data,
+                            validationType: sample.validation_type,
+                        });
+                    } catch (e) {
+                        // Skip individual training sample failures
+                    }
+                }
+
+                if (trainingVariants.length >= this.minTrainingSamples) {
+                    this.trainingTemplates.set(item.id, trainingVariants);
+                }
+            }
         }
 
-        console.log(`Loaded ${this.templates.size} templates`);
+        console.log(
+            `Loaded ${this.templates.size} templates (${this.trainingTemplates.size} items with training data) for ${this.templateMode}`
+        );
+    }
+
+    getWeightedTrainingScore(scores, variants) {
+        if (scores.length === 0) return 0;
+
+        let weightedTotal = 0;
+        let totalWeight = 0;
+        for (let i = 0; i < scores.length; i++) {
+            const validationType = variants[i]?.validationType;
+            const weight = validationType === 'corrected' ? 1.15 : validationType === 'verified' ? 1.05 : 1;
+            weightedTotal += scores[i] * weight;
+            totalWeight += weight;
+        }
+
+        return totalWeight > 0 ? weightedTotal / totalWeight : 0;
+    }
+
+    getScoreForItem(cropData, itemId) {
+        const primaryTemplate = this.templates.get(itemId);
+        if (!primaryTemplate) return { score: 0, templateSource: 'missing' };
+
+        const primaryScore = calculateCombinedScore(cropData, primaryTemplate.imageData);
+        if (this.templateMode === 'primary_only') {
+            return { score: primaryScore, templateSource: 'primary' };
+        }
+
+        const trainingVariants = this.trainingTemplates.get(itemId) || [];
+        if (trainingVariants.length < this.minTrainingSamples) {
+            return { score: primaryScore, templateSource: 'primary' };
+        }
+
+        const trainingScores = trainingVariants.map(variant => calculateCombinedScore(cropData, variant.imageData));
+        const bestTrainingScore = Math.max(...trainingScores);
+        const weightedTrainingScore = this.getWeightedTrainingScore(trainingScores, trainingVariants);
+
+        if (this.templateMode === 'primary_plus_training') {
+            return {
+                score: Math.max(primaryScore, 0.55 * primaryScore + 0.45 * weightedTrainingScore),
+                templateSource: bestTrainingScore >= primaryScore ? 'training' : 'primary',
+            };
+        }
+
+        return {
+            score: Math.max(0.2 * primaryScore + 0.8 * bestTrainingScore, weightedTrainingScore),
+            templateSource: 'training_preferred',
+        };
     }
 
     async detectItems(imagePath, groundTruthItems, threshold = CONFIG.DEFAULT_THRESHOLD, diagnosticMode = false) {
@@ -363,9 +452,9 @@ class SimpleCVEngine {
                 const ssim = calculateSSIM(cropData, template.imageData);
                 const hist = calculateHistogramSimilarity(cropData, template.imageData);
                 const nccNorm = (ncc + 1) / 2;
-                const score = 0.4 * ssim + 0.35 * hist + 0.25 * nccNorm;
+                const { score, templateSource } = this.getScoreForItem(cropData, itemId);
 
-                allScores.push({ itemId, name: template.item.name, ncc, nccNorm, ssim, hist, score });
+                allScores.push({ itemId, name: template.item.name, ncc, nccNorm, ssim, hist, score, templateSource });
 
                 if (score > bestScore) {
                     bestScore = score;
@@ -433,6 +522,10 @@ class SimpleCVEngine {
                 recall,
                 f1,
                 accuracy: truePositives / groundTruthItems.length,
+                averageConfidence:
+                    detections.length > 0
+                        ? detections.reduce((sum, detection) => sum + detection.confidence, 0) / detections.length
+                        : 0,
             },
             timing: {
                 totalMs: elapsed,
@@ -475,6 +568,204 @@ function addBenchmarkRun(history, runData) {
     saveBenchmarkHistory(history);
 }
 
+function summarizeConfusions(results) {
+    const confusionMap = new Map();
+
+    for (const result of results) {
+        for (const detection of result.detections) {
+            if (detection.correct) continue;
+            const predicted = detection.item || detection.bestMatchedItem;
+            if (!predicted) continue;
+            if (predicted === detection.groundTruth) continue;
+
+            const key = `${detection.groundTruth} -> ${predicted}`;
+            confusionMap.set(key, (confusionMap.get(key) || 0) + 1);
+        }
+    }
+
+    return Array.from(confusionMap.entries())
+        .map(([pair, count]) => ({ pair, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10);
+}
+
+function shouldPromoteTrainingPreferred(modeRuns) {
+    const baseline =
+        modeRuns.find(run => run.config.templateMode === 'primary_plus_training') ||
+        modeRuns.find(run => run.config.templateMode === 'primary_only');
+    const candidate = modeRuns.find(run => run.config.templateMode === 'training_preferred');
+
+    if (!baseline || !candidate) {
+        return { promote: false, reason: 'Missing baseline or training_preferred results' };
+    }
+
+    const baselineFpRate = baseline.totalItems > 0 ? baseline.metrics.falsePositives / baseline.totalItems : 0;
+    const candidateFpRate = candidate.totalItems > 0 ? candidate.metrics.falsePositives / candidate.totalItems : 0;
+    const latencyRatio =
+        baseline.timing.avgPerImageMs > 0 ? candidate.timing.avgPerImageMs / baseline.timing.avgPerImageMs : Infinity;
+    const f1Gain = candidate.metrics.f1 - baseline.metrics.f1;
+    const fpDelta = candidateFpRate - baselineFpRate;
+
+    const promote = f1Gain >= 0.05 && fpDelta <= 0.02 && latencyRatio <= 1.35;
+
+    return {
+        promote,
+        reason: promote
+            ? 'training_preferred clears the F1, false-positive, and latency gates'
+            : 'training_preferred did not clear the promotion thresholds',
+        baselineMode: baseline.config.templateMode,
+        f1Gain,
+        fpDelta,
+        latencyRatio,
+    };
+}
+
+async function runBenchmarkMode(options, templateMode, imagesToRun) {
+    const { quick, imagePath, verbose, diagnostic, minTrainingSamples } = options;
+
+    console.log(`Template mode: ${templateMode}`);
+    console.log('------------------------------');
+
+    const engine = new SimpleCVEngine({
+        templateMode,
+        minTrainingSamples: minTrainingSamples || CONFIG.MIN_TRAINING_SAMPLES,
+    });
+    await engine.loadTemplates();
+
+    const results = [];
+    const startTime = Date.now();
+
+    for (const [imgPath, data] of imagesToRun) {
+        if (!data.items || data.items.length === 0) {
+            console.log(`Skipping ${imgPath}: no ground truth items`);
+            continue;
+        }
+
+        process.stdout.write(`Processing ${imgPath}... `);
+
+        const result = await engine.detectItems(imgPath, data.items, CONFIG.DEFAULT_THRESHOLD, diagnostic);
+
+        if (result.error) {
+            console.log(`ERROR: ${result.error}`);
+            continue;
+        }
+
+        results.push(result);
+
+        const m = result.metrics;
+        console.log(
+            `F1=${(m.f1 * 100).toFixed(1)}% P=${(m.precision * 100).toFixed(1)}% R=${(m.recall * 100).toFixed(1)}% (${result.timing.totalMs}ms)`
+        );
+
+        if (verbose) {
+            const incorrect = result.detections.filter(d => !d.correct);
+            for (const d of incorrect.slice(0, 5)) {
+                console.log(
+                    `  Slot ${d.slot}: detected "${d.item || d.bestMatchedItem}" but was "${d.groundTruth}" (${(d.confidence * 100).toFixed(0)}%)`
+                );
+            }
+        }
+
+        if (diagnostic && result.diagnosticData) {
+            console.log('\n  === DIAGNOSTIC DATA ===');
+            for (const slot of result.diagnosticData.slice(0, 3)) {
+                console.log(`  Slot ${slot.slot}: Expected "${slot.groundTruth}"`);
+                console.log(
+                    `    Position: x=${slot.position.x}, y=${slot.position.y}, ${slot.position.width}x${slot.position.height}`
+                );
+                console.log(
+                    `    Best score: ${(slot.bestScore * 100).toFixed(1)}% (threshold: ${(slot.threshold * 100).toFixed(0)}%)`
+                );
+                console.log('    Top 5 matches:');
+                for (const match of slot.topMatches) {
+                    const marker = match.name === slot.groundTruth ? ' ← EXPECTED' : '';
+                    console.log(
+                        `      ${match.name}: ${(match.score * 100).toFixed(1)}% (SSIM=${(match.ssim * 100).toFixed(0)}%, Hist=${(match.hist * 100).toFixed(0)}%, NCC=${(match.nccNorm * 100).toFixed(0)}%) [${match.templateSource}]${marker}`
+                    );
+                }
+            }
+            console.log('');
+        }
+    }
+
+    const totalTime = Date.now() - startTime;
+    const totalItems = results.reduce((s, r) => s + r.itemCount, 0);
+    const totalTruePositives = results.reduce((s, r) => s + r.metrics.truePositives, 0);
+    const totalFalsePositives = results.reduce((s, r) => s + r.metrics.falsePositives, 0);
+    const totalFalseNegatives = results.reduce((s, r) => s + r.metrics.falseNegatives, 0);
+    const precision =
+        totalTruePositives + totalFalsePositives > 0
+            ? totalTruePositives / (totalTruePositives + totalFalsePositives)
+            : 0;
+    const recall =
+        totalTruePositives + totalFalseNegatives > 0
+            ? totalTruePositives / (totalTruePositives + totalFalseNegatives)
+            : 0;
+    const f1 = precision + recall > 0 ? (2 * (precision * recall)) / (precision + recall) : 0;
+    const avgConfidence =
+        results.length > 0
+            ? results.reduce((sum, result) => sum + result.metrics.averageConfidence, 0) / results.length
+            : 0;
+    const confusionPairs = summarizeConfusions(results);
+
+    console.log('');
+    console.log(`Aggregate Results (${templateMode})`);
+    console.log('-----------------');
+    console.log(`Images:      ${results.length}`);
+    console.log(`Total items: ${totalItems}`);
+    console.log(`TP/FP/FN:    ${totalTruePositives}/${totalFalsePositives}/${totalFalseNegatives}`);
+    console.log(`Precision:   ${(precision * 100).toFixed(1)}%`);
+    console.log(`Recall:      ${(recall * 100).toFixed(1)}%`);
+    console.log(`F1 Score:    ${(f1 * 100).toFixed(1)}%`);
+    console.log(`Avg conf.:   ${(avgConfidence * 100).toFixed(1)}%`);
+    console.log(`Mean latency:${results.length > 0 ? (totalTime / results.length).toFixed(1) : '0.0'}ms/image`);
+    if (confusionPairs.length > 0) {
+        console.log('Top confusions:');
+        confusionPairs.forEach(entry => {
+            console.log(`  ${entry.pair} (${entry.count})`);
+        });
+    }
+
+    return {
+        id: `run_${Date.now()}_${templateMode}`,
+        groupId: `group_${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        mode: quick ? 'quick' : imagePath ? 'single' : 'full',
+        imageCount: results.length,
+        totalItems,
+        metrics: {
+            accuracy: totalItems > 0 ? totalTruePositives / totalItems : 0,
+            precision,
+            recall,
+            f1,
+            avgF1:
+                results.length > 0 ? results.reduce((sum, result) => sum + result.metrics.f1, 0) / results.length : 0,
+            falsePositives: totalFalsePositives,
+            falseNegatives: totalFalseNegatives,
+            averageConfidence: avgConfidence,
+        },
+        timing: {
+            totalMs: totalTime,
+            avgPerImageMs: results.length > 0 ? totalTime / results.length : 0,
+        },
+        confusionPairs,
+        perImage: results.map(r => ({
+            image: r.imagePath,
+            resolution: r.resolution,
+            itemCount: r.itemCount,
+            metrics: r.metrics,
+            timing: r.timing,
+        })),
+        config: {
+            threshold: CONFIG.DEFAULT_THRESHOLD,
+            templateCount: engine.templates.size,
+            templateMode,
+            trainingTemplateItems: engine.trainingTemplates.size,
+            minTrainingSamples: engine.minTrainingSamples,
+        },
+    };
+}
+
 // ========================================
 // Main Benchmark Runner
 // ========================================
@@ -512,154 +803,43 @@ async function runBenchmark(options = {}) {
 
     console.log(`Running benchmark on ${imagesToRun.length} image(s)...`);
     console.log('');
+    const templateModes = options.templateMode ? [options.templateMode] : CONFIG.DEFAULT_TEMPLATE_MODES;
+    const history = loadBenchmarkHistory();
+    const modeRuns = [];
 
-    // Initialize CV engine
-    const engine = new SimpleCVEngine();
-    await engine.loadTemplates();
+    for (const templateMode of templateModes) {
+        const runData = await runBenchmarkMode(options, templateMode, imagesToRun);
+        modeRuns.push(runData);
+        addBenchmarkRun(history, runData);
+        console.log('');
+    }
 
-    // Run detection on each image
-    const results = [];
-    const startTime = Date.now();
+    if (modeRuns.length > 1) {
+        console.log('Mode Comparison');
+        console.log('---------------');
+        console.log('Template mode          | F1     | Precision | Recall | Avg conf. | Mean latency');
+        console.log('-----------------------|--------|-----------|--------|-----------|-------------');
+        modeRuns.forEach(run => {
+            console.log(
+                `${run.config.templateMode.padEnd(22)} | ${`${(run.metrics.f1 * 100).toFixed(1)}%`.padStart(6)} | ${`${(run.metrics.precision * 100).toFixed(1)}%`.padStart(9)} | ${`${(run.metrics.recall * 100).toFixed(1)}%`.padStart(6)} | ${`${(run.metrics.averageConfidence * 100).toFixed(1)}%`.padStart(9)} | ${`${run.timing.avgPerImageMs.toFixed(1)}ms`.padStart(11)}`
+            );
+        });
 
-    for (const [imgPath, data] of imagesToRun) {
-        if (!data.items || data.items.length === 0) {
-            console.log(`Skipping ${imgPath}: no ground truth items`);
-            continue;
-        }
-
-        process.stdout.write(`Processing ${imgPath}... `);
-
-        const result = await engine.detectItems(imgPath, data.items, CONFIG.DEFAULT_THRESHOLD, diagnostic);
-
-        if (result.error) {
-            console.log(`ERROR: ${result.error}`);
-            continue;
-        }
-
-        results.push(result);
-
-        const m = result.metrics;
-        console.log(
-            `F1=${(m.f1 * 100).toFixed(1)}% P=${(m.precision * 100).toFixed(1)}% R=${(m.recall * 100).toFixed(1)}% (${result.timing.totalMs}ms)`
-        );
-
-        if (verbose) {
-            // Show incorrect detections
-            const incorrect = result.detections.filter(d => !d.correct);
-            for (const d of incorrect.slice(0, 5)) {
-                console.log(
-                    `  Slot ${d.slot}: detected "${d.item || d.bestMatchedItem}" but was "${d.groundTruth}" (${(d.confidence * 100).toFixed(0)}%)`
-                );
-            }
-        }
-
-        if (diagnostic && result.diagnosticData) {
-            console.log('\n  === DIAGNOSTIC DATA ===');
-            for (const slot of result.diagnosticData.slice(0, 3)) {
-                console.log(`  Slot ${slot.slot}: Expected "${slot.groundTruth}"`);
-                console.log(
-                    `    Position: x=${slot.position.x}, y=${slot.position.y}, ${slot.position.width}x${slot.position.height}`
-                );
-                console.log(
-                    `    Best score: ${(slot.bestScore * 100).toFixed(1)}% (threshold: ${(slot.threshold * 100).toFixed(0)}%)`
-                );
-                console.log(`    Top 5 matches:`);
-                for (const match of slot.topMatches) {
-                    const marker = match.name === slot.groundTruth ? ' ← EXPECTED' : '';
-                    console.log(
-                        `      ${match.name}: ${(match.score * 100).toFixed(1)}% (SSIM=${(match.ssim * 100).toFixed(0)}%, Hist=${(match.hist * 100).toFixed(0)}%, NCC=${(match.nccNorm * 100).toFixed(0)}%)${marker}`
-                    );
-                }
-            }
-            console.log('');
+        const promotion = shouldPromoteTrainingPreferred(modeRuns);
+        console.log('');
+        console.log('Promotion Gate');
+        console.log('--------------');
+        console.log(`${promotion.promote ? 'PROMOTE' : 'HOLD'}: ${promotion.reason}`);
+        if (promotion.baselineMode) {
+            console.log(`Baseline mode: ${promotion.baselineMode}`);
+            console.log(`F1 gain: ${(promotion.f1Gain * 100).toFixed(2)}%`);
+            console.log(`False-positive delta: ${(promotion.fpDelta * 100).toFixed(2)}%`);
+            console.log(`Latency ratio: ${promotion.latencyRatio.toFixed(2)}x`);
         }
     }
 
-    const totalTime = Date.now() - startTime;
-
-    // Calculate aggregate metrics
-    const aggregate = {
-        imageCount: results.length,
-        totalItems: results.reduce((s, r) => s + r.itemCount, 0),
-        totalTruePositives: results.reduce((s, r) => s + r.metrics.truePositives, 0),
-        totalFalsePositives: results.reduce((s, r) => s + r.metrics.falsePositives, 0),
-        totalFalseNegatives: results.reduce((s, r) => s + r.metrics.falseNegatives, 0),
-    };
-
-    aggregate.precision =
-        aggregate.totalTruePositives + aggregate.totalFalsePositives > 0
-            ? aggregate.totalTruePositives / (aggregate.totalTruePositives + aggregate.totalFalsePositives)
-            : 0;
-    aggregate.recall =
-        aggregate.totalTruePositives + aggregate.totalFalseNegatives > 0
-            ? aggregate.totalTruePositives / (aggregate.totalTruePositives + aggregate.totalFalseNegatives)
-            : 0;
-    aggregate.f1 =
-        aggregate.precision + aggregate.recall > 0
-            ? (2 * (aggregate.precision * aggregate.recall)) / (aggregate.precision + aggregate.recall)
-            : 0;
-    aggregate.accuracy = aggregate.totalItems > 0 ? aggregate.totalTruePositives / aggregate.totalItems : 0;
-
-    // Per-image averages
-    aggregate.avgF1 = results.length > 0 ? results.reduce((s, r) => s + r.metrics.f1, 0) / results.length : 0;
-    aggregate.avgPrecision =
-        results.length > 0 ? results.reduce((s, r) => s + r.metrics.precision, 0) / results.length : 0;
-    aggregate.avgRecall = results.length > 0 ? results.reduce((s, r) => s + r.metrics.recall, 0) / results.length : 0;
-
-    console.log('');
-    console.log('Aggregate Results');
-    console.log('-----------------');
-    console.log(`Images:      ${aggregate.imageCount}`);
-    console.log(`Total items: ${aggregate.totalItems}`);
-    console.log(
-        `TP/FP/FN:    ${aggregate.totalTruePositives}/${aggregate.totalFalsePositives}/${aggregate.totalFalseNegatives}`
-    );
-    console.log(`Accuracy:    ${(aggregate.accuracy * 100).toFixed(1)}%`);
-    console.log(`Precision:   ${(aggregate.precision * 100).toFixed(1)}%`);
-    console.log(`Recall:      ${(aggregate.recall * 100).toFixed(1)}%`);
-    console.log(`F1 Score:    ${(aggregate.f1 * 100).toFixed(1)}%`);
-    console.log(`Avg F1:      ${(aggregate.avgF1 * 100).toFixed(1)}%`);
-    console.log(`Total time:  ${totalTime}ms`);
-
-    // Create benchmark run record
-    const runData = {
-        id: `run_${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        mode: quick ? 'quick' : imagePath ? 'single' : 'full',
-        imageCount: aggregate.imageCount,
-        totalItems: aggregate.totalItems,
-        metrics: {
-            accuracy: aggregate.accuracy,
-            precision: aggregate.precision,
-            recall: aggregate.recall,
-            f1: aggregate.f1,
-            avgF1: aggregate.avgF1,
-        },
-        timing: {
-            totalMs: totalTime,
-            avgPerImageMs: totalTime / results.length,
-        },
-        perImage: results.map(r => ({
-            image: r.imagePath,
-            resolution: r.resolution,
-            itemCount: r.itemCount,
-            metrics: r.metrics,
-            timing: r.timing,
-        })),
-        config: {
-            threshold: CONFIG.DEFAULT_THRESHOLD,
-            templateCount: engine.templates.size,
-        },
-    };
-
-    // Save to history
-    const history = loadBenchmarkHistory();
-    addBenchmarkRun(history, runData);
-
-    console.log('');
     console.log(`Results saved to: ${CONFIG.BENCHMARK_HISTORY_PATH}`);
-
-    return runData;
+    return modeRuns;
 }
 
 async function showHistory() {
@@ -673,19 +853,22 @@ async function showHistory() {
     console.log('Benchmark History');
     console.log('=================');
     console.log('');
-    console.log('Date                 | Mode   | Images | F1     | Precision | Recall | Time');
-    console.log('---------------------|--------|--------|--------|-----------|--------|------');
+    console.log('Date                 | Run    | Template mode          | Images | F1     | Precision | Recall | Time');
+    console.log(
+        '---------------------|--------|------------------------|--------|--------|-----------|--------|------'
+    );
 
     for (const run of history.runs.slice(-20).reverse()) {
         const date = new Date(run.timestamp).toISOString().slice(0, 16).replace('T', ' ');
         const mode = run.mode.padEnd(6);
+        const templateMode = (run.config?.templateMode || 'legacy').padEnd(22);
         const images = String(run.imageCount).padStart(6);
         const f1 = `${(run.metrics.f1 * 100).toFixed(1)}%`.padStart(6);
         const precision = `${(run.metrics.precision * 100).toFixed(1)}%`.padStart(9);
         const recall = `${(run.metrics.recall * 100).toFixed(1)}%`.padStart(6);
         const time = `${run.timing.totalMs}ms`.padStart(6);
 
-        console.log(`${date} | ${mode} | ${images} | ${f1} | ${precision} | ${recall} | ${time}`);
+        console.log(`${date} | ${mode} | ${templateMode} | ${images} | ${f1} | ${precision} | ${recall} | ${time}`);
     }
 
     // Show trend
@@ -719,7 +902,9 @@ async function compareToLast() {
     console.log('====================================');
     console.log('');
     console.log(`Current:  ${current.timestamp}`);
+    console.log(`Current mode:  ${current.config?.templateMode || 'legacy'}`);
     console.log(`Previous: ${previous.timestamp}`);
+    console.log(`Previous mode: ${previous.config?.templateMode || 'legacy'}`);
     console.log('');
 
     const metrics = ['accuracy', 'precision', 'recall', 'f1'];
@@ -876,6 +1061,16 @@ async function main() {
             verbose: args.includes('--verbose') || args.includes('-v'),
             diagnostic: args.includes('--diagnostic') || args.includes('-d'),
         };
+
+        const modeIdx = args.indexOf('--mode');
+        if (modeIdx !== -1 && args[modeIdx + 1]) {
+            options.templateMode = args[modeIdx + 1];
+        }
+
+        const minTrainingIdx = args.indexOf('--min-training-samples');
+        if (minTrainingIdx !== -1 && args[minTrainingIdx + 1]) {
+            options.minTrainingSamples = Number(args[minTrainingIdx + 1]);
+        }
 
         const imageIdx = args.indexOf('--image');
         if (imageIdx !== -1 && args[imageIdx + 1]) {

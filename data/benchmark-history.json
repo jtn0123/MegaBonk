@@ -888,6 +888,526 @@
         "threshold": 0.45,
         "templateCount": 80
       }
+    },
+    {
+      "id": "run_1773107565297_primary_only",
+      "groupId": "group_1773107565297",
+      "timestamp": "2026-03-10T01:52:45.297Z",
+      "mode": "quick",
+      "imageCount": 3,
+      "totalItems": 40,
+      "metrics": {
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "avgF1": 0,
+        "falsePositives": 2,
+        "falseNegatives": 40,
+        "averageConfidence": 0.3109680840527409
+      },
+      "timing": {
+        "totalMs": 217,
+        "avgPerImageMs": 72.33333333333333
+      },
+      "confusionPairs": [
+        {
+          "pair": "Wrench -> Gym Sauce",
+          "count": 2
+        },
+        {
+          "pair": "Wrench -> Gamer Goggles",
+          "count": 2
+        },
+        {
+          "pair": "Ice Cube -> Phantom Shroud",
+          "count": 2
+        },
+        {
+          "pair": "Ice Crystal -> Cursed Grabbies",
+          "count": 1
+        },
+        {
+          "pair": "Sucky Magnet -> Slutty Cannon",
+          "count": 1
+        },
+        {
+          "pair": "Feathers -> Time Bracelet",
+          "count": 1
+        },
+        {
+          "pair": "Medkit -> Coward's Cloak",
+          "count": 1
+        },
+        {
+          "pair": "Backpack -> Gas Mask",
+          "count": 1
+        },
+        {
+          "pair": "Turbo Skates -> Electric Plug",
+          "count": 1
+        },
+        {
+          "pair": "Spiky Shield -> Cursed Doll",
+          "count": 1
+        }
+      ],
+      "perImage": [
+        {
+          "image": "pc-screenshots/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.28529881428668463
+          },
+          "timing": {
+            "totalMs": 56,
+            "perItemMs": 4.666666666666667
+          }
+        },
+        {
+          "image": "pc-screenshots/level_33_english_forest_early.jpg",
+          "resolution": "1600x900",
+          "itemCount": 10,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 10,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.38984300654153103
+          },
+          "timing": {
+            "totalMs": 40,
+            "perItemMs": 4
+          }
+        },
+        {
+          "image": "pc-screenshots/level_52_spanish_ocean.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.25776243133000715
+          },
+          "timing": {
+            "totalMs": 70,
+            "perItemMs": 3.888888888888889
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.45,
+        "templateCount": 80,
+        "templateMode": "primary_only",
+        "trainingTemplateItems": 0,
+        "minTrainingSamples": 3
+      }
+    },
+    {
+      "id": "run_1773107565631_primary_plus_training",
+      "groupId": "group_1773107565631",
+      "timestamp": "2026-03-10T01:52:45.631Z",
+      "mode": "quick",
+      "imageCount": 3,
+      "totalItems": 40,
+      "metrics": {
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "avgF1": 0,
+        "falsePositives": 2,
+        "falseNegatives": 40,
+        "averageConfidence": 0.31850672423559917
+      },
+      "timing": {
+        "totalMs": 298,
+        "avgPerImageMs": 99.33333333333333
+      },
+      "confusionPairs": [
+        {
+          "pair": "Ice Cube -> Phantom Shroud",
+          "count": 2
+        },
+        {
+          "pair": "Wrench -> Battery",
+          "count": 1
+        },
+        {
+          "pair": "Wrench -> Gym Sauce",
+          "count": 1
+        },
+        {
+          "pair": "Ice Crystal -> Oats",
+          "count": 1
+        },
+        {
+          "pair": "Sucky Magnet -> Clover",
+          "count": 1
+        },
+        {
+          "pair": "Feathers -> Oats",
+          "count": 1
+        },
+        {
+          "pair": "Medkit -> Time Bracelet",
+          "count": 1
+        },
+        {
+          "pair": "Backpack -> Backpack",
+          "count": 1
+        },
+        {
+          "pair": "Turbo Skates -> Oats",
+          "count": 1
+        },
+        {
+          "pair": "Spiky Shield -> Moldy Gloves",
+          "count": 1
+        }
+      ],
+      "perImage": [
+        {
+          "image": "pc-screenshots/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.3060176101580596
+          },
+          "timing": {
+            "totalMs": 73,
+            "perItemMs": 6.083333333333333
+          }
+        },
+        {
+          "image": "pc-screenshots/level_33_english_forest_early.jpg",
+          "resolution": "1600x900",
+          "itemCount": 10,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 10,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.3899283867100328
+          },
+          "timing": {
+            "totalMs": 66,
+            "perItemMs": 6.6
+          }
+        },
+        {
+          "image": "pc-screenshots/level_52_spanish_ocean.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.259574175838705
+          },
+          "timing": {
+            "totalMs": 102,
+            "perItemMs": 5.666666666666667
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.45,
+        "templateCount": 80,
+        "templateMode": "primary_plus_training",
+        "trainingTemplateItems": 24,
+        "minTrainingSamples": 3
+      }
+    },
+    {
+      "id": "run_1773107565938_training_preferred",
+      "groupId": "group_1773107565938",
+      "timestamp": "2026-03-10T01:52:45.938Z",
+      "mode": "quick",
+      "imageCount": 3,
+      "totalItems": 40,
+      "metrics": {
+        "accuracy": 0.05,
+        "precision": 0.2222222222222222,
+        "recall": 0.05,
+        "f1": 0.0816326530612245,
+        "avgF1": 0.08888888888888889,
+        "falsePositives": 7,
+        "falseNegatives": 38,
+        "averageConfidence": 0.4062683066747131
+      },
+      "timing": {
+        "totalMs": 274,
+        "avgPerImageMs": 91.33333333333333
+      },
+      "confusionPairs": [
+        {
+          "pair": "Ice Cube -> Backpack",
+          "count": 3
+        },
+        {
+          "pair": "Wrench -> Battery",
+          "count": 2
+        },
+        {
+          "pair": "Medkit -> Cursed Doll",
+          "count": 2
+        },
+        {
+          "pair": "Ice Crystal -> Gym Sauce",
+          "count": 1
+        },
+        {
+          "pair": "Sucky Magnet -> Clover",
+          "count": 1
+        },
+        {
+          "pair": "Feathers -> Battery",
+          "count": 1
+        },
+        {
+          "pair": "Medkit -> Medkit",
+          "count": 1
+        },
+        {
+          "pair": "Turbo Skates -> Oats",
+          "count": 1
+        },
+        {
+          "pair": "Spiky Shield -> Key",
+          "count": 1
+        },
+        {
+          "pair": "Medkit -> Oats",
+          "count": 1
+        }
+      ],
+      "perImage": [
+        {
+          "image": "pc-screenshots/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 2,
+            "falsePositives": 1,
+            "falseNegatives": 10,
+            "precision": 0.6666666666666666,
+            "recall": 0.16666666666666666,
+            "f1": 0.26666666666666666,
+            "accuracy": 0.16666666666666666,
+            "averageConfidence": 0.4517409346305668
+          },
+          "timing": {
+            "totalMs": 69,
+            "perItemMs": 5.75
+          }
+        },
+        {
+          "image": "pc-screenshots/level_33_english_forest_early.jpg",
+          "resolution": "1600x900",
+          "itemCount": 10,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 5,
+            "falseNegatives": 10,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.4552320303762397
+          },
+          "timing": {
+            "totalMs": 57,
+            "perItemMs": 5.7
+          }
+        },
+        {
+          "image": "pc-screenshots/level_52_spanish_ocean.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 1,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.3118319550173328
+          },
+          "timing": {
+            "totalMs": 101,
+            "perItemMs": 5.611111111111111
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.45,
+        "templateCount": 80,
+        "templateMode": "training_preferred",
+        "trainingTemplateItems": 24,
+        "minTrainingSamples": 3
+      }
+    },
+    {
+      "id": "run_1773107585416_primary_plus_training",
+      "groupId": "group_1773107585416",
+      "timestamp": "2026-03-10T01:53:05.416Z",
+      "mode": "quick",
+      "imageCount": 3,
+      "totalItems": 40,
+      "metrics": {
+        "accuracy": 0,
+        "precision": 0,
+        "recall": 0,
+        "f1": 0,
+        "avgF1": 0,
+        "falsePositives": 2,
+        "falseNegatives": 40,
+        "averageConfidence": 0.31850672423559917
+      },
+      "timing": {
+        "totalMs": 283,
+        "avgPerImageMs": 94.33333333333333
+      },
+      "confusionPairs": [
+        {
+          "pair": "Ice Cube -> Phantom Shroud",
+          "count": 2
+        },
+        {
+          "pair": "Wrench -> Battery",
+          "count": 1
+        },
+        {
+          "pair": "Wrench -> Gym Sauce",
+          "count": 1
+        },
+        {
+          "pair": "Ice Crystal -> Oats",
+          "count": 1
+        },
+        {
+          "pair": "Sucky Magnet -> Clover",
+          "count": 1
+        },
+        {
+          "pair": "Feathers -> Oats",
+          "count": 1
+        },
+        {
+          "pair": "Medkit -> Time Bracelet",
+          "count": 1
+        },
+        {
+          "pair": "Turbo Skates -> Oats",
+          "count": 1
+        },
+        {
+          "pair": "Spiky Shield -> Moldy Gloves",
+          "count": 1
+        },
+        {
+          "pair": "Medkit -> Oats",
+          "count": 1
+        }
+      ],
+      "perImage": [
+        {
+          "image": "pc-screenshots/level_21_english_desert_scorpion.jpg",
+          "resolution": "1920x1080",
+          "itemCount": 12,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 12,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.3060176101580596
+          },
+          "timing": {
+            "totalMs": 76,
+            "perItemMs": 6.333333333333333
+          }
+        },
+        {
+          "image": "pc-screenshots/level_33_english_forest_early.jpg",
+          "resolution": "1600x900",
+          "itemCount": 10,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 2,
+            "falseNegatives": 10,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.3899283867100328
+          },
+          "timing": {
+            "totalMs": 57,
+            "perItemMs": 5.7
+          }
+        },
+        {
+          "image": "pc-screenshots/level_52_spanish_ocean.jpg",
+          "resolution": "2560x1440",
+          "itemCount": 18,
+          "metrics": {
+            "truePositives": 0,
+            "falsePositives": 0,
+            "falseNegatives": 18,
+            "precision": 0,
+            "recall": 0,
+            "f1": 0,
+            "accuracy": 0,
+            "averageConfidence": 0.259574175838705
+          },
+          "timing": {
+            "totalMs": 104,
+            "perItemMs": 5.777777777777778
+          }
+        }
+      ],
+      "config": {
+        "threshold": 0.45,
+        "templateCount": 80,
+        "templateMode": "primary_plus_training",
+        "trainingTemplateItems": 24,
+        "minTrainingSamples": 3
+      }
     }
   ]
 }

@@ -559,6 +559,11 @@
                                 <!-- Image displayed here -->
                             </div>
 
+                            <!-- Preflight Report -->
+                            <div id="scan-preflight-report" class="scan-preflight-report" style="display: none">
+                                <!-- Preflight guidance displayed here -->
+                            </div>
+
                             <!-- Auto-Detect Buttons -->
                             <div id="scan-auto-detect-area" class="scan-auto-detect-area" style="display: none">
                                 <div class="scan-detect-buttons">
@@ -595,7 +600,7 @@
                                     <div class="debug-panel-content" id="debug-panel-content" style="display: none">
                                         <!-- Overlay Options -->
                                         <div class="debug-section">
-                                            <h5 class="debug-section-title">Overlay Options</h5>
+                                            <h4 class="debug-section-title">Overlay Options</h4>
                                             <div class="debug-options-grid">
                                                 <label class="debug-option">
                                                     <input type="checkbox" id="debug-show-regions" checked />
@@ -625,7 +630,7 @@
                                         </div>
                                         <!-- Stats Section -->
                                         <div class="debug-section">
-                                            <h5 class="debug-section-title">Detection Statistics</h5>
+                                            <h4 class="debug-section-title">Detection Statistics</h4>
                                             <div class="debug-stats" id="debug-stats">
                                                 <div class="debug-stat">
                                                     <span class="debug-stat-label">Total Detections</span>
@@ -647,7 +652,7 @@
                                         </div>
                                         <!-- Log Viewer -->
                                         <div class="debug-section">
-                                            <h5 class="debug-section-title">
+                                            <h4 class="debug-section-title">
                                                 Debug Logs
                                                 <select id="debug-log-filter" class="debug-log-filter">
                                                     <option value="all">All</option>
@@ -656,7 +661,7 @@
                                                     <option value="info">Info</option>
                                                     <option value="debug">Debug</option>
                                                 </select>
-                                            </h5>
+                                            </h4>
                                             <div class="debug-log-viewer" id="debug-log-viewer">
                                                 <p class="debug-log-empty">No logs yet. Run a detection to see logs.</p>
                                             </div>
@@ -699,6 +704,35 @@
                                     <strong>OCR</strong>: Text recognition only. <strong>Hybrid</strong>: Text + visual
                                     pattern recognition for best accuracy.
                                 </p>
+
+                                <details id="scan-advanced-controls" class="scan-advanced-controls">
+                                    <summary>Advanced CV</summary>
+                                    <div class="scan-advanced-panel">
+                                        <label class="scan-advanced-toggle" for="scan-use-enhanced-hybrid">
+                                            <input type="checkbox" id="scan-use-enhanced-hybrid" />
+                                            <span>Use enhanced strategy engine for hybrid detection</span>
+                                        </label>
+                                        <div id="scan-strategy-selector"></div>
+                                        <div class="scan-advanced-actions">
+                                            <button
+                                                type="button"
+                                                id="scan-compare-strategies-btn"
+                                                class="compare-strategies-btn"
+                                            >
+                                                Compare Strategies
+                                            </button>
+                                            <button
+                                                type="button"
+                                                id="scan-export-report-btn"
+                                                class="compare-strategies-btn"
+                                            >
+                                                Export CV Report
+                                            </button>
+                                        </div>
+                                        <div id="scan-detection-metrics" style="display: none"></div>
+                                        <div id="scan-strategy-comparison" style="display: none"></div>
+                                    </div>
+                                </details>
                             </div>
 
                             <!-- Detection Confidence Info -->
@@ -777,6 +811,9 @@
 
                                 <!-- Selection Summary -->
                                 <div class="scan-summary-container">
+                                    <div id="scan-trust-summary" class="scan-trust-summary" style="display: none">
+                                        <!-- Trust summary displayed here -->
+                                    </div>
                                     <div id="scan-selection-summary" class="scan-selection-summary">
                                         <!-- Summary displayed here -->
                                     </div>
@@ -789,6 +826,8 @@
                                     </button>
                                 </div>
                             </div>
+
+                            <div id="scan-correction-modal-root"></div>
                         </div>
 
                         <!-- Current Build Input -->
