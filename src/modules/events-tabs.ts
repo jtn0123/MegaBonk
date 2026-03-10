@@ -35,6 +35,10 @@ const TAB_SWITCH_DEBOUNCE_MS = 100;
 // Lock to prevent concurrent tab switches (race condition fix)
 let tabSwitchInProgress = false;
 
+// Preserve the user's latest intent instead of dropping rapid follow-up tab requests.
+let pendingTabSwitch: TabName | null = null;
+let pendingTabSwitchTimer: number | null = null;
+
 // Current tab state is managed via getState('currentTab')
 
 /**
@@ -42,8 +46,13 @@ let tabSwitchInProgress = false;
  * @internal
  */
 export function __resetTimersForTesting(): void {
+    if (pendingTabSwitchTimer !== null) {
+        window.clearTimeout(pendingTabSwitchTimer);
+    }
     lastTabSwitchTime = 0;
     tabSwitchInProgress = false;
+    pendingTabSwitch = null;
+    pendingTabSwitchTimer = null;
 }
 
 /**
@@ -67,22 +76,36 @@ function shouldProceedWithTabSwitch(tabName: TabName): boolean {
         return false;
     }
 
-    // Debounce rapid switches
-    const now = Date.now();
-    if (now - lastTabSwitchTime < TAB_SWITCH_DEBOUNCE_MS) {
-        return false;
-    }
-
-    // Prevent concurrent switches
-    if (tabSwitchInProgress) {
-        logger.info({
-            operation: 'tab.switch.skipped',
-            data: { reason: 'switch_in_progress', requestedTab: tabName },
-        });
-        return false;
-    }
-
     return true;
+}
+
+function queuePendingTabSwitch(tabName: TabName, reason: 'debounced' | 'switch_in_progress'): void {
+    pendingTabSwitch = tabName;
+    logger.info({
+        operation: 'tab.switch.queued',
+        data: { reason, requestedTab: tabName },
+    });
+}
+
+function scheduleQueuedTabSwitch(): void {
+    if (pendingTabSwitchTimer !== null) {
+        window.clearTimeout(pendingTabSwitchTimer);
+        pendingTabSwitchTimer = null;
+    }
+
+    const queuedTab = pendingTabSwitch;
+    pendingTabSwitch = null;
+
+    if (!queuedTab || queuedTab === getState('currentTab')) {
+        return;
+    }
+
+    const elapsed = Date.now() - lastTabSwitchTime;
+    const delay = Math.max(0, TAB_SWITCH_DEBOUNCE_MS - elapsed);
+    pendingTabSwitchTimer = window.setTimeout(() => {
+        pendingTabSwitchTimer = null;
+        void switchTab(queuedTab);
+    }, delay);
 }
 
 /**
@@ -200,8 +223,20 @@ export async function switchTab(tabName: TabName): Promise<void> {
         return;
     }
 
+    const now = Date.now();
+    if (tabSwitchInProgress) {
+        queuePendingTabSwitch(tabName, 'switch_in_progress');
+        return;
+    }
+
+    if (now - lastTabSwitchTime < TAB_SWITCH_DEBOUNCE_MS) {
+        queuePendingTabSwitch(tabName, 'debounced');
+        scheduleQueuedTabSwitch();
+        return;
+    }
+
     tabSwitchInProgress = true;
-    lastTabSwitchTime = Date.now();
+    lastTabSwitchTime = now;
 
     try {
         const previousTab = getState('currentTab');
@@ -217,6 +252,7 @@ export async function switchTab(tabName: TabName): Promise<void> {
         await loadAndRenderTab(tabName);
     } finally {
         tabSwitchInProgress = false;
+        scheduleQueuedTabSwitch();
     }
 }
 
