@@ -31,6 +31,7 @@ import {
     resetDetectionReviewState,
     type DetectionResults,
 } from '../../src/modules/scan-build-results.ts';
+import { logger } from '../../src/modules/logger.ts';
 import { ToastManager } from '../../src/modules/toast.ts';
 
 const mockItem = (id: string, name: string): Item => ({
@@ -201,5 +202,132 @@ describe('scan-build-results trust layer', () => {
             expect.stringContaining('risky detection')
         );
         expect(ToastManager.success).toHaveBeenCalledWith('Build state applied to advisor!');
+    });
+
+    it('should log trust counts and correction state when applying to advisor', () => {
+        const results: DetectionResults = {
+            character: createDisplayDetectionResult({
+                type: 'character',
+                entity: mockCharacter('clank', 'CL4NK'),
+                confidence: 0.95,
+                rawText: 'clank',
+            }, 'ocr'),
+            weapon: null,
+            items: [
+                createDisplayDetectionResult({
+                    type: 'item',
+                    entity: mockItem('wrench', 'Wrench'),
+                    confidence: 0.61,
+                    rawText: 'wrench',
+                }, 'cv', ['OCR-only fallback']),
+            ],
+            tomes: [
+                createDisplayDetectionResult({
+                    type: 'tome',
+                    entity: mockTome('strength', 'Strength'),
+                    confidence: 0.32,
+                    rawText: 'strength',
+                }, 'hybrid', ['hybrid disagreement']),
+            ],
+        };
+
+        renderDetectionReview(results);
+        markDetectionReviewed('item', 'wrench');
+
+        applyToAdvisor(
+            {
+                selectedCharacter: mockCharacter('clank', 'CL4NK'),
+                selectedWeapon: null,
+                selectedItems: new Map([
+                    ['wrench', { item: mockItem('wrench', 'Wrench'), count: 1 }],
+                ]),
+                selectedTomes: new Map([
+                    ['strength', mockTome('strength', 'Strength')],
+                ]),
+            },
+            null
+        );
+
+        expect(logger.info).toHaveBeenCalledWith(
+            expect.objectContaining({
+                operation: 'scan_build.applied_to_advisor',
+                data: expect.objectContaining({
+                    trust: {
+                        safeCount: 1,
+                        reviewCount: 1,
+                        riskyCount: 1,
+                        correctedCount: 1,
+                        appliedWithUnresolvedRisky: true,
+                    },
+                }),
+            })
+        );
+    });
+
+    it('should route review queue buttons to the correct selectors for every entity type', () => {
+        const characterTarget = document.querySelector('#scan-character-grid [data-id="clank"]') as HTMLButtonElement;
+        const weaponTarget = document.querySelector('#scan-weapon-grid [data-id="hammer"]') as HTMLButtonElement;
+        const itemTarget = document.querySelector('#scan-grid-items-container [data-id="wrench"]') as HTMLButtonElement;
+        const tomeTarget = document.querySelector('#scan-tome-grid [data-id="strength"]') as HTMLButtonElement;
+
+        const characterScroll = vi.spyOn(characterTarget, 'scrollIntoView');
+        const weaponScroll = vi.spyOn(weaponTarget, 'scrollIntoView');
+        const itemScroll = vi.spyOn(itemTarget, 'scrollIntoView');
+        const tomeScroll = vi.spyOn(tomeTarget, 'scrollIntoView');
+
+        const results: DetectionResults = {
+            character: createDisplayDetectionResult({
+                type: 'character',
+                entity: mockCharacter('clank', 'CL4NK'),
+                confidence: 0.6,
+                rawText: 'clank',
+            }, 'ocr'),
+            weapon: createDisplayDetectionResult({
+                type: 'weapon',
+                entity: mockWeapon('hammer', 'Hammer'),
+                confidence: 0.6,
+                rawText: 'hammer',
+            }, 'cv', ['CV-only fallback']),
+            items: [
+                createDisplayDetectionResult({
+                    type: 'item',
+                    entity: mockItem('wrench', 'Wrench'),
+                    confidence: 0.6,
+                    rawText: 'wrench',
+                }, 'ocr'),
+            ],
+            tomes: [
+                createDisplayDetectionResult({
+                    type: 'tome',
+                    entity: mockTome('strength', 'Strength'),
+                    confidence: 0.4,
+                    rawText: 'strength',
+                }, 'hybrid', ['hybrid disagreement']),
+            ],
+        };
+
+        renderDetectionReview(results);
+
+        const clickReviewButton = (reviewId: string) => {
+            const button = document.querySelector(`[data-review-id="${reviewId}"]`) as HTMLButtonElement;
+            expect(button).not.toBeNull();
+            button.click();
+        };
+
+        clickReviewButton('clank');
+        expect(characterScroll).toHaveBeenCalled();
+        expect(document.activeElement).toBe(characterTarget);
+
+        clickReviewButton('hammer');
+        expect(weaponScroll).toHaveBeenCalled();
+        expect(document.activeElement).toBe(weaponTarget);
+
+        clickReviewButton('wrench');
+        expect(itemScroll).toHaveBeenCalled();
+        expect(document.activeElement).toBe(itemTarget);
+
+        clickReviewButton('strength');
+        expect(tomeScroll).toHaveBeenCalled();
+        expect(document.activeElement).toBe(tomeTarget);
     });
 });
