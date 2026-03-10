@@ -426,6 +426,19 @@ describe('Advisor Module', () => {
             );
         });
 
+        it('should include the current filled count in the low-choice error', () => {
+            const choice1Type = document.getElementById('choice-1-type') as HTMLSelectElement;
+            choice1Type.value = 'item';
+            choice1Type.dispatchEvent(new Event('change'));
+
+            const choice1Entity = document.getElementById('choice-1-entity') as HTMLSelectElement;
+            choice1Entity.value = 'item-1';
+
+            document.getElementById('get-recommendation')?.click();
+
+            expect(ToastManager.error).toHaveBeenCalledWith('Please fill at least 2 choices (1/2 filled)');
+        });
+
         it('should call recommendBestChoice with choices', () => {
             // Setup choice 1
             const choice1Type = document.getElementById('choice-1-type') as HTMLSelectElement;

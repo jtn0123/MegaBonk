@@ -794,6 +794,21 @@ describe('Build Stats Module', () => {
             const baseDps = calculateDPS({ ...DEFAULT_BUILD_STATS, evasion: 0, overcrit: false });
             expect(dps).toBeCloseTo(baseDps * 3, 0);
         });
+
+        it('should clamp crit damage below 100 to avoid reducing DPS', () => {
+            const stats: CalculatedBuildStats = {
+                ...DEFAULT_BUILD_STATS,
+                damage: 100,
+                crit_chance: 50,
+                crit_damage: 25,
+                attack_speed: 0,
+                projectiles: 1,
+                evasion: 0,
+                overcrit: false,
+            };
+
+            expect(calculateDPS(stats)).toBe(100);
+        });
     });
 
     // ========================================

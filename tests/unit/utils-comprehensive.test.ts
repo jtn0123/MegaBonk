@@ -306,6 +306,17 @@ describe('utils - Sorting', () => {
             expect(sorted[2].rarity).toBe('common');
         });
 
+        it('should not mutate the original array when sorting', () => {
+            const data = [...testData];
+            const originalOrder = data.map(item => item.name);
+
+            const sorted = sortData(data, 'name');
+
+            expect(data.map(item => item.name)).toEqual(originalOrder);
+            expect(sorted).not.toBe(data);
+            expect(sorted.map(item => item.name)).toEqual(['Alpha', 'Middle', 'Zebra']);
+        });
+
         it('should handle items without name property', () => {
             const data = [{ id: '1' }, { id: '2', name: 'Test' }] as any[];
             const sorted = sortData(data, 'name');
