@@ -1,7 +1,7 @@
 {
     "name": "MegaBonk Complete Guide",
     "short_name": "MegaBonk Guide",
-    "description": "Complete guide for MegaBonk with 77 items, 29 weapons, 23 tomes, build planner, and calculator",
+    "description": "Complete MegaBonk guide with 80 items, 29 weapons, 23 tomes, 20 characters, build planner, and screenshot scanning",
     "start_url": "./index.html",
     "display": "standalone",
     "background_color": "#1a1a2e",
@@ -27,7 +27,7 @@
         {
             "name": "Items",
             "short_name": "Items",
-            "description": "View all 77 items",
+            "description": "View all 80 items",
             "url": "./index.html?tab=items",
             "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }]
         },

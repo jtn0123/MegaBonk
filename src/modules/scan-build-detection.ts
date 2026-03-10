@@ -12,19 +12,10 @@ import { setLastOverlayUrl, updateStats, updateLogViewer, isDebugEnabled } from 
 import { createProgressIndicator } from './dom-utils.ts';
 import { logError, logWarning } from './error-utils.ts';
 import type { Mutex } from './async-utils.ts';
+import { createDisplayDetectionResult, type DetectionResults } from './scan-build-results.ts';
 
 // Re-export DetectionResult for consumers
 export type { DetectionResult };
-
-/**
- * Result structure from detection operations
- */
-export interface DetectionResults {
-    items: DetectionResult[];
-    tomes: DetectionResult[];
-    character: DetectionResult | null;
-    weapon: DetectionResult | null;
-}
 
 /**
  * Combine OCR and CV detection results into a unified hybrid result set.
@@ -59,11 +50,11 @@ export function combineHybridResults(
 
     // Combine and aggregate items
     const combinedItems = combineDetections(
-        [...ocrResults.items, ...cvAsOCR.filter(r => r.type === 'item')],
+        [...ocrResults.items.map(result => ({ ...result, method: 'ocr' })), ...cvAsOCR.filter(r => r.type === 'item')],
         cvResults.filter(r => r.type === 'item')
     );
     const combinedTomes = combineDetections(
-        [...ocrResults.tomes, ...cvAsOCR.filter(r => r.type === 'tome')],
+        [...ocrResults.tomes.map(result => ({ ...result, method: 'ocr' })), ...cvAsOCR.filter(r => r.type === 'tome')],
         cvResults.filter(r => r.type === 'tome')
     );
 
@@ -71,47 +62,83 @@ export function combineHybridResults(
     const aggregatedTomes = aggregateDuplicates(combinedTomes);
 
     // Determine character (OCR takes priority, fallback to CV)
-    let character: DetectionResult | null = ocrResults.character;
+    let character = ocrResults.character ? createDisplayDetectionResult(ocrResults.character, 'ocr') : null;
     if (!character) {
         const charResult = cvResults.find(r => r.type === 'character');
         if (charResult) {
-            character = {
-                type: 'character' as const,
-                entity: charResult.entity,
-                confidence: charResult.confidence,
-                rawText: 'hybrid_cv',
-            };
+            character = createDisplayDetectionResult(
+                {
+                    type: 'character' as const,
+                    entity: charResult.entity,
+                    confidence: charResult.confidence,
+                    rawText: 'hybrid_cv',
+                },
+                'cv',
+                ['CV-only fallback']
+            );
         }
     }
 
     // Determine weapon (OCR takes priority, fallback to CV)
-    let weapon: DetectionResult | null = ocrResults.weapon;
+    let weapon = ocrResults.weapon ? createDisplayDetectionResult(ocrResults.weapon, 'ocr') : null;
     if (!weapon) {
         const weaponResult = cvResults.find(r => r.type === 'weapon');
         if (weaponResult) {
-            weapon = {
-                type: 'weapon' as const,
-                entity: weaponResult.entity,
-                confidence: weaponResult.confidence,
-                rawText: 'hybrid_cv',
-            };
+            weapon = createDisplayDetectionResult(
+                {
+                    type: 'weapon' as const,
+                    entity: weaponResult.entity,
+                    confidence: weaponResult.confidence,
+                    rawText: 'hybrid_cv',
+                },
+                'cv',
+                ['CV-only fallback']
+            );
         }
     }
 
     return {
         items: aggregatedItems.map(r => ({
-            type: r.type as 'item',
-            entity: r.entity,
-            confidence: r.confidence,
-            rawText: `hybrid_${r.method}`,
-            count: r.count,
+            ...createDisplayDetectionResult(
+                {
+                    type: r.type as 'item',
+                    entity: r.entity,
+                    confidence: r.confidence,
+                    rawText: `hybrid_${r.method}`,
+                    count: r.count,
+                },
+                r.method === 'hybrid'
+                    ? 'hybrid'
+                    : r.method === 'template_match' || r.method === 'icon_similarity'
+                      ? 'cv'
+                      : 'ocr',
+                [
+                    ...(r.method === 'hybrid' ? ['hybrid disagreement'] : []),
+                    ...(r.count > 1 && (r.method === 'hybrid' || r.confidence < 0.8) ? ['duplicate aggregation'] : []),
+                    ...(r.method === 'template_match' || r.method === 'icon_similarity' ? ['CV-only fallback'] : []),
+                ]
+            ),
         })),
         tomes: aggregatedTomes.map(r => ({
-            type: r.type as 'tome',
-            entity: r.entity,
-            confidence: r.confidence,
-            rawText: `hybrid_${r.method}`,
-            count: r.count,
+            ...createDisplayDetectionResult(
+                {
+                    type: r.type as 'tome',
+                    entity: r.entity,
+                    confidence: r.confidence,
+                    rawText: `hybrid_${r.method}`,
+                    count: r.count,
+                },
+                r.method === 'hybrid'
+                    ? 'hybrid'
+                    : r.method === 'template_match' || r.method === 'icon_similarity'
+                      ? 'cv'
+                      : 'ocr',
+                [
+                    ...(r.method === 'hybrid' ? ['hybrid disagreement'] : []),
+                    ...(r.count > 1 && (r.method === 'hybrid' || r.confidence < 0.8) ? ['duplicate aggregation'] : []),
+                    ...(r.method === 'template_match' || r.method === 'icon_similarity' ? ['CV-only fallback'] : []),
+                ]
+            ),
         })),
         character,
         weapon,
@@ -148,7 +175,8 @@ export async function displayDebugOverlay(
             img.loading = 'lazy';
             img.style.cssText = 'max-width: 100%; border-radius: 8px;';
             const caption = document.createElement('p');
-            caption.style.cssText = 'text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;';
+            caption.style.cssText =
+                'text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.9rem;';
             caption.textContent = 'Debug Mode: Green=High confidence, Orange=Medium, Red=Low';
             imagePreview.appendChild(img);
             imagePreview.appendChild(caption);
@@ -220,12 +248,18 @@ export async function runAutoDetect(
                     // Convert CV results to detection format
                     const cvItems = cvResults
                         .filter(r => r.type === 'item')
-                        .map(r => ({
-                            type: 'item' as const,
-                            entity: r.entity,
-                            confidence: r.confidence,
-                            rawText: `cv_detected_${r.entity.name}`,
-                        }));
+                        .map(r =>
+                            createDisplayDetectionResult(
+                                {
+                                    type: 'item' as const,
+                                    entity: r.entity,
+                                    confidence: r.confidence,
+                                    rawText: `cv_detected_${r.entity.name}`,
+                                },
+                                'cv',
+                                ['OCR-only fallback']
+                            )
+                        );
 
                     onResults({
                         items: cvItems,
@@ -248,7 +282,12 @@ export async function runAutoDetect(
         }
 
         // Apply detected items
-        onResults(results);
+        onResults({
+            items: results.items.map(result => createDisplayDetectionResult(result, 'ocr')),
+            tomes: results.tomes.map(result => createDisplayDetectionResult(result, 'ocr')),
+            character: results.character ? createDisplayDetectionResult(results.character, 'ocr') : null,
+            weapon: results.weapon ? createDisplayDetectionResult(results.weapon, 'ocr') : null,
+        });
 
         if (results.items.length === 0 && results.tomes.length === 0) {
             ToastManager.info('No items detected. Try Hybrid mode or a clearer screenshot.');

@@ -28,9 +28,9 @@ const loadJsonFile = (filename: string) => {
 describe('QA Area 1: Items Tab - Data Display', () => {
     const itemsData = loadJsonFile('items.json');
 
-    it('should have all 77 items in the data file', () => {
+    it('should have all 80 items in the data file', () => {
         expect(itemsData.items).toBeDefined();
-        expect(itemsData.items.length).toBeGreaterThanOrEqual(77);
+        expect(itemsData.items.length).toBeGreaterThanOrEqual(80);
     });
 
     it('should have required fields for each item', () => {

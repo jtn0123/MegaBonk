@@ -5,7 +5,7 @@
 [![codecov](https://codecov.io/gh/jtn0123/MegaBonk/branch/main/graph/badge.svg)](https://codecov.io/gh/jtn0123/MegaBonk)
 [![Lighthouse](https://github.com/jtn0123/MegaBonk/actions/workflows/lighthouse.yml/badge.svg)](https://github.com/jtn0123/MegaBonk/actions/workflows/lighthouse.yml)
 
-**The ultimate reference system for MegaBonk** - Items, Weapons, Tomes, Characters, Shrines, Build Planner, and Breakpoint Calculator all in one beautiful, interactive web app.
+**The ultimate reference system for MegaBonk** - 80 items, 29 weapons, 23 tomes, 20 characters, 8 shrines, build planning, screenshot scanning, and breakpoint tools in one interactive web app.
 
 ## ✨ Core Features
 
@@ -67,20 +67,22 @@
 
 **Easiest way** (works on any device):
 ```bash
-python3 serve.py
+npm install
+npm run dev
 ```
 
 Then:
-- **Desktop**: Open http://localhost:8000
-- **Mobile**: Scan the QR code that appears OR open the mobile URL shown
+- **Desktop**: Open the Vite URL shown in the terminal
+- **Mobile**: Open the same LAN URL on your phone to test the responsive/PWA flow
 
-**Alternative** (desktop only):
-1. Open `src/index.html` in your web browser
-2. Note: Mobile won't work with file:// protocol
+**Simple static preview**:
+```bash
+python3 serve.py
+```
 
 ### 📲 Install as Mobile App
 
-1. Launch with `python3 serve.py`
+1. Launch with `npm run dev`
 2. Open on your phone
 3. Tap "Add to Home Screen"
 4. Now it works offline like a real app!
@@ -103,7 +105,7 @@ When the game meta changes:
 1. Open `data/items.json`
 2. Find the item you want to update
 3. Modify the values (see `docs/UPDATE_GUIDE.md` for details)
-4. Refresh your browser - changes appear instantly!
+4. Run `npm run dev` and refresh your browser
 
 **Takes 5-10 minutes per update.**
 
@@ -119,19 +121,20 @@ MegaBonk/
 │   ├── shrines.json        # 8 shrines with strategies
 │   └── stats.json          # Game mechanics formulas + breakpoints
 ├── src/
-│   ├── index.html          # Main interface with tabs
-│   ├── styles.css          # Complete styling system
-│   ├── script.js           # Full app logic (1000+ lines)
-│   ├── manifest.json       # PWA manifest for mobile install
-│   ├── sw.js               # Service worker for offline support
-│   ├── libs/
-│   │   └── chart.min.js    # Chart.js (local, no internet needed)
-│   └── icons/              # App icons for mobile
+│   ├── index.html          # Main app shell and metadata
+│   ├── script.ts           # App entrypoint
+│   ├── manifest.json       # Source manifest metadata
+│   ├── modules/            # Feature modules (search, planner, scan, CV, etc.)
+│   ├── styles/             # Modular CSS
+│   ├── images/             # App image assets
+│   └── icons/              # App icons for PWA/mobile install
+├── scripts/                # Build, test, release, and data utilities
 ├── docs/
 │   ├── UPDATE_GUIDE.md     # Maintenance instructions
 │   ├── DATA_FORMAT.md      # JSON schema reference
 │   └── SOURCES.md          # Data sources
-├── serve.py                # One-click launch server
+├── vite.build.config.js    # Main Vite build + PWA config
+├── serve.py                # Lightweight local static server
 └── README.md               # This file
 ```
 
@@ -275,7 +278,8 @@ The merge script combines Istanbul coverage from unit tests with browser coverag
 ### Technologies
 - **HTML5** - Semantic, accessible markup
 - **CSS3** - Modern styling with Grid/Flexbox
-- **Vanilla JavaScript** - No framework dependencies
+- **TypeScript** - Modular app logic with static checks
+- **Vite** - Dev server, production build, and PWA packaging
 - **Chart.js** - Beautiful interactive graphs
 - **JSON** - Human-readable data storage
 
@@ -285,11 +289,11 @@ The merge script combines Istanbul coverage from unit tests with browser coverag
 - ✅ Safari (latest)
 - ✅ Mobile browsers
 
-### No Installation Required
-- No Node.js
-- No build process
-- No package managers
-- Just open and use!
+### Local Development
+- Node.js 20+
+- `npm install`
+- `npm run dev` for local development
+- `npm run build` for a production bundle in `dist/`
 
 ## 📝 Contributing
 
@@ -375,6 +379,6 @@ Made with ❤️ for the MegaBonk community
 - 📖 [Update Guide](docs/UPDATE_GUIDE.md) - How to maintain this guide
 - 📊 [Data Format](docs/DATA_FORMAT.md) - JSON structure reference
 - 🔗 [Sources](docs/SOURCES.md) - Where data comes from
-- 🎯 [Open the Guide](src/index.html) - View the guide
+- 🎯 Run `npm run dev` - Launch the guide locally
 
 **Questions?** Check the docs or open an issue!

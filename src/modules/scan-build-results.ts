@@ -12,14 +12,146 @@ import { escapeHtml } from './utils.ts';
 import { highlightDetectedEntity, updateItemCardCount } from './scan-build-ui.ts';
 import type { SelectionState } from './scan-build-ui.ts';
 
+export type DetectionSourceMethod = 'ocr' | 'cv' | 'hybrid';
+export type DetectionReviewLevel = 'safe' | 'review' | 'risky';
+
+export interface DisplayDetectionResult extends DetectionResult {
+    count?: number;
+    sourceMethod: DetectionSourceMethod;
+    reviewLevel: DetectionReviewLevel;
+    reviewReasons: string[];
+}
+
 /**
  * Detection results structure
  */
 export interface DetectionResults {
-    items: DetectionResult[];
-    tomes: DetectionResult[];
-    character: DetectionResult | null;
-    weapon: DetectionResult | null;
+    items: DisplayDetectionResult[];
+    tomes: DisplayDetectionResult[];
+    character: DisplayDetectionResult | null;
+    weapon: DisplayDetectionResult | null;
+}
+
+interface DetectionTrustState {
+    results: DetectionResults | null;
+    correctedKeys: Set<string>;
+    correctedCount: number;
+}
+
+const detectionTrustState: DetectionTrustState = {
+    results: null,
+    correctedKeys: new Set(),
+    correctedCount: 0,
+};
+
+function getDetectionKey(type: DisplayDetectionResult['type'], entityId: string): string {
+    return `${type}:${entityId}`;
+}
+
+function getReviewLevel(confidence: number): DetectionReviewLevel {
+    if (confidence >= 0.8) return 'safe';
+    if (confidence >= 0.5) return 'review';
+    return 'risky';
+}
+
+function getReviewLabel(level: DetectionReviewLevel): string {
+    switch (level) {
+        case 'safe':
+            return 'Looks good';
+        case 'review':
+            return 'Review recommended';
+        case 'risky':
+            return 'Low confidence results';
+    }
+}
+
+function getReviewClass(level: DetectionReviewLevel): string {
+    switch (level) {
+        case 'safe':
+            return 'review-safe';
+        case 'review':
+            return 'review-review';
+        case 'risky':
+            return 'review-risky';
+    }
+}
+
+function getSourceLabel(sourceMethod: DetectionSourceMethod): string {
+    switch (sourceMethod) {
+        case 'ocr':
+            return 'OCR';
+        case 'cv':
+            return 'CV';
+        case 'hybrid':
+            return 'Hybrid';
+    }
+}
+
+function getTargetSelector(type: DisplayDetectionResult['type'], entityId: string): string {
+    switch (type) {
+        case 'character':
+            return `#scan-character-grid [data-id="${entityId}"]`;
+        case 'weapon':
+            return `#scan-weapon-grid [data-id="${entityId}"]`;
+        case 'item':
+            return `#scan-grid-items-container [data-id="${entityId}"]`;
+        case 'tome':
+            return `#scan-tome-grid [data-id="${entityId}"]`;
+    }
+}
+
+function getResultsList(results: DetectionResults): DisplayDetectionResult[] {
+    return [
+        ...(results.character ? [results.character] : []),
+        ...(results.weapon ? [results.weapon] : []),
+        ...results.items,
+        ...results.tomes,
+    ];
+}
+
+function getUnresolvedDetectionsByLevel(level: DetectionReviewLevel): DisplayDetectionResult[] {
+    if (!detectionTrustState.results) return [];
+
+    return getResultsList(detectionTrustState.results).filter(result => {
+        const key = getDetectionKey(result.type, result.entity.id);
+        return result.reviewLevel === level && !detectionTrustState.correctedKeys.has(key);
+    });
+}
+
+function getTrustSummary(): { safeCount: number; reviewCount: number; riskyCount: number } {
+    if (!detectionTrustState.results) {
+        return { safeCount: 0, reviewCount: 0, riskyCount: 0 };
+    }
+
+    const allResults = getResultsList(detectionTrustState.results);
+    return {
+        safeCount: allResults.filter(result => result.reviewLevel === 'safe').length,
+        reviewCount: allResults.filter(result => result.reviewLevel === 'review').length,
+        riskyCount: allResults.filter(result => result.reviewLevel === 'risky').length,
+    };
+}
+
+export function resetDetectionReviewState(): void {
+    detectionTrustState.results = null;
+    detectionTrustState.correctedKeys.clear();
+    detectionTrustState.correctedCount = 0;
+}
+
+export function markDetectionReviewed(type: DisplayDetectionResult['type'], entityId: string): void {
+    if (!detectionTrustState.results) return;
+
+    const key = getDetectionKey(type, entityId);
+    const result = getResultsList(detectionTrustState.results).find(
+        entry => getDetectionKey(entry.type, entry.entity.id) === key
+    );
+
+    if (!result || result.reviewLevel === 'safe' || detectionTrustState.correctedKeys.has(key)) {
+        return;
+    }
+
+    detectionTrustState.correctedKeys.add(key);
+    detectionTrustState.correctedCount += 1;
+    renderDetectionReview(detectionTrustState.results);
 }
 
 /**
@@ -32,97 +164,158 @@ export function getConfidenceClass(confidence: number): string {
 }
 
 /**
- * Display detection confidence information
+ * Build a UI-facing detection result with review metadata.
  */
-export function displayDetectionConfidence(results: DetectionResults): void {
+export function createDisplayDetectionResult(
+    result: DetectionResult & { count?: number },
+    sourceMethod: DetectionSourceMethod,
+    reviewReasons: string[] = []
+): DisplayDetectionResult {
+    const reviewLevel = getReviewLevel(result.confidence);
+    const dedupedReasons = Array.from(
+        new Set([...reviewReasons, ...(reviewLevel === 'review' || reviewLevel === 'risky' ? ['low confidence'] : [])])
+    );
+
+    return {
+        ...result,
+        sourceMethod,
+        reviewLevel,
+        reviewReasons: dedupedReasons,
+    };
+}
+
+function renderDetectionSection(title: string, results: DisplayDetectionResult[], correctedKeys: Set<string>): string {
+    if (results.length === 0) return '';
+
+    const rows = results
+        .map(result => {
+            const key = getDetectionKey(result.type, result.entity.id);
+            const isCorrected = correctedKeys.has(key);
+            const reasonHtml = result.reviewReasons
+                .map(reason => `<span class="scan-reason-chip">${escapeHtml(reason)}</span>`)
+                .join('');
+            const countHtml = result.count && result.count > 1 ? ` x${result.count}` : '';
+            const reviewedHtml = isCorrected ? '<span class="scan-reviewed-badge">Reviewed</span>' : '';
+
+            return `<div class="scan-detection-item ${getReviewClass(result.reviewLevel)} ${isCorrected ? 'is-corrected' : ''}">
+                <div class="scan-detection-main">
+                    <span class="scan-detection-name">${escapeHtml(result.entity.name)}${countHtml}</span>
+                    <span class="scan-source-badge source-${escapeHtml(result.sourceMethod)}">${getSourceLabel(result.sourceMethod)}</span>
+                    ${reviewedHtml}
+                </div>
+                <div class="scan-detection-meta">
+                    <span class="confidence ${getConfidenceClass(result.confidence)}">${Math.round(result.confidence * 100)}%</span>
+                    ${reasonHtml ? `<div class="scan-reason-list">${reasonHtml}</div>` : ''}
+                </div>
+            </div>`;
+        })
+        .join('');
+
+    return `<div class="scan-detection-section">
+        <strong>${title}</strong>
+        ${rows}
+    </div>`;
+}
+
+function attachReviewQueueHandlers(container: HTMLElement): void {
+    container.querySelectorAll<HTMLElement>('[data-review-target]').forEach(button => {
+        button.addEventListener('click', () => {
+            const type = button.dataset.reviewType as DisplayDetectionResult['type'] | undefined;
+            const entityId = button.dataset.reviewId;
+            if (!type || !entityId) return;
+
+            const target = document.querySelector<HTMLElement>(getTargetSelector(type, entityId));
+            target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (target && !target.hasAttribute('tabindex')) {
+                target.setAttribute('tabindex', '-1');
+            }
+            target?.focus?.();
+        });
+    });
+}
+
+/**
+ * Display detection review information.
+ */
+export function renderDetectionReview(results: DetectionResults): void {
     const container = document.getElementById('scan-detection-info');
     if (!container) return;
 
-    // Count detections by confidence level
-    const allDetections: DetectionResult[] = [
-        ...(results.character ? [results.character] : []),
-        ...(results.weapon ? [results.weapon] : []),
-        ...results.items,
-        ...results.tomes,
-    ];
+    detectionTrustState.results = results;
 
-    const highCount = allDetections.filter(d => d.confidence >= 0.8).length;
-    const mediumCount = allDetections.filter(d => d.confidence >= 0.5 && d.confidence < 0.8).length;
-    const lowCount = allDetections.filter(d => d.confidence < 0.5).length;
+    const allDetections = getResultsList(results);
+    const correctedKeys = detectionTrustState.correctedKeys;
+    const highCount = allDetections.filter(d => d.reviewLevel === 'safe').length;
+    const mediumCount = allDetections.filter(d => d.reviewLevel === 'review').length;
+    const lowCount = allDetections.filter(d => d.reviewLevel === 'risky').length;
     const avgConfidence =
         allDetections.length > 0 ? allDetections.reduce((sum, d) => sum + d.confidence, 0) / allDetections.length : 0;
+    const reviewQueue = allDetections.filter(
+        d => d.reviewLevel !== 'safe' && !correctedKeys.has(getDetectionKey(d.type, d.entity.id))
+    );
+    const overallStatus: DetectionReviewLevel = lowCount > 0 ? 'risky' : mediumCount > 0 ? 'review' : 'safe';
 
-    let html = '<div class="scan-detection-results"><h4>🔍 Detection Confidence:</h4>';
+    let html = '<div class="scan-detection-results"><h4>🔍 Scan Review</h4>';
 
-    // Stats summary
     if (allDetections.length > 0) {
         html += `<div class="scan-detection-stats">
+            <div class="scan-detection-stat">
+                <span class="stat-count">${allDetections.length}</span> total
+            </div>
             <div class="scan-detection-stat stat-high">
-                <span class="stat-count">${highCount}</span> high
+                <span class="stat-count">${highCount}</span> safe
             </div>
             <div class="scan-detection-stat stat-medium">
-                <span class="stat-count">${mediumCount}</span> medium
+                <span class="stat-count">${mediumCount}</span> review
             </div>
             <div class="scan-detection-stat stat-low">
-                <span class="stat-count">${lowCount}</span> low
+                <span class="stat-count">${lowCount}</span> risky
             </div>
             <div class="scan-detection-stat">
                 Avg: <span class="stat-count">${Math.round(avgConfidence * 100)}%</span>
             </div>
         </div>`;
-    }
 
-    // Low confidence warning
-    if (lowCount >= 3 || (lowCount > 0 && lowCount >= allDetections.length * 0.5)) {
-        html += `<div class="scan-low-confidence-warning">
-            <strong>⚠️ Many low-confidence detections</strong>
-            Some items may be incorrectly identified. Review the selections below and adjust as needed.
+        html += `<div class="scan-review-banner ${getReviewClass(overallStatus)} ${overallStatus === 'risky' ? 'scan-low-confidence-warning' : ''}">
+            <strong>${getReviewLabel(overallStatus)}</strong>
+            <span>${reviewQueue.length > 0 ? `${reviewQueue.length} result${reviewQueue.length === 1 ? '' : 's'} need attention before you apply.` : 'No flagged results. You can apply the detected build as-is.'}</span>
         </div>`;
     }
 
-    if (results.character) {
-        const confClass = getConfidenceClass(results.character.confidence);
-        html += `<div class="scan-detection-item">
-            <span>Character: ${escapeHtml(results.character.entity.name)}</span>
-            <span class="confidence ${confClass}">${Math.round(results.character.confidence * 100)}%</span>
-        </div>`;
-    }
-
-    if (results.weapon) {
-        const confClass = getConfidenceClass(results.weapon.confidence);
-        html += `<div class="scan-detection-item">
-            <span>Weapon: ${escapeHtml(results.weapon.entity.name)}</span>
-            <span class="confidence ${confClass}">${Math.round(results.weapon.confidence * 100)}%</span>
-        </div>`;
-    }
-
-    if (results.items.length > 0) {
-        html += '<div class="scan-detection-section"><strong>Items:</strong>';
-        results.items.forEach(item => {
-            const confClass = getConfidenceClass(item.confidence);
-            html += `<div class="scan-detection-item">
-                <span>${escapeHtml(item.entity.name)}</span>
-                <span class="confidence ${confClass}">${Math.round(item.confidence * 100)}%</span>
-            </div>`;
+    if (reviewQueue.length > 0) {
+        html += '<div class="scan-detection-section"><strong>Review Queue</strong>';
+        reviewQueue.forEach(result => {
+            const reasons = result.reviewReasons
+                .map(reason => `<span class="scan-reason-chip">${escapeHtml(reason)}</span>`)
+                .join('');
+            html += `<button type="button"
+                class="scan-review-queue-item ${getReviewClass(result.reviewLevel)}"
+                data-review-target="true"
+                data-review-type="${escapeHtml(result.type)}"
+                data-review-id="${escapeHtml(result.entity.id)}">
+                <div class="scan-review-queue-main">
+                    <span class="scan-review-name">${escapeHtml(result.entity.name)}</span>
+                    <span class="scan-review-type">${escapeHtml(result.type)}</span>
+                    <span class="scan-source-badge source-${escapeHtml(result.sourceMethod)}">${getSourceLabel(result.sourceMethod)}</span>
+                </div>
+                <div class="scan-review-queue-meta">
+                    <span class="confidence ${getConfidenceClass(result.confidence)}">${Math.round(result.confidence * 100)}%</span>
+                    <div class="scan-reason-list">${reasons}</div>
+                </div>
+            </button>`;
         });
         html += '</div>';
     }
 
-    if (results.tomes.length > 0) {
-        html += '<div class="scan-detection-section"><strong>Tomes:</strong>';
-        results.tomes.forEach(tome => {
-            const confClass = getConfidenceClass(tome.confidence);
-            html += `<div class="scan-detection-item">
-                <span>${escapeHtml(tome.entity.name)}</span>
-                <span class="confidence ${confClass}">${Math.round(tome.confidence * 100)}%</span>
-            </div>`;
-        });
-        html += '</div>';
-    }
+    html += renderDetectionSection('Character', results.character ? [results.character] : [], correctedKeys);
+    html += renderDetectionSection('Weapon', results.weapon ? [results.weapon] : [], correctedKeys);
+    html += renderDetectionSection('Items', results.items, correctedKeys);
+    html += renderDetectionSection('Tomes', results.tomes, correctedKeys);
 
     html += '<p class="scan-detection-hint">💡 Review and adjust selections below if needed</p></div>';
     container.innerHTML = html;
     container.style.display = 'block';
+    attachReviewQueueHandlers(container);
 }
 
 /**
@@ -135,6 +328,8 @@ export function applyDetectionResults(
     showGrid: () => void,
     updateSummary: () => void
 ): void {
+    resetDetectionReviewState();
+
     // Clear existing selections
     state.selectedItems.clear();
     state.selectedTomes.clear();
@@ -191,8 +386,8 @@ export function applyDetectionResults(
     // Update summary
     updateSummary();
 
-    // Show detection confidence info
-    displayDetectionConfidence(results);
+    // Show detection review info
+    renderDetectionReview(results);
 }
 
 /**
@@ -224,6 +419,13 @@ export function applyToAdvisor(state: SelectionState, onBuildStateChange: ((stat
         tomes: Array.from(state.selectedTomes.values()),
     };
 
+    const unresolvedRisky = getUnresolvedDetectionsByLevel('risky');
+    if (unresolvedRisky.length > 0) {
+        ToastManager.warning(
+            `Applying build with ${unresolvedRisky.length} risky detection${unresolvedRisky.length === 1 ? '' : 's'} still unresolved`
+        );
+    }
+
     // Use callback if provided
     if (onBuildStateChange) {
         onBuildStateChange(buildState);
@@ -244,6 +446,11 @@ export function applyToAdvisor(state: SelectionState, onBuildStateChange: ((stat
             weapon: state.selectedWeapon?.name,
             itemsCount: items.length,
             tomesCount: buildState.tomes.length,
+            trust: {
+                ...getTrustSummary(),
+                correctedCount: detectionTrustState.correctedCount,
+                appliedWithUnresolvedRisky: unresolvedRisky.length > 0,
+            },
         },
     });
 

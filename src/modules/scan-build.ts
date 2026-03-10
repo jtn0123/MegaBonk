@@ -29,6 +29,8 @@ import {
     applyDetectionResults,
     applyToAdvisor,
     getScanState,
+    markDetectionReviewed,
+    resetDetectionReviewState,
     type ScanState,
     type BuildState,
 } from './scan-build-results.ts';
@@ -306,6 +308,7 @@ function clearUploadedImage(): void {
     selectedTomes.clear();
     selectedCharacter = null;
     selectedWeapon = null;
+    resetDetectionReviewState();
 
     clearImageDisplay();
     ToastManager.info('Image cleared');
@@ -325,6 +328,8 @@ function handleItemCountChange(item: Item, delta: number): number {
         selectedItems.set(item.id, { item, count: newCount });
     }
 
+    markDetectionReviewed('item', item.id);
+
     return newCount;
 }
 
@@ -333,6 +338,7 @@ function handleItemCountChange(item: Item, delta: number): number {
  */
 function handleCharacterSelect(character: Character): void {
     selectedCharacter = character;
+    markDetectionReviewed('character', character.id);
 }
 
 /**
@@ -340,6 +346,7 @@ function handleCharacterSelect(character: Character): void {
  */
 function handleWeaponSelect(weapon: Weapon): void {
     selectedWeapon = weapon;
+    markDetectionReviewed('weapon', weapon.id);
 }
 
 /**
@@ -351,6 +358,8 @@ function handleTomeToggle(tome: Tome, selected: boolean): void {
     } else {
         selectedTomes.delete(tome.id);
     }
+
+    markDetectionReviewed('tome', tome.id);
 }
 
 /**
@@ -473,6 +482,7 @@ export function __resetForTesting(): void {
     onBuildStateChange = null;
     templatesLoaded = false;
     templatesLoadError = null;
+    resetDetectionReviewState();
 }
 
 // ========================================
