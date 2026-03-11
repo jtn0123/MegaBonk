@@ -224,6 +224,29 @@ describe('Search Dropdown Module', () => {
             expect(getFocusedIndex()).toBe(2);
         });
 
+        it('should only navigate across the results that are actually rendered', () => {
+            const manyResults: GlobalSearchResult[] = Array.from({ length: 10 }, (_, i) => ({
+                type: 'items' as const,
+                item: {
+                    id: `item-${i}`,
+                    name: `Item ${i}`,
+                    description: 'Test',
+                    tier: 'A' as const,
+                    rarity: 'common' as const,
+                },
+                score: 100 - i,
+            }));
+
+            showSearchDropdown(manyResults, 'item');
+
+            for (let i = 0; i < 10; i++) {
+                handleDropdownKeyboard(new KeyboardEvent('keydown', { key: 'ArrowDown' }));
+            }
+
+            expect(getFocusedIndex()).toBe(4);
+            expect(getSelectedResult()?.item.id).toBe('item-4');
+        });
+
         it('should hide dropdown on Escape', () => {
             const event = new KeyboardEvent('keydown', { key: 'Escape' });
             const handled = handleDropdownKeyboard(event);

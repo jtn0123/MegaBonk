@@ -80,18 +80,16 @@ export function showSearchDropdown(results: GlobalSearchResult[], query: string)
         return;
     }
 
-    // Store results for keyboard navigation
-    currentResults = results;
-    focusedIndex = -1;
-    isDropdownVisible = true;
-
-    // Update ARIA attributes
-    if (searchInput) {
-        searchInput.setAttribute('aria-expanded', 'true');
-        searchInput.setAttribute('aria-controls', DROPDOWN_ID);
-    }
-
     if (results.length === 0) {
+        currentResults = [];
+        focusedIndex = -1;
+        isDropdownVisible = true;
+
+        if (searchInput) {
+            searchInput.setAttribute('aria-expanded', 'true');
+            searchInput.setAttribute('aria-controls', DROPDOWN_ID);
+        }
+
         dropdown.innerHTML = `
             <div class="search-dropdown-empty">
                 <span class="empty-icon">🔍</span>
@@ -104,6 +102,14 @@ export function showSearchDropdown(results: GlobalSearchResult[], query: string)
 
     // Group results by type
     const grouped = groupResultsByType(results);
+    currentResults = flattenGroupedResults(grouped);
+    focusedIndex = -1;
+    isDropdownVisible = true;
+
+    if (searchInput) {
+        searchInput.setAttribute('aria-expanded', 'true');
+        searchInput.setAttribute('aria-controls', DROPDOWN_ID);
+    }
 
     // Build HTML
     const html = buildDropdownHTML(grouped, query);
@@ -200,7 +206,26 @@ export function highlightMatches(text: string, query: string): string {
  * Navigate to a search result
  * @param result - The search result to navigate to
  */
-export function navigateToResult(result: GlobalSearchResult): void {
+async function highlightResultCard(entityId: string): Promise<void> {
+    for (let attempt = 0; attempt < 12; attempt++) {
+        const itemCard = Array.from(document.querySelectorAll<HTMLElement>('[data-entity-id]')).find(
+            card => card.dataset.entityId === entityId
+        );
+
+        if (itemCard) {
+            itemCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            itemCard.classList.add('search-highlight');
+            window.setTimeout(() => {
+                itemCard.classList.remove('search-highlight');
+            }, 2000);
+            return;
+        }
+
+        await new Promise(resolve => window.setTimeout(resolve, 50));
+    }
+}
+
+async function navigateToResultAsync(result: GlobalSearchResult): Promise<void> {
     hideSearchDropdown();
 
     // Clear the search input
@@ -211,22 +236,14 @@ export function navigateToResult(result: GlobalSearchResult): void {
 
     // Switch to the appropriate tab
     if (typeof window.switchTab === 'function') {
-        window.switchTab(result.type);
+        await Promise.resolve(window.switchTab(result.type));
     }
 
-    // After tab switch, scroll to and highlight the item
-    // Use setTimeout to allow async tab switch + render to complete
-    setTimeout(() => {
-        const entityId = result.item.id;
-        const itemCard = document.querySelector<HTMLElement>(`[data-entity-id="${entityId}"]`);
-        if (itemCard) {
-            itemCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            itemCard.classList.add('search-highlight');
-            setTimeout(() => {
-                itemCard.classList.remove('search-highlight');
-            }, 2000);
-        }
-    }, 300);
+    await highlightResultCard(result.item.id);
+}
+
+export function navigateToResult(result: GlobalSearchResult): void {
+    void navigateToResultAsync(result);
 }
 
 // ========================================
@@ -248,6 +265,11 @@ function groupResultsByType(results: GlobalSearchResult[]): Map<EntityType, Glob
     }
 
     return grouped;
+}
+
+function flattenGroupedResults(grouped: Map<EntityType, GlobalSearchResult[]>): GlobalSearchResult[] {
+    const typeOrder: EntityType[] = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
+    return typeOrder.flatMap(type => grouped.get(type) || []);
 }
 
 /**

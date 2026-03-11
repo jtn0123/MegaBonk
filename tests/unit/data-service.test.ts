@@ -3,6 +3,7 @@ import { loadDataFromUrls, getDataForTabFromData, getAllData, loadAllData } from
 import type { AllGameData } from '../../src/types/index.ts';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
 import { createMockAllData } from '../helpers/mock-data.js';
+import { renderTabContent } from '../../src/modules/renderers/tab-content.ts';
 
 // Mock modules
 vi.mock('../../src/modules/toast.ts', () => ({
@@ -32,6 +33,10 @@ vi.mock('../../src/modules/data-validation.ts', () => ({
 
 vi.mock('../../src/modules/events.ts', () => ({
     getSavedTab: vi.fn(() => 'items'),
+}));
+
+vi.mock('../../src/modules/renderers/tab-content.ts', () => ({
+    renderTabContent: vi.fn().mockResolvedValue(undefined),
 }));
 
 describe('data-service', () => {
@@ -398,6 +403,44 @@ describe('data-service', () => {
             await loadPromise;
 
             expect((globalThis as any).initScanBuild).toHaveBeenCalled();
+        });
+
+        it('should expose loadAllData on window for retry flows after app data loads', async () => {
+            const loadPromise = loadAllData();
+            await vi.advanceTimersByTimeAsync(100);
+            await loadPromise;
+
+            expect(window.loadAllData).toBe(loadAllData);
+        });
+
+        it('should not stack duplicate hashchange behavior across repeated loads', async () => {
+            const firstLoad = loadAllData();
+            await vi.advanceTimersByTimeAsync(100);
+            await firstLoad;
+
+            const secondLoad = loadAllData();
+            await vi.advanceTimersByTimeAsync(100);
+            await secondLoad;
+
+            (globalThis as any).loadBuildFromURL.mockClear();
+            globalThis.dispatchEvent(new HashChangeEvent('hashchange'));
+
+            expect((globalThis as any).loadBuildFromURL).toHaveBeenCalledTimes(1);
+        });
+
+        it('should rerender a deferred active tab after deferred data finishes loading', async () => {
+            const { getSavedTab } = await import('../../src/modules/events.ts');
+            const { setState } = await import('../../src/modules/store.ts');
+            (getSavedTab as Mock).mockReturnValue('shrines');
+            (globalThis as any).switchTab = vi.fn((tab: string) => {
+                setState('currentTab', tab as any);
+            });
+
+            const loadPromise = loadAllData();
+            await vi.advanceTimersByTimeAsync(100);
+            await loadPromise;
+
+            expect(renderTabContent).toHaveBeenCalledWith('shrines');
         });
 
         it('should handle fetch failure and show error', async () => {

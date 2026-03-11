@@ -8,7 +8,19 @@ import { logger } from './logger.ts';
 import { getSavedTab } from './events.ts';
 import { getState, setState } from './store.ts';
 import { recordDataSync } from './offline-ui.ts';
-import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch, ShrinesData, Stats, ItemsData, WeaponsData, TomesData, CharactersData } from '../types/index.ts';
+import type {
+    AllGameData,
+    Entity,
+    EntityType,
+    ChangelogData,
+    ChangelogPatch,
+    ShrinesData,
+    Stats,
+    ItemsData,
+    WeaponsData,
+    TomesData,
+    CharactersData,
+} from '../types/index.ts';
 
 // ========================================
 // Type Definitions
@@ -18,6 +30,8 @@ import type { AllGameData, Entity, EntityType, ChangelogData, ChangelogPatch, Sh
  * Data type union including changelog
  */
 type DataType = EntityType | 'stats' | 'changelog';
+const DEFERRED_RENDER_TABS = new Set(['shrines', 'changelog']);
+let buildHashListenerRegistered = false;
 
 /**
  * Enhanced error with fetch metadata for retry logic
@@ -293,13 +307,27 @@ async function fetchAndValidate(url: string, type: DataType): Promise<unknown> {
  */
 async function loadDeferredData(): Promise<void> {
     try {
-        const [shrines, stats, changelog] = await Promise.all([
+        const [shrines, stats, changelog] = (await Promise.all([
             fetchAndValidate('./data/shrines.json', 'shrines'),
             fetchAndValidate('./data/stats.json', 'stats'),
             fetchAndValidate('./data/changelog.json', 'changelog'),
-        ]) as [ShrinesData, Stats, ChangelogData];
+        ])) as [ShrinesData, Stats, ChangelogData];
 
         setState('allData', (prev: AllGameData) => ({ ...prev, shrines, stats, changelog }));
+
+        const currentTab = getState('currentTab');
+        if (DEFERRED_RENDER_TABS.has(currentTab)) {
+            import('./renderers/tab-content.ts')
+                .then(({ renderTabContent }) => renderTabContent(currentTab))
+                .catch(error => {
+                    const err = error as Error;
+                    logger.warn({
+                        operation: 'data.deferred_render',
+                        error: { name: err.name, message: err.message, module: 'data-service' },
+                        data: { currentTab },
+                    });
+                });
+        }
 
         logger.debug({
             operation: 'data.deferred_load',
@@ -320,17 +348,21 @@ async function loadDeferredData(): Promise<void> {
  * secondary data (shrines, stats, changelog) is deferred.
  */
 export async function loadAllData(): Promise<void> {
+    if (globalThis.window !== undefined) {
+        window.loadAllData = loadAllData;
+    }
+
     showLoading();
     const loadStartTime = performance.now();
 
     try {
         // Phase 1: Load essential data needed for the default tab
-        const [items, weapons, tomes, characters] = await Promise.all([
+        const [items, weapons, tomes, characters] = (await Promise.all([
             fetchAndValidate('./data/items.json', 'items'),
             fetchAndValidate('./data/weapons.json', 'weapons'),
             fetchAndValidate('./data/tomes.json', 'tomes'),
             fetchAndValidate('./data/characters.json', 'characters'),
-        ]) as [ItemsData, WeaponsData, TomesData, CharactersData];
+        ])) as [ItemsData, WeaponsData, TomesData, CharactersData];
 
         // Update store with essential data (deferred fields will be merged later)
         const newData: AllGameData = { items, weapons, tomes, characters };
@@ -406,7 +438,10 @@ export async function loadAllData(): Promise<void> {
         // Note: loadBuildFromURL is a global function from build-planner.js
         if (typeof globalThis.loadBuildFromURL === 'function') {
             globalThis.loadBuildFromURL();
-            globalThis.addEventListener('hashchange', () => globalThis.loadBuildFromURL?.());
+            if (!buildHashListenerRegistered) {
+                globalThis.addEventListener('hashchange', () => globalThis.loadBuildFromURL?.());
+                buildHashListenerRegistered = true;
+            }
         }
 
         // Initialize advisor with loaded data
@@ -494,3 +529,7 @@ export const allData: AllGameData = new Proxy({} as AllGameData, {
         throw new Error('allData is read-only. Use setState("allData", data) to update.');
     },
 });
+
+if (globalThis.window !== undefined) {
+    window.loadAllData = loadAllData;
+}

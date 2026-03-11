@@ -13,7 +13,7 @@
 import { ToastManager } from './modules/toast.ts';
 import { loadAllData } from './modules/data-service.ts';
 import { loadFavorites } from './modules/favorites.ts';
-import { setupEventListeners, setupEventDelegation } from './modules/events.ts';
+import { setupEventListeners } from './modules/events.ts';
 import { domCache } from './modules/dom-cache.ts';
 import { safeModuleInit, registerErrorBoundary } from './modules/error-boundary.ts';
 import { setupKeyboardShortcuts } from './modules/keyboard-shortcuts.ts';
@@ -330,7 +330,6 @@ async function init(): Promise<void> {
     await safeModuleInit(
         'event-system',
         async () => {
-            setupEventDelegation();
             setupEventListeners();
         },
         { required: true }
