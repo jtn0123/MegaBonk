@@ -450,12 +450,6 @@ export async function loadAllData(): Promise<void> {
             globalThis.initAdvisor(newData);
         }
 
-        // Initialize scan build module
-        // Note: initScanBuild is a global function from scan-build.ts
-        if (typeof globalThis.initScanBuild === 'function') {
-            globalThis.initScanBuild(newData);
-        }
-
         // Phase 2: Load deferred data (shrines, stats, changelog) in background
         loadDeferredData();
     } catch (error) {

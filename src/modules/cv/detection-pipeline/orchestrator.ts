@@ -5,7 +5,7 @@
 import type { CVDetectionResult, ROI } from '../types.ts';
 import { logger } from '../../logger.ts';
 import { detectResolution } from '../../image-layout.ts';
-import { getAllData, getItemTemplates, isPriorityTemplatesLoaded } from '../state.ts';
+import { getAllData, getItemTemplates, getTemplateReadinessState, isPriorityTemplatesLoaded } from '../state.ts';
 import { loadItemTemplates } from '../templates.ts';
 import { getMetricsCollector } from '../metrics.ts';
 import { selectStrategiesForImage } from '../ensemble-detector.ts';
@@ -23,6 +23,14 @@ import {
     boostConfidenceWithContext,
     validateWithBorderRarity,
 } from '../detection-processing.ts';
+import {
+    addSlotCandidate,
+    addValidatorStageWarning,
+    endValidatorStage,
+    startValidatorStage,
+    updateValidatorTraceMetadata,
+    upsertSlotTrace,
+} from '../validator-trace.ts';
 
 // Import from sibling modules
 import { detectIconsWithTwoPhase } from './two-phase.ts';
@@ -79,6 +87,7 @@ async function gatherDetectionCandidates(
 ): Promise<DetectionCandidateRun> {
     if (useWorkers) {
         if (typeof Worker === 'undefined') {
+            addValidatorStageWarning('candidate_generation', 'Workers unavailable, falling back to main thread');
             logger.warn({
                 operation: 'cv.worker_fallback',
                 data: { reason: 'workers_not_supported', fallback: 'main_thread_pipeline' },
@@ -87,6 +96,14 @@ async function gatherDetectionCandidates(
             try {
                 progressCallback?.(25, 'Generating worker candidates...');
                 const workerDetections = await runWorkerDetection(ctx, width, height, items, progressCallback);
+                endValidatorStage('candidate_generation', {
+                    metadata: {
+                        mode: 'worker_grid',
+                        usedWorkers: true,
+                    },
+                    inputCount: workerDetections.length,
+                    outputCount: workerDetections.length,
+                });
                 return {
                     detections: workerDetections,
                     gridUsed: true,
@@ -96,6 +113,7 @@ async function gatherDetectionCandidates(
                     usedWorkers: true,
                 };
             } catch (error) {
+                addValidatorStageWarning('candidate_generation', `Worker path failed: ${(error as Error).message}`);
                 logger.warn({
                     operation: 'cv.worker_fallback',
                     error: {
@@ -160,6 +178,12 @@ async function detectHotbarItems(
         operation: 'cv.two_phase_fallback',
         data: { reason: twoPhaseResult.gridUsed ? 'no_detections' : 'grid_detection_failed' },
     });
+    endValidatorStage('occupancy_filtering', {
+        status: 'warning',
+        metadata: {
+            mode: 'sliding_window_fallback',
+        },
+    });
     progressCallback?.(25, 'Falling back to sliding window...');
 
     const detectedHotbar = detectHotbarRegion(ctx, width, height);
@@ -196,6 +220,31 @@ function validateDetections(
     const validated = detections
         .map(detection => {
             const result = validateWithBorderRarity(detection, ctx, false);
+            if (detection.position) {
+                const slotId = `${detection.position.x}:${detection.position.y}:${detection.position.width}:${detection.position.height}`;
+                if (result === null) {
+                    addSlotCandidate(
+                        slotId,
+                        {
+                            itemId: detection.entity.id,
+                            itemName: detection.entity.name,
+                            confidence: detection.confidence,
+                            reason: 'filtered_by_rarity',
+                        },
+                        true,
+                        {
+                            x: detection.position.x,
+                            y: detection.position.y,
+                            width: detection.position.width,
+                            height: detection.position.height,
+                        }
+                    );
+                    upsertSlotTrace(slotId, {
+                        status: 'filtered',
+                        notes: ['filtered_by_rarity'],
+                    });
+                }
+            }
             if (result === null) {
                 metrics.recordRarityValidation(false, true);
             } else if (result.confidence > detection.confidence) {
@@ -224,6 +273,16 @@ function annotateStackCounts(detections: CVDetectionResult[], imageData: ImageDa
             const det = detection as CVDetectionResult & { stackCount?: number; countConfidence?: number };
             det.stackCount = countResult.count;
             det.countConfidence = countResult.confidence;
+            const slotId = `${x}:${y}:${cellW}:${cellH}`;
+            upsertSlotTrace(slotId, {
+                status: 'count_adjusted',
+                countEvidence: {
+                    count: countResult.count,
+                    confidence: countResult.confidence,
+                    rawText: countResult.rawText,
+                    method: countResult.method,
+                },
+            });
         }
     }
 }
@@ -284,16 +343,41 @@ export async function detectItemsWithCV(
 
     try {
         progressCallback?.(0, 'Loading image...');
+        startValidatorStage('template_readiness');
 
         if (!isPriorityTemplatesLoaded()) {
             progressCallback?.(5, 'Loading item templates...');
             await loadItemTemplates();
         }
+        endValidatorStage('template_readiness', {
+            metadata: {
+                readiness: getTemplateReadinessState(),
+            },
+        });
 
         const imageHash = hashImageDataUrl(imageDataUrl);
         const requestedCacheKey = buildDetectionCacheKey(imageHash, useWorkers);
+        updateValidatorTraceMetadata({
+            cacheKey: requestedCacheKey,
+            cacheHit: false,
+            detectionMode: useWorkers ? 'worker' : 'main',
+            requestedWorkerMode: useWorkers,
+        });
+        startValidatorStage('cache_lookup');
         const cachedResults = getCachedResults(requestedCacheKey);
         if (cachedResults) {
+            updateValidatorTraceMetadata({
+                cacheHit: true,
+                cacheKey: requestedCacheKey,
+            });
+            endValidatorStage('cache_lookup', {
+                metadata: {
+                    cacheKey: requestedCacheKey,
+                    cacheHit: true,
+                },
+                inputCount: cachedResults.length,
+                outputCount: cachedResults.length,
+            });
             logger.info({
                 operation: 'cv.cache_hit',
                 data: { imageHash, resultCount: cachedResults.length, cacheKey: requestedCacheKey },
@@ -301,11 +385,24 @@ export async function detectItemsWithCV(
             progressCallback?.(100, 'Loaded from cache (instant)');
             return cachedResults;
         }
+        endValidatorStage('cache_lookup', {
+            metadata: {
+                cacheKey: requestedCacheKey,
+                cacheHit: false,
+            },
+            inputCount: 0,
+            outputCount: 0,
+        });
 
         if (useWorkers && typeof Worker === 'undefined') {
             const fallbackCacheKey = buildDetectionCacheKey(imageHash, false);
             const fallbackCachedResults = getCachedResults(fallbackCacheKey);
             if (fallbackCachedResults) {
+                updateValidatorTraceMetadata({
+                    cacheHit: true,
+                    cacheKey: fallbackCacheKey,
+                    detectionMode: 'main',
+                });
                 logger.info({
                     operation: 'cv.cache_hit',
                     data: {
@@ -320,12 +417,34 @@ export async function detectItemsWithCV(
             }
         }
 
+        const itemTemplates = getItemTemplates();
+        startValidatorStage('image_load');
         const { ctx, width, height } = await loadImageToCanvas(imageDataUrl);
+        endValidatorStage('image_load', {
+            metadata: {
+                width,
+                height,
+            },
+        });
         const resolution = detectResolution(width, height);
+        updateValidatorTraceMetadata({
+            imageWidth: width,
+            imageHeight: height,
+            templateReadiness: getTemplateReadinessState(),
+            templateCount: itemTemplates.size,
+        });
         metrics.startRun(width, height, resolution.category);
 
         const selectedStrategies = selectStrategiesForImage(width, height);
         const resolutionTier = getResolutionTier(width, height);
+        updateValidatorTraceMetadata({
+            pipelineConfig: {
+                resolutionTier,
+                selectedStrategies,
+                dynamicThreshold: getDynamicMinConfidence(width, height),
+                requestedMode: useWorkers ? 'worker' : 'main',
+            },
+        });
         logger.info({
             operation: 'cv.strategy_selection',
             data: { resolutionTier, selectedStrategies, dynamicThreshold: getDynamicMinConfidence(width, height) },
@@ -333,7 +452,6 @@ export async function detectItemsWithCV(
 
         progressCallback?.(15, 'Analyzing image structure...');
         const items = getAllData().items?.items || [];
-        const itemTemplates = getItemTemplates();
         logger.info({
             operation: 'cv.detect_start',
             data: {
@@ -344,27 +462,115 @@ export async function detectItemsWithCV(
             },
         });
 
+        startValidatorStage('candidate_generation');
+        startValidatorStage('grid_detection');
+        startValidatorStage('occupancy_filtering');
         const candidateRun = await gatherDetectionCandidates(ctx, width, height, items, useWorkers, progressCallback);
+        updateValidatorTraceMetadata({
+            detectionMode: candidateRun.usedWorkers ? 'worker' : 'main',
+        });
+        endValidatorStage('candidate_generation', {
+            metadata: {
+                mode: candidateRun.mode,
+                usedWorkers: candidateRun.usedWorkers,
+            },
+            inputCount: items.length,
+            outputCount: candidateRun.detections.length,
+        });
 
         // Grid verification
         progressCallback?.(88, 'Verifying grid pattern...');
+        startValidatorStage('grid_verification');
         const iconSizes = getAdaptiveIconSizes(width, height);
         const gridVerification = verifyGridPattern(candidateRun.detections, iconSizes[1] || 48);
         const verifiedDetections = gridVerification.isValid
             ? gridVerification.filteredDetections
             : candidateRun.detections;
         metrics.recordGridVerification(candidateRun.detections.length, verifiedDetections.length);
+        if (gridVerification.isValid) {
+            const verifiedKeys = new Set(
+                verifiedDetections
+                    .filter(detection => detection.position)
+                    .map(
+                        detection =>
+                            `${detection.position!.x}:${detection.position!.y}:${detection.position!.width}:${detection.position!.height}`
+                    )
+            );
+
+            for (const detection of candidateRun.detections) {
+                if (!detection.position) continue;
+                const slotId = `${detection.position.x}:${detection.position.y}:${detection.position.width}:${detection.position.height}`;
+                if (verifiedKeys.has(slotId)) continue;
+
+                addSlotCandidate(
+                    slotId,
+                    {
+                        itemId: detection.entity.id,
+                        itemName: detection.entity.name,
+                        confidence: detection.confidence,
+                        reason: 'filtered_by_grid',
+                    },
+                    true,
+                    {
+                        x: detection.position.x,
+                        y: detection.position.y,
+                        width: detection.position.width,
+                        height: detection.position.height,
+                    }
+                );
+                upsertSlotTrace(slotId, {
+                    status: 'filtered',
+                    notes: ['filtered_by_grid_verification'],
+                });
+            }
+        }
+        endValidatorStage('grid_verification', {
+            status: gridVerification.isValid ? 'ok' : 'warning',
+            metadata: {
+                isValid: gridVerification.isValid,
+                confidence: gridVerification.confidence,
+            },
+            inputCount: candidateRun.detections.length,
+            outputCount: verifiedDetections.length,
+        });
 
         // Context boosting + validation
         progressCallback?.(92, 'Applying context boosting...');
         const boostedDetections = boostConfidenceWithContext(verifiedDetections);
         progressCallback?.(96, 'Validating with border rarity...');
+        startValidatorStage('verification_filtering');
         const validatedDetections = validateDetections(boostedDetections, ctx, metrics);
+        endValidatorStage('verification_filtering', {
+            metadata: {
+                boosted: boostedDetections.length,
+                validated: validatedDetections.length,
+            },
+            inputCount: boostedDetections.length,
+            outputCount: validatedDetections.length,
+        });
+        validatedDetections.forEach(detection => {
+            if (!detection.position) return;
+            const slotId = `${detection.position.x}:${detection.position.y}:${detection.position.width}:${detection.position.height}`;
+            upsertSlotTrace(slotId, {
+                status: 'matched',
+                finalDetection: {
+                    itemId: detection.entity.id,
+                    itemName: detection.entity.name,
+                    confidence: detection.confidence,
+                    method: detection.method,
+                },
+            });
+        });
 
         // Stack counts
         progressCallback?.(98, 'Detecting item counts...');
+        startValidatorStage('count_ocr');
         const imageData = ctx.getImageData(0, 0, width, height);
         annotateStackCounts(validatedDetections, imageData, height);
+        endValidatorStage('count_ocr', {
+            inputCount: validatedDetections.length,
+            outputCount: validatedDetections.length,
+        });
 
         progressCallback?.(100, 'Smart detection complete');
 
@@ -385,10 +591,20 @@ export async function detectItemsWithCV(
         }
         logger.info({ operation: 'cv.detect_items_smart', data: logData });
 
+        startValidatorStage('dedupe_finalization');
         const effectiveCacheKey = buildDetectionCacheKey(imageHash, candidateRun.usedWorkers);
         cacheResults(effectiveCacheKey, validatedDetections);
         logActiveLearning(validatedDetections);
         metrics.endRun(performance.now() - runStartTime);
+        endValidatorStage('dedupe_finalization', {
+            metadata: {
+                cacheKey: effectiveCacheKey,
+                cached: true,
+                resultCount: validatedDetections.length,
+            },
+            inputCount: validatedDetections.length,
+            outputCount: validatedDetections.length,
+        });
 
         return validatedDetections;
     } catch (error) {

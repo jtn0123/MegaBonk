@@ -11,7 +11,8 @@ import { isTrainingDataLoaded } from '../training.ts';
 import { getMetricsCollector } from '../metrics.ts';
 import { getDynamicMinConfidence } from '../detection-config.ts';
 import { detectHotbarRegion, detectIconEdges, inferGridFromEdges, generateGridROIs } from '../detection-grid.ts';
-import { findBestTemplateMatch } from '../detection-matching.ts';
+import { findBestTemplateMatch, findTopTemplateMatches } from '../detection-matching.ts';
+import { addSlotCandidate, endValidatorStage, upsertSlotTrace } from '../validator-trace.ts';
 import type { TwoPhaseOptions, TwoPhaseResult } from './types.ts';
 
 /**
@@ -29,6 +30,9 @@ export async function detectIconsWithTwoPhase(
     const { minConfidence = getDynamicMinConfidence(width, height), progressCallback } = options;
     const metrics = getMetricsCollector();
     const gridStartTime = performance.now();
+    let emptyFiltered = 0;
+    let lowVarianceFiltered = 0;
+    let candidateEvaluations = 0;
 
     // Phase 1: Detect grid structure
     if (progressCallback) {
@@ -66,8 +70,30 @@ export async function detectIconsWithTwoPhase(
             data: { reason: failureReason },
         });
         metrics.recordTwoPhaseAttempt(false, failureReason, grid?.confidence || 0, 0);
+        endValidatorStage('grid_detection', {
+            status: 'warning',
+            metadata: {
+                success: false,
+                reason: failureReason,
+                confidence: grid?.confidence || 0,
+                columns: grid?.columns || 0,
+                rows: grid?.rows || 0,
+            },
+        });
         return { detections: [], gridUsed: false, grid: null };
     }
+
+    endValidatorStage('grid_detection', {
+        status: grid.confidence < 0.55 ? 'warning' : 'ok',
+        metadata: {
+            success: true,
+            confidence: grid.confidence,
+            columns: grid.columns,
+            rows: grid.rows,
+            cellWidth: grid.cellWidth,
+            cellHeight: grid.cellHeight,
+        },
+    });
 
     // Phase 2: Match templates only at grid positions
     if (progressCallback) {
@@ -92,6 +118,13 @@ export async function detectIconsWithTwoPhase(
     for (let i = 0; i < gridCells.length; i++) {
         const cell = gridCells[i];
         if (!cell) continue; // TypeScript guard
+        const slotId = cell.label || `grid_slot_${i}`;
+        const bounds = { x: cell.x, y: cell.y, width: cell.width, height: cell.height };
+        upsertSlotTrace(slotId, {
+            label: cell.label,
+            bounds,
+            status: 'pending',
+        });
 
         // Update progress
         if (progressCallback && i % 5 === 0) {
@@ -104,12 +137,35 @@ export async function detectIconsWithTwoPhase(
 
         // Skip empty cells
         if (isEmptyCell(cellData)) {
+            emptyFiltered++;
+            upsertSlotTrace(slotId, {
+                status: 'empty',
+                candidateCount: 0,
+                emptyDecision: {
+                    isEmpty: true,
+                    method: 'isEmptyCell',
+                    reason: 'isEmptyCell returned true',
+                },
+                notes: ['empty_cell_filtered'],
+            });
             continue;
         }
 
         // Check variance
         const variance = calculateColorVariance(cellData);
         if (variance < 800) {
+            lowVarianceFiltered++;
+            upsertSlotTrace(slotId, {
+                status: 'filtered',
+                candidateCount: 0,
+                emptyDecision: {
+                    isEmpty: true,
+                    method: 'variance',
+                    confidence: variance,
+                    reason: 'variance below 800',
+                },
+                notes: ['low_variance_filtered'],
+            });
             continue;
         }
 
@@ -137,9 +193,29 @@ export async function detectIconsWithTwoPhase(
 
         const itemsToCheck = candidateItems.length > 0 ? candidateItems : items.slice(0, 30);
         const usedAdjacent = !usedExactMatch && candidateItems.length > 0;
+        candidateEvaluations += itemsToCheck.length;
 
         // Record color filter metrics
         metrics.recordColorFilter(usedExactMatch, usedAdjacent, itemsToCheck.length);
+
+        const rankedCandidates = findTopTemplateMatches(ctx, cell, itemsToCheck, 5, useMultiTemplate);
+        upsertSlotTrace(slotId, {
+            candidateCount: itemsToCheck.length,
+            notes: usedAdjacent
+                ? ['used_adjacent_color_candidates']
+                : usedExactMatch
+                  ? ['used_exact_color_candidates']
+                  : [],
+        });
+        rankedCandidates.forEach((candidate, candidateIndex) => {
+            const candidateTrace = {
+                itemId: candidate.item.id,
+                itemName: candidate.item.name,
+                confidence: candidate.similarity,
+                reason: candidateIndex === 0 ? 'selected' : 'lower_ranked',
+            } as const;
+            addSlotCandidate(slotId, candidateTrace, candidateIndex !== 0, bounds, cell.label);
+        });
 
         // Match against candidate templates
         const bestMatch = findBestTemplateMatch(ctx, cell, itemsToCheck, minConfidence, useMultiTemplate);
@@ -152,13 +228,45 @@ export async function detectIconsWithTwoPhase(
                 position: { x: cell.x, y: cell.y, width: cell.width, height: cell.height },
                 method: 'template_match',
             });
+            upsertSlotTrace(slotId, {
+                status: 'matched',
+                finalDetection: {
+                    itemId: bestMatch.item.id,
+                    itemName: bestMatch.item.name,
+                    confidence: bestMatch.similarity,
+                    method: 'template_match',
+                },
+            });
             // Record detection metrics
             metrics.recordDetection(bestMatch.similarity, bestMatch.item.rarity);
+        } else {
+            upsertSlotTrace(slotId, {
+                status: 'filtered',
+                notes: ['no_candidate_above_threshold'],
+            });
         }
     }
 
     const templateMatchingTime = performance.now() - gridStartTime;
     metrics.recordTemplateMatchingTime(templateMatchingTime);
+    endValidatorStage('occupancy_filtering', {
+        metadata: {
+            totalCells: gridCells.length,
+            emptyFiltered,
+            lowVarianceFiltered,
+        },
+        inputCount: gridCells.length,
+        outputCount: gridCells.length - emptyFiltered - lowVarianceFiltered,
+    });
+    endValidatorStage('candidate_generation', {
+        metadata: {
+            totalCells: gridCells.length,
+            candidateEvaluations,
+            detections: detections.length,
+        },
+        inputCount: gridCells.length - emptyFiltered - lowVarianceFiltered,
+        outputCount: detections.length,
+    });
 
     logger.info({
         operation: 'cv.two_phase.complete',

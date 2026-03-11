@@ -12,6 +12,7 @@ vi.mock('../../src/modules/image-layout.ts', () => ({
 vi.mock('../../src/modules/cv/state.ts', () => ({
     getAllData: vi.fn(() => ({ items: { items: [{ id: '1', name: 'Sword' }] } })),
     getItemTemplates: vi.fn(() => new Map()),
+    getTemplateReadinessState: vi.fn(() => 'full'),
     isPriorityTemplatesLoaded: vi.fn(() => true),
 }));
 

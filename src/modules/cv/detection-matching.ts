@@ -192,8 +192,26 @@ export function findBestTemplateMatch(
     minConfidence: number,
     useMultiTemplate: boolean = false
 ): { item: Item; similarity: number } | null {
+    const rankedMatches = findTopTemplateMatches(screenshotCtx, cell, items, items.length, useMultiTemplate);
+    return rankedMatches.find(candidate => candidate.similarity > minConfidence) || null;
+}
+
+/**
+ * Rank templates for a cell and return the highest-scoring candidates.
+ * This is primarily used by the validator trace so slot inspectors can show
+ * why one candidate won over the next-best alternatives.
+ */
+export function findTopTemplateMatches(
+    screenshotCtx: CanvasRenderingContext2D,
+    cell: ROI,
+    items: Item[],
+    limit: number = 5,
+    useMultiTemplate: boolean = false
+): { item: Item; similarity: number }[] {
     const itemTemplates = getItemTemplates();
-    let bestMatch: { item: Item; similarity: number } | null = null;
+    const rankedMatches: { item: Item; similarity: number }[] = [];
+    const TRACE_SIMILARITY_FLOOR = 0.2;
+    const SIMILARITY_FLOOR = 0.35;
 
     for (const item of items) {
         const template = itemTemplates.get(item.id);
@@ -208,16 +226,12 @@ export function findBestTemplateMatch(
                 ? matchTemplateMulti(screenshotCtx, cell, template, item.id, trainingTemplates)
                 : matchTemplate(screenshotCtx, cell, template, item.id);
 
-        // Absolute similarity floor - never accept matches below 0.35 regardless of config
-        const SIMILARITY_FLOOR = 0.35;
-        if (
-            similarity >= SIMILARITY_FLOOR &&
-            similarity > minConfidence &&
-            (!bestMatch || similarity > bestMatch.similarity)
-        ) {
-            bestMatch = { item, similarity };
+        if (similarity >= TRACE_SIMILARITY_FLOOR) {
+            rankedMatches.push({ item, similarity });
         }
     }
 
-    return bestMatch;
+    rankedMatches.sort((left, right) => right.similarity - left.similarity);
+
+    return rankedMatches.filter(candidate => candidate.similarity >= SIMILARITY_FLOOR).slice(0, Math.max(1, limit));
 }

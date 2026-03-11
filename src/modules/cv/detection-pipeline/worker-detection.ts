@@ -7,6 +7,7 @@ import type { CVDetectionResult, ROI } from '../types.ts';
 import { getItemTemplates } from '../state.ts';
 import { getWorkerPath } from '../detection-config.ts';
 import { extractIconRegion } from '../detection-utils.ts';
+import { endValidatorStage, upsertSlotTrace } from '../validator-trace.ts';
 import type { WorkerMatchResult, ProgressCallback } from './types.ts';
 
 const TEMPLATE_WORKER_COUNT = 4;
@@ -33,6 +34,16 @@ export async function detectItemsWithWorkers(
     const itemsById = new Map(items.map(item => [item.id, item] as const));
 
     try {
+        endValidatorStage('grid_detection', {
+            metadata: {
+                success: true,
+                mode: 'worker_grid',
+                gridPositions: gridPositions.length,
+            },
+            inputCount: gridPositions.length,
+            outputCount: gridPositions.length,
+        });
+
         // Initialize workers
         for (let i = 0; i < TEMPLATE_WORKER_COUNT; i++) {
             workers.push(new Worker(getWorkerPath('template-matcher-worker.js')));
@@ -151,11 +162,46 @@ export async function detectItemsWithWorkers(
         const detections: CVDetectionResult[] = flatResults
             .map(result => {
                 if (result.similarity < minConfidence) {
+                    const slotId =
+                        result.position.label ||
+                        `${result.position.x}:${result.position.y}:${result.position.width}:${result.position.height}`;
+                    upsertSlotTrace(slotId, {
+                        label: result.position.label,
+                        bounds: {
+                            x: result.position.x,
+                            y: result.position.y,
+                            width: result.position.width,
+                            height: result.position.height,
+                        },
+                        status: 'filtered',
+                        notes: ['worker_candidate_below_threshold'],
+                    });
                     return null;
                 }
 
                 const item = itemsById.get(result.itemId);
                 if (!item) return null;
+
+                const slotId =
+                    result.position.label ||
+                    `${result.position.x}:${result.position.y}:${result.position.width}:${result.position.height}`;
+                upsertSlotTrace(slotId, {
+                    label: result.position.label,
+                    bounds: {
+                        x: result.position.x,
+                        y: result.position.y,
+                        width: result.position.width,
+                        height: result.position.height,
+                    },
+                    status: 'matched',
+                    candidateCount: 1,
+                    finalDetection: {
+                        itemId: item.id,
+                        itemName: item.name,
+                        confidence: result.similarity,
+                        method: 'template_match',
+                    },
+                });
 
                 return {
                     type: 'item' as const,
@@ -166,6 +212,16 @@ export async function detectItemsWithWorkers(
                 };
             })
             .filter(d => d !== null) as CVDetectionResult[];
+
+        endValidatorStage('candidate_generation', {
+            metadata: {
+                mode: 'worker_grid',
+                gridPositions: gridPositions.length,
+                workerMatches: flatResults.length,
+            },
+            inputCount: gridPositions.length,
+            outputCount: detections.length,
+        });
 
         return detections;
     } finally {

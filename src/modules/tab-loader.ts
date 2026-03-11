@@ -62,17 +62,7 @@ async function loadCalculatorModule(): Promise<void> {
  * Lazy load the advisor module and its dependencies
  */
 async function loadAdvisorModule(): Promise<void> {
-    // Load scan-build first as advisor may depend on it
-    await import('./scan-build.ts');
     await import('./advisor.ts');
-
-    // Initialize scan-build with already-loaded game data
-    // This is needed because data-service.ts loads before scan-build.ts (lazy-loaded)
-    const { getState } = await import('./store.ts');
-    const allData = getState('allData');
-    if (typeof globalThis.initScanBuild === 'function' && allData && Object.keys(allData).length > 0) {
-        globalThis.initScanBuild(allData);
-    }
 
     logger.debug({
         operation: 'tab_loader.loaded',

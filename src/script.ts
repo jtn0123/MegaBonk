@@ -26,14 +26,12 @@ import { scheduleModulePreload } from './modules/events.ts';
 import { initMobileNav } from './modules/mobile-nav.ts';
 import { initMobileFilters } from './modules/mobile-filters.ts';
 import { initRecentlyViewed } from './modules/recently-viewed.ts';
-import { initDebugPanel } from './modules/debug-ui.ts';
 import { initPullRefresh } from './modules/pull-refresh.ts';
 import { initWhatsNew, initFooterVersion } from './modules/whats-new.ts';
 // Note: Tab-specific modules (advisor, build-planner, calculator, changelog, about) are now lazy-loaded
 // via the tab-loader module when their tabs are first accessed
 // Core modules that may be needed across multiple contexts are still eagerly loaded:
 import './modules/ocr/index.ts';
-// computer-vision.ts is now lazy-loaded via scan-build.ts (through tab-loader)
 // test-utils.ts removed from production build — only imported by test files directly
 
 // Note: filteredData is now managed by the centralized store (store.ts)
@@ -389,15 +387,6 @@ async function init(): Promise<void> {
         { required: false }
     );
 
-    // Initialize debug panel UI (non-critical)
-    await safeModuleInit(
-        'debug-panel',
-        async () => {
-            initDebugPanel();
-        },
-        { required: false }
-    );
-
     // Initialize pull-to-refresh for mobile (non-critical)
     await safeModuleInit(
         'pull-refresh',
@@ -438,7 +427,6 @@ async function init(): Promise<void> {
                 'mobile-nav',
                 'mobile-filters',
                 'recently-viewed',
-                'debug-panel',
                 'pull-refresh',
             ],
         },

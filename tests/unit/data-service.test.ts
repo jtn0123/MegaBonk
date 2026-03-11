@@ -55,7 +55,7 @@ describe('data-service', () => {
         (globalThis as any).switchTab = vi.fn();
         (globalThis as any).loadBuildFromURL = vi.fn();
         (globalThis as any).initAdvisor = vi.fn();
-        (globalThis as any).initScanBuild = vi.fn();
+        delete (globalThis as any).initScanBuild;
         (window as any).allData = mockAllData;
 
         // Mock performance.now
@@ -397,12 +397,12 @@ describe('data-service', () => {
             expect((globalThis as any).initAdvisor).toHaveBeenCalled();
         });
 
-        it('should call initScanBuild with data if available', async () => {
+        it('should not initialize scan-build from data loading', async () => {
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
             await loadPromise;
 
-            expect((globalThis as any).initScanBuild).toHaveBeenCalled();
+            expect((globalThis as any).initScanBuild).toBeUndefined();
         });
 
         it('should expose loadAllData on window for retry flows after app data loads', async () => {
@@ -510,9 +510,7 @@ describe('data-service', () => {
             await expect(loadPromise).resolves.not.toThrow();
         });
 
-        it('should not call initScanBuild if function is not available', async () => {
-            delete (globalThis as any).initScanBuild;
-
+        it('should continue loading when scan-build globals are absent', async () => {
             const loadPromise = loadAllData();
             await vi.advanceTimersByTimeAsync(100);
 
