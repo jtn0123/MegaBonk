@@ -16,7 +16,7 @@ vi.mock('../../src/modules/logger.ts', () => ({
 }));
 
 // Mock test-utils
-vi.mock('../../src/modules/test-utils.ts', () => ({
+vi.mock('../../src/modules/image-layout.ts', () => ({
     detectResolution: vi.fn((width: number, height: number) => {
         if (width >= 3840) return { category: '4k', scale: 2 };
         if (width >= 2560) return { category: '1440p', scale: 1.5 };

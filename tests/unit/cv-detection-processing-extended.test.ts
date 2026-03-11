@@ -1,6 +1,14 @@
 import { describe, it, expect, beforeAll } from 'vitest';
-import { boostConfidenceWithContext, filterByConfidence, aggregateDetections, getCachedResults, cacheResults } from '../../src/modules/cv/detection-processing.ts';
+import {
+    boostConfidenceWithContext,
+    filterByConfidence,
+    aggregateDetections,
+    getCachedResults,
+    cacheResults,
+    buildDetectionCacheKey,
+} from '../../src/modules/cv/detection-processing.ts';
 import type { CVDetectionResult } from '../../src/modules/cv/types.ts';
+import { resetState, setPriorityTemplatesLoaded, setTemplatesLoaded } from '../../src/modules/cv/state.ts';
 
 beforeAll(() => {
     if (typeof globalThis.ImageData === 'undefined') {
@@ -15,6 +23,10 @@ function mkDet(o: any): CVDetectionResult {
 }
 
 describe('cv/detection-processing extended', () => {
+    beforeAll(() => {
+        resetState();
+    });
+
     describe('boostConfidenceWithContext', () => {
         it('boosts common', () => {
             const r = boostConfidenceWithContext([mkDet({entity:{name:'S',rarity:'common'}})]);
@@ -67,6 +79,20 @@ describe('cv/detection-processing extended', () => {
             const h = 'h_' + Date.now();
             cacheResults(h, [mkDet({entity:{name:'C'}})]);
             expect(getCachedResults(h)).toHaveLength(1);
+        });
+
+        it('builds distinct cache keys for mode and template readiness', () => {
+            resetState();
+            const coldMain = buildDetectionCacheKey('hash', false);
+            const coldWorker = buildDetectionCacheKey('hash', true);
+            setPriorityTemplatesLoaded(true);
+            const priorityMain = buildDetectionCacheKey('hash', false);
+            setTemplatesLoaded(true);
+            const fullMain = buildDetectionCacheKey('hash', false);
+
+            expect(coldMain).not.toBe(coldWorker);
+            expect(coldMain).not.toBe(priorityMain);
+            expect(priorityMain).not.toBe(fullMain);
         });
     });
 });

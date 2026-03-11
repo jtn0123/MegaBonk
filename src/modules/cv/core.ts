@@ -17,6 +17,7 @@ import {
     isPriorityTemplatesLoaded as isPriorityTemplatesLoadedState,
     CACHE_TTL,
     MAX_CACHE_SIZE,
+    clearTemplateState,
 } from './state.ts';
 import { loadTrainingData, clearTrainingData, isTrainingDataLoaded } from './training.ts';
 
@@ -98,15 +99,10 @@ export function cleanupCV(): void {
 
     // Clear all caches
     getDetectionCache().clear();
-    getItemTemplates().clear();
-    getTemplatesByColor().clear();
+    clearTemplateState();
 
     // Clear training data
     clearTrainingData();
-
-    // Reset state
-    setTemplatesLoaded(false);
-    setPriorityTemplatesLoaded(false);
     setAllData({});
 
     logger.info({
@@ -119,6 +115,22 @@ export function cleanupCV(): void {
  * Initialize computer vision module
  */
 export function initCV(gameData: AllGameData): void {
+    const detectionCache = getDetectionCache();
+    if (detectionCache.size > 0) {
+        detectionCache.clear();
+    }
+    if (
+        getItemTemplates().size > 0 ||
+        getTemplatesByColor().size > 0 ||
+        isTemplatesLoaded() ||
+        isPriorityTemplatesLoadedState()
+    ) {
+        clearTemplateState();
+    } else {
+        setTemplatesLoaded(false);
+        setPriorityTemplatesLoaded(false);
+    }
+
     // Bug fix #4: Handle null/undefined gameData
     setAllData(gameData || {});
 

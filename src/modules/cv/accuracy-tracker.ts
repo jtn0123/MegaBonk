@@ -129,13 +129,12 @@ export async function loadBenchmarkHistory(): Promise<BenchmarkHistory | null> {
     }
 
     try {
-        const response = await fetch('data/benchmark-history.json');
+        const response = await fetch('./data/benchmark-history.json');
         if (!response.ok) {
             logger.info({
                 operation: 'cv.accuracy.no_history',
                 data: { status: response.status },
             });
-            historyLoaded = true;
             return null;
         }
 
@@ -158,7 +157,6 @@ export async function loadBenchmarkHistory(): Promise<BenchmarkHistory | null> {
                 message: (error as Error).message,
             },
         });
-        historyLoaded = true;
         return null;
     }
 }

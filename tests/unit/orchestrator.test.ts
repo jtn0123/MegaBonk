@@ -5,7 +5,7 @@ vi.mock('../../src/modules/logger.ts', () => ({
     logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() },
 }));
 
-vi.mock('../../src/modules/test-utils.ts', () => ({
+vi.mock('../../src/modules/image-layout.ts', () => ({
     detectResolution: vi.fn(() => ({ category: 'desktop', width: 1920, height: 1080 })),
 }));
 
@@ -78,6 +78,7 @@ vi.mock('../../src/modules/cv/detection-processing.ts', () => ({
         width: 1920,
         height: 1080,
     })),
+    buildDetectionCacheKey: vi.fn((hash: string, useWorkers: boolean) => `${hash}:${useWorkers ? 'worker' : 'main'}`),
     getCachedResults: vi.fn(() => null),
     cacheResults: vi.fn(),
     boostConfidenceWithContext: vi.fn((dets: unknown[]) => dets),
@@ -164,9 +165,39 @@ describe('orchestrator - detectItemsWithCV', () => {
     it('should use worker path when useWorkers is true', async () => {
         const { detectItemsWithWorkers } = await import('../../src/modules/cv/detection-pipeline/worker-detection.ts');
         vi.mocked(detectItemsWithWorkers).mockResolvedValueOnce([mockDetection]);
+        const originalWorker = globalThis.Worker;
+        (globalThis as typeof globalThis & { Worker: typeof Worker }).Worker = vi.fn() as unknown as typeof Worker;
 
-        const results = await detectItemsWithCV('data:image/png;base64,abc', undefined, true);
-        expect(detectItemsWithWorkers).toHaveBeenCalled();
+        try {
+            await detectItemsWithCV('data:image/png;base64,abc', undefined, true);
+            expect(detectItemsWithWorkers).toHaveBeenCalled();
+        } finally {
+            if (originalWorker) {
+                (globalThis as typeof globalThis & { Worker: typeof Worker }).Worker = originalWorker;
+            } else {
+                delete (globalThis as typeof globalThis & { Worker?: typeof Worker }).Worker;
+            }
+        }
+    });
+
+    it('should route worker detections through shared post-processing', async () => {
+        const { detectItemsWithWorkers } = await import('../../src/modules/cv/detection-pipeline/worker-detection.ts');
+        const { boostConfidenceWithContext, cacheResults } = await import('../../src/modules/cv/detection-processing.ts');
+        vi.mocked(detectItemsWithWorkers).mockResolvedValueOnce([mockDetection]);
+        const originalWorker = globalThis.Worker;
+        (globalThis as typeof globalThis & { Worker: typeof Worker }).Worker = vi.fn() as unknown as typeof Worker;
+
+        try {
+            await detectItemsWithCV('data:image/png;base64,abc', undefined, true);
+            expect(boostConfidenceWithContext).toHaveBeenCalled();
+            expect(cacheResults).toHaveBeenCalled();
+        } finally {
+            if (originalWorker) {
+                (globalThis as typeof globalThis & { Worker: typeof Worker }).Worker = originalWorker;
+            } else {
+                delete (globalThis as typeof globalThis & { Worker?: typeof Worker }).Worker;
+            }
+        }
     });
 
     it('should handle detection errors', async () => {

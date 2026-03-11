@@ -12,11 +12,11 @@ import {
     isTemplatesLoaded,
     setTemplatesLoaded,
     setPriorityTemplatesLoaded,
-    isStandardTemplatesLoading,
     setStandardTemplatesLoading,
     setMultiScaleTemplate,
     getMultiScaleTemplateCount,
     COMMON_ICON_SIZES,
+    clearTemplateState,
 } from './state.ts';
 import { getDominantColor } from './color.ts';
 
@@ -91,6 +91,7 @@ export function prioritizeItems(items: Item[]): { priority: Item[]; standard: It
 // Retry configuration for template loading (2.4)
 const TEMPLATE_LOAD_MAX_RETRIES = 2;
 const TEMPLATE_LOAD_RETRY_DELAY_MS = 500;
+let templateLoadPromise: Promise<void> | null = null;
 
 /**
  * Sleep helper for retry delays
@@ -259,65 +260,49 @@ export function groupTemplatesByColor(items: Item[]): void {
  */
 export async function loadItemTemplates(): Promise<void> {
     if (isTemplatesLoaded()) return;
+    if (templateLoadPromise) {
+        return templateLoadPromise;
+    }
 
-    const itemTemplates = getItemTemplates();
-    const templatesByColor = getTemplatesByColor();
+    templateLoadPromise = (async () => {
+        const templatesByColor = getTemplatesByColor();
 
-    // Clear old templates before loading new ones to prevent memory leaks
-    // This handles cases where loadItemTemplates is called after a data refresh
-    if (itemTemplates.size > 0) {
-        itemTemplates.clear();
-        templatesByColor.clear();
-        setPriorityTemplatesLoaded(false);
+        clearDetectionCache();
+        clearTemplateState();
         logger.info({
             operation: 'cv.load_templates',
             data: { phase: 'clearing_old_templates' },
         });
-    }
 
-    const items = getAllData().items?.items || [];
+        const items = getAllData().items?.items || [];
 
-    logger.info({
-        operation: 'cv.load_templates',
-        data: { phase: 'start', totalItems: items.length },
-    });
-
-    // Prioritize items (common/uncommon first)
-    const { priority, standard } = prioritizeItems(items);
-
-    // Load priority items first
-    const priorityResult = await loadTemplatesBatch(priority);
-    groupTemplatesByColor(priority);
-    setPriorityTemplatesLoaded(true);
-
-    logger.info({
-        operation: 'cv.load_templates',
-        data: {
-            phase: 'priority_complete',
-            priorityLoaded: priorityResult.loaded,
-            priorityFailed: priorityResult.failed,
-            priorityTotal: priority.length,
-        },
-    });
-
-    // Load remaining items in background (non-blocking)
-    // Use setTimeout(0) to yield to the event loop without arbitrary delay
-    // Guard against concurrent loads with isStandardTemplatesLoading flag
-    if (isStandardTemplatesLoading()) {
         logger.info({
             operation: 'cv.load_templates',
-            data: { phase: 'skipped_standard', reason: 'already_loading' },
+            data: { phase: 'start', totalItems: items.length },
         });
-        return;
-    }
-    setStandardTemplatesLoading(true);
 
-    setTimeout(async () => {
+        const { priority, standard } = prioritizeItems(items);
+
+        const priorityResult = await loadTemplatesBatch(priority);
+        groupTemplatesByColor(priority);
+        setPriorityTemplatesLoaded(true);
+
+        logger.info({
+            operation: 'cv.load_templates',
+            data: {
+                phase: 'priority_complete',
+                priorityLoaded: priorityResult.loaded,
+                priorityFailed: priorityResult.failed,
+                priorityTotal: priority.length,
+            },
+        });
+
+        setStandardTemplatesLoading(true);
         try {
+            await sleep(0);
             const standardResult = await loadTemplatesBatch(standard);
             groupTemplatesByColor(standard);
             setTemplatesLoaded(true);
-            setStandardTemplatesLoading(false);
 
             logger.info({
                 operation: 'cv.load_templates',
@@ -330,7 +315,10 @@ export async function loadItemTemplates(): Promise<void> {
                     total: items.length,
                     multiScaleVariants: getMultiScaleTemplateCount(),
                     colorGroups: Object.fromEntries(
-                        Array.from(templatesByColor.entries()).map(([color, items]) => [color, items.length])
+                        Array.from(templatesByColor.entries()).map(([color, groupedItems]) => [
+                            color,
+                            groupedItems.length,
+                        ])
                     ),
                 },
             });
@@ -342,11 +330,18 @@ export async function loadItemTemplates(): Promise<void> {
                     error: error instanceof Error ? error.message : String(error),
                 },
             });
-            // Still mark as loaded to prevent infinite retries
+            // Keep the CV UI usable even if some templates fail to finish loading.
             setTemplatesLoaded(true);
+        } finally {
             setStandardTemplatesLoading(false);
         }
-    }, 0);
+    })();
+
+    try {
+        await templateLoadPromise;
+    } finally {
+        templateLoadPromise = null;
+    }
 }
 
 // ========================================

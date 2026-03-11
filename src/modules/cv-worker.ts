@@ -252,17 +252,162 @@ self.onmessage = function(e) {
 // Worker recovery configuration (2.5)
 const MAX_WORKER_RESTART_ATTEMPTS = 3;
 const WORKER_RESTART_DELAY_MS = 500;
+const DETECTION_TIMEOUT_MS = 30000;
+const RETRYABLE_REQUEST_LIMIT = 1;
+
+interface PendingRequest {
+    resolve: (result: DetectionResult[]) => void;
+    reject: (error: Error) => void;
+    onProgress?: (progress: number) => void;
+    imageData?: ImageData;
+    retryCount: number;
+    timeoutId?: ReturnType<typeof setTimeout>;
+}
+
+function clearPendingTimeout(pending: PendingRequest): void {
+    if (pending.timeoutId) {
+        clearTimeout(pending.timeoutId);
+        pending.timeoutId = undefined;
+    }
+}
+
+function colorDistance(c1: [number, number, number], c2: [number, number, number]): number {
+    const dr = c1[0] - c2[0];
+    const dg = c1[1] - c2[1];
+    const db = c1[2] - c2[2];
+    return Math.sqrt(dr * dr + dg * dg + db * db);
+}
+
+function extractDominantColor(
+    imageData: ImageData,
+    x: number,
+    y: number,
+    width: number,
+    height: number
+): [number, number, number] {
+    const data = imageData.data;
+    const imgWidth = imageData.width;
+
+    let totalR = 0;
+    let totalG = 0;
+    let totalB = 0;
+    let count = 0;
+
+    for (let py = y; py < y + height && py < imageData.height; py++) {
+        for (let px = x; px < x + width && px < imgWidth; px++) {
+            const idx = (py * imgWidth + px) * 4;
+            totalR += data[idx] ?? 0;
+            totalG += data[idx + 1] ?? 0;
+            totalB += data[idx + 2] ?? 0;
+            count++;
+        }
+    }
+
+    if (count === 0) return [0, 0, 0];
+
+    return [Math.round(totalR / count), Math.round(totalG / count), Math.round(totalB / count)];
+}
+
+function matchTemplate(imageData: ImageData, template: CVTemplate, x: number, y: number): number {
+    const sourceColor = extractDominantColor(imageData, x, y, template.width, template.height);
+    const templateColor = extractDominantColor(template.imageData, 0, 0, template.width, template.height);
+    const distance = colorDistance(sourceColor, templateColor);
+    const maxDistance = Math.sqrt(255 * 255 * 3);
+    return 1 - distance / maxDistance;
+}
+
+function calculateOverlap(box1: DetectionResult, box2: DetectionResult): number {
+    const x1 = Math.max(box1.x, box2.x);
+    const y1 = Math.max(box1.y, box2.y);
+    const x2 = Math.min(box1.x + box1.width, box2.x + box2.width);
+    const y2 = Math.min(box1.y + box1.height, box2.y + box2.height);
+
+    if (x2 < x1 || y2 < y1) return 0;
+
+    const intersection = (x2 - x1) * (y2 - y1);
+    const area1 = box1.width * box1.height;
+    const area2 = box2.width * box2.height;
+    const union = area1 + area2 - intersection;
+    return intersection / union;
+}
+
+function nonMaxSuppression(detections: DetectionResult[], overlapThreshold: number = 0.3): DetectionResult[] {
+    if (detections.length === 0) return [];
+
+    const result: DetectionResult[] = [];
+    const used = new Set<number>();
+
+    for (let i = 0; i < detections.length; i++) {
+        if (used.has(i)) continue;
+        const current = detections[i];
+        if (!current) continue;
+
+        result.push(current);
+
+        for (let j = i + 1; j < detections.length; j++) {
+            if (used.has(j)) continue;
+            const candidate = detections[j];
+            if (!candidate) continue;
+            if (calculateOverlap(current, candidate) > overlapThreshold) {
+                used.add(j);
+            }
+        }
+    }
+
+    return result;
+}
+
+function runDetectionOnMainThread(
+    imageData: ImageData,
+    config?: Partial<CVWorkerConfig>,
+    templates: CVTemplate[] = [],
+    onProgress?: (progress: number) => void
+): DetectionResult[] {
+    const mergedConfig: CVWorkerConfig = {
+        threshold: 0.7,
+        maxDetections: 20,
+        enableDebug: false,
+        ...config,
+    };
+    const detections: DetectionResult[] = [];
+    const stepSize = 16;
+    const totalSteps = Math.max(
+        1,
+        Math.ceil(imageData.width / stepSize) * Math.ceil(imageData.height / stepSize) * templates.length
+    );
+    let currentStep = 0;
+
+    for (const template of templates) {
+        for (let y = 0; y < imageData.height - template.height; y += stepSize) {
+            for (let x = 0; x < imageData.width - template.width; x += stepSize) {
+                const confidence = matchTemplate(imageData, template, x, y);
+                if (confidence >= mergedConfig.threshold) {
+                    detections.push({
+                        id: template.id,
+                        name: template.name,
+                        confidence,
+                        x,
+                        y,
+                        width: template.width,
+                        height: template.height,
+                    });
+                }
+
+                currentStep++;
+                if (currentStep % 1000 === 0) {
+                    onProgress?.(Math.round((currentStep / totalSteps) * 100));
+                }
+            }
+        }
+    }
+
+    detections.sort((a, b) => b.confidence - a.confidence);
+    return nonMaxSuppression(detections).slice(0, mergedConfig.maxDetections);
+}
 
 class CVWorkerManager {
     private worker: Worker | null = null;
-    private readonly pendingRequests: Map<
-        string,
-        {
-            resolve: (result: DetectionResult[]) => void;
-            reject: (error: Error) => void;
-            onProgress?: (progress: number) => void;
-        }
-    > = new Map();
+    private readonly pendingRequests: Map<string, PendingRequest> = new Map();
     private isReady = false;
     private requestIdCounter = 0;
     private restartAttempts = 0; // Track restart attempts for recovery (2.5)
@@ -304,6 +449,7 @@ class CVWorkerManager {
                         resolve();
                     },
                     reject,
+                    retryCount: 0,
                 });
 
                 this.worker?.postMessage({
@@ -315,6 +461,10 @@ class CVWorkerManager {
                 // Timeout after 5 seconds
                 setTimeout(() => {
                     if (this.pendingRequests.has(id)) {
+                        const pending = this.pendingRequests.get(id);
+                        if (pending) {
+                            clearPendingTimeout(pending);
+                        }
                         this.pendingRequests.delete(id);
                         reject(new Error('Worker initialization timeout'));
                     }
@@ -393,21 +543,21 @@ class CVWorkerManager {
 
         return new Promise((resolve, reject) => {
             const id = this.generateId();
-            this.pendingRequests.set(id, { resolve, reject, onProgress });
-
-            this.worker?.postMessage({
-                type: 'detect',
-                id,
-                data: { imageData },
-            });
-
-            // Timeout after 30 seconds
-            setTimeout(() => {
-                if (this.pendingRequests.has(id)) {
-                    this.pendingRequests.delete(id);
-                    reject(new Error('Detection timeout'));
-                }
-            }, 30000);
+            const pending: PendingRequest = {
+                resolve,
+                reject,
+                onProgress,
+                imageData,
+                retryCount: 0,
+            };
+            this.pendingRequests.set(id, pending);
+            try {
+                this.postDetectRequest(id, pending);
+            } catch (error) {
+                clearPendingTimeout(pending);
+                this.pendingRequests.delete(id);
+                reject(error as Error);
+            }
         });
     }
 
@@ -421,6 +571,9 @@ class CVWorkerManager {
             this.worker = null;
         }
         this.isReady = false;
+        for (const pending of this.pendingRequests.values()) {
+            clearPendingTimeout(pending);
+        }
         this.pendingRequests.clear();
     }
 
@@ -450,11 +603,13 @@ class CVWorkerManager {
 
         switch (type) {
             case 'ready':
+                clearPendingTimeout(pending);
                 pending.resolve([]);
                 this.pendingRequests.delete(id);
                 break;
 
             case 'result':
+                clearPendingTimeout(pending);
                 pending.resolve(data?.detections || []);
                 this.pendingRequests.delete(id);
                 break;
@@ -464,6 +619,7 @@ class CVWorkerManager {
                 break;
 
             case 'error':
+                clearPendingTimeout(pending);
                 pending.reject(new Error(error || 'Unknown worker error'));
                 this.pendingRequests.delete(id);
                 break;
@@ -479,23 +635,66 @@ class CVWorkerManager {
             error: { name: 'WorkerError', message: error.message, module: 'cv-worker' },
         });
 
-        // Store pending requests before clearing
-        const pendingToRetry = new Map(this.pendingRequests);
-
-        // Reject all pending requests
-        for (const [id, pending] of this.pendingRequests) {
-            pending.reject(new Error(`Worker error: ${error.message}`));
-            this.pendingRequests.delete(id);
-        }
+        const pendingToRetry = Array.from(this.pendingRequests.entries());
+        this.pendingRequests.clear();
+        pendingToRetry.forEach(([, pending]) => clearPendingTimeout(pending));
 
         // Attempt worker restart (2.5)
         this.restartWorker().then(success => {
-            if (success) {
+            if (!success) {
+                pendingToRetry.forEach(([, pending]) => {
+                    pending.reject(new Error(`Worker error: ${error.message}. Recovery failed; please retry.`));
+                });
+                return;
+            }
+
+            pendingToRetry.forEach(([id, pending]) => {
+                if (!pending.imageData) {
+                    pending.reject(new Error(`Worker restarted after init failure: ${error.message}. Please retry.`));
+                    return;
+                }
+                if (pending.retryCount >= RETRYABLE_REQUEST_LIMIT) {
+                    pending.reject(new Error(`Worker error: ${error.message}. Request was not retried again.`));
+                    return;
+                }
+
+                pending.retryCount += 1;
+                this.pendingRequests.set(id, pending);
+                try {
+                    this.postDetectRequest(id, pending);
+                } catch (retryError) {
+                    clearPendingTimeout(pending);
+                    this.pendingRequests.delete(id);
+                    pending.reject(retryError as Error);
+                }
+            });
+
+            if (pendingToRetry.length > 0) {
                 logger.info({
                     operation: 'cv-worker.recovered',
-                    data: { pendingCount: pendingToRetry.size },
+                    data: { pendingCount: pendingToRetry.length, retried: true },
                 });
             }
+        });
+    }
+
+    private postDetectRequest(id: string, pending: PendingRequest): void {
+        if (!this.worker || !this.isReady || !pending.imageData) {
+            throw new Error('CV Worker not initialized');
+        }
+
+        pending.timeoutId = setTimeout(() => {
+            if (this.pendingRequests.has(id)) {
+                this.pendingRequests.delete(id);
+                clearPendingTimeout(pending);
+                pending.reject(new Error('Detection timeout'));
+            }
+        }, DETECTION_TIMEOUT_MS);
+
+        this.worker.postMessage({
+            type: 'detect',
+            id,
+            data: { imageData: pending.imageData },
         });
     }
 
@@ -538,8 +737,7 @@ export async function runCVDetection(
             operation: 'cv-worker.detect',
             data: { reason: 'workers_not_supported', fallback: 'main_thread' },
         });
-        // Fallback would go here - for now just return empty
-        return [];
+        return runDetectionOnMainThread(imageData, config, templates, onProgress);
     }
 
     try {

@@ -4,7 +4,7 @@
 
 import type { CVDetectionResult, ROI } from '../types.ts';
 import { logger } from '../../logger.ts';
-import { detectResolution } from '../../test-utils.ts';
+import { detectResolution } from '../../image-layout.ts';
 import { getAllData, getItemTemplates, isPriorityTemplatesLoaded } from '../state.ts';
 import { loadItemTemplates } from '../templates.ts';
 import { getMetricsCollector } from '../metrics.ts';
@@ -17,6 +17,7 @@ import { hashImageDataUrl } from '../detection-utils.ts';
 import { detectHotbarRegion, getAdaptiveIconSizes, verifyGridPattern, detectGridPositions } from '../detection-grid.ts';
 import {
     loadImageToCanvas,
+    buildDetectionCacheKey,
     getCachedResults,
     cacheResults,
     boostConfidenceWithContext,
@@ -30,29 +31,99 @@ import { detectItemsWithWorkers } from './worker-detection.ts';
 import type { ProgressCallback } from './types.ts';
 
 /**
- * Run worker-based detection (legacy path)
+ * Run worker-based candidate generation.
  */
 async function runWorkerDetection(
     ctx: CanvasRenderingContext2D,
     width: number,
     height: number,
     items: import('../../../types/index.ts').Item[],
-    imageHash: string,
     progressCallback?: ProgressCallback
 ): Promise<CVDetectionResult[]> {
     const gridPositions = detectGridPositions(width, height);
     logger.info({ operation: 'cv.detect_items_workers', data: { gridPositions: gridPositions.length, workers: 4 } });
 
-    const workerResults = await detectItemsWithWorkers(ctx, gridPositions, items, progressCallback);
-    progressCallback?.(100, 'Worker processing complete');
+    const workerResults = await detectItemsWithWorkers(
+        ctx,
+        gridPositions,
+        items,
+        progressCallback,
+        getDynamicMinConfidence(width, height)
+    );
+    progressCallback?.(82, 'Worker candidates ready');
 
     logger.info({
         operation: 'cv.detect_items_workers_complete',
         data: { detectionsCount: workerResults.length, gridPositions: gridPositions.length },
     });
 
-    cacheResults(imageHash, workerResults);
     return workerResults;
+}
+
+interface DetectionCandidateRun {
+    detections: CVDetectionResult[];
+    gridUsed: boolean;
+    hotbarDetections: number;
+    equipmentDetections: number;
+    mode: 'worker_grid' | 'two_phase_grid' | 'sliding_window';
+    usedWorkers: boolean;
+}
+
+async function gatherDetectionCandidates(
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    items: import('../../../types/index.ts').Item[],
+    useWorkers: boolean,
+    progressCallback?: ProgressCallback
+): Promise<DetectionCandidateRun> {
+    if (useWorkers) {
+        if (typeof Worker === 'undefined') {
+            logger.warn({
+                operation: 'cv.worker_fallback',
+                data: { reason: 'workers_not_supported', fallback: 'main_thread_pipeline' },
+            });
+        } else {
+            try {
+                progressCallback?.(25, 'Generating worker candidates...');
+                const workerDetections = await runWorkerDetection(ctx, width, height, items, progressCallback);
+                return {
+                    detections: workerDetections,
+                    gridUsed: true,
+                    hotbarDetections: workerDetections.length,
+                    equipmentDetections: 0,
+                    mode: 'worker_grid',
+                    usedWorkers: true,
+                };
+            } catch (error) {
+                logger.warn({
+                    operation: 'cv.worker_fallback',
+                    error: {
+                        name: (error as Error).name,
+                        message: (error as Error).message,
+                    },
+                    data: { fallback: 'main_thread_pipeline' },
+                });
+            }
+        }
+    }
+
+    const { detections: hotbarDetections, gridUsed } = await detectHotbarItems(
+        ctx,
+        width,
+        height,
+        items,
+        progressCallback
+    );
+    const equipmentDetections = await detectEquipmentRegion(ctx, width, height, items, progressCallback);
+    return {
+        detections: [...hotbarDetections, ...equipmentDetections],
+        gridUsed,
+        hotbarDetections: hotbarDetections.length,
+        equipmentDetections: equipmentDetections.length,
+        mode: gridUsed ? 'two_phase_grid' : 'sliding_window',
+        usedWorkers: false,
+    };
 }
 
 /**
@@ -142,11 +213,7 @@ function validateDetections(
 /**
  * Annotate detections with stack count information
  */
-function annotateStackCounts(
-    detections: CVDetectionResult[],
-    imageData: ImageData,
-    screenHeight: number
-): void {
+function annotateStackCounts(detections: CVDetectionResult[], imageData: ImageData, screenHeight: number): void {
     for (const detection of detections) {
         if (!detection.position) continue;
         const { x, y, width: cellW, height: cellH } = detection.position;
@@ -204,7 +271,10 @@ export async function detectItemsWithCV(
     useWorkers: boolean = false
 ): Promise<CVDetectionResult[]> {
     if (isCVDetectionInProgress()) {
-        logger.warn({ operation: 'cv.detect_concurrent_rejected', data: { message: 'CV detection already in progress' } });
+        logger.warn({
+            operation: 'cv.detect_concurrent_rejected',
+            data: { message: 'CV detection already in progress' },
+        });
         return [];
     }
     setCVDetectionInProgress(true);
@@ -213,20 +283,41 @@ export async function detectItemsWithCV(
     const runStartTime = performance.now();
 
     try {
-        // Check cache first
-        const imageHash = hashImageDataUrl(imageDataUrl);
-        const cachedResults = getCachedResults(imageHash);
-        if (cachedResults) {
-            logger.info({ operation: 'cv.cache_hit', data: { imageHash, resultCount: cachedResults.length } });
-            progressCallback?.(100, 'Loaded from cache (instant)');
-            return cachedResults;
-        }
-
         progressCallback?.(0, 'Loading image...');
 
         if (!isPriorityTemplatesLoaded()) {
             progressCallback?.(5, 'Loading item templates...');
             await loadItemTemplates();
+        }
+
+        const imageHash = hashImageDataUrl(imageDataUrl);
+        const requestedCacheKey = buildDetectionCacheKey(imageHash, useWorkers);
+        const cachedResults = getCachedResults(requestedCacheKey);
+        if (cachedResults) {
+            logger.info({
+                operation: 'cv.cache_hit',
+                data: { imageHash, resultCount: cachedResults.length, cacheKey: requestedCacheKey },
+            });
+            progressCallback?.(100, 'Loaded from cache (instant)');
+            return cachedResults;
+        }
+
+        if (useWorkers && typeof Worker === 'undefined') {
+            const fallbackCacheKey = buildDetectionCacheKey(imageHash, false);
+            const fallbackCachedResults = getCachedResults(fallbackCacheKey);
+            if (fallbackCachedResults) {
+                logger.info({
+                    operation: 'cv.cache_hit',
+                    data: {
+                        imageHash,
+                        resultCount: fallbackCachedResults.length,
+                        cacheKey: fallbackCacheKey,
+                        fallback: true,
+                    },
+                });
+                progressCallback?.(100, 'Loaded from main-thread cache (instant)');
+                return fallbackCachedResults;
+            }
         }
 
         const { ctx, width, height } = await loadImageToCanvas(imageDataUrl);
@@ -245,25 +336,24 @@ export async function detectItemsWithCV(
         const itemTemplates = getItemTemplates();
         logger.info({
             operation: 'cv.detect_start',
-            data: { imageWidth: width, imageHeight: height, templatesLoaded: itemTemplates.size, mode: 'sliding_window' },
+            data: {
+                imageWidth: width,
+                imageHeight: height,
+                templatesLoaded: itemTemplates.size,
+                mode: 'sliding_window',
+            },
         });
 
-        // Worker path (legacy)
-        if (useWorkers) {
-            return await runWorkerDetection(ctx, width, height, items, imageHash, progressCallback);
-        }
-
-        // Two-phase detection with sliding window fallback
-        const { detections: hotbarDetections, gridUsed } = await detectHotbarItems(ctx, width, height, items, progressCallback);
-        const equipmentDetections = await detectEquipmentRegion(ctx, width, height, items, progressCallback);
-        const allDetections = [...hotbarDetections, ...equipmentDetections];
+        const candidateRun = await gatherDetectionCandidates(ctx, width, height, items, useWorkers, progressCallback);
 
         // Grid verification
         progressCallback?.(88, 'Verifying grid pattern...');
         const iconSizes = getAdaptiveIconSizes(width, height);
-        const gridVerification = verifyGridPattern(allDetections, iconSizes[1] || 48);
-        const verifiedDetections = gridVerification.isValid ? gridVerification.filteredDetections : allDetections;
-        metrics.recordGridVerification(allDetections.length, verifiedDetections.length);
+        const gridVerification = verifyGridPattern(candidateRun.detections, iconSizes[1] || 48);
+        const verifiedDetections = gridVerification.isValid
+            ? gridVerification.filteredDetections
+            : candidateRun.detections;
+        metrics.recordGridVerification(candidateRun.detections.length, verifiedDetections.length);
 
         // Context boosting + validation
         progressCallback?.(92, 'Applying context boosting...');
@@ -281,10 +371,11 @@ export async function detectItemsWithCV(
         // Logging
         const logData: Record<string, unknown> = {
             detectionsCount: validatedDetections.length,
-            hotbarDetections: hotbarDetections.length,
-            equipmentDetections: equipmentDetections.length,
-            mode: gridUsed ? 'two_phase_grid' : 'sliding_window',
-            gridUsed,
+            hotbarDetections: candidateRun.hotbarDetections,
+            equipmentDetections: candidateRun.equipmentDetections,
+            mode: candidateRun.mode,
+            gridUsed: candidateRun.gridUsed,
+            usedWorkers: candidateRun.usedWorkers,
         };
         if (validatedDetections.length === 0) {
             logData.debugHint = 'No icons detected - ensure screenshot shows game UI with item icons';
@@ -294,13 +385,17 @@ export async function detectItemsWithCV(
         }
         logger.info({ operation: 'cv.detect_items_smart', data: logData });
 
-        cacheResults(imageHash, validatedDetections);
+        const effectiveCacheKey = buildDetectionCacheKey(imageHash, candidateRun.usedWorkers);
+        cacheResults(effectiveCacheKey, validatedDetections);
         logActiveLearning(validatedDetections);
         metrics.endRun(performance.now() - runStartTime);
 
         return validatedDetections;
     } catch (error) {
-        logger.error({ operation: 'cv.detect_items', error: { name: (error as Error).name, message: (error as Error).message } });
+        logger.error({
+            operation: 'cv.detect_items',
+            error: { name: (error as Error).name, message: (error as Error).message },
+        });
         metrics.endRun(performance.now() - runStartTime);
         throw error;
     } finally {

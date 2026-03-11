@@ -26,7 +26,7 @@ vi.mock('../../../src/modules/logger.ts', () => ({
     },
 }));
 
-vi.mock('../../../src/modules/test-utils.ts', () => ({
+vi.mock('../../../src/modules/image-layout.ts', () => ({
     detectResolution: vi.fn((w: number, h: number) => {
         if (h <= 720) return { category: '720p', width: 1280, height: 720 };
         if (h <= 1080) return { category: '1080p', width: 1920, height: 1080 };

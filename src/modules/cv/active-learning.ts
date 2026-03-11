@@ -99,14 +99,13 @@ export function initActiveLearning(gameData: AllGameData): void {
 /**
  * Find uncertain detections from a list
  */
-export function findUncertainDetections(
-    detections: DetectionForFeedback[],
-    threshold: number = CONFIG.UNCERTAINTY_THRESHOLD
-): UncertainDetection[] {
+export function findUncertainDetections(detections: DetectionForFeedback[], threshold?: number): UncertainDetection[] {
     const uncertain: UncertainDetection[] = [];
 
     for (const detection of detections) {
-        if (detection.confidence < threshold) {
+        const matchedItem = allData.items?.items?.find(item => item.id === detection.detectedItemId);
+        const effectiveThreshold = threshold ?? getUncertaintyThreshold(matchedItem?.rarity);
+        if (detection.confidence < effectiveThreshold) {
             // Find alternative items that might be correct
             const alternatives = findAlternatives(detection, CONFIG.MAX_ALTERNATIVES);
 

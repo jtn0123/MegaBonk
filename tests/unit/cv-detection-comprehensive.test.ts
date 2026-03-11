@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 // Mock the test-utils module for resolution detection
-vi.mock('../../src/modules/test-utils.ts', () => ({
+vi.mock('../../src/modules/image-layout.ts', () => ({
     detectResolution: vi.fn().mockReturnValue({ category: '1080p', scale: 1.5 }),
 }));
 
@@ -30,7 +30,7 @@ import {
     loadImageToCanvas,
 } from '../../src/modules/cv/detection.ts';
 
-import { detectResolution } from '../../src/modules/test-utils.ts';
+import { detectResolution } from '../../src/modules/image-layout.ts';
 import type { CVDetectionResult, ROI } from '../../src/types';
 
 // ========================================

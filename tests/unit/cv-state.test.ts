@@ -857,7 +857,7 @@ describe('CV State Module', () => {
         });
 
         describe('loadGridPresets', () => {
-            it('should handle fetch failure gracefully', async () => {
+            it('should allow retry after fetch failure', async () => {
                 global.fetch = vi.fn().mockResolvedValue({
                     ok: false,
                     status: 404,
@@ -865,10 +865,10 @@ describe('CV State Module', () => {
 
                 const result = await loadGridPresets();
                 expect(result).toBeNull();
-                expect(isGridPresetsLoaded()).toBe(true);
+                expect(isGridPresetsLoaded()).toBe(false);
             });
 
-            it('should handle fetch error gracefully', async () => {
+            it('should allow retry after fetch error', async () => {
                 global.fetch = vi.fn().mockRejectedValue(new Error('Network error'));
 
                 // Reset state first to clear any cached presets
@@ -876,7 +876,7 @@ describe('CV State Module', () => {
 
                 const result = await loadGridPresets();
                 expect(result).toBeNull();
-                expect(isGridPresetsLoaded()).toBe(true);
+                expect(isGridPresetsLoaded()).toBe(false);
             });
 
             it('should load and cache presets on success', async () => {

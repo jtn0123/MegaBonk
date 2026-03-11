@@ -5,9 +5,10 @@
 import type { Item } from '../../types/index.ts';
 import { logger } from '../logger.ts';
 import type { CVDetectionResult } from './types.ts';
-import { getDetectionCache, CACHE_TTL, MAX_CACHE_SIZE } from './state.ts';
+import { getDetectionCache, CACHE_TTL, MAX_CACHE_SIZE, getTemplateReadinessState } from './state.ts';
 import { detectBorderRarity } from './color.ts';
 import { IMAGE_LOAD_TIMEOUT_MS } from './detection-config.ts';
+import { getScoringConfig } from './scoring-config.ts';
 
 // ========================================
 // Image Loading
@@ -90,18 +91,32 @@ export async function loadImageToCanvas(
 // Cache Functions
 // ========================================
 
+const DETECTION_CACHE_SCHEMA_VERSION = 'v2';
+
+export function buildDetectionCacheKey(imageHash: string, useWorkers: boolean): string {
+    const scoringConfig = getScoringConfig();
+    const scoringSignature = JSON.stringify(scoringConfig);
+    return [
+        DETECTION_CACHE_SCHEMA_VERSION,
+        imageHash,
+        useWorkers ? 'worker' : 'main',
+        getTemplateReadinessState(),
+        scoringSignature,
+    ].join('::');
+}
+
 /**
  * Get cached detection results if available
  */
-export function getCachedResults(imageHash: string): CVDetectionResult[] | null {
+export function getCachedResults(cacheKey: string): CVDetectionResult[] | null {
     const detectionCache = getDetectionCache();
-    const cached = detectionCache.get(imageHash);
+    const cached = detectionCache.get(cacheKey);
 
     if (!cached) return null;
 
     // Check if cache is expired
     if (Date.now() - cached.timestamp > CACHE_TTL) {
-        detectionCache.delete(imageHash);
+        detectionCache.delete(cacheKey);
         return null;
     }
 
@@ -111,9 +126,9 @@ export function getCachedResults(imageHash: string): CVDetectionResult[] | null 
 /**
  * Cache detection results
  */
-export function cacheResults(imageHash: string, results: CVDetectionResult[]): void {
+export function cacheResults(cacheKey: string, results: CVDetectionResult[]): void {
     const detectionCache = getDetectionCache();
-    detectionCache.set(imageHash, {
+    detectionCache.set(cacheKey, {
         results,
         timestamp: Date.now(),
     });

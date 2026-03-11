@@ -177,7 +177,7 @@ describe('CV Accuracy Tracker', () => {
     // loadBenchmarkHistory Tests
     // ========================================
     describe('loadBenchmarkHistory', () => {
-        it('should return null when fetch fails with non-ok status', async () => {
+        it('should return null without locking history after non-ok fetch status', async () => {
             vi.stubGlobal(
                 'fetch',
                 vi.fn().mockResolvedValue({
@@ -190,17 +190,17 @@ describe('CV Accuracy Tracker', () => {
             const result = await loadBenchmarkHistory();
 
             expect(result).toBeNull();
-            expect(isHistoryLoaded()).toBe(true);
+            expect(isHistoryLoaded()).toBe(false);
         });
 
-        it('should return null and set loaded when fetch throws', async () => {
+        it('should return null without locking history when fetch throws', async () => {
             vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Network error')));
 
             clearHistory();
             const result = await loadBenchmarkHistory();
 
             expect(result).toBeNull();
-            expect(isHistoryLoaded()).toBe(true);
+            expect(isHistoryLoaded()).toBe(false);
         });
 
         it('should return cached history on subsequent calls', async () => {

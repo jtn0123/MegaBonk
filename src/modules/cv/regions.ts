@@ -3,7 +3,7 @@
 // ========================================
 
 import { logger } from '../logger.ts';
-import { detectResolution, detectUILayout } from '../test-utils.ts';
+import { detectResolution, detectUILayout } from '../image-layout.ts';
 import { getGridConfig } from './cv-config.ts';
 import type { ROI } from './types.ts';
 

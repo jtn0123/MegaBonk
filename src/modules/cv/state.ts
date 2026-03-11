@@ -18,7 +18,7 @@ let templatesLoaded = false;
 let priorityTemplatesLoaded = false;
 let standardTemplatesLoading = false; // Guard against concurrent standard template loads
 
-// Detection result cache (key = image hash, value = results)
+// Detection result cache (key = composite detection cache key, value = results)
 const detectionCache = new Map<string, { results: CVDetectionResult[]; timestamp: number }>();
 
 // ========================================
@@ -153,6 +153,12 @@ export function isPriorityTemplatesLoaded(): boolean {
     return priorityTemplatesLoaded;
 }
 
+export function getTemplateReadinessState(): 'cold' | 'priority' | 'full' {
+    if (templatesLoaded) return 'full';
+    if (priorityTemplatesLoaded) return 'priority';
+    return 'cold';
+}
+
 export function isStandardTemplatesLoading(): boolean {
     return standardTemplatesLoading;
 }
@@ -246,20 +252,24 @@ export function setCacheCleanupTimer(timer: ReturnType<typeof setInterval> | nul
     cacheCleanupTimer = timer;
 }
 
+export function clearTemplateState(): void {
+    itemTemplates.clear();
+    templatesByColor.clear();
+    templatesLoaded = false;
+    priorityTemplatesLoaded = false;
+    standardTemplatesLoading = false;
+    resizedTemplateCache.clear();
+    multiScaleTemplates.clear();
+}
+
 // ========================================
 // State Reset (for cleanup)
 // ========================================
 
 export function resetState(): void {
     allData = {};
-    itemTemplates.clear();
-    templatesByColor.clear();
-    templatesLoaded = false;
-    priorityTemplatesLoaded = false;
-    standardTemplatesLoading = false;
+    clearTemplateState();
     detectionCache.clear();
-    resizedTemplateCache.clear();
-    multiScaleTemplates.clear();
     gridPresets = null;
     gridPresetsLoaded = false;
     if (cacheCleanupTimer) {
@@ -284,13 +294,12 @@ export async function loadGridPresets(): Promise<GridPresetsFile | null> {
     }
 
     try {
-        const response = await fetch('data/grid-presets.json');
+        const response = await fetch('./data/grid-presets.json');
         if (!response.ok) {
             logger.warn({
                 operation: 'cv.state.grid_presets_not_found',
                 data: { status: response.status },
             });
-            gridPresetsLoaded = true;
             return null;
         }
 
@@ -309,7 +318,6 @@ export async function loadGridPresets(): Promise<GridPresetsFile | null> {
                 message: (e as Error).message,
             },
         });
-        gridPresetsLoaded = true;
         return null;
     }
 }

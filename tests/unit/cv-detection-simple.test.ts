@@ -5,7 +5,7 @@
 import { describe, it, expect, vi } from 'vitest';
 
 // Mock test-utils BEFORE importing detection module
-vi.mock('../../src/modules/test-utils.ts', () => ({
+vi.mock('../../src/modules/image-layout.ts', () => ({
     detectResolution: vi.fn().mockReturnValue({ category: '1080p', scale: 1.5 }),
 }));
 

@@ -3,7 +3,7 @@
 // ========================================
 
 import { logger } from '../../logger.ts';
-import { detectResolution } from '../../test-utils.ts';
+import { detectResolution } from '../../image-layout.ts';
 import type { ROI } from '../types.ts';
 import type { ScaleDetectionResult } from './grid-types.ts';
 import { detectHotbarRegion } from './hotbar-detection.ts';

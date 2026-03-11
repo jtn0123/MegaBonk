@@ -302,13 +302,13 @@ describe('CV State Module - Coverage Enhancement', () => {
     // ========================================
     describe('Grid Presets', () => {
         describe('loadGridPresets', () => {
-            it('returns null when fetch fails', async () => {
+            it('returns null and leaves presets retryable when fetch fails', async () => {
                 vi.spyOn(global, 'fetch').mockRejectedValue(new Error('Network error'));
 
                 const result = await loadGridPresets();
 
                 expect(result).toBeNull();
-                expect(isGridPresetsLoaded()).toBe(true); // Should mark as loaded to prevent retries
+                expect(isGridPresetsLoaded()).toBe(false);
             });
 
             it('returns null for non-OK response', async () => {
@@ -507,11 +507,11 @@ describe('CV State Module - Coverage Enhancement', () => {
                 expect(isGridPresetsLoaded()).toBe(true);
             });
 
-            it('returns true after failed load (prevents retries)', async () => {
+            it('returns false after failed load so future calls can retry', async () => {
                 vi.spyOn(global, 'fetch').mockRejectedValue(new Error('Network error'));
 
                 await loadGridPresets();
-                expect(isGridPresetsLoaded()).toBe(true);
+                expect(isGridPresetsLoaded()).toBe(false);
             });
 
             it('returns false after resetState', async () => {

@@ -119,6 +119,26 @@ describe('CV Active Learning', () => {
             expect(result[0].detection.detectedItemId).toBe('sword');
         });
 
+        it('should use rarity-aware thresholds when no explicit threshold is provided', () => {
+            initActiveLearning({
+                items: {
+                    items: [
+                        { id: 'sword', name: 'Sword', rarity: 'common' },
+                        { id: 'relic', name: 'Relic', rarity: 'legendary' },
+                    ],
+                },
+            } as any);
+
+            const detections: DetectionForFeedback[] = [
+                createMockDetection('sword', 0.62),
+                createMockDetection('relic', 0.62),
+            ];
+
+            const result = findUncertainDetections(detections);
+
+            expect(result.map(entry => entry.detection.detectedItemId)).toEqual(['sword']);
+        });
+
         it('should include alternatives from game data', () => {
             initActiveLearning({
                 items: {
