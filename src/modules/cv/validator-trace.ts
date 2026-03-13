@@ -6,6 +6,12 @@ import type {
     SlotTrace,
     ValidatorRunTrace,
 } from './validator-types.ts';
+import {
+    addValidatorEventStageWarning,
+    completeValidatorEventStage,
+    startValidatorEventStage,
+    updateValidatorEventStageProgress,
+} from './validator-events.ts';
 
 interface MutableTrace extends ValidatorRunTrace {
     stageIndex: Map<PipelineStageName, number>;
@@ -129,6 +135,12 @@ export function startValidatorStage(name: PipelineStageName, patch: Partial<Pipe
     stage.endedAtMs = stage.startedAtMs;
     stage.durationMs = 0;
     Object.assign(stage, patch);
+    startValidatorEventStage(name, {
+        ...(patch.metadata || {}),
+        inputCount: patch.inputCount,
+        outputCount: patch.outputCount,
+        status: patch.status || 'ok',
+    });
 }
 
 export function endValidatorStage(name: PipelineStageName, patch: Partial<PipelineStageTrace> = {}): void {
@@ -150,6 +162,13 @@ export function endValidatorStage(name: PipelineStageName, patch: Partial<Pipeli
         inputCount: patch.inputCount ?? stage.inputCount,
         outputCount: patch.outputCount ?? stage.outputCount,
     });
+    completeValidatorEventStage(name, {
+        ...(stage.metadata || {}),
+        inputCount: stage.inputCount,
+        outputCount: stage.outputCount,
+        status: stage.status,
+        warnings: [...stage.warnings],
+    });
 }
 
 export function addValidatorStageWarning(name: PipelineStageName, warning: string): void {
@@ -159,6 +178,47 @@ export function addValidatorStageWarning(name: PipelineStageName, warning: strin
     stage.status = 'warning';
     stage.warnings.push(warning);
     trace.warnings.push(warning);
+    addValidatorEventStageWarning(name, warning, {
+        ...(stage.metadata || {}),
+        warnings: [...stage.warnings],
+    });
+}
+
+export function updateValidatorStageProgress(
+    name: PipelineStageName,
+    patch: Partial<PipelineStageTrace> = {},
+    message?: string
+): void {
+    const stage = ensureStage(name);
+    const trace = getTrace();
+    if (!stage) return;
+    if (patch.warnings) {
+        stage.warnings = [...stage.warnings, ...patch.warnings];
+        if (trace) {
+            trace.warnings.push(...patch.warnings);
+        }
+    }
+    if (patch.metadata) {
+        stage.metadata = {
+            ...(stage.metadata || {}),
+            ...patch.metadata,
+        };
+    }
+    stage.inputCount = patch.inputCount ?? stage.inputCount;
+    stage.outputCount = patch.outputCount ?? stage.outputCount;
+    stage.status = patch.status || stage.status;
+
+    updateValidatorEventStageProgress(
+        name,
+        {
+            ...(stage.metadata || {}),
+            inputCount: stage.inputCount,
+            outputCount: stage.outputCount,
+            status: stage.status,
+            warnings: [...stage.warnings],
+        },
+        message
+    );
 }
 
 export function upsertSlotTrace(

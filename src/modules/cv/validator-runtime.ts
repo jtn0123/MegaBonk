@@ -16,11 +16,23 @@ import {
     clearValidatorTrace,
     getActiveValidatorTraceSnapshot,
     setValidatorFailureKind,
-    startValidatorStage,
     endValidatorStage,
+    startValidatorStage,
 } from './validator-trace.ts';
+import {
+    beginValidatorRun,
+    clearValidatorRunArtifacts,
+    completeValidatorRun,
+    configureValidatorEvents,
+    emitValidatorRuntimeReady,
+    failValidatorRun,
+    getValidatorRunArtifacts,
+    subscribeValidatorEvents,
+} from './validator-events.ts';
 import type {
     FailureKind,
+    ValidatorLogEvent,
+    ValidatorRunProgress,
     ReviewAction,
     ValidatorMetrics,
     ValidatorRunRequest,
@@ -35,11 +47,13 @@ declare const __VALIDATOR_RUNTIME_VERSION__: string;
 interface RuntimeOptions {
     dataBasePath?: string;
     trainingDataBasePath?: string;
+    eventEndpoint?: string | null;
 }
 
 const DEFAULT_OPTIONS: Required<RuntimeOptions> = {
-    dataBasePath: '../../data',
-    trainingDataBasePath: '../../data/training-data/',
+    dataBasePath: '/data',
+    trainingDataBasePath: '/data/training-data/',
+    eventEndpoint: '/__validator/events',
 };
 
 const runtimeState: {
@@ -85,6 +99,40 @@ async function fetchJson<T>(url: string): Promise<T> {
 
 function getRuntimeVersion(): string {
     return typeof __VALIDATOR_RUNTIME_VERSION__ === 'string' ? __VALIDATOR_RUNTIME_VERSION__ : 'dev';
+}
+
+function resolveBaseUrl(path: string): URL {
+    const normalizedPath = path.endsWith('/') ? path : `${path}/`;
+    return new URL(normalizedPath, window.location.href);
+}
+
+function getAppBaseUrl(dataBasePath: string): URL {
+    return new URL('../', resolveBaseUrl(dataBasePath));
+}
+
+function isFullyQualifiedAssetUrl(path: string): boolean {
+    return /^(?:[a-z]+:)?\/\//i.test(path) || path.startsWith('data:') || path.startsWith('blob:');
+}
+
+function normalizeItemImagePath(imagePath: string, dataBasePath: string): string {
+    if (!imagePath || imagePath.startsWith('/')) {
+        return imagePath;
+    }
+    if (isFullyQualifiedAssetUrl(imagePath)) {
+        return imagePath;
+    }
+
+    return new URL(imagePath.replace(/^\.?\//, ''), getAppBaseUrl(dataBasePath)).toString();
+}
+
+function normalizeItemsData(itemsData: ItemsData, dataBasePath: string): ItemsData {
+    return {
+        ...itemsData,
+        items: (itemsData.items || []).map(item => ({
+            ...item,
+            image: item.image ? normalizeItemImagePath(item.image, dataBasePath) : item.image,
+        })),
+    };
 }
 
 function updateStatus(patch: Partial<ValidatorRuntimeStatus>): ValidatorRuntimeStatus {
@@ -339,6 +387,82 @@ function buildRuntimeStatusSnapshot(): ValidatorRuntimeStatus {
     };
 }
 
+function createEmptyMetrics(expectedCount: number): ValidatorMetrics {
+    return {
+        f1: 0,
+        precision: 0,
+        recall: 0,
+        truePositives: 0,
+        falsePositives: 0,
+        falseNegatives: expectedCount,
+        expectedCount,
+        detectedCount: 0,
+        dominantFailureKind: 'unknown',
+    };
+}
+
+function createEmptyProgressSummary(createdAt: string): ValidatorRunProgress {
+    return {
+        runStatus: 'running',
+        startedAt: createdAt,
+        updatedAt: createdAt,
+        currentStage: undefined,
+        totalElapsedMs: 0,
+        stageElapsedMs: 0,
+        activeWarningCount: 0,
+        eventCount: 0,
+        stalled: false,
+        currentDiagnosis: null,
+        slowestStage: null,
+        stageProgress: {},
+    };
+}
+
+function createFallbackPreflight(errorMessage: string): ScanPreflightReport {
+    return {
+        status: 'high_risk',
+        imageWidth: 0,
+        imageHeight: 0,
+        gridConfidence: 0,
+        warnings: [errorMessage],
+        recommendations: ['Retry the run after resolving the runtime error.'],
+        screenType: 'pause_menu',
+        sharpnessScore: 0,
+        aspectRatio: 0,
+    };
+}
+
+function createRunRecord(
+    runId: string,
+    request: ValidatorRunRequest,
+    preflight: ScanPreflightReport,
+    trace: ValidatorRunResult['trace'],
+    detections: ValidatorRunResult['detections'],
+    metrics: ValidatorMetrics,
+    status: ValidatorRunResult['status'],
+    reviewActions: ReviewAction[] = []
+): ValidatorRunResult {
+    const artifacts = getValidatorRunArtifacts(runId);
+
+    return {
+        runId,
+        status,
+        sourceImageDataUrl: request.imageDataUrl,
+        imageName: request.imageName,
+        imagePath: request.imagePath,
+        createdAt: trace.metadata.requestedAt,
+        preflight,
+        trace,
+        detections,
+        reviewActions,
+        metrics,
+        reviewSummary: calculateReviewSummary(trace, reviewActions),
+        groundTruthItems: [...(request.groundTruthItems || [])],
+        progressSummary: artifacts?.progressSummary || createEmptyProgressSummary(trace.metadata.requestedAt),
+        logEvents: artifacts?.logEvents || ([] as ValidatorLogEvent[]),
+    };
+}
+
 function ensureInitialized(): void {
     if (!runtimeState.status.initialized || !runtimeState.itemsData) {
         throw new Error('Validator runtime is not initialized');
@@ -349,6 +473,7 @@ export async function initValidatorRuntime(options: RuntimeOptions = {}): Promis
     const mergedOptions: Required<RuntimeOptions> = {
         ...DEFAULT_OPTIONS,
         ...options,
+        eventEndpoint: options.eventEndpoint === undefined ? DEFAULT_OPTIONS.eventEndpoint : options.eventEndpoint,
         trainingDataBasePath:
             options.trainingDataBasePath || options.dataBasePath
                 ? `${options.trainingDataBasePath || `${options.dataBasePath}/training-data`}`.replace(/\/?$/, '/')
@@ -356,6 +481,9 @@ export async function initValidatorRuntime(options: RuntimeOptions = {}): Promis
     };
 
     runtimeState.options = mergedOptions;
+    configureValidatorEvents({
+        eventEndpoint: mergedOptions.eventEndpoint,
+    });
     updateStatus({
         initialized: false,
         lastError: null,
@@ -364,7 +492,10 @@ export async function initValidatorRuntime(options: RuntimeOptions = {}): Promis
     });
 
     try {
-        const itemsData = await fetchJson<ItemsData>(`${mergedOptions.dataBasePath}/items.json`);
+        const itemsData = normalizeItemsData(
+            await fetchJson<ItemsData>(`${mergedOptions.dataBasePath}/items.json`),
+            mergedOptions.dataBasePath
+        );
         runtimeState.itemsData = itemsData;
 
         initCV({
@@ -394,7 +525,9 @@ export async function initValidatorRuntime(options: RuntimeOptions = {}): Promis
             lastError: null,
         });
 
-        return buildRuntimeStatusSnapshot();
+        const snapshot = buildRuntimeStatusSnapshot();
+        emitValidatorRuntimeReady(snapshot);
+        return snapshot;
     } catch (error) {
         updateStatus({
             initialized: false,
@@ -404,6 +537,7 @@ export async function initValidatorRuntime(options: RuntimeOptions = {}): Promis
             trainingDataLoaded: isTrainingDataLoaded(),
             trainingDataVersion: getTrainingDataVersion()?.version || null,
         });
+        emitValidatorRuntimeReady(buildRuntimeStatusSnapshot());
         throw error;
     }
 }
@@ -428,21 +562,11 @@ export async function runDetectionWithTrace(request: ValidatorRunRequest): Promi
         ...request.pipelineConfig,
     };
 
-    if (pipelineConfig.disableCache) {
-        clearDetectionCache();
-    }
+    const runId = makeRunId(request.imageName);
+    const requestedAt = new Date().toISOString();
+    let preflight: ScanPreflightReport = createFallbackPreflight('Preflight did not complete successfully');
 
-    if (pipelineConfig.requireFullTemplates) {
-        await loadItemTemplates();
-        if (!isFullyLoaded()) {
-            throw new Error('Validator runtime requires the full template set before running detection');
-        }
-    }
-
-    const preflightStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
-    const preflight = await runPreflight(request.imageDataUrl);
-    const preflightEnd = typeof performance !== 'undefined' ? performance.now() : Date.now();
-
+    beginValidatorRun(runId, request.imageName);
     beginValidatorTrace({
         imageName: request.imageName,
         runtimeVersion: getRuntimeVersion(),
@@ -455,28 +579,90 @@ export async function runDetectionWithTrace(request: ValidatorRunRequest): Promi
         cacheHit: false,
         detectionMode: pipelineConfig.useWorkers ? 'worker' : 'main',
         requestedWorkerMode: Boolean(pipelineConfig.useWorkers),
-        requestedAt: new Date().toISOString(),
-    });
-    startValidatorStage('preflight', {
-        metadata: {
-            imageName: request.imageName,
-        },
-    });
-    endValidatorStage('preflight', {
-        status: preflight.status === 'high_risk' ? 'warning' : 'ok',
-        metadata: {
-            status: preflight.status,
-            warnings: preflight.warnings,
-            recommendations: preflight.recommendations,
-            imageWidth: preflight.imageWidth,
-            imageHeight: preflight.imageHeight,
-            gridConfidence: preflight.gridConfidence,
-            screenType: preflight.screenType,
-            durationMs: preflightEnd - preflightStart,
-        },
+        requestedAt,
     });
 
+    const initialTrace = getActiveValidatorTraceSnapshot() || {
+        metadata: {
+            imageName: request.imageName,
+            runtimeVersion: getRuntimeVersion(),
+            templateReadiness: getTemplateReadinessState(),
+            templateCount: getItemTemplates().size,
+            trainingDataLoaded: isTrainingDataLoaded(),
+            trainingDataVersion: getTrainingDataVersion()?.version || null,
+            pipelineConfig,
+            authoritativeMode: true,
+            cacheHit: false,
+            detectionMode: pipelineConfig.useWorkers ? 'worker' : 'main',
+            requestedWorkerMode: Boolean(pipelineConfig.useWorkers),
+            requestedAt,
+        },
+        stages: [],
+        slots: [],
+        warnings: [],
+        failureKind: 'unknown' as FailureKind,
+    };
+
+    runtimeState.runs.set(
+        runId,
+        createRunRecord(
+            runId,
+            request,
+            preflight,
+            initialTrace,
+            [],
+            createEmptyMetrics((request.groundTruthItems || []).length),
+            'running'
+        )
+    );
+
     try {
+        if (pipelineConfig.disableCache) {
+            clearDetectionCache();
+        }
+
+        if (pipelineConfig.requireFullTemplates) {
+            await loadItemTemplates();
+            if (!isFullyLoaded()) {
+                throw new Error('Validator runtime requires the full template set before running detection');
+            }
+        }
+
+        startValidatorStage('preflight', {
+            metadata: {
+                imageName: request.imageName,
+            },
+        });
+        const preflightStart = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        preflight = await runPreflight(request.imageDataUrl);
+        const preflightEnd = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        endValidatorStage('preflight', {
+            status: preflight.status === 'high_risk' ? 'warning' : 'ok',
+            metadata: {
+                status: preflight.status,
+                warnings: preflight.warnings,
+                recommendations: preflight.recommendations,
+                imageWidth: preflight.imageWidth,
+                imageHeight: preflight.imageHeight,
+                gridConfidence: preflight.gridConfidence,
+                screenType: preflight.screenType,
+                durationMs: preflightEnd - preflightStart,
+            },
+        });
+
+        runtimeState.runs.set(
+            runId,
+            createRunRecord(
+                runId,
+                request,
+                preflight,
+                getActiveValidatorTraceSnapshot() || initialTrace,
+                [],
+                createEmptyMetrics((request.groundTruthItems || []).length),
+                'running'
+            )
+        );
+
         const rawDetections = await detectItemsWithCV(
             request.imageDataUrl,
             undefined,
@@ -491,35 +677,34 @@ export async function runDetectionWithTrace(request: ValidatorRunRequest): Promi
             throw new Error('Detection finished without an active validator trace');
         }
         const hydratedTrace = applyTraceThreshold(hydrateTraceSlots(trace, detections), pipelineConfig.threshold);
-
-        const metrics = calculateMetrics(detections, request.groundTruthItems || [], [], preflight, hydratedTrace);
-        const runId = makeRunId(request.imageName);
-        const run: ValidatorRunResult = {
-            runId,
-            sourceImageDataUrl: request.imageDataUrl,
-            imageName: request.imageName,
-            imagePath: request.imagePath,
-            createdAt: new Date().toISOString(),
-            preflight,
-            trace: {
-                ...hydratedTrace,
-                failureKind: metrics.dominantFailureKind,
-            },
-            detections,
-            reviewActions: [],
-            metrics,
-            reviewSummary: calculateReviewSummary(
-                {
-                    ...hydratedTrace,
-                    failureKind: metrics.dominantFailureKind,
-                },
-                []
-            ),
-            groundTruthItems: [...(request.groundTruthItems || [])],
+        const finalizedTrace = {
+            ...hydratedTrace,
         };
 
+        const metrics = calculateMetrics(detections, request.groundTruthItems || [], [], preflight, finalizedTrace);
+        finalizedTrace.failureKind = metrics.dominantFailureKind;
+
+        completeValidatorRun(`Run completed for ${request.imageName}`);
+
+        const run = createRunRecord(runId, request, preflight, finalizedTrace, detections, metrics, 'completed');
         runtimeState.runs.set(runId, run);
         return run;
+    } catch (error) {
+        const validatorError = error as Error;
+        const partialTrace = getActiveValidatorTraceSnapshot() || initialTrace;
+        failValidatorRun(validatorError);
+
+        const partialRun = createRunRecord(
+            runId,
+            request,
+            preflight,
+            partialTrace,
+            [],
+            createEmptyMetrics((request.groundTruthItems || []).length),
+            'failed'
+        );
+        runtimeState.runs.set(runId, partialRun);
+        throw validatorError;
     } finally {
         clearValidatorTrace();
     }
@@ -566,9 +751,14 @@ export function exportSessionBundle(runId: string): ValidatorSessionBundle {
         throw new Error(`Unknown validator run: ${runId}`);
     }
 
+    const artifacts = getValidatorRunArtifacts(runId);
+    const activeTrace = getActiveValidatorTraceSnapshot();
+    const trace = run.status === 'running' || run.status === 'stalled' ? activeTrace || run.trace : run.trace;
+
     return {
-        version: 1,
+        version: 2,
         runId: run.runId,
+        status: artifacts?.progressSummary?.runStatus || run.status,
         sourceImageDataUrl: run.sourceImageDataUrl,
         imageName: run.imageName,
         imagePath: run.imagePath,
@@ -576,21 +766,24 @@ export function exportSessionBundle(runId: string): ValidatorSessionBundle {
         runtime: buildRuntimeStatusSnapshot(),
         pipelineConfig: { ...run.trace.metadata.pipelineConfig },
         preflight: run.preflight,
-        trace: run.trace,
+        trace,
         detections: run.detections,
         reviewActions: run.reviewActions,
         metrics: run.metrics,
         groundTruthItems: run.groundTruthItems,
+        progressSummary: artifacts?.progressSummary || run.progressSummary,
+        logEvents: artifacts?.logEvents || run.logEvents,
     };
 }
 
 export function importSessionBundle(bundle: ValidatorSessionBundle): ValidatorRunResult {
-    if (!bundle || bundle.version !== 1) {
+    if (!bundle || (bundle.version !== 1 && bundle.version !== 2)) {
         throw new Error('Unsupported validator session bundle');
     }
 
     const run: ValidatorRunResult = {
         runId: bundle.runId,
+        status: bundle.status || 'replay',
         sourceImageDataUrl: bundle.sourceImageDataUrl,
         imageName: bundle.imageName,
         imagePath: bundle.imagePath,
@@ -602,8 +795,17 @@ export function importSessionBundle(bundle: ValidatorSessionBundle): ValidatorRu
         metrics: bundle.metrics,
         reviewSummary: calculateReviewSummary(bundle.trace, bundle.reviewActions),
         groundTruthItems: bundle.groundTruthItems,
+        progressSummary: bundle.progressSummary || createEmptyProgressSummary(bundle.createdAt),
+        logEvents: bundle.logEvents || [],
     };
 
     runtimeState.runs.set(run.runId, run);
     return run;
+}
+
+export { subscribeValidatorEvents };
+
+export function discardValidatorRun(runId: string): void {
+    runtimeState.runs.delete(runId);
+    clearValidatorRunArtifacts(runId);
 }

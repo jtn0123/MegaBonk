@@ -72,6 +72,8 @@ export interface WideEvent {
     data?: Record<string, unknown>;
 }
 
+export type LoggerListener = (level: LogLevel, event: WideEvent) => void;
+
 /**
  * Event context - enriches events with app state
  */
@@ -281,6 +283,7 @@ export class Logger {
     private readonly sessionId: string;
     private globalContext: Record<string, unknown> = {};
     private readonly correlationStack: string[] = [];
+    private readonly listeners = new Set<LoggerListener>();
 
     private constructor() {
         this.sessionId = this.generateSessionId();
@@ -377,6 +380,16 @@ export class Logger {
      */
     public getSessionId(): string {
         return this.sessionId;
+    }
+
+    /**
+     * Subscribe to all logger events before remote sampling
+     */
+    public subscribe(listener: LoggerListener): () => void {
+        this.listeners.add(listener);
+        return () => {
+            this.listeners.delete(listener);
+        };
     }
 
     /**
@@ -480,6 +493,14 @@ export class Logger {
         // Output to console
         if (this.config.enableConsole) {
             this.outputToConsole(level, fullEvent);
+        }
+
+        for (const listener of this.listeners) {
+            try {
+                listener(level, fullEvent);
+            } catch {
+                // Listener errors must never break application logging
+            }
         }
 
         // Send to remote endpoint (if configured)

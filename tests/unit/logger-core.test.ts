@@ -259,6 +259,33 @@ describe('Logger', () => {
         });
     });
 
+    describe('subscribe', () => {
+        it('should notify subscribers for logged events', () => {
+            const listener = vi.fn();
+            logger.subscribe(listener);
+
+            logger.warn({ operation: 'test.subscriber', data: { foo: 'bar' } });
+
+            expect(listener).toHaveBeenCalledWith(
+                LogLevel.WARN,
+                expect.objectContaining({
+                    operation: 'test.subscriber',
+                    data: expect.objectContaining({ foo: 'bar' }),
+                })
+            );
+        });
+
+        it('should allow unsubscribing listeners', () => {
+            const listener = vi.fn();
+            const unsubscribe = logger.subscribe(listener);
+
+            unsubscribe();
+            logger.info({ operation: 'test.unsubscribed' });
+
+            expect(listener).not.toHaveBeenCalled();
+        });
+    });
+
     describe('warn', () => {
         it('should log warning messages', () => {
             logger.warn({ operation: 'test.warn' });

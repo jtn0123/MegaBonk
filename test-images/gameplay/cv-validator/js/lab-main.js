@@ -7,10 +7,15 @@ import {
     summarizeSessions,
 } from './session-history.js';
 
+const DATA_BASE_PATH = '/data';
+const TRAINING_DATA_BASE_PATH = '/data/training-data/';
+
 const elements = {
     runtimeBadge: document.getElementById('runtime-badge'),
     runtimeStatus: document.getElementById('runtime-status'),
     runtimeError: document.getElementById('runtime-error'),
+    liveStatusBadge: document.getElementById('live-status-badge'),
+    liveStatusPanel: document.getElementById('live-status-panel'),
     imageSelect: document.getElementById('image-select'),
     thresholdInput: document.getElementById('threshold-input'),
     thresholdValue: document.getElementById('threshold-value'),
@@ -32,8 +37,15 @@ const elements = {
     imageMeta: document.getElementById('image-meta'),
     preflightPanel: document.getElementById('preflight-panel'),
     runSummary: document.getElementById('run-summary'),
+    diagnosisPanel: document.getElementById('diagnosis-panel'),
     reviewQueue: document.getElementById('review-queue'),
     timelinePanel: document.getElementById('timeline-panel'),
+    logFilter: document.getElementById('log-filter'),
+    logSearch: document.getElementById('log-search'),
+    logPauseAutoscroll: document.getElementById('log-pause-autoscroll'),
+    copyLogBtn: document.getElementById('copy-log-btn'),
+    exportLogBtn: document.getElementById('export-log-btn'),
+    logPanel: document.getElementById('log-panel'),
     slotList: document.getElementById('slot-list'),
     slotDetail: document.getElementById('slot-detail'),
     historyPanel: document.getElementById('history-panel'),
@@ -47,6 +59,7 @@ const elements = {
 
 const state = {
     runtimeModule: null,
+    runtimeEventUnsubscribe: null,
     runtimeStatus: null,
     groundTruth: {},
     items: [],
@@ -57,12 +70,18 @@ const state = {
     currentImageDataUrl: '',
     currentPreflight: null,
     currentRun: null,
+    activeRunId: '',
+    liveProgress: null,
+    liveStages: [],
+    liveLogEvents: [],
     selectedSlotId: '',
     sessions: [],
     compareLeft: '',
     compareRight: '',
     batchRuns: [],
     busyMessage: '',
+    logFilter: 'all',
+    logSearch: '',
 };
 
 function escapeHtml(value) {
@@ -79,10 +98,15 @@ function formatDuration(value) {
     return `${Math.round(value || 0)} ms`;
 }
 
+function formatTimestamp(value) {
+    if (!value) return '-';
+    return new Date(value).toLocaleTimeString();
+}
+
 function toBadgeClass(kind) {
     if (kind === 'pass' || kind === 'good') return 'good';
     if (kind === 'warn' || kind === 'warning' || kind === 'review') return 'warn';
-    if (kind === 'bad' || kind === 'high_risk' || kind === 'risky') return 'bad';
+    if (kind === 'bad' || kind === 'error' || kind === 'high_risk' || kind === 'risky') return 'bad';
     return 'neutral';
 }
 
@@ -132,24 +156,20 @@ function currentPipelineConfig() {
 
 function setBusy(message = '') {
     state.busyMessage = message;
-    const disabled = Boolean(message);
-    [
-        elements.runPreflightBtn,
-        elements.runDetectionBtn,
-        elements.runBatchBtn,
-        elements.exportBundleBtn,
-        elements.importBundleBtn,
-        elements.clearHistoryBtn,
-        elements.uploadImageBtn,
-    ].forEach(button => {
-        button.disabled = disabled || !state.runtimeStatus?.initialized;
-    });
     if (message) {
         elements.runtimeBadge.textContent = message;
         elements.runtimeBadge.className = 'badge neutral';
     } else {
         renderRuntimeStatus();
     }
+    syncActionAvailability();
+}
+
+function resetLiveRunState() {
+    state.activeRunId = '';
+    state.liveProgress = null;
+    state.liveStages = [];
+    state.liveLogEvents = [];
 }
 
 function getGroundTruthItems(imagePath) {
@@ -197,9 +217,12 @@ async function ensureRuntime() {
 
     try {
         state.runtimeModule = await import('../../../../dist/validator-runtime/validator-runtime.js');
+        if (!state.runtimeEventUnsubscribe && state.runtimeModule.subscribeValidatorEvents) {
+            state.runtimeEventUnsubscribe = state.runtimeModule.subscribeValidatorEvents(handleValidatorEvent);
+        }
         state.runtimeStatus = await state.runtimeModule.initValidatorRuntime({
-            dataBasePath: '../../data',
-            trainingDataBasePath: '../../data/training-data/',
+            dataBasePath: DATA_BASE_PATH,
+            trainingDataBasePath: TRAINING_DATA_BASE_PATH,
         });
         return state.runtimeModule;
     } catch (error) {
@@ -207,8 +230,8 @@ async function ensureRuntime() {
             initialized: false,
             authoritativeMode: true,
             runtimeVersion: 'unavailable',
-            dataBasePath: '../../data',
-            trainingDataBasePath: '../../data/training-data/',
+            dataBasePath: DATA_BASE_PATH,
+            trainingDataBasePath: TRAINING_DATA_BASE_PATH,
             templateReadiness: 'cold',
             templateCount: 0,
             itemCount: 0,
@@ -250,6 +273,274 @@ function renderRuntimeStatus() {
 
     elements.runtimeError.hidden = !status.lastError;
     elements.runtimeError.textContent = status.lastError || '';
+    syncActionAvailability();
+}
+
+function syncActionAvailability() {
+    const busy = Boolean(state.busyMessage);
+    const initialized = Boolean(state.runtimeStatus?.initialized);
+    const hasImage = Boolean(state.currentImageDataUrl);
+    const hasRun = Boolean(state.currentRun || state.activeRunId);
+    const hasSessions = state.sessions.length > 0;
+    const hasGroundTruth = Object.keys(state.groundTruth).some(key => !key.startsWith('_'));
+
+    elements.uploadImageBtn.disabled = busy;
+    elements.importBundleBtn.disabled = busy;
+    elements.clearHistoryBtn.disabled = busy || !hasSessions;
+    elements.runPreflightBtn.disabled = busy || !initialized || !hasImage;
+    elements.runDetectionBtn.disabled = busy || !initialized || !hasImage;
+    elements.runBatchBtn.disabled = busy || !initialized || !hasGroundTruth;
+    elements.exportBundleBtn.disabled = busy || !initialized || !hasRun;
+}
+
+function upsertLiveStage(event) {
+    if (!event.stage) {
+        return;
+    }
+
+    const existing = state.liveStages.find(stage => stage.name === event.stage);
+    const warningList = Array.isArray(event.metadata?.warnings) ? event.metadata.warnings : existing?.warnings || [];
+    const nextStage = {
+        name: event.stage,
+        startedAtMs: existing?.startedAtMs || Date.now(),
+        endedAtMs: event.type === 'stage_completed' ? Date.now() : existing?.endedAtMs || Date.now(),
+        durationMs: Number(event.metadata?.elapsedMs || existing?.durationMs || 0),
+        active: event.type !== 'stage_completed',
+        status:
+            event.type === 'stage_warning'
+                ? 'warning'
+                : event.level === 'error'
+                  ? 'error'
+                  : event.type === 'stage_completed'
+                    ? event.metadata?.status || existing?.status || 'ok'
+                    : existing?.status || 'ok',
+        inputCount: event.metadata?.inputCount ?? existing?.inputCount,
+        outputCount: event.metadata?.outputCount ?? existing?.outputCount,
+        warnings: event.type === 'stage_warning' ? warningList.concat(event.message) : Array.from(new Set(warningList)),
+        metadata: {
+            ...(existing?.metadata || {}),
+            ...(event.metadata || {}),
+        },
+    };
+
+    if (existing) {
+        Object.assign(existing, nextStage);
+        return;
+    }
+    state.liveStages.push(nextStage);
+}
+
+function getCurrentLiveStageName() {
+    const activeStages = state.liveStages.filter(stage => stage.active);
+    return activeStages[activeStages.length - 1]?.name;
+}
+
+function appendLiveLogFromEvent(event) {
+    if (event.type === 'stage_progress') {
+        return;
+    }
+    const source = event.type === 'logger_event' ? event.metadata?.source || 'cv' : 'runtime';
+    const operation = event.type === 'logger_event' ? event.metadata?.operation : event.type;
+    state.liveLogEvents.push({
+        id: `${event.runId}:${event.timestamp}:${event.type}:${state.liveLogEvents.length}`,
+        timestamp: event.timestamp,
+        runId: event.runId,
+        level: event.level,
+        source,
+        message: event.message,
+        operation,
+        stage: event.stage,
+        metadata: { ...(event.metadata || {}) },
+    });
+    if (state.liveLogEvents.length > 2000) {
+        state.liveLogEvents = state.liveLogEvents.filter((entry, index) => {
+            if (state.liveLogEvents.length - index <= 2000) {
+                return true;
+            }
+            return entry.level === 'warn' || entry.level === 'error';
+        });
+        state.liveLogEvents = state.liveLogEvents.slice(-2000);
+    }
+}
+
+function getDisplayedProgressSummary() {
+    return state.liveProgress || state.currentRun?.progressSummary || null;
+}
+
+function getDisplayedLogs() {
+    if (state.liveLogEvents.length > 0 && state.activeRunId) {
+        return state.liveLogEvents;
+    }
+    return state.currentRun?.logEvents || [];
+}
+
+function getFilteredLogs() {
+    const logs = getDisplayedLogs();
+    return logs.filter(log => {
+        if (state.logFilter === 'cv' && log.source !== 'cv') return false;
+        if (state.logFilter === 'runtime' && log.source !== 'runtime') return false;
+        if (state.logFilter === 'warnings' && !['warn', 'error'].includes(log.level)) return false;
+        if (state.logSearch) {
+            const haystack =
+                `${log.message} ${log.operation || ''} ${JSON.stringify(log.metadata || {})}`.toLowerCase();
+            if (!haystack.includes(state.logSearch.toLowerCase())) return false;
+        }
+        return true;
+    });
+}
+
+async function refreshPartialRun(runId = state.activeRunId) {
+    if (!runId || !state.runtimeModule) {
+        return;
+    }
+    const bundle = state.runtimeModule.exportSessionBundle(runId);
+    const run = state.runtimeModule.importSessionBundle(bundle);
+    state.currentRun = run;
+    state.currentPreflight = run.preflight;
+    state.currentImageDataUrl = run.sourceImageDataUrl;
+    state.currentImageName = run.imageName;
+    state.currentImagePath = run.imagePath || '';
+    if (!state.selectedSlotId) {
+        state.selectedSlotId = run.trace.slots[0]?.slotId || '';
+    }
+    renderAll();
+}
+
+function handleValidatorEvent(event) {
+    if (event.runId === 'runtime') {
+        return;
+    }
+
+    if (event.type === 'run_started') {
+        state.activeRunId = event.runId;
+        state.currentRun = null;
+        state.selectedSlotId = '';
+        state.liveStages = [];
+        state.liveLogEvents = [];
+        state.liveProgress = {
+            runStatus: 'running',
+            startedAt: event.timestamp,
+            updatedAt: event.timestamp,
+            currentStage: undefined,
+            totalElapsedMs: 0,
+            stageElapsedMs: 0,
+            activeWarningCount: 0,
+            eventCount: 1,
+            stalled: false,
+            currentDiagnosis: null,
+            slowestStage: null,
+            stageProgress: {},
+        };
+    }
+
+    if (!state.activeRunId || state.activeRunId !== event.runId) {
+        return;
+    }
+
+    appendLiveLogFromEvent(event);
+
+    if (event.stage) {
+        upsertLiveStage(event);
+    }
+
+    const previousProgress = state.liveProgress || getDisplayedProgressSummary();
+    if (previousProgress) {
+        const currentLiveStage = getCurrentLiveStageName();
+        state.liveProgress = {
+            ...previousProgress,
+            updatedAt: event.timestamp,
+            runStatus:
+                event.type === 'run_failed'
+                    ? 'failed'
+                    : event.type === 'run_completed'
+                      ? 'completed'
+                      : event.type === 'run_stalled'
+                        ? 'stalled'
+                        : previousProgress.runStatus || 'running',
+            currentStage: currentLiveStage || event.stage || previousProgress.currentStage,
+            totalElapsedMs: Math.max(
+                previousProgress.totalElapsedMs || 0,
+                Date.parse(event.timestamp) - Date.parse(previousProgress.startedAt)
+            ),
+            stageElapsedMs: Number(event.metadata?.elapsedMs || previousProgress.stageElapsedMs || 0),
+            activeWarningCount:
+                event.type === 'stage_warning'
+                    ? (previousProgress.activeWarningCount || 0) + 1
+                    : previousProgress.activeWarningCount || 0,
+            eventCount: (previousProgress.eventCount || 0) + 1,
+            stalled:
+                event.type === 'run_stalled'
+                    ? true
+                    : event.type === 'stage_progress'
+                      ? false
+                      : previousProgress.stalled,
+            currentDiagnosis:
+                event.type === 'run_stalled'
+                    ? {
+                          diagnosis: event.metadata?.diagnosis || 'unknown',
+                          message: event.message,
+                          stage: event.stage,
+                          detectedAt: event.timestamp,
+                          stalledForMs: Number(event.metadata?.stalledForMs || 0),
+                          thresholdMs: Number(event.metadata?.thresholdMs || 0),
+                      }
+                    : event.type === 'stage_progress'
+                      ? null
+                      : previousProgress.currentDiagnosis || null,
+            slowestStage:
+                event.type === 'stage_completed' && event.stage
+                    ? !previousProgress.slowestStage ||
+                      Number(event.metadata?.elapsedMs || 0) > previousProgress.slowestStage.durationMs
+                        ? { name: event.stage, durationMs: Number(event.metadata?.elapsedMs || 0) }
+                        : previousProgress.slowestStage
+                    : previousProgress.slowestStage || null,
+            stageProgress: {
+                ...(previousProgress.stageProgress || {}),
+                ...(event.stage
+                    ? {
+                          [event.stage]: {
+                              stage: event.stage,
+                              startedAt: previousProgress.stageProgress?.[event.stage]?.startedAt || event.timestamp,
+                              updatedAt: event.timestamp,
+                              elapsedMs: Number(
+                                  event.metadata?.elapsedMs ||
+                                      previousProgress.stageProgress?.[event.stage]?.elapsedMs ||
+                                      0
+                              ),
+                              warningCount:
+                                  event.type === 'stage_warning'
+                                      ? (previousProgress.stageProgress?.[event.stage]?.warningCount || 0) + 1
+                                      : previousProgress.stageProgress?.[event.stage]?.warningCount || 0,
+                              metadata: {
+                                  ...(previousProgress.stageProgress?.[event.stage]?.metadata || {}),
+                                  ...(event.metadata || {}),
+                              },
+                          },
+                      }
+                    : {}),
+            },
+        };
+    }
+
+    if (event.type === 'run_stalled' || event.type === 'run_failed' || event.type === 'run_completed') {
+        refreshPartialRun(event.runId).catch(error => {
+            state.runtimeStatus = {
+                ...(state.runtimeStatus || {}),
+                lastError: error.message,
+            };
+            renderRuntimeStatus();
+        });
+    }
+
+    if (event.type === 'run_completed' || event.type === 'run_failed') {
+        state.busyMessage = '';
+    }
+
+    renderRuntimeStatus();
+    renderLiveStatus();
+    renderTimeline();
+    renderDiagnosis();
+    renderLogs();
 }
 
 function renderImageOptions() {
@@ -334,6 +625,35 @@ function drawOverlay() {
     });
 }
 
+function renderLiveStatus() {
+    const progress = getDisplayedProgressSummary();
+    if (!progress) {
+        elements.liveStatusBadge.textContent = 'Idle';
+        elements.liveStatusBadge.className = 'badge neutral';
+        elements.liveStatusPanel.className = 'empty-state';
+        elements.liveStatusPanel.textContent = 'Start a run to see live stage progress, diagnosis, and warnings.';
+        return;
+    }
+
+    const badgeKind =
+        progress.runStatus === 'completed'
+            ? 'good'
+            : progress.runStatus === 'failed' || progress.runStatus === 'stalled'
+              ? 'bad'
+              : 'warn';
+    elements.liveStatusBadge.textContent = progress.runStatus;
+    elements.liveStatusBadge.className = `badge ${badgeKind}`;
+    elements.liveStatusPanel.className = 'live-status-grid';
+    elements.liveStatusPanel.innerHTML = `
+        <div class="status-card"><strong>Status</strong>${escapeHtml(progress.runStatus)}</div>
+        <div class="status-card"><strong>Current Stage</strong>${escapeHtml(progress.currentStage || 'idle')}</div>
+        <div class="status-card"><strong>Stage Elapsed</strong>${formatDuration(progress.stageElapsedMs)}</div>
+        <div class="status-card"><strong>Total Elapsed</strong>${formatDuration(progress.totalElapsedMs)}</div>
+        <div class="status-card"><strong>Warnings</strong>${progress.activeWarningCount}</div>
+        <div class="status-card"><strong>Diagnosis</strong>${escapeHtml(progress.currentDiagnosis?.message || 'No active diagnosis')}</div>
+    `;
+}
+
 function renderPreflight() {
     const preflight = state.currentRun?.preflight || state.currentPreflight;
     if (!preflight) {
@@ -394,23 +714,30 @@ function renderSummary() {
             <span class="tag">Cache ${run.trace.metadata.cacheHit ? 'hit' : 'miss'}</span>
             <span class="tag">${escapeHtml(run.trace.metadata.detectionMode)}</span>
             <span class="tag">${escapeHtml(run.trace.metadata.templateReadiness)}</span>
+            <span class="tag">${escapeHtml(run.status)}</span>
+            <span class="tag">Warnings ${run.progressSummary?.activeWarningCount || 0}</span>
         </div>
     `;
 }
 
 function renderTimeline() {
-    const run = state.currentRun;
-    if (!run) {
+    const progress = getDisplayedProgressSummary();
+    const stages =
+        state.liveStages.length > 0 &&
+        (!state.currentRun || (progress && ['running', 'stalled'].includes(progress.runStatus)))
+            ? state.liveStages
+            : state.currentRun?.trace?.stages || [];
+    if (stages.length === 0) {
         elements.timelinePanel.className = 'empty-state';
         elements.timelinePanel.textContent = 'No trace yet.';
         return;
     }
 
     elements.timelinePanel.className = 'timeline-list';
-    elements.timelinePanel.innerHTML = run.trace.stages
+    elements.timelinePanel.innerHTML = stages
         .map(
             stage => `
-                <div class="timeline-item">
+                <div class="timeline-item ${progress?.currentStage === stage.name ? 'current' : ''}">
                     <div class="panel-header">
                         <strong>${escapeHtml(stage.name)}</strong>
                         <span class="badge ${toBadgeClass(stage.status)}">${escapeHtml(stage.status)}</span>
@@ -429,6 +756,77 @@ function renderTimeline() {
             `
         )
         .join('');
+}
+
+function renderDiagnosis() {
+    const progress = getDisplayedProgressSummary();
+    if (!progress) {
+        elements.diagnosisPanel.className = 'empty-state';
+        elements.diagnosisPanel.textContent = 'Run detection to see bottlenecks, slowest stage, and stall diagnosis.';
+        return;
+    }
+
+    elements.diagnosisPanel.className = '';
+    elements.diagnosisPanel.innerHTML = `
+        <div class="summary-grid">
+            <div class="summary-card"><strong>Run Status</strong>${escapeHtml(progress.runStatus)}</div>
+            <div class="summary-card"><strong>Current Stage</strong>${escapeHtml(progress.currentStage || 'idle')}</div>
+            <div class="summary-card"><strong>Slowest Stage</strong>${escapeHtml(progress.slowestStage?.name || 'n/a')}</div>
+            <div class="summary-card"><strong>Slowest Duration</strong>${formatDuration(progress.slowestStage?.durationMs || 0)}</div>
+        </div>
+        <div class="tag-row">
+            <span class="tag">Stalled: ${progress.stalled ? 'yes' : 'no'}</span>
+            <span class="tag">Events: ${progress.eventCount}</span>
+            <span class="tag">Updated: ${formatTimestamp(progress.updatedAt)}</span>
+        </div>
+        <div style="margin-top: 12px;">
+            <strong>Diagnosis</strong>
+            <div>${escapeHtml(progress.currentDiagnosis?.message || 'No active diagnosis')}</div>
+        </div>
+    `;
+}
+
+function renderLogs() {
+    const logs = getDisplayedLogs();
+    if (logs.length === 0) {
+        elements.logPanel.className = 'empty-state';
+        elements.logPanel.textContent = 'Live runtime and CV logs will appear here while a run is active.';
+        return;
+    }
+
+    const filteredLogs = getFilteredLogs();
+
+    if (filteredLogs.length === 0) {
+        elements.logPanel.className = 'empty-state';
+        elements.logPanel.textContent = 'No logs match the current filter.';
+        return;
+    }
+
+    elements.logPanel.className = 'log-list';
+    elements.logPanel.innerHTML = filteredLogs
+        .map(
+            log => `
+                <div class="log-entry ${escapeHtml(log.level)}">
+                    <div class="log-entry-header">
+                        <span class="badge ${toBadgeClass(log.level === 'error' ? 'bad' : log.level === 'warn' ? 'warn' : 'neutral')}">${escapeHtml(log.level)}</span>
+                        <strong>${escapeHtml(log.source)}</strong>
+                        <span class="log-entry-meta">${escapeHtml(log.operation || log.stage || 'event')}</span>
+                        <span class="log-entry-meta">${escapeHtml(formatTimestamp(log.timestamp))}</span>
+                    </div>
+                    <div>${escapeHtml(log.message)}</div>
+                    ${
+                        log.metadata && Object.keys(log.metadata).length
+                            ? `<pre>${escapeHtml(JSON.stringify(log.metadata, null, 2))}</pre>`
+                            : ''
+                    }
+                </div>
+            `
+        )
+        .join('');
+
+    if (!elements.logPauseAutoscroll.checked) {
+        elements.logPanel.scrollTop = elements.logPanel.scrollHeight;
+    }
 }
 
 function renderReviewQueue() {
@@ -627,7 +1025,7 @@ function renderHistory() {
                                 <span class="badge ${toBadgeClass(session.metrics.dominantFailureKind)}">${escapeHtml(session.metrics.dominantFailureKind)}</span>
                             </div>
                             <div>${new Date(session.createdAt).toLocaleString()}</div>
-                            <div>F1 ${formatPercent(session.metrics.f1)} • ${escapeHtml(session.trace.metadata.detectionMode)}</div>
+                            <div>F1 ${formatPercent(session.metrics.f1)} • ${escapeHtml(session.trace.metadata.detectionMode)} • ${escapeHtml(session.status || session.progressSummary?.runStatus || 'completed')}</div>
                             <div class="button-row">
                                 <button data-load-run="${escapeHtml(session.runId)}">Load</button>
                                 <button data-delete-run="${escapeHtml(session.runId)}">Delete</button>
@@ -675,6 +1073,10 @@ function renderCompare() {
             <div class="summary-card"><strong>Precision Delta</strong>${((right.metrics.precision - left.metrics.precision) * 100).toFixed(1)} pts</div>
             <div class="summary-card"><strong>Recall Delta</strong>${((right.metrics.recall - left.metrics.recall) * 100).toFixed(1)} pts</div>
             <div class="summary-card"><strong>Slot Changes</strong>${slotDiffs}</div>
+        </div>
+        <div class="tag-row" style="margin-bottom: 12px;">
+            <span class="tag">Warning Delta: ${(right.progressSummary?.activeWarningCount || 0) - (left.progressSummary?.activeWarningCount || 0)}</span>
+            <span class="tag">Diagnosis: ${escapeHtml(left.progressSummary?.currentDiagnosis?.diagnosis || 'none')} -> ${escapeHtml(right.progressSummary?.currentDiagnosis?.diagnosis || 'none')}</span>
         </div>
         <div class="compare-grid">
             ${stageNames
@@ -744,10 +1146,13 @@ function renderBatch() {
 
 function renderAll() {
     renderRuntimeStatus();
+    renderLiveStatus();
     renderImage();
     renderPreflight();
     renderSummary();
     renderTimeline();
+    renderDiagnosis();
+    renderLogs();
     renderReviewQueue();
     renderSlotList();
     renderSlotDetail();
@@ -758,10 +1163,12 @@ function renderAll() {
 }
 
 async function persistCurrentRun(run = state.currentRun) {
-    if (!run || !state.runtimeModule) {
+    const runToPersist = run || state.currentRun;
+    if ((!runToPersist && !state.activeRunId) || !state.runtimeModule) {
         return;
     }
-    const bundle = state.runtimeModule.exportSessionBundle(run.runId);
+    const runId = runToPersist?.runId || state.activeRunId;
+    const bundle = state.runtimeModule.exportSessionBundle(runId);
     await saveSessionBundle(bundle);
     state.sessions = await listSessionBundles();
     syncCompareOptions();
@@ -797,6 +1204,7 @@ async function loadImageSelection(imagePath) {
         state.currentImageDataUrl = '';
         state.currentPreflight = null;
         state.currentRun = null;
+        resetLiveRunState();
         state.selectedSlotId = '';
         renderAll();
         return;
@@ -804,12 +1212,18 @@ async function loadImageSelection(imagePath) {
 
     setBusy('Loading image...');
     try {
+        resetLiveRunState();
         state.currentImagePath = imagePath;
         state.currentImageName = imagePath.split('/').pop();
         state.currentImageDataUrl = await imageUrlToDataUrl(imagePath);
-        state.currentPreflight = await state.runtimeModule.runPreflight(state.currentImageDataUrl);
         state.currentRun = null;
         state.selectedSlotId = '';
+        state.currentPreflight = null;
+        renderAll();
+
+        if (state.runtimeStatus?.initialized && state.runtimeModule) {
+            state.currentPreflight = await state.runtimeModule.runPreflight(state.currentImageDataUrl);
+        }
         renderAll();
     } finally {
         setBusy('');
@@ -823,6 +1237,9 @@ async function runCurrentDetection() {
 
     setBusy('Running detection...');
     try {
+        resetLiveRunState();
+        state.currentRun = null;
+        renderAll();
         const run = await state.runtimeModule.runDetectionWithTrace({
             imageDataUrl: state.currentImageDataUrl,
             imageName: state.currentImageName,
@@ -831,6 +1248,7 @@ async function runCurrentDetection() {
             pipelineConfig: currentPipelineConfig(),
         });
         state.currentRun = run;
+        state.activeRunId = run.runId;
         state.currentPreflight = run.preflight;
         state.selectedSlotId = run.trace.slots[0]?.slotId || '';
         await persistCurrentRun(run);
@@ -901,6 +1319,7 @@ async function applyReviewAction(action) {
 async function importBundle(file) {
     const bundle = JSON.parse(await file.text());
     const run = state.runtimeModule.importSessionBundle(bundle);
+    resetLiveRunState();
     state.currentRun = run;
     state.currentPreflight = run.preflight;
     state.currentImageDataUrl = run.sourceImageDataUrl;
@@ -915,35 +1334,47 @@ async function importBundle(file) {
 
 async function bootstrap() {
     elements.thresholdValue.textContent = Number(elements.thresholdInput.value).toFixed(2);
-    try {
-        await ensureRuntime();
-        const [groundTruth, itemsData] = await Promise.all([
-            loadJson('./ground-truth.json'),
-            loadJson('../../data/items.json'),
-        ]);
-        state.groundTruth = groundTruth;
-        state.items = itemsData.items || [];
-        state.items.forEach(item => state.itemLookup.set(item.name.toLowerCase(), item));
-        state.sessions = await listSessionBundles();
-        renderImageOptions();
-        populateItemOptions();
-        syncCompareOptions();
+    const [runtimeResult, groundTruthResult, itemsDataResult, sessionsResult] = await Promise.allSettled([
+        ensureRuntime(),
+        loadJson('./ground-truth.json'),
+        loadJson(`${DATA_BASE_PATH}/items.json`),
+        listSessionBundles(),
+    ]);
 
-        const requestedImage = new URLSearchParams(window.location.search).get('image');
-        if (requestedImage && state.groundTruth[requestedImage]) {
-            elements.imageSelect.value = requestedImage;
-            await loadImageSelection(requestedImage);
-        } else {
-            renderAll();
-        }
-    } catch (error) {
+    if (groundTruthResult.status === 'fulfilled') {
+        state.groundTruth = groundTruthResult.value;
+    }
+
+    if (itemsDataResult.status === 'fulfilled') {
+        state.items = itemsDataResult.value.items || [];
+        state.itemLookup.clear();
+        state.items.forEach(item => state.itemLookup.set(item.name.toLowerCase(), item));
+    }
+
+    if (sessionsResult.status === 'fulfilled') {
+        state.sessions = sessionsResult.value;
+    }
+
+    renderImageOptions();
+    populateItemOptions();
+    syncCompareOptions();
+
+    if (runtimeResult.status === 'rejected') {
         state.runtimeStatus = {
             ...(state.runtimeStatus || {}),
             initialized: false,
-            lastError: error.message,
+            lastError: runtimeResult.reason?.message || String(runtimeResult.reason),
         };
-        renderRuntimeStatus();
     }
+
+    const requestedImage = new URLSearchParams(window.location.search).get('image');
+    if (requestedImage && state.groundTruth[requestedImage]) {
+        elements.imageSelect.value = requestedImage;
+        await loadImageSelection(requestedImage);
+        return;
+    }
+
+    renderAll();
 }
 
 elements.thresholdInput.addEventListener('input', () => {
@@ -963,13 +1394,25 @@ elements.uploadImageInput.addEventListener('change', async event => {
     if (!file) return;
     setBusy('Loading upload...');
     try {
+        resetLiveRunState();
         state.currentImagePath = '';
         state.currentImageName = file.name;
         state.currentImageDataUrl = await fileToDataUrl(file);
-        state.currentPreflight = await state.runtimeModule.runPreflight(state.currentImageDataUrl);
         state.currentRun = null;
         state.selectedSlotId = '';
+        state.currentPreflight = null;
         renderAll();
+
+        if (state.runtimeStatus?.initialized && state.runtimeModule) {
+            state.currentPreflight = await state.runtimeModule.runPreflight(state.currentImageDataUrl);
+        }
+        renderAll();
+    } catch (error) {
+        state.runtimeStatus = {
+            ...(state.runtimeStatus || {}),
+            lastError: error.message,
+        };
+        renderRuntimeStatus();
     } finally {
         setBusy('');
         event.target.value = '';
@@ -977,7 +1420,7 @@ elements.uploadImageInput.addEventListener('change', async event => {
 });
 
 elements.runPreflightBtn.addEventListener('click', async () => {
-    if (!state.currentImageDataUrl) return;
+    if (!state.currentImageDataUrl || !state.runtimeStatus?.initialized) return;
     setBusy('Running preflight...');
     try {
         state.currentPreflight = await state.runtimeModule.runPreflight(state.currentImageDataUrl);
@@ -989,6 +1432,11 @@ elements.runPreflightBtn.addEventListener('click', async () => {
 
 elements.runDetectionBtn.addEventListener('click', () => {
     runCurrentDetection().catch(error => {
+        if (state.activeRunId && state.runtimeModule) {
+            refreshPartialRun(state.activeRunId).catch(() => {
+                // Best effort partial capture.
+            });
+        }
         state.runtimeStatus.lastError = error.message;
         setBusy('');
         renderRuntimeStatus();
@@ -1004,10 +1452,11 @@ elements.runBatchBtn.addEventListener('click', () => {
 });
 
 elements.exportBundleBtn.addEventListener('click', () => {
-    if (!state.currentRun || !state.runtimeModule) return;
-    const bundle = state.runtimeModule.exportSessionBundle(state.currentRun.runId);
+    const runId = state.currentRun?.runId || state.activeRunId;
+    if (!runId || !state.runtimeModule) return;
+    const bundle = state.runtimeModule.exportSessionBundle(runId);
     downloadJson(
-        `${state.currentRun.imageName.replace(/\.[^.]+$/, '') || 'validator-run'}-${state.currentRun.runId}.json`,
+        `${(state.currentRun?.imageName || state.currentImageName || 'validator-run').replace(/\.[^.]+$/, '')}-${runId}.json`,
         bundle
     );
 });
@@ -1027,6 +1476,35 @@ elements.clearHistoryBtn.addEventListener('click', async () => {
     state.compareRight = '';
     syncCompareOptions();
     renderAll();
+});
+
+elements.logFilter.addEventListener('change', event => {
+    state.logFilter = event.target.value;
+    renderLogs();
+});
+
+elements.logSearch.addEventListener('input', event => {
+    state.logSearch = event.target.value.trim();
+    renderLogs();
+});
+
+elements.copyLogBtn.addEventListener('click', async () => {
+    const logText = getFilteredLogs()
+        .map(log => `[${formatTimestamp(log.timestamp)}] [${log.level}] [${log.source}] ${log.message}`)
+        .join('\n');
+    if (!logText) return;
+    if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(logText);
+    }
+});
+
+elements.exportLogBtn.addEventListener('click', () => {
+    const logPayload = getFilteredLogs();
+    if (logPayload.length === 0) return;
+    downloadJson(
+        `${(state.currentRun?.imageName || state.currentImageName || 'validator-logs').replace(/\.[^.]+$/, '')}-logs.json`,
+        logPayload
+    );
 });
 
 elements.compareLeft.addEventListener('change', event => {
@@ -1070,6 +1548,7 @@ elements.historyPanel.addEventListener('click', async event => {
         const session = getSessionById(loadButton.dataset.loadRun);
         if (!session) return;
         const run = state.runtimeModule.importSessionBundle(session);
+        resetLiveRunState();
         state.currentRun = run;
         state.currentPreflight = run.preflight;
         state.currentImageDataUrl = run.sourceImageDataUrl;

@@ -12,7 +12,12 @@ import { getMetricsCollector } from '../metrics.ts';
 import { getDynamicMinConfidence } from '../detection-config.ts';
 import { detectHotbarRegion, detectIconEdges, inferGridFromEdges, generateGridROIs } from '../detection-grid.ts';
 import { findBestTemplateMatch, findTopTemplateMatches } from '../detection-matching.ts';
-import { addSlotCandidate, endValidatorStage, upsertSlotTrace } from '../validator-trace.ts';
+import {
+    addSlotCandidate,
+    endValidatorStage,
+    updateValidatorStageProgress,
+    upsertSlotTrace,
+} from '../validator-trace.ts';
 import type { TwoPhaseOptions, TwoPhaseResult } from './types.ts';
 
 /**
@@ -54,6 +59,18 @@ export async function detectIconsWithTwoPhase(
             gridConfidence: grid?.confidence || 0,
         },
     });
+    updateValidatorStageProgress(
+        'grid_detection',
+        {
+            metadata: {
+                gridCandidatesTried: edges.length,
+                gridCount: grid ? grid.columns * grid.rows : 0,
+            },
+            inputCount: edges.length,
+            outputCount: grid ? grid.columns * grid.rows : 0,
+        },
+        'Grid inference updated'
+    );
 
     // If grid detection failed or low confidence, fall back to sliding window
     if (!grid || grid.confidence < 0.4 || grid.columns < 3) {
@@ -114,7 +131,35 @@ export async function detectIconsWithTwoPhase(
             cellSize: grid.cellWidth,
         },
     });
+    updateValidatorStageProgress(
+        'occupancy_filtering',
+        {
+            metadata: {
+                slotsScanned: 0,
+                nonEmptySlots: 0,
+            },
+            inputCount: gridCells.length,
+            outputCount: 0,
+        },
+        'Scanning grid cells'
+    );
+    updateValidatorStageProgress(
+        'candidate_generation',
+        {
+            metadata: {
+                slotsProcessed: 0,
+                slotsTotal: gridCells.length,
+                candidateCount: 0,
+                workerBatchesPending: 0,
+            },
+            inputCount: gridCells.length,
+            outputCount: 0,
+        },
+        'Preparing candidate generation'
+    );
 
+    let processedCells = 0;
+    let nonEmptySlots = 0;
     for (let i = 0; i < gridCells.length; i++) {
         const cell = gridCells[i];
         if (!cell) continue; // TypeScript guard
@@ -138,6 +183,7 @@ export async function detectIconsWithTwoPhase(
         // Skip empty cells
         if (isEmptyCell(cellData)) {
             emptyFiltered++;
+            processedCells++;
             upsertSlotTrace(slotId, {
                 status: 'empty',
                 candidateCount: 0,
@@ -148,6 +194,18 @@ export async function detectIconsWithTwoPhase(
                 },
                 notes: ['empty_cell_filtered'],
             });
+            updateValidatorStageProgress(
+                'occupancy_filtering',
+                {
+                    metadata: {
+                        slotsScanned: processedCells,
+                        nonEmptySlots,
+                    },
+                    inputCount: gridCells.length,
+                    outputCount: nonEmptySlots,
+                },
+                `Occupancy ${processedCells}/${gridCells.length}`
+            );
             continue;
         }
 
@@ -155,6 +213,7 @@ export async function detectIconsWithTwoPhase(
         const variance = calculateColorVariance(cellData);
         if (variance < 800) {
             lowVarianceFiltered++;
+            processedCells++;
             upsertSlotTrace(slotId, {
                 status: 'filtered',
                 candidateCount: 0,
@@ -166,8 +225,22 @@ export async function detectIconsWithTwoPhase(
                 },
                 notes: ['low_variance_filtered'],
             });
+            updateValidatorStageProgress(
+                'occupancy_filtering',
+                {
+                    metadata: {
+                        slotsScanned: processedCells,
+                        nonEmptySlots,
+                    },
+                    inputCount: gridCells.length,
+                    outputCount: nonEmptySlots,
+                },
+                `Occupancy ${processedCells}/${gridCells.length}`
+            );
             continue;
         }
+        processedCells++;
+        nonEmptySlots++;
 
         // Color-based pre-filtering using adjacent colors
         const cellColor = getDominantColor(cellData);
@@ -244,6 +317,35 @@ export async function detectIconsWithTwoPhase(
                 status: 'filtered',
                 notes: ['no_candidate_above_threshold'],
             });
+        }
+
+        if (i % 4 === 0 || i === gridCells.length - 1) {
+            updateValidatorStageProgress(
+                'occupancy_filtering',
+                {
+                    metadata: {
+                        slotsScanned: processedCells,
+                        nonEmptySlots,
+                    },
+                    inputCount: gridCells.length,
+                    outputCount: nonEmptySlots,
+                },
+                `Occupancy ${processedCells}/${gridCells.length}`
+            );
+            updateValidatorStageProgress(
+                'candidate_generation',
+                {
+                    metadata: {
+                        slotsProcessed: processedCells,
+                        slotsTotal: gridCells.length,
+                        candidateCount: detections.length,
+                        workerBatchesPending: 0,
+                    },
+                    inputCount: gridCells.length,
+                    outputCount: detections.length,
+                },
+                `Candidates ${processedCells}/${gridCells.length}`
+            );
         }
     }
 

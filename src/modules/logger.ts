@@ -11,6 +11,7 @@ export {
     logger,
     // Types
     type LoggerConfig,
+    type LoggerListener,
     type SamplingConfig,
     type WideEvent,
     type EventContext,

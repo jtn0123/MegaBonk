@@ -7,7 +7,7 @@ import type { CVDetectionResult, ROI } from '../types.ts';
 import { getItemTemplates } from '../state.ts';
 import { getWorkerPath } from '../detection-config.ts';
 import { extractIconRegion } from '../detection-utils.ts';
-import { endValidatorStage, upsertSlotTrace } from '../validator-trace.ts';
+import { endValidatorStage, updateValidatorStageProgress, upsertSlotTrace } from '../validator-trace.ts';
 import type { WorkerMatchResult, ProgressCallback } from './types.ts';
 
 const TEMPLATE_WORKER_COUNT = 4;
@@ -43,6 +43,20 @@ export async function detectItemsWithWorkers(
             inputCount: gridPositions.length,
             outputCount: gridPositions.length,
         });
+        updateValidatorStageProgress(
+            'candidate_generation',
+            {
+                metadata: {
+                    slotsProcessed: 0,
+                    slotsTotal: gridPositions.length,
+                    candidateCount: 0,
+                    workerBatchesPending: 0,
+                },
+                inputCount: gridPositions.length,
+                outputCount: 0,
+            },
+            'Preparing worker batches'
+        );
 
         // Initialize workers
         for (let i = 0; i < TEMPLATE_WORKER_COUNT; i++) {
@@ -78,6 +92,8 @@ export async function detectItemsWithWorkers(
         }
 
         // Send batches to workers and collect results
+        let completedBatches = 0;
+        let matchedCandidates = 0;
         const batchPromises = batches.map((batch, batchIndex) => {
             return new Promise<WorkerMatchResult[]>((resolve, reject) => {
                 const worker = workers[batchIndex % TEMPLATE_WORKER_COUNT];
@@ -114,6 +130,22 @@ export async function detectItemsWithWorkers(
                 const handler = (e: MessageEvent) => {
                     if (e.data.type === 'BATCH_COMPLETE' && e.data.data.batchId === batchIndex) {
                         cleanup();
+                        completedBatches += 1;
+                        matchedCandidates += e.data.data.results.length;
+                        updateValidatorStageProgress(
+                            'candidate_generation',
+                            {
+                                metadata: {
+                                    slotsProcessed: Math.min(gridPositions.length, completedBatches * batchSize),
+                                    slotsTotal: gridPositions.length,
+                                    candidateCount: matchedCandidates,
+                                    workerBatchesPending: Math.max(0, batches.length - completedBatches),
+                                },
+                                inputCount: gridPositions.length,
+                                outputCount: matchedCandidates,
+                            },
+                            `Worker batches ${completedBatches}/${batches.length}`
+                        );
                         resolve(e.data.data.results);
                     }
                 };
@@ -152,6 +184,22 @@ export async function detectItemsWithWorkers(
         if (progressCallback) {
             progressCallback(60, 'Processing with workers...');
         }
+        updateValidatorStageProgress(
+            'candidate_generation',
+            {
+                metadata: {
+                    slotsProcessed: 0,
+                    slotsTotal: gridPositions.length,
+                    candidateCount: 0,
+                    workerBatchesPending: batches.length,
+                    usedWorkers: true,
+                    mode: 'worker_grid',
+                },
+                inputCount: gridPositions.length,
+                outputCount: 0,
+            },
+            'Worker candidate generation started'
+        );
 
         const allResults = await Promise.all(batchPromises);
 

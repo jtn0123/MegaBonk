@@ -28,6 +28,7 @@ import {
     addValidatorStageWarning,
     endValidatorStage,
     startValidatorStage,
+    updateValidatorStageProgress,
     updateValidatorTraceMetadata,
     upsertSlotTrace,
 } from '../validator-trace.ts';
@@ -217,44 +218,62 @@ function validateDetections(
     metrics: ReturnType<typeof getMetricsCollector>
 ): CVDetectionResult[] {
     const validationStartTime = performance.now();
-    const validated = detections
-        .map(detection => {
-            const result = validateWithBorderRarity(detection, ctx, false);
-            if (detection.position) {
-                const slotId = `${detection.position.x}:${detection.position.y}:${detection.position.width}:${detection.position.height}`;
-                if (result === null) {
-                    addSlotCandidate(
-                        slotId,
-                        {
-                            itemId: detection.entity.id,
-                            itemName: detection.entity.name,
-                            confidence: detection.confidence,
-                            reason: 'filtered_by_rarity',
-                        },
-                        true,
-                        {
-                            x: detection.position.x,
-                            y: detection.position.y,
-                            width: detection.position.width,
-                            height: detection.position.height,
-                        }
-                    );
-                    upsertSlotTrace(slotId, {
-                        status: 'filtered',
-                        notes: ['filtered_by_rarity'],
-                    });
-                }
-            }
+    const validated: CVDetectionResult[] = [];
+    let filteredCount = 0;
+
+    detections.forEach((detection, index) => {
+        const result = validateWithBorderRarity(detection, ctx, false);
+        if (detection.position) {
+            const slotId = `${detection.position.x}:${detection.position.y}:${detection.position.width}:${detection.position.height}`;
             if (result === null) {
-                metrics.recordRarityValidation(false, true);
-            } else if (result.confidence > detection.confidence) {
+                addSlotCandidate(
+                    slotId,
+                    {
+                        itemId: detection.entity.id,
+                        itemName: detection.entity.name,
+                        confidence: detection.confidence,
+                        reason: 'filtered_by_rarity',
+                    },
+                    true,
+                    {
+                        x: detection.position.x,
+                        y: detection.position.y,
+                        width: detection.position.width,
+                        height: detection.position.height,
+                    }
+                );
+                upsertSlotTrace(slotId, {
+                    status: 'filtered',
+                    notes: ['filtered_by_rarity'],
+                });
+            }
+        }
+        if (result === null) {
+            filteredCount++;
+            metrics.recordRarityValidation(false, true);
+        } else {
+            validated.push(result);
+            if (result.confidence > detection.confidence) {
                 metrics.recordRarityValidation(true, false);
             } else {
                 metrics.recordRarityValidation(false, false);
             }
-            return result;
-        })
-        .filter((d): d is CVDetectionResult => d !== null);
+        }
+        if (index % 5 === 0 || index === detections.length - 1) {
+            updateValidatorStageProgress(
+                'verification_filtering',
+                {
+                    metadata: {
+                        keptCount: validated.length,
+                        filteredCount,
+                    },
+                    inputCount: detections.length,
+                    outputCount: validated.length,
+                },
+                `Validated ${index + 1}/${detections.length} detections`
+            );
+        }
+    });
     metrics.recordValidationTime(performance.now() - validationStartTime);
     return validated;
 }
@@ -263,27 +282,41 @@ function validateDetections(
  * Annotate detections with stack count information
  */
 function annotateStackCounts(detections: CVDetectionResult[], imageData: ImageData, screenHeight: number): void {
+    let completed = 0;
     for (const detection of detections) {
         if (!detection.position) continue;
         const { x, y, width: cellW, height: cellH } = detection.position;
-        if (!hasCountOverlay(imageData, x, y, cellW, cellH, screenHeight)) continue;
-
-        const countResult = detectCount(imageData, x, y, cellW, cellH, screenHeight);
-        if (countResult.count > 1 && countResult.confidence > 0.5) {
-            const det = detection as CVDetectionResult & { stackCount?: number; countConfidence?: number };
-            det.stackCount = countResult.count;
-            det.countConfidence = countResult.confidence;
-            const slotId = `${x}:${y}:${cellW}:${cellH}`;
-            upsertSlotTrace(slotId, {
-                status: 'count_adjusted',
-                countEvidence: {
-                    count: countResult.count,
-                    confidence: countResult.confidence,
-                    rawText: countResult.rawText,
-                    method: countResult.method,
-                },
-            });
+        if (hasCountOverlay(imageData, x, y, cellW, cellH, screenHeight)) {
+            const countResult = detectCount(imageData, x, y, cellW, cellH, screenHeight);
+            if (countResult.count > 1 && countResult.confidence > 0.5) {
+                const det = detection as CVDetectionResult & { stackCount?: number; countConfidence?: number };
+                det.stackCount = countResult.count;
+                det.countConfidence = countResult.confidence;
+                const slotId = `${x}:${y}:${cellW}:${cellH}`;
+                upsertSlotTrace(slotId, {
+                    status: 'count_adjusted',
+                    countEvidence: {
+                        count: countResult.count,
+                        confidence: countResult.confidence,
+                        rawText: countResult.rawText,
+                        method: countResult.method,
+                    },
+                });
+            }
         }
+        completed++;
+        updateValidatorStageProgress(
+            'count_ocr',
+            {
+                metadata: {
+                    ocrSlotsDone: completed,
+                    ocrSlotsTotal: detections.length,
+                },
+                inputCount: detections.length,
+                outputCount: completed,
+            },
+            `OCR ${completed}/${detections.length}`
+        );
     }
 }
 
@@ -364,6 +397,16 @@ export async function detectItemsWithCV(
             requestedWorkerMode: useWorkers,
         });
         startValidatorStage('cache_lookup');
+        updateValidatorStageProgress(
+            'cache_lookup',
+            {
+                metadata: {
+                    cacheKey: requestedCacheKey,
+                    cacheHit: false,
+                },
+            },
+            'Checking detection cache'
+        );
         const cachedResults = getCachedResults(requestedCacheKey);
         if (cachedResults) {
             updateValidatorTraceMetadata({
@@ -420,6 +463,16 @@ export async function detectItemsWithCV(
         const itemTemplates = getItemTemplates();
         startValidatorStage('image_load');
         const { ctx, width, height } = await loadImageToCanvas(imageDataUrl);
+        updateValidatorStageProgress(
+            'image_load',
+            {
+                metadata: {
+                    imageWidth: width,
+                    imageHeight: height,
+                },
+            },
+            'Image loaded into canvas'
+        );
         endValidatorStage('image_load', {
             metadata: {
                 width,
@@ -529,6 +582,8 @@ export async function detectItemsWithCV(
             metadata: {
                 isValid: gridVerification.isValid,
                 confidence: gridVerification.confidence,
+                verifiedSlots: verifiedDetections.length,
+                rejectedSlots: Math.max(0, candidateRun.detections.length - verifiedDetections.length),
             },
             inputCount: candidateRun.detections.length,
             outputCount: verifiedDetections.length,
@@ -544,6 +599,8 @@ export async function detectItemsWithCV(
             metadata: {
                 boosted: boostedDetections.length,
                 validated: validatedDetections.length,
+                keptCount: validatedDetections.length,
+                filteredCount: Math.max(0, boostedDetections.length - validatedDetections.length),
             },
             inputCount: boostedDetections.length,
             outputCount: validatedDetections.length,
@@ -565,6 +622,18 @@ export async function detectItemsWithCV(
         // Stack counts
         progressCallback?.(98, 'Detecting item counts...');
         startValidatorStage('count_ocr');
+        updateValidatorStageProgress(
+            'count_ocr',
+            {
+                metadata: {
+                    ocrSlotsDone: 0,
+                    ocrSlotsTotal: validatedDetections.length,
+                },
+                inputCount: validatedDetections.length,
+                outputCount: 0,
+            },
+            'Preparing OCR count pass'
+        );
         const imageData = ctx.getImageData(0, 0, width, height);
         annotateStackCounts(validatedDetections, imageData, height);
         endValidatorStage('count_ocr', {
@@ -592,6 +661,18 @@ export async function detectItemsWithCV(
         logger.info({ operation: 'cv.detect_items_smart', data: logData });
 
         startValidatorStage('dedupe_finalization');
+        updateValidatorStageProgress(
+            'dedupe_finalization',
+            {
+                metadata: {
+                    detectionsIn: validatedDetections.length,
+                    detectionsOut: validatedDetections.length,
+                },
+                inputCount: validatedDetections.length,
+                outputCount: validatedDetections.length,
+            },
+            'Caching and finalizing results'
+        );
         const effectiveCacheKey = buildDetectionCacheKey(imageHash, candidateRun.usedWorkers);
         cacheResults(effectiveCacheKey, validatedDetections);
         logActiveLearning(validatedDetections);

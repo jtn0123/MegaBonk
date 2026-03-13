@@ -19,6 +19,7 @@ import {
     clearTemplateState,
 } from './state.ts';
 import { getDominantColor } from './color.ts';
+import { updateValidatorStageProgress } from './validator-trace.ts';
 
 // ========================================
 // Multi-Scale Template Generation
@@ -280,12 +281,38 @@ export async function loadItemTemplates(): Promise<void> {
             operation: 'cv.load_templates',
             data: { phase: 'start', totalItems: items.length },
         });
+        updateValidatorStageProgress(
+            'template_readiness',
+            {
+                metadata: {
+                    templatesLoaded: 0,
+                    templatesTotal: items.length,
+                    templatesFailed: 0,
+                },
+                inputCount: items.length,
+                outputCount: 0,
+            },
+            'Loading templates'
+        );
 
         const { priority, standard } = prioritizeItems(items);
 
         const priorityResult = await loadTemplatesBatch(priority);
         groupTemplatesByColor(priority);
         setPriorityTemplatesLoaded(true);
+        updateValidatorStageProgress(
+            'template_readiness',
+            {
+                metadata: {
+                    templatesLoaded: priorityResult.loaded,
+                    templatesTotal: items.length,
+                    templatesFailed: priorityResult.failed,
+                },
+                inputCount: items.length,
+                outputCount: priorityResult.loaded,
+            },
+            'Priority templates loaded'
+        );
 
         logger.info({
             operation: 'cv.load_templates',
@@ -303,6 +330,19 @@ export async function loadItemTemplates(): Promise<void> {
             const standardResult = await loadTemplatesBatch(standard);
             groupTemplatesByColor(standard);
             setTemplatesLoaded(true);
+            updateValidatorStageProgress(
+                'template_readiness',
+                {
+                    metadata: {
+                        templatesLoaded: priorityResult.loaded + standardResult.loaded,
+                        templatesTotal: items.length,
+                        templatesFailed: priorityResult.failed + standardResult.failed,
+                    },
+                    inputCount: items.length,
+                    outputCount: priorityResult.loaded + standardResult.loaded,
+                },
+                'Template loading complete'
+            );
 
             logger.info({
                 operation: 'cv.load_templates',
@@ -332,6 +372,20 @@ export async function loadItemTemplates(): Promise<void> {
             });
             // Keep the CV UI usable even if some templates fail to finish loading.
             setTemplatesLoaded(true);
+            updateValidatorStageProgress(
+                'template_readiness',
+                {
+                    status: 'warning',
+                    metadata: {
+                        templatesLoaded: getItemTemplates().size,
+                        templatesTotal: items.length,
+                        templatesFailed: Math.max(0, items.length - getItemTemplates().size),
+                    },
+                    inputCount: items.length,
+                    outputCount: getItemTemplates().size,
+                },
+                'Template loading completed with warnings'
+            );
         } finally {
             setStandardTemplatesLoading(false);
         }

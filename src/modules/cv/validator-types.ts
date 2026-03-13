@@ -12,6 +12,29 @@ export type FailureKind =
     | 'worker'
     | 'unknown';
 
+export type ValidatorRunStatus = 'running' | 'completed' | 'failed' | 'stalled' | 'replay';
+export type ValidatorEventLevel = 'debug' | 'info' | 'warn' | 'error';
+export type ValidatorEventType =
+    | 'runtime_ready'
+    | 'run_started'
+    | 'stage_started'
+    | 'stage_progress'
+    | 'stage_warning'
+    | 'stage_completed'
+    | 'run_completed'
+    | 'run_failed'
+    | 'run_stalled'
+    | 'logger_event';
+export type ValidatorStallDiagnosis =
+    | 'template_readiness'
+    | 'image_load'
+    | 'worker_batch_wait'
+    | 'grid_search'
+    | 'verification'
+    | 'count_ocr'
+    | 'cache'
+    | 'unknown';
+
 export type PipelineStageName =
     | 'preflight'
     | 'template_readiness'
@@ -133,6 +156,65 @@ export interface ValidatorRuntimeStatus {
     lastError?: string | null;
 }
 
+export interface ValidatorRuntimeEvent {
+    timestamp: string;
+    runId: string;
+    type: ValidatorEventType;
+    level: ValidatorEventLevel;
+    message: string;
+    stage?: PipelineStageName;
+    metadata?: Record<string, unknown>;
+}
+
+export interface ValidatorLogEvent {
+    id: string;
+    timestamp: string;
+    runId: string;
+    level: ValidatorEventLevel;
+    source: 'runtime' | 'cv';
+    message: string;
+    operation?: string;
+    stage?: PipelineStageName;
+    metadata?: Record<string, unknown>;
+}
+
+export interface ValidatorStallInfo {
+    diagnosis: ValidatorStallDiagnosis;
+    message: string;
+    stage?: PipelineStageName;
+    detectedAt: string;
+    stalledForMs: number;
+    thresholdMs: number;
+}
+
+export interface ValidatorStageProgress {
+    stage: PipelineStageName;
+    startedAt: string;
+    updatedAt: string;
+    elapsedMs: number;
+    warningCount: number;
+    metadata: Record<string, unknown>;
+}
+
+export interface ValidatorRunProgress {
+    runStatus: ValidatorRunStatus;
+    startedAt: string;
+    updatedAt: string;
+    completedAt?: string;
+    currentStage?: PipelineStageName;
+    totalElapsedMs: number;
+    stageElapsedMs: number;
+    activeWarningCount: number;
+    eventCount: number;
+    stalled: boolean;
+    currentDiagnosis?: ValidatorStallInfo | null;
+    slowestStage?: {
+        name: PipelineStageName;
+        durationMs: number;
+    } | null;
+    stageProgress: Partial<Record<PipelineStageName, ValidatorStageProgress>>;
+}
+
 export interface ValidatorRunRequest {
     imageDataUrl: string;
     imageName: string;
@@ -161,6 +243,7 @@ export interface ValidatorMetrics {
 
 export interface ValidatorRunResult {
     runId: string;
+    status: ValidatorRunStatus;
     sourceImageDataUrl: string;
     imageName: string;
     imagePath?: string;
@@ -181,11 +264,14 @@ export interface ValidatorRunResult {
         flagged: number;
     };
     groundTruthItems: string[];
+    progressSummary: ValidatorRunProgress;
+    logEvents: ValidatorLogEvent[];
 }
 
 export interface ValidatorSessionBundle {
-    version: 1;
+    version: 1 | 2;
     runId: string;
+    status?: ValidatorRunStatus;
     sourceImageDataUrl: string;
     imageName: string;
     imagePath?: string;
@@ -198,4 +284,6 @@ export interface ValidatorSessionBundle {
     reviewActions: ReviewAction[];
     metrics: ValidatorMetrics;
     groundTruthItems: string[];
+    progressSummary?: ValidatorRunProgress;
+    logEvents?: ValidatorLogEvent[];
 }

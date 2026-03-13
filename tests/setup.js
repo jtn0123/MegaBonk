@@ -40,6 +40,7 @@ vi.mock('../src/modules/logger.ts', () => ({
         error: vi.fn(),
         debug: vi.fn(),
         setContext: vi.fn(),
+        subscribe: vi.fn(() => () => {}),
     },
 }));
 

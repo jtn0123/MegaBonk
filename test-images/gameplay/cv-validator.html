@@ -31,6 +31,14 @@
             <div id="runtime-error" class="error-callout" hidden></div>
         </section>
 
+        <section class="panel status-strip-panel">
+            <div class="panel-header">
+                <h2>Live Run Status</h2>
+                <span id="live-status-badge" class="badge neutral">Idle</span>
+            </div>
+            <div id="live-status-panel" class="empty-state">Start a run to see live stage progress, diagnosis, and warnings.</div>
+        </section>
+
         <section class="panel controls-panel">
             <div class="panel-header">
                 <h2>Run Controls</h2>
@@ -76,7 +84,7 @@
         </section>
 
         <section class="lab-main-grid">
-            <div class="panel screenshot-panel">
+            <div class="panel screenshot-panel screenshot-panel-wide">
                 <div class="panel-header">
                     <h2>Screenshot</h2>
                     <span id="image-meta" class="muted">No image selected</span>
@@ -120,6 +128,13 @@
 
             <div class="panel">
                 <div class="panel-header">
+                    <h2>Run Diagnosis</h2>
+                </div>
+                <div id="diagnosis-panel" class="empty-state">Run detection to see bottlenecks, slowest stage, and stall diagnosis.</div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
                     <h2>Slot Inspector</h2>
                 </div>
                 <div id="slot-list" class="slot-list empty-state">No slots yet.</div>
@@ -131,6 +146,36 @@
                 </div>
                 <div id="slot-detail" class="empty-state">Select a slot from the overlay or slot inspector.</div>
             </div>
+        </section>
+
+        <section class="panel logs-panel">
+            <div class="panel-header">
+                <h2>Live Logs</h2>
+                <div class="button-row">
+                    <button id="copy-log-btn">Copy Logs</button>
+                    <button id="export-log-btn">Export Logs</button>
+                </div>
+            </div>
+            <div class="logs-controls">
+                <label>
+                    <span>Filter</span>
+                    <select id="log-filter">
+                        <option value="all">All</option>
+                        <option value="cv">CV</option>
+                        <option value="runtime">Runtime</option>
+                        <option value="warnings">Warnings/Errors</option>
+                    </select>
+                </label>
+                <label>
+                    <span>Search</span>
+                    <input id="log-search" type="search" placeholder="Search logs">
+                </label>
+                <label class="checkbox-label">
+                    <input id="log-pause-autoscroll" type="checkbox">
+                    <span>Pause autoscroll</span>
+                </label>
+            </div>
+            <div id="log-panel" class="empty-state">Live runtime and CV logs will appear here while a run is active.</div>
         </section>
 
         <section class="lab-secondary-grid">

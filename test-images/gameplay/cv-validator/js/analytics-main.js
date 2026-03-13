@@ -5,6 +5,7 @@ const elements = {
     failureKinds: document.getElementById('failure-kinds-panel'),
     stageBottlenecks: document.getElementById('stage-bottlenecks-panel'),
     weakImages: document.getElementById('weak-images-panel'),
+    stallDiagnoses: document.getElementById('stall-diagnosis-panel'),
     confusion: document.getElementById('confusion-panel'),
     refresh: document.getElementById('refresh-analytics-btn'),
 };
@@ -38,6 +39,8 @@ function renderSummary(sessions) {
             <div class="summary-card"><strong>Images Covered</strong>${images.size}</div>
             <div class="summary-card"><strong>Avg F1</strong>${formatPercent(summary.avgF1)}</div>
             <div class="summary-card"><strong>Avg Stage Count</strong>${averageStages.toFixed(1)}</div>
+            <div class="summary-card"><strong>Warnings</strong>${summary.warningCount}</div>
+            <div class="summary-card"><strong>Errors</strong>${summary.errorCount}</div>
         </div>
     `;
 }
@@ -90,12 +93,18 @@ function renderStageBottlenecks(sessions) {
     for (const session of sessions) {
         for (const stage of session.trace.stages) {
             if (!stats.has(stage.name)) {
-                stats.set(stage.name, { total: 0, count: 0, warnings: 0 });
+                stats.set(stage.name, { total: 0, count: 0, warnings: 0, errors: 0, slowestWins: 0 });
             }
             const entry = stats.get(stage.name);
             entry.total += stage.durationMs || 0;
             entry.count += 1;
             entry.warnings += stage.warnings?.length || 0;
+            entry.errors += (session.logEvents || []).filter(
+                event => event.stage === stage.name && event.level === 'error'
+            ).length;
+            if (session.progressSummary?.slowestStage?.name === stage.name) {
+                entry.slowestWins += 1;
+            }
         }
     }
 
@@ -104,6 +113,8 @@ function renderStageBottlenecks(sessions) {
             name,
             avgMs: entry.total / entry.count,
             warnings: entry.warnings,
+            errors: entry.errors,
+            slowestWins: entry.slowestWins,
         }))
         .sort((left, right) => right.avgMs - left.avgMs);
 
@@ -111,7 +122,7 @@ function renderStageBottlenecks(sessions) {
     elements.stageBottlenecks.innerHTML = `
         <table class="history-table">
             <thead>
-                <tr><th>Stage</th><th>Avg Duration</th><th>Warnings</th></tr>
+                <tr><th>Stage</th><th>Avg Duration</th><th>Warnings</th><th>Errors</th><th>Slowest</th></tr>
             </thead>
             <tbody>
                 ${rows
@@ -121,6 +132,51 @@ function renderStageBottlenecks(sessions) {
                                 <td>${escapeHtml(row.name)}</td>
                                 <td>${Math.round(row.avgMs)} ms</td>
                                 <td>${row.warnings}</td>
+                                <td>${row.errors}</td>
+                                <td>${row.slowestWins}</td>
+                            </tr>
+                        `
+                    )
+                    .join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+function renderStallDiagnoses(sessions) {
+    if (sessions.length === 0) {
+        elements.stallDiagnoses.className = 'empty-state';
+        elements.stallDiagnoses.textContent = 'No stored sessions yet.';
+        return;
+    }
+
+    const counts = new Map();
+    for (const session of sessions) {
+        const diagnosis = session.progressSummary?.currentDiagnosis?.diagnosis;
+        if (!diagnosis) continue;
+        counts.set(diagnosis, (counts.get(diagnosis) || 0) + 1);
+    }
+
+    if (counts.size === 0) {
+        elements.stallDiagnoses.className = 'empty-state';
+        elements.stallDiagnoses.textContent = 'No stall diagnoses recorded yet.';
+        return;
+    }
+
+    const rows = Array.from(counts.entries()).sort((left, right) => right[1] - left[1]);
+    elements.stallDiagnoses.className = '';
+    elements.stallDiagnoses.innerHTML = `
+        <table class="history-table">
+            <thead>
+                <tr><th>Diagnosis</th><th>Runs</th></tr>
+            </thead>
+            <tbody>
+                ${rows
+                    .map(
+                        ([diagnosis, count]) => `
+                            <tr>
+                                <td>${escapeHtml(diagnosis)}</td>
+                                <td>${count}</td>
                             </tr>
                         `
                     )
@@ -212,6 +268,7 @@ async function loadAnalytics() {
     renderFailureKinds(sessions);
     renderStageBottlenecks(sessions);
     renderWeakImages(sessions);
+    renderStallDiagnoses(sessions);
     renderConfusions(sessions);
 }
 

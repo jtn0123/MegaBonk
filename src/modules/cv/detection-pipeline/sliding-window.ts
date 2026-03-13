@@ -12,6 +12,7 @@ import { getDynamicMinConfidence } from '../detection-config.ts';
 import { nonMaxSuppression } from '../detection-utils.ts';
 import { getAdaptiveIconSizes } from '../detection-grid.ts';
 import { matchTemplate, matchTemplateMulti } from '../detection-matching.ts';
+import { updateValidatorStageProgress } from '../validator-trace.ts';
 import type { SlidingWindowOptions, ProgressCallback } from './types.ts';
 
 /** Context passed to window processing helpers */
@@ -159,6 +160,21 @@ export async function detectIconsWithSlidingWindow(
             trainingDataLoaded: scanCtx.useMultiTemplate,
         },
     });
+    updateValidatorStageProgress(
+        'candidate_generation',
+        {
+            metadata: {
+                slotsProcessed: 0,
+                slotsTotal: totalSteps,
+                candidateCount: 0,
+                workerBatchesPending: 0,
+                mode: 'sliding_window',
+            },
+            inputCount: totalSteps,
+            outputCount: 0,
+        },
+        'Sliding window scan started'
+    );
 
     for (let y = scanY; y <= scanY + scanHeight - primarySize; y += stepSize) {
         for (let x = scanX; x <= scanX + scanWidth - primarySize; x += stepSize) {
@@ -183,6 +199,24 @@ export async function detectIconsWithSlidingWindow(
                     position: { x, y, width: bestMatch.scale, height: bestMatch.scale },
                     method: 'template_match',
                 });
+            }
+
+            if (currentStep % 100 === 0 || currentStep === totalSteps) {
+                updateValidatorStageProgress(
+                    'candidate_generation',
+                    {
+                        metadata: {
+                            slotsProcessed: currentStep,
+                            slotsTotal: totalSteps,
+                            candidateCount: detections.length,
+                            workerBatchesPending: 0,
+                            mode: 'sliding_window',
+                        },
+                        inputCount: totalSteps,
+                        outputCount: detections.length,
+                    },
+                    `Sliding window ${currentStep}/${totalSteps}`
+                );
             }
         }
     }

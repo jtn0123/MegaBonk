@@ -4,6 +4,7 @@ import { clearSessionBundles, listSessionBundles } from './session-history.js';
 const elements = {
     summary: document.getElementById('performance-summary'),
     recentRuns: document.getElementById('recent-runs-panel'),
+    stageTrends: document.getElementById('stage-trends-panel'),
     perImage: document.getElementById('per-image-panel'),
     refresh: document.getElementById('refresh-performance-btn'),
     export: document.getElementById('export-performance-btn'),
@@ -50,6 +51,8 @@ function renderSummary(sessions) {
             <div class="summary-card"><strong>Latest Precision</strong>${formatPercent(latest.metrics.precision)}</div>
             <div class="summary-card"><strong>Latest Recall</strong>${formatPercent(latest.metrics.recall)}</div>
             <div class="summary-card"><strong>Runs</strong>${sessions.length}</div>
+            <div class="summary-card"><strong>Warnings</strong>${latest.progressSummary?.activeWarningCount || 0}</div>
+            <div class="summary-card"><strong>Status</strong>${escapeHtml(latest.status || latest.progressSummary?.runStatus || 'completed')}</div>
         </div>
         <div class="tag-row">
             <span class="tag">Latest: ${escapeHtml(latest.imageName)}</span>
@@ -142,10 +145,62 @@ function renderPerImage(sessions) {
     `;
 }
 
+function renderStageTrends(sessions) {
+    if (sessions.length === 0) {
+        elements.stageTrends.className = 'empty-state';
+        elements.stageTrends.textContent = 'No stored runs yet.';
+        return;
+    }
+
+    const grouped = new Map();
+    for (const session of sessions) {
+        for (const stage of session.trace.stages || []) {
+            if (!grouped.has(stage.name)) {
+                grouped.set(stage.name, { totalMs: 0, count: 0, warnings: 0 });
+            }
+            const entry = grouped.get(stage.name);
+            entry.totalMs += stage.durationMs || 0;
+            entry.count += 1;
+            entry.warnings += stage.warnings?.length || 0;
+        }
+    }
+
+    const rows = Array.from(grouped.entries())
+        .map(([name, entry]) => ({
+            name,
+            avgMs: entry.totalMs / entry.count,
+            warnings: entry.warnings,
+        }))
+        .sort((left, right) => right.avgMs - left.avgMs);
+
+    elements.stageTrends.className = '';
+    elements.stageTrends.innerHTML = `
+        <table class="history-table">
+            <thead>
+                <tr><th>Stage</th><th>Avg Duration</th><th>Warnings</th></tr>
+            </thead>
+            <tbody>
+                ${rows
+                    .map(
+                        row => `
+                            <tr>
+                                <td>${escapeHtml(row.name)}</td>
+                                <td>${Math.round(row.avgMs)} ms</td>
+                                <td>${row.warnings}</td>
+                            </tr>
+                        `
+                    )
+                    .join('')}
+            </tbody>
+        </table>
+    `;
+}
+
 async function loadPerformance() {
     const sessions = await listSessionBundles();
     renderSummary(sessions);
     renderRecentRuns(sessions);
+    renderStageTrends(sessions);
     renderPerImage(sessions);
     return sessions;
 }
