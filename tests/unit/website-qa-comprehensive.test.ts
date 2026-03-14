@@ -1031,11 +1031,11 @@ describe('QA Area 37: Data Cross-References', () => {
 });
 
 describe('QA Area 38: Mobile Navigation', () => {
-    const mainTabs = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
-    const moreTabs = ['build-planner', 'calculator', 'advisor', 'changelog'];
+    const primaryTabs = ['items', 'weapons', 'build-planner', 'tomes'];
+    const moreTabs = ['characters', 'shrines', 'calculator', 'advisor', 'changelog', 'about'];
 
-    it('should have 5 main tabs for bottom nav', () => {
-        expect(mainTabs.length).toBe(5);
+    it('should have 4 primary tabs plus a more menu in bottom nav', () => {
+        expect(primaryTabs.length).toBe(4);
     });
 
     it('should have more menu items', () => {
@@ -1043,8 +1043,8 @@ describe('QA Area 38: Mobile Navigation', () => {
     });
 
     it('should have all tabs accounted for', () => {
-        const allTabs = [...mainTabs, ...moreTabs];
-        expect(allTabs.length).toBe(9);
+        const allTabs = [...primaryTabs, ...moreTabs];
+        expect(allTabs.length).toBe(10);
     });
 });
 

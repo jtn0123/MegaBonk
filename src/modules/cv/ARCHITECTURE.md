@@ -43,9 +43,19 @@ Image Input (data URL)
        → CVDetectionResult[]
 ```
 
-### scan-build.ts — Orchestrator
+### build-planner-scan.ts — Primary User Flow
 
-`scan-build.ts` is the main entry point for the scan-build UI feature. It:
+`build-planner-scan.ts` is the canonical user-facing screenshot import path. It:
+
+- Renders the permanent Build Planner screenshot import panel
+- Tracks UI states (`idle`, `preflight`, `processing`, `review`, `applied`, `error`)
+- Surfaces template/training/preset readiness before scans begin
+- Runs screenshot preflight checks and requires preview-before-apply
+- Loads screenshot-trained templates opportunistically to improve live-site accuracy
+
+### scan-build.ts — Legacy / Advanced Orchestrator
+
+`scan-build.ts` remains the broader scan-build workflow used for legacy flows, validation, and advanced debugging. It:
 
 - Initializes OCR and CV modules with game data (`initScanBuild`)
 - Manages file upload, image display, and item selection state
@@ -182,7 +192,7 @@ A `CVStrategy` (defined in `cv-strategy.ts`) is a configuration object controlli
 
 - **Color filtering**: `rarity-first` (filter by rarity border first), `color-first` (filter by dominant color), or `none`
 - **Color analysis**: `single-dominant`, `multi-region` (5-region color profile), or `hsv-based`
-- **Confidence thresholds**: `fixed`, `adaptive-rarity` (stricter for common, lenient for legendary), or `adaptive-gap`
+- **Confidence thresholds**: `fixed`, `adaptive-rarity` (more lenient for common, stricter for legendary), or `adaptive-gap`
 - **Matching algorithm**: `ncc` (normalized cross-correlation), `ssd` (sum of squared differences), or `ssim` (structural similarity)
 - **Toggles**: context boosting, border validation, feedback loop, empty cell detection, multi-pass matching
 

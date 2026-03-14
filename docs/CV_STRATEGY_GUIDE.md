@@ -24,7 +24,7 @@ The enhanced CV system allows you to:
 - **Track performance metrics** (accuracy, speed, F1 score)
 - **Run offline tests** in CI/CD without a browser
 - **Compare strategies** to find the optimal approach
-- **Automatically test** on every commit via GitHub Actions
+- **Review offline results** locally or through the dedicated GitHub Actions workflow
 
 ---
 
@@ -389,20 +389,20 @@ Create a `ground-truth.json` file in your test images directory:
 
 ```bash
 # Run all strategies on default test cases
-bun run test:cv:offline
+npm run test:cv:offline
 
 # Run specific strategies
-bun run tests/offline-cv-runner.ts --strategies optimized,fast,accurate
+npx tsx tests/offline-cv-runner.ts --strategies optimized,fast,accurate
 
 # Custom paths
-bun run tests/offline-cv-runner.ts \
+npx tsx tests/offline-cv-runner.ts \
   --test-cases ./my-test-images \
   --output ./my-results \
   --strategies optimized \
   --verbose
 
 # For CI/CD
-bun run test:cv:ci
+npm run test:cv:ci
 ```
 
 ### Test Output
@@ -442,18 +442,15 @@ Total runs: 25
 
 ### GitHub Actions Workflow
 
-The system includes a comprehensive CI/CD workflow (`.github/workflows/cv-testing.yml`) that:
+The system includes a dedicated CI workflow (`.github/workflows/cv-testing.yml`) that:
 
 1. **Tests each strategy in parallel** (matrix build)
 2. **Runs full comparison** on all strategies
 3. **Checks performance targets** (F1 > 85%, Time < 5000ms)
-4. **Comments on PRs** with test results
-5. **Uploads artifacts** for review
+4. **Uploads artifacts** for review
 
 ### Workflow Triggers
 
-- **Push** to `main`, `develop`, or `claude/*` branches
-- **Pull requests** to `main` or `develop`
 - **Manual dispatch** via GitHub UI
 
 ### Performance Targets
@@ -644,7 +641,7 @@ function loadCorrections() {
 **Solutions:**
 ```bash
 # Install dependencies
-bun install
+npm install
 
 # Check test images exist
 ls test-images/gameplay/

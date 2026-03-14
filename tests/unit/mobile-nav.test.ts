@@ -41,7 +41,7 @@ describe('Mobile Navigation Module', () => {
                 <button class="nav-item active" data-tab="items">Items</button>
                 <button class="nav-item" data-tab="weapons">Weapons</button>
                 <button class="nav-item" data-tab="build-planner">Build</button>
-                <button class="nav-item" data-tab="advisor">Advisor</button>
+                <button class="nav-item" data-tab="tomes">Tomes</button>
                 <button class="nav-item" data-tab="more">More</button>
             </div>
         `;
@@ -120,11 +120,12 @@ describe('Mobile Navigation Module', () => {
             showMoreMenu();
 
             const moreMenu = document.getElementById('more-menu');
-            expect(moreMenu.textContent).toContain('Tomes');
             expect(moreMenu.textContent).toContain('Characters');
             expect(moreMenu.textContent).toContain('Shrines');
+            expect(moreMenu.textContent).toContain('Advisor');
             expect(moreMenu.textContent).toContain('Calculator');
             expect(moreMenu.textContent).toContain('Changelog');
+            expect(moreMenu.textContent).toContain('About');
         });
 
         it('should include close button', () => {
@@ -211,8 +212,8 @@ describe('Mobile Navigation Module', () => {
 
             const subscriberCallback = subscribe.mock.calls[0][1];
 
-            // Simulate tab change to tomes (in more menu)
-            subscriberCallback('tomes');
+            // Simulate tab change to characters (in more menu)
+            subscriberCallback('characters');
 
             const moreBtn = document.querySelector('.nav-item[data-tab="more"]');
             expect(moreBtn.classList.contains('active')).toBe(true);

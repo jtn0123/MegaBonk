@@ -166,7 +166,7 @@
                         aria-controls="build-planner-tab"
                         id="tab-build-planner"
                     >
-                        🛠️ Build Planner
+                        🛠️ Build + Scan
                     </button>
                     <button
                         class="tab-btn"
@@ -298,7 +298,10 @@
                     <div id="buildPlannerContainer" class="build-planner">
                         <div class="build-section">
                             <h2>🛠️ Build Your Perfect Loadout</h2>
-                            <p>Select character, weapon, tomes, and items to see synergies and stats.</p>
+                            <p>
+                                Select character, weapon, tomes, and items to see synergies and stats, or import a
+                                pause-menu screenshot below.
+                            </p>
                         </div>
 
                         <div class="build-grid">
@@ -346,6 +349,79 @@
                                 </div>
                             </div>
                         </div>
+
+                        <section
+                            id="build-planner-scan-section"
+                            class="build-scan-panel"
+                            role="region"
+                            aria-labelledby="build-planner-scan-title"
+                        >
+                            <div class="build-scan-panel-header">
+                                <div>
+                                    <h3 id="build-planner-scan-title">
+                                        📷 Screenshot Import
+                                        <span class="beta-badge">Beta</span>
+                                    </h3>
+                                    <p class="build-scan-panel-subtitle">
+                                        Review a screenshot import before anything changes in your build.
+                                    </p>
+                                </div>
+                                <span id="build-scan-state-badge" class="build-scan-state-badge state-idle">Idle</span>
+                            </div>
+
+                            <div id="build-scan-readiness" class="build-scan-readiness" aria-label="Scan readiness">
+                                <!-- Readiness badges rendered dynamically -->
+                            </div>
+
+                            <div class="build-scan-guidance">
+                                <div class="build-scan-guidance-card">
+                                    <h4>Best Results</h4>
+                                    <p>Use a full pause-menu screenshot with the inventory grid clearly visible.</p>
+                                </div>
+                                <div class="build-scan-guidance-card">
+                                    <h4>Manual Review</h4>
+                                    <p>
+                                        Low-confidence matches stay highlighted so you can sanity-check them before
+                                        applying.
+                                    </p>
+                                </div>
+                                <div class="build-scan-guidance-card">
+                                    <h4>Supported Sizes</h4>
+                                    <p>
+                                        Preset calibrations exist for 720p, 1280x800, 1600x900, 1080p, and 1440p
+                                        captures.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="build-scan-toolbar">
+                                <button id="import-screenshot-btn" class="btn-primary build-scan-primary">
+                                    📷 Review Screenshot Import
+                                </button>
+                                <button id="retry-last-scan-btn" class="btn-secondary" disabled>
+                                    ↻ Re-run Last Screenshot
+                                </button>
+                                <input type="file" id="build-planner-file-input" accept="image/*" hidden />
+                            </div>
+
+                            <div
+                                id="build-scan-inline-status"
+                                class="build-scan-inline-status tone-neutral"
+                                role="status"
+                                aria-live="polite"
+                            >
+                                <p id="build-scan-inline-status-title" class="build-scan-inline-status-title">
+                                    Waiting for a screenshot
+                                </p>
+                                <p id="build-scan-inline-status-body" class="build-scan-inline-status-body">
+                                    Import a pause-menu screenshot to preview matches, warnings, and manual review
+                                    flags.
+                                </p>
+                            </div>
+
+                            <div id="scan-preflight-report" class="scan-preflight-report" style="display: none"></div>
+                            <div id="build-scan-summary" class="build-scan-summary" hidden></div>
+                        </section>
 
                         <!-- Build Analysis -->
                         <div class="build-analysis" role="region" aria-label="Build analysis">
@@ -693,13 +769,13 @@
                     <span class="nav-icon">⚔️</span>
                     <span>Weapons</span>
                 </button>
+                <button class="nav-item" data-tab="build-planner" aria-label="Build planner">
+                    <span class="nav-icon">🛠️</span>
+                    <span>Build</span>
+                </button>
                 <button class="nav-item" data-tab="tomes" aria-label="Tomes">
                     <span class="nav-icon">📖</span>
                     <span>Tomes</span>
-                </button>
-                <button class="nav-item" data-tab="shrines" aria-label="Shrines">
-                    <span class="nav-icon">⛩️</span>
-                    <span>Shrines</span>
                 </button>
                 <button class="nav-item" data-tab="more" aria-label="More tabs">
                     <span class="nav-icon">≡</span>

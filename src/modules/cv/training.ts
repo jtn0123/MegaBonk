@@ -75,9 +75,9 @@ const enabledSources = new Set<string>();
 const sessionTemplates = new Map<string, TrainingTemplate[]>();
 let sessionTemplateCount = 0;
 
-// Base path for training data (relative to app root)
+// Base path for training data (relative to the current app base path)
 // Can be overridden with setTrainingDataBasePath() for library consumers
-let trainingDataBasePath = '/data/training-data/';
+let trainingDataBasePath = './data/training-data/';
 
 /**
  * Set the base path for training data

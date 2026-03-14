@@ -160,10 +160,10 @@ export function setActiveStrategy(strategy: CVStrategy | string): void {
  * Get confidence thresholds based on strategy
  *
  * Adaptive-rarity logic:
- * - Common items: HIGHER thresholds (stricter) because they're easy to detect
- *   and often confused with each other
- * - Rare/Legendary items: LOWER thresholds (more lenient) because they have
- *   unique visuals and false negatives are more costly
+ * - Common items: LOWER thresholds (more lenient) because many of them share
+ *   similar silhouettes and are easier to confuse
+ * - Rare/Legendary items: HIGHER thresholds (stricter) because distinctive
+ *   borders and visuals should support stronger matches
  */
 export function getConfidenceThresholds(
     strategy: CVStrategy,
@@ -178,15 +178,15 @@ export function getConfidenceThresholds(
     }
 
     if (strategy.confidenceThresholds === 'adaptive-rarity' && rarity) {
-        // Thresholds ordered by strictness:
-        // Common items need higher confidence (more strict) to avoid confusion
-        // Rare items can have lower confidence (more lenient) - unique visuals
+        // Thresholds ordered by leniency:
+        // Common items get more room because many of them look alike.
+        // Legendary items should clear a stronger bar because their visuals are distinctive.
         const thresholdMap: Record<string, { pass1: number; pass2: number; pass3: number }> = {
-            common: { pass1: 0.88, pass2: 0.75, pass3: 0.65 },
-            uncommon: { pass1: 0.85, pass2: 0.72, pass3: 0.62 },
+            common: { pass1: 0.75, pass2: 0.62, pass3: 0.52 },
+            uncommon: { pass1: 0.78, pass2: 0.65, pass3: 0.55 },
             rare: { pass1: 0.82, pass2: 0.68, pass3: 0.58 },
-            epic: { pass1: 0.78, pass2: 0.65, pass3: 0.55 },
-            legendary: { pass1: 0.75, pass2: 0.62, pass3: 0.52 },
+            epic: { pass1: 0.85, pass2: 0.72, pass3: 0.62 },
+            legendary: { pass1: 0.88, pass2: 0.75, pass3: 0.65 },
         };
 
         return thresholdMap[rarity] || { pass1: 0.85, pass2: 0.7, pass3: 0.6 };

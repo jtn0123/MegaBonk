@@ -223,25 +223,25 @@ describe('CV Adaptive Rarity Threshold System', () => {
     });
 
     describe('Adaptive-Rarity Strategy', () => {
-        it('should return stricter thresholds for common items', () => {
+        it('should return stricter thresholds for legendary items', () => {
             const commonThresholds = getConfidenceThresholds(adaptiveRarityStrategy, 'common');
             const legendaryThresholds = getConfidenceThresholds(adaptiveRarityStrategy, 'legendary');
 
-            // Common items should have higher (stricter) thresholds
-            expect(commonThresholds.pass1).toBeGreaterThan(legendaryThresholds.pass1);
-            expect(commonThresholds.pass2).toBeGreaterThan(legendaryThresholds.pass2);
-            expect(commonThresholds.pass3).toBeGreaterThan(legendaryThresholds.pass3);
+            // Legendary items should have higher (stricter) thresholds
+            expect(legendaryThresholds.pass1).toBeGreaterThan(commonThresholds.pass1);
+            expect(legendaryThresholds.pass2).toBeGreaterThan(commonThresholds.pass2);
+            expect(legendaryThresholds.pass3).toBeGreaterThan(commonThresholds.pass3);
         });
 
-        it('should have monotonically decreasing thresholds by rarity', () => {
+        it('should have monotonically increasing thresholds by rarity', () => {
             const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
             const thresholdsByRarity = rarities.map(r => getConfidenceThresholds(adaptiveRarityStrategy, r));
 
-            // Each rarity should have lower thresholds than the previous
+            // Each rarity should have higher thresholds than the previous
             for (let i = 1; i < thresholdsByRarity.length; i++) {
-                expect(thresholdsByRarity[i]!.pass1).toBeLessThan(thresholdsByRarity[i - 1]!.pass1);
-                expect(thresholdsByRarity[i]!.pass2).toBeLessThan(thresholdsByRarity[i - 1]!.pass2);
-                expect(thresholdsByRarity[i]!.pass3).toBeLessThan(thresholdsByRarity[i - 1]!.pass3);
+                expect(thresholdsByRarity[i]!.pass1).toBeGreaterThan(thresholdsByRarity[i - 1]!.pass1);
+                expect(thresholdsByRarity[i]!.pass2).toBeGreaterThan(thresholdsByRarity[i - 1]!.pass2);
+                expect(thresholdsByRarity[i]!.pass3).toBeGreaterThan(thresholdsByRarity[i - 1]!.pass3);
             }
         });
 
@@ -333,16 +333,16 @@ describe('CV Adaptive Rarity Threshold System', () => {
             const currentStrategy = STRATEGY_PRESETS.current!;
             const commonThresholds = getConfidenceThresholds(currentStrategy, 'common');
 
-            // Common items should require high confidence
-            expect(commonThresholds.pass1).toBeGreaterThanOrEqual(0.85);
+            // Common items should have the most lenient first-pass threshold
+            expect(commonThresholds.pass1).toBeLessThanOrEqual(0.75);
         });
 
-        it('should have more lenient thresholds for legendary items', () => {
+        it('should have stricter thresholds for legendary items', () => {
             const currentStrategy = STRATEGY_PRESETS.current!;
             const legendaryThresholds = getConfidenceThresholds(currentStrategy, 'legendary');
 
-            // Legendary items can have lower confidence due to unique visuals
-            expect(legendaryThresholds.pass1).toBeLessThan(0.80);
+            // Legendary items should clear a stronger confidence bar
+            expect(legendaryThresholds.pass1).toBeGreaterThanOrEqual(0.88);
         });
     });
 });

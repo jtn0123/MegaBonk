@@ -4,7 +4,9 @@ This document provides comprehensive testing guidelines for the MegaBonk build r
 
 ## Overview
 
-The build recognition system has three detection modes:
+The current user-facing CV experience lives in the Build Planner screenshot import panel. It is a review-first beta flow that keeps manual apply in the loop.
+
+Under the hood, the build recognition system still uses three detection paths for testing and debugging:
 1. **Manual** - 100% accurate user selection
 2. **OCR** - Text-based detection (60-80% accurate)
 3. **Hybrid** - OCR + Computer Vision (70-90% accurate)
@@ -155,23 +157,26 @@ Create a `ground-truth.json` file for each screenshot:
 
 1. Start dev server:
    ```bash
-   bun run dev
+   npm run dev
    ```
 
-2. Navigate to Advisor tab
+2. Navigate to the `Build + Scan` tab and open the screenshot import panel in Build Planner
 
-3. Upload test screenshot
+3. Upload a pause-menu screenshot with the always-visible `Import Screenshot` action
 
-4. Try each detection mode:
-   - Manual selection
-   - OCR Only
-   - Hybrid OCR+CV
+4. Review the beta flow:
+   - Check template and preset readiness
+   - Confirm any preflight warnings
+   - Inspect low-confidence rows in the preview before applying
+   - Apply only after the review looks correct
 
 5. Record results:
    - Items detected
    - Items missed
    - False positives
    - Confidence scores
+   - Low-confidence review flags
+   - Preflight warnings
    - Processing time
 
 ### Automated Testing (Console)
@@ -191,7 +196,7 @@ const groundTruth = {
 };
 
 // Upload image and get data URL
-const imageInput = document.getElementById('scan-file-input');
+const imageInput = document.getElementById('build-planner-file-input');
 // ... load image to get dataUrl ...
 
 // Run test

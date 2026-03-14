@@ -66,7 +66,7 @@ afterEach(() => {
 Run the canary test to verify cleanup is working:
 
 ```bash
-bun test tests/unit/test-cleanup-guard.test.js
+npx vitest run tests/unit/test-cleanup-guard.test.js
 ```
 
 If this test fails, there's a memory leak in the test infrastructure.
@@ -142,7 +142,7 @@ afterEach(() => {
 Run tests with Node's memory profiler:
 
 ```bash
-NODE_OPTIONS="--max-old-space-size=4096" bun test
+NODE_OPTIONS="--max-old-space-size=4096" npx vitest run
 ```
 
 ### Run Tests in Isolation
@@ -150,7 +150,7 @@ NODE_OPTIONS="--max-old-space-size=4096" bun test
 Find the leaking test by running files individually:
 
 ```bash
-bun test tests/unit/specific-file.test.js
+npx vitest run tests/unit/specific-file.test.js
 ```
 
 ### Monitor Memory Growth
@@ -182,7 +182,7 @@ Add memory monitoring to your workflow:
 ```yaml
 - name: Run tests with memory check
   run: |
-    NODE_OPTIONS="--max-old-space-size=2048" bun test
+    NODE_OPTIONS="--max-old-space-size=2048" npx vitest run
   env:
     NODE_ENV: test
 ```

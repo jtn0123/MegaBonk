@@ -24,9 +24,9 @@ interface MoreMenuConfig {
 // ========================================
 
 const MORE_MENU_TABS: MoreMenuConfig[] = [
-    { tab: 'build-planner', label: 'Build', icon: '🛠️' },
     { tab: 'advisor', label: 'Advisor', icon: '🤖' },
     { tab: 'characters', label: 'Characters', icon: '👤' },
+    { tab: 'shrines', label: 'Shrines', icon: '⛩️' },
     { tab: 'calculator', label: 'Calculator', icon: '🧮' },
     { tab: 'changelog', label: 'Changelog', icon: '📋' },
     { tab: 'about', label: 'About', icon: 'ℹ️' },

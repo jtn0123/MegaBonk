@@ -15,7 +15,7 @@
 - **Tomes** (23/23) ✅ COMPLETE - Priority rankings, stat scaling, recommendations
 - **Characters** (20/20) ✅ COMPLETE - Passives, strengths/weaknesses, builds
 - **Shrines** (8/8) ✅ COMPLETE - Types, strategies, rewards
-- **Build Planner** - Create builds with automatic synergy detection + stats calculator
+- **Build Planner + Screenshot Import** - Create builds manually or review a screenshot import before applying it
 - **Breakpoint Calculator** - "How many stacks?" solver with visual graphs
 
 ### 🎨 **Visual Excellence**
@@ -28,6 +28,7 @@
 
 ### 🛠️ **Build Planner with Stats Calculator**
 - Select character + weapon + tomes + items
+- **Screenshot import review flow** - Import a pause-menu screenshot, inspect confidence, then apply it manually
 - **Real-time stat calculation** - See total damage, HP, crit chance, attack speed, etc.
 - **OVERCRIT detection** - Special highlight when crit >100%
 - **Automatic synergy detection** across all categories

@@ -4,6 +4,245 @@
    Multi-image batch processing and build scan modals
    ======================================== */
 
+/* Build Planner Screenshot Import Panel */
+.build-scan-panel {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: linear-gradient(180deg, rgba(233, 69, 96, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%);
+    border: 1px solid rgba(233, 69, 96, 0.18);
+    border-radius: 18px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+}
+
+.build-scan-panel-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+
+.build-scan-panel-header h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.35rem;
+}
+
+.build-scan-panel-subtitle {
+    color: var(--text-secondary);
+    max-width: 48rem;
+}
+
+.build-scan-state-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 92px;
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+}
+
+.build-scan-state-badge.state-idle {
+    color: var(--text-secondary);
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.build-scan-state-badge.state-preflight,
+.build-scan-state-badge.state-processing {
+    color: #ffd9df;
+    background: rgba(233, 69, 96, 0.16);
+    border-color: rgba(233, 69, 96, 0.3);
+}
+
+.build-scan-state-badge.state-review {
+    color: #ffe49c;
+    background: rgba(255, 193, 7, 0.16);
+    border-color: rgba(255, 193, 7, 0.32);
+}
+
+.build-scan-state-badge.state-applied {
+    color: #a7f3d0;
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.28);
+}
+
+.build-scan-state-badge.state-error {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.14);
+    border-color: rgba(239, 68, 68, 0.3);
+}
+
+.build-scan-readiness {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.build-scan-readiness-card {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.9rem 1rem;
+    border-radius: 12px;
+    background: rgba(15, 15, 20, 0.45);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.build-scan-readiness-card.tone-ready {
+    border-color: rgba(16, 185, 129, 0.25);
+}
+
+.build-scan-readiness-card.tone-warn {
+    border-color: rgba(255, 193, 7, 0.22);
+}
+
+.build-scan-readiness-card.tone-error {
+    border-color: rgba(239, 68, 68, 0.22);
+}
+
+.build-scan-readiness-card.tone-loading {
+    border-color: rgba(233, 69, 96, 0.18);
+}
+
+.build-scan-readiness-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-secondary);
+}
+
+.build-scan-readiness-status {
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.build-scan-readiness-detail {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.build-scan-guidance {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.build-scan-guidance-card {
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.build-scan-guidance-card h4 {
+    margin-bottom: 0.35rem;
+    font-size: 0.95rem;
+}
+
+.build-scan-guidance-card p {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.build-scan-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.build-scan-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+}
+
+.build-scan-inline-status {
+    padding: 1rem 1.1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.03);
+    margin-bottom: 1rem;
+}
+
+.build-scan-inline-status.tone-info {
+    border-color: rgba(233, 69, 96, 0.22);
+    background: rgba(233, 69, 96, 0.08);
+}
+
+.build-scan-inline-status.tone-warn {
+    border-color: rgba(255, 193, 7, 0.25);
+    background: rgba(255, 193, 7, 0.08);
+}
+
+.build-scan-inline-status.tone-success {
+    border-color: rgba(16, 185, 129, 0.24);
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.build-scan-inline-status.tone-error {
+    border-color: rgba(239, 68, 68, 0.24);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.build-scan-inline-status-title {
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.build-scan-inline-status-body {
+    color: var(--text-secondary);
+}
+
+.build-scan-summary {
+    margin-top: 1rem;
+}
+
+.build-scan-summary-card {
+    display: grid;
+    gap: 0.9rem;
+    padding: 1rem 1.1rem;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.build-scan-summary-card.tone-success {
+    border-color: rgba(16, 185, 129, 0.24);
+}
+
+.build-scan-summary-card.tone-warn {
+    border-color: rgba(255, 193, 7, 0.24);
+}
+
+.build-scan-summary-card.tone-error {
+    border-color: rgba(239, 68, 68, 0.24);
+}
+
+.build-scan-summary-card h4 {
+    margin-bottom: 0.25rem;
+}
+
+.build-scan-summary-card p {
+    color: var(--text-secondary);
+}
+
+.build-scan-summary-list {
+    margin: 0;
+    padding-left: 1rem;
+    color: var(--text-secondary);
+}
+
 /* Build Planner Screenshot Import Modal */
 .build-scan-modal .modal-content {
     max-width: 900px;
@@ -69,8 +308,31 @@
 }
 
 @media (max-width: 768px) {
+    .build-scan-panel {
+        padding: 1rem;
+    }
+
+    .build-scan-panel-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .build-scan-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .build-scan-toolbar .btn-primary,
+    .build-scan-toolbar .btn-secondary {
+        width: 100%;
+    }
+
     .build-scan-preview {
         grid-template-columns: 1fr;
+    }
+
+    .build-scan-actions {
+        flex-direction: column;
     }
 }
 
@@ -78,6 +340,11 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+.build-scan-results-header {
+    display: grid;
+    gap: 0.35rem;
 }
 
 .build-scan-results h3 {
@@ -145,6 +412,12 @@
     border-left: 3px solid transparent;
 }
 
+.build-scan-item-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .build-scan-item.confidence-high {
     border-left-color: #00ff88;
 }
@@ -164,6 +437,37 @@
 .build-scan-item .item-confidence {
     font-size: 0.85rem;
     color: var(--text-secondary);
+}
+
+.build-scan-confidence-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    border: 1px solid transparent;
+}
+
+.build-scan-confidence-tag.tone-success {
+    color: #a7f3d0;
+    background: rgba(16, 185, 129, 0.12);
+    border-color: rgba(16, 185, 129, 0.22);
+}
+
+.build-scan-confidence-tag.tone-warn {
+    color: #fde68a;
+    background: rgba(255, 193, 7, 0.12);
+    border-color: rgba(255, 193, 7, 0.22);
+}
+
+.build-scan-confidence-tag.tone-error {
+    color: #fecaca;
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.22);
 }
 
 .build-scan-item.confidence-high .item-confidence {
@@ -187,10 +491,27 @@
     border-top: 1px solid var(--bg-subtle);
 }
 
-#import-screenshot-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+.build-scan-review-note {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.build-scan-warning-banner {
+    display: grid;
+    gap: 0.25rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 193, 7, 0.24);
+    background: rgba(255, 193, 7, 0.08);
+}
+
+.build-scan-warning-banner.tone-error {
+    border-color: rgba(239, 68, 68, 0.28);
+    background: rgba(239, 68, 68, 0.08);
+}
+
+.build-scan-warning-banner span {
+    color: var(--text-secondary);
 }
 
 /* Batch Processing UI */

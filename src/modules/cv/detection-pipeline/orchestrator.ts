@@ -8,6 +8,7 @@ import { detectResolution } from '../../image-layout.ts';
 import { getAllData, getItemTemplates, getTemplateReadinessState, isPriorityTemplatesLoaded } from '../state.ts';
 import { loadItemTemplates } from '../templates.ts';
 import { getMetricsCollector } from '../metrics.ts';
+import { loadTrainingData, isTrainingDataLoaded, getTrainingStats } from '../training.ts';
 import { selectStrategiesForImage } from '../ensemble-detector.ts';
 import { getResolutionTier } from '../resolution-profiles.ts';
 import { findUncertainDetections, shouldPromptForLearning } from '../active-learning.ts';
@@ -382,9 +383,26 @@ export async function detectItemsWithCV(
             progressCallback?.(5, 'Loading item templates...');
             await loadItemTemplates();
         }
+
+        if (!isTrainingDataLoaded()) {
+            progressCallback?.(10, 'Loading screenshot-trained templates...');
+            await loadTrainingData().catch(error => {
+                logger.warn({
+                    operation: 'cv.training.on_demand_load_error',
+                    error: {
+                        name: (error as Error).name,
+                        message: (error as Error).message,
+                    },
+                });
+                return false;
+            });
+        }
+
+        const trainingStats = getTrainingStats();
         endValidatorStage('template_readiness', {
             metadata: {
                 readiness: getTemplateReadinessState(),
+                trainingTemplates: trainingStats.totalTemplates,
             },
         });
 

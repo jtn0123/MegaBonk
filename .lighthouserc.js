@@ -7,16 +7,16 @@ module.exports = {
         assert: {
             aggregationMethod: 'median-run',
             assertions: {
-                // Performance budgets — fail CI if scores drop below thresholds
-                // Performance threshold kept realistic for CI headless environment
-                'categories:performance': ['error', { minScore: 0.65, aggregationMethod: 'optimistic' }],
-                'categories:accessibility': ['error', { minScore: 0.9 }],
-                'categories:best-practices': ['error', { minScore: 0.85 }],
+                // Tightened post-polish budgets for the production site.
+                'categories:performance': ['error', { minScore: 0.75, aggregationMethod: 'optimistic' }],
+                'categories:accessibility': ['error', { minScore: 0.95 }],
+                'categories:best-practices': ['error', { minScore: 0.9 }],
                 'categories:seo': ['error', { minScore: 0.95 }],
 
-                // Known issues - don't fail on these
+                // Keep currently noisy audits out of the hard gate until they are
+                // addressed deliberately in a follow-up pass.
                 'aria-allowed-attr': 'off',
-                'color-contrast': 'off',
+                'color-contrast': ['warn', { minScore: 0.9 }],
                 'csp-xss': 'off',
                 'errors-in-console': 'off',
                 'installable-manifest': 'off',
@@ -28,8 +28,8 @@ module.exports = {
                 'uses-responsive-images': 'off',
                 'bootup-time': 'off',
                 'dom-size': 'off',
-                interactive: ['warn', { minScore: 0.5 }],
-                'largest-contentful-paint': ['warn', { minScore: 0.25 }],
+                interactive: ['warn', { minScore: 0.65 }],
+                'largest-contentful-paint': ['warn', { minScore: 0.4 }],
                 'mainthread-work-breakdown': 'off',
                 'max-potential-fid': 'off',
                 'render-blocking-resources': 'off',

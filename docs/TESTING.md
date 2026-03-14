@@ -16,7 +16,7 @@ npx playwright install     # Download browser binaries for E2E tests
 ### Unit Tests
 ```bash
 npm run test:unit          # Run with coverage (may hit memory limits)
-npm test                   # Run in watch mode
+npm run test:watch         # Run in watch mode
 ```
 
 ### E2E Tests
@@ -28,7 +28,7 @@ npm run test:e2e:ui        # Run with Playwright UI
 
 ### All Tests
 ```bash
-bun run test:all           # Run both unit and e2e tests
+npm run test:all           # Run both unit and e2e tests
 ```
 
 ## Known Issues
@@ -43,18 +43,18 @@ bun run test:all           # Run both unit and e2e tests
 
 1. **Run tests without coverage** (fastest, no memory issues):
    ```bash
-   NODE_OPTIONS='--max-old-space-size=8192' bunx vitest run
+   NODE_OPTIONS='--max-old-space-size=8192' npx vitest run
    ```
 
 2. **Run specific test files with coverage**:
    ```bash
-   bun test tests/unit/computer-vision.test.ts --coverage
-   bun test tests/unit/filters.test.js --coverage
+   npx vitest run tests/unit/computer-vision.test.ts --coverage
+   npx vitest run tests/unit/filters.test.js --coverage
    ```
 
 3. **Skip memory-intensive CV tests**:
    ```bash
-   bunx vitest run --exclude='**/cv-*.test.ts'  --coverage
+   npx vitest run --exclude='**/cv-*.test.ts'  --coverage
    ```
 
 **Configuration Applied:**
@@ -76,7 +76,7 @@ The `canvas` module requires native dependencies (Cairo, Pango, etc.) and may fa
 
 On Linux/Mac with dependencies:
 ```bash
-bun install canvas
+npm install
 ```
 
 On Windows or systems without build tools:
@@ -140,13 +140,13 @@ npm install --ignore-scripts
 
 ```bash
 # Full coverage report (may hit memory limits)
-bun run test:unit
+npm run test:unit
 
 # Per-file coverage (recommended)
-bunx vitest run tests/unit/calculator.test.js --coverage
+npx vitest run tests/unit/calculator.test.js --coverage
 
 # Check coverage without running full suite
-bunx vitest run tests/unit/modal.test.js --coverage
+npx vitest run tests/unit/modal.test.js --coverage
 ```
 
 ## Test Structure

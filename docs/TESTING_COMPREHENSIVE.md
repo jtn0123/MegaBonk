@@ -6,17 +6,19 @@ This document describes the complete testing infrastructure for the MegaBonk ima
 
 ```bash
 # Run all recognition tests
-bun run test:recognition:all
+npm run test:recognition:all
 
 # Open interactive dashboard
-bun run test:dashboard
+npm run test:dashboard
 
 # Run specific test suites
-bun run test:ocr              # OCR module only
-bun run test:cv               # Computer vision only
-bun run test:integration      # Integration tests
-bun run test:performance      # Performance benchmarks
+npm run test:ocr              # OCR module only
+npm run test:cv               # Computer vision only
+npm run test:integration      # Integration tests
+npm run test:performance      # Performance benchmarks
 ```
+
+The canonical user-facing CV flow is the Build Planner screenshot import panel. These tests cover the OCR/CV engine that powers that beta review flow.
 
 ## Test Structure
 
@@ -66,7 +68,7 @@ bun run test:performance      # Performance benchmarks
   - Small text < 100ms
   - Large text < 500ms
 
-**Run**: `bun run test:ocr`
+**Run**: `npm run test:ocr`
 
 ---
 
@@ -115,7 +117,7 @@ bun run test:performance      # Performance benchmarks
   - Consistent resolution detection
   - Consistent UI layout detection
 
-**Run**: `bun run test:cv`
+**Run**: `npm run test:cv`
 
 ---
 
@@ -158,7 +160,7 @@ bun run test:performance      # Performance benchmarks
   - Remove false positives
   - User-defined thresholds
 
-**Run**: `bun run test:integration`
+**Run**: `npm run test:integration`
 
 ---
 
@@ -197,7 +199,7 @@ bun run test:performance      # Performance benchmarks
   - 75%+ accuracy for English
   - < 100MB memory
 
-**Run**: `bun run test:performance`
+**Run**: `npm run test:performance`
 
 ---
 
@@ -207,26 +209,26 @@ bun run test:performance      # Performance benchmarks
 
 ```bash
 # OCR module only
-bun run test:ocr
+npm run test:ocr
 
 # Computer Vision module only
-bun run test:cv
+npm run test:cv
 
 # Integration tests
-bun run test:integration
+npm run test:integration
 
 # Performance benchmarks
-bun run test:performance
+npm run test:performance
 ```
 
 ### Combined Tests
 
 ```bash
 # All recognition tests (OCR + CV + Integration)
-bun run test:recognition
+npm run test:recognition
 
 # Full test suite with reporting
-bun run test:recognition:all
+npm run test:recognition:all
 
 # This runs scripts/run-all-tests.sh which:
 # 1. Runs all test suites
@@ -239,14 +241,14 @@ bun run test:recognition:all
 
 ```bash
 # Watch for changes and re-run tests
-bun vitest watch tests/unit/ocr.test.ts
+npx vitest watch tests/unit/ocr.test.ts
 ```
 
 ### Coverage Report
 
 ```bash
 # Generate coverage report
-bun vitest run --coverage
+npx vitest run --coverage
 
 # View coverage in browser
 open coverage/index.html
@@ -260,7 +262,7 @@ An interactive HTML dashboard visualizes test results:
 
 ```bash
 # Open dashboard
-bun run test:dashboard
+npm run test:dashboard
 
 # Or open directly
 firefox test-results/dashboard.html
@@ -388,31 +390,31 @@ npm run lint
 
 2. **Run specific failing test**:
    ```bash
-   bun vitest run tests/unit/ocr.test.ts -t "should detect exact item"
+   npx vitest run tests/unit/ocr.test.ts -t "should detect exact item"
    ```
 
 3. **Check console output**:
    ```bash
-   bun vitest run --reporter=verbose
+   npx vitest run --reporter=verbose
    ```
 
 ### Slow Tests?
 
 1. **Run performance benchmarks**:
    ```bash
-   bun run test:performance
+   npm run test:performance
    ```
 
 2. **Check for memory leaks**:
    ```bash
-   bun vitest run --reporter=verbose --pool=forks
+   npx vitest run --reporter=verbose --pool=forks
    ```
 
 ### Coverage Too Low?
 
 1. **Generate detailed coverage**:
    ```bash
-   bun vitest run --coverage --reporter=verbose
+   npx vitest run --coverage --reporter=verbose
    ```
 
 2. **View uncovered lines**:
@@ -453,17 +455,21 @@ npm run lint
 ```yaml
 name: Test Image Recognition
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: oven-sh/setup-bun@v1
-      - run: bun install
-      - run: bun run test:recognition:all
-      - uses: actions/upload-artifact@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run test:recognition:all
+      - uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: test-results/
@@ -488,5 +494,5 @@ jobs:
 - **Performance benchmarks** to ensure speed targets
 - **CI/CD ready** for automated testing
 
-Run all tests: `bun run test:recognition:all`
-View dashboard: `bun run test:dashboard`
+Run all tests: `npm run test:recognition:all`
+View dashboard: `npm run test:dashboard`

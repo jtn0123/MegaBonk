@@ -17,10 +17,17 @@ vi.mock('../../src/modules/cv/index.ts', () => ({
     autoDetectGrid: vi.fn().mockResolvedValue({ success: false }),
     getPresetForResolution: vi.fn().mockReturnValue(null),
     loadGridPresets: vi.fn().mockResolvedValue(undefined),
+    loadTrainingData: vi.fn().mockResolvedValue(true),
+    getTrainingStats: vi.fn().mockReturnValue({
+        loaded: true,
+        totalItems: 12,
+        totalTemplates: 48,
+        itemsWithMostSamples: [],
+    }),
 }));
 
 // Mock OCR module
-vi.mock('../../src/modules/ocr', () => ({
+vi.mock('../../src/modules/ocr/index.ts', () => ({
     initOCR: vi.fn(),
     autoDetectFromImage: vi.fn().mockResolvedValue({
         items: [],
@@ -75,10 +82,22 @@ const mockGameData: AllGameData = {
 describe('Build Planner Scan Module', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        
-        // Setup DOM with build-actions container
+
+        // Setup DOM with build planner scan section
         document.body.innerHTML = `
-            <div class="build-actions"></div>
+            <section id="build-planner-scan-section">
+                <div id="build-scan-readiness"></div>
+                <button id="import-screenshot-btn"></button>
+                <button id="retry-last-scan-btn"></button>
+                <input id="build-planner-file-input" type="file" />
+                <div id="build-scan-inline-status">
+                    <p id="build-scan-inline-status-title"></p>
+                    <p id="build-scan-inline-status-body"></p>
+                </div>
+                <div id="build-scan-state-badge"></div>
+                <div id="scan-preflight-report"></div>
+                <div id="build-scan-summary"></div>
+            </section>
         `;
     });
 
@@ -86,8 +105,6 @@ describe('Build Planner Scan Module', () => {
         // Clean up modal and other elements if they were created
         const elementsToRemove = [
             'build-planner-scan-modal',
-            'build-planner-file-input',
-            'import-screenshot-btn',
         ];
         elementsToRemove.forEach(id => {
             const el = document.getElementById(id);
@@ -164,7 +181,7 @@ describe('Build Planner Scan Module', () => {
     // Edge Cases
     // ========================================
     describe('edge cases', () => {
-        it('should handle initialization when build-actions does not exist', async () => {
+        it('should handle initialization when scan section does not exist', async () => {
             document.body.innerHTML = '';
             
             // Should not throw

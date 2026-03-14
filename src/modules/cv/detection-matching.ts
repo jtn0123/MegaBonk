@@ -155,6 +155,7 @@ export function matchTemplateMulti(
             confidence: primaryScore,
         },
     ];
+    const trainingVotes: TemplateVote[] = [];
 
     // Match against training templates
     for (let i = 0; i < trainingTemplates.length; i++) {
@@ -165,20 +166,37 @@ export function matchTemplateMulti(
         if (!resizedTraining) continue;
 
         const rawScore = calculateSimilarity(iconRegion, resizedTraining);
-        votes.push({
+        const vote: TemplateVote = {
             templateId: `training_${itemId}_${i}`,
             itemId,
-            confidence: rawScore,
-        });
+            confidence: rawScore * Math.max(1, trainingTpl.weight),
+        };
+        votes.push(vote);
+        trainingVotes.push(vote);
     }
 
-    // Use voting module to combine scores
-    const votingResult = combineVotes(votes);
-    if (!votingResult) {
+    // Prefer screenshot-derived templates when they exist and match well.
+    // The static art template remains a fallback for sparse or noisy training sets.
+    const trainingOnlyResult = combineVotes(trainingVotes, {
+        method: 'max',
+        minConsensus: 0.2,
+        usePerformanceWeighting: false,
+    });
+    const combinedResult = combineVotes(votes);
+
+    if (!trainingOnlyResult && !combinedResult) {
         return primaryScore;
     }
 
-    return votingResult.confidence;
+    const screenshotTemplateScore = trainingOnlyResult?.confidence ?? 0;
+    const fallbackPrimaryScore = primaryScore * 0.85;
+    const combinedScore = combinedResult?.confidence ?? 0;
+
+    if (trainingVotes.length >= 2) {
+        return Math.max(screenshotTemplateScore, combinedScore, fallbackPrimaryScore);
+    }
+
+    return Math.max(primaryScore, screenshotTemplateScore, combinedScore);
 }
 
 /**
