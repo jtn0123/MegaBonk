@@ -221,7 +221,7 @@ After testing these 4 screenshots:
 - [SCREENSHOTS_ANALYSIS.md](./SCREENSHOTS_ANALYSIS.md) - Detailed visual analysis of each screenshot
 - [ground-truth.json](./ground-truth.json) - Complete ground truth labels
 - [../SCREENSHOT_SOURCES.md](../SCREENSHOT_SOURCES.md) - Where to find more test images
-- [../../docs/TESTING_IMAGE_RECOGNITION.md](../../docs/TESTING_IMAGE_RECOGNITION.md) - Complete testing guide
+- [../../docs/TESTING.md](../../docs/TESTING.md) - Complete testing guide
 
 ## Contributing More Screenshots
 

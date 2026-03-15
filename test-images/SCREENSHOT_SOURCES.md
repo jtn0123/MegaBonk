@@ -245,7 +245,7 @@ When using community screenshots:
 ## Resources
 
 - [Steam Community Hub](https://steamcommunity.com/app/3405340)
-- [TESTING_IMAGE_RECOGNITION.md](../docs/TESTING_IMAGE_RECOGNITION.md) - Full testing guide
+- [TESTING.md](../docs/TESTING.md) - Full testing guide
 - [Steam Deck Verified Page](https://deckverified.games/app/3405340) - Performance info
 
 ## Questions?

@@ -1,174 +1,52 @@
 # Testing Guide
 
-## Initial Setup
-
-Before running tests for the first time, install dependencies:
+## Setup
 
 ```bash
 npm install                # Install npm dependencies
-npx playwright install     # Download browser binaries for E2E tests
+npx playwright install     # Download browser binaries for E2E tests (~470MB, required once)
 ```
 
-**Note:** The Playwright browser download (~470MB) is required for E2E tests but not for unit tests.
+## Quick Reference
 
-## Running Tests
+| Command | What it runs |
+|---------|-------------|
+| `npm run test:unit` | Unit tests with coverage |
+| `npm run test:watch` | Unit tests in watch mode |
+| `npm run test:e2e` | Playwright E2E tests (all browsers) |
+| `npm run test:e2e:fast` | E2E tests (Chromium only) |
+| `npm run test:all` | Unit + E2E |
+| `npm run test:ocr` | OCR module tests |
+| `npm run test:cv` | Computer vision tests |
+| `npm run test:cv:real` | CV tests with real screenshots (requires `canvas`) |
+| `npm run test:integration` | OCR + CV integration tests |
+| `npm run test:performance` | Performance benchmarks |
+| `npm run test:recognition` | All recognition tests (OCR + CV + integration) |
 
-### Unit Tests
-```bash
-npm run test:unit          # Run with coverage (may hit memory limits)
-npm run test:watch         # Run in watch mode
-```
-
-### E2E Tests
-```bash
-npx playwright install     # Required first time only
-npm run test:e2e           # Run Playwright end-to-end tests
-npm run test:e2e:ui        # Run with Playwright UI
-```
-
-### All Tests
-```bash
-npm run test:all           # Run both unit and e2e tests
-```
-
-## Known Issues
-
-### Memory Overflow During Coverage Collection
-
-**Symptom:** Tests pass (1705 passed) but worker crashes with "JavaScript heap out of memory" during coverage report generation.
-
-**Root Cause:** V8 coverage provider accumulates data for all 50+ test files. When generating the final report, memory usage exceeds 8GB heap limit.
-
-**Workarounds:**
-
-1. **Run tests without coverage** (fastest, no memory issues):
-   ```bash
-   NODE_OPTIONS='--max-old-space-size=8192' npx vitest run
-   ```
-
-2. **Run specific test files with coverage**:
-   ```bash
-   npx vitest run tests/unit/computer-vision.test.ts --coverage
-   npx vitest run tests/unit/filters.test.js --coverage
-   ```
-
-3. **Skip memory-intensive CV tests**:
-   ```bash
-   npx vitest run --exclude='**/cv-*.test.ts'  --coverage
-   ```
-
-**Configuration Applied:**
-- Single fork mode (`singleFork: true`) to prevent worker accumulation
-- 8GB heap limit (`--max-old-space-size=8192`)
-- Sequential test execution (`isolate: false`, `concurrent: false`)
-- Reduced coverage scope (`all: false`)
-
-### Canvas Module Installation
-
-The `canvas` module requires native dependencies (Cairo, Pango, etc.) and may fail to install on some systems.
-
-**When is it needed?**
-- CV tests with real images (`cv-real-images.test.ts`)
-- Offline CV runner (`tests/offline-cv-runner.ts`)
-- NOT needed for regular unit tests or E2E tests
-
-**Installation:**
-
-On Linux/Mac with dependencies:
-```bash
-npm install
-```
-
-On Windows or systems without build tools:
-```bash
-npm install --ignore-scripts
-# Canvas will be unavailable but tests will skip gracefully
-```
-
-**Native dependencies required:**
-- **Linux**: `apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev`
-- **Mac**: `brew install pkg-config cairo pango libpng jpeg giflib librsvg`
-- **Windows**: Visual Studio Build Tools (or use --ignore-scripts)
-
-**Graceful degradation:**
-- Tests automatically skip canvas-dependent tests if module isn't available
-- Offline CV runner exits with helpful error message
-- Canvas is marked as `optionalDependencies` in package.json
-
-## Test Coverage
-
-**Current coverage:** ~29% (as of 2026-01-14)
-**Threshold:** 28-30% (enforced by vitest.config.js)
-**Long-term goal:** 40%+
-
-### Well-Covered Modules ✅
-- `dom-cache.ts`: 100%
-- `charts.ts`: 99%
-- `renderers.ts`: 93%
-- `theme-manager.ts`: 92%
-- `logger.ts`: 89%
-- `favorites.ts`: 88%
-- `error-boundary.ts`: 88%
-- `utils.ts`: 91%
-- `ocr.ts`: 78%
-
-### Priority for Coverage Improvements 🎯
-
-**High Priority** (user-facing features):
-1. `modal.ts`: 3% → 40% - Modal interactions, item details
-2. `build-planner.ts`: 13% → 40% - Build creation, tome selection
-3. `calculator.ts`: 25% → 50% - Breakpoint calculations (expand existing tests)
-
-**Medium Priority** (supporting features):
-4. `advisor.ts`: 0% → 30% - Build recommendations
-5. `data-service.ts`: 17% → 40% - Data loading and validation
-6. `compare.ts`: 43% → 60% - Item comparison
-
-**Lower Priority** (complex/specialized):
-7. `scan-build.ts`: 0% → 20% - Screenshot build detection (requires canvas)
-8. `computer-vision.ts`: 8% → 20% - CV algorithms (partially covered)
-9. `changelog.ts`: 0% → 30% - Changelog rendering
-
-### Coverage Strategy
-
-1. **Quick Wins**: Improve calculator.ts and compare.ts (already have tests, just expand)
-2. **User Impact**: Add modal.ts tests (high user interaction)
-3. **Business Logic**: Cover build-planner.ts core functions
-4. **Incremental**: Add 2-3 tests per module per sprint
-
-### Running Coverage
+### Single file
 
 ```bash
-# Full coverage report (may hit memory limits)
-npm run test:unit
-
-# Per-file coverage (recommended)
-npx vitest run tests/unit/calculator.test.js --coverage
-
-# Check coverage without running full suite
-npx vitest run tests/unit/modal.test.js --coverage
+npx vitest run tests/unit/filtering.test.js
 ```
 
 ## Test Structure
 
 ```
 tests/
-├── unit/              # Unit tests (vitest + jsdom)
-├── e2e/               # End-to-end tests (Playwright)
+├── unit/              # Vitest + jsdom
+├── e2e/               # Playwright browser tests
 ├── integration/       # Integration tests
-├── performance/       # Performance benchmarks
-├── fixtures/          # Test data
-├── helpers/           # Test utilities
+├── performance/       # Benchmarks
+├── fixtures/          # Sample JSON data
+├── helpers/           # DOM setup and mock utilities
 └── test-images/       # Screenshots for CV testing
 ```
 
 ## Writing Tests
 
-### Unit Tests
+### Unit Tests (Vitest)
 
-Use vitest with jsdom environment:
-
-```javascript
+```typescript
 import { describe, it, expect, beforeEach } from 'vitest';
 import { myFunction } from '../../src/modules/my-module.ts';
 
@@ -179,11 +57,9 @@ describe('myFunction', () => {
 });
 ```
 
-### E2E Tests
+### E2E Tests (Playwright)
 
-Use Playwright for browser automation:
-
-```javascript
+```typescript
 import { test, expect } from '@playwright/test';
 
 test('should load homepage', async ({ page }) => {
@@ -192,11 +68,112 @@ test('should load homepage', async ({ page }) => {
 });
 ```
 
-## CI/CD Recommendations
+## Memory Leak Prevention
+
+### Always Restore Mocks
+
+```javascript
+// Global cleanup in tests/setup.js handles this, but if you add custom cleanup:
+afterEach(() => {
+    vi.clearAllMocks();      // Clear mock call history
+    vi.restoreAllMocks();    // Remove spy instances (prevents memory leaks)
+});
+```
+
+**Key difference:**
+- `vi.clearAllMocks()` — clears spy call history
+- `vi.restoreAllMocks()` — removes spy and restores original function
+
+Missing `vi.restoreAllMocks()` causes memory leaks that accumulate across test files and crash the runner.
+
+### Memory Leak Detection
+
+```bash
+npx vitest run tests/unit/test-cleanup-guard.test.js  # Canary test
+```
+
+### Common Leak Causes
+
+1. Unrestored spies — missing `vi.restoreAllMocks()`
+2. Unclosed DOM windows — not calling `dom.window.close()`
+3. Lingering timers — not clearing intervals/timeouts
+4. Event listeners — not removing listeners
+5. Module cache — not calling `vi.resetModules()`
+
+## Coverage
+
+**Thresholds** (enforced in `vitest.config.js`): 80% statements, 70% branches, 80% functions, 80% lines.
+
+```bash
+npm run test:unit                                    # Full coverage report
+npx vitest run tests/unit/calculator.test.js --coverage  # Per-file coverage
+```
+
+## Known Issues
+
+### Memory Overflow During Coverage Collection
+
+V8 coverage provider can exceed 8GB heap when running all 50+ test files. Workarounds:
+
+```bash
+# Run without coverage
+NODE_OPTIONS='--max-old-space-size=8192' npx vitest run
+
+# Run specific files with coverage
+npx vitest run tests/unit/computer-vision.test.ts --coverage
+```
+
+### Canvas Module
+
+Required only for CV tests with real images (`cv-real-images.test.ts`). Tests skip gracefully if unavailable.
+
+**Install native deps:**
+- **Linux**: `apt-get install build-essential libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev`
+- **Mac**: `brew install pkg-config cairo pango libpng jpeg giflib librsvg`
+
+## Image Recognition Testing
+
+### CV/OCR Test Suites
+
+| Suite | File | Tests | What it covers |
+|-------|------|-------|---------------|
+| OCR | `tests/unit/ocr.test.ts` | ~45 | Text extraction, fuzzy matching, confidence |
+| CV | `tests/unit/computer-vision.test.ts` | ~35 | Resolution detection, UI layout, regions |
+| Integration | `tests/unit/scan-build-integration.test.ts` | ~30 | OCR+CV pipeline, accuracy metrics |
+| Performance | `tests/performance/benchmark.test.ts` | ~20 | Speed, memory, stress tests |
+
+### Performance Targets
+
+| Metric | Target |
+|--------|--------|
+| OCR extraction | < 3s |
+| CV analysis | < 500ms |
+| Full pipeline | < 5s |
+| Fuzzy search | < 50ms/query |
+| Memory footprint | < 100MB |
+
+### Test Screenshots
+
+For best results, use pause-menu screenshots (clear text, minimal effects, full screen, PNG format).
+
+**Ground truth format** (`ground-truth.json`):
+
+```json
+{
+  "screenshot1.png": {
+    "character": "CL4NK",
+    "weapon": "Hammer",
+    "items": ["Battery", "Battery", "Gym Sauce", "Anvil"],
+    "tomes": ["Damage Tome", "Crit Tome"]
+  }
+}
+```
+
+## CI/CD
+
+Tests run on pre-commit hooks (lint-staged), PR creation, and main branch merges.
 
 For CI environments with limited memory:
-
-1. Split tests across multiple jobs
-2. Run without coverage or use per-file coverage
-3. Increase heap size to maximum available
-4. Use test sharding: `vitest run --shard=1/4`
+- Split tests across multiple jobs
+- Use test sharding: `vitest run --shard=1/4`
+- Increase heap size: `NODE_OPTIONS="--max-old-space-size=8192"`

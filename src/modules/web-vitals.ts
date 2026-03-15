@@ -128,24 +128,11 @@ function formatValue(name: MetricName, value: number): string {
     return `${Math.round(value)}ms`;
 }
 
-/**
- * Log metric to console
- * @param metric - Web Vitals metric object
- */
-function getRatingEmoji(rating: string): string {
-    if (rating === 'good') return '✅';
-    if (rating === 'needs-improvement') return '⚠️';
-    return '❌';
-}
-
 function logMetric(metric: WebVitalsMetric): void {
     const { name, value, rating, delta, id } = metric;
     const formattedValue = formatValue(name as MetricName, value);
-    const emoji = getRatingEmoji(rating);
 
-    console.debug(`[Web Vitals] ${emoji} ${name}: ${formattedValue} (${rating})`);
-
-    // Store metric
+    // Store metric (always)
     metrics[name as MetricName] = {
         value,
         rating: rating as MetricRating,
@@ -245,30 +232,25 @@ export function getMetrics(): MetricsCollection {
  * Log summary of all metrics
  */
 export function logSummary(): void {
-    console.groupCollapsed('[Web Vitals] Performance Summary');
-
     const collectedMetrics = Object.entries(metrics).filter(([_, value]) => value !== null) as Array<
         [MetricName, StoredMetric]
     >;
 
-    if (collectedMetrics.length === 0) {
-        console.debug('No metrics collected yet');
-        console.groupEnd();
-        return;
-    }
+    if (collectedMetrics.length === 0) return;
 
-    collectedMetrics.forEach(([name, data]) => {
-        const emoji = getRatingEmoji(data.rating);
-        console.debug(`${emoji} ${name}: ${data.formattedValue} (${data.rating})`);
-    });
-
-    // Overall score
     const goodCount = collectedMetrics.filter(([_, data]) => data.rating === 'good').length;
     const total = collectedMetrics.length;
     const score = Math.round((goodCount / total) * 100);
 
-    console.debug(`\nOverall Score: ${score}% (${goodCount}/${total} metrics good)`);
-    console.groupEnd();
+    logger.info({
+        operation: 'webvitals.summary',
+        data: {
+            score: `${score}%`,
+            metrics: Object.fromEntries(
+                collectedMetrics.map(([name, data]) => [name, `${data.formattedValue} (${data.rating})`])
+            ),
+        },
+    });
 }
 
 // Export thresholds for reference

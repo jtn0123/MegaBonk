@@ -253,11 +253,11 @@ describe('Web Vitals Module', () => {
     });
 
     describe('logSummary', () => {
-        it('should log "No metrics collected yet" when no metrics are available', () => {
+        it('should not log when no metrics are available', () => {
             logSummary();
-            expect(console.groupCollapsed).toHaveBeenCalledWith('[Web Vitals] Performance Summary');
-            expect(console.debug).toHaveBeenCalledWith('No metrics collected yet');
-            expect(console.groupEnd).toHaveBeenCalled();
+            expect(mockLoggerInfo).not.toHaveBeenCalledWith(
+                expect.objectContaining({ operation: 'webvitals.summary' })
+            );
         });
     });
 
@@ -279,10 +279,10 @@ describe('Web Vitals Module', () => {
 
             lcpCallback(mockMetric as any);
 
-            // Check that the metric was logged
-            expect(console.debug).toHaveBeenCalledWith(
-                expect.stringContaining('[Web Vitals]')
-            );
+            // Check that the metric was stored
+            const metrics = getMetrics();
+            expect(metrics.LCP).not.toBeNull();
+            expect(metrics.LCP?.value).toBe(2000);
         });
 
         it('should store metrics after callback', () => {
@@ -329,36 +329,39 @@ describe('Web Vitals Module', () => {
             expect(metrics.LCP?.formattedValue).toBe('2346ms');
         });
 
-        it('should log with correct emoji for good rating', () => {
+        it('should store metric with correct rating for good', () => {
             initWebVitals();
 
             const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
             lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
 
-            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('✅'));
+            const metrics = getMetrics();
+            expect(metrics.LCP?.rating).toBe('good');
         });
 
-        it('should log with correct emoji for needs-improvement rating', () => {
+        it('should store metric with correct rating for needs-improvement', () => {
             initWebVitals();
 
             const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
             lcpCallback({ name: 'LCP', value: 3000, rating: 'needs-improvement', delta: 3000, id: 'lcp-1' } as any);
 
-            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('⚠️'));
+            const metrics = getMetrics();
+            expect(metrics.LCP?.rating).toBe('needs-improvement');
         });
 
-        it('should log with correct emoji for poor rating', () => {
+        it('should store metric with correct rating for poor', () => {
             initWebVitals();
 
             const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
             lcpCallback({ name: 'LCP', value: 5000, rating: 'poor', delta: 5000, id: 'lcp-1' } as any);
 
-            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('❌'));
+            const metrics = getMetrics();
+            expect(metrics.LCP?.rating).toBe('poor');
         });
     });
 
     describe('logSummary with collected metrics', () => {
-        it('should log metrics summary when metrics are collected', () => {
+        it('should log metrics summary via logger when metrics are collected', () => {
             initWebVitals();
 
             // Simulate metrics
@@ -368,45 +371,40 @@ describe('Web Vitals Module', () => {
             lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
             clsCallback({ name: 'CLS', value: 0.05, rating: 'good', delta: 0.05, id: 'cls-1' } as any);
 
-            vi.clearAllMocks(); // Clear previous log calls
+            vi.clearAllMocks();
             logSummary();
 
-            expect(console.groupCollapsed).toHaveBeenCalledWith('[Web Vitals] Performance Summary');
-            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('LCP'));
-            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('CLS'));
-            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('Overall Score'));
-            expect(console.groupEnd).toHaveBeenCalled();
+            expect(mockLoggerInfo).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'webvitals.summary',
+                    data: expect.objectContaining({
+                        score: '100%',
+                        metrics: expect.objectContaining({
+                            LCP: expect.stringContaining('good'),
+                            CLS: expect.stringContaining('good'),
+                        }),
+                    }),
+                })
+            );
         });
 
-        it('should calculate overall score and display it', () => {
+        it('should calculate overall score correctly', () => {
             initWebVitals();
 
-            // Add a good metric
             const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
             lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
 
             vi.clearAllMocks();
             logSummary();
 
-            // Should log an overall score line (format varies based on accumulated metrics)
-            expect(console.debug).toHaveBeenCalledWith(expect.stringMatching(/Overall Score: \d+%/));
+            expect(mockLoggerInfo).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({ score: '100%' }),
+                })
+            );
         });
 
-        it('should include metrics fraction in score', () => {
-            initWebVitals();
-
-            // Add metrics
-            const fcpCallback = vi.mocked(onFCP).mock.calls[0][0];
-            fcpCallback({ name: 'FCP', value: 1500, rating: 'good', delta: 1500, id: 'fcp-1' } as any);
-
-            vi.clearAllMocks();
-            logSummary();
-
-            // Should log a fraction like "(N/M metrics good)"
-            expect(console.debug).toHaveBeenCalledWith(expect.stringMatching(/\d+\/\d+ metrics good/));
-        });
-
-        it('should log each metric with correct emoji', () => {
+        it('should include mixed ratings in summary', () => {
             initWebVitals();
 
             const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
@@ -418,9 +416,16 @@ describe('Web Vitals Module', () => {
             vi.clearAllMocks();
             logSummary();
 
-            // Should have both good (✅) and needs-improvement (⚠️) emojis
-            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('✅'));
-            expect(console.debug).toHaveBeenCalledWith(expect.stringContaining('⚠️'));
+            expect(mockLoggerInfo).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({
+                        metrics: expect.objectContaining({
+                            LCP: expect.stringContaining('good'),
+                            FCP: expect.stringContaining('needs-improvement'),
+                        }),
+                    }),
+                })
+            );
         });
     });
 

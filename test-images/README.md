@@ -134,4 +134,4 @@ Please respect copyright!
 
 ## Questions?
 
-See [TESTING_IMAGE_RECOGNITION.md](../docs/TESTING_IMAGE_RECOGNITION.md) for full documentation.
+See [TESTING.md](../docs/TESTING.md) for full documentation.
