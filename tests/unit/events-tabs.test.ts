@@ -355,20 +355,20 @@ describe('Events Tabs Module', () => {
                 expect(mockSetState).toHaveBeenCalledWith('currentTab', 'weapons');
             });
 
-            it('should log skipped concurrent switch', async () => {
+            it('should log queued concurrent switch', async () => {
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 mockLoadTabModules.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 500)));
-                
+
                 const firstSwitch = switchTab('weapons');
-                
+
                 await vi.advanceTimersByTimeAsync(150);
                 await switchTab('tomes');
-                
+
                 expect(mockLogger.info).toHaveBeenCalledWith(
                     expect.objectContaining({
-                        operation: 'tab.switch.skipped',
+                        operation: 'tab.switch.queued',
                         data: expect.objectContaining({
                             reason: 'switch_in_progress',
                             requestedTab: 'tomes',

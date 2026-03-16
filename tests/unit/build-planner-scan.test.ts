@@ -5,26 +5,31 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { AllGameData, Item, Tome, Character, Weapon } from '../../src/types/index.ts';
 
-// Mock CV module - factory must not reference outside variables
-vi.mock('../../src/modules/cv/index.ts', () => ({
-    initCV: vi.fn(),
-    loadItemTemplates: vi.fn().mockResolvedValue(undefined),
-    detectItemsWithCV: vi.fn().mockResolvedValue([]),
-    combineDetections: vi.fn((ocrResults: unknown[]) => ocrResults),
-    aggregateDuplicates: vi.fn((results: Array<{ entity: Item | Tome }>) => 
-        results.map((r) => ({ ...r, count: 1 }))),
-    isFullyLoaded: vi.fn().mockReturnValue(true),
-    autoDetectGrid: vi.fn().mockResolvedValue({ success: false }),
-    getPresetForResolution: vi.fn().mockReturnValue(null),
-    loadGridPresets: vi.fn().mockResolvedValue(undefined),
-    loadTrainingData: vi.fn().mockResolvedValue(true),
-    getTrainingStats: vi.fn().mockReturnValue({
-        loaded: true,
-        totalItems: 12,
-        totalTemplates: 48,
-        itemsWithMostSamples: [],
-    }),
-}));
+// Mock CV module - use importOriginal to forward all exports, override specific ones
+vi.mock('../../src/modules/cv/index.ts', async (importOriginal) => {
+    const actual = await importOriginal<typeof import('../../src/modules/cv/index.ts')>();
+    return {
+        ...actual,
+        initCV: vi.fn(),
+        loadItemTemplates: vi.fn().mockResolvedValue(undefined),
+        detectItemsWithCV: vi.fn().mockResolvedValue([]),
+        detectGridPositions: vi.fn().mockResolvedValue([]),
+        combineDetections: vi.fn((ocrResults: unknown[]) => ocrResults),
+        aggregateDuplicates: vi.fn((results: Array<{ entity: Item | Tome }>) =>
+            results.map((r) => ({ ...r, count: 1 }))),
+        isFullyLoaded: vi.fn().mockReturnValue(true),
+        autoDetectGrid: vi.fn().mockResolvedValue({ success: false }),
+        getPresetForResolution: vi.fn().mockReturnValue(null),
+        loadGridPresets: vi.fn().mockResolvedValue(undefined),
+        loadTrainingData: vi.fn().mockResolvedValue(true),
+        getTrainingStats: vi.fn().mockReturnValue({
+            loaded: true,
+            totalItems: 12,
+            totalTemplates: 48,
+            itemsWithMostSamples: [],
+        }),
+    };
+});
 
 // Mock OCR module
 vi.mock('../../src/modules/ocr/index.ts', () => ({

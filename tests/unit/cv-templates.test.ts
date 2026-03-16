@@ -35,6 +35,13 @@ vi.mock('../../src/modules/cv/color.ts', () => ({
     getDominantColor: vi.fn().mockReturnValue('gray'),
 }));
 
+vi.mock('../../src/modules/cv/validator-trace.ts', () => ({
+    updateValidatorStageProgress: vi.fn(),
+    addSlotCandidate: vi.fn(),
+    endValidatorStage: vi.fn(),
+    upsertSlotTrace: vi.fn(),
+}));
+
 import { getDominantColor } from '../../src/modules/cv/color.ts';
 
 // ========================================
@@ -593,6 +600,10 @@ describe('CV Templates Module', () => {
     // ========================================
     describe('loadItemTemplates', () => {
         beforeEach(() => {
+            // These tests need real timers because loadItemTemplates uses
+            // sleep(0) internally which hangs under fake timers.
+            vi.useRealTimers();
+
             // Set up minimal game data
             setAllData({
                 items: {
@@ -601,6 +612,10 @@ describe('CV Templates Module', () => {
                     last_updated: '2024-01-01',
                 },
             } as any);
+        });
+
+        afterEach(() => {
+            vi.useFakeTimers();
         });
 
         it('should return early if templates already loaded', async () => {
@@ -734,9 +749,6 @@ describe('CV Templates Module', () => {
 
             await loadItemTemplates();
 
-            // Run the setTimeout callback
-            await vi.runAllTimersAsync();
-
             expect(logger.info).toHaveBeenCalledWith(
                 expect.objectContaining({
                     data: expect.objectContaining({
@@ -754,15 +766,11 @@ describe('CV Templates Module', () => {
             } as any);
 
             await loadItemTemplates();
-            await vi.runAllTimersAsync();
 
             expect(isTemplatesLoaded()).toBe(true);
         });
 
-        it('should skip standard loading if already loading', async () => {
-            // Import and set the loading flag
-            const { setStandardTemplatesLoading, isStandardTemplatesLoading } = await import('../../src/modules/cv/state.ts');
-
+        it('should deduplicate concurrent loadItemTemplates calls', async () => {
             setAllData({
                 items: {
                     items: [
@@ -772,22 +780,17 @@ describe('CV Templates Module', () => {
                 },
             } as any);
 
-            // Pre-set the loading flag
-            setStandardTemplatesLoading(true);
+            // Call twice concurrently — second call should return same promise
+            const promise1 = loadItemTemplates();
+            const promise2 = loadItemTemplates();
 
-            await loadItemTemplates();
+            await Promise.all([promise1, promise2]);
 
-            expect(logger.info).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    data: expect.objectContaining({
-                        phase: 'skipped_standard',
-                        reason: 'already_loading',
-                    }),
-                })
+            // Should only have one 'start' log, not two
+            const startLogs = vi.mocked(logger.info).mock.calls.filter(
+                (call: any) => call[0]?.data?.phase === 'start'
             );
-
-            // Reset for cleanup
-            setStandardTemplatesLoading(false);
+            expect(startLogs.length).toBe(1);
         });
 
         it('should handle errors in background loading gracefully', async () => {
@@ -816,7 +819,6 @@ describe('CV Templates Module', () => {
                 }
             } as any;
 
-            vi.useRealTimers();
             await loadItemTemplates();
 
             // Wait for nested setTimeout chains to complete:
@@ -830,7 +832,6 @@ describe('CV Templates Module', () => {
             }
 
             global.Image = originalImage;
-            vi.useFakeTimers();
 
             // Even with errors, templates should be marked as loaded
             // to prevent infinite retries
