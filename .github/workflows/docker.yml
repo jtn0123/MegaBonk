@@ -1,0 +1,79 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Dockerfile'
+      - 'Caddyfile'
+      - '.dockerignore'
+      - 'src/**'
+      - 'data/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.build.config.js'
+  pull_request:
+    paths:
+      - 'Dockerfile'
+      - 'Caddyfile'
+      - '.dockerignore'
+      - 'src/**'
+      - 'data/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'vite.build.config.js'
+
+concurrency:
+  group: docker-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Build image
+        run: docker build -t ${{ env.IMAGE_NAME }}:test .
+
+      - name: Smoke test container
+        run: |
+          docker run -d --name megabonk-test -p 8080:80 ${{ env.IMAGE_NAME }}:test
+          sleep 5
+          STATUS=$(curl -s -o /dev/null -w '%{http_code}' http://localhost:8080/)
+          if [ "$STATUS" != "200" ]; then
+            echo "❌ Health check failed: HTTP $STATUS"
+            docker logs megabonk-test
+            exit 1
+          fi
+          # Verify content
+          BODY=$(curl -s http://localhost:8080/)
+          if ! echo "$BODY" | grep -q "MegaBonk"; then
+            echo "❌ Content check failed: 'MegaBonk' not found"
+            exit 1
+          fi
+          # Verify CSP header
+          CSP=$(curl -sI http://localhost:8080/ | grep -i content-security-policy)
+          if [ -z "$CSP" ]; then
+            echo "❌ CSP header missing"
+            exit 1
+          fi
+          echo "✅ Container healthy, content verified, CSP present"
+          docker stop megabonk-test
+
+      - name: Push to GHCR (main only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+          VERSION=$(node -p "require('./package.json').version")
+          docker tag ${{ env.IMAGE_NAME }}:test ${{ env.IMAGE_NAME }}:latest
+          docker tag ${{ env.IMAGE_NAME }}:test ${{ env.IMAGE_NAME }}:v${VERSION}
+          docker push ${{ env.IMAGE_NAME }}:latest
+          docker push ${{ env.IMAGE_NAME }}:v${VERSION}

@@ -245,6 +245,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Security audit
+        run: |
+          AUDIT=$(npm audit --audit-level=high 2>&1) || true
+          HIGH=$(echo "$AUDIT" | grep -c "high" || true)
+          CRITICAL=$(echo "$AUDIT" | grep -c "critical" || true)
+          if [ "$CRITICAL" -gt 0 ]; then
+            echo "❌ Critical vulnerabilities found"
+            echo "$AUDIT"
+            exit 1
+          fi
+          if [ "$HIGH" -gt 0 ]; then
+            echo "⚠️ High vulnerabilities found (non-blocking)"
+            echo "$AUDIT" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "✅ No critical vulnerabilities"
+
       - name: Build for production
         run: npm run build
 

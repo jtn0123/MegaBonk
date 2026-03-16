@@ -13,18 +13,17 @@ module.exports = {
                 'categories:best-practices': ['error', { minScore: 0.9 }],
                 'categories:seo': ['error', { minScore: 0.95 }],
 
-                // Keep currently noisy audits out of the hard gate until they are
-                // addressed deliberately in a follow-up pass.
-                'aria-allowed-attr': 'off',
+                // Audits promoted to warn — track regressions without blocking.
+                'aria-allowed-attr': 'warn',
                 'color-contrast': ['warn', { minScore: 0.9 }],
-                'csp-xss': 'off',
-                'errors-in-console': 'off',
+                'csp-xss': 'warn',
+                'errors-in-console': 'warn',
                 'installable-manifest': 'off',
                 'lcp-lazy-loaded': 'off',
                 'non-composited-animations': 'off',
                 'total-byte-weight': ['error', { maxNumericValue: 1500000 }],
-                'unused-css-rules': 'off',
-                'unused-javascript': 'off',
+                'unused-css-rules': 'warn',
+                'unused-javascript': 'warn',
                 'uses-responsive-images': 'off',
                 'bootup-time': 'off',
                 'dom-size': 'off',
