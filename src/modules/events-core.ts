@@ -9,9 +9,7 @@ import { logger } from './logger.ts';
 import { loadAllData } from './data-service.ts';
 import { closeModal, openDetailModal } from './modal.ts';
 import { clearFilters, saveFilterState } from './filters.ts';
-import {
-    setupDropdownClickHandlers,
-} from './search-dropdown.ts';
+import { setupDropdownClickHandlers } from './search-dropdown.ts';
 import { renderTabContent } from './renderers.ts';
 import { getState, type TabName } from './store.ts';
 import { switchTab } from './events-tabs.ts';
@@ -57,10 +55,7 @@ export {
 } from './events-click.ts';
 
 // Re-export resize module
-export {
-    isMobileViewport,
-    cleanupTabScrollListeners,
-} from './events-resize.ts';
+export { isMobileViewport, cleanupTabScrollListeners } from './events-resize.ts';
 
 // ========================================
 // Memory Management: AbortController for event cleanup
@@ -224,7 +219,9 @@ function handleCardAreaClick(e: MouseEvent, target: Element): boolean {
 
 function handleUIElementClick(target: Element): boolean {
     if (target.classList.contains('expandable-text') || target.closest('.expandable-text')) {
-        const expandable = (target.classList.contains('expandable-text') ? target : target.closest('.expandable-text')) as HTMLElement | null;
+        const expandable = (
+            target.classList.contains('expandable-text') ? target : target.closest('.expandable-text')
+        ) as HTMLElement | null;
         if (expandable) toggleTextExpand(expandable);
         return true;
     }
@@ -252,12 +249,8 @@ function handleUIElementClick(target: Element): boolean {
 }
 
 function handleDynamicImportClick(e: MouseEvent, target: Element): boolean {
-    if (target.classList.contains('changelog-expand-btn')) {
-        import('./changelog.ts')
-            .then(({ toggleChangelogExpand }) => toggleChangelogExpand(target as HTMLButtonElement))
-            .catch(err => logger.warn({ operation: 'import.changelog', error: { name: 'ImportError', message: err.message } }));
-        return true;
-    }
+    // changelog-expand-btn is handled by changelog.ts via container event delegation.
+    // Do NOT handle it here — dual handlers cause a double-toggle bug.
     if (target.classList.contains('entity-link')) {
         e.preventDefault();
         const htmlTarget = target as HTMLElement;
@@ -272,7 +265,9 @@ function handleDynamicImportClick(e: MouseEvent, target: Element): boolean {
     if (target.classList.contains('empty-state-action') || target.closest('.suggestion-card')) {
         import('./empty-states.ts')
             .then(({ handleEmptyStateClick }) => handleEmptyStateClick(target))
-            .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
+            .catch(err =>
+                logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } })
+            );
         return true;
     }
     return false;
