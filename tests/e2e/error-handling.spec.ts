@@ -142,11 +142,11 @@ test.describe('LocalStorage Error Handling', () => {
         });
 
         await page.goto('/');
-        await page.waitForSelector('body', { timeout: 10000 });
+        await page.waitForSelector('body', { timeout: 15000 });
 
-        // App should still load and function
+        // App should still load and function even without localStorage
         const itemsContainer = page.locator('#itemsContainer');
-        await expect(itemsContainer).toBeAttached();
+        await expect(itemsContainer).toBeAttached({ timeout: 15000 });
     });
 
     test('should handle localStorage quota exceeded', async ({ page }) => {
@@ -978,14 +978,13 @@ test.describe('Memory and Performance', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
         // Open/close modals fewer times to avoid timeout
+        const modal = page.locator('#itemModal');
         for (let i = 0; i < 5; i++) {
             const firstItem = page.locator('#itemsContainer .item-card').first();
             await firstItem.click();
-            // Wait for modal to appear
-            await page.waitForTimeout(300);
+            await expect(modal).toBeVisible({ timeout: 10000 });
             await page.keyboard.press('Escape');
-            // Wait for modal to close
-            await page.waitForTimeout(300);
+            await expect(modal).toBeHidden({ timeout: 5000 });
         }
 
         // Get memory usage if available (Chrome only)

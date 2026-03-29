@@ -572,8 +572,9 @@ test.describe('Color Contrast', () => {
 
         for (const btn of buttonContrasts) {
             const contrast = getContrastRatio(btn.color, btn.bgColor);
-            // Only check if we got valid colors
-            if (contrast > 0) {
+            // Only check if we got valid, non-transparent colors
+            // Transparent/rgba(0,0,0,0) backgrounds give misleading contrast ratios
+            if (contrast > 0 && !btn.bgColor.includes('rgba(0, 0, 0, 0)')) {
                 expect(contrast).toBeGreaterThanOrEqual(3); // Minimum for UI components
             }
         }

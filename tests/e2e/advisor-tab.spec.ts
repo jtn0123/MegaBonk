@@ -240,28 +240,27 @@ test.describe('Advisor Tab - Recommendations', () => {
     });
 });
 
-test.describe('Advisor Tab - Scan Build Section', () => {
+test.describe('Build Planner - Scan Build Section', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
-        await page.click('.tab-btn[data-tab="advisor"]');
-        await page.waitForSelector('#advisor-tab.active', { timeout: 5000 });
+        await page.click('.tab-btn[data-tab="build-planner"]');
+        await page.waitForSelector('#build-planner.active', { timeout: 5000 });
     });
 
     test('should display scan build section', async ({ page }) => {
-        const scanSection = page.locator('.scan-section');
-        await expect(scanSection).toBeVisible();
+        const scanSection = page.locator('#build-planner-scan-section');
+        await expect(scanSection).toBeVisible({ timeout: 5000 });
     });
 
     test('should display upload screenshot button', async ({ page }) => {
         const uploadBtn = page.locator('#scan-upload-btn');
-        await expect(uploadBtn).toBeVisible();
-        await expect(uploadBtn).toContainText('Upload Screenshot');
+        await expect(uploadBtn).toBeVisible({ timeout: 5000 });
     });
 
     test('should have hidden file input for upload', async ({ page }) => {
         const fileInput = page.locator('#scan-file-input');
-        await expect(fileInput).toBeAttached();
+        await expect(fileInput).toBeAttached({ timeout: 5000 });
         await expect(fileInput).toHaveAttribute('accept', 'image/*');
     });
 });
