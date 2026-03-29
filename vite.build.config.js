@@ -174,9 +174,9 @@ export default defineConfig(async () => {
                     main: './src/index.html',
                 },
                 output: {
-                    manualChunks: {
-                        'chart': ['chart.js'],
-                        'fuse': ['fuse.js'],
+                    manualChunks(id) {
+                        if (id.includes('node_modules/chart.js')) return 'chart';
+                        if (id.includes('node_modules/fuse.js')) return 'fuse';
                     },
                 },
             },
