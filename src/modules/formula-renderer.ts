@@ -105,7 +105,7 @@ function parseFractions(formula: string): string {
     let result = formula;
 
     // Handle parenthesized denominators: X / (...)
-    result = result.replaceAll(/(\w+(?:\s?[%×*]?\s?\w+)*)\s*\/\s*\(([^)]+)\)/g, (_, num, den) =>
+    result = result.replaceAll(/(\w+(?:\s?[%×*]?\s?\w+){0,5})\s*\/\s*\(([^)]+)\)/g, (_, num, den) =>
         renderFraction(num, `(${den})`)
     );
 
