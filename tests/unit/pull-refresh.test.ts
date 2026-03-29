@@ -372,10 +372,9 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            // Wait for async refresh
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            expect(loadAllData).toHaveBeenCalled();
+            await vi.waitFor(() => {
+                expect(loadAllData).toHaveBeenCalled();
+            }, { timeout: 2000 });
         });
 
         it('should show refreshing state', async () => {
@@ -388,14 +387,11 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            // Allow microtask for async triggerRefresh to start
-            await new Promise(resolve => setTimeout(resolve, 50));
-
-            const indicator = document.querySelector('.pull-refresh-indicator');
-            const text = indicator?.querySelector('.pull-refresh-text');
-
-            expect(indicator?.classList.contains('refreshing')).toBe(true);
-            expect(text?.textContent).toBe('Refreshing...');
+            await vi.waitFor(() => {
+                const indicator = document.querySelector('.pull-refresh-indicator');
+                expect(indicator?.classList.contains('refreshing')).toBe(true);
+                expect(indicator?.querySelector('.pull-refresh-text')?.textContent).toBe('Refreshing...');
+            }, { timeout: 2000 });
         });
 
         it('should log refresh trigger', async () => {
@@ -416,9 +412,9 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            expect(ToastManager.success).toHaveBeenCalledWith('Data refreshed!');
+            await vi.waitFor(() => {
+                expect(ToastManager.success).toHaveBeenCalledWith('Data refreshed!');
+            }, { timeout: 2000 });
         });
 
         it('should log completion with duration', async () => {
@@ -426,15 +422,15 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            expect(logger.info).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    operation: 'pull-refresh.complete',
-                    success: true,
-                    durationMs: expect.any(Number),
-                })
-            );
+            await vi.waitFor(() => {
+                expect(logger.info).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        operation: 'pull-refresh.complete',
+                        success: true,
+                        durationMs: expect.any(Number),
+                    })
+                );
+            }, { timeout: 2000 });
         });
 
         it('should reset indicator after refresh', async () => {
@@ -443,10 +439,10 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
             // Wait for refresh and reset animation
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            const indicator = document.querySelector('.pull-refresh-indicator');
-            expect(indicator?.classList.contains('refreshing')).toBe(false);
+            await vi.waitFor(() => {
+                const indicator = document.querySelector('.pull-refresh-indicator');
+                expect(indicator?.classList.contains('refreshing')).toBe(false);
+            }, { timeout: 2000 });
         });
 
         it('should not trigger refresh while already refreshing', async () => {
@@ -460,7 +456,9 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 100));
+            await vi.waitFor(() => {
+                expect(loadAllData).toHaveBeenCalled();
+            }, { timeout: 2000 });
 
             // Should only be called once
             expect(loadAllData).toHaveBeenCalledTimes(1);
@@ -483,9 +481,9 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            expect(ToastManager.error).toHaveBeenCalledWith('Failed to refresh data');
+            await vi.waitFor(() => {
+                expect(ToastManager.error).toHaveBeenCalledWith('Failed to refresh data');
+            }, { timeout: 2000 });
         });
 
         it('should log error details', async () => {
@@ -496,18 +494,18 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            expect(logger.error).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    operation: 'pull-refresh.failed',
-                    error: expect.objectContaining({
-                        name: 'Error',
-                        message: 'API Error',
-                        module: 'pull-refresh',
-                    }),
-                })
-            );
+            await vi.waitFor(() => {
+                expect(logger.error).toHaveBeenCalledWith(
+                    expect.objectContaining({
+                        operation: 'pull-refresh.failed',
+                        error: expect.objectContaining({
+                            name: 'Error',
+                            message: 'API Error',
+                            module: 'pull-refresh',
+                        }),
+                    })
+                );
+            }, { timeout: 2000 });
         });
 
         it('should reset indicator after error', async () => {
@@ -517,10 +515,10 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            const indicator = document.querySelector('.pull-refresh-indicator');
-            expect(indicator?.classList.contains('refreshing')).toBe(false);
+            await vi.waitFor(() => {
+                const indicator = document.querySelector('.pull-refresh-indicator');
+                expect(indicator?.classList.contains('refreshing')).toBe(false);
+            }, { timeout: 2000 });
         });
 
         it('should allow new refresh after error', async () => {
@@ -532,17 +530,24 @@ describe('Pull-to-Refresh', () => {
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            // Wait for first attempt to complete and reset
+            await vi.waitFor(() => {
+                expect(loadAllData).toHaveBeenCalledTimes(1);
+            }, { timeout: 2000 });
+            await vi.waitFor(() => {
+                const indicator = document.querySelector('.pull-refresh-indicator');
+                expect(indicator?.classList.contains('refreshing')).toBe(false);
+            }, { timeout: 2000 });
 
             // Second attempt (succeeds)
             document.dispatchEvent(createTouchEvent('touchstart', 0));
             document.dispatchEvent(createTouchEvent('touchmove', 150));
             document.dispatchEvent(createTouchEvent('touchend', 150));
 
-            await new Promise(resolve => setTimeout(resolve, 500));
-
-            expect(loadAllData).toHaveBeenCalledTimes(2);
-            expect(ToastManager.success).toHaveBeenCalled();
+            await vi.waitFor(() => {
+                expect(loadAllData).toHaveBeenCalledTimes(2);
+                expect(ToastManager.success).toHaveBeenCalled();
+            }, { timeout: 2000 });
         });
     });
 
@@ -794,10 +799,9 @@ describe('Pull-to-Refresh Integration', () => {
 
         document.dispatchEvent(createTouchEvent('touchend', 150));
 
-        // Wait for refresh to complete
-        await new Promise(resolve => setTimeout(resolve, 200));
-
-        expect(loadAllData).toHaveBeenCalled();
+        await vi.waitFor(() => {
+            expect(loadAllData).toHaveBeenCalled();
+        }, { timeout: 2000 });
     });
 
     it('should handle multiple complete refresh cycles', async () => {
@@ -810,15 +814,22 @@ describe('Pull-to-Refresh Integration', () => {
         document.dispatchEvent(createTouchEvent('touchmove', 150));
         document.dispatchEvent(createTouchEvent('touchend', 150));
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait for first cycle to complete and reset
+        await vi.waitFor(() => {
+            expect(loadAllData).toHaveBeenCalledTimes(1);
+        }, { timeout: 2000 });
+        await vi.waitFor(() => {
+            const indicator = document.querySelector('.pull-refresh-indicator');
+            expect(indicator?.classList.contains('refreshing')).toBe(false);
+        }, { timeout: 2000 });
 
         // Second cycle
         document.dispatchEvent(createTouchEvent('touchstart', 0));
         document.dispatchEvent(createTouchEvent('touchmove', 150));
         document.dispatchEvent(createTouchEvent('touchend', 150));
 
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        expect(loadAllData).toHaveBeenCalledTimes(2);
+        await vi.waitFor(() => {
+            expect(loadAllData).toHaveBeenCalledTimes(2);
+        }, { timeout: 2000 });
     });
 });
