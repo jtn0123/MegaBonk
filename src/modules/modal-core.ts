@@ -200,6 +200,13 @@ export function deactivateFocusTrap(): void {
     firstFocusableElement = null;
     lastFocusableElement = null;
 
+    // Clear any pending close timeout to prevent orphaned timeouts
+    // (e.g., if modal is removed abnormally via MutationObserver)
+    if (modalCloseTimeout) {
+        clearTimeout(modalCloseTimeout);
+        modalCloseTimeout = null;
+    }
+
     // Cleanup MutationObserver
     if (modalObserver) {
         modalObserver.disconnect();

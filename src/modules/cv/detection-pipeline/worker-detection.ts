@@ -94,6 +94,8 @@ export async function detectItemsWithWorkers(
         // Send batches to workers and collect results
         let completedBatches = 0;
         let matchedCandidates = 0;
+        // Track all batch cleanup functions so we can clean up all pending batches on early rejection
+        const batchCleanups: Array<() => void> = [];
         const batchPromises = batches.map((batch, batchIndex) => {
             return new Promise<WorkerMatchResult[]>((resolve, reject) => {
                 const worker = workers[batchIndex % TEMPLATE_WORKER_COUNT];
@@ -156,6 +158,7 @@ export async function detectItemsWithWorkers(
 
                 worker.addEventListener('message', handler);
                 worker.addEventListener('error', errorHandler);
+                batchCleanups.push(cleanup);
                 timeoutId = setTimeout(() => {
                     cleanup();
                     reject(
@@ -273,6 +276,8 @@ export async function detectItemsWithWorkers(
 
         return detections;
     } finally {
+        // Clean up all pending batch listeners before terminating workers
+        batchCleanups.forEach(fn => fn());
         // Terminate all workers
         workers.forEach(w => w.terminate());
     }

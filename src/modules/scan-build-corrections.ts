@@ -63,13 +63,13 @@ function renderSearchResults(
         )
         .join('');
 
-    container.querySelectorAll<HTMLElement>('[data-item-id]').forEach(button => {
-        button.addEventListener('click', () => {
-            const selected = items.find(item => item.id === button.dataset.itemId);
-            if (!selected) return;
-            onSelect(selected);
-        });
-    });
+    // Use a single delegated click handler on the container instead of per-button listeners
+    container.onclick = (e: MouseEvent) => {
+        const button = (e.target as HTMLElement).closest<HTMLElement>('[data-item-id]');
+        if (!button) return;
+        const selected = items.find(item => item.id === button.dataset.itemId);
+        if (selected) onSelect(selected);
+    };
 }
 
 export async function openScanCorrectionModal({
@@ -188,13 +188,16 @@ export async function openScanCorrectionModal({
         }
     };
 
-    modal.querySelectorAll<HTMLElement>('[data-alt-id]').forEach(button => {
-        button.addEventListener('click', () => {
+    // Delegated click handler for alternative buttons
+    const altContainer = modal.querySelector<HTMLElement>('.scan-correction-alternatives');
+    if (altContainer) {
+        altContainer.onclick = (e: MouseEvent) => {
+            const button = (e.target as HTMLElement).closest<HTMLElement>('[data-alt-id]');
+            if (!button) return;
             const item = allItems.find(entry => entry.id === button.dataset.altId);
-            if (!item) return;
-            syncSelection(item);
-        });
-    });
+            if (item) syncSelection(item);
+        };
+    }
 
     if (resultsContainer) {
         renderSearchResults(resultsContainer, allItems, '', selectedItem?.id || null, item => {

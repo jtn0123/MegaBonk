@@ -203,26 +203,56 @@ export function highlightMatches(text: string, query: string): string {
 }
 
 /**
- * Navigate to a search result
- * @param result - The search result to navigate to
+ * Navigate to a search result by scrolling to and highlighting its card.
+ * Uses a MutationObserver to wait for the card to appear in the DOM
+ * (e.g., after a tab switch triggers rendering), with a 600ms timeout.
  */
-async function highlightResultCard(entityId: string): Promise<void> {
-    for (let attempt = 0; attempt < 12; attempt++) {
-        const itemCard = Array.from(document.querySelectorAll<HTMLElement>('[data-entity-id]')).find(
-            card => card.dataset.entityId === entityId
-        );
-
-        if (itemCard) {
-            itemCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            itemCard.classList.add('search-highlight');
+function highlightResultCard(entityId: string): Promise<void> {
+    return new Promise<void>(resolve => {
+        const applyHighlight = (card: HTMLElement): void => {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.classList.add('search-highlight');
             window.setTimeout(() => {
-                itemCard.classList.remove('search-highlight');
+                card.classList.remove('search-highlight');
             }, 2000);
+        };
+
+        // Selector-safe entity ID (CSS.escape may not be available in all environments)
+        const escapedId = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(entityId) : entityId;
+        const selector = `[data-entity-id="${escapedId}"]`;
+
+        // Check if the card already exists
+        const existing = document.querySelector<HTMLElement>(selector);
+        if (existing) {
+            applyHighlight(existing);
+            resolve();
             return;
         }
 
-        await new Promise(resolve => window.setTimeout(resolve, 50));
-    }
+        // Watch for the card to appear via MutationObserver
+        let settled = false;
+        const observer = new MutationObserver(() => {
+            const card = document.querySelector<HTMLElement>(selector);
+            if (card) {
+                settled = true;
+                observer.disconnect();
+                clearTimeout(timeoutId);
+                applyHighlight(card);
+                resolve();
+            }
+        });
+
+        observer.observe(document.body, { childList: true, subtree: true });
+
+        // Give up after 600ms (matches the old 12×50ms budget)
+        const timeoutId = window.setTimeout(() => {
+            if (!settled) {
+                settled = true;
+                observer.disconnect();
+                resolve();
+            }
+        }, 600);
+    });
 }
 
 async function navigateToResultAsync(result: GlobalSearchResult): Promise<void> {
