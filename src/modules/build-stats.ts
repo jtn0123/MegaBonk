@@ -77,7 +77,7 @@ function applyCharacterPassives(stats: CalculatedBuildStats, passive: string): v
     }
     // Damage passive (e.g., "Gain 1.5% Damage per level")
     // Match "gain X% damage" but not "critical damage"
-    if (/gain.*\d+(\.\d+)?%?\s*damage/i.test(passiveLower) && !/crit(ical)?\s*damage/i.test(passiveLower)) {
+    if (/gain.*?\d+(\.\d+)?%?\s*damage/i.test(passiveLower) && !/crit(ical)?\s*damage/i.test(passiveLower)) {
         stats.damage += 20;
     }
     // Attack Speed passive (e.g., "Gain 1% Attack Speed per level")

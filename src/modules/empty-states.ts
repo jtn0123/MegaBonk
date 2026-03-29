@@ -459,6 +459,6 @@ function clearFiltersAndSearch(): void {
 
 declare global {
     interface Window {
-        renderTabContent?: (tabName: string) => void;
+        renderTabContent?: (tabName: string) => Promise<void> | void;
     }
 }

@@ -105,13 +105,13 @@ function parseFractions(formula: string): string {
     let result = formula;
 
     // Handle parenthesized denominators: X / (...)
-    result = result.replaceAll(/(\w+(?:\s*[%×*]?\s*\w+)*)\s*\/\s*\(([^)]+)\)/g, (_, num, den) =>
+    result = result.replaceAll(/(\w+(?:\s?[%×*]?\s?\w+){0,5})\s*\/\s*\(([^)]+)\)/g, (_, num, den) =>
         renderFraction(num, `(${den})`)
     );
 
     // Handle simple fractions: X / Y (word or number)
     // But avoid replacing already-processed fractions or "/" in text like "stack/copy"
-    result = result.replaceAll(/(\d+(?:\.\d+)?|\w+)\s*\/\s*(\d+(?:\.\d+)?)/g, (match, num, den) => {
+    result = result.replaceAll(/(\d+(?:\.\d+)?|\w+)\s{0,3}\/\s{0,3}(\d+(?:\.\d+)?)/g, (match, num, den) => {
         // Skip if it's a word/word pattern like "stack/copy"
         if (/^[a-zA-Z]+\/[a-zA-Z]+$/.test(match)) {
             return match;
