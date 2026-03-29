@@ -131,7 +131,11 @@ async function cleanupPreviousTab(previousTab: TabName): Promise<void> {
         const { destroyAllCharts } = await import('./charts.ts');
         destroyAllCharts();
     } catch {
-        // Charts module may not be loaded yet, that's fine
+        // Charts module may not be loaded yet — expected during initial tab switches
+        logger.debug({
+            operation: 'tab.cleanup.charts',
+            data: { previousTab, reason: 'charts_module_not_loaded' },
+        });
     }
 }
 

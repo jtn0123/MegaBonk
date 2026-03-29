@@ -443,7 +443,7 @@ describe('data-service', () => {
             expect(renderTabContent).toHaveBeenCalledWith('shrines');
         });
 
-        it('should handle fetch failure and show error', async () => {
+        it('should handle fetch failure and show error when all fetches fail', async () => {
             global.fetch = vi.fn().mockRejectedValue(new Error('Network failure'));
 
             const loadPromise = loadAllData();
@@ -457,6 +457,74 @@ describe('data-service', () => {
 
             const { ToastManager } = await import('../../src/modules/toast.ts');
             expect(ToastManager.error).toHaveBeenCalled();
+        });
+
+        it('should load partial data when one essential fetch fails', async () => {
+            const mockChangelog = { patches: [{ version: '1.0.0', date: '2024-01-01', changes: [] }] };
+
+            global.fetch = vi.fn().mockImplementation((url: string) => {
+                // Weapons fetch fails, everything else succeeds
+                if (url.includes('weapons')) {
+                    return Promise.reject(new Error('Weapons unavailable'));
+                }
+
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        let data = {};
+                        if (url.includes('items')) data = mockAllData.items;
+                        else if (url.includes('tomes')) data = mockAllData.tomes;
+                        else if (url.includes('characters')) data = mockAllData.characters;
+                        else if (url.includes('shrines')) data = mockAllData.shrines;
+                        else if (url.includes('stats')) data = mockAllData.stats;
+                        else if (url.includes('changelog')) data = mockChangelog;
+                        resolve({ ok: true, url, status: 200, statusText: 'OK', json: () => Promise.resolve(data) });
+                    }, 10);
+                });
+            });
+
+            const loadPromise = loadAllData();
+            await vi.advanceTimersByTimeAsync(60000);
+            await loadPromise;
+
+            // Should NOT show full error — app continues with partial data
+            const { ToastManager } = await import('../../src/modules/toast.ts');
+            expect(ToastManager.error).not.toHaveBeenCalled();
+
+            // Should show warning about unavailable data
+            expect(ToastManager.warning).toHaveBeenCalledWith(
+                expect.stringContaining('weapons')
+            );
+
+            // Should log the partial failure
+            const { logger } = await import('../../src/modules/logger.ts');
+            expect(logger.warn).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'data.load.partial',
+                    data: expect.objectContaining({ failedType: 'weapons' }),
+                })
+            );
+
+            // Should still call switchTab (app continues)
+            expect((globalThis as any).switchTab).toHaveBeenCalled();
+        });
+
+        it('should show full error when all essential fetches fail', async () => {
+            global.fetch = vi.fn().mockRejectedValue(new Error('Network failure'));
+
+            const loadPromise = loadAllData();
+            await vi.advanceTimersByTimeAsync(60000);
+
+            try {
+                await loadPromise;
+            } catch {
+                // Expected
+            }
+
+            const { ToastManager } = await import('../../src/modules/toast.ts');
+            expect(ToastManager.error).toHaveBeenCalled();
+
+            // Should NOT call switchTab (app is in error state)
+            expect((globalThis as any).switchTab).not.toHaveBeenCalled();
         });
 
         it('should handle HTTP error response', async () => {
@@ -478,6 +546,48 @@ describe('data-service', () => {
 
             const { ToastManager } = await import('../../src/modules/toast.ts');
             expect(ToastManager.error).toHaveBeenCalled();
+        });
+
+        it('should load partial deferred data when one deferred fetch fails', async () => {
+            // All essential fetches succeed
+            const mockChangelog = { patches: [{ version: '1.0.0', date: '2024-01-01', changes: [] }] };
+
+            global.fetch = vi.fn().mockImplementation((url: string) => {
+                // Shrines fetch fails, everything else succeeds
+                if (url.includes('shrines')) {
+                    return Promise.reject(new Error('Shrines unavailable'));
+                }
+
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        let data = {};
+                        if (url.includes('items')) data = mockAllData.items;
+                        else if (url.includes('weapons')) data = mockAllData.weapons;
+                        else if (url.includes('tomes')) data = mockAllData.tomes;
+                        else if (url.includes('characters')) data = mockAllData.characters;
+                        else if (url.includes('stats')) data = mockAllData.stats;
+                        else if (url.includes('changelog')) data = mockChangelog;
+                        resolve({ ok: true, url, status: 200, statusText: 'OK', json: () => Promise.resolve(data) });
+                    }, 10);
+                });
+            });
+
+            const loadPromise = loadAllData();
+            await vi.advanceTimersByTimeAsync(60000);
+            await loadPromise;
+
+            // Essential data should have loaded — no error shown
+            const { ToastManager } = await import('../../src/modules/toast.ts');
+            expect(ToastManager.error).not.toHaveBeenCalled();
+
+            // Deferred partial failure should be logged
+            const { logger } = await import('../../src/modules/logger.ts');
+            expect(logger.warn).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'data.deferred_load.partial',
+                    data: expect.objectContaining({ failedType: 'shrines' }),
+                })
+            );
         });
 
         it('should not call switchTab if function is not available', async () => {

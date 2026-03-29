@@ -4,6 +4,7 @@
 // ========================================
 
 import { allData } from './data-service.ts';
+import { logger } from './logger.ts';
 import { ToastManager } from './toast.ts';
 import { escapeHtml, safeGetElementById } from './utils.ts';
 import { onModalOpened } from './recently-viewed.ts';
@@ -254,6 +255,10 @@ export async function openDetailModal(type: EntityType, id: string): Promise<voi
 
     // Bug fix #11: Show error toast instead of failing silently
     if (!data) {
+        logger.warn({
+            operation: 'modal.open.entity_not_found',
+            data: { type, id },
+        });
         ToastManager.error(`Could not find ${type} with ID: ${id}`);
         return;
     }
