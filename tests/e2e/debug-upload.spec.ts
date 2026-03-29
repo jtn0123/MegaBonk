@@ -20,7 +20,7 @@ test('debug image upload', async ({ page }) => {
     
     // Navigate to build-planner tab (scan section is here, not advisor)
     await page.locator('.tab-btn[data-tab="build-planner"]').click({ force: true });
-    await expect(page.locator('#build-planner')).toHaveClass(/active/, { timeout: 5000 });
+    await expect(page.locator('#build-planner-tab')).toHaveClass(/active/, { timeout: 5000 });
 
     // Wait for scan section
     await expect(page.locator('#build-planner-scan-section')).toBeVisible({ timeout: 5000 });

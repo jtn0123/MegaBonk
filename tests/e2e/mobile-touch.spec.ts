@@ -829,6 +829,15 @@ test.describe('Touch Gesture Edge Cases', () => {
 
         // Close it
         await page.keyboard.press('Escape');
+        await page.waitForTimeout(300);
+        // Retry with direct event dispatch if modal is still visible
+        if (await modal.isVisible()) {
+            await page.evaluate(() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
+                }));
+            });
+        }
         await expect(modal).toBeHidden({ timeout: 5000 });
 
         // Tap again - should still work

@@ -245,7 +245,7 @@ test.describe('Build Planner - Scan Build Section', () => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="build-planner"]');
-        await page.waitForSelector('#build-planner.active', { timeout: 5000 });
+        await page.waitForSelector('#build-planner-tab.active', { timeout: 5000 });
     });
 
     test('should display scan build section', async ({ page }) => {

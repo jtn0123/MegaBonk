@@ -180,12 +180,16 @@ test.describe('Chart Rendering', () => {
                 // Close modal using Escape key (more reliable)
                 await page.keyboard.press('Escape');
                 await page.waitForTimeout(isWebKit ? 400 : 300);
-                
-                // Wait for modal to fully close
-                await page.waitForFunction(() => {
-                    const modal = document.getElementById('itemModal');
-                    return !modal || !modal.classList.contains('active');
-                }, { timeout: 2000 }).catch(() => {});
+
+                // Retry with direct event dispatch if modal is still visible
+                if (await modal.isVisible()) {
+                    await page.evaluate(() => {
+                        document.dispatchEvent(new KeyboardEvent('keydown', {
+                            key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
+                        }));
+                    });
+                }
+                await expect(modal).toBeHidden({ timeout: 5000 });
             }
         }
 
