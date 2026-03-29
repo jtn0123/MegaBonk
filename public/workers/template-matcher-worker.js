@@ -126,6 +126,7 @@ function processBatch(cells, templates) {
 
 // Listen for messages from main thread
 self.addEventListener('message', e => {
+    if (!e.data || typeof e.data.type !== 'string') return;
     const { type, data } = e.data;
 
     if (type === 'MATCH_BATCH') {

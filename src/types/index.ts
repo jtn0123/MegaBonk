@@ -607,22 +607,53 @@ declare global {
             useWorkers?: boolean
         ) => Promise<unknown[]>;
         detectGridPositions?: (width: number, height: number, gridSize?: number) => unknown[];
-        detectItemCounts?: (imageDataUrl: string, cells: { x: number; y: number; width: number; height: number; label?: string }[]) => Promise<Map<string, number>>;
+        detectItemCounts?: (
+            imageDataUrl: string,
+            cells: { x: number; y: number; width: number; height: number; label?: string }[]
+        ) => Promise<Map<string, number>>;
         loadImageToCanvas?: (
             imageDataUrl: string,
             timeoutMs?: number
         ) => Promise<{ canvas: HTMLCanvasElement; ctx: CanvasRenderingContext2D; width: number; height: number }>;
         calculateSimilarity?: (imageData1: ImageData, imageData2: ImageData) => number;
-        calculateIoU?: (box1: { x: number; y: number; width: number; height: number }, box2: { x: number; y: number; width: number; height: number }) => number;
-        nonMaxSuppression?: (detections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[], iouThreshold?: number) => { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[];
+        calculateIoU?: (
+            box1: { x: number; y: number; width: number; height: number },
+            box2: { x: number; y: number; width: number; height: number }
+        ) => number;
+        nonMaxSuppression?: (
+            detections: {
+                type: 'item' | 'tome' | 'character' | 'weapon';
+                entity: Item | Tome | Character | Weapon;
+                confidence: number;
+                position?: { x: number; y: number; width: number; height: number };
+                method: 'template_match' | 'icon_similarity' | 'hybrid';
+            }[],
+            iouThreshold?: number
+        ) => {
+            type: 'item' | 'tome' | 'character' | 'weapon';
+            entity: Item | Tome | Character | Weapon;
+            confidence: number;
+            position?: { x: number; y: number; width: number; height: number };
+            method: 'template_match' | 'icon_similarity' | 'hybrid';
+        }[];
         getAdaptiveIconSizes?: (width: number, height: number) => number[];
-        extractCountRegion?: (cell: { x: number; y: number; width: number; height: number; label?: string }) => { x: number; y: number; width: number; height: number; label?: string };
+        extractCountRegion?: (cell: { x: number; y: number; width: number; height: number; label?: string }) => {
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            label?: string;
+        };
         detectHotbarRegion?: (
             ctx: CanvasRenderingContext2D,
             width: number,
             height: number
         ) => { topY: number; bottomY: number; confidence: number };
-        detectIconEdges?: (ctx: CanvasRenderingContext2D, width: number, bandRegion: { topY: number; bottomY: number }) => number[];
+        detectIconEdges?: (
+            ctx: CanvasRenderingContext2D,
+            width: number,
+            bandRegion: { topY: number; bottomY: number }
+        ) => number[];
         detectIconScale?: (
             ctx: CanvasRenderingContext2D,
             width: number,
@@ -630,7 +661,27 @@ declare global {
         ) => { iconSize: number; confidence: number; method: string };
         resizeImageData?: (imageData: ImageData, targetWidth: number, targetHeight: number) => ImageData | null;
         fitsGrid?: (value: number, gridStart: number, spacing: number, tolerance: number) => boolean;
-        verifyGridPattern?: (detections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[], expectedIconSize: number) => { isValid: boolean; confidence: number; filteredDetections: { type: 'item' | 'tome' | 'character' | 'weapon'; entity: Item | Tome | Character | Weapon; confidence: number; position?: { x: number; y: number; width: number; height: number }; method: 'template_match' | 'icon_similarity' | 'hybrid' }[]; gridParams: { xSpacing: number; ySpacing: number; tolerance: number } | null };
+        verifyGridPattern?: (
+            detections: {
+                type: 'item' | 'tome' | 'character' | 'weapon';
+                entity: Item | Tome | Character | Weapon;
+                confidence: number;
+                position?: { x: number; y: number; width: number; height: number };
+                method: 'template_match' | 'icon_similarity' | 'hybrid';
+            }[],
+            expectedIconSize: number
+        ) => {
+            isValid: boolean;
+            confidence: number;
+            filteredDetections: {
+                type: 'item' | 'tome' | 'character' | 'weapon';
+                entity: Item | Tome | Character | Weapon;
+                confidence: number;
+                position?: { x: number; y: number; width: number; height: number };
+                method: 'template_match' | 'icon_similarity' | 'hybrid';
+            }[];
+            gridParams: { xSpacing: number; ySpacing: number; tolerance: number } | null;
+        };
         runEnsembleDetection?: (
             ctx: CanvasRenderingContext2D,
             width: number,
@@ -638,12 +689,21 @@ declare global {
             items: Item[],
             cell: { x: number; y: number; width: number; height: number; label?: string },
             progressCallback?: (progress: number, status: string) => void
-        ) => Promise<{ itemId: string; confidence: number; position: { x: number; y: number; width: number; height: number }; bestStrategy: string; strategyResults: unknown[] } | null>;
+        ) => Promise<{
+            itemId: string;
+            confidence: number;
+            position: { x: number; y: number; width: number; height: number };
+            bestStrategy: string;
+            strategyResults: unknown[];
+        } | null>;
         getCVMetrics?: () => unknown;
         getDetectionConfig?: (width?: number, height?: number) => unknown;
 
         // CV color functions
-        extractDominantColors?: (imageData: ImageData, numColors?: number) => { r: number; g: number; b: number; frequency: number }[];
+        extractDominantColors?: (
+            imageData: ImageData,
+            numColors?: number
+        ) => { r: number; g: number; b: number; frequency: number }[];
         getDominantColor?: (imageData: ImageData) => string;
         calculateColorVariance?: (imageData: ImageData) => number;
         isEmptyCell?: (imageData: ImageData) => boolean;
@@ -663,23 +723,44 @@ declare global {
 
         // Scan build functions (from scan-build.ts, scan-build-enhanced.ts)
         initScanBuild?: (gameData: AllGameData) => void;
-        initEnhancedScanBuild?: (gameData: AllGameData) => void;
+        initEnhancedScanBuild?: (gameData: AllGameData) => Promise<void> | void;
         handleEnhancedHybridDetect?: (imageDataUrl: string) => Promise<unknown>;
         compareStrategiesOnImage?: (imageDataUrl: string) => Promise<unknown>;
 
         // Advisor functions (from advisor.ts)
         initAdvisor?: (gameData: AllGameData) => void;
-        applyScannedBuild?: (state: Build & { stats?: { hp?: number; damage?: number; speed?: number; critChance?: number } }) => void;
+        applyScannedBuild?: (
+            state: Build & { stats?: { hp?: number; damage?: number; speed?: number; critChance?: number } }
+        ) => void;
 
         // UI functions (from events.ts, renderers.ts)
-        switchTab?: (tabId: 'items' | 'weapons' | 'tomes' | 'characters' | 'shrines' | 'build-planner' | 'calculator' | 'advisor' | 'changelog' | 'about') => Promise<void>;
-        renderTabContent?: (tabId: string) => void;
-        renderGlobalSearchResults?: (results: { type: EntityType; item: Item | Weapon | Tome | Character | Shrine; score: number }[], currentTab?: string, searchQuery?: string) => void;
+        switchTab?: (
+            tabId:
+                | 'items'
+                | 'weapons'
+                | 'tomes'
+                | 'characters'
+                | 'shrines'
+                | 'build-planner'
+                | 'calculator'
+                | 'advisor'
+                | 'changelog'
+                | 'about'
+        ) => Promise<void>;
+        renderTabContent?: (tabId: string) => Promise<void> | void;
+        renderGlobalSearchResults?: (
+            results: { type: EntityType; item: Item | Weapon | Tome | Character | Shrine; score: number }[],
+            currentTab?: string,
+            searchQuery?: string
+        ) => void;
 
         // Filter functions (from filters.ts)
         clearFilters?: () => void;
         toggleTextExpand?: (element: HTMLElement) => void;
-        globalSearch?: (query: string, allData: AllGameData) => { type: EntityType; item: Item | Weapon | Tome | Character | Shrine; score: number }[];
+        globalSearch?: (
+            query: string,
+            allData: AllGameData
+        ) => { type: EntityType; item: Item | Weapon | Tome | Character | Shrine; score: number }[];
 
         // Offline UI functions (from offline-ui.ts)
         recordDataSync?: () => void;

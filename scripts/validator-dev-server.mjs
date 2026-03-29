@@ -84,6 +84,12 @@ function sendNoContent(response) {
 function resolveStaticFile(rootDir, requestPath, defaultPage) {
     const decodedPath = decodeURIComponent(requestPath || '/');
     const normalizedPath = decodedPath === '/' ? defaultPage : decodedPath;
+
+    // Reject path traversal attempts before resolving
+    if (normalizedPath.includes('..')) {
+        return null;
+    }
+
     const absolutePath = path.resolve(rootDir, `.${normalizedPath}`);
 
     if (!absolutePath.startsWith(rootDir)) {
