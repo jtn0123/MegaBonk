@@ -32,6 +32,8 @@ export async function detectItemsWithWorkers(
     // Create worker pool (4 workers for parallel processing)
     const workers: Worker[] = [];
     const itemsById = new Map(items.map(item => [item.id, item] as const));
+    // Track all batch cleanup functions so we can clean up all pending batches on early rejection
+    const batchCleanups: Array<() => void> = [];
 
     try {
         endValidatorStage('grid_detection', {
@@ -156,6 +158,7 @@ export async function detectItemsWithWorkers(
 
                 worker.addEventListener('message', handler);
                 worker.addEventListener('error', errorHandler);
+                batchCleanups.push(cleanup);
                 timeoutId = setTimeout(() => {
                     cleanup();
                     reject(
@@ -273,6 +276,8 @@ export async function detectItemsWithWorkers(
 
         return detections;
     } finally {
+        // Clean up all pending batch listeners before terminating workers
+        batchCleanups.forEach(fn => fn());
         // Terminate all workers
         workers.forEach(w => w.terminate());
     }

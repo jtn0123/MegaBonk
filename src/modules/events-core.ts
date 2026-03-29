@@ -472,8 +472,12 @@ export function setupStickySearchHideOnScroll(): void {
 
 /**
  * Setup all event listeners
+ * Idempotent: cleans up any existing listeners before re-attaching
  */
 export function setupEventListeners(): void {
+    // Abort any existing listeners to prevent accumulation on re-init
+    cleanupEventListeners();
+
     setupTabButtonListeners();
     setupTabScrollIndicators();
     setupSearchListeners(getListenerOptions);

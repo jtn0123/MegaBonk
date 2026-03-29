@@ -35,24 +35,28 @@ export function initAdvisor(gameData: AllGameData): void {
     const characterSelect = document.getElementById('advisor-character') as HTMLSelectElement;
     if (characterSelect && gameData.characters?.characters) {
         characterSelect.innerHTML = '<option value="">Select a character...</option>';
+        const charFragment = document.createDocumentFragment();
         gameData.characters.characters.forEach(char => {
             const option = document.createElement('option');
             option.value = char.id;
             option.textContent = char.name;
-            characterSelect.appendChild(option);
+            charFragment.appendChild(option);
         });
+        characterSelect.appendChild(charFragment);
     }
 
     // Populate weapon dropdown
     const weaponSelect = document.getElementById('advisor-weapon') as HTMLSelectElement;
     if (weaponSelect && gameData.weapons?.weapons) {
         weaponSelect.innerHTML = '<option value="">Select a weapon...</option>';
+        const weaponFragment = document.createDocumentFragment();
         gameData.weapons.weapons.forEach(weapon => {
             const option = document.createElement('option');
             option.value = weapon.id;
             option.textContent = weapon.name;
-            weaponSelect.appendChild(option);
+            weaponFragment.appendChild(option);
         });
+        weaponSelect.appendChild(weaponFragment);
     }
 
     // Setup event listeners
@@ -227,7 +231,10 @@ function showEntityModal(type: 'item' | 'tome'): void {
     closeBtn.className = 'close';
     closeBtn.textContent = '\u00D7';
     closeBtn.setAttribute('aria-label', 'Close dialog');
-    closeBtn.onclick = () => { document.body.classList.remove('modal-open'); modal.remove(); };
+    closeBtn.onclick = () => {
+        document.body.classList.remove('modal-open');
+        modal.remove();
+    };
 
     // Title
     const title = document.createElement('h3');
@@ -388,12 +395,14 @@ function handleChoiceTypeChange(choiceNumber: number, type: string): void {
             break;
     }
 
+    const fragment = document.createDocumentFragment();
     entities.forEach(entity => {
         const option = document.createElement('option');
         option.value = entity.id;
         option.textContent = `${entity.name} (${entity.tier})`;
-        entitySelect.appendChild(option);
+        fragment.appendChild(option);
     });
+    entitySelect.appendChild(fragment);
 }
 
 /**

@@ -11,6 +11,7 @@ type ListenerOptionsFactory = (options?: { passive?: boolean }) => AddEventListe
 // Track scroll/resize listener cleanup functions to prevent memory leaks
 let scrollListenerCleanup: (() => void) | null = null;
 let resizeListenerCleanup: (() => void) | null = null;
+let stickySearchCleanup: (() => void) | null = null;
 
 /**
  * Check if we're on mobile (≤480px)
@@ -31,6 +32,10 @@ export function cleanupTabScrollListeners(): void {
     if (resizeListenerCleanup) {
         resizeListenerCleanup();
         resizeListenerCleanup = null;
+    }
+    if (stickySearchCleanup) {
+        stickySearchCleanup();
+        stickySearchCleanup = null;
     }
 }
 
@@ -111,9 +116,15 @@ export function setupStickySearchHideOnScroll(getListenerOptions: ListenerOption
 
     window.addEventListener('scroll', handleScroll, getListenerOptions({ passive: true }));
 
-    isMobile.addEventListener('change', e => {
+    const mediaChangeHandler = (e: MediaQueryListEvent): void => {
         if (!e.matches) {
             controls.classList.remove('controls-hidden');
         }
-    });
+    };
+    isMobile.addEventListener('change', mediaChangeHandler);
+
+    stickySearchCleanup = () => {
+        window.removeEventListener('scroll', handleScroll);
+        isMobile.removeEventListener('change', mediaChangeHandler);
+    };
 }
