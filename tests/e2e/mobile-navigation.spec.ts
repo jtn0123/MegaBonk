@@ -50,10 +50,10 @@ test.describe('Mobile Bottom Navigation', () => {
     test('clicking shrines nav switches to shrines tab', async ({ page }) => {
         const shrinesNav = page.locator('.mobile-bottom-nav .nav-item[data-tab="shrines"]');
         await shrinesNav.click();
-        await page.waitForTimeout(300);
 
-        await expect(shrinesNav).toHaveClass(/active/);
-        await expect(page.locator('#shrines-tab')).toHaveClass(/active/);
+        // Wait for tab switch to complete (debounced)
+        await expect(shrinesNav).toHaveClass(/active/, { timeout: 5000 });
+        await expect(page.locator('#shrines-tab')).toHaveClass(/active/, { timeout: 5000 });
     });
 
     test('clicking more nav shows additional tabs', async ({ page }) => {

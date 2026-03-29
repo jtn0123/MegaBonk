@@ -823,24 +823,17 @@ test.describe('Touch Gesture Edge Cases', () => {
 
         // Tap once to open modal
         await card.click();
-        await page.waitForTimeout(300);
 
-        // Modal should be open
         const modal = page.locator('#itemModal');
-        await expect(modal).toHaveClass(/active/);
+        await expect(modal).toBeVisible({ timeout: 10000 });
 
         // Close it
         await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
+        await expect(modal).toBeHidden({ timeout: 5000 });
 
         // Tap again - should still work
         await card.click();
-        await page.waitForTimeout(300);
-
-        // Modal should be in a consistent state
-        const isOpen = await modal.evaluate(el => el.classList.contains('active'));
-        expect(typeof isOpen).toBe('boolean');
-        expect(isOpen).toBe(true);
+        await expect(modal).toBeVisible({ timeout: 10000 });
     });
 
     test('touch and hold does not trigger context menu on cards', async ({ page }) => {

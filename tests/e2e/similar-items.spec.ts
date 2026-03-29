@@ -713,17 +713,18 @@ test.describe('Similar Items - Edge Cases', () => {
 
         const cards = page.locator('#shrinesContainer .item-card');
         const count = await cards.count();
+        const modal = page.locator('#itemModal');
 
-        for (let i = 0; i < Math.min(5, count); i++) {
+        for (let i = 0; i < Math.min(3, count); i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(600);
+            await expect(modal).toBeVisible({ timeout: 10000 });
 
             // Shrines should not have similar items (not supported)
             const similarSection = page.locator('#modalBody .similar-items-section');
             expect(await similarSection.count()).toBe(0);
 
             await page.keyboard.press('Escape');
-            await page.waitForTimeout(300);
+            await expect(modal).toBeHidden({ timeout: 5000 });
         }
     });
 

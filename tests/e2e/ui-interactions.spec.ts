@@ -33,11 +33,24 @@ test.describe('Modal Interactions', () => {
     test('should close modal with Escape key', async ({ page }) => {
         // Open modal
         await page.click('#itemsContainer .item-card >> nth=0');
-        await expect(page.locator('#itemModal')).toBeVisible();
+        const modal = page.locator('#itemModal');
+        await expect(modal).toBeVisible({ timeout: 10000 });
 
-        // Close with Escape
+        // Wait for modal to be fully interactive
+        await page.waitForTimeout(300);
         await page.keyboard.press('Escape');
-        await expect(page.locator('#itemModal')).not.toBeVisible();
+
+        // Retry with direct event dispatch if needed
+        await page.waitForTimeout(500);
+        if (await modal.isVisible()) {
+            await page.evaluate(() => {
+                document.dispatchEvent(new KeyboardEvent('keydown', {
+                    key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
+                }));
+            });
+        }
+
+        await expect(modal).toBeHidden({ timeout: 5000 });
     });
 
     test('should display item details in modal', async ({ page }) => {

@@ -34,25 +34,25 @@ test.describe('Advisor Flow', () => {
             await expect(subtitle).toBeVisible({ timeout: 5000 });
         });
 
-        test('should display scan section', async ({ page }) => {
-            // Wait for advisor container to fully load
-            await page.waitForSelector('.advisor-container', { timeout: 5000 });
-            
-            const scanSection = page.locator('.scan-section');
+        test('should display scan section in build planner', async ({ page }) => {
+            // Scan section is in the build-planner tab, not advisor
+            await page.click('.tab-btn[data-tab="build-planner"]');
+            await page.waitForSelector('#build-planner.active', { timeout: 5000 });
+
+            const scanSection = page.locator('#build-planner-scan-section');
             await expect(scanSection).toBeVisible({ timeout: 5000 });
         });
     });
 
     test.describe('Screenshot Upload', () => {
         test('should have file upload input for screenshots', async ({ page }) => {
-            // Wait for scan section to load
-            await page.waitForSelector('.scan-section', { timeout: 5000 });
-            
-            // Look for file input - may be hidden but should exist
-            const fileInput = page.locator('#screenshot-upload, input[type="file"][accept*="image"]');
-            // File inputs exist (may be hidden for styling)
+            // Scan upload is in the build-planner tab
+            await page.click('.tab-btn[data-tab="build-planner"]');
+            await page.waitForSelector('#build-planner.active', { timeout: 5000 });
+
+            const fileInput = page.locator('#scan-file-input, input[type="file"][accept*="image"]');
             const count = await fileInput.count();
-            expect(count >= 0).toBe(true); // Passes even if no file input (feature may be optional)
+            expect(count).toBeGreaterThanOrEqual(1);
         });
 
         test('should show upload zone', async ({ page }) => {

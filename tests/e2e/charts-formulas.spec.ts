@@ -158,10 +158,10 @@ test.describe('Chart Rendering', () => {
 
         for (let i = 0; i < Math.min(count, maxItems) && chartsFound < targetCharts; i++) {
             await cards.nth(i).click();
-            await page.waitForTimeout(isWebKit ? 1000 : 800);
 
             const modal = page.locator('#itemModal');
-            const isModalOpen = await modal.evaluate(el => el.classList.contains('active')).catch(() => false);
+            await expect(modal).toBeVisible({ timeout: 10000 });
+            const isModalOpen = true;
             
             if (isModalOpen) {
                 const chartCanvas = page.locator('#modalBody canvas.scaling-chart');

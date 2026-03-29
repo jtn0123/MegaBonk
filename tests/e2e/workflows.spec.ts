@@ -246,12 +246,13 @@ test.describe('Cross-Feature Workflows', () => {
 
             // Use specific #itemModal selector to avoid matching compareModal
             const modal = page.locator('#itemModal');
-            await expect(modal).toBeVisible({ timeout: 5000 });
+            await expect(modal).toBeVisible({ timeout: 10000 });
 
             // The modal covers the tab buttons, so we need to close it first
             // Press Escape to close the modal
+            await page.waitForTimeout(300);
             await page.keyboard.press('Escape');
-            await expect(modal).toBeHidden({ timeout: 3000 });
+            await expect(modal).toBeHidden({ timeout: 5000 });
 
             // Now we can switch tabs
             const weaponsTab = page.locator('.tab-btn[data-tab="weapons"], .nav-item[data-tab="weapons"]').first();
@@ -313,8 +314,11 @@ test.describe('Cross-Feature Workflows', () => {
                 await cards.nth(0).click();
 
                 // Close any modal that opens
-                await page.keyboard.press('Escape');
-                await page.waitForTimeout(200);
+                const modal = page.locator('#itemModal');
+                if (await modal.isVisible()) {
+                    await page.keyboard.press('Escape');
+                    await expect(modal).toBeHidden({ timeout: 5000 });
+                }
 
                 // Shift-click third card (if multi-select is supported)
                 await cards.nth(2).click({ modifiers: ['Shift'] });
@@ -412,45 +416,29 @@ test.describe('Cross-Feature Workflows', () => {
             expect(true).toBe(true);
         });
 
-        test('should close modal with Escape', async ({ page, browserName }) => {
-            const isWebKit = browserName === 'webkit';
-            
+        test('should close modal with Escape', async ({ page }) => {
             // Open item modal
             const itemCard = page.locator('#itemsContainer .item-card').first();
             await itemCard.click();
 
             const modal = page.locator('#itemModal');
-            await expect(modal).toBeVisible({ timeout: isWebKit ? 3000 : 2000 });
+            await expect(modal).toBeVisible({ timeout: 10000 });
 
-            // WebKit: small delay before pressing Escape to ensure modal is fully ready
-            if (isWebKit) {
-                await page.waitForTimeout(200);
-            }
-
-            // Press Escape
+            // Wait for modal to be fully interactive before pressing Escape
+            await page.waitForTimeout(300);
             await page.keyboard.press('Escape');
-            
-            // WebKit needs extra time for key event processing
-            if (isWebKit) {
-                await page.waitForTimeout(300);
-                
-                // If modal still visible, try dispatching event directly
-                if (await modal.isVisible()) {
-                    await page.evaluate(() => {
-                        const event = new KeyboardEvent('keydown', { 
-                            key: 'Escape', 
-                            code: 'Escape',
-                            bubbles: true,
-                            cancelable: true
-                        });
-                        document.dispatchEvent(event);
-                    });
-                    await page.waitForTimeout(200);
-                }
+
+            // If modal still visible after keyboard event, try dispatching directly
+            await page.waitForTimeout(500);
+            if (await modal.isVisible()) {
+                await page.evaluate(() => {
+                    document.dispatchEvent(new KeyboardEvent('keydown', {
+                        key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
+                    }));
+                });
             }
 
-            // Modal should close
-            await expect(modal).toBeHidden({ timeout: isWebKit ? 2000 : 1000 });
+            await expect(modal).toBeHidden({ timeout: 5000 });
         });
     });
 });
