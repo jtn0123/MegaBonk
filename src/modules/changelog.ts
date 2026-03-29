@@ -260,7 +260,11 @@ export function renderChangelog(patches: ExtendedPatch[]): void {
 
         entry.innerHTML = `
             <div class="changelog-header">
-                <a href="https://github.com/jtn0123/MegaBonk/releases/tag/v${encodeURIComponent(patch.version)}" target="_blank" rel="noopener noreferrer" class="changelog-version" aria-label="View release v${escapeHtml(patch.version)} on GitHub">v${escapeHtml(patch.version)}</a>
+${
+    patch.version && patch.version !== 'UNKNOWN'
+        ? `<a href="https://github.com/jtn0123/MegaBonk/releases/tag/v${encodeURIComponent(patch.version)}" target="_blank" rel="noopener noreferrer" class="changelog-version" aria-label="View release v${escapeHtml(patch.version)} on GitHub">v${escapeHtml(patch.version)}</a>`
+        : ''
+}
                 <h3 class="changelog-title">${escapeHtml(patch.title)}</h3>
                 <span class="changelog-date">${formatChangelogDate(patch.date)}</span>
                 ${

@@ -42,6 +42,13 @@ vi.mock('../../../src/modules/cv/detection-config.ts', () => ({
     getDynamicMinConfidence: vi.fn(() => 0.5),
 }));
 
+vi.mock('../../../src/modules/cv/validator-trace.ts', () => ({
+    addSlotCandidate: vi.fn(),
+    endValidatorStage: vi.fn(),
+    updateValidatorStageProgress: vi.fn(),
+    upsertSlotTrace: vi.fn(),
+}));
+
 vi.mock('../../../src/modules/cv/detection-grid.ts', () => ({
     detectHotbarRegion: vi.fn(() => ({ startY: 640, endY: 700, confidence: 0.9 })),
     detectIconEdges: vi.fn(() => [100, 148, 196, 244, 292]),
@@ -63,11 +70,12 @@ vi.mock('../../../src/modules/cv/detection-grid.ts', () => ({
 
 vi.mock('../../../src/modules/cv/detection-matching.ts', () => ({
     findBestTemplateMatch: vi.fn(() => null),
+    findTopTemplateMatches: vi.fn(() => []),
 }));
 
 import { detectIconsWithTwoPhase } from '../../../src/modules/cv/detection-pipeline/two-phase';
 import { inferGridFromEdges } from '../../../src/modules/cv/detection-grid';
-import { findBestTemplateMatch } from '../../../src/modules/cv/detection-matching';
+import { findBestTemplateMatch, findTopTemplateMatches } from '../../../src/modules/cv/detection-matching';
 import { isEmptyCell } from '../../../src/modules/cv/color';
 
 describe('two-phase', () => {
@@ -149,6 +157,10 @@ describe('two-phase', () => {
 
         it('should detect items when template matches', async () => {
             vi.mocked(isEmptyCell).mockReturnValue(false);
+            vi.mocked(findTopTemplateMatches).mockReturnValue([{
+                item: { id: 'item1', name: 'Test', rarity: 'common' } as any,
+                similarity: 0.8,
+            }]);
             vi.mocked(findBestTemplateMatch).mockReturnValue({
                 item: { id: 'item1', name: 'Test', rarity: 'common' } as any,
                 similarity: 0.8,

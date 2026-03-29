@@ -252,10 +252,12 @@
     color: var(--accent);
 }
 
+/* Tablet / small desktop */
 @media (max-width: 768px) {
     .changelog-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 0.5rem;
     }
 
     .changelog-title {
@@ -271,6 +273,102 @@
     .changelog-steam-link {
         order: 4;
         margin-left: 0;
-        margin-top: 0.5rem;
+        margin-top: 0.25rem;
+    }
+
+    .changelog-page-header {
+        padding: 1.25rem 0.5rem;
+        margin-bottom: 1.25rem;
+    }
+
+    .changelog-page-title {
+        font-size: 1.5rem;
+    }
+}
+
+/* Phone */
+@media (max-width: 480px) {
+    .changelog-container {
+        padding: 0 0.5rem;
+    }
+
+    .changelog-entry {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 8px;
+    }
+
+    /* Disable hover lift on touch — wastes compositing */
+    .changelog-entry:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .changelog-page-header {
+        padding: 1rem 0.25rem;
+        margin-bottom: 1rem;
+    }
+
+    .changelog-page-title {
+        font-size: 1.25rem;
+    }
+
+    .changelog-page-subtitle {
+        font-size: 0.875rem;
+    }
+
+    .changelog-page-stats {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        font-size: 0.8rem;
+    }
+
+    .changelog-title {
+        font-size: 1.1rem;
+        min-width: unset;
+    }
+
+    .changelog-summary {
+        font-size: 0.875rem;
+    }
+
+    .changelog-raw-notes {
+        max-height: 250px;
+    }
+
+    .changelog-item {
+        font-size: 0.85rem;
+    }
+
+    /* Make entity links easier to tap */
+    .entity-link {
+        padding: 0.125rem 0;
+    }
+
+    /* Version + date on one row to save vertical space */
+    .changelog-header {
+        gap: 0.375rem;
+    }
+
+    .changelog-version,
+    .changelog-date {
+        display: inline-flex;
+    }
+}
+
+/* Tiny phones */
+@media (max-width: 375px) {
+    .changelog-entry {
+        padding: 0.75rem;
+    }
+
+    .category-pill {
+        font-size: 0.65rem;
+        padding: 0.2rem 0.5rem;
+    }
+
+    .changelog-expand-btn {
+        padding: 0.625rem;
+        font-size: 0.8rem;
     }
 }
