@@ -162,11 +162,13 @@ test.describe('Chart Rendering', () => {
             await card.click();
 
             const modal = page.locator('#itemModal');
-            const opened = await modal.isVisible({ timeout: 10000 }).catch(() => false);
-            if (!opened) continue; // Card may not open modal (e.g., expanded inline)
-            const isModalOpen = true;
-            
-            if (isModalOpen) {
+            try {
+                await modal.waitFor({ state: 'visible', timeout: 10000 });
+            } catch {
+                continue; // Card may not open modal (e.g., expanded inline)
+            }
+
+            {
                 const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
                 if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible().catch(() => false)) {
                     // Wait for canvas to be ready (WebKit has slower Chart.js rendering)

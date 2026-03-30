@@ -51,7 +51,7 @@ test.describe('Mobile Bottom Navigation', () => {
         const shrinesNav = page.locator('.mobile-bottom-nav .nav-item[data-tab="shrines"]');
 
         // Shrines may be hidden in "more" overflow — skip if not directly visible
-        if (await shrinesNav.isVisible().catch(() => false)) {
+        if (await shrinesNav.isVisible()) {
             await shrinesNav.click();
 
             // Wait for tab switch to complete (debounced)

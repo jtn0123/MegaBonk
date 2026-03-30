@@ -39,10 +39,14 @@ test.describe('Advisor Flow', () => {
             await page.waitForSelector('#build-planner-tab.active', { timeout: 15000 });
 
             // Scan section requires enhanced module — skip if not rendered
-            const scanSection = page.locator('#build-planner-scan-section, .scan-section');
-            const visible = await scanSection.first().isVisible({ timeout: 5000 }).catch(() => false);
-            if (!visible) test.skip();
-            await expect(scanSection.first()).toBeVisible();
+            const scanSection = page.locator('#build-planner-scan-section, .scan-section').first();
+            try {
+                await scanSection.waitFor({ state: 'visible', timeout: 10000 });
+            } catch {
+                test.skip();
+                return;
+            }
+            await expect(scanSection).toBeVisible();
         });
     });
 
