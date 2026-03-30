@@ -185,6 +185,8 @@ test.describe('Chart Rendering', () => {
                     await page.keyboard.press('Escape');
                 }
                 await expect(modal).toBeHidden({ timeout: 5000 });
+                // Wait for close animation to fully complete before clicking next card
+                await page.waitForTimeout(200);
             }
         }
 

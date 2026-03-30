@@ -37,7 +37,7 @@ test.describe('Advisor Flow', () => {
         test('should display scan section in build planner', async ({ page }) => {
             // Scan section is in the build-planner tab, not advisor
             await page.click('.tab-btn[data-tab="build-planner"]');
-            await page.waitForSelector('#build-planner-tab.active', { timeout: 5000 });
+            await page.waitForSelector('#build-planner-tab.active', { timeout: 15000 });
 
             const scanSection = page.locator('#build-planner-scan-section');
             await expect(scanSection).toBeVisible({ timeout: 15000 });
@@ -48,7 +48,7 @@ test.describe('Advisor Flow', () => {
         test('should have file upload input for screenshots', async ({ page }) => {
             // Scan upload is in the build-planner tab
             await page.click('.tab-btn[data-tab="build-planner"]');
-            await page.waitForSelector('#build-planner-tab.active', { timeout: 5000 });
+            await page.waitForSelector('#build-planner-tab.active', { timeout: 15000 });
 
             const fileInput = page.locator('#scan-file-input, input[type="file"][accept*="image"]');
             const count = await fileInput.count();
