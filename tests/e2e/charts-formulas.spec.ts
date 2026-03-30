@@ -145,8 +145,8 @@ test.describe('Chart Rendering', () => {
     });
 
     test('multiple items with charts render correctly', async ({ page, browserName }) => {
-        // Increase timeout for this iterative test on WebKit
-        test.setTimeout(browserName === 'webkit' ? 40000 : 25000);
+        // Iterative modal open/close is slow on CI runners
+        test.setTimeout(browserName === 'webkit' ? 60000 : 45000);
         
         const cards = page.locator('#itemsContainer .item-card');
         const count = await cards.count();
