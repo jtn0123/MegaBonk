@@ -249,25 +249,27 @@ test.describe('Build Planner - Scan Build Section', () => {
     });
 
     test('should display scan build section', async ({ page }) => {
-        // Scan section requires enhanced scan-build module to initialize
-        // Skip if it hasn't rendered (e.g., headless CI without canvas support)
+        // Scan section requires enhanced scan-build module — skip if not rendered on CI
         const scanSection = page.locator('#build-planner-scan-section, .scan-section');
-        const visible = await scanSection.first().isVisible({ timeout: 5000 }).catch(() => false);
-        if (!visible) test.skip();
+        try {
+            await scanSection.first().waitFor({ state: 'visible', timeout: 10000 });
+        } catch { test.skip(); return; }
         await expect(scanSection.first()).toBeVisible();
     });
 
     test('should display upload screenshot button', async ({ page }) => {
         const uploadBtn = page.locator('#scan-upload-btn, .scan-upload-btn');
-        const visible = await uploadBtn.first().isVisible({ timeout: 5000 }).catch(() => false);
-        if (!visible) test.skip();
+        try {
+            await uploadBtn.first().waitFor({ state: 'visible', timeout: 10000 });
+        } catch { test.skip(); return; }
         await expect(uploadBtn.first()).toBeVisible();
     });
 
     test('should have hidden file input for upload', async ({ page }) => {
         const fileInput = page.locator('#scan-file-input, input[type="file"][accept*="image"]');
-        const attached = await fileInput.first().isVisible({ timeout: 5000 }).catch(() => false);
-        if (!attached) test.skip();
+        try {
+            await fileInput.first().waitFor({ state: 'attached', timeout: 10000 });
+        } catch { test.skip(); return; }
         await expect(fileInput.first()).toBeAttached();
     });
 });

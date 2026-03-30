@@ -24,8 +24,9 @@ test('debug image upload', async ({ page }) => {
 
     // Wait for scan section — skip test if scan-build module didn't initialize
     const scanSection = page.locator('#build-planner-scan-section, .scan-section');
-    const scanVisible = await scanSection.first().isVisible({ timeout: 5000 }).catch(() => false);
-    if (!scanVisible) {
+    try {
+        await scanSection.first().waitFor({ state: 'visible', timeout: 10000 });
+    } catch {
         test.skip();
         return;
     }
