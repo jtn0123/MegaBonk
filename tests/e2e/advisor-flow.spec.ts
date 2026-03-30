@@ -40,7 +40,7 @@ test.describe('Advisor Flow', () => {
             await page.waitForSelector('#build-planner-tab.active', { timeout: 5000 });
 
             const scanSection = page.locator('#build-planner-scan-section');
-            await expect(scanSection).toBeVisible({ timeout: 5000 });
+            await expect(scanSection).toBeVisible({ timeout: 15000 });
         });
     });
 

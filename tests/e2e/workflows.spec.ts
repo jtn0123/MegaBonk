@@ -249,9 +249,16 @@ test.describe('Cross-Feature Workflows', () => {
             await expect(modal).toBeVisible({ timeout: 10000 });
 
             // The modal covers the tab buttons, so we need to close it first
-            // Press Escape to close the modal
             await page.waitForTimeout(300);
             await page.keyboard.press('Escape');
+            await page.waitForTimeout(300);
+            if (await modal.isVisible()) {
+                await page.evaluate(() => {
+                    document.dispatchEvent(new KeyboardEvent('keydown', {
+                        key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
+                    }));
+                });
+            }
             await expect(modal).toBeHidden({ timeout: 5000 });
 
             // Now we can switch tabs
@@ -317,6 +324,14 @@ test.describe('Cross-Feature Workflows', () => {
                 const modal = page.locator('#itemModal');
                 if (await modal.isVisible()) {
                     await page.keyboard.press('Escape');
+                    await page.waitForTimeout(300);
+                    if (await modal.isVisible()) {
+                        await page.evaluate(() => {
+                            document.dispatchEvent(new KeyboardEvent('keydown', {
+                                key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
+                            }));
+                        });
+                    }
                     await expect(modal).toBeHidden({ timeout: 5000 });
                 }
 

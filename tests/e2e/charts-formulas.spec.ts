@@ -177,17 +177,12 @@ test.describe('Chart Rendering', () => {
                     }
                 }
 
-                // Close modal using Escape key (more reliable)
-                await page.keyboard.press('Escape');
-                await page.waitForTimeout(isWebKit ? 400 : 300);
-
-                // Retry with direct event dispatch if modal is still visible
-                if (await modal.isVisible()) {
-                    await page.evaluate(() => {
-                        document.dispatchEvent(new KeyboardEvent('keydown', {
-                            key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-                        }));
-                    });
+                // Close modal using close button (more reliable in loops than Escape)
+                const closeBtn = page.locator('#itemModal .close').first();
+                if (await closeBtn.isVisible().catch(() => false)) {
+                    await closeBtn.click();
+                } else {
+                    await page.keyboard.press('Escape');
                 }
                 await expect(modal).toBeHidden({ timeout: 5000 });
             }

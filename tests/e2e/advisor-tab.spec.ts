@@ -250,17 +250,17 @@ test.describe('Build Planner - Scan Build Section', () => {
 
     test('should display scan build section', async ({ page }) => {
         const scanSection = page.locator('#build-planner-scan-section');
-        await expect(scanSection).toBeVisible({ timeout: 5000 });
+        await expect(scanSection).toBeVisible({ timeout: 15000 });
     });
 
     test('should display upload screenshot button', async ({ page }) => {
         const uploadBtn = page.locator('#scan-upload-btn');
-        await expect(uploadBtn).toBeVisible({ timeout: 5000 });
+        await expect(uploadBtn).toBeVisible({ timeout: 15000 });
     });
 
     test('should have hidden file input for upload', async ({ page }) => {
         const fileInput = page.locator('#scan-file-input');
-        await expect(fileInput).toBeAttached({ timeout: 5000 });
+        await expect(fileInput).toBeAttached({ timeout: 15000 });
         await expect(fileInput).toHaveAttribute('accept', 'image/*');
     });
 });

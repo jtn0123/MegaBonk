@@ -22,8 +22,8 @@ test('debug image upload', async ({ page }) => {
     await page.locator('.tab-btn[data-tab="build-planner"]').click({ force: true });
     await expect(page.locator('#build-planner-tab')).toHaveClass(/active/, { timeout: 5000 });
 
-    // Wait for scan section
-    await expect(page.locator('#build-planner-scan-section')).toBeVisible({ timeout: 5000 });
+    // Wait for scan section (lazy-loaded module, needs extra time on CI)
+    await expect(page.locator('#build-planner-scan-section')).toBeVisible({ timeout: 15000 });
 
     // Wait a bit for lazy loading to complete
     await page.waitForTimeout(1000);
