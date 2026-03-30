@@ -22,8 +22,8 @@ test('debug image upload', async ({ page }) => {
     await page.locator('.tab-btn[data-tab="build-planner"]').click({ force: true });
     await expect(page.locator('#build-planner-tab')).toHaveClass(/active/, { timeout: 15000 });
 
-    // Wait for scan section (lazy-loaded module, needs extra time on CI)
-    await expect(page.locator('#build-planner-scan-section')).toBeVisible({ timeout: 15000 });
+    // Wait for scan section (may be dynamic #build-planner-scan-section or static .scan-section)
+    await expect(page.locator('#build-planner-scan-section, .scan-section').first()).toBeVisible({ timeout: 15000 });
 
     // Wait a bit for lazy loading to complete
     await page.waitForTimeout(1000);
@@ -31,9 +31,9 @@ test('debug image upload', async ({ page }) => {
     console.log('=== Before upload ===');
     console.log('Console logs:', consoleLogs.slice(-15));
 
-    // Check file input exists
-    const fileInput = page.locator('#scan-file-input');
-    await expect(fileInput).toBeAttached();
+    // Check file input exists (static HTML or dynamically injected)
+    const fileInput = page.locator('#scan-file-input, input[type="file"][accept*="image"]');
+    await expect(fileInput.first()).toBeAttached();
 
     // Check if initScanBuild was called by looking for its log
     const scanBuildInitLog = consoleLogs.find(log => log.includes('scan_build.init'));
