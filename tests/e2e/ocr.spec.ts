@@ -108,7 +108,7 @@ test.describe('OCR Feature', () => {
 
         page.on('console', msg => {
             const text = msg.text();
-            if (msg.type() === 'error' && text.includes('cdn.jsdelivr.net')) {
+            if (msg.type() === 'error' && /https:\/\/cdn\.jsdelivr\.net\//.test(text)) {
                 cdnErrors.push(text);
             }
         });
