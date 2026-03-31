@@ -11,35 +11,48 @@ const OUTPUT_DIR = './test-results/character-detection';
 
 // Character appears in center of screen, roughly
 const CHARACTER_REGION = {
-    xPercent: 0.45,  // 45% from left
-    yPercent: 0.40,  // 40% from top
-    widthPercent: 0.10,  // 10% of screen width
-    heightPercent: 0.15  // 15% of screen height
+    xPercent: 0.45, // 45% from left
+    yPercent: 0.4, // 40% from top
+    widthPercent: 0.1, // 10% of screen width
+    heightPercent: 0.15, // 15% of screen height
 };
 
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 function computeColorProfile(imageData) {
-    let sumR = 0, sumG = 0, sumB = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
     let count = 0;
     const colorCounts = new Map();
 
     for (let i = 0; i < imageData.data.length; i += 4) {
         const r = imageData.data[i];
-        const g = imageData.data[i+1];
-        const b = imageData.data[i+2];
+        const g = imageData.data[i + 1];
+        const b = imageData.data[i + 2];
 
         // Skip very dark or very bright (likely background)
         const brightness = (r + g + b) / 3;
@@ -71,7 +84,7 @@ function computeColorProfile(imageData) {
             const [r, g, b] = key.split('-').map(n => parseInt(n) * 32 + 16);
             return { r, g, b, count };
         }),
-        pixelCount: count
+        pixelCount: count,
     };
 }
 
@@ -97,7 +110,7 @@ async function loadCharacterTemplates() {
                 tier: char.tier,
                 imageData,
                 colorProfile,
-                canvas
+                canvas,
             });
         } catch {}
     }
@@ -157,7 +170,7 @@ function matchCharacter(ctx, region, templates) {
         match: bestMatch,
         confidence: bestScore,
         regionProfile,
-        regionCanvas
+        regionCanvas,
     };
 }
 
@@ -202,13 +215,15 @@ async function main() {
         const shortName = filename.slice(9, 35);
         const detected = result.match ? result.match.name : 'Unknown';
         const tier = result.match ? result.match.tier : '-';
-        console.log(`| ${shortName.padEnd(25)} | ${detected.padEnd(8)} | ${(result.confidence * 100).toFixed(0).padStart(9)}% | ${tier.padStart(4)} |`);
+        console.log(
+            `| ${shortName.padEnd(25)} | ${detected.padEnd(8)} | ${(result.confidence * 100).toFixed(0).padStart(9)}% | ${tier.padStart(4)} |`
+        );
 
         results.push({
             filename,
             detected: result.match,
             confidence: result.confidence,
-            expected: data.character || 'Unknown'
+            expected: data.character || 'Unknown',
         });
 
         // Create visualization
@@ -261,10 +276,7 @@ async function main() {
     console.log(`\nAverage confidence: ${(avgConf * 100).toFixed(1)}%`);
 
     // Save results
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'results.json'),
-        JSON.stringify(results, null, 2)
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'results.json'), JSON.stringify(results, null, 2));
 
     console.log(`\nResults saved to: ${OUTPUT_DIR}/`);
 }

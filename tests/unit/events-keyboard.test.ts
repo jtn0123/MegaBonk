@@ -54,7 +54,11 @@ import {
     handleBreakpointCardActivation,
 } from '../../src/modules/events-keyboard.ts';
 import { closeModal } from '../../src/modules/modal.ts';
-import { isSearchDropdownVisible, hideSearchDropdown, handleDropdownKeyboard } from '../../src/modules/search-dropdown.ts';
+import {
+    isSearchDropdownVisible,
+    hideSearchDropdown,
+    handleDropdownKeyboard,
+} from '../../src/modules/search-dropdown.ts';
 import { switchTab } from '../../src/modules/events-tabs.ts';
 
 describe('events-keyboard', () => {
@@ -163,7 +167,17 @@ describe('events-keyboard', () => {
         });
 
         it('should map all 9 keys correctly', () => {
-            const expected = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator', 'advisor', 'changelog'];
+            const expected = [
+                'items',
+                'weapons',
+                'tomes',
+                'characters',
+                'shrines',
+                'build-planner',
+                'calculator',
+                'advisor',
+                'changelog',
+            ];
             for (let i = 1; i <= 9; i++) {
                 vi.clearAllMocks();
                 const e = new KeyboardEvent('keydown', { key: String(i) });
@@ -305,7 +319,10 @@ describe('events-keyboard', () => {
     describe('handleKeydownDelegation', () => {
         it('should handle Escape key', () => {
             vi.mocked(isSearchDropdownVisible).mockReturnValue(false);
-            const div = document.createElement('div'); document.body.appendChild(div); const e = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }); Object.defineProperty(e, 'target', { value: div });
+            const div = document.createElement('div');
+            document.body.appendChild(div);
+            const e = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true });
+            Object.defineProperty(e, 'target', { value: div });
             handleKeydownDelegation(e);
             expect(closeModal).toHaveBeenCalled();
         });

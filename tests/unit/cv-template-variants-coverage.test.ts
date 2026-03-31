@@ -35,10 +35,10 @@ function createTestImageData(
 ): SimpleImageData {
     const data = new Uint8ClampedArray(width * height * 4);
     for (let i = 0; i < data.length; i += 4) {
-        data[i] = fillColor[0];     // R
+        data[i] = fillColor[0]; // R
         data[i + 1] = fillColor[1]; // G
         data[i + 2] = fillColor[2]; // B
-        data[i + 3] = 255;          // A
+        data[i + 3] = 255; // A
     }
     return { data, width, height };
 }
@@ -325,7 +325,7 @@ describe('generateVariants', () => {
 
             const warmData = warm!.imageData.data;
             expect(warmData[0]).toBeGreaterThan(128); // R increased
-            expect(warmData[2]).toBeLessThan(128);    // B decreased
+            expect(warmData[2]).toBeLessThan(128); // B decreased
         });
 
         it('should decrease red and increase blue for cool variant', () => {
@@ -336,7 +336,7 @@ describe('generateVariants', () => {
             expect(cool).toBeDefined();
 
             const coolData = cool!.imageData.data;
-            expect(coolData[0]).toBeLessThan(128);    // R decreased
+            expect(coolData[0]).toBeLessThan(128); // R decreased
             expect(coolData[2]).toBeGreaterThan(128); // B increased
         });
 
@@ -503,10 +503,7 @@ describe('scoreVariantMatch', () => {
 
 describe('selectBestVariants', () => {
     function createVariants(): TemplateVariant[] {
-        const types: VariantType[] = [
-            'original', 'bright', 'dark', 'high_contrast',
-            'low_contrast', 'warm', 'cool',
-        ];
+        const types: VariantType[] = ['original', 'bright', 'dark', 'high_contrast', 'low_contrast', 'warm', 'cool'];
         return types.map(type => ({
             type,
             imageData: createTestImageData(),

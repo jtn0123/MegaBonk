@@ -8,7 +8,9 @@ try {
     const canvas = require('canvas');
     createCanvas = canvas.createCanvas;
     loadImage = canvas.loadImage;
-} catch { process.exit(1); }
+} catch {
+    process.exit(1);
+}
 
 async function main() {
     const testCase = 'pc-1080p/level_21_english_desert_scorpion.jpg';
@@ -50,21 +52,21 @@ async function main() {
         const y = rowYPositions[i];
         const valid = y >= height * 0.75;
         const pct = ((y / height) * 100).toFixed(1);
-        console.log(`  Row ${i+1}: y=${y} (${pct}% from top) ${valid ? '✓' : '✗ SKIPPED'}`);
+        console.log(`  Row ${i + 1}: y=${y} (${pct}% from top) ${valid ? '✓' : '✗ SKIPPED'}`);
     }
 
-    const sideMargin = Math.round(width * 0.20);
+    const sideMargin = Math.round(width * 0.2);
     const usableWidth = width - sideMargin * 2;
     const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
 
     console.log(`\nHorizontal layout:`);
-    console.log(`  Side margin: ${sideMargin}px (${(sideMargin/width*100).toFixed(1)}%)`);
+    console.log(`  Side margin: ${sideMargin}px (${((sideMargin / width) * 100).toFixed(1)}%)`);
     console.log(`  Usable width: ${usableWidth}px`);
     console.log(`  Max items/row: ${maxItemsPerRow}`);
 
     // Calculate total grid positions
     let totalPositions = 0;
-    const positions: Array<{x: number; y: number}> = [];
+    const positions: Array<{ x: number; y: number }> = [];
 
     for (const rowY of rowYPositions) {
         if (rowY < height * 0.75) break;
@@ -81,14 +83,17 @@ async function main() {
 
     // Check how many cells have content (variance > 300)
     let nonEmptyCells = 0;
-    const cellDetails: Array<{pos: {x: number; y: number}; variance: number; mean: number; hasContent: boolean}> = [];
+    const cellDetails: Array<{ pos: { x: number; y: number }; variance: number; mean: number; hasContent: boolean }> =
+        [];
 
     for (const pos of positions) {
         const cellData = ctx.getImageData(pos.x, pos.y, iconSize, iconSize);
 
-        let sum = 0, sumSq = 0, count = 0;
+        let sum = 0,
+            sumSq = 0,
+            count = 0;
         for (let i = 0; i < cellData.data.length; i += 4) {
-            const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
+            const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
             sum += gray;
             sumSq += gray * gray;
             count++;

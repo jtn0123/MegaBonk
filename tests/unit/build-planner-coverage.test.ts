@@ -184,9 +184,19 @@ describe('build-planner.ts coverage tests', () => {
             };
 
             // Manually set localStorage to simulate saved build
-            localStorage.setItem('megabonk_build_history', JSON.stringify([
-                { name: 'Test Build', character: 'cl4nk', weapon: 'sword', tomes: ['precision'], items: ['clover'], timestamp: Date.now() },
-            ]));
+            localStorage.setItem(
+                'megabonk_build_history',
+                JSON.stringify([
+                    {
+                        name: 'Test Build',
+                        character: 'cl4nk',
+                        weapon: 'sword',
+                        tomes: ['precision'],
+                        items: ['clover'],
+                        timestamp: Date.now(),
+                    },
+                ])
+            );
 
             const history = getBuildHistory();
             expect(history.length).toBe(1);

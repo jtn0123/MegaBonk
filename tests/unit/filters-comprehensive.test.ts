@@ -56,12 +56,7 @@ vi.mock('../../src/modules/global-search.ts', () => ({
     globalSearch: vi.fn(() => ({ items: [], weapons: [], tomes: [], characters: [], shrines: [] })),
 }));
 
-import {
-    updateFilters,
-    filterData,
-    handleSearch,
-    clearFilters,
-} from '../../src/modules/filters.ts';
+import { updateFilters, filterData, handleSearch, clearFilters } from '../../src/modules/filters.ts';
 import { isFavorite } from '../../src/modules/favorites.ts';
 import { fuzzyMatchScore, parseAdvancedSearch } from '../../src/modules/fuzzy-match.ts';
 
@@ -209,11 +204,39 @@ describe('filters module', () => {
 
     describe('filterData', () => {
         const mockItems = [
-            { id: 'item1', name: 'Ring of Power', rarity: 'legendary', tier: 'SS', stacks_well: false, one_and_done: true },
-            { id: 'item2', name: 'Amulet of Health', rarity: 'epic', tier: 'S', stacks_well: true, one_and_done: false },
+            {
+                id: 'item1',
+                name: 'Ring of Power',
+                rarity: 'legendary',
+                tier: 'SS',
+                stacks_well: false,
+                one_and_done: true,
+            },
+            {
+                id: 'item2',
+                name: 'Amulet of Health',
+                rarity: 'epic',
+                tier: 'S',
+                stacks_well: true,
+                one_and_done: false,
+            },
             { id: 'item3', name: 'Boots of Speed', rarity: 'rare', tier: 'A', stacks_well: true, one_and_done: false },
-            { id: 'item4', name: 'Shield of Defense', rarity: 'uncommon', tier: 'B', stacks_well: false, one_and_done: true },
-            { id: 'item5', name: 'Helm of Wisdom', rarity: 'common', tier: 'C', stacks_well: true, one_and_done: false },
+            {
+                id: 'item4',
+                name: 'Shield of Defense',
+                rarity: 'uncommon',
+                tier: 'B',
+                stacks_well: false,
+                one_and_done: true,
+            },
+            {
+                id: 'item5',
+                name: 'Helm of Wisdom',
+                rarity: 'common',
+                tier: 'C',
+                stacks_well: true,
+                one_and_done: false,
+            },
         ];
 
         beforeEach(() => {
@@ -256,7 +279,8 @@ describe('filters module', () => {
         it('should filter by stacks_well', () => {
             // Update the existing stackingFilter value
             const stackingFilter = document.getElementById('stackingFilter') as HTMLSelectElement;
-            stackingFilter.innerHTML = '<option value="all">All</option><option value="stacks_well">Stacks Well</option>';
+            stackingFilter.innerHTML =
+                '<option value="all">All</option><option value="stacks_well">Stacks Well</option>';
             stackingFilter.value = 'stacks_well';
 
             const result = filterData(mockItems as any, 'items');
@@ -269,7 +293,8 @@ describe('filters module', () => {
 
         it('should filter by one_and_done', () => {
             const stackingFilter = document.getElementById('stackingFilter') as HTMLSelectElement;
-            stackingFilter.innerHTML = '<option value="all">All</option><option value="one_and_done">One-and-Done</option>';
+            stackingFilter.innerHTML =
+                '<option value="all">All</option><option value="one_and_done">One-and-Done</option>';
             stackingFilter.value = 'one_and_done';
 
             const result = filterData(mockItems as any, 'items');
@@ -328,9 +353,21 @@ describe('filters module', () => {
         describe('shrines filtering', () => {
             // Shrines need 'activation' or 'reward' property to pass isShrine type guard
             const mockShrines = [
-                { id: 's1', name: 'Shrine of Power', type: 'stat_upgrade', activation: 'passive', reward: 'power boost' },
+                {
+                    id: 's1',
+                    name: 'Shrine of Power',
+                    type: 'stat_upgrade',
+                    activation: 'passive',
+                    reward: 'power boost',
+                },
                 { id: 's2', name: 'Shrine of Combat', type: 'combat', activation: 'touch', reward: 'combat bonus' },
-                { id: 's3', name: 'Shrine of Utility', type: 'utility', activation: 'interact', reward: 'utility bonus' },
+                {
+                    id: 's3',
+                    name: 'Shrine of Utility',
+                    type: 'utility',
+                    activation: 'interact',
+                    reward: 'utility bonus',
+                },
             ];
 
             beforeEach(() => {
@@ -532,8 +569,22 @@ describe('filters module', () => {
 
     describe('combined filters', () => {
         const mockItems = [
-            { id: 'item1', name: 'Ring of Power', rarity: 'legendary', tier: 'SS', stacks_well: false, one_and_done: true },
-            { id: 'item2', name: 'Amulet of Health', rarity: 'epic', tier: 'S', stacks_well: true, one_and_done: false },
+            {
+                id: 'item1',
+                name: 'Ring of Power',
+                rarity: 'legendary',
+                tier: 'SS',
+                stacks_well: false,
+                one_and_done: true,
+            },
+            {
+                id: 'item2',
+                name: 'Amulet of Health',
+                rarity: 'epic',
+                tier: 'S',
+                stacks_well: true,
+                one_and_done: false,
+            },
             { id: 'item3', name: 'Boots of Speed', rarity: 'rare', tier: 'A', stacks_well: true, one_and_done: false },
         ];
 

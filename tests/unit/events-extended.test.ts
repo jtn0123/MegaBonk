@@ -152,7 +152,8 @@ describe('Events Module - Extended Coverage', () => {
         it('should expand truncated text', () => {
             const element = document.createElement('span');
             element.className = 'expandable-text';
-            element.dataset.fullText = 'This is a very long text that was truncated and should be expanded when clicked by the user to reveal the full content';
+            element.dataset.fullText =
+                'This is a very long text that was truncated and should be expanded when clicked by the user to reveal the full content';
             element.dataset.truncated = 'true';
             element.textContent = 'This is a very long text...';
             document.body.appendChild(element);
@@ -578,7 +579,17 @@ describe('Events Module - Extended Coverage', () => {
         });
 
         it('should accept all valid tab names', () => {
-            const validTabs = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator', 'advisor', 'changelog'];
+            const validTabs = [
+                'items',
+                'weapons',
+                'tomes',
+                'characters',
+                'shrines',
+                'build-planner',
+                'calculator',
+                'advisor',
+                'changelog',
+            ];
 
             validTabs.forEach(tab => {
                 localStorage.setItem('megabonk-current-tab', tab);
@@ -707,7 +718,7 @@ describe('Events Module - Extended Coverage', () => {
             setupEventListeners();
 
             const tabBtn = document.querySelector('[data-tab="weapons"]') as HTMLElement;
-            
+
             // Click should trigger switchTab (via the event listener)
             expect(() => tabBtn.click()).not.toThrow();
         });
@@ -716,7 +727,7 @@ describe('Events Module - Extended Coverage', () => {
             setupEventListeners();
 
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
-            
+
             expect(() => {
                 searchInput.dispatchEvent(new Event('input', { bubbles: true }));
                 searchInput.dispatchEvent(new Event('focus', { bubbles: true }));
@@ -727,7 +738,7 @@ describe('Events Module - Extended Coverage', () => {
             setupEventListeners();
 
             const closeBtn = document.querySelector('.close') as HTMLElement;
-            
+
             expect(() => closeBtn?.click()).not.toThrow();
         });
     });
@@ -761,18 +772,19 @@ describe('Events Module - Extended Coverage', () => {
 
         it('should handle Escape key to close modal', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
-            
+
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-            
+
             expect(closeModal).toHaveBeenCalled();
         });
 
         it('should handle Escape when search dropdown is visible', async () => {
-            const { isSearchDropdownVisible, hideSearchDropdown } = await import('../../src/modules/search-dropdown.ts');
+            const { isSearchDropdownVisible, hideSearchDropdown } =
+                await import('../../src/modules/search-dropdown.ts');
             vi.mocked(isSearchDropdownVisible).mockReturnValue(true);
-            
+
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-            
+
             expect(hideSearchDropdown).toHaveBeenCalled();
         });
 
@@ -780,9 +792,9 @@ describe('Events Module - Extended Coverage', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             const focusSpy = vi.spyOn(searchInput, 'focus');
             const selectSpy = vi.spyOn(searchInput, 'select');
-            
+
             document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
-            
+
             expect(focusSpy).toHaveBeenCalled();
             expect(selectSpy).toHaveBeenCalled();
         });
@@ -790,47 +802,47 @@ describe('Events Module - Extended Coverage', () => {
         it('should handle / to focus search', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             const focusSpy = vi.spyOn(searchInput, 'focus');
-            
+
             document.dispatchEvent(new KeyboardEvent('keydown', { key: '/', bubbles: true }));
-            
+
             expect(focusSpy).toHaveBeenCalled();
         });
 
         it('should not focus search when already in input', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             const focusSpy = vi.spyOn(searchInput, 'focus');
-            
+
             // Simulate being in an input field
             const event = new KeyboardEvent('keydown', { key: '/', bubbles: true });
             Object.defineProperty(event, 'target', { value: searchInput });
             document.dispatchEvent(event);
-            
+
             expect(focusSpy).not.toHaveBeenCalled();
         });
 
         it('should handle number keys for tab switching', async () => {
             __resetTimersForTesting();
-            
+
             const event = new KeyboardEvent('keydown', { key: '2', bubbles: true });
             Object.defineProperty(event, 'target', { value: document.body });
             document.dispatchEvent(event);
-            
+
             // Wait for async switchTab
             await new Promise(resolve => setTimeout(resolve, 10));
-            
+
             expect(mockStoreState.currentTab).toBe('weapons');
         });
 
         it('should not handle number keys in input field', async () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             mockStoreState.currentTab = 'items';
-            
+
             const event = new KeyboardEvent('keydown', { key: '3', bubbles: true });
             Object.defineProperty(event, 'target', { value: searchInput });
             document.dispatchEvent(event);
-            
+
             await new Promise(resolve => setTimeout(resolve, 10));
-            
+
             // Should not have changed
             expect(mockStoreState.currentTab).toBe('items');
         });
@@ -839,11 +851,11 @@ describe('Events Module - Extended Coverage', () => {
             const tabBtn = document.querySelector('[data-tab="items"]') as HTMLButtonElement;
             tabBtn.classList.add('tab-btn');
             tabBtn.focus();
-            
+
             const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
             Object.defineProperty(event, 'target', { value: tabBtn });
             document.dispatchEvent(event);
-            
+
             await new Promise(resolve => setTimeout(resolve, 10));
             expect(tabBtn).toBeDefined();
         });
@@ -852,11 +864,11 @@ describe('Events Module - Extended Coverage', () => {
             const tabBtn = document.querySelector('[data-tab="weapons"]') as HTMLButtonElement;
             tabBtn.classList.add('tab-btn');
             tabBtn.focus();
-            
+
             const event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true });
             Object.defineProperty(event, 'target', { value: tabBtn });
             document.dispatchEvent(event);
-            
+
             await new Promise(resolve => setTimeout(resolve, 10));
             expect(tabBtn).toBeDefined();
         });
@@ -868,13 +880,13 @@ describe('Events Module - Extended Coverage', () => {
             card.dataset.target = '100';
             card.tabIndex = 0;
             document.body.appendChild(card);
-            
+
             const event = new KeyboardEvent('keydown', { key: 'Enter', bubbles: true });
             Object.defineProperty(event, 'target', { value: card });
             document.dispatchEvent(event);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(card.dataset.item).toBe('test-item');
             card.remove();
         });
@@ -886,27 +898,28 @@ describe('Events Module - Extended Coverage', () => {
             card.dataset.target = '50';
             card.tabIndex = 0;
             document.body.appendChild(card);
-            
+
             const event = new KeyboardEvent('keydown', { key: ' ', bubbles: true });
             Object.defineProperty(event, 'target', { value: card });
             document.dispatchEvent(event);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(card.dataset.item).toBe('test-item');
             card.remove();
         });
 
         it('should handle dropdown keyboard when search focused', async () => {
-            const { handleDropdownKeyboard, isSearchDropdownVisible } = await import('../../src/modules/search-dropdown.ts');
+            const { handleDropdownKeyboard, isSearchDropdownVisible } =
+                await import('../../src/modules/search-dropdown.ts');
             vi.mocked(isSearchDropdownVisible).mockReturnValue(true);
             vi.mocked(handleDropdownKeyboard).mockReturnValue(true);
-            
+
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             const event = new KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true });
             Object.defineProperty(event, 'target', { value: searchInput });
             document.dispatchEvent(event);
-            
+
             expect(handleDropdownKeyboard).toHaveBeenCalled();
         });
     });
@@ -918,16 +931,16 @@ describe('Events Module - Extended Coverage', () => {
         // Note: These tests verify event delegation handlers work correctly.
         // Since jsdom doesn't support AbortSignal, we can't cleanly remove listeners.
         // Tests that require assertion on mocked functions may need isolated setup.
-        
+
         it('should handle view details button via direct call simulation', async () => {
             // Since event delegation in jsdom may have multiple listeners,
             // we test the handler logic directly by checking the function behavior
             const { openDetailModal } = await import('../../src/modules/modal.ts');
             vi.mocked(openDetailModal).mockClear();
-            
+
             // Directly call openDetailModal to verify it works
             openDetailModal('items', 'test-id');
-            
+
             expect(openDetailModal).toHaveBeenCalledWith('items', 'test-id');
         });
 
@@ -939,13 +952,13 @@ describe('Events Module - Extended Coverage', () => {
             element.dataset.truncated = 'true';
             element.textContent = 'Full text...';
             document.body.appendChild(element);
-            
+
             // Call toggleTextExpand directly
             toggleTextExpand(element);
-            
+
             // After expand, truncated should be false
             expect(element.dataset.truncated).toBe('false');
-            
+
             element.remove();
         });
 
@@ -956,74 +969,74 @@ describe('Events Module - Extended Coverage', () => {
             element.dataset.truncated = 'false'; // Start expanded
             element.classList.add('expanded');
             document.body.appendChild(element);
-            
+
             // Call toggleTextExpand to collapse
             toggleTextExpand(element);
-            
+
             expect(element.dataset.truncated).toBe('true');
             expect(element.classList.contains('expanded')).toBe(false);
-            
+
             element.remove();
         });
 
         it('should handle compare checkbox label click via delegation', async () => {
             setupEventDelegation();
-            
+
             const label = document.createElement('label');
             label.className = 'compare-checkbox-label';
-            
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.className = 'compare-checkbox';
             checkbox.dataset.id = 'item-1';
             checkbox.value = 'item-1';
-            
+
             label.appendChild(checkbox);
             document.body.appendChild(label);
-            
+
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             label.dispatchEvent(clickEvent);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(checkbox).toBeDefined();
             label.remove();
         });
 
         it('should handle remove compare button click via delegation', async () => {
             setupEventDelegation();
-            
+
             const btn = document.createElement('button');
             btn.className = 'remove-compare-btn';
             btn.dataset.removeId = 'item-1';
             document.body.appendChild(btn);
-            
+
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             btn.dispatchEvent(clickEvent);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(btn.dataset.removeId).toBe('item-1');
             btn.remove();
         });
 
         it('should handle child of remove compare button click', async () => {
             setupEventDelegation();
-            
+
             const btn = document.createElement('button');
             btn.className = 'remove-compare-btn';
             btn.dataset.removeId = 'item-2';
-            
+
             const icon = document.createElement('span');
             icon.textContent = '×';
             btn.appendChild(icon);
             document.body.appendChild(btn);
-            
+
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             icon.dispatchEvent(clickEvent);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(btn.dataset.removeId).toBe('item-2');
             btn.remove();
         });
@@ -1031,25 +1044,25 @@ describe('Events Module - Extended Coverage', () => {
         it('should handle clear filters button via direct call', async () => {
             const { clearFilters } = await import('../../src/modules/filters.ts');
             vi.mocked(clearFilters).mockClear();
-            
+
             // Call clearFilters directly to verify it works
             clearFilters();
-            
+
             expect(clearFilters).toHaveBeenCalled();
         });
 
         it('should handle changelog expand button click', async () => {
             setupEventDelegation();
-            
+
             const btn = document.createElement('button');
             btn.className = 'changelog-expand-btn';
             document.body.appendChild(btn);
-            
+
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             btn.dispatchEvent(clickEvent);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(btn.className).toBe('changelog-expand-btn');
             btn.remove();
         });
@@ -1057,49 +1070,49 @@ describe('Events Module - Extended Coverage', () => {
         it('should handle entity link click via direct call', async () => {
             const { openDetailModal } = await import('../../src/modules/modal.ts');
             vi.mocked(openDetailModal).mockClear();
-            
+
             // Directly call the modal function to verify it works
             openDetailModal('weapons', 'weapon-1');
-            
+
             expect(openDetailModal).toHaveBeenCalledWith('weapons', 'weapon-1');
         });
 
         it('should handle breakpoint card click via delegation', async () => {
             setupEventDelegation();
-            
+
             const card = document.createElement('div');
             card.className = 'breakpoint-card';
             card.dataset.item = 'weapon-1';
             card.dataset.target = '75';
             document.body.appendChild(card);
-            
+
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             card.dispatchEvent(clickEvent);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(card.dataset.item).toBe('weapon-1');
             card.remove();
         });
 
         it('should handle child of breakpoint card click', async () => {
             setupEventDelegation();
-            
+
             const card = document.createElement('div');
             card.className = 'breakpoint-card';
             card.dataset.item = 'weapon-2';
             card.dataset.target = '100';
-            
+
             const inner = document.createElement('span');
             inner.textContent = 'Click me';
             card.appendChild(inner);
             document.body.appendChild(card);
-            
+
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             inner.dispatchEvent(clickEvent);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(card.dataset.item).toBe('weapon-2');
             card.remove();
         });
@@ -1109,33 +1122,33 @@ describe('Events Module - Extended Coverage', () => {
             const { ToastManager } = await import('../../src/modules/toast.ts');
             vi.mocked(toggleFavorite).mockClear();
             vi.mocked(ToastManager.success).mockClear();
-            
+
             // Directly call the toggle function
             toggleFavorite('items', 'item-1');
-            
+
             expect(toggleFavorite).toHaveBeenCalledWith('items', 'item-1');
         });
 
         it('should handle child of favorite button click via delegation', async () => {
             setupEventDelegation();
-            
+
             const { toggleFavorite } = await import('../../src/modules/favorites.ts');
-            
+
             const btn = document.createElement('button');
             btn.className = 'favorite-btn';
             btn.dataset.tab = 'weapons';
             btn.dataset.id = 'weapon-1';
-            
+
             const star = document.createElement('span');
             star.textContent = '⭐';
             btn.appendChild(star);
             document.body.appendChild(btn);
-            
+
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             star.dispatchEvent(clickEvent);
-            
+
             await new Promise(resolve => setTimeout(resolve, 10));
-            
+
             expect(btn.dataset.id).toBe('weapon-1');
             btn.remove();
         });
@@ -1143,23 +1156,23 @@ describe('Events Module - Extended Coverage', () => {
         it('should handle search result card click via delegation', async () => {
             setupEventDelegation();
             __resetTimersForTesting();
-            
+
             const card = document.createElement('div');
             card.className = 'search-result-card';
             card.dataset.tabType = 'tomes';
             card.dataset.entityId = 'tome-1';
             document.body.appendChild(card);
-            
+
             // Also add target element
             const targetCard = document.createElement('div');
             targetCard.dataset.entityId = 'tome-1';
             document.body.appendChild(targetCard);
-            
+
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             card.dispatchEvent(clickEvent);
-            
+
             await new Promise(resolve => setTimeout(resolve, 100));
-            
+
             expect(card.dataset.entityId).toBe('tome-1');
             card.remove();
             targetCard.remove();
@@ -1167,18 +1180,18 @@ describe('Events Module - Extended Coverage', () => {
 
         it('should ignore click on non-Element target', () => {
             setupEventDelegation();
-            
+
             // Create a text node
             const text = document.createTextNode('Some text');
             document.body.appendChild(text);
-            
+
             // Try to dispatch click - should not throw
             expect(() => {
                 const event = new MouseEvent('click', { bubbles: true });
                 Object.defineProperty(event, 'target', { value: text });
                 document.dispatchEvent(event);
             }).not.toThrow();
-            
+
             text.remove();
         });
     });
@@ -1198,11 +1211,11 @@ describe('Events Module - Extended Coverage', () => {
             checkbox.type = 'checkbox';
             checkbox.className = 'tome-checkbox';
             document.body.appendChild(checkbox);
-            
+
             checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(checkbox.className).toBe('tome-checkbox');
             checkbox.remove();
         });
@@ -1212,11 +1225,11 @@ describe('Events Module - Extended Coverage', () => {
             checkbox.type = 'checkbox';
             checkbox.className = 'item-checkbox';
             document.body.appendChild(checkbox);
-            
+
             checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             expect(checkbox.className).toBe('item-checkbox');
             checkbox.remove();
         });
@@ -1224,51 +1237,51 @@ describe('Events Module - Extended Coverage', () => {
         it('should handle filter select change', async () => {
             const { renderTabContent } = await import('../../src/modules/renderers.ts');
             const { saveFilterState } = await import('../../src/modules/filters.ts');
-            
+
             const filtersDiv = document.createElement('div');
             filtersDiv.id = 'filters';
-            
+
             const select = document.createElement('select');
             filtersDiv.appendChild(select);
             document.body.appendChild(filtersDiv);
-            
+
             select.dispatchEvent(new Event('change', { bubbles: true }));
-            
+
             expect(renderTabContent).toHaveBeenCalled();
             expect(saveFilterState).toHaveBeenCalled();
-            
+
             filtersDiv.remove();
         });
 
         it('should handle favorites only checkbox change', async () => {
             const { renderTabContent } = await import('../../src/modules/renderers.ts');
-            
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.id = 'favoritesOnly';
             document.body.appendChild(checkbox);
-            
+
             checkbox.dispatchEvent(new Event('change', { bubbles: true }));
-            
+
             expect(renderTabContent).toHaveBeenCalled();
-            
+
             checkbox.remove();
         });
 
         it('should not crash when currentTab is not set', async () => {
             mockStoreState.currentTab = '' as any;
-            
+
             const filtersDiv = document.createElement('div');
             filtersDiv.id = 'filters';
-            
+
             const select = document.createElement('select');
             filtersDiv.appendChild(select);
             document.body.appendChild(filtersDiv);
-            
+
             expect(() => {
                 select.dispatchEvent(new Event('change', { bubbles: true }));
             }).not.toThrow();
-            
+
             filtersDiv.remove();
         });
     });
@@ -1284,28 +1297,28 @@ describe('Events Module - Extended Coverage', () => {
 
         it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should close item modal when clicking backdrop', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
-            
+
             const itemModal = document.getElementById('itemModal') as HTMLElement;
             itemModal.classList.add('active');
-            
+
             const content = itemModal.querySelector('.modal-content') as HTMLElement;
-            
+
             // Click on modal (backdrop) - not on content
             const event = new MouseEvent('click', { bubbles: true });
             Object.defineProperty(event, 'target', { value: itemModal });
             window.dispatchEvent(event);
-            
+
             expect(closeModal).toHaveBeenCalled();
         });
 
         it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should close compare modal when clicking backdrop', async () => {
             const compareModal = document.getElementById('compareModal') as HTMLElement;
             compareModal.classList.add('active');
-            
+
             const event = new MouseEvent('click', { bubbles: true });
             Object.defineProperty(event, 'target', { value: compareModal });
             window.dispatchEvent(event);
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
             expect(compareModal.classList.contains('active')).toBeDefined();
         });
@@ -1313,16 +1326,16 @@ describe('Events Module - Extended Coverage', () => {
         it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should not close modal when clicking content', async () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
             vi.mocked(closeModal).mockClear();
-            
+
             const itemModal = document.getElementById('itemModal') as HTMLElement;
             itemModal.classList.add('active');
-            
+
             const content = itemModal.querySelector('.modal-content') as HTMLElement;
-            
+
             const event = new MouseEvent('click', { bubbles: true });
             Object.defineProperty(event, 'target', { value: content });
             window.dispatchEvent(event);
-            
+
             expect(closeModal).not.toHaveBeenCalled();
         });
 
@@ -1330,14 +1343,14 @@ describe('Events Module - Extended Coverage', () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
             vi.mocked(closeModal).mockClear();
             __resetTimersForTesting();
-            
+
             const itemModal = document.getElementById('itemModal') as HTMLElement;
             itemModal.classList.add('active');
-            
+
             const event = new TouchEvent('touchend', { bubbles: true });
             Object.defineProperty(event, 'target', { value: itemModal });
             window.dispatchEvent(event);
-            
+
             expect(closeModal).toHaveBeenCalled();
         });
 
@@ -1345,20 +1358,20 @@ describe('Events Module - Extended Coverage', () => {
             const { closeModal } = await import('../../src/modules/modal.ts');
             vi.mocked(closeModal).mockClear();
             __resetTimersForTesting();
-            
+
             const itemModal = document.getElementById('itemModal') as HTMLElement;
             itemModal.classList.add('active');
-            
+
             // First click
             const event1 = new MouseEvent('click', { bubbles: true });
             Object.defineProperty(event1, 'target', { value: itemModal });
             window.dispatchEvent(event1);
-            
+
             // Rapid second click
             const event2 = new MouseEvent('click', { bubbles: true });
             Object.defineProperty(event2, 'target', { value: itemModal });
             window.dispatchEvent(event2);
-            
+
             // Only first should have triggered
             expect(closeModal).toHaveBeenCalledTimes(1);
         });
@@ -1371,11 +1384,11 @@ describe('Events Module - Extended Coverage', () => {
         it('should setup scroll indicators for tab buttons', () => {
             const tabContainer = document.querySelector('.tabs .container') as HTMLElement;
             const tabButtons = document.querySelector('.tab-buttons') as HTMLElement;
-            
+
             if (tabContainer && tabButtons) {
                 // Simulate scroll
                 tabButtons.dispatchEvent(new Event('scroll'));
-                
+
                 // Should not throw
                 expect(true).toBe(true);
             }
@@ -1383,10 +1396,10 @@ describe('Events Module - Extended Coverage', () => {
 
         it('should update indicators on resize', () => {
             setupEventListeners();
-            
+
             // Simulate resize
             window.dispatchEvent(new Event('resize'));
-            
+
             // Should not throw
             expect(true).toBe(true);
         });
@@ -1402,23 +1415,23 @@ describe('Events Module - Extended Coverage', () => {
 
         it('should show search history on focus when empty', async () => {
             const { showSearchHistoryDropdown } = await import('../../src/modules/search-history.ts');
-            
+
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = '';
-            
+
             searchInput.dispatchEvent(new Event('focus'));
-            
+
             expect(showSearchHistoryDropdown).toHaveBeenCalled();
         });
 
         it('should trigger search on focus with existing query', async () => {
             const { handleSearch } = await import('../../src/modules/filters.ts');
-            
+
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = 'test query';
-            
+
             searchInput.dispatchEvent(new Event('focus'));
-            
+
             expect(handleSearch).toHaveBeenCalled();
         });
     });
@@ -1433,18 +1446,18 @@ describe('Events Module - Extended Coverage', () => {
 
         it('should open compare modal on click', async () => {
             const compareBtn = document.getElementById('compare-btn') as HTMLButtonElement;
-            
+
             compareBtn.click();
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
             expect(compareBtn).toBeDefined();
         });
 
         it('should close compare modal via close button', async () => {
             const closeBtn = document.getElementById('closeCompare') as HTMLButtonElement;
-            
+
             closeBtn.click();
-            
+
             await new Promise(resolve => setTimeout(resolve, 50));
             expect(closeBtn).toBeDefined();
         });
@@ -1456,10 +1469,10 @@ describe('Events Module - Extended Coverage', () => {
     describe('Pagehide Cleanup', () => {
         it('should cleanup listeners on pagehide', () => {
             setupEventDelegation();
-            
+
             // Trigger pagehide
             window.dispatchEvent(new Event('pagehide'));
-            
+
             // Should not throw
             expect(true).toBe(true);
         });
@@ -1491,24 +1504,24 @@ describe('Events Module - Extended Coverage', () => {
             card.className = 'item-card';
             container.appendChild(card);
             document.body.appendChild(container);
-            
+
             const { updateFilters } = await import('../../src/modules/filters.ts');
             vi.mocked(updateFilters).mockClear();
-            
+
             await switchTab('items');
-            
+
             // Should not re-render same tab
             expect(updateFilters).not.toHaveBeenCalled();
-            
+
             container.remove();
         });
 
         it('should calculate item count from allData', async () => {
             const { logger } = await import('../../src/modules/logger.ts');
             vi.mocked(logger.info).mockClear();
-            
+
             await switchTab('weapons');
-            
+
             // Check that the log was called with tab switch info
             expect(logger.info).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -1522,15 +1535,15 @@ describe('Events Module - Extended Coverage', () => {
 
         it('should handle missing allData gracefully', async () => {
             (window as any).allData = undefined;
-            
+
             await expect(switchTab('tomes')).resolves.not.toThrow();
         });
 
         it('should destroy charts on tab switch', async () => {
             const { destroyAllCharts } = await import('../../src/modules/charts.ts');
-            
+
             await switchTab('characters');
-            
+
             expect(destroyAllCharts).toHaveBeenCalled();
         });
     });

@@ -133,13 +133,7 @@ describe('renderers/global-search.ts', () => {
         });
 
         it('should render section headers with labels', () => {
-            const results = [
-                mockItemResult,
-                mockWeaponResult,
-                mockTomeResult,
-                mockCharacterResult,
-                mockShrineResult,
-            ];
+            const results = [mockItemResult, mockWeaponResult, mockTomeResult, mockCharacterResult, mockShrineResult];
             renderGlobalSearchResults(results);
 
             const container = document.getElementById('itemsContainer');
@@ -178,10 +172,7 @@ describe('renderers/global-search.ts', () => {
         });
 
         it('should render result counts in section headers', () => {
-            const results = [
-                mockItemResult,
-                { ...mockItemResult, item: { ...mockItemResult.item, id: 'item-2' } },
-            ];
+            const results = [mockItemResult, { ...mockItemResult, item: { ...mockItemResult.item, id: 'item-2' } }];
             renderGlobalSearchResults(results);
 
             const container = document.getElementById('itemsContainer');
@@ -327,7 +318,7 @@ describe('renderers/global-search.ts', () => {
             document.getElementById('itemsContainer')?.remove();
             // Also remove the active tab content
             document.querySelector('.tab-content.active')?.remove();
-            
+
             expect(() => renderGlobalSearchResults([mockItemResult])).not.toThrow();
         });
 
@@ -361,7 +352,7 @@ describe('renderers/global-search.ts', () => {
         it('should use active tab panel container if available', () => {
             const activeTab = document.querySelector('.tab-content.active');
             const grid = activeTab?.querySelector('.items-grid');
-            
+
             renderGlobalSearchResults([mockItemResult]);
 
             // Results should be in the active tab's grid
@@ -369,13 +360,7 @@ describe('renderers/global-search.ts', () => {
         });
 
         it('should handle all entity types', () => {
-            const allTypes = [
-                mockItemResult,
-                mockWeaponResult,
-                mockTomeResult,
-                mockCharacterResult,
-                mockShrineResult,
-            ];
+            const allTypes = [mockItemResult, mockWeaponResult, mockTomeResult, mockCharacterResult, mockShrineResult];
             renderGlobalSearchResults(allTypes);
 
             const container = document.getElementById('itemsContainer');
@@ -383,18 +368,12 @@ describe('renderers/global-search.ts', () => {
         });
 
         it('should preserve type order except for current tab', () => {
-            const results = [
-                mockShrineResult,
-                mockCharacterResult,
-                mockTomeResult,
-                mockWeaponResult,
-                mockItemResult,
-            ];
+            const results = [mockShrineResult, mockCharacterResult, mockTomeResult, mockWeaponResult, mockItemResult];
             renderGlobalSearchResults(results, 'tomes');
 
             const container = document.getElementById('itemsContainer');
             const sections = container?.querySelectorAll('.global-search-section');
-            
+
             // Tomes should be first (current tab)
             expect(sections?.[0]?.getAttribute('data-type')).toBe('tomes');
         });
@@ -406,7 +385,7 @@ describe('renderers/global-search.ts', () => {
 
             const container = document.getElementById('itemsContainer');
             const sections = container?.querySelectorAll('.global-search-section');
-            
+
             // Should use default order (items first)
             expect(sections?.[0]?.getAttribute('data-type')).toBe('items');
         });

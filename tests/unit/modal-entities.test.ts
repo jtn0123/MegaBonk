@@ -37,7 +37,7 @@ describe('Modal Entities Module', () => {
 
         // Reset mock implementations
         mockGetChartModule.mockResolvedValue({
-            calculateTomeProgression: vi.fn((tome) => tome.value_per_level ? [1, 2, 3, 4, 5] : null),
+            calculateTomeProgression: vi.fn(tome => (tome.value_per_level ? [1, 2, 3, 4, 5] : null)),
             createScalingChart: vi.fn(),
         });
         mockGetCurrentModalSessionId.mockReturnValue(1);

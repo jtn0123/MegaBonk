@@ -65,8 +65,8 @@ test.describe('Mobile Bottom Navigation', () => {
 
     test('clicking more nav shows additional tabs', async ({ page }) => {
         const moreNav = page.locator('.mobile-bottom-nav .nav-item[data-tab="more"]');
-        
-        if (await moreNav.count() > 0) {
+
+        if ((await moreNav.count()) > 0) {
             await moreNav.click();
             await page.waitForTimeout(300);
 
@@ -85,7 +85,7 @@ test.describe('Mobile Bottom Navigation', () => {
     test('nav items have labels', async ({ page }) => {
         const navItems = page.locator('.mobile-bottom-nav .nav-item');
         const firstItem = navItems.first();
-        
+
         const text = await firstItem.textContent();
         expect(text?.trim().length).toBeGreaterThan(0);
     });
@@ -96,16 +96,16 @@ test.describe('Mobile Bottom Navigation', () => {
         await page.waitForTimeout(200);
 
         const activeItems = page.locator('.mobile-bottom-nav .nav-item.active');
-        const count = await activeItems.count();
-        expect(count).toBe(1);
+        const count = activeItems;
+        await expect(count).toHaveCount(1);
 
         // Click tomes
         await page.click('.mobile-bottom-nav .nav-item[data-tab="tomes"]');
         await page.waitForTimeout(200);
 
         const activeAfterTomes = page.locator('.mobile-bottom-nav .nav-item.active');
-        const countAfter = await activeAfterTomes.count();
-        expect(countAfter).toBe(1);
+        const countAfter = activeAfterTomes;
+        await expect(countAfter).toHaveCount(1);
     });
 
     test('bottom nav syncs with top tabs', async ({ page }) => {
@@ -120,16 +120,16 @@ test.describe('Mobile Bottom Navigation', () => {
     test('bottom nav is touch-friendly (minimum 44px touch target)', async ({ page }) => {
         const navItems = page.locator('.mobile-bottom-nav .nav-item');
         const count = await navItems.count();
-        
+
         // Skip if no nav items found (may not be visible on this viewport)
         if (count === 0) {
             test.skip();
             return;
         }
-        
+
         const firstItem = navItems.first();
         const box = await firstItem.boundingBox();
-        
+
         // Touch targets should ideally be at least 44x44 for accessibility
         // But some designs use smaller targets with adequate spacing
         // Allow minimum of 36px which is still acceptable for touch
@@ -139,18 +139,18 @@ test.describe('Mobile Bottom Navigation', () => {
 
     test('bottom nav is fixed at bottom of viewport', async ({ page }) => {
         const mobileNav = page.locator('.mobile-bottom-nav');
-        
+
         const position = await mobileNav.evaluate(el => {
             const style = getComputedStyle(el);
             return style.position;
         });
-        
+
         expect(position).toBe('fixed');
     });
 
     test('bottom nav stays visible when scrolling', async ({ page }) => {
         const mobileNav = page.locator('.mobile-bottom-nav');
-        
+
         // Scroll down
         await page.evaluate(() => window.scrollBy(0, 500));
         await page.waitForTimeout(200);
@@ -168,10 +168,10 @@ test.describe('Mobile Bottom Navigation - Desktop Hidden', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
         const mobileNav = page.locator('.mobile-bottom-nav');
-        
+
         // Should be hidden or not displayed on desktop
-        const isVisible = await mobileNav.isVisible();
-        expect(isVisible).toBe(false);
+        const isVisible = mobileNav;
+        await expect(isVisible).toBeHidden();
     });
 });
 
@@ -185,7 +185,7 @@ test.describe('Mobile Bottom Navigation - Tablet Behavior', () => {
 
     test('tablet may show or hide bottom nav based on breakpoint', async ({ page }) => {
         const mobileNav = page.locator('.mobile-bottom-nav');
-        
+
         // On tablet, behavior depends on CSS breakpoints
         // Just verify the nav element exists
         await expect(mobileNav).toBeAttached();

@@ -20,7 +20,7 @@ test.describe('Sort Functionality - Items Tab', () => {
         const sortSelect = page.locator('#sortBy');
         const options = sortSelect.locator('option');
         const count = await options.count();
-        
+
         expect(count).toBeGreaterThanOrEqual(2); // At least default + one sort option
     });
 
@@ -38,7 +38,7 @@ test.describe('Sort Functionality - Items Tab', () => {
         // Should be in alphabetical order
         const compare1 = firstName!.localeCompare(secondName!);
         const compare2 = secondName!.localeCompare(thirdName!);
-        
+
         expect(compare1).toBeLessThanOrEqual(0);
         expect(compare2).toBeLessThanOrEqual(0);
     });
@@ -55,11 +55,11 @@ test.describe('Sort Functionality - Items Tab', () => {
 
     test('sort by rarity puts high rarity first', async ({ page }) => {
         const sortSelect = page.locator('#sortBy');
-        
+
         // Check if rarity sort option exists
         const options = await sortSelect.locator('option').allTextContents();
         const hasRarity = options.some(o => o.toLowerCase().includes('rarity'));
-        
+
         if (hasRarity) {
             await sortSelect.selectOption('rarity');
             await page.waitForTimeout(300);
@@ -81,7 +81,7 @@ test.describe('Sort Functionality - Items Tab', () => {
         // Get SS tier items
         const ssItems = page.locator('#itemsContainer .item-card:has-text("SS Tier")');
         const count = await ssItems.count();
-        
+
         // Should have multiple SS items
         expect(count).toBeGreaterThan(1);
     });
@@ -98,7 +98,7 @@ test.describe('Sort Functionality - Items Tab', () => {
         // Items should still be sorted by name
         const names = page.locator('#itemsContainer .item-card .item-name');
         const count = await names.count();
-        
+
         if (count >= 2) {
             const firstName = await names.nth(0).textContent();
             const secondName = await names.nth(1).textContent();
@@ -126,7 +126,7 @@ test.describe('Sort Functionality - Weapons Tab', () => {
 
         const names = page.locator('#weaponsContainer .item-card .item-name');
         const count = await names.count();
-        
+
         if (count >= 2) {
             const firstName = await names.nth(0).textContent();
             const secondName = await names.nth(1).textContent();
@@ -164,7 +164,7 @@ test.describe('Sort Functionality - Tomes Tab', () => {
 
         const names = page.locator('#tomesContainer .item-card .item-name');
         const count = await names.count();
-        
+
         if (count >= 2) {
             const firstName = await names.nth(0).textContent();
             const secondName = await names.nth(1).textContent();
@@ -192,7 +192,7 @@ test.describe('Sort Functionality - Characters Tab', () => {
 
         const names = page.locator('#charactersContainer .item-card .item-name');
         const count = await names.count();
-        
+
         if (count >= 2) {
             const firstName = await names.nth(0).textContent();
             const secondName = await names.nth(1).textContent();
@@ -219,7 +219,7 @@ test.describe('Sort Functionality - Reset', () => {
         // Sort may be preserved or reset - both valid
         const sortSelect = page.locator('#sortBy');
         const value = await sortSelect.inputValue();
-        
+
         // Verify sort dropdown is functional
         expect(value === 'name' || value === '' || value === 'default').toBe(true);
     });

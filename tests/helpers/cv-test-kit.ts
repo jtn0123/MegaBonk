@@ -19,11 +19,7 @@ export const imageUtils = {
     /**
      * Create ImageData with custom pixel fill function
      */
-    create(
-        width: number,
-        height: number,
-        fillFn: (x: number, y: number) => [number, number, number]
-    ): ImageData {
+    create(width: number, height: number, fillFn: (x: number, y: number) => [number, number, number]): ImageData {
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
@@ -55,13 +51,8 @@ export const imageUtils = {
     /**
      * Create horizontal gradient
      */
-    gradient(
-        width: number,
-        height: number,
-        from: [number, number, number],
-        to: [number, number, number]
-    ): ImageData {
-        return this.create(width, height, (x) => {
+    gradient(width: number, height: number, from: [number, number, number], to: [number, number, number]): ImageData {
+        return this.create(width, height, x => {
             const t = x / (width - 1);
             return [
                 Math.floor(from[0] + (to[0] - from[0]) * t),
@@ -94,8 +85,7 @@ export const imageUtils = {
     ): ImageData {
         return this.create(width, height, (x, y) => {
             const isBorder =
-                x < borderWidth || x >= width - borderWidth ||
-                y < borderWidth || y >= height - borderWidth;
+                x < borderWidth || x >= width - borderWidth || y < borderWidth || y >= height - borderWidth;
             return isBorder ? borderColor : innerColor;
         });
     },
@@ -205,9 +195,7 @@ export const detectionUtils = {
      * Create batch of item detections
      */
     items(names: string[], baseConfidence: number = 0.85): CVDetectionResult[] {
-        return names.map((name, i) =>
-            this.item(name, baseConfidence + Math.random() * 0.1, { x: 100 + i * 50 })
-        );
+        return names.map((name, i) => this.item(name, baseConfidence + Math.random() * 0.1, { x: 100 + i * 50 }));
     },
 };
 
@@ -272,14 +260,14 @@ export const assertions = {
 
         const precision = truePositives / (truePositives + falsePositives) || 0;
         const recall = truePositives / (truePositives + falseNegatives) || 0;
-        const f1 = 2 * (precision * recall) / (precision + recall) || 0;
+        const f1 = (2 * (precision * recall)) / (precision + recall) || 0;
         const accuracy = truePositives / Math.max(expectedNames.length, detectedNames.length);
 
         if (accuracy < minAccuracy) {
             throw new Error(
                 `Accuracy ${(accuracy * 100).toFixed(1)}% below threshold ${(minAccuracy * 100).toFixed(1)}%\n` +
-                `Expected: ${expectedNames.join(', ')}\n` +
-                `Detected: ${detectedNames.join(', ')}`
+                    `Expected: ${expectedNames.join(', ')}\n` +
+                    `Detected: ${detectedNames.join(', ')}`
             );
         }
 
@@ -303,13 +291,12 @@ export const assertions = {
         expected: { r: number; g: number; b: number },
         tolerance: number = 10
     ): void {
-        const diff = Math.abs(actual.r - expected.r) +
-                     Math.abs(actual.g - expected.g) +
-                     Math.abs(actual.b - expected.b);
+        const diff =
+            Math.abs(actual.r - expected.r) + Math.abs(actual.g - expected.g) + Math.abs(actual.b - expected.b);
         if (diff > tolerance * 3) {
             throw new Error(
                 `Color rgb(${actual.r},${actual.g},${actual.b}) not close to ` +
-                `rgb(${expected.r},${expected.g},${expected.b})`
+                    `rgb(${expected.r},${expected.g},${expected.b})`
             );
         }
     },
@@ -418,11 +405,36 @@ export const RESOLUTION_TEST_DATA = [
 // ========================================
 
 export const IOU_TEST_DATA = [
-    { name: 'identical boxes', box1: { x: 0, y: 0, width: 100, height: 100 }, box2: { x: 0, y: 0, width: 100, height: 100 }, expected: 1.0 },
-    { name: 'no overlap', box1: { x: 0, y: 0, width: 50, height: 50 }, box2: { x: 100, y: 100, width: 50, height: 50 }, expected: 0 },
-    { name: '50% horizontal overlap', box1: { x: 0, y: 0, width: 100, height: 100 }, box2: { x: 50, y: 0, width: 100, height: 100 }, expected: 0.333 },
-    { name: 'contained box', box1: { x: 0, y: 0, width: 100, height: 100 }, box2: { x: 25, y: 25, width: 50, height: 50 }, expected: 0.25 },
-    { name: 'corner overlap', box1: { x: 0, y: 0, width: 100, height: 100 }, box2: { x: 90, y: 90, width: 100, height: 100 }, expected: 0.005 },
+    {
+        name: 'identical boxes',
+        box1: { x: 0, y: 0, width: 100, height: 100 },
+        box2: { x: 0, y: 0, width: 100, height: 100 },
+        expected: 1.0,
+    },
+    {
+        name: 'no overlap',
+        box1: { x: 0, y: 0, width: 50, height: 50 },
+        box2: { x: 100, y: 100, width: 50, height: 50 },
+        expected: 0,
+    },
+    {
+        name: '50% horizontal overlap',
+        box1: { x: 0, y: 0, width: 100, height: 100 },
+        box2: { x: 50, y: 0, width: 100, height: 100 },
+        expected: 0.333,
+    },
+    {
+        name: 'contained box',
+        box1: { x: 0, y: 0, width: 100, height: 100 },
+        box2: { x: 25, y: 25, width: 50, height: 50 },
+        expected: 0.25,
+    },
+    {
+        name: 'corner overlap',
+        box1: { x: 0, y: 0, width: 100, height: 100 },
+        box2: { x: 90, y: 90, width: 100, height: 100 },
+        expected: 0.005,
+    },
 ];
 
 // ========================================

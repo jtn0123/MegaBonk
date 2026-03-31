@@ -267,7 +267,7 @@ describe('OCR Module - Text Extraction', () => {
 
         it('should retry on failure', async () => {
             vi.useRealTimers();
-            
+
             const tesseract = await import('tesseract.js');
             let attempts = 0;
             const mockWorker = {
@@ -300,9 +300,9 @@ describe('OCR Module - Text Extraction', () => {
             };
             vi.mocked(tesseract.createWorker).mockResolvedValue(mockWorker as any);
 
-            await expect(
-                extractTextFromImage('data:image/png;base64,test', undefined, 60000, 0)
-            ).rejects.toThrow('Persistent failure');
+            await expect(extractTextFromImage('data:image/png;base64,test', undefined, 60000, 0)).rejects.toThrow(
+                'Persistent failure'
+            );
         });
 
         it('should timeout on slow recognition', async () => {
@@ -310,17 +310,22 @@ describe('OCR Module - Text Extraction', () => {
 
             const tesseract = await import('tesseract.js');
             const mockWorker = {
-                recognize: vi.fn().mockImplementation(
-                    () => new Promise(resolve => setTimeout(() => resolve({ data: { text: 'Late', confidence: 90 } }), 5000))
-                ),
+                recognize: vi
+                    .fn()
+                    .mockImplementation(
+                        () =>
+                            new Promise(resolve =>
+                                setTimeout(() => resolve({ data: { text: 'Late', confidence: 90 } }), 5000)
+                            )
+                    ),
                 setParameters: vi.fn().mockResolvedValue(undefined),
                 terminate: vi.fn().mockResolvedValue(undefined),
             };
             vi.mocked(tesseract.createWorker).mockResolvedValue(mockWorker as any);
 
-            await expect(
-                extractTextFromImage('data:image/png;base64,test', undefined, 100, 0)
-            ).rejects.toThrow(/timed out/);
+            await expect(extractTextFromImage('data:image/png;base64,test', undefined, 100, 0)).rejects.toThrow(
+                /timed out/
+            );
         });
     });
 });
@@ -357,11 +362,11 @@ describe('OCR Module - Auto Detection', () => {
             // Check that items were detected
             expect(result.items.length).toBeGreaterThan(0);
             expect(result.items[0].entity.name).toBe('Battery');
-            
+
             // Check tomes were detected
             expect(result.tomes.length).toBeGreaterThan(0);
             expect(result.tomes[0].entity.name).toBe('Damage Tome');
-            
+
             // Character and weapon detection use single-line search which may not match
             // multiline text well, but the rawText should be present
             expect(result.rawText).toContain('Battery');
@@ -416,9 +421,7 @@ describe('OCR Module - Auto Detection', () => {
             };
             vi.mocked(tesseract.createWorker).mockResolvedValue(mockWorker as any);
 
-            await expect(
-                autoDetectFromImage('data:image/png;base64,test')
-            ).rejects.toThrow('OCR failed');
+            await expect(autoDetectFromImage('data:image/png;base64,test')).rejects.toThrow('OCR failed');
         });
     });
 });
@@ -427,7 +430,7 @@ describe('OCR Module - Stack Count Detection', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
         await __resetForTesting();
-        
+
         // Mock DOM APIs for canvas operations
         const mockCanvas = {
             width: 100,
@@ -443,11 +446,11 @@ describe('OCR Module - Stack Count Detection', () => {
             }),
             toDataURL: vi.fn().mockReturnValue('data:image/png;base64,processed'),
         };
-        
+
         vi.stubGlobal('document', {
             createElement: vi.fn().mockReturnValue(mockCanvas),
         });
-        
+
         // Mock Image constructor
         class MockImage {
             width = 100;
@@ -455,7 +458,7 @@ describe('OCR Module - Stack Count Detection', () => {
             onload: (() => void) | null = null;
             onerror: (() => void) | null = null;
             src = '';
-            
+
             constructor() {
                 setTimeout(() => this.onload?.(), 0);
             }
@@ -585,7 +588,7 @@ describe('OCR Module - Stack Count Detection', () => {
                     tessedit_char_whitelist: '0123456789x×X',
                 })
             );
-            
+
             // Should reset parameters after
             expect(mockWorker.setParameters).toHaveBeenCalledWith(
                 expect.objectContaining({
@@ -663,7 +666,7 @@ describe('OCR Module - Concurrent Worker Access', () => {
 
     it('should handle concurrent extractTextFromImage calls', async () => {
         const tesseract = await import('tesseract.js');
-        
+
         const mockWorker = {
             recognize: vi.fn().mockResolvedValue({
                 data: { text: 'Concurrent result', confidence: 90 },
@@ -671,7 +674,7 @@ describe('OCR Module - Concurrent Worker Access', () => {
             setParameters: vi.fn().mockResolvedValue(undefined),
             terminate: vi.fn().mockResolvedValue(undefined),
         };
-        
+
         vi.mocked(tesseract.createWorker).mockResolvedValue(mockWorker as any);
 
         // Start multiple concurrent calls
@@ -686,7 +689,7 @@ describe('OCR Module - Concurrent Worker Access', () => {
         // All results should be valid
         expect(results).toHaveLength(3);
         expect(results.every(r => r === 'Concurrent result')).toBe(true);
-        
+
         // Worker recognize should be called 3 times (once per image)
         expect(mockWorker.recognize).toHaveBeenCalledTimes(3);
     });

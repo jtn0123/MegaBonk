@@ -823,16 +823,18 @@ describe('CV Training Module', () => {
                     test: {
                         name: 'Test',
                         sample_count: 1,
-                        samples: [{
-                            id: 't1',
-                            file: 't/1.png',
-                            source_resolution: '1080p',
-                            source_image: 'test.png',
-                            validation_type: 'verified',
-                            original_confidence: 0.9,
-                            dimensions: { w: 48, h: 48 },
-                            added_at: '2024-01-01',
-                        }],
+                        samples: [
+                            {
+                                id: 't1',
+                                file: 't/1.png',
+                                source_resolution: '1080p',
+                                source_image: 'test.png',
+                                validation_type: 'verified',
+                                original_confidence: 0.9,
+                                dimensions: { w: 48, h: 48 },
+                                added_at: '2024-01-01',
+                            },
+                        ],
                     },
                 },
             };

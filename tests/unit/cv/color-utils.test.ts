@@ -19,7 +19,9 @@ import {
 } from '../../../src/modules/cv/color-utils';
 import { polyfillImageData, createImageData } from './test-helpers';
 
-beforeAll(() => { polyfillImageData(); });
+beforeAll(() => {
+    polyfillImageData();
+});
 
 // ========================================
 // Tests
@@ -188,7 +190,7 @@ describe('color-utils', () => {
 
         it('should return high variance for noisy image', () => {
             // Use larger blocks so the every-4th-pixel sampling still sees variation
-            const imageData = createImageData(20, 20, (x) => [x < 10 ? 0 : 255, 0, 0, 255]);
+            const imageData = createImageData(20, 20, x => [x < 10 ? 0 : 255, 0, 0, 255]);
             const variance = calculateColorVariance(imageData);
             expect(variance).toBeGreaterThan(0);
         });
@@ -266,7 +268,7 @@ describe('color-utils', () => {
         });
 
         it('should return >0 for image with sharp edges', () => {
-            const imageData = createImageData(20, 20, (x) => {
+            const imageData = createImageData(20, 20, x => {
                 return x < 10 ? [0, 0, 0, 255] : [255, 255, 255, 255];
             });
             const density = calculateEdgeDensity(imageData);
@@ -274,9 +276,7 @@ describe('color-utils', () => {
         });
 
         it('should return value between 0 and 1', () => {
-            const imageData = createImageData(20, 20, (x, y) => [
-                (x * 50) % 256, (y * 50) % 256, 0, 255,
-            ]);
+            const imageData = createImageData(20, 20, (x, y) => [(x * 50) % 256, (y * 50) % 256, 0, 255]);
             const density = calculateEdgeDensity(imageData);
             expect(density).toBeGreaterThanOrEqual(0);
             expect(density).toBeLessThanOrEqual(1);

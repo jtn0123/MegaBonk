@@ -34,9 +34,9 @@ describe('Utils Module', () => {
     describe('safeGetElementById', () => {
         it('should return element when it exists', () => {
             document.body.innerHTML = '<div id="test-element">Content</div>';
-            
+
             const el = safeGetElementById('test-element');
-            
+
             expect(el).not.toBeNull();
             expect(el?.textContent).toBe('Content');
         });
@@ -55,9 +55,9 @@ describe('Utils Module', () => {
         it('should return element over fallback when exists', () => {
             document.body.innerHTML = '<div id="exists">Real</div>';
             const fallback = document.createElement('span');
-            
+
             const el = safeGetElementById('exists', fallback);
-            
+
             expect(el?.textContent).toBe('Real');
         });
     });
@@ -68,9 +68,9 @@ describe('Utils Module', () => {
     describe('safeQuerySelector', () => {
         it('should return element when found', () => {
             document.body.innerHTML = '<div class="target">Found</div>';
-            
+
             const el = safeQuerySelector('.target');
-            
+
             expect(el).not.toBeNull();
             expect(el?.textContent).toBe('Found');
         });
@@ -86,9 +86,9 @@ describe('Utils Module', () => {
                 <span class="inner">Outside</span>
             `;
             const container = document.getElementById('container')!;
-            
+
             const el = safeQuerySelector('.inner', container);
-            
+
             expect(el?.textContent).toBe('Inside');
         });
 
@@ -109,9 +109,9 @@ describe('Utils Module', () => {
                 <div class="item">2</div>
                 <div class="item">3</div>
             `;
-            
+
             const els = safeQuerySelectorAll('.item');
-            
+
             expect(els.length).toBe(3);
         });
 
@@ -129,9 +129,9 @@ describe('Utils Module', () => {
                 <span class="child">C</span>
             `;
             const parent = document.getElementById('parent')!;
-            
+
             const els = safeQuerySelectorAll('.child', parent);
-            
+
             expect(els.length).toBe(2);
         });
     });
@@ -142,18 +142,18 @@ describe('Utils Module', () => {
     describe('safeSetValue', () => {
         it('should set value on input element', () => {
             document.body.innerHTML = '<input id="test-input" type="text">';
-            
+
             safeSetValue('test-input', 'new value');
-            
+
             const input = document.getElementById('test-input') as HTMLInputElement;
             expect(input.value).toBe('new value');
         });
 
         it('should handle numeric values', () => {
             document.body.innerHTML = '<input id="num-input" type="text">';
-            
+
             safeSetValue('num-input', 42);
-            
+
             const input = document.getElementById('num-input') as HTMLInputElement;
             expect(input.value).toBe('42');
         });
@@ -169,9 +169,9 @@ describe('Utils Module', () => {
     describe('safeSetHTML', () => {
         it('should set innerHTML on element', () => {
             document.body.innerHTML = '<div id="target"></div>';
-            
+
             safeSetHTML('target', '<span>New Content</span>');
-            
+
             const el = document.getElementById('target');
             expect(el?.innerHTML).toBe('<span>New Content</span>');
         });
@@ -187,7 +187,7 @@ describe('Utils Module', () => {
     describe('escapeHtml', () => {
         it('should escape HTML special characters', () => {
             const result = escapeHtml('<script>alert("xss")</script>');
-            
+
             expect(result).not.toContain('<script>');
             expect(result).toContain('&lt;');
             expect(result).toContain('&gt;');
@@ -227,7 +227,7 @@ describe('Utils Module', () => {
     describe('truncateText', () => {
         it('should not truncate short text', () => {
             const result = truncateText('Short text', 50);
-            
+
             expect(result.html).toBe('Short text');
             expect(result.needsExpand).toBe(false);
         });
@@ -235,7 +235,7 @@ describe('Utils Module', () => {
         it('should truncate long text', () => {
             const longText = 'A'.repeat(200);
             const result = truncateText(longText, 100);
-            
+
             expect(result.html.length).toBe(103); // 100 + '...'
             expect(result.needsExpand).toBe(true);
             expect(result.fullText).toBe(longText);
@@ -244,7 +244,7 @@ describe('Utils Module', () => {
         it('should use default maxLength of 120', () => {
             const text = 'A'.repeat(150);
             const result = truncateText(text);
-            
+
             expect(result.html.length).toBe(123); // 120 + '...'
         });
 
@@ -262,7 +262,7 @@ describe('Utils Module', () => {
         it('should handle exact length text', () => {
             const text = 'A'.repeat(120);
             const result = truncateText(text, 120);
-            
+
             expect(result.needsExpand).toBe(false);
             expect(result.html).toBe(text);
         });
@@ -270,7 +270,7 @@ describe('Utils Module', () => {
         it('should preserve fullText in result', () => {
             const text = 'A'.repeat(200);
             const result = truncateText(text, 50);
-            
+
             expect(result.fullText).toBe(text);
         });
     });
@@ -333,7 +333,7 @@ describe('Utils Module', () => {
     describe('generateMetaTags', () => {
         it('should generate tags from array', () => {
             const html = generateMetaTags(['tag1', 'tag2', 'tag3']);
-            
+
             expect(html).toContain('tag1');
             expect(html).toContain('tag2');
             expect(html).toContain('tag3');
@@ -342,7 +342,7 @@ describe('Utils Module', () => {
 
         it('should respect limit', () => {
             const html = generateMetaTags(['alpha', 'beta', 'gamma', 'delta', 'epsilon'], 2);
-            
+
             expect(html).toContain('alpha');
             expect(html).toContain('beta');
             expect(html).not.toContain('gamma');
@@ -374,7 +374,7 @@ describe('Utils Module', () => {
     describe('generateEmptyState', () => {
         it('should generate empty state HTML', () => {
             const html = generateEmptyState('🔍', 'Items');
-            
+
             expect(html).toContain('empty-state');
             expect(html).toContain('🔍');
             expect(html).toContain('No Items Found');

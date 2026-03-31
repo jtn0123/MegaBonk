@@ -35,60 +35,60 @@ describe('About Module', () => {
         it('should display correct item count from data', async () => {
             const { renderAbout } = await import('../../src/modules/about.ts');
             const { safeGetElementById } = await import('../../src/modules/utils.ts');
-            
+
             const container = document.createElement('div');
             vi.mocked(safeGetElementById).mockReturnValue(container);
-            
+
             renderAbout();
-            
+
             expect(container.innerHTML).toContain('80 items');
         });
 
         it('should display correct weapon count from data', async () => {
             const { renderAbout } = await import('../../src/modules/about.ts');
             const { safeGetElementById } = await import('../../src/modules/utils.ts');
-            
+
             const container = document.createElement('div');
             vi.mocked(safeGetElementById).mockReturnValue(container);
-            
+
             renderAbout();
-            
+
             expect(container.innerHTML).toContain('29 weapons');
         });
 
         it('should display correct tome count from data', async () => {
             const { renderAbout } = await import('../../src/modules/about.ts');
             const { safeGetElementById } = await import('../../src/modules/utils.ts');
-            
+
             const container = document.createElement('div');
             vi.mocked(safeGetElementById).mockReturnValue(container);
-            
+
             renderAbout();
-            
+
             expect(container.innerHTML).toContain('23 tomes');
         });
 
         it('should display correct character count from data', async () => {
             const { renderAbout } = await import('../../src/modules/about.ts');
             const { safeGetElementById } = await import('../../src/modules/utils.ts');
-            
+
             const container = document.createElement('div');
             vi.mocked(safeGetElementById).mockReturnValue(container);
-            
+
             renderAbout();
-            
+
             expect(container.innerHTML).toContain('20 playable characters');
         });
 
         it('should display correct shrine count from data', async () => {
             const { renderAbout } = await import('../../src/modules/about.ts');
             const { safeGetElementById } = await import('../../src/modules/utils.ts');
-            
+
             const container = document.createElement('div');
             vi.mocked(safeGetElementById).mockReturnValue(container);
-            
+
             renderAbout();
-            
+
             expect(container.innerHTML).toContain('8 shrine types');
         });
     });
@@ -97,12 +97,12 @@ describe('About Module', () => {
         it('should not duplicate "Made with" message (handled by site footer)', async () => {
             const { renderAbout } = await import('../../src/modules/about.ts');
             const { safeGetElementById } = await import('../../src/modules/utils.ts');
-            
+
             const container = document.createElement('div');
             vi.mocked(safeGetElementById).mockReturnValue(container);
-            
+
             renderAbout();
-            
+
             // The about module should NOT contain "Made with" - it's in the site footer
             const madeWithCount = (container.innerHTML.match(/Made with/g) || []).length;
             expect(madeWithCount).toBe(0);
@@ -111,12 +111,12 @@ describe('About Module', () => {
         it('should contain disclaimer about community guide', async () => {
             const { renderAbout } = await import('../../src/modules/about.ts');
             const { safeGetElementById } = await import('../../src/modules/utils.ts');
-            
+
             const container = document.createElement('div');
             vi.mocked(safeGetElementById).mockReturnValue(container);
-            
+
             renderAbout();
-            
+
             expect(container.innerHTML).toContain('community-made guide');
         });
     });

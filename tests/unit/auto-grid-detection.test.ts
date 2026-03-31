@@ -308,11 +308,7 @@ describe('Auto Grid Detection - Rarity Border Detection', () => {
 
         // Create borders at specific positions
         const borderPositions = [300, 350, 400, 450, 500];
-        const ctx = createMockCanvasContext(
-            width,
-            height,
-            createRarityBorderPixelGenerator(height, borderPositions)
-        );
+        const ctx = createMockCanvasContext(width, height, createRarityBorderPixelGenerator(height, borderPositions));
 
         const result = detectRarityBorders(ctx, width, bandRegion);
 
@@ -598,9 +594,7 @@ describe('Auto Grid Detection - Grid Validation', () => {
     });
 
     it('should detect empty cells', () => {
-        const positions = [
-            { x: 100, y: 900, width: 45, height: 45, row: 0, col: 0, slotIndex: 0 },
-        ];
+        const positions = [{ x: 100, y: 900, width: 45, height: 45, row: 0, col: 0, slotIndex: 0 }];
 
         // Create context with dark/low-variance pixels (empty cell)
         const ctx = createMockCanvasContext(1920, 1080, () => [10, 10, 12, 255]);
@@ -840,9 +834,7 @@ describe('Auto Grid Detection - Debug Overlay', () => {
                 dominantColors: [],
             },
             grid: {
-                positions: [
-                    { x: 100, y: 900, width: 45, height: 45, row: 0, col: 0, slotIndex: 0 },
-                ],
+                positions: [{ x: 100, y: 900, width: 45, height: 45, row: 0, col: 0, slotIndex: 0 }],
                 calibration: {
                     xOffset: 0,
                     yOffset: 0,

@@ -16,7 +16,7 @@ const BIOME_SIGNATURES = {
     snow: { dominant: { r: [100, 140], g: [110, 150], b: [125, 165] } },
     hell: { dominant: { r: [100, 140], g: [35, 85], b: [25, 75] } },
     ocean: { dominant: { r: [10, 60], g: [100, 150], b: [130, 180] } },
-    crypt: { dominant: { r: [85, 125], g: [70, 105], b: [90, 130] } }
+    crypt: { dominant: { r: [85, 125], g: [70, 105], b: [90, 130] } },
 };
 
 function detectBiome(ctx, width, height) {
@@ -25,19 +25,29 @@ function detectBiome(ctx, width, height) {
         { x: width * 0.2, y: height * 0.4, w: width * 0.2, h: height * 0.2 },
     ];
 
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
     for (const region of regions) {
-        const data = ctx.getImageData(Math.round(region.x), Math.round(region.y),
-                                       Math.round(region.w), Math.round(region.h));
+        const data = ctx.getImageData(
+            Math.round(region.x),
+            Math.round(region.y),
+            Math.round(region.w),
+            Math.round(region.h)
+        );
         for (let i = 0; i < data.data.length; i += 4) {
-            sumR += data.data[i]; sumG += data.data[i+1]; sumB += data.data[i+2];
+            sumR += data.data[i];
+            sumG += data.data[i + 1];
+            sumB += data.data[i + 2];
             count++;
         }
     }
 
     const avg = { r: sumR / count, g: sumG / count, b: sumB / count };
 
-    let bestBiome = null, bestScore = -1;
+    let bestBiome = null,
+        bestScore = -1;
     for (const [biome, sig] of Object.entries(BIOME_SIGNATURES)) {
         let score = 0;
         const d = sig.dominant;
@@ -45,11 +55,14 @@ function detectBiome(ctx, width, height) {
         if (avg.g >= d.g[0] && avg.g <= d.g[1]) score += 2;
         if (avg.b >= d.b[0] && avg.b <= d.b[1]) score += 2;
 
-        score += Math.max(0, 3 - Math.abs(avg.r - (d.r[0] + d.r[1])/2) / 30);
-        score += Math.max(0, 3 - Math.abs(avg.g - (d.g[0] + d.g[1])/2) / 30);
-        score += Math.max(0, 3 - Math.abs(avg.b - (d.b[0] + d.b[1])/2) / 30);
+        score += Math.max(0, 3 - Math.abs(avg.r - (d.r[0] + d.r[1]) / 2) / 30);
+        score += Math.max(0, 3 - Math.abs(avg.g - (d.g[0] + d.g[1]) / 2) / 30);
+        score += Math.max(0, 3 - Math.abs(avg.b - (d.b[0] + d.b[1]) / 2) / 30);
 
-        if (score > bestScore) { bestScore = score; bestBiome = biome; }
+        if (score > bestScore) {
+            bestScore = score;
+            bestBiome = biome;
+        }
     }
 
     return { biome: bestBiome, confidence: bestScore / 15, avgColor: avg };
@@ -57,8 +70,13 @@ function detectBiome(ctx, width, height) {
 
 // ==================== WEAPON/TOME GRID ====================
 const WEAPON_TOME_GRID = {
-    leftMarginBase: 6, topMarginBase: 135, iconSizeBase: 32,
-    spacingXBase: 10, spacingYBase: 45, cols: 4, rows: 2
+    leftMarginBase: 6,
+    topMarginBase: 135,
+    iconSizeBase: 32,
+    spacingXBase: 10,
+    spacingYBase: 45,
+    cols: 4,
+    rows: 2,
 };
 
 function detectWeaponTomeSlots(ctx, width, height) {
@@ -72,8 +90,10 @@ function detectWeaponTomeSlots(ctx, width, height) {
             positions.push({
                 x: Math.round(p.leftMarginBase * scale) + col * (iconSize + Math.round(p.spacingXBase * scale)),
                 y: Math.round(p.topMarginBase * scale) + row * (iconSize + Math.round(p.spacingYBase * scale)),
-                width: iconSize, height: iconSize,
-                type: row === 0 ? 'weapon' : 'tome', slot: col + 1
+                width: iconSize,
+                height: iconSize,
+                type: row === 0 ? 'weapon' : 'tome',
+                slot: col + 1,
             });
         }
     }
@@ -81,10 +101,14 @@ function detectWeaponTomeSlots(ctx, width, height) {
     const slots = [];
     for (const pos of positions) {
         const data = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
-        let sum = 0, sumSq = 0, count = 0;
+        let sum = 0,
+            sumSq = 0,
+            count = 0;
         for (let i = 0; i < data.data.length; i += 4) {
-            const gray = (data.data[i] + data.data[i+1] + data.data[i+2]) / 3;
-            sum += gray; sumSq += gray * gray; count++;
+            const gray = (data.data[i] + data.data[i + 1] + data.data[i + 2]) / 3;
+            sum += gray;
+            sumSq += gray * gray;
+            count++;
         }
         const variance = sumSq / count - (sum / count) ** 2;
         const isEmpty = variance < 500 || sum / count < 40;
@@ -94,14 +118,22 @@ function detectWeaponTomeSlots(ctx, width, height) {
         }
     }
 
-    return { slots, weaponCount: slots.filter(s => s.type === 'weapon').length,
-             tomeCount: slots.filter(s => s.type === 'tome').length };
+    return {
+        slots,
+        weaponCount: slots.filter(s => s.type === 'weapon').length,
+        tomeCount: slots.filter(s => s.type === 'tome').length,
+    };
 }
 
 // ==================== INVENTORY GRID ====================
 const INVENTORY_GRID = {
-    iconSizeBase: 34, spacingBase: 4, bottomMarginBase: 42,
-    rowHeightBase: 40, maxRows: 3, minYPercent: 0.70, sideMarginPercent: 0.15
+    iconSizeBase: 34,
+    spacingBase: 4,
+    bottomMarginBase: 42,
+    rowHeightBase: 40,
+    maxRows: 3,
+    minYPercent: 0.7,
+    sideMarginPercent: 0.15,
 };
 
 function detectInventoryItems(ctx, width, height) {
@@ -115,7 +147,7 @@ function detectInventoryItems(ctx, width, height) {
     const positions = [];
     const rowYPositions = [];
     for (let row = 0; row < p.maxRows; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        const y = height - bottomMargin - row * rowHeight - iconSize;
         if (y >= height * p.minYPercent) rowYPositions.push(y);
     }
 
@@ -134,10 +166,14 @@ function detectInventoryItems(ctx, width, height) {
     let itemCount = 0;
     for (const pos of positions) {
         const data = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
-        let sum = 0, sumSq = 0, count = 0;
+        let sum = 0,
+            sumSq = 0,
+            count = 0;
         for (let i = 0; i < data.data.length; i += 4) {
-            const gray = (data.data[i] + data.data[i+1] + data.data[i+2]) / 3;
-            sum += gray; sumSq += gray * gray; count++;
+            const gray = (data.data[i] + data.data[i + 1] + data.data[i + 2]) / 3;
+            sum += gray;
+            sumSq += gray * gray;
+            count++;
         }
         const variance = sumSq / count - (sum / count) ** 2;
         if (variance >= 350 && sum / count >= 30) itemCount++;
@@ -149,25 +185,30 @@ function detectInventoryItems(ctx, width, height) {
 // ==================== CHARACTER REGION ====================
 function detectCharacterRegion(ctx, width, height) {
     const x = Math.round(width * 0.45);
-    const y = Math.round(height * 0.40);
-    const w = Math.round(width * 0.10);
+    const y = Math.round(height * 0.4);
+    const w = Math.round(width * 0.1);
     const h = Math.round(height * 0.15);
 
     const data = ctx.getImageData(x, y, w, h);
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
 
     for (let i = 0; i < data.data.length; i += 4) {
-        const brightness = (data.data[i] + data.data[i+1] + data.data[i+2]) / 3;
+        const brightness = (data.data[i] + data.data[i + 1] + data.data[i + 2]) / 3;
         if (brightness > 30 && brightness < 240) {
-            sumR += data.data[i]; sumG += data.data[i+1]; sumB += data.data[i+2];
+            sumR += data.data[i];
+            sumG += data.data[i + 1];
+            sumB += data.data[i + 2];
             count++;
         }
     }
 
     return {
         region: { x, y, w, h },
-        avgColor: count > 0 ? { r: sumR/count, g: sumG/count, b: sumB/count } : null,
-        detected: count > 100
+        avgColor: count > 0 ? { r: sumR / count, g: sumG / count, b: sumB / count } : null,
+        detected: count > 100,
     };
 }
 
@@ -231,19 +272,19 @@ async function analyzeScreenshot(imagePath) {
         biome,
         equipped: {
             weapons: weaponTome.slots.filter(s => s.type === 'weapon').length,
-            tomes: weaponTome.slots.filter(s => s.type === 'tome').length
+            tomes: weaponTome.slots.filter(s => s.type === 'tome').length,
         },
         inventory: {
             itemCount: inventory.itemCount,
-            gridSlots: inventory.gridPositions
+            gridSlots: inventory.gridPositions,
         },
         character: {
             detected: character.detected,
-            avgColor: character.avgColor
+            avgColor: character.avgColor,
         },
         validation,
         ctx,
-        image
+        image,
     };
 }
 
@@ -269,13 +310,15 @@ async function main() {
         const shortName = filename.slice(9, 30);
         const validCount = analysis.validation.validations.length;
 
-        console.log(`| ${shortName.padEnd(20)} | ${analysis.biome.biome.padEnd(6)} | ${String(analysis.equipped.weapons).padStart(4)} | ${String(analysis.equipped.tomes).padStart(5)} | ${String(analysis.inventory.itemCount).padStart(5)} | ${String(validCount).padStart(11)} |`);
+        console.log(
+            `| ${shortName.padEnd(20)} | ${analysis.biome.biome.padEnd(6)} | ${String(analysis.equipped.weapons).padStart(4)} | ${String(analysis.equipped.tomes).padStart(5)} | ${String(analysis.inventory.itemCount).padStart(5)} | ${String(validCount).padStart(11)} |`
+        );
 
         results.push({
             filename,
             ...analysis,
             ctx: undefined,
-            image: undefined
+            image: undefined,
         });
 
         // Create visualization
@@ -298,8 +341,8 @@ async function main() {
             const r = analysis.character;
             vizCtx.strokeRect(
                 Math.round(analysis.image.width * 0.45),
-                Math.round(analysis.image.height * 0.40),
-                Math.round(analysis.image.width * 0.10),
+                Math.round(analysis.image.height * 0.4),
+                Math.round(analysis.image.width * 0.1),
                 Math.round(analysis.image.height * 0.15)
             );
         }
@@ -316,7 +359,7 @@ async function main() {
             `INVENTORY: ${analysis.inventory.itemCount} items`,
             `CHARACTER: ${analysis.character.detected ? 'Detected' : 'Not detected'}`,
             `VALIDATIONS: ${analysis.validation.validations.join('; ') || 'None'}`,
-            `Resolution: ${analysis.resolution.width}x${analysis.resolution.height} (scale ${analysis.resolution.scale.toFixed(2)})`
+            `Resolution: ${analysis.resolution.width}x${analysis.resolution.height} (scale ${analysis.resolution.scale.toFixed(2)})`,
         ];
 
         lines.forEach((line, i) => vizCtx.fillText(line, 10, analysis.image.height + 20 + i * 22));
@@ -346,10 +389,7 @@ async function main() {
     console.log(`Average equipped weapons: ${avgWeapons.toFixed(1)}`);
 
     // Save results
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'analysis-results.json'),
-        JSON.stringify(results, null, 2)
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'analysis-results.json'), JSON.stringify(results, null, 2));
 
     console.log(`\nResults saved to: ${OUTPUT_DIR}/`);
 }

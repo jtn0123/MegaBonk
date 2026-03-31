@@ -15,7 +15,7 @@ export function polyfillImageData(): void {
                 if (dataOrWidth instanceof Uint8ClampedArray) {
                     this.data = dataOrWidth;
                     this.width = widthOrHeight;
-                    this.height = height ?? (dataOrWidth.length / 4 / widthOrHeight);
+                    this.height = height ?? dataOrWidth.length / 4 / widthOrHeight;
                 } else {
                     this.width = dataOrWidth;
                     this.height = widthOrHeight;

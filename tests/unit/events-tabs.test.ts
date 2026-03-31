@@ -75,7 +75,7 @@ describe('Events Tabs Module', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
         vi.useFakeTimers();
-        
+
         // Reset DOM
         document.body.innerHTML = `
             <div id="itemsContainer"></div>
@@ -109,7 +109,7 @@ describe('Events Tabs Module', () => {
     describe('VALID_TABS', () => {
         it('should export list of valid tab names', async () => {
             const { VALID_TABS } = await import('../../src/modules/events-tabs.ts');
-            
+
             expect(VALID_TABS).toContain('items');
             expect(VALID_TABS).toContain('weapons');
             expect(VALID_TABS).toContain('tomes');
@@ -124,7 +124,7 @@ describe('Events Tabs Module', () => {
 
         it('should have exactly 10 valid tabs', async () => {
             const { VALID_TABS } = await import('../../src/modules/events-tabs.ts');
-            
+
             expect(VALID_TABS.length).toBe(10);
         });
     });
@@ -133,9 +133,9 @@ describe('Events Tabs Module', () => {
         it('should return current tab from store', async () => {
             mockGetState.mockReturnValue('weapons');
             const { getCurrentTab } = await import('../../src/modules/events-tabs.ts');
-            
+
             const result = getCurrentTab();
-            
+
             expect(mockGetState).toHaveBeenCalledWith('currentTab');
             expect(result).toBe('weapons');
         });
@@ -145,33 +145,33 @@ describe('Events Tabs Module', () => {
         it('should return saved tab from localStorage if valid', async () => {
             mockLocalStorage.getItem.mockReturnValue('weapons');
             const { getSavedTab } = await import('../../src/modules/events-tabs.ts');
-            
+
             const result = getSavedTab();
-            
+
             expect(result).toBe('weapons');
         });
 
         it('should return "items" if no saved tab', async () => {
             mockLocalStorage.getItem.mockReturnValue(null);
             const { getSavedTab } = await import('../../src/modules/events-tabs.ts');
-            
+
             const result = getSavedTab();
-            
+
             expect(result).toBe('items');
         });
 
         it('should return "items" if saved tab is invalid', async () => {
             mockLocalStorage.getItem.mockReturnValue('invalid-tab');
             const { getSavedTab } = await import('../../src/modules/events-tabs.ts');
-            
+
             const result = getSavedTab();
-            
+
             expect(result).toBe('items');
         });
 
         it('should accept all valid tab names', async () => {
             const { getSavedTab, VALID_TABS } = await import('../../src/modules/events-tabs.ts');
-            
+
             for (const tab of VALID_TABS) {
                 mockLocalStorage.getItem.mockReturnValue(tab);
                 const result = getSavedTab();
@@ -184,18 +184,18 @@ describe('Events Tabs Module', () => {
         it('should switch to a valid tab', async () => {
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
             __resetTimersForTesting();
-            
+
             await switchTab('weapons');
-            
+
             expect(mockSetState).toHaveBeenCalledWith('currentTab', 'weapons');
         });
 
         it('should save tab to localStorage', async () => {
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
             __resetTimersForTesting();
-            
+
             await switchTab('tomes');
-            
+
             expect(mockLocalStorage.setItem).toHaveBeenCalledWith('megabonk-current-tab', 'tomes');
         });
 
@@ -203,18 +203,18 @@ describe('Events Tabs Module', () => {
             mockGetState.mockReturnValue('items');
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
             __resetTimersForTesting();
-            
+
             await switchTab('weapons');
-            
+
             expect(mockSaveFilterState).toHaveBeenCalledWith('items');
         });
 
         it('should update filters for new tab', async () => {
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
             __resetTimersForTesting();
-            
+
             await switchTab('weapons');
-            
+
             expect(mockUpdateFilters).toHaveBeenCalledWith('weapons');
             expect(mockRestoreFilterState).toHaveBeenCalledWith('weapons');
         });
@@ -222,27 +222,27 @@ describe('Events Tabs Module', () => {
         it('should show skeleton loader', async () => {
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
             __resetTimersForTesting();
-            
+
             await switchTab('weapons');
-            
+
             expect(mockShowTabSkeleton).toHaveBeenCalledWith('weapons');
         });
 
         it('should load tab modules', async () => {
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
             __resetTimersForTesting();
-            
+
             await switchTab('weapons');
-            
+
             expect(mockLoadTabModules).toHaveBeenCalledWith('weapons');
         });
 
         it('should render tab content', async () => {
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
             __resetTimersForTesting();
-            
+
             await switchTab('weapons');
-            
+
             expect(mockRenderTabContent).toHaveBeenCalledWith('weapons');
         });
 
@@ -250,9 +250,9 @@ describe('Events Tabs Module', () => {
             mockGetState.mockReturnValue('items');
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
             __resetTimersForTesting();
-            
+
             await switchTab('weapons');
-            
+
             expect(mockLogger.info).toHaveBeenCalledWith(
                 expect.objectContaining({
                     operation: 'tab.switch',
@@ -267,9 +267,9 @@ describe('Events Tabs Module', () => {
         it('should set logger context', async () => {
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
             __resetTimersForTesting();
-            
+
             await switchTab('tomes');
-            
+
             expect(mockLogger.setContext).toHaveBeenCalledWith('currentTab', 'tomes');
         });
 
@@ -277,9 +277,9 @@ describe('Events Tabs Module', () => {
             it('should reject invalid tab names', async () => {
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 await switchTab('invalid-tab' as never);
-                
+
                 expect(mockLogger.warn).toHaveBeenCalledWith(
                     expect.objectContaining({
                         operation: 'tab.switch',
@@ -294,9 +294,9 @@ describe('Events Tabs Module', () => {
             it('should reject empty tab name', async () => {
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 await switchTab('' as never);
-                
+
                 expect(mockSetState).not.toHaveBeenCalled();
             });
         });
@@ -305,13 +305,13 @@ describe('Events Tabs Module', () => {
             it('should debounce rapid tab switches', async () => {
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 // First switch should work
                 await switchTab('weapons');
-                
+
                 // Immediate second switch should be debounced
                 await switchTab('tomes');
-                
+
                 // Only first switch should have been processed
                 expect(mockSetState).toHaveBeenCalledTimes(1);
                 expect(mockSetState).toHaveBeenCalledWith('currentTab', 'weapons');
@@ -320,14 +320,14 @@ describe('Events Tabs Module', () => {
             it('should allow switch after debounce period', async () => {
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 await switchTab('weapons');
-                
+
                 // Advance time past debounce period (100ms)
                 vi.advanceTimersByTime(150);
-                
+
                 await switchTab('tomes');
-                
+
                 expect(mockSetState).toHaveBeenCalledTimes(2);
             });
         });
@@ -336,21 +336,21 @@ describe('Events Tabs Module', () => {
             it('should prevent concurrent tab switches', async () => {
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 // Make loadTabModules take time
                 mockLoadTabModules.mockImplementation(() => new Promise(resolve => setTimeout(resolve, 500)));
-                
+
                 // Start first switch (don't await yet)
                 const firstSwitch = switchTab('weapons');
-                
+
                 // Advance past debounce and try second switch
                 await vi.advanceTimersByTimeAsync(150);
                 await switchTab('tomes');
-                
+
                 // Complete first switch
                 await vi.advanceTimersByTimeAsync(500);
                 await firstSwitch;
-                
+
                 // Only first switch should have been processed
                 expect(mockSetState).toHaveBeenCalledWith('currentTab', 'weapons');
             });
@@ -375,7 +375,7 @@ describe('Events Tabs Module', () => {
                         }),
                     })
                 );
-                
+
                 await vi.advanceTimersByTimeAsync(500);
                 await firstSwitch;
             });
@@ -389,9 +389,9 @@ describe('Events Tabs Module', () => {
 
                 // Add item cards to indicate content is rendered
                 document.querySelector('#weaponsContainer')!.innerHTML = '<div class="item-card"></div>';
-                
+
                 await switchTab('weapons');
-                
+
                 // Should not render again since already on same tab with content
                 expect(mockRenderTabContent).not.toHaveBeenCalled();
             });
@@ -400,12 +400,12 @@ describe('Events Tabs Module', () => {
                 mockGetState.mockReturnValue('items');
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 // No item cards = initial render
                 const switchPromise = switchTab('items');
                 await vi.runAllTimersAsync();
                 await switchPromise;
-                
+
                 // Should render since it's initial render
                 expect(mockRenderTabContent).toHaveBeenCalledWith('items');
             });
@@ -415,14 +415,14 @@ describe('Events Tabs Module', () => {
             it('should update active state on tab buttons', async () => {
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 const switchPromise = switchTab('weapons');
                 await vi.runAllTimersAsync();
                 await switchPromise;
-                
+
                 const weaponsBtn = document.querySelector('[data-tab="weapons"]');
                 const itemsBtn = document.querySelector('[data-tab="items"]');
-                
+
                 expect(weaponsBtn?.classList.contains('active')).toBe(true);
                 expect(weaponsBtn?.getAttribute('aria-selected')).toBe('true');
                 expect(itemsBtn?.classList.contains('active')).toBe(false);
@@ -432,14 +432,14 @@ describe('Events Tabs Module', () => {
             it('should update active state on tab content', async () => {
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 const switchPromise = switchTab('weapons');
                 await vi.runAllTimersAsync();
                 await switchPromise;
-                
+
                 const weaponsTab = document.getElementById('weapons-tab');
                 const itemsTab = document.getElementById('items-tab');
-                
+
                 expect(weaponsTab?.classList.contains('active')).toBe(true);
                 expect(itemsTab?.classList.contains('active')).toBe(false);
             });
@@ -450,10 +450,10 @@ describe('Events Tabs Module', () => {
                 mockLoadTabModules.mockRejectedValue(new Error('Module load failed'));
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 // Should not throw
                 await expect(switchTab('weapons')).resolves.toBeUndefined();
-                
+
                 expect(mockLogger.error).toHaveBeenCalledWith(
                     expect.objectContaining({
                         operation: 'tab.module_load_failed',
@@ -465,9 +465,9 @@ describe('Events Tabs Module', () => {
                 mockLoadTabModules.mockRejectedValue(new Error('Module load failed'));
                 const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
                 __resetTimersForTesting();
-                
+
                 await switchTab('weapons');
-                
+
                 expect(mockRenderTabContent).toHaveBeenCalledWith('weapons');
             });
         });
@@ -475,32 +475,35 @@ describe('Events Tabs Module', () => {
 
     describe('scheduleModulePreload', () => {
         it('should schedule preload with requestIdleCallback when available', async () => {
-            const mockRequestIdleCallback = vi.fn((cb) => { cb(); return 1; });
+            const mockRequestIdleCallback = vi.fn(cb => {
+                cb();
+                return 1;
+            });
             vi.stubGlobal('requestIdleCallback', mockRequestIdleCallback);
-            
+
             const { scheduleModulePreload } = await import('../../src/modules/events-tabs.ts');
-            
+
             scheduleModulePreload();
-            
+
             expect(mockRequestIdleCallback).toHaveBeenCalled();
             expect(mockPreloadCommonModules).toHaveBeenCalled();
-            
+
             vi.unstubAllGlobals();
         });
 
         it('should use setTimeout fallback when requestIdleCallback unavailable', async () => {
             vi.stubGlobal('requestIdleCallback', undefined);
-            
+
             const { scheduleModulePreload } = await import('../../src/modules/events-tabs.ts');
-            
+
             scheduleModulePreload();
-            
+
             expect(mockPreloadCommonModules).not.toHaveBeenCalled();
-            
+
             vi.advanceTimersByTime(2000);
-            
+
             expect(mockPreloadCommonModules).toHaveBeenCalled();
-            
+
             vi.unstubAllGlobals();
         });
     });
@@ -508,16 +511,16 @@ describe('Events Tabs Module', () => {
     describe('__resetTimersForTesting', () => {
         it('should reset internal timers', async () => {
             const { switchTab, __resetTimersForTesting } = await import('../../src/modules/events-tabs.ts');
-            
+
             // First switch
             await switchTab('weapons');
-            
+
             // Reset timers
             __resetTimersForTesting();
-            
+
             // Should be able to switch immediately (debounce reset)
             await switchTab('tomes');
-            
+
             expect(mockSetState).toHaveBeenCalledWith('currentTab', 'tomes');
         });
     });
@@ -525,13 +528,13 @@ describe('Events Tabs Module', () => {
     describe('Registry and Global Assignment', () => {
         it('should register switchTab function', async () => {
             await import('../../src/modules/events-tabs.ts');
-            
+
             expect(mockRegisterFunction).toHaveBeenCalledWith('switchTab', expect.any(Function));
         });
 
         it('should assign switchTab to window for backwards compatibility', async () => {
             await import('../../src/modules/events-tabs.ts');
-            
+
             expect(window.switchTab).toBeDefined();
             expect(typeof window.switchTab).toBe('function');
         });
@@ -540,7 +543,7 @@ describe('Events Tabs Module', () => {
     describe('currentTab Export', () => {
         it('should provide current tab via getCurrentTab', async () => {
             const { getCurrentTab } = await import('../../src/modules/events-tabs.ts');
-            
+
             expect(getCurrentTab()).toBeDefined();
         });
     });

@@ -21,10 +21,13 @@ test.describe('Build Validation Errors', () => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="build-planner"]');
-        await page.waitForFunction(() => {
-            const select = document.getElementById('build-character');
-            return select && select.options.length > 1;
-        }, { timeout: 5000 });
+        await page.waitForFunction(
+            () => {
+                const select = document.getElementById('build-character');
+                return select && select.options.length > 1;
+            },
+            { timeout: 5000 }
+        );
     });
 
     test('should handle invalid base64 build code', async ({ page }) => {
@@ -39,7 +42,7 @@ test.describe('Build Validation Errors', () => {
         // Page should still load without crashing
         const body = page.locator('body');
         await expect(body).toBeVisible();
-        
+
         // Verify we're on the app (not an error page)
         expect(await page.title()).toContain('MegaBonk');
     });
@@ -47,7 +50,7 @@ test.describe('Build Validation Errors', () => {
     test('should handle malformed JSON in build code', async ({ page }) => {
         // Encode malformed JSON as base64
         const malformedJson = btoa('{ not valid json }');
-        
+
         await page.goto(`/?build=${malformedJson}`);
         await page.waitForTimeout(1000);
 
@@ -60,7 +63,7 @@ test.describe('Build Validation Errors', () => {
         // Create a build code with fake IDs
         const fakeBuild = { c: 'nonexistent_character_123', w: 'fake_weapon_456' };
         const encodedBuild = btoa(JSON.stringify(fakeBuild));
-        
+
         await page.goto(`/?build=${encodedBuild}`);
         await page.waitForTimeout(1000);
 
@@ -71,7 +74,7 @@ test.describe('Build Validation Errors', () => {
 
     test('should handle empty build code', async ({ page }) => {
         const emptyBuild = btoa(JSON.stringify({}));
-        
+
         await page.goto(`/?build=${emptyBuild}`);
         await page.waitForTimeout(1000);
 
@@ -83,7 +86,7 @@ test.describe('Build Validation Errors', () => {
         // Arrays where strings expected, numbers where arrays expected
         const wrongTypes = { c: 123, w: ['array', 'instead'], t: 'string_instead_of_array' };
         const encoded = btoa(JSON.stringify(wrongTypes));
-        
+
         await page.goto(`/?build=${encoded}`);
         await page.waitForTimeout(1000);
 
@@ -99,7 +102,7 @@ test.describe('Build Validation Errors', () => {
         // Check if stats display shows anything or a message
         const statsDisplay = page.locator('#build-stats');
         await expect(statsDisplay).toBeAttached();
-        
+
         // Build should still function even if incomplete
         const statsText = await statsDisplay.textContent();
         expect(statsText).toBeDefined();
@@ -108,11 +111,11 @@ test.describe('Build Validation Errors', () => {
     test('should handle XSS attempts in build notes', async ({ page }) => {
         // If there's a notes field, try XSS
         const notesInput = page.locator('#build-notes, [data-build-notes], textarea[name="notes"]');
-        
-        if (await notesInput.count() > 0) {
+
+        if ((await notesInput.count()) > 0) {
             await notesInput.fill('<script>alert("xss")</script>');
             await page.waitForTimeout(300);
-            
+
             // Verify script wasn't executed (no alert dialog)
             // Page should sanitize the input
             await expect(page.locator('body')).toBeVisible();
@@ -132,9 +135,15 @@ test.describe('LocalStorage Error Handling', () => {
             Object.defineProperty(window, 'localStorage', {
                 value: {
                     getItem: () => null,
-                    setItem: () => { /* silently fail */ },
-                    removeItem: () => { /* silently fail */ },
-                    clear: () => { /* silently fail */ },
+                    setItem: () => {
+                        /* silently fail */
+                    },
+                    removeItem: () => {
+                        /* silently fail */
+                    },
+                    clear: () => {
+                        /* silently fail */
+                    },
                     length: 0,
                     key: () => null,
                 },
@@ -178,10 +187,10 @@ test.describe('LocalStorage Error Handling', () => {
 
         // Look for favorite button in modal
         const favBtn = page.locator('.modal-favorite-btn, [data-action="favorite"], .favorite-btn');
-        if (await favBtn.count() > 0) {
+        if ((await favBtn.count()) > 0) {
             await favBtn.click();
             await page.waitForTimeout(500);
-            
+
             // App should handle gracefully - no crash
             await expect(page.locator('body')).toBeVisible();
         }
@@ -217,10 +226,18 @@ test.describe('LocalStorage Error Handling', () => {
         await page.addInitScript(() => {
             Object.defineProperty(window, 'sessionStorage', {
                 value: {
-                    getItem: () => { throw new Error('sessionStorage disabled'); },
-                    setItem: () => { throw new Error('sessionStorage disabled'); },
-                    removeItem: () => { throw new Error('sessionStorage disabled'); },
-                    clear: () => { throw new Error('sessionStorage disabled'); },
+                    getItem: () => {
+                        throw new Error('sessionStorage disabled');
+                    },
+                    setItem: () => {
+                        throw new Error('sessionStorage disabled');
+                    },
+                    removeItem: () => {
+                        throw new Error('sessionStorage disabled');
+                    },
+                    clear: () => {
+                        throw new Error('sessionStorage disabled');
+                    },
                     length: 0,
                     key: () => null,
                 },
@@ -255,13 +272,11 @@ test.describe('User-Friendly Error Messages', () => {
         const errorMessage = page.locator('.error-message, [data-error]');
         const emptyState = page.locator('.empty-state, .no-data');
 
-        const hasErrorIndication = 
-            await errorToast.count() > 0 ||
-            await errorMessage.count() > 0 ||
-            await emptyState.count() > 0;
+        const hasErrorIndication =
+            (await errorToast.count()) > 0 || (await errorMessage.count()) > 0 || (await emptyState.count()) > 0;
 
         // Either shows error UI or page still loads with partial data
-        expect(hasErrorIndication || await page.locator('body').isVisible()).toBe(true);
+        expect(hasErrorIndication || (await page.locator('body').isVisible())).toBe(true);
     });
 
     test('should show user-friendly message for invalid search', async ({ page }) => {
@@ -269,7 +284,7 @@ test.describe('User-Friendly Error Messages', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
         const searchInput = page.locator('#searchInput');
-        
+
         // Search for something that won't match
         await searchInput.fill('zzzzxxxxxxxxxnonexistent12345');
         await page.waitForTimeout(500);
@@ -279,7 +294,7 @@ test.describe('User-Friendly Error Messages', () => {
         const itemCount = await page.locator('#itemsContainer .item-card:visible').count();
 
         // Either shows no results message or simply no items
-        expect(await noResults.count() > 0 || itemCount === 0).toBe(true);
+        expect((await noResults.count()) > 0 || itemCount === 0).toBe(true);
     });
 
     test('should display toast container with proper accessibility', async ({ page }) => {
@@ -288,13 +303,16 @@ test.describe('User-Friendly Error Messages', () => {
 
         // Trigger an action that shows a toast (copy to clipboard usually)
         await page.click('.tab-btn[data-tab="build-planner"]');
-        await page.waitForFunction(() => {
-            const select = document.getElementById('build-character');
-            return select && select.options.length > 1;
-        }, { timeout: 5000 });
+        await page.waitForFunction(
+            () => {
+                const select = document.getElementById('build-character');
+                return select && select.options.length > 1;
+            },
+            { timeout: 5000 }
+        );
 
         await page.selectOption('#build-character', { index: 1 });
-        
+
         // Handle dialog if export shows one
         page.on('dialog', async dialog => {
             await dialog.accept();
@@ -305,7 +323,7 @@ test.describe('User-Friendly Error Messages', () => {
 
         // Toast container should have proper ARIA attributes
         const toastContainer = page.locator('#toast-container');
-        if (await toastContainer.count() > 0) {
+        if ((await toastContainer.count()) > 0) {
             await expect(toastContainer).toHaveAttribute('role', 'status');
             await expect(toastContainer).toHaveAttribute('aria-live', 'polite');
         }
@@ -326,7 +344,7 @@ test.describe('User-Friendly Error Messages', () => {
         // Page should show some error indication, not just crash
         const body = page.locator('body');
         await expect(body).toBeVisible();
-        
+
         // Check for any error messaging
         const pageContent = await page.content();
         expect(pageContent.length).toBeGreaterThan(100);
@@ -354,9 +372,14 @@ test.describe('Error State Recovery', () => {
         const modalCheck = page.locator('#itemModal');
         if (await modalCheck.isVisible()) {
             await page.evaluate(() => {
-                document.dispatchEvent(new KeyboardEvent('keydown', {
-                    key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-                }));
+                document.dispatchEvent(
+                    new KeyboardEvent('keydown', {
+                        key: 'Escape',
+                        code: 'Escape',
+                        bubbles: true,
+                        cancelable: true,
+                    })
+                );
             });
             await expect(modalCheck).toBeHidden({ timeout: 5000 });
         }
@@ -368,7 +391,7 @@ test.describe('Error State Recovery', () => {
         // Modal should be visible for different item
         const modal = page.locator('.modal.active, #itemModal, [role="dialog"]');
         const isVisible = await modal.isVisible().catch(() => false);
-        
+
         // Either modal is visible or we check page is still functional
         if (isVisible) {
             await expect(modal).toBeVisible();
@@ -467,13 +490,13 @@ test.describe('Form Validation Errors', () => {
         await page.waitForTimeout(500);
 
         const targetInput = page.locator('#calc-target, [data-calc-target], input[name="target"]');
-        
-        if (await targetInput.count() > 0) {
+
+        if ((await targetInput.count()) > 0) {
             // Enter negative value
             await targetInput.fill('-100');
-            
+
             const calcBtn = page.locator('#calcBtn, [data-action="calculate"], button:has-text("Calculate")');
-            if (await calcBtn.count() > 0) {
+            if ((await calcBtn.count()) > 0) {
                 await calcBtn.click();
                 await page.waitForTimeout(300);
             }
@@ -490,16 +513,16 @@ test.describe('Form Validation Errors', () => {
         await page.waitForSelector('#calculator-tab.active', { timeout: 10000 });
 
         const targetInput = page.locator('#calc-target, [data-calc-target], input[name="target"]');
-        
+
         // Wait for input to be visible
-        if (await targetInput.count() > 0) {
+        if ((await targetInput.count()) > 0) {
             try {
                 await targetInput.waitFor({ state: 'visible', timeout: 5000 });
                 // Number inputs don't accept non-numeric text, so test empty string
                 await targetInput.fill('');
-                
+
                 const calcBtn = page.locator('#calcBtn, [data-action="calculate"], button:has-text("Calculate")');
-                if (await calcBtn.count() > 0 && await calcBtn.isVisible()) {
+                if ((await calcBtn.count()) > 0 && (await calcBtn.isVisible())) {
                     await calcBtn.click();
                     await page.waitForTimeout(300);
                 }
@@ -517,7 +540,7 @@ test.describe('Form Validation Errors', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
         const searchInput = page.locator('#searchInput');
-        
+
         // Test special characters
         const specialInputs = [
             '<script>alert(1)</script>',
@@ -532,7 +555,7 @@ test.describe('Form Validation Errors', () => {
         for (const input of specialInputs) {
             await searchInput.fill(input);
             await page.waitForTimeout(100);
-            
+
             // Should not crash or execute scripts
             await expect(page.locator('body')).toBeVisible();
         }
@@ -542,16 +565,19 @@ test.describe('Form Validation Errors', () => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="build-planner"]');
-        
+
         // Wait for tab to be active
         await page.waitForSelector('#build-planner-tab.active', { timeout: 10000 });
-        
+
         // Try waiting for character dropdown, but don't fail if it times out
         try {
-            await page.waitForFunction(() => {
-                const select = document.getElementById('build-character');
-                return select && select.options.length > 1;
-            }, { timeout: 10000 });
+            await page.waitForFunction(
+                () => {
+                    const select = document.getElementById('build-character');
+                    return select && select.options.length > 1;
+                },
+                { timeout: 10000 }
+            );
         } catch {
             // Character dropdown not loaded, but we can still test empty export
         }
@@ -575,17 +601,20 @@ test.describe('Form Validation Errors', () => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="build-planner"]');
-        
+
         // Wait for tab to be active
         await page.waitForSelector('#build-planner-tab.active', { timeout: 10000 });
-        
+
         // Try waiting for character dropdown
         const characterSelect = page.locator('#build-character');
         try {
-            await page.waitForFunction(() => {
-                const select = document.getElementById('build-character');
-                return select && select.options.length > 1;
-            }, { timeout: 10000 });
+            await page.waitForFunction(
+                () => {
+                    const select = document.getElementById('build-character');
+                    return select && select.options.length > 1;
+                },
+                { timeout: 10000 }
+            );
 
             // Select character then deselect (set to empty)
             await page.selectOption('#build-character', { index: 1 });
@@ -658,16 +687,9 @@ test.describe('Invalid URL Parameters Handling', () => {
 
     test('should handle malformed build parameter', async ({ page, browserName }) => {
         const isWebKit = browserName === 'webkit';
-        
+
         // Various malformed build params
-        const malformedParams = [
-            'build=',
-            'build=null',
-            'build=undefined',
-            'build=NaN',
-            'build=true',
-            'build=[]',
-        ];
+        const malformedParams = ['build=', 'build=null', 'build=undefined', 'build=NaN', 'build=true', 'build=[]'];
 
         for (const param of malformedParams) {
             // WebKit may need URL-encoded brackets
@@ -727,7 +749,7 @@ test.describe('Missing Data and Image Fallbacks', () => {
 
         // Should still load other data
         await expect(page.locator('body')).toBeVisible();
-        
+
         // Items should still work
         const itemsTab = page.locator('.tab-btn[data-tab="items"]');
         await itemsTab.click();
@@ -762,8 +784,8 @@ test.describe('Missing Data and Image Fallbacks', () => {
         // Should show empty state or no results message
         const visibleItems = await page.locator('#itemsContainer .item-card:visible').count();
         const emptyState = page.locator('.empty-state, .no-results, [data-empty-state]');
-        
-        expect(visibleItems === 0 || await emptyState.count() > 0).toBe(true);
+
+        expect(visibleItems === 0 || (await emptyState.count()) > 0).toBe(true);
     });
 
     test('should handle missing changelog data', async ({ page }) => {
@@ -800,7 +822,7 @@ test.describe('Missing Data and Image Fallbacks', () => {
         // Items tab should still work
         const items = page.locator('#itemsContainer .item-card');
         const itemCount = await items.count();
-        
+
         // May have items or show error state
         await expect(page.locator('body')).toBeVisible();
     });
@@ -866,7 +888,7 @@ test.describe('Console Error Monitoring', () => {
         await page.waitForTimeout(300);
         await page.click('.tab-btn[data-tab="tomes"]');
         await page.waitForTimeout(300);
-        
+
         // Open and close modal
         await page.click('.tab-btn[data-tab="items"]');
         await page.waitForTimeout(300);
@@ -875,7 +897,7 @@ test.describe('Console Error Monitoring', () => {
         await page.keyboard.press('Escape');
 
         // Should have no errors
-        expect(errors.length).toBe(0);
+        expect(errors).toHaveLength(0);
     });
 
     test('should not have unhandled promise rejections', async ({ page }) => {
@@ -894,7 +916,7 @@ test.describe('Console Error Monitoring', () => {
         await page.click('.tab-btn[data-tab="build-planner"]');
         await page.waitForTimeout(500);
 
-        expect(rejections.length).toBe(0);
+        expect(rejections).toHaveLength(0);
     });
 
     test('should log errors appropriately without crashing', async ({ page }) => {
@@ -985,7 +1007,7 @@ test.describe('Memory and Performance', () => {
     test('should not leak memory on repeated modal opens', async ({ page, browserName }) => {
         // Skip on WebKit - performance.memory API is Chrome-only and modal timing differs
         test.skip(browserName === 'webkit', 'Memory API not available in WebKit');
-        
+
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
@@ -1000,9 +1022,14 @@ test.describe('Memory and Performance', () => {
             // Retry with direct event dispatch if modal is still visible
             if (await modal.isVisible()) {
                 await page.evaluate(() => {
-                    document.dispatchEvent(new KeyboardEvent('keydown', {
-                        key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-                    }));
+                    document.dispatchEvent(
+                        new KeyboardEvent('keydown', {
+                            key: 'Escape',
+                            code: 'Escape',
+                            bubbles: true,
+                            cancelable: true,
+                        })
+                    );
                 });
             }
             await expect(modal).toBeHidden({ timeout: 5000 });

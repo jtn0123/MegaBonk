@@ -110,9 +110,7 @@ describe('Performance Benchmarks - OCR Module', () => {
     });
 
     it('should handle large text efficiently (< 200ms for 1000 lines)', () => {
-        const largeText = Array(1000)
-            .fill('Item 0\nItem 1\nItem 2\n')
-            .join('');
+        const largeText = Array(1000).fill('Item 0\nItem 1\nItem 2\n').join('');
 
         const start = performance.now();
 

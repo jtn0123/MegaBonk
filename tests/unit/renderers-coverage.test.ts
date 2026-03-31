@@ -27,9 +27,15 @@ vi.mock('../../src/modules/compare', () => ({
 // Mock data-service
 vi.mock('../../src/modules/data-service', () => {
     const mockAllData = {
-        items: { items: [{ id: 'item1', name: 'Fire Sword', rarity: 'legendary', tier: 'S', base_effect: 'Deals fire damage' }] },
+        items: {
+            items: [
+                { id: 'item1', name: 'Fire Sword', rarity: 'legendary', tier: 'S', base_effect: 'Deals fire damage' },
+            ],
+        },
         weapons: { weapons: [{ id: 'weapon1', name: 'Katana', tier: 'A', attack_pattern: 'Melee' }] },
-        tomes: { tomes: [{ id: 'tome1', name: 'Precision', tier: 'A', stat_affected: 'Crit', value_per_level: '+1%' }] },
+        tomes: {
+            tomes: [{ id: 'tome1', name: 'Precision', tier: 'A', stat_affected: 'Crit', value_per_level: '+1%' }],
+        },
         characters: { characters: [{ id: 'char1', name: 'CL4NK', tier: 'S', passive_ability: 'Crit bonus' }] },
         shrines: { shrines: [{ id: 'shrine1', name: 'Statue', icon: '⛩️', reward: '+5% damage' }] },
     };
@@ -39,20 +45,18 @@ vi.mock('../../src/modules/data-service', () => {
         getDataForTab: vi.fn().mockImplementation((tabName: string) => {
             const mockData: Record<string, any[]> = {
                 items: [
-                    { id: 'item1', name: 'Fire Sword', rarity: 'legendary', tier: 'S', base_effect: 'Deals fire damage' },
+                    {
+                        id: 'item1',
+                        name: 'Fire Sword',
+                        rarity: 'legendary',
+                        tier: 'S',
+                        base_effect: 'Deals fire damage',
+                    },
                 ],
-                weapons: [
-                    { id: 'weapon1', name: 'Katana', tier: 'A', attack_pattern: 'Melee' },
-                ],
-                tomes: [
-                    { id: 'tome1', name: 'Precision', tier: 'A', stat_affected: 'Crit', value_per_level: '+1%' },
-                ],
-                characters: [
-                    { id: 'char1', name: 'CL4NK', tier: 'S', passive_ability: 'Crit bonus' },
-                ],
-                shrines: [
-                    { id: 'shrine1', name: 'Statue', icon: '⛩️', reward: '+5% damage' },
-                ],
+                weapons: [{ id: 'weapon1', name: 'Katana', tier: 'A', attack_pattern: 'Melee' }],
+                tomes: [{ id: 'tome1', name: 'Precision', tier: 'A', stat_affected: 'Crit', value_per_level: '+1%' }],
+                characters: [{ id: 'char1', name: 'CL4NK', tier: 'S', passive_ability: 'Crit bonus' }],
+                shrines: [{ id: 'shrine1', name: 'Statue', icon: '⛩️', reward: '+5% damage' }],
             };
             return mockData[tabName] || [];
         }),
@@ -198,7 +202,10 @@ describe('renderers.ts coverage tests', () => {
 
     describe('updateStats', () => {
         it('should update item count display', () => {
-            const items = [{ id: '1', name: 'Item 1' }, { id: '2', name: 'Item 2' }];
+            const items = [
+                { id: '1', name: 'Item 1' },
+                { id: '2', name: 'Item 2' },
+            ];
             updateStats(items as any, 'items');
             const itemCount = document.getElementById('item-count');
             expect(itemCount?.textContent).toContain('2');
@@ -230,11 +237,31 @@ describe('renderers.ts coverage tests', () => {
 
     describe('renderGlobalSearchResults', () => {
         const mockResults = [
-            { type: 'items' as const, item: { id: '1', name: 'Fire Sword', tier: 'S', base_effect: 'Fire damage' }, score: 100 },
-            { type: 'weapons' as const, item: { id: '2', name: 'Katana', tier: 'A', attack_pattern: 'Melee' }, score: 90 },
-            { type: 'tomes' as const, item: { id: '3', name: 'Precision', tier: 'A', stat_affected: 'Crit', value_per_level: '+1%' }, score: 80 },
-            { type: 'characters' as const, item: { id: '4', name: 'CL4NK', tier: 'S', passive_ability: 'Crit bonus' }, score: 70 },
-            { type: 'shrines' as const, item: { id: '5', name: 'Statue', icon: '⛩️', reward: '+5% damage' }, score: 60 },
+            {
+                type: 'items' as const,
+                item: { id: '1', name: 'Fire Sword', tier: 'S', base_effect: 'Fire damage' },
+                score: 100,
+            },
+            {
+                type: 'weapons' as const,
+                item: { id: '2', name: 'Katana', tier: 'A', attack_pattern: 'Melee' },
+                score: 90,
+            },
+            {
+                type: 'tomes' as const,
+                item: { id: '3', name: 'Precision', tier: 'A', stat_affected: 'Crit', value_per_level: '+1%' },
+                score: 80,
+            },
+            {
+                type: 'characters' as const,
+                item: { id: '4', name: 'CL4NK', tier: 'S', passive_ability: 'Crit bonus' },
+                score: 70,
+            },
+            {
+                type: 'shrines' as const,
+                item: { id: '5', name: 'Statue', icon: '⛩️', reward: '+5% damage' },
+                score: 60,
+            },
         ];
 
         it('should render search results', () => {
@@ -281,7 +308,11 @@ describe('renderers.ts coverage tests', () => {
 
         it('should render shrine icons', () => {
             const shrineResults = [
-                { type: 'shrines' as const, item: { id: '5', name: 'Statue', icon: '⛩️', reward: '+5% damage' }, score: 60 },
+                {
+                    type: 'shrines' as const,
+                    item: { id: '5', name: 'Statue', icon: '⛩️', reward: '+5% damage' },
+                    score: 60,
+                },
             ];
             renderGlobalSearchResults(shrineResults as any);
             const container = document.getElementById('itemsContainer');
@@ -290,7 +321,11 @@ describe('renderers.ts coverage tests', () => {
 
         it('should render tier labels', () => {
             const itemResults = [
-                { type: 'items' as const, item: { id: '1', name: 'Fire Sword', tier: 'S', base_effect: 'Fire' }, score: 100 },
+                {
+                    type: 'items' as const,
+                    item: { id: '1', name: 'Fire Sword', tier: 'S', base_effect: 'Fire' },
+                    score: 100,
+                },
             ];
             renderGlobalSearchResults(itemResults as any);
             const container = document.getElementById('itemsContainer');
@@ -305,9 +340,10 @@ describe('renderers.ts coverage tests', () => {
                         id: '1',
                         name: 'Long Description Item',
                         tier: 'S',
-                        base_effect: 'This is a very long description that should be truncated because it exceeds the maximum allowed length for search results display'
+                        base_effect:
+                            'This is a very long description that should be truncated because it exceeds the maximum allowed length for search results display',
                     },
-                    score: 100
+                    score: 100,
                 },
             ];
             renderGlobalSearchResults(longDescResults as any);
@@ -317,7 +353,11 @@ describe('renderers.ts coverage tests', () => {
 
         it('should handle items without tier', () => {
             const noTierResults = [
-                { type: 'shrines' as const, item: { id: '1', name: 'Test Shrine', icon: '⛩️', reward: 'Test' }, score: 100 },
+                {
+                    type: 'shrines' as const,
+                    item: { id: '1', name: 'Test Shrine', icon: '⛩️', reward: 'Test' },
+                    score: 100,
+                },
             ];
             renderGlobalSearchResults(noTierResults as any);
             const container = document.getElementById('itemsContainer');

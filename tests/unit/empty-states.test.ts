@@ -31,15 +31,9 @@ vi.mock('../../src/modules/data-service.ts', () => ({
                 { id: 'weapon1', name: 'Fire Blade', tier: 'SS', attack_pattern: 'Wide slash' },
                 { id: 'weapon2', name: 'Ice Staff', tier: 'S', attack_pattern: 'Projectile' },
             ],
-            tomes: [
-                { id: 'tome1', name: 'Power Tome', tier: 'SS', stat_affected: 'Attack' },
-            ],
-            characters: [
-                { id: 'char1', name: 'Hero', tier: 'S', passive_ability: 'Double jump' },
-            ],
-            shrines: [
-                { id: 'shrine1', name: 'Power Shrine', icon: '⛩️', reward: '+10 Attack' },
-            ],
+            tomes: [{ id: 'tome1', name: 'Power Tome', tier: 'SS', stat_affected: 'Attack' }],
+            characters: [{ id: 'char1', name: 'Hero', tier: 'S', passive_ability: 'Double jump' }],
+            shrines: [{ id: 'shrine1', name: 'Power Shrine', icon: '⛩️', reward: '+10 Attack' }],
         };
         return mockData[tabName] || [];
     }),

@@ -123,7 +123,7 @@ describe('binarize', () => {
     });
 
     it('should use default threshold of 128', () => {
-        const imageData = createTestImageData(4, 1, (x) => {
+        const imageData = createTestImageData(4, 1, x => {
             if (x === 0) return [100, 100, 100, 255]; // Below threshold
             if (x === 1) return [127, 127, 127, 255]; // At threshold
             if (x === 2) return [129, 129, 129, 255]; // Above threshold
@@ -134,8 +134,8 @@ describe('binarize', () => {
 
         expect(binary[0][0]).toBe(false); // 100 < 128
         expect(binary[0][1]).toBe(false); // 127 < 128
-        expect(binary[0][2]).toBe(true);  // 129 > 128
-        expect(binary[0][3]).toBe(true);  // 200 > 128
+        expect(binary[0][2]).toBe(true); // 129 > 128
+        expect(binary[0][3]).toBe(true); // 200 > 128
     });
 
     it('should use custom threshold', () => {
@@ -144,7 +144,7 @@ describe('binarize', () => {
         const binaryLowThreshold = binarize(imageData, 50);
         const binaryHighThreshold = binarize(imageData, 150);
 
-        expect(binaryLowThreshold[0][0]).toBe(true);  // 100 > 50
+        expect(binaryLowThreshold[0][0]).toBe(true); // 100 > 50
         expect(binaryHighThreshold[0][0]).toBe(false); // 100 < 150
     });
 
@@ -440,7 +440,7 @@ describe('correctToCommonStack', () => {
     it('should correct to nearby common value with low confidence', () => {
         // The function returns the FIRST common size within ±1
         // COMMON_STACK_SIZES = [1, 2, 3, 4, 5, 10, 15, 20, 25, 50, 99]
-        
+
         // Near 10 (and not near earlier common values)
         expect(correctToCommonStack(9, 0.5)).toBe(10);
         expect(correctToCommonStack(11, 0.5)).toBe(10);
@@ -454,16 +454,16 @@ describe('correctToCommonStack', () => {
         // 2 is within 1 of both 1 and 2 in COMMON_STACK_SIZES
         // Returns 1 because it comes first in the array
         expect(correctToCommonStack(2, 0.5)).toBe(1);
-        
+
         // 4 is within 1 of 3, 4, and 5 - returns 3 (first match)
         expect(correctToCommonStack(4, 0.5)).toBe(3);
-        
+
         // 6 is within 1 of 5 only
         expect(correctToCommonStack(6, 0.5)).toBe(5);
     });
 
     it('should return original if not near common value', () => {
-        expect(correctToCommonStack(7, 0.5)).toBe(7);   // Not within 1 of any common
+        expect(correctToCommonStack(7, 0.5)).toBe(7); // Not within 1 of any common
         expect(correctToCommonStack(33, 0.5)).toBe(33); // Not within 1 of any common
         expect(correctToCommonStack(27, 0.5)).toBe(27); // Not within 1 of 25 or 50
     });
@@ -474,7 +474,7 @@ describe('correctToCommonStack', () => {
         expect(correctToCommonStack(33, 0.9)).toBe(33);
 
         // At exactly 0.8, still trusts (> 0.8 check)
-        expect(correctToCommonStack(7, 0.8)).toBe(7);  // 7 is not near any common, returns 7
+        expect(correctToCommonStack(7, 0.8)).toBe(7); // 7 is not near any common, returns 7
     });
 
     it('should correct 1 to 1 (already common)', () => {
@@ -494,19 +494,19 @@ describe('correctToCommonStack', () => {
     it('should correct values to first matching common size', () => {
         // Values that are within ±1 of multiple common sizes
         // get corrected to the first one in the array
-        expect(correctToCommonStack(0, 0.5)).toBe(1);   // 0 is near 1
-        expect(correctToCommonStack(2, 0.5)).toBe(1);   // 2 is near 1 and 2, returns 1 (first)
-        expect(correctToCommonStack(3, 0.5)).toBe(2);   // 3 is near 2, 3, 4, returns 2
-        expect(correctToCommonStack(4, 0.5)).toBe(3);   // 4 is near 3, 4, 5, returns 3
-        expect(correctToCommonStack(5, 0.5)).toBe(4);   // 5 is near 4 and 5, returns 4
+        expect(correctToCommonStack(0, 0.5)).toBe(1); // 0 is near 1
+        expect(correctToCommonStack(2, 0.5)).toBe(1); // 2 is near 1 and 2, returns 1 (first)
+        expect(correctToCommonStack(3, 0.5)).toBe(2); // 3 is near 2, 3, 4, returns 2
+        expect(correctToCommonStack(4, 0.5)).toBe(3); // 4 is near 3, 4, 5, returns 3
+        expect(correctToCommonStack(5, 0.5)).toBe(4); // 5 is near 4 and 5, returns 4
     });
 
     it('should handle zero count', () => {
-        expect(correctToCommonStack(0, 0.5)).toBe(1);  // 0 is within 1 of 1
+        expect(correctToCommonStack(0, 0.5)).toBe(1); // 0 is within 1 of 1
     });
 
     it('should handle count of 100', () => {
-        expect(correctToCommonStack(100, 0.5)).toBe(99);  // 100 is within 1 of 99
+        expect(correctToCommonStack(100, 0.5)).toBe(99); // 100 is within 1 of 99
     });
 
     it('should handle very low confidence the same as moderate low confidence', () => {

@@ -6,7 +6,9 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { polyfillImageData } from './test-helpers';
 
-beforeAll(() => { polyfillImageData(); });
+beforeAll(() => {
+    polyfillImageData();
+});
 
 // Mock all external dependencies
 vi.mock('../../../src/modules/logger.ts', () => ({

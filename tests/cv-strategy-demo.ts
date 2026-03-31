@@ -64,7 +64,7 @@ const TEST_SCENARIOS = [
  * Simulate detection performance based on strategy characteristics
  */
 function simulateDetection(
-    scenario: typeof TEST_SCENARIOS[0],
+    scenario: (typeof TEST_SCENARIOS)[0],
     strategy: CVStrategy,
     strategyName: string
 ): {
@@ -121,7 +121,7 @@ function simulateDetection(
     }
 
     // Scenario complexity adjustments
-    const complexityPenalty = 1 - (scenario.visualComplexity * 0.3);
+    const complexityPenalty = 1 - scenario.visualComplexity * 0.3;
     accuracyFactor *= complexityPenalty;
 
     if (scenario.hasMultipleRows) {
@@ -134,7 +134,7 @@ function simulateDetection(
     const timeMs = Math.round(baseTime * speedFactor);
 
     // Base accuracy (for "current" strategy)
-    const baseAccuracy = 0.70; // 70% baseline
+    const baseAccuracy = 0.7; // 70% baseline
     const finalAccuracy = Math.min(0.98, baseAccuracy * accuracyFactor);
 
     // Calculate detection results
@@ -146,7 +146,7 @@ function simulateDetection(
     // Calculate metrics
     const precision = truePositives / (truePositives + falsePositives);
     const recall = truePositives / (truePositives + falseNegatives);
-    const f1Score = 2 * (precision * recall) / (precision + recall);
+    const f1Score = (2 * (precision * recall)) / (precision + recall);
 
     return {
         detectedItems,
@@ -166,14 +166,16 @@ function simulateDetection(
 async function runDemo() {
     console.log('🚀 CV Strategy Demonstration (Simulated Results)\n');
     console.log('Based on your 5 MegaBonk screenshots\n');
-    console.log('=' .repeat(80));
+    console.log('='.repeat(80));
 
     const strategiesToTest = ['current', 'optimized', 'fast', 'accurate', 'balanced'];
     const results: any[] = [];
 
     for (const scenario of TEST_SCENARIOS) {
         console.log(`\n📋 Test: ${scenario.name}`);
-        console.log(`   Difficulty: ${scenario.difficulty} | Items: ${scenario.itemCount} | Complexity: ${(scenario.visualComplexity * 100).toFixed(0)}%`);
+        console.log(
+            `   Difficulty: ${scenario.difficulty} | Items: ${scenario.itemCount} | Complexity: ${(scenario.visualComplexity * 100).toFixed(0)}%`
+        );
         console.log(`   ${scenario.description}\n`);
 
         for (const strategyName of strategiesToTest) {
@@ -186,12 +188,14 @@ async function runDemo() {
                 ...result,
             });
 
-            const emoji = result.f1Score >= 0.85 ? '✅' : result.f1Score >= 0.70 ? '⚠️' : '❌';
+            const emoji = result.f1Score >= 0.85 ? '✅' : result.f1Score >= 0.7 ? '⚠️' : '❌';
             const f1Pct = (result.f1Score * 100).toFixed(1);
             const precisionPct = (result.precision * 100).toFixed(1);
             const recallPct = (result.recall * 100).toFixed(1);
 
-            console.log(`   ${emoji} ${strategyName.padEnd(10)} | F1: ${f1Pct.padStart(5)}% | Precision: ${precisionPct.padStart(5)}% | Recall: ${recallPct.padStart(5)}% | Time: ${result.timeMs.toString().padStart(5)}ms`);
+            console.log(
+                `   ${emoji} ${strategyName.padEnd(10)} | F1: ${f1Pct.padStart(5)}% | Precision: ${precisionPct.padStart(5)}% | Recall: ${recallPct.padStart(5)}% | Time: ${result.timeMs.toString().padStart(5)}ms`
+            );
         }
     }
 
@@ -223,11 +227,15 @@ async function runDemo() {
         const avgTime = stats.times.reduce((a, b) => a + b, 0) / stats.times.length;
         const passRate = stats.f1Scores.filter(f1 => f1 >= 0.85).length / stats.scenarios;
 
-        const speedVsCurrent = ((currentAvgTime - avgTime) / currentAvgTime * 100);
-        const accuracyVsCurrent = ((avgF1 - currentAvgF1) / currentAvgF1 * 100);
+        const speedVsCurrent = ((currentAvgTime - avgTime) / currentAvgTime) * 100;
+        const accuracyVsCurrent = ((avgF1 - currentAvgF1) / currentAvgF1) * 100;
 
-        const speedStr = speedVsCurrent > 0 ? `+${speedVsCurrent.toFixed(0)}% faster` : `${Math.abs(speedVsCurrent).toFixed(0)}% slower`;
-        const accuracyStr = accuracyVsCurrent > 0 ? `+${accuracyVsCurrent.toFixed(0)}%` : `${accuracyVsCurrent.toFixed(0)}%`;
+        const speedStr =
+            speedVsCurrent > 0
+                ? `+${speedVsCurrent.toFixed(0)}% faster`
+                : `${Math.abs(speedVsCurrent).toFixed(0)}% slower`;
+        const accuracyStr =
+            accuracyVsCurrent > 0 ? `+${accuracyVsCurrent.toFixed(0)}%` : `${accuracyVsCurrent.toFixed(0)}%`;
 
         console.log(
             `| ${strategyName.padEnd(10)} | ${(avgF1 * 100).toFixed(1).padStart(12)}% | ${avgTime.toFixed(0).padStart(8)}ms | ${(passRate * 100).toFixed(0).padStart(8)}% | ${speedStr.padEnd(16)} | ${accuracyStr.padEnd(19)} |`
@@ -271,11 +279,15 @@ async function runDemo() {
     const optimizedAvgF1 = optimizedStats.f1Scores.reduce((a, b) => a + b, 0) / optimizedStats.f1Scores.length;
     const optimizedAvgTime = optimizedStats.times.reduce((a, b) => a + b, 0) / optimizedStats.times.length;
 
-    const speedImprovement = ((currentAvgTime - optimizedAvgTime) / currentAvgTime * 100).toFixed(0);
-    const accuracyImprovement = ((optimizedAvgF1 - currentAvgF1) / currentAvgF1 * 100).toFixed(0);
+    const speedImprovement = (((currentAvgTime - optimizedAvgTime) / currentAvgTime) * 100).toFixed(0);
+    const accuracyImprovement = (((optimizedAvgF1 - currentAvgF1) / currentAvgF1) * 100).toFixed(0);
 
-    console.log(`🚀 Speed: ${speedImprovement}% faster (${currentAvgTime.toFixed(0)}ms → ${optimizedAvgTime.toFixed(0)}ms)`);
-    console.log(`🎯 Accuracy: ${accuracyImprovement}% more accurate (${(currentAvgF1 * 100).toFixed(1)}% → ${(optimizedAvgF1 * 100).toFixed(1)}% F1)`);
+    console.log(
+        `🚀 Speed: ${speedImprovement}% faster (${currentAvgTime.toFixed(0)}ms → ${optimizedAvgTime.toFixed(0)}ms)`
+    );
+    console.log(
+        `🎯 Accuracy: ${accuracyImprovement}% more accurate (${(currentAvgF1 * 100).toFixed(1)}% → ${(optimizedAvgF1 * 100).toFixed(1)}% F1)`
+    );
     console.log(`✨ Combined: Better AND faster!`);
 
     // Key insights

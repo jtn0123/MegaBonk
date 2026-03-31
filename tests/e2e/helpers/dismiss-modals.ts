@@ -6,9 +6,7 @@
  * This blocks Playwright's actionability checks on tab buttons, causing
  * 60-second click timeouts on every non-default tab.
  */
-export async function dismissWhatsNewModal(
-    page: import('@playwright/test').Page,
-): Promise<void> {
+export async function dismissWhatsNewModal(page: import('@playwright/test').Page): Promise<void> {
     const modal = page.locator('#whats-new-modal');
     try {
         await modal.waitFor({ state: 'visible', timeout: 2000 });

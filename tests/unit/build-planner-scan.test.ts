@@ -6,7 +6,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { AllGameData, Item, Tome, Character, Weapon } from '../../src/types/index.ts';
 
 // Mock CV module - use importOriginal to forward all exports, override specific ones
-vi.mock('../../src/modules/cv/index.ts', async (importOriginal) => {
+vi.mock('../../src/modules/cv/index.ts', async importOriginal => {
     const actual = await importOriginal<typeof import('../../src/modules/cv/index.ts')>();
     return {
         ...actual,
@@ -15,8 +15,7 @@ vi.mock('../../src/modules/cv/index.ts', async (importOriginal) => {
         detectItemsWithCV: vi.fn().mockResolvedValue([]),
         detectGridPositions: vi.fn().mockResolvedValue([]),
         combineDetections: vi.fn((ocrResults: unknown[]) => ocrResults),
-        aggregateDuplicates: vi.fn((results: Array<{ entity: Item | Tome }>) =>
-            results.map((r) => ({ ...r, count: 1 }))),
+        aggregateDuplicates: vi.fn((results: Array<{ entity: Item | Tome }>) => results.map(r => ({ ...r, count: 1 }))),
         isFullyLoaded: vi.fn().mockReturnValue(true),
         autoDetectGrid: vi.fn().mockResolvedValue({ success: false }),
         getPresetForResolution: vi.fn().mockReturnValue(null),
@@ -52,11 +51,7 @@ import * as cvModule from '../../src/modules/cv/index.ts';
 import { loadBuildFromData } from '../../src/modules/build-planner.ts';
 
 // Import module after mocks
-import {
-    initBuildPlannerScan,
-    closePreviewModal,
-    applyDetectedBuild,
-} from '../../src/modules/build-planner-scan.ts';
+import { initBuildPlannerScan, closePreviewModal, applyDetectedBuild } from '../../src/modules/build-planner-scan.ts';
 import { ToastManager } from '../../src/modules/toast.ts';
 
 // Mock game data
@@ -108,9 +103,7 @@ describe('Build Planner Scan Module', () => {
 
     afterEach(() => {
         // Clean up modal and other elements if they were created
-        const elementsToRemove = [
-            'build-planner-scan-modal',
-        ];
+        const elementsToRemove = ['build-planner-scan-modal'];
         elementsToRemove.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.remove();
@@ -188,21 +181,21 @@ describe('Build Planner Scan Module', () => {
     describe('edge cases', () => {
         it('should handle initialization when scan section does not exist', async () => {
             document.body.innerHTML = '';
-            
+
             // Should not throw
             await expect(initBuildPlannerScan(mockGameData)).resolves.not.toThrow();
         });
 
         it('should handle template load failure gracefully', async () => {
             vi.mocked(cvModule.loadItemTemplates).mockRejectedValueOnce(new Error('Load failed'));
-            
+
             // Should not throw
             await expect(initBuildPlannerScan(mockGameData)).resolves.not.toThrow();
         });
 
         it('should handle preset load failure gracefully', async () => {
             vi.mocked(cvModule.loadGridPresets).mockRejectedValueOnce(new Error('Preset load failed'));
-            
+
             // Should not throw
             await expect(initBuildPlannerScan(mockGameData)).resolves.not.toThrow();
         });

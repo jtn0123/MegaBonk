@@ -100,11 +100,7 @@ describe('Build Stats Module', () => {
 
         it('should include sorted tome IDs', () => {
             const build = createBuild({
-                tomes: [
-                    createTome({ id: 'tome_c' }),
-                    createTome({ id: 'tome_a' }),
-                    createTome({ id: 'tome_b' }),
-                ],
+                tomes: [createTome({ id: 'tome_c' }), createTome({ id: 'tome_a' }), createTome({ id: 'tome_b' })],
             });
             const key = getBuildCacheKey(build);
             // Should be sorted: tome_a,tome_b,tome_c
@@ -113,11 +109,7 @@ describe('Build Stats Module', () => {
 
         it('should include sorted item IDs', () => {
             const build = createBuild({
-                items: [
-                    createItem({ id: 'item_z' }),
-                    createItem({ id: 'item_a' }),
-                    createItem({ id: 'item_m' }),
-                ],
+                items: [createItem({ id: 'item_z' }), createItem({ id: 'item_a' }), createItem({ id: 'item_m' })],
             });
             const key = getBuildCacheKey(build);
             // Should be sorted: item_a,item_m,item_z

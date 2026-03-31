@@ -31,34 +31,39 @@ async function simulatePullToRefresh(page: Page, distance: number = 150, browser
     if (browserName === 'webkit') {
         // For WebKit, we simulate the gesture by directly calling the app's
         // pull-to-refresh handlers if available, or use mouse-based simulation
-        const result = await page.evaluate(({ startY, endY, distance }) => {
-            const indicator = document.querySelector('.pull-refresh-indicator') as HTMLElement;
-            if (!indicator) return { success: false, reason: 'no-indicator' };
+        const result = await page.evaluate(
+            ({ startY, endY, distance }) => {
+                const indicator = document.querySelector('.pull-refresh-indicator') as HTMLElement;
+                if (!indicator) return { success: false, reason: 'no-indicator' };
 
-            // Check if there's a pull refresh handler we can trigger
-            const pullRefreshModule = (window as any).__pullRefresh;
-            if (pullRefreshModule && typeof pullRefreshModule.simulatePull === 'function') {
-                pullRefreshModule.simulatePull(distance);
-                return { success: true, method: 'api' };
-            }
+                // Check if there's a pull refresh handler we can trigger
+                const pullRefreshModule = (window as any).__pullRefresh;
+                if (pullRefreshModule && typeof pullRefreshModule.simulatePull === 'function') {
+                    pullRefreshModule.simulatePull(distance);
+                    return { success: true, method: 'api' };
+                }
 
-            // Fallback: Manually trigger the visual state for testing
-            // Set the pull distance CSS custom property
-            indicator.style.setProperty('--pull-distance', `${distance}px`);
-            indicator.classList.add('active');
-            
-            // Dispatch custom event that the app might listen for
-            document.dispatchEvent(new CustomEvent('pullrefresh', { 
-                detail: { distance, threshold: 120 } 
-            }));
+                // Fallback: Manually trigger the visual state for testing
+                // Set the pull distance CSS custom property
+                indicator.style.setProperty('--pull-distance', `${distance}px`);
+                indicator.classList.add('active');
 
-            // If distance > threshold, also add 'ready' class
-            if (distance > 120) {
-                indicator.classList.add('ready');
-            }
+                // Dispatch custom event that the app might listen for
+                document.dispatchEvent(
+                    new CustomEvent('pullrefresh', {
+                        detail: { distance, threshold: 120 },
+                    })
+                );
 
-            return { success: true, method: 'manual' };
-        }, { startY, endY, distance });
+                // If distance > threshold, also add 'ready' class
+                if (distance > 120) {
+                    indicator.classList.add('ready');
+                }
+
+                return { success: true, method: 'manual' };
+            },
+            { startY, endY, distance }
+        );
 
         // Wait for animation
         await page.waitForTimeout(200);
@@ -66,55 +71,64 @@ async function simulatePullToRefresh(page: Page, distance: number = 150, browser
     }
 
     // Standard approach for Chrome/Firefox - synthesize touch events
-    await page.evaluate(({ startY, endY }) => {
-        const target = document.body;
+    await page.evaluate(
+        ({ startY, endY }) => {
+            const target = document.body;
 
-        // Create touch start event
-        const touchStart = new TouchEvent('touchstart', {
-            bubbles: true,
-            cancelable: true,
-            touches: [new Touch({
-                identifier: 1,
-                target: target,
-                clientX: 200,
-                clientY: startY,
-            })],
-        });
-        document.dispatchEvent(touchStart);
-
-        // Simulate touch move in steps
-        const steps = 10;
-        const stepSize = (endY - startY) / steps;
-        
-        for (let i = 1; i <= steps; i++) {
-            const currentY = startY + (stepSize * i);
-            const touchMove = new TouchEvent('touchmove', {
+            // Create touch start event
+            const touchStart = new TouchEvent('touchstart', {
                 bubbles: true,
                 cancelable: true,
-                touches: [new Touch({
-                    identifier: 1,
-                    target: target,
-                    clientX: 200,
-                    clientY: currentY,
-                })],
+                touches: [
+                    new Touch({
+                        identifier: 1,
+                        target: target,
+                        clientX: 200,
+                        clientY: startY,
+                    }),
+                ],
             });
-            document.dispatchEvent(touchMove);
-        }
+            document.dispatchEvent(touchStart);
 
-        // Create touch end event
-        const touchEnd = new TouchEvent('touchend', {
-            bubbles: true,
-            cancelable: true,
-            changedTouches: [new Touch({
-                identifier: 1,
-                target: target,
-                clientX: 200,
-                clientY: endY,
-            })],
-            touches: [],
-        });
-        document.dispatchEvent(touchEnd);
-    }, { startY, endY });
+            // Simulate touch move in steps
+            const steps = 10;
+            const stepSize = (endY - startY) / steps;
+
+            for (let i = 1; i <= steps; i++) {
+                const currentY = startY + stepSize * i;
+                const touchMove = new TouchEvent('touchmove', {
+                    bubbles: true,
+                    cancelable: true,
+                    touches: [
+                        new Touch({
+                            identifier: 1,
+                            target: target,
+                            clientX: 200,
+                            clientY: currentY,
+                        }),
+                    ],
+                });
+                document.dispatchEvent(touchMove);
+            }
+
+            // Create touch end event
+            const touchEnd = new TouchEvent('touchend', {
+                bubbles: true,
+                cancelable: true,
+                changedTouches: [
+                    new Touch({
+                        identifier: 1,
+                        target: target,
+                        clientX: 200,
+                        clientY: endY,
+                    }),
+                ],
+                touches: [],
+            });
+            document.dispatchEvent(touchEnd);
+        },
+        { startY, endY }
+    );
 }
 
 /**
@@ -124,7 +138,7 @@ async function simulatePullToRefresh(page: Page, distance: number = 150, browser
 async function checkTouchTargetSize(page: Page, selector: string, minSize: number = 44): Promise<boolean> {
     const elements = page.locator(selector);
     const count = await elements.count();
-    
+
     for (let i = 0; i < count; i++) {
         const box = await elements.nth(i).boundingBox();
         if (!box || box.width < minSize || box.height < minSize) {
@@ -139,7 +153,7 @@ async function checkTouchTargetSize(page: Page, selector: string, minSize: numbe
 // ========================================
 
 test.describe('Pull-to-Refresh Gesture', () => {
-    test.use({ 
+    test.use({
         viewport: { width: 390, height: 844 },
         hasTouch: true,
     });
@@ -159,7 +173,7 @@ test.describe('Pull-to-Refresh Gesture', () => {
 
     test('pull-to-refresh indicator appears when pulling down', async ({ page, browserName }) => {
         const indicator = page.locator('.pull-refresh-indicator');
-        
+
         // Simulate a pull gesture that doesn't reach threshold
         await simulatePullToRefresh(page, 50, browserName);
         // WebKit needs longer wait for state changes
@@ -168,13 +182,15 @@ test.describe('Pull-to-Refresh Gesture', () => {
         // Indicator should have been activated (may reset quickly)
         // Just verify the element exists and is properly styled
         const hasStyles = await indicator.evaluate(el => {
-            return el.style.getPropertyValue('--pull-distance') !== '' || 
-                   el.classList.contains('active') ||
-                   window.getComputedStyle(el).height !== '0px';
+            return (
+                el.style.getPropertyValue('--pull-distance') !== '' ||
+                el.classList.contains('active') ||
+                window.getComputedStyle(el).height !== '0px'
+            );
         });
-        
+
         // The indicator resets quickly, so we verify it's functional
-        expect(hasStyles || await indicator.isAttached()).toBeTruthy();
+        expect(hasStyles || (await indicator.isAttached())).toBeTruthy();
     });
 
     test('pull-to-refresh has correct threshold indication', async ({ page, browserName }) => {
@@ -201,14 +217,14 @@ test.describe('Pull-to-Refresh Gesture', () => {
         await page.waitForTimeout(browserName === 'webkit' ? 200 : 100);
 
         const indicator = page.locator('.pull-refresh-indicator');
-        
+
         // For WebKit with our manual simulation, we need to check current scroll position
         // before activating the indicator
         if (browserName === 'webkit') {
             // Verify scroll position prevents activation
             const scrollY = await page.evaluate(() => window.scrollY);
             expect(scrollY).toBeGreaterThan(0);
-            
+
             // The indicator should not be active when scrolled down
             // Our WebKit simulation checks scroll position internally
             const isActive = await indicator.evaluate(el => el.classList.contains('active'));
@@ -240,15 +256,16 @@ test.describe('Pull-to-Refresh Gesture', () => {
 
         // Either toast appeared or indicator showed refreshing state
         const indicator = page.locator('.pull-refresh-indicator');
-        const wasRefreshing = await indicator.evaluate(el => 
-            el.classList.contains('refreshing') || 
-            el.classList.contains('ready') ||
-            el.classList.contains('active') ||
-            el.querySelector('.pull-refresh-text')?.textContent?.includes('Refresh')
+        const wasRefreshing = await indicator.evaluate(
+            el =>
+                el.classList.contains('refreshing') ||
+                el.classList.contains('ready') ||
+                el.classList.contains('active') ||
+                el.querySelector('.pull-refresh-text')?.textContent?.includes('Refresh')
         );
 
         // Verify the pull gesture was processed
-        expect(wasRefreshing || await toastAppeared !== null || true).toBeTruthy();
+        expect(wasRefreshing || (await toastAppeared) !== null || true).toBeTruthy();
     });
 });
 
@@ -257,7 +274,7 @@ test.describe('Pull-to-Refresh Gesture', () => {
 // ========================================
 
 test.describe('Touch-Friendly Tap Targets', () => {
-    test.use({ 
+    test.use({
         viewport: { width: 390, height: 844 },
         hasTouch: true,
     });
@@ -308,8 +325,8 @@ test.describe('Touch-Friendly Tap Targets', () => {
     test('tab buttons are touch-friendly', async ({ page }) => {
         // On mobile, we use bottom nav, but check if tabs are visible
         const tabBtns = page.locator('.tab-btn');
-        
-        if (await tabBtns.count() > 0 && await tabBtns.first().isVisible()) {
+
+        if ((await tabBtns.count()) > 0 && (await tabBtns.first().isVisible())) {
             const box = await tabBtns.first().boundingBox();
             expect(box?.height).toBeGreaterThanOrEqual(36);
         }
@@ -340,8 +357,8 @@ test.describe('Touch-Friendly Tap Targets', () => {
 
     test('filter toggle button is touch-friendly', async ({ page }) => {
         const filterBtn = page.locator('.filter-toggle-btn, .filter-toggle, [aria-label*="filter"]').first();
-        
-        if (await filterBtn.count() > 0 && await filterBtn.isVisible()) {
+
+        if ((await filterBtn.count()) > 0 && (await filterBtn.isVisible())) {
             const box = await filterBtn.boundingBox();
             expect(box?.width).toBeGreaterThanOrEqual(36);
             expect(box?.height).toBeGreaterThanOrEqual(36);
@@ -371,7 +388,7 @@ test.describe('Touch-Friendly Tap Targets', () => {
 // ========================================
 
 test.describe('Mobile Bottom Nav Touch Interactions', () => {
-    test.use({ 
+    test.use({
         viewport: { width: 390, height: 844 },
         hasTouch: true,
     });
@@ -383,7 +400,7 @@ test.describe('Mobile Bottom Nav Touch Interactions', () => {
 
     test('nav items respond to touch tap', async ({ page }) => {
         const weaponsNav = page.locator('.mobile-bottom-nav .nav-item[data-tab="weapons"]');
-        
+
         // Tap the weapons nav
         await weaponsNav.tap();
         await page.waitForTimeout(300);
@@ -412,12 +429,12 @@ test.describe('Mobile Bottom Nav Touch Interactions', () => {
         await page.waitForTimeout(200);
 
         const activeItems = page.locator('.mobile-bottom-nav .nav-item.active');
-        expect(await activeItems.count()).toBe(1);
+        await expect(activeItems).toHaveCount(1);
 
         await page.locator('.mobile-bottom-nav .nav-item[data-tab="tomes"]').tap();
         await page.waitForTimeout(200);
 
-        expect(await activeItems.count()).toBe(1);
+        await expect(activeItems).toHaveCount(1);
     });
 
     test('nav touch triggers tab content switch', async ({ page }) => {
@@ -433,14 +450,14 @@ test.describe('Mobile Bottom Nav Touch Interactions', () => {
 
     test('more menu opens on touch', async ({ page }) => {
         const moreNav = page.locator('.mobile-bottom-nav .nav-item[data-tab="more"]');
-        
-        if (await moreNav.count() > 0) {
+
+        if ((await moreNav.count()) > 0) {
             await moreNav.tap();
             await page.waitForTimeout(300);
 
             // More menu should appear
             const moreMenu = page.locator('.more-menu');
-            if (await moreMenu.count() > 0) {
+            if ((await moreMenu.count()) > 0) {
                 await expect(moreMenu).toHaveClass(/active/);
             }
         }
@@ -448,17 +465,17 @@ test.describe('Mobile Bottom Nav Touch Interactions', () => {
 
     test('more menu backdrop closes on touch', async ({ page }) => {
         const moreNav = page.locator('.mobile-bottom-nav .nav-item[data-tab="more"]');
-        
-        if (await moreNav.count() > 0) {
+
+        if ((await moreNav.count()) > 0) {
             // Open more menu
             await moreNav.tap();
             await page.waitForTimeout(300);
 
             const moreMenu = page.locator('.more-menu');
-            if (await moreMenu.count() > 0 && await moreMenu.evaluate(el => el.classList.contains('active'))) {
+            if ((await moreMenu.count()) > 0 && (await moreMenu.evaluate(el => el.classList.contains('active')))) {
                 // Tap backdrop to close
                 const backdrop = page.locator('.more-menu-backdrop');
-                if (await backdrop.count() > 0) {
+                if ((await backdrop.count()) > 0) {
                     await backdrop.tap();
                     await page.waitForTimeout(300);
 
@@ -475,7 +492,7 @@ test.describe('Mobile Bottom Nav Touch Interactions', () => {
 // ========================================
 
 test.describe('Touch Feedback Effects', () => {
-    test.use({ 
+    test.use({
         viewport: { width: 390, height: 844 },
         hasTouch: true,
     });
@@ -502,10 +519,11 @@ test.describe('Touch Feedback Effects', () => {
                     }
                 })
                 .filter(rule => rule instanceof CSSStyleRule);
-            
-            return rules.some(rule => 
-                (rule as CSSStyleRule).selectorText?.includes('.item-card') && 
-                (rule as CSSStyleRule).selectorText?.includes(':active')
+
+            return rules.some(
+                rule =>
+                    (rule as CSSStyleRule).selectorText?.includes('.item-card') &&
+                    (rule as CSSStyleRule).selectorText?.includes(':active')
             );
         });
 
@@ -524,13 +542,15 @@ test.describe('Touch Feedback Effects', () => {
                     }
                 })
                 .filter(rule => rule instanceof CSSStyleRule);
-            
+
             return rules.some(rule => {
                 const selector = (rule as CSSStyleRule).selectorText;
                 const style = (rule as CSSStyleRule).style;
-                return selector?.includes('.nav-item') && 
-                       selector?.includes(':active') && 
-                       style?.transform?.includes('scale');
+                return (
+                    selector?.includes('.nav-item') &&
+                    selector?.includes(':active') &&
+                    style?.transform?.includes('scale')
+                );
             });
         });
 
@@ -549,7 +569,7 @@ test.describe('Touch Feedback Effects', () => {
                     }
                 })
                 .filter(rule => rule instanceof CSSStyleRule);
-            
+
             return rules.some(rule => {
                 const selector = (rule as CSSStyleRule).selectorText;
                 return selector?.includes('btn') && selector?.includes(':active');
@@ -571,7 +591,7 @@ test.describe('Touch Feedback Effects', () => {
                     }
                 })
                 .filter(rule => rule instanceof CSSMediaRule);
-            
+
             return rules.some(rule => {
                 const mediaText = (rule as CSSMediaRule).conditionText || (rule as CSSMediaRule).media?.mediaText;
                 return mediaText?.includes('hover: none') || mediaText?.includes('pointer: coarse');
@@ -587,7 +607,7 @@ test.describe('Touch Feedback Effects', () => {
 // ========================================
 
 test.describe('Card Touch Interactions', () => {
-    test.use({ 
+    test.use({
         viewport: { width: 390, height: 844 },
         hasTouch: true,
     });
@@ -648,9 +668,11 @@ test.describe('Card Touch Interactions', () => {
 
         // Check modal has scroll capability
         const isScrollable = await modal.evaluate(el => {
-            return el.scrollHeight > el.clientHeight || 
-                   getComputedStyle(el).overflowY === 'auto' ||
-                   getComputedStyle(el).overflowY === 'scroll';
+            return (
+                el.scrollHeight > el.clientHeight ||
+                getComputedStyle(el).overflowY === 'auto' ||
+                getComputedStyle(el).overflowY === 'scroll'
+            );
         });
 
         expect(isScrollable).toBeTruthy();
@@ -666,8 +688,8 @@ test.describe('Card Touch Interactions', () => {
 
         // Check for similar items
         const similarItems = page.locator('#itemModal .similar-item-card');
-        
-        if (await similarItems.count() > 0) {
+
+        if ((await similarItems.count()) > 0) {
             const box = await similarItems.first().boundingBox();
             // Should be tappable size
             expect(box?.width).toBeGreaterThanOrEqual(40);
@@ -681,7 +703,7 @@ test.describe('Card Touch Interactions', () => {
 // ========================================
 
 test.describe('Scroll Touch Interactions', () => {
-    test.use({ 
+    test.use({
         viewport: { width: 390, height: 844 },
         hasTouch: true,
     });
@@ -712,10 +734,12 @@ test.describe('Scroll Touch Interactions', () => {
             const elements = document.querySelectorAll('[style*="scroll"], .items-grid, #itemsContainer');
             for (const el of elements) {
                 const style = getComputedStyle(el);
-                if (style.webkitOverflowScrolling === 'touch' || 
+                if (
+                    style.webkitOverflowScrolling === 'touch' ||
                     style.scrollBehavior === 'smooth' ||
                     style.overflowY === 'auto' ||
-                    style.overflowY === 'scroll') {
+                    style.overflowY === 'scroll'
+                ) {
                     return true;
                 }
             }
@@ -730,8 +754,7 @@ test.describe('Scroll Touch Interactions', () => {
                 })
                 .some(rule => {
                     const text = rule.cssText || '';
-                    return text.includes('-webkit-overflow-scrolling') || 
-                           text.includes('scroll-snap');
+                    return text.includes('-webkit-overflow-scrolling') || text.includes('scroll-snap');
                 });
         });
 
@@ -773,7 +796,7 @@ test.describe('Scroll Touch Interactions', () => {
 // ========================================
 
 test.describe('Touch Gesture Edge Cases', () => {
-    test.use({ 
+    test.use({
         viewport: { width: 390, height: 844 },
         hasTouch: true,
     });
@@ -791,16 +814,15 @@ test.describe('Touch Gesture Edge Cases', () => {
         });
 
         // Verify viewport has touch-zoom prevention
-        const hasZoomPrevention = initialScale.includes('user-scalable=no') || 
-                                   initialScale.includes('maximum-scale=1');
+        const hasZoomPrevention = initialScale.includes('user-scalable=no') || initialScale.includes('maximum-scale=1');
 
         // Even without meta tag, verify double-tap behavior doesn't break the app
         await page.locator('#itemsContainer .item-card').first().dblclick();
         await page.waitForTimeout(300);
 
         // Page should still be functional
-        const cardsVisible = await page.locator('#itemsContainer .item-card').first().isVisible();
-        expect(cardsVisible).toBeTruthy();
+        const cardsVisible = page.locator('#itemsContainer .item-card').first();
+        await expect(cardsVisible).toBeVisible();
     });
 
     test('touch events do not interfere with native scrolling', async ({ page }) => {
@@ -814,7 +836,7 @@ test.describe('Touch Gesture Edge Cases', () => {
         // Should still be able to interact with cards
         const firstVisibleCard = page.locator('#itemsContainer .item-card').first();
         await firstVisibleCard.scrollIntoViewIfNeeded();
-        
+
         await expect(firstVisibleCard).toBeVisible();
     });
 
@@ -833,9 +855,14 @@ test.describe('Touch Gesture Edge Cases', () => {
         // Retry with direct event dispatch if modal is still visible
         if (await modal.isVisible()) {
             await page.evaluate(() => {
-                document.dispatchEvent(new KeyboardEvent('keydown', {
-                    key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-                }));
+                document.dispatchEvent(
+                    new KeyboardEvent('keydown', {
+                        key: 'Escape',
+                        code: 'Escape',
+                        bubbles: true,
+                        cancelable: true,
+                    })
+                );
             });
         }
         await expect(modal).toBeHidden({ timeout: 5000 });
@@ -848,12 +875,16 @@ test.describe('Touch Gesture Edge Cases', () => {
     test('touch and hold does not trigger context menu on cards', async ({ page }) => {
         // Listen for context menu event
         const contextMenuTriggered = await page.evaluate(() => {
-            return new Promise((resolve) => {
+            return new Promise(resolve => {
                 let triggered = false;
-                document.addEventListener('contextmenu', () => {
-                    triggered = true;
-                }, { once: true });
-                
+                document.addEventListener(
+                    'contextmenu',
+                    () => {
+                        triggered = true;
+                    },
+                    { once: true }
+                );
+
                 setTimeout(() => resolve(triggered), 100);
             });
         });
@@ -869,7 +900,7 @@ test.describe('Touch Gesture Edge Cases', () => {
 // ========================================
 
 test.describe('Search Touch Interactions', () => {
-    test.use({ 
+    test.use({
         viewport: { width: 390, height: 844 },
         hasTouch: true,
     });
@@ -893,20 +924,20 @@ test.describe('Search Touch Interactions', () => {
         await page.waitForTimeout(100);
 
         await searchInput.fill('Anvil');
-        const value = await searchInput.inputValue();
-        expect(value).toBe('Anvil');
+        const value = searchInput;
+        await expect(value).toHaveValue('Anvil');
     });
 
     test('search results update on mobile', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
-        
+
         // Get initial count
         const initialCards = page.locator('#itemsContainer .item-card');
         const initialCount = await initialCards.count();
         expect(initialCount).toBeGreaterThan(0);
-        
+
         await searchInput.tap();
-        
+
         // Search for something that will filter
         await searchInput.fill('zzz_nonexistent_xyz');
         await page.waitForTimeout(500);
@@ -914,17 +945,17 @@ test.describe('Search Touch Interactions', () => {
         // Results should be filtered to 0 or show empty state
         const filteredCards = page.locator('#itemsContainer .item-card');
         const filteredCount = await filteredCards.count();
-        
+
         // Should be less than initial (filtering occurred)
         expect(filteredCount).toBeLessThan(initialCount);
-        
+
         // Clear search to verify items come back
         await searchInput.fill('');
         await page.waitForTimeout(500);
-        
+
         const restoredCards = page.locator('#itemsContainer .item-card');
-        const restoredCount = await restoredCards.count();
-        expect(restoredCount).toBe(initialCount);
+        const restoredCount = restoredCards;
+        await expect(restoredCount).toHaveCount(initialCount);
     });
 
     test('clear search button is touch-friendly', async ({ page }) => {
@@ -934,8 +965,8 @@ test.describe('Search Touch Interactions', () => {
         await page.waitForTimeout(200);
 
         const clearBtn = page.locator('.search-clear, [aria-label*="clear"]');
-        
-        if (await clearBtn.count() > 0 && await clearBtn.isVisible()) {
+
+        if ((await clearBtn.count()) > 0 && (await clearBtn.isVisible())) {
             const box = await clearBtn.boundingBox();
             expect(box?.width).toBeGreaterThanOrEqual(24);
             expect(box?.height).toBeGreaterThanOrEqual(24);

@@ -386,9 +386,7 @@ describe('OCR Module - Performance', () => {
     });
 
     it('should handle large text efficiently (< 500ms)', () => {
-        const largeText = Array(100)
-            .fill('First Aid Kit\nWrench\nBattery\n')
-            .join('');
+        const largeText = Array(100).fill('First Aid Kit\nWrench\nBattery\n').join('');
         const start = performance.now();
         detectItemsFromText(largeText);
         const end = performance.now();
@@ -640,8 +638,7 @@ describe('OCR Module - Text Segmentation', () => {
 
     it('should split long lines by delimiters (comma)', () => {
         // Line longer than 50 chars with comma delimiter
-        const text =
-            'This is a very long line with items: Battery, Wrench, First Aid Kit and more text here';
+        const text = 'This is a very long line with items: Battery, Wrench, First Aid Kit and more text here';
         const results = detectItemsFromText(text);
 
         // Should detect at least Battery and Wrench from the comma-split segments
@@ -649,8 +646,7 @@ describe('OCR Module - Text Segmentation', () => {
     });
 
     it('should split long lines by semicolon', () => {
-        const text =
-            'Items collected during the run: Battery; Wrench; First Aid Kit; and many other items';
+        const text = 'Items collected during the run: Battery; Wrench; First Aid Kit; and many other items';
         const results = detectItemsFromText(text);
 
         expect(results.length).toBeGreaterThanOrEqual(1);

@@ -17,33 +17,39 @@ function buildEmbeddingNetwork() {
     const model = tf.sequential();
 
     // Conv block 1
-    model.add(tf.layers.conv2d({
-        inputShape: [CROP_SIZE, CROP_SIZE, 3],
-        filters: 32,
-        kernelSize: 3,
-        activation: 'relu',
-        padding: 'same'
-    }));
+    model.add(
+        tf.layers.conv2d({
+            inputShape: [CROP_SIZE, CROP_SIZE, 3],
+            filters: 32,
+            kernelSize: 3,
+            activation: 'relu',
+            padding: 'same',
+        })
+    );
     model.add(tf.layers.batchNormalization());
     model.add(tf.layers.maxPooling2d({ poolSize: 2 }));
 
     // Conv block 2
-    model.add(tf.layers.conv2d({
-        filters: 64,
-        kernelSize: 3,
-        activation: 'relu',
-        padding: 'same'
-    }));
+    model.add(
+        tf.layers.conv2d({
+            filters: 64,
+            kernelSize: 3,
+            activation: 'relu',
+            padding: 'same',
+        })
+    );
     model.add(tf.layers.batchNormalization());
     model.add(tf.layers.maxPooling2d({ poolSize: 2 }));
 
     // Conv block 3
-    model.add(tf.layers.conv2d({
-        filters: 128,
-        kernelSize: 3,
-        activation: 'relu',
-        padding: 'same'
-    }));
+    model.add(
+        tf.layers.conv2d({
+            filters: 128,
+            kernelSize: 3,
+            activation: 'relu',
+            padding: 'same',
+        })
+    );
     model.add(tf.layers.batchNormalization());
     model.add(tf.layers.maxPooling2d({ poolSize: 2 }));
     model.add(tf.layers.flatten());
@@ -113,7 +119,7 @@ function generateTrainingPairs(templates, numPairs = 1000) {
             pairs.push({
                 tensor1: templates.get(itemId),
                 tensor2: templates.get(itemId),
-                label: 1
+                label: 1,
             });
         } else {
             // Different class pair
@@ -125,7 +131,7 @@ function generateTrainingPairs(templates, numPairs = 1000) {
             pairs.push({
                 tensor1: templates.get(itemIds[idx1]),
                 tensor2: templates.get(itemIds[idx2]),
-                label: 0
+                label: 0,
             });
         }
     }
@@ -191,7 +197,7 @@ async function train() {
     siameseModel.compile({
         optimizer: tf.train.adam(0.001),
         loss: 'binaryCrossentropy',
-        metrics: ['accuracy']
+        metrics: ['accuracy'],
     });
 
     console.log('Embedding network:');
@@ -231,10 +237,12 @@ async function train() {
         callbacks: {
             onEpochEnd: (epoch, logs) => {
                 if ((epoch + 1) % 10 === 0) {
-                    console.log(`Epoch ${epoch + 1}: loss=${logs.loss.toFixed(4)}, acc=${logs.acc.toFixed(4)}, val_acc=${logs.val_acc.toFixed(4)}`);
+                    console.log(
+                        `Epoch ${epoch + 1}: loss=${logs.loss.toFixed(4)}, acc=${logs.acc.toFixed(4)}, val_acc=${logs.val_acc.toFixed(4)}`
+                    );
                 }
-            }
-        }
+            },
+        },
     });
 
     // Save the embedding network
@@ -294,7 +302,8 @@ async function evaluate() {
     let predictions = 0;
     const confidenceDistribution = { high: 0, medium: 0, low: 0 };
 
-    for (const cropFile of cropFiles.slice(0, 20)) { // Test first 20
+    for (const cropFile of cropFiles.slice(0, 20)) {
+        // Test first 20
         const cropPath = path.join(cropsDir, cropFile);
         const cropTensor = await loadImageAsTensor(cropPath);
         const cropEmbedding = embeddingNet.predict(cropTensor.expandDims(0));

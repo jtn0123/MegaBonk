@@ -1037,7 +1037,7 @@ describe('Events - Comprehensive Coverage', () => {
         it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should close item modal when clicking backdrop', async () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             modal.classList.add('active');
-            
+
             // Create modal content inside
             const modalContent = document.createElement('div');
             modalContent.className = 'modal-content';
@@ -1055,7 +1055,7 @@ describe('Events - Comprehensive Coverage', () => {
         it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should not close modal when clicking inside modal-content', () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             modal.classList.add('active');
-            
+
             const modalContent = document.createElement('div');
             modalContent.className = 'modal-content';
             modal.appendChild(modalContent);
@@ -1071,7 +1071,7 @@ describe('Events - Comprehensive Coverage', () => {
         it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should debounce rapid modal close attempts', async () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             modal.classList.add('active');
-            
+
             // Simulate rapid double-clicks
             const clickEvent1 = new MouseEvent('click', { bubbles: true });
             Object.defineProperty(clickEvent1, 'target', { value: modal });
@@ -1090,7 +1090,7 @@ describe('Events - Comprehensive Coverage', () => {
         it.skipIf(!FEATURES.MODAL_BACKDROP_CLOSE)('should handle touchend for mobile modal close', async () => {
             const modal = document.getElementById('itemModal') as HTMLElement;
             modal.classList.add('active');
-            
+
             __resetTimersForTesting();
 
             const touchEvent = new TouchEvent('touchend', { bubbles: true });
@@ -1113,7 +1113,7 @@ describe('Events - Comprehensive Coverage', () => {
         it('should handle compare checkbox label click', async () => {
             const label = document.createElement('label');
             label.className = 'compare-checkbox-label';
-            
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.className = 'compare-checkbox';
@@ -1133,7 +1133,7 @@ describe('Events - Comprehensive Coverage', () => {
         it('should prevent rapid double-toggling of compare checkbox', async () => {
             const label = document.createElement('label');
             label.className = 'compare-checkbox-label';
-            
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.className = 'compare-checkbox';
@@ -1155,7 +1155,7 @@ describe('Events - Comprehensive Coverage', () => {
         it('should use checkbox value if no data-id', async () => {
             const label = document.createElement('label');
             label.className = 'compare-checkbox-label';
-            
+
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.className = 'compare-checkbox';
@@ -1195,7 +1195,7 @@ describe('Events - Comprehensive Coverage', () => {
             parent.className = 'expandable-text';
             parent.dataset.fullText = 'Full text here';
             parent.dataset.truncated = 'true';
-            
+
             const child = document.createElement('span');
             parent.appendChild(child);
             document.body.appendChild(parent);
@@ -1237,7 +1237,7 @@ describe('Events - Comprehensive Coverage', () => {
             const btn = document.createElement('button');
             btn.className = 'remove-compare-btn';
             btn.dataset.removeId = 'item-to-remove-2';
-            
+
             const icon = document.createElement('span');
             icon.textContent = '×';
             btn.appendChild(icon);
@@ -1276,7 +1276,7 @@ describe('Events - Comprehensive Coverage', () => {
             card.className = 'breakpoint-card';
             card.dataset.item = 'magic-staff';
             card.dataset.target = '50';
-            
+
             const label = document.createElement('span');
             card.appendChild(label);
             document.body.appendChild(card);
@@ -1405,7 +1405,7 @@ describe('Events - Comprehensive Coverage', () => {
         it('should handle filter select change', async () => {
             const filters = document.createElement('div');
             filters.id = 'filters';
-            
+
             const select = document.createElement('select');
             filters.appendChild(select);
             document.body.appendChild(filters);
@@ -1435,7 +1435,7 @@ describe('Events - Comprehensive Coverage', () => {
         it('should not render if currentTab is not set', async () => {
             const filters = document.createElement('div');
             filters.id = 'filters';
-            
+
             const select = document.createElement('select');
             filters.appendChild(select);
             document.body.appendChild(filters);
@@ -1459,7 +1459,7 @@ describe('Events - Comprehensive Coverage', () => {
             const closeBtn = document.createElement('button');
             closeBtn.id = 'closeCompare';
             document.body.appendChild(closeBtn);
-            
+
             setupEventListeners();
         });
 
@@ -1480,7 +1480,7 @@ describe('Events - Comprehensive Coverage', () => {
             const compareBtn = document.createElement('button');
             compareBtn.id = 'compare-btn';
             document.body.appendChild(compareBtn);
-            
+
             setupEventListeners();
         });
 
@@ -1501,14 +1501,14 @@ describe('Events - Comprehensive Coverage', () => {
             // Create proper tab structure
             const tabsContainer = document.createElement('div');
             tabsContainer.className = 'tabs';
-            
+
             const container = document.createElement('div');
             container.className = 'container';
-            
+
             const tabButtons = document.createElement('div');
             tabButtons.className = 'tab-buttons';
             tabButtons.style.overflow = 'auto';
-            
+
             // Add some tab buttons
             for (let i = 0; i < 5; i++) {
                 const btn = document.createElement('button');
@@ -1516,7 +1516,7 @@ describe('Events - Comprehensive Coverage', () => {
                 btn.dataset.tab = `tab${i}`;
                 tabButtons.appendChild(btn);
             }
-            
+
             container.appendChild(tabButtons);
             tabsContainer.appendChild(container);
             document.body.appendChild(tabsContainer);
@@ -1533,13 +1533,13 @@ describe('Events - Comprehensive Coverage', () => {
 
         it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should clean up scroll listeners', () => {
             setupEventListeners();
-            
+
             expect(() => cleanupTabScrollListeners()).not.toThrow();
         });
 
         it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should handle scroll events', async () => {
             setupEventListeners();
-            
+
             const tabButtons = document.querySelector('.tab-buttons') as HTMLElement;
             tabButtons.dispatchEvent(new Event('scroll'));
 
@@ -1549,7 +1549,7 @@ describe('Events - Comprehensive Coverage', () => {
 
         it.skipIf(!FEATURES.TAB_SCROLL_INDICATORS)('should handle resize events', async () => {
             setupEventListeners();
-            
+
             window.dispatchEvent(new Event('resize'));
 
             await new Promise(resolve => setTimeout(resolve, 150));
@@ -1568,7 +1568,7 @@ describe('Events - Comprehensive Coverage', () => {
         it.skipIf(!FEATURES.SEARCH_FOCUS_HISTORY)('should show search history when focused with empty input', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = '';
-            
+
             searchInput.dispatchEvent(new Event('focus'));
 
             expect(mockShowSearchHistoryDropdown).toHaveBeenCalled();
@@ -1577,7 +1577,7 @@ describe('Events - Comprehensive Coverage', () => {
         it.skipIf(!FEATURES.SEARCH_FOCUS_HISTORY)('should trigger search when focused with short query', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = 'a'; // Less than 2 chars
-            
+
             mockShowSearchHistoryDropdown.mockClear();
             searchInput.dispatchEvent(new Event('focus'));
 
@@ -1587,7 +1587,7 @@ describe('Events - Comprehensive Coverage', () => {
         it.skipIf(!FEATURES.SEARCH_FOCUS_HISTORY)('should trigger search when focused with valid query', () => {
             const searchInput = document.getElementById('searchInput') as HTMLInputElement;
             searchInput.value = 'test search';
-            
+
             searchInput.dispatchEvent(new Event('focus'));
 
             expect(mockHandleSearch).toHaveBeenCalled();
@@ -1620,7 +1620,7 @@ describe('Events - Comprehensive Coverage', () => {
             btn.className = 'favorite-btn';
             btn.dataset.tab = 'weapons';
             btn.dataset.id = 'weapon-fav';
-            
+
             const star = document.createElement('span');
             star.textContent = '☆';
             btn.appendChild(star);
@@ -1667,7 +1667,7 @@ describe('Events - Comprehensive Coverage', () => {
     });
 
     // ========================================
-    // Global Search Result Navigation  
+    // Global Search Result Navigation
     // ========================================
     describe('Global search result navigation', () => {
         beforeEach(() => {

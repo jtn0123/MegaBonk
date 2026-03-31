@@ -515,10 +515,7 @@ describe('renderBuildPreview', () => {
         const build = {
             character: null,
             weapon: null,
-            tomes: [
-                { id: 'tome1', name: 'Fire Tome' } as Tome,
-                { id: 'tome2', name: 'Ice Tome' } as Tome,
-            ],
+            tomes: [{ id: 'tome1', name: 'Fire Tome' } as Tome, { id: 'tome2', name: 'Ice Tome' } as Tome],
             items: [],
             constraints: {},
         };
@@ -536,10 +533,7 @@ describe('renderBuildPreview', () => {
             character: null,
             weapon: null,
             tomes: [],
-            items: [
-                { id: 'item1', name: 'Health Potion' } as Item,
-                { id: 'item2', name: 'Mana Potion' } as Item,
-            ],
+            items: [{ id: 'item1', name: 'Health Potion' } as Item, { id: 'item2', name: 'Mana Potion' } as Item],
             constraints: {},
         };
 

@@ -59,7 +59,7 @@ vi.mock('../../src/modules/similar-items.ts', () => ({
 }));
 
 // Mock utils
-vi.mock('../../src/modules/utils.ts', async (importOriginal) => {
+vi.mock('../../src/modules/utils.ts', async importOriginal => {
     const actual = await importOriginal<typeof import('../../src/modules/utils')>();
     return {
         ...actual,
@@ -123,16 +123,18 @@ describe('Modal Module - Extended Coverage', () => {
                     </div>
                 </div>
             `;
-            
-            (allData as any).items.items = [{
-                id: 'focus-test-item',
-                name: 'Focus Test Item',
-                tier: 'A',
-                rarity: 'rare',
-                base_effect: 'Effect',
-                detailed_description: 'Description',
-                formula: 'formula',
-            }];
+
+            (allData as any).items.items = [
+                {
+                    id: 'focus-test-item',
+                    name: 'Focus Test Item',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'Effect',
+                    detailed_description: 'Description',
+                    formula: 'formula',
+                },
+            ];
         });
 
         it('should handle Tab key event without error', async () => {
@@ -229,7 +231,7 @@ describe('Modal Module - Extended Coverage', () => {
             vi.runAllTimers();
 
             const modal = document.getElementById('itemModal');
-            
+
             // Remove active class without closing properly
             modal?.classList.remove('active');
 
@@ -250,15 +252,17 @@ describe('Modal Module - Extended Coverage', () => {
     // ========================================
     describe('MutationObserver Cleanup', () => {
         beforeEach(() => {
-            (allData as any).items.items = [{
-                id: 'observer-item',
-                name: 'Observer Test Item',
-                tier: 'A',
-                rarity: 'rare',
-                base_effect: 'Effect',
-                detailed_description: 'Description',
-                formula: 'f',
-            }];
+            (allData as any).items.items = [
+                {
+                    id: 'observer-item',
+                    name: 'Observer Test Item',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'Effect',
+                    detailed_description: 'Description',
+                    formula: 'f',
+                },
+            ];
         });
 
         it('should cleanup focus trap when modal style is set to none', async () => {
@@ -311,22 +315,24 @@ describe('Modal Module - Extended Coverage', () => {
     // ========================================
     describe('Scaling Tab Handlers', () => {
         beforeEach(() => {
-            (allData as any).items.items = [{
-                id: 'tab-item',
-                name: 'Tab Test Item',
-                tier: 'S',
-                rarity: 'legendary',
-                base_effect: 'Multi effect',
-                detailed_description: 'Has scaling tracks',
-                formula: 'complex',
-                scaling_tracks: {
-                    damage: { stat: 'Damage', values: [10, 20, 30, 40, 50] },
-                    crit: { stat: 'Crit Chance', values: [5, 10, 15, 20, 25] },
-                    speed: { stat: 'Attack Speed', values: [1, 2, 3, 4, 5] },
+            (allData as any).items.items = [
+                {
+                    id: 'tab-item',
+                    name: 'Tab Test Item',
+                    tier: 'S',
+                    rarity: 'legendary',
+                    base_effect: 'Multi effect',
+                    detailed_description: 'Has scaling tracks',
+                    formula: 'complex',
+                    scaling_tracks: {
+                        damage: { stat: 'Damage', values: [10, 20, 30, 40, 50] },
+                        crit: { stat: 'Crit Chance', values: [5, 10, 15, 20, 25] },
+                        speed: { stat: 'Attack Speed', values: [1, 2, 3, 4, 5] },
+                    },
+                    scaling_type: 'linear',
+                    scaling_formula_type: 'linear',
                 },
-                scaling_type: 'linear',
-                scaling_formula_type: 'linear',
-            }];
+            ];
         });
 
         it('should render tabs with proper attributes', async () => {
@@ -358,12 +364,10 @@ describe('Modal Module - Extended Coverage', () => {
 
             // Find tabs
             const tabs = document.querySelectorAll('.scaling-tab');
-            
+
             // Each tab should have a data-track attribute
-            const trackValues = Array.from(tabs).map(
-                (tab: Element) => (tab as HTMLElement).dataset.track
-            );
-            
+            const trackValues = Array.from(tabs).map((tab: Element) => (tab as HTMLElement).dataset.track);
+
             expect(trackValues).toContain('damage');
             expect(trackValues).toContain('crit');
             expect(trackValues).toContain('speed');
@@ -426,39 +430,41 @@ describe('Modal Module - Extended Coverage', () => {
     // ========================================
     describe('Weapon Modal - Full Rendering', () => {
         beforeEach(() => {
-            (allData as any).weapons.weapons = [{
-                id: 'full-weapon',
-                name: 'Full Weapon',
-                tier: 'SS',
-                base_damage: 50,
-                base_projectile_count: 3,
-                attack_pattern: 'Triple burst',
-                upgradeable_stats: ['Damage', 'Projectiles', 'Fire Rate'],
-                description: 'A fully-featured weapon',
-                playstyle: 'Aggressive',
-                best_for: ['Boss killing', 'Clearing rooms'],
-                pros: ['High damage', 'Good range'],
-                cons: ['Slow reload', 'Hard to aim'],
-                synergies_items: ['Damage Item', 'Crit Item'],
-                synergies_tomes: ['Damage Tome'],
-                synergies_characters: ['Strong Character'],
-                build_tips: 'Stack damage for best results',
-                unlock_requirement: 'Beat the game once',
-            }];
+            (allData as any).weapons.weapons = [
+                {
+                    id: 'full-weapon',
+                    name: 'Full Weapon',
+                    tier: 'SS',
+                    base_damage: 50,
+                    base_projectile_count: 3,
+                    attack_pattern: 'Triple burst',
+                    upgradeable_stats: ['Damage', 'Projectiles', 'Fire Rate'],
+                    description: 'A fully-featured weapon',
+                    playstyle: 'Aggressive',
+                    best_for: ['Boss killing', 'Clearing rooms'],
+                    pros: ['High damage', 'Good range'],
+                    cons: ['Slow reload', 'Hard to aim'],
+                    synergies_items: ['Damage Item', 'Crit Item'],
+                    synergies_tomes: ['Damage Tome'],
+                    synergies_characters: ['Strong Character'],
+                    build_tips: 'Stack damage for best results',
+                    unlock_requirement: 'Beat the game once',
+                },
+            ];
         });
 
         it('should render weapon with all synergy types', async () => {
             await openDetailModal('weapons', 'full-weapon');
 
             const modalBody = document.getElementById('modalBody');
-            
+
             // Items synergies
             expect(modalBody?.innerHTML).toContain('Damage Item');
             expect(modalBody?.innerHTML).toContain('Crit Item');
-            
+
             // Tomes synergies
             expect(modalBody?.innerHTML).toContain('Damage Tome');
-            
+
             // Characters synergies
             expect(modalBody?.innerHTML).toContain('Strong Character');
         });
@@ -467,26 +473,28 @@ describe('Modal Module - Extended Coverage', () => {
             await openDetailModal('weapons', 'full-weapon');
 
             const modalBody = document.getElementById('modalBody');
-            
+
             // Pros
             expect(modalBody?.innerHTML).toContain('High damage');
             expect(modalBody?.innerHTML).toContain('Good range');
-            
+
             // Cons
             expect(modalBody?.innerHTML).toContain('Slow reload');
             expect(modalBody?.innerHTML).toContain('Hard to aim');
         });
 
         it('should render weapon without optional sections', async () => {
-            (allData as any).weapons.weapons = [{
-                id: 'minimal-weapon',
-                name: 'Minimal Weapon',
-                tier: 'C',
-                base_damage: 10,
-                attack_pattern: 'Single',
-                upgradeable_stats: [],
-                description: 'Basic weapon',
-            }];
+            (allData as any).weapons.weapons = [
+                {
+                    id: 'minimal-weapon',
+                    name: 'Minimal Weapon',
+                    tier: 'C',
+                    base_damage: 10,
+                    attack_pattern: 'Single',
+                    upgradeable_stats: [],
+                    description: 'Basic weapon',
+                },
+            ];
 
             await openDetailModal('weapons', 'minimal-weapon');
 
@@ -497,15 +505,17 @@ describe('Modal Module - Extended Coverage', () => {
         });
 
         it('should render empty upgradeable stats as None', async () => {
-            (allData as any).weapons.weapons = [{
-                id: 'no-upgrade-weapon',
-                name: 'No Upgrade Weapon',
-                tier: 'B',
-                base_damage: 15,
-                attack_pattern: 'Basic',
-                upgradeable_stats: [],
-                description: 'Cannot be upgraded',
-            }];
+            (allData as any).weapons.weapons = [
+                {
+                    id: 'no-upgrade-weapon',
+                    name: 'No Upgrade Weapon',
+                    tier: 'B',
+                    base_damage: 15,
+                    attack_pattern: 'Basic',
+                    upgradeable_stats: [],
+                    description: 'Cannot be upgraded',
+                },
+            ];
 
             await openDetailModal('weapons', 'no-upgrade-weapon');
 
@@ -519,28 +529,30 @@ describe('Modal Module - Extended Coverage', () => {
     // ========================================
     describe('Shrine Modal - Full Rendering', () => {
         beforeEach(() => {
-            (allData as any).shrines.shrines = [{
-                id: 'full-shrine',
-                name: 'Full Shrine',
-                icon: '🏛️',
-                type: 'blessing',
-                reusable: false,
-                description: 'A powerful shrine',
-                reward: 'Gain +50% damage for 60 seconds',
-                activation: 'Stand near for 3 seconds',
-                spawn_count: '1 per level',
-                best_for: ['Boss fights', 'Hard mode'],
-                synergies_items: ['Shrine Enhancer', 'Blessing Amplifier'],
-                strategy: 'Save for tough enemies',
-                notes: 'Does not stack with other shrines',
-            }];
+            (allData as any).shrines.shrines = [
+                {
+                    id: 'full-shrine',
+                    name: 'Full Shrine',
+                    icon: '🏛️',
+                    type: 'blessing',
+                    reusable: false,
+                    description: 'A powerful shrine',
+                    reward: 'Gain +50% damage for 60 seconds',
+                    activation: 'Stand near for 3 seconds',
+                    spawn_count: '1 per level',
+                    best_for: ['Boss fights', 'Hard mode'],
+                    synergies_items: ['Shrine Enhancer', 'Blessing Amplifier'],
+                    strategy: 'Save for tough enemies',
+                    notes: 'Does not stack with other shrines',
+                },
+            ];
         });
 
         it('should render shrine with all sections', async () => {
             await openDetailModal('shrines', 'full-shrine');
 
             const modalBody = document.getElementById('modalBody');
-            
+
             expect(modalBody?.innerHTML).toContain('🏛️');
             expect(modalBody?.innerHTML).toContain('blessing');
             expect(modalBody?.innerHTML).toContain('One-time');
@@ -554,15 +566,17 @@ describe('Modal Module - Extended Coverage', () => {
         });
 
         it('should render reusable badge', async () => {
-            (allData as any).shrines.shrines = [{
-                id: 'reusable-shrine',
-                name: 'Reusable Shrine',
-                icon: '⛩️',
-                type: 'heal',
-                reusable: true,
-                description: 'Can be used multiple times',
-                reward: 'Heal 20 HP',
-            }];
+            (allData as any).shrines.shrines = [
+                {
+                    id: 'reusable-shrine',
+                    name: 'Reusable Shrine',
+                    icon: '⛩️',
+                    type: 'heal',
+                    reusable: true,
+                    description: 'Can be used multiple times',
+                    reward: 'Heal 20 HP',
+                },
+            ];
 
             await openDetailModal('shrines', 'reusable-shrine');
 
@@ -571,14 +585,16 @@ describe('Modal Module - Extended Coverage', () => {
         });
 
         it('should render shrine without optional fields', async () => {
-            (allData as any).shrines.shrines = [{
-                id: 'minimal-shrine',
-                name: 'Minimal Shrine',
-                icon: '?',
-                type: 'unknown',
-                description: 'Basic shrine',
-                reward: 'Something',
-            }];
+            (allData as any).shrines.shrines = [
+                {
+                    id: 'minimal-shrine',
+                    name: 'Minimal Shrine',
+                    icon: '?',
+                    type: 'unknown',
+                    description: 'Basic shrine',
+                    reward: 'Something',
+                },
+            ];
 
             await openDetailModal('shrines', 'minimal-shrine');
 
@@ -587,14 +603,16 @@ describe('Modal Module - Extended Coverage', () => {
         });
 
         it('should handle undefined reusable', async () => {
-            (allData as any).shrines.shrines = [{
-                id: 'undef-reusable',
-                name: 'Undefined Reusable',
-                icon: '!',
-                type: 'mystery',
-                description: 'Unknown reusability',
-                reward: 'Unknown',
-            }];
+            (allData as any).shrines.shrines = [
+                {
+                    id: 'undef-reusable',
+                    name: 'Undefined Reusable',
+                    icon: '!',
+                    type: 'mystery',
+                    description: 'Unknown reusability',
+                    reward: 'Unknown',
+                },
+            ];
 
             await openDetailModal('shrines', 'undef-reusable');
 
@@ -610,32 +628,34 @@ describe('Modal Module - Extended Coverage', () => {
     // ========================================
     describe('Character Modal - Full Rendering', () => {
         beforeEach(() => {
-            (allData as any).characters.characters = [{
-                id: 'full-char',
-                name: 'Full Character',
-                tier: 'S',
-                playstyle: 'Tank',
-                passive_ability: 'Iron Skin',
-                passive_description: 'Takes 50% less damage',
-                starting_weapon: 'Big Shield',
-                base_hp: 150,
-                base_damage: 8,
-                unlock_requirement: 'Reach wave 50',
-                best_for: ['Long runs', 'New players'],
-                strengths: ['Very tanky', 'Easy to play'],
-                weaknesses: ['Low damage', 'Slow movement'],
-                synergies_weapons: ['Tank Weapon', 'Shield'],
-                synergies_items: ['HP Item', 'Armor'],
-                synergies_tomes: ['HP Tome', 'Defense Tome'],
-                build_tips: 'Focus on survivability',
-            }];
+            (allData as any).characters.characters = [
+                {
+                    id: 'full-char',
+                    name: 'Full Character',
+                    tier: 'S',
+                    playstyle: 'Tank',
+                    passive_ability: 'Iron Skin',
+                    passive_description: 'Takes 50% less damage',
+                    starting_weapon: 'Big Shield',
+                    base_hp: 150,
+                    base_damage: 8,
+                    unlock_requirement: 'Reach wave 50',
+                    best_for: ['Long runs', 'New players'],
+                    strengths: ['Very tanky', 'Easy to play'],
+                    weaknesses: ['Low damage', 'Slow movement'],
+                    synergies_weapons: ['Tank Weapon', 'Shield'],
+                    synergies_items: ['HP Item', 'Armor'],
+                    synergies_tomes: ['HP Tome', 'Defense Tome'],
+                    build_tips: 'Focus on survivability',
+                },
+            ];
         });
 
         it('should render character with all sections', async () => {
             await openDetailModal('characters', 'full-char');
 
             const modalBody = document.getElementById('modalBody');
-            
+
             expect(modalBody?.innerHTML).toContain('Full Character');
             expect(modalBody?.innerHTML).toContain('Tank');
             expect(modalBody?.innerHTML).toContain('Iron Skin');
@@ -653,17 +673,19 @@ describe('Modal Module - Extended Coverage', () => {
         });
 
         it('should render character without optional fields', async () => {
-            (allData as any).characters.characters = [{
-                id: 'minimal-char',
-                name: 'Minimal Character',
-                tier: 'C',
-                playstyle: 'Basic',
-                passive_ability: 'None',
-                passive_description: 'No passive',
-                starting_weapon: 'Fists',
-                base_hp: 100,
-                base_damage: 10,
-            }];
+            (allData as any).characters.characters = [
+                {
+                    id: 'minimal-char',
+                    name: 'Minimal Character',
+                    tier: 'C',
+                    playstyle: 'Basic',
+                    passive_ability: 'None',
+                    passive_description: 'No passive',
+                    starting_weapon: 'Fists',
+                    base_hp: 100,
+                    base_damage: 10,
+                },
+            ];
 
             await openDetailModal('characters', 'minimal-char');
 
@@ -677,17 +699,19 @@ describe('Modal Module - Extended Coverage', () => {
     // ========================================
     describe('Tome Modal - Async Rendering', () => {
         beforeEach(() => {
-            (allData as any).tomes.tomes = [{
-                id: 'full-tome',
-                name: 'Full Tome',
-                tier: 'S',
-                stat_affected: 'Damage',
-                value_per_level: '2%',
-                description: 'A powerful damage tome',
-                notes: 'Stacks multiplicatively',
-                recommended_for: ['Damage builds', 'Glass cannons'],
-                priority: 8,
-            }];
+            (allData as any).tomes.tomes = [
+                {
+                    id: 'full-tome',
+                    name: 'Full Tome',
+                    tier: 'S',
+                    stat_affected: 'Damage',
+                    value_per_level: '2%',
+                    description: 'A powerful damage tome',
+                    notes: 'Stacks multiplicatively',
+                    recommended_for: ['Damage builds', 'Glass cannons'],
+                    priority: 8,
+                },
+            ];
         });
 
         it('should render tome with notes', async () => {
@@ -698,16 +722,18 @@ describe('Modal Module - Extended Coverage', () => {
         });
 
         it('should render tome recommended_for as string', async () => {
-            (allData as any).tomes.tomes = [{
-                id: 'string-recommended',
-                name: 'String Recommended Tome',
-                tier: 'A',
-                stat_affected: 'HP',
-                value_per_level: '1%',
-                description: 'Test tome',
-                recommended_for: 'All builds',
-                priority: 5,
-            }];
+            (allData as any).tomes.tomes = [
+                {
+                    id: 'string-recommended',
+                    name: 'String Recommended Tome',
+                    tier: 'A',
+                    stat_affected: 'HP',
+                    value_per_level: '1%',
+                    description: 'Test tome',
+                    recommended_for: 'All builds',
+                    priority: 5,
+                },
+            ];
 
             await openDetailModal('tomes', 'string-recommended');
 
@@ -716,15 +742,17 @@ describe('Modal Module - Extended Coverage', () => {
         });
 
         it('should render tome without recommended_for', async () => {
-            (allData as any).tomes.tomes = [{
-                id: 'no-recommended',
-                name: 'No Recommended Tome',
-                tier: 'B',
-                stat_affected: 'Speed',
-                value_per_level: '0.5%',
-                description: 'Basic tome',
-                priority: 3,
-            }];
+            (allData as any).tomes.tomes = [
+                {
+                    id: 'no-recommended',
+                    name: 'No Recommended Tome',
+                    tier: 'B',
+                    stat_affected: 'Speed',
+                    value_per_level: '0.5%',
+                    description: 'Basic tome',
+                    priority: 3,
+                },
+            ];
 
             await openDetailModal('tomes', 'no-recommended');
 
@@ -738,16 +766,18 @@ describe('Modal Module - Extended Coverage', () => {
     // ========================================
     describe('Item Modal - Edge Cases', () => {
         it('should render item with stack_cap instead of max_stacks', async () => {
-            (allData as any).items.items = [{
-                id: 'stack-cap-item',
-                name: 'Stack Cap Item',
-                tier: 'A',
-                rarity: 'rare',
-                base_effect: 'Effect',
-                detailed_description: 'Has stack cap',
-                formula: 'f',
-                stack_cap: 50,
-            }];
+            (allData as any).items.items = [
+                {
+                    id: 'stack-cap-item',
+                    name: 'Stack Cap Item',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'Effect',
+                    detailed_description: 'Has stack cap',
+                    formula: 'f',
+                    stack_cap: 50,
+                },
+            ];
 
             await openDetailModal('items', 'stack-cap-item');
 
@@ -757,16 +787,18 @@ describe('Modal Module - Extended Coverage', () => {
         });
 
         it('should not show stack info for high stack_cap', async () => {
-            (allData as any).items.items = [{
-                id: 'high-stack-cap',
-                name: 'High Stack Cap',
-                tier: 'A',
-                rarity: 'rare',
-                base_effect: 'Effect',
-                detailed_description: 'Very high cap',
-                formula: 'f',
-                stack_cap: 200,
-            }];
+            (allData as any).items.items = [
+                {
+                    id: 'high-stack-cap',
+                    name: 'High Stack Cap',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'Effect',
+                    detailed_description: 'Very high cap',
+                    formula: 'f',
+                    stack_cap: 200,
+                },
+            ];
 
             await openDetailModal('items', 'high-stack-cap');
 
@@ -777,16 +809,18 @@ describe('Modal Module - Extended Coverage', () => {
         it('should render item with empty scaling_tracks', async () => {
             vi.useFakeTimers();
 
-            (allData as any).items.items = [{
-                id: 'empty-tracks',
-                name: 'Empty Tracks Item',
-                tier: 'A',
-                rarity: 'rare',
-                base_effect: 'Effect',
-                detailed_description: 'Empty tracks',
-                formula: 'f',
-                scaling_tracks: {},
-            }];
+            (allData as any).items.items = [
+                {
+                    id: 'empty-tracks',
+                    name: 'Empty Tracks Item',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'Effect',
+                    detailed_description: 'Empty tracks',
+                    formula: 'f',
+                    scaling_tracks: {},
+                },
+            ];
 
             await openDetailModal('items', 'empty-tracks');
             vi.runAllTimers();
@@ -846,16 +880,18 @@ describe('Modal Module - Extended Coverage', () => {
         it('should not create chart after modal is closed', async () => {
             vi.useFakeTimers();
 
-            (allData as any).items.items = [{
-                id: 'quick-close',
-                name: 'Quick Close Item',
-                tier: 'A',
-                rarity: 'rare',
-                base_effect: 'e',
-                detailed_description: 'd',
-                formula: 'f',
-                scaling_per_stack: [1, 2, 3],
-            }];
+            (allData as any).items.items = [
+                {
+                    id: 'quick-close',
+                    name: 'Quick Close Item',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'e',
+                    detailed_description: 'd',
+                    formula: 'f',
+                    scaling_per_stack: [1, 2, 3],
+                },
+            ];
 
             const { createScalingChart } = await import('../../src/modules/charts.ts');
             vi.mocked(createScalingChart).mockClear();
@@ -927,15 +963,17 @@ describe('Modal Module - Extended Coverage', () => {
         it('should add modal-open class on body when modal opens', async () => {
             vi.useFakeTimers();
 
-            (allData as any).items.items = [{
-                id: 'scroll-item',
-                name: 'Scroll Test',
-                tier: 'A',
-                rarity: 'rare',
-                base_effect: 'e',
-                detailed_description: 'd',
-                formula: 'f',
-            }];
+            (allData as any).items.items = [
+                {
+                    id: 'scroll-item',
+                    name: 'Scroll Test',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'e',
+                    detailed_description: 'd',
+                    formula: 'f',
+                },
+            ];
 
             await openDetailModal('items', 'scroll-item');
             vi.runAllTimers();
@@ -948,15 +986,17 @@ describe('Modal Module - Extended Coverage', () => {
         it('should remove modal-open class when modal closes', async () => {
             vi.useFakeTimers();
 
-            (allData as any).items.items = [{
-                id: 'scroll-close-item',
-                name: 'Scroll Close Test',
-                tier: 'A',
-                rarity: 'rare',
-                base_effect: 'e',
-                detailed_description: 'd',
-                formula: 'f',
-            }];
+            (allData as any).items.items = [
+                {
+                    id: 'scroll-close-item',
+                    name: 'Scroll Close Test',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'e',
+                    detailed_description: 'd',
+                    formula: 'f',
+                },
+            ];
 
             await openDetailModal('items', 'scroll-close-item');
             vi.runAllTimers();

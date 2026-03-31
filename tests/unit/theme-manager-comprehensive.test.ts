@@ -296,9 +296,7 @@ describe('ThemeManager', () => {
             themeManager.init();
 
             // Get the change handler that was registered
-            const changeHandler = addEventListenerMock.mock.calls.find(
-                (call: any[]) => call[0] === 'change'
-            )?.[1];
+            const changeHandler = addEventListenerMock.mock.calls.find((call: any[]) => call[0] === 'change')?.[1];
 
             if (changeHandler) {
                 // Simulate system theme change

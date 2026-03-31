@@ -17,6 +17,7 @@ const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-scre
 
 // Check if dev server is running before all tests
 let serverAvailable = false;
+
 test.beforeAll(async () => {
     try {
         const response = await fetch('http://localhost:5173', { method: 'HEAD' });
@@ -30,7 +31,7 @@ test.beforeAll(async () => {
 test.describe('CV Debug Overlay Visual Regression', () => {
     // Skip: CV tests are slow and have dedicated workflow - run separately
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
-    
+
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
         await page.waitForLoadState('networkidle');

@@ -130,43 +130,61 @@ describe('isEmptyCell', () => {
     const emptyCases = [
         { name: 'solid dark background', factory: () => image.solid(45, 45, 30, 30, 30) },
         { name: 'uniform gray', factory: () => image.solid(45, 45, 128, 128, 128) },
-        { name: 'subtle texture', factory: () => image.create(45, 45, (x, y) => {
-            const noise = ((x * 7 + y * 11) % 10) - 5;
-            return [128 + noise, 128 + noise, 128 + noise];
-        })},
+        {
+            name: 'subtle texture',
+            factory: () =>
+                image.create(45, 45, (x, y) => {
+                    const noise = ((x * 7 + y * 11) % 10) - 5;
+                    return [128 + noise, 128 + noise, 128 + noise];
+                }),
+        },
     ];
 
     const nonEmptyCases = [
         // Colorful centered pattern with pure saturated colors (rainbow)
-        { name: 'gradient', factory: () => image.create(45, 45, (x, y) => {
-            const cx = 22, cy = 22;
-            const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-            if (dist < 16) {
-                // Pure saturated colors based on angle (rainbow effect)
-                const angle = Math.atan2(y - cy, x - cx);
-                const sector = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * 6);
-                const colors: [number, number, number][] = [
-                    [255, 0, 0], [255, 255, 0], [0, 255, 0],
-                    [0, 255, 255], [0, 0, 255], [255, 0, 255]
-                ];
-                return colors[sector % 6];
-            }
-            // Uniform dark edges
-            return [40, 40, 45];
-        })},
+        {
+            name: 'gradient',
+            factory: () =>
+                image.create(45, 45, (x, y) => {
+                    const cx = 22,
+                        cy = 22;
+                    const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+                    if (dist < 16) {
+                        // Pure saturated colors based on angle (rainbow effect)
+                        const angle = Math.atan2(y - cy, x - cx);
+                        const sector = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * 6);
+                        const colors: [number, number, number][] = [
+                            [255, 0, 0],
+                            [255, 255, 0],
+                            [0, 255, 0],
+                            [0, 255, 255],
+                            [0, 0, 255],
+                            [255, 0, 255],
+                        ];
+                        return colors[sector % 6];
+                    }
+                    // Uniform dark edges
+                    return [40, 40, 45];
+                }),
+        },
         // Multi-colored icon with distinct center and uniform edges (high saturation)
-        { name: 'icon with center', factory: () => image.create(45, 45, (x, y) => {
-            const cx = 22, cy = 22;
-            const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-            if (dist < 14) {
-                // Vibrant colorful center - blue/cyan on one side, red/magenta on other
-                const angle = Math.atan2(y - cy, x - cx);
-                if (angle < 0) return [255, 0, 100]; // Magenta
-                return [0, 200, 255]; // Cyan
-            }
-            // Uniform edges
-            return [50, 50, 55];
-        })},
+        {
+            name: 'icon with center',
+            factory: () =>
+                image.create(45, 45, (x, y) => {
+                    const cx = 22,
+                        cy = 22;
+                    const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
+                    if (dist < 14) {
+                        // Vibrant colorful center - blue/cyan on one side, red/magenta on other
+                        const angle = Math.atan2(y - cy, x - cx);
+                        if (angle < 0) return [255, 0, 100]; // Magenta
+                        return [0, 200, 255]; // Cyan
+                    }
+                    // Uniform edges
+                    return [50, 50, 55];
+                }),
+        },
     ];
 
     test.each(emptyCases)('detects $name as empty', ({ factory }) => {
@@ -197,7 +215,8 @@ describe('extractBorderPixels', () => {
         const borderPixels = extractBorderPixels(imageData, 3);
 
         // Calculate average - should be reddish
-        let sumR = 0, sumG = 0;
+        let sumR = 0,
+            sumG = 0;
         for (let i = 0; i < borderPixels.length; i += 3) {
             sumR += borderPixels[i];
             sumG += borderPixels[i + 1];
@@ -293,15 +312,20 @@ describe('Color Detection Integration', () => {
         const emptySlot = image.solid(45, 45, 30, 30, 30);
         // Create a realistic item icon with vibrant colorful center (rainbow sectors)
         const itemSlot = image.create(45, 45, (x, y) => {
-            const cx = 22, cy = 22;
+            const cx = 22,
+                cy = 22;
             const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
             if (dist < 14) {
                 // Pure saturated colors based on angle (rainbow effect)
                 const angle = Math.atan2(y - cy, x - cx);
                 const sector = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * 6);
                 const colors: [number, number, number][] = [
-                    [255, 0, 0], [255, 255, 0], [0, 255, 0],
-                    [0, 255, 255], [0, 0, 255], [255, 0, 255]
+                    [255, 0, 0],
+                    [255, 255, 0],
+                    [0, 255, 0],
+                    [0, 255, 255],
+                    [0, 0, 255],
+                    [255, 0, 255],
                 ];
                 return colors[sector % 6];
             }
@@ -444,23 +468,48 @@ describe('getDetailedColorCategory', () => {
 
 describe('matchColorCategories', () => {
     it('returns 1.0 for identical categories', () => {
-        const cat1 = { primary: 'red', secondary: 'orange', saturation: 'high' as const, brightness: 'medium' as const };
-        const cat2 = { primary: 'red', secondary: 'orange', saturation: 'high' as const, brightness: 'medium' as const };
+        const cat1 = {
+            primary: 'red',
+            secondary: 'orange',
+            saturation: 'high' as const,
+            brightness: 'medium' as const,
+        };
+        const cat2 = {
+            primary: 'red',
+            secondary: 'orange',
+            saturation: 'high' as const,
+            brightness: 'medium' as const,
+        };
 
         const score = matchColorCategories(cat1, cat2);
         expect(score).toBe(1.0);
     });
 
     it('returns 0.5+ for same primary only', () => {
-        const cat1 = { primary: 'red', secondary: 'orange', saturation: 'high' as const, brightness: 'bright' as const };
-        const cat2 = { primary: 'red', secondary: 'dark_red', saturation: 'medium' as const, brightness: 'dark' as const };
+        const cat1 = {
+            primary: 'red',
+            secondary: 'orange',
+            saturation: 'high' as const,
+            brightness: 'bright' as const,
+        };
+        const cat2 = {
+            primary: 'red',
+            secondary: 'dark_red',
+            saturation: 'medium' as const,
+            brightness: 'dark' as const,
+        };
 
         const score = matchColorCategories(cat1, cat2);
         expect(score).toBeGreaterThanOrEqual(0.5);
     });
 
     it('returns 0 for completely different categories', () => {
-        const cat1 = { primary: 'red', secondary: 'orange', saturation: 'high' as const, brightness: 'bright' as const };
+        const cat1 = {
+            primary: 'red',
+            secondary: 'orange',
+            saturation: 'high' as const,
+            brightness: 'bright' as const,
+        };
         const cat2 = { primary: 'blue', secondary: 'navy', saturation: 'low' as const, brightness: 'dark' as const };
 
         const score = matchColorCategories(cat1, cat2);
@@ -468,8 +517,18 @@ describe('matchColorCategories', () => {
     });
 
     it('gives partial credit for adjacent saturation levels', () => {
-        const cat1 = { primary: 'green', secondary: 'lime', saturation: 'medium' as const, brightness: 'medium' as const };
-        const cat2 = { primary: 'green', secondary: 'lime', saturation: 'high' as const, brightness: 'medium' as const };
+        const cat1 = {
+            primary: 'green',
+            secondary: 'lime',
+            saturation: 'medium' as const,
+            brightness: 'medium' as const,
+        };
+        const cat2 = {
+            primary: 'green',
+            secondary: 'lime',
+            saturation: 'high' as const,
+            brightness: 'medium' as const,
+        };
 
         const score = matchColorCategories(cat1, cat2);
         // Should get partial saturation credit

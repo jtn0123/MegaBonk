@@ -22,8 +22,8 @@ function detectGridPositions(width, height) {
 
     const rowYPositions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
-        if (y >= height * 0.70) rowYPositions.push(y);
+        const y = height - bottomMargin - row * rowHeight - iconSize;
+        if (y >= height * 0.7) rowYPositions.push(y);
     }
 
     const sideMargin = Math.round(width * 0.15);
@@ -34,7 +34,14 @@ function detectGridPositions(width, height) {
 
     for (const rowY of rowYPositions) {
         for (let i = 0; i < maxItemsPerRow; i++) {
-            positions.push({ x: startX + i * cellWidth, y: rowY, width: iconSize, height: iconSize, row: rowYPositions.indexOf(rowY), col: i });
+            positions.push({
+                x: startX + i * cellWidth,
+                y: rowY,
+                width: iconSize,
+                height: iconSize,
+                row: rowYPositions.indexOf(rowY),
+                col: i,
+            });
         }
     }
     return positions;
@@ -42,27 +49,33 @@ function detectGridPositions(width, height) {
 
 // Analyze cell quality
 function analyzeCell(imageData) {
-    const w = imageData.width, h = imageData.height;
-    let sum = 0, sumSq = 0, count = 0;
+    const w = imageData.width,
+        h = imageData.height;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
 
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
 
     // Calculate edge content (good templates have clear edges)
-    let edgeSum = 0, edgeCount = 0;
+    let edgeSum = 0,
+        edgeCount = 0;
     const gray = new Float32Array(w * h);
     for (let i = 0; i < w * h; i++) {
-        gray[i] = (imageData.data[i*4] + imageData.data[i*4+1] + imageData.data[i*4+2]) / 3;
+        gray[i] = (imageData.data[i * 4] + imageData.data[i * 4 + 1] + imageData.data[i * 4 + 2]) / 3;
     }
 
     for (let y = 1; y < h - 1; y++) {
         for (let x = 1; x < w - 1; x++) {
-            const gx = Math.abs(gray[y*w + x+1] - gray[y*w + x-1]);
-            const gy = Math.abs(gray[(y+1)*w + x] - gray[(y-1)*w + x]);
+            const gx = Math.abs(gray[y * w + x + 1] - gray[y * w + x - 1]);
+            const gy = Math.abs(gray[(y + 1) * w + x] - gray[(y - 1) * w + x]);
             edgeSum += gx + gy;
             edgeCount++;
         }
@@ -72,12 +85,16 @@ function analyzeCell(imageData) {
 
     // Center variance (good items have content in center)
     const margin = Math.round(w * 0.2);
-    let centerSum = 0, centerSumSq = 0, centerCount = 0;
+    let centerSum = 0,
+        centerSumSq = 0,
+        centerCount = 0;
     for (let y = margin; y < h - margin; y++) {
         for (let x = margin; x < w - margin; x++) {
             const i = (y * w + x) * 4;
-            const g = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-            centerSum += g; centerSumSq += g * g; centerCount++;
+            const g = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+            centerSum += g;
+            centerSumSq += g * g;
+            centerCount++;
         }
     }
     const centerMean = centerSum / centerCount;
@@ -90,7 +107,7 @@ function analyzeCell(imageData) {
         centerVariance,
         centerMean,
         isEmpty: variance < 350 || mean < 30,
-        quality: calculateQualityScore(variance, centerVariance, edgeDensity, mean)
+        quality: calculateQualityScore(variance, centerVariance, edgeDensity, mean),
     };
 }
 
@@ -119,17 +136,28 @@ function calculateQualityScore(variance, centerVariance, edgeDensity, mean) {
 
 // NCC matching against wiki templates
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 async function loadWikiTemplates() {
@@ -146,10 +174,10 @@ async function loadWikiTemplates() {
             const canvas = createCanvas(32, 32);
             const ctx = canvas.getContext('2d');
             const margin = Math.round(img.width * 0.1);
-            ctx.drawImage(img, margin, margin, img.width - margin*2, img.height - margin*2, 0, 0, 32, 32);
+            ctx.drawImage(img, margin, margin, img.width - margin * 2, img.height - margin * 2, 0, 0, 32, 32);
             templates.set(item.id, {
                 name: item.name,
-                imageData: ctx.getImageData(0, 0, 32, 32)
+                imageData: ctx.getImageData(0, 0, 32, 32),
             });
         } catch {}
     }
@@ -158,7 +186,10 @@ async function loadWikiTemplates() {
 }
 
 function normalizeItemId(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
 }
 
 async function main() {
@@ -211,8 +242,17 @@ async function main() {
             const srcCanvas = createCanvas(pos.width, pos.height);
             srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.12);
-            resizeCtx.drawImage(srcCanvas, margin, margin,
-                pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
             // Match against wiki templates
@@ -244,7 +284,7 @@ async function main() {
                         quality: stats.quality,
                         wikiMatch: bestScore,
                         stats,
-                        resizedData: resizedCell
+                        resizedData: resizedCell,
                     });
 
                     extractedCount++;
@@ -273,17 +313,16 @@ async function main() {
         const best = itemCandidates[0];
         const wikiTemplate = wikiTemplates.get(itemId);
 
-        console.log(`| ${(wikiTemplate?.name || itemId).padEnd(20)} | ${String(itemCandidates.length).padStart(10)} | ${(best.quality * 100).toFixed(0).padStart(11)}% | ${(best.wikiMatch * 100).toFixed(0).padStart(14)}% |`);
+        console.log(
+            `| ${(wikiTemplate?.name || itemId).padEnd(20)} | ${String(itemCandidates.length).padStart(10)} | ${(best.quality * 100).toFixed(0).padStart(11)}% | ${(best.wikiMatch * 100).toFixed(0).padStart(14)}% |`
+        );
 
         // Save best candidate as template
         const canvas = createCanvas(32, 32);
         const ctx = canvas.getContext('2d');
         ctx.putImageData(best.resizedData, 0, 0);
 
-        fs.writeFileSync(
-            path.join(TEMPLATE_DIR, `${itemId}.png`),
-            canvas.toBuffer('image/png')
-        );
+        fs.writeFileSync(path.join(TEMPLATE_DIR, `${itemId}.png`), canvas.toBuffer('image/png'));
 
         selectedTemplates.push({
             id: itemId,
@@ -291,7 +330,7 @@ async function main() {
             candidateCount: itemCandidates.length,
             bestQuality: best.quality,
             bestWikiMatch: best.wikiMatch,
-            source: best.source
+            source: best.source,
         });
     }
 
@@ -332,13 +371,17 @@ async function main() {
     </div>
     <h2>Templates for Verification</h2>
     <p>Review these templates and delete any incorrect ones.</p>
-    ${selectedTemplates.map(t => `
+    ${selectedTemplates
+        .map(
+            t => `
     <div class="template">
         <img src="../extracted-templates/${t.id}.png" alt="${t.name}">
         <div class="name">${t.name}</div>
-        <div class="score">Q:${(t.bestQuality*100).toFixed(0)}% W:${(t.bestWikiMatch*100).toFixed(0)}%</div>
+        <div class="score">Q:${(t.bestQuality * 100).toFixed(0)}% W:${(t.bestWikiMatch * 100).toFixed(0)}%</div>
     </div>
-    `).join('')}
+    `
+        )
+        .join('')}
 </body>
 </html>`;
 
@@ -347,15 +390,19 @@ async function main() {
     // Save metadata
     fs.writeFileSync(
         path.join(OUTPUT_DIR, 'extraction-results.json'),
-        JSON.stringify({
-            summary: {
-                totalTemplates: selectedTemplates.length,
-                totalCandidates: [...candidates.values()].reduce((s, c) => s + c.length, 0),
-                avgQuality,
-                avgWikiMatch
+        JSON.stringify(
+            {
+                summary: {
+                    totalTemplates: selectedTemplates.length,
+                    totalCandidates: [...candidates.values()].reduce((s, c) => s + c.length, 0),
+                    avgQuality,
+                    avgWikiMatch,
+                },
+                templates: selectedTemplates,
             },
-            templates: selectedTemplates
-        }, null, 2)
+            null,
+            2
+        )
     );
 
     console.log(`\nTemplates saved to: ${TEMPLATE_DIR}/`);

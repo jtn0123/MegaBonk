@@ -370,7 +370,8 @@ describe('renderers/shrines.ts', () => {
         it('should handle shrines with complex descriptions', () => {
             const complexShrine = {
                 ...mockShrine,
-                description: 'Risk vs Reward: Take 20% max HP damage but gain permanent +15% damage boost. Effect stacks up to 3 times.',
+                description:
+                    'Risk vs Reward: Take 20% max HP damage but gain permanent +15% damage boost. Effect stacks up to 3 times.',
             };
             renderShrines([complexShrine] as any);
 

@@ -25,23 +25,23 @@ test.describe('Changelog Tab - Basic UI', () => {
     test('changelog has entries', async ({ page }) => {
         const container = page.locator('#changelogContainer');
         const content = await container.textContent();
-        
+
         // Should have some changelog content
         expect(content?.length).toBeGreaterThan(50);
     });
 
     test('changelog container has feed role for accessibility', async ({ page }) => {
         const container = page.locator('#changelogContainer');
-        const role = await container.getAttribute('role');
-        
-        expect(role).toBe('feed');
+        const role = container;
+
+        await expect(role).toHaveAttribute('role', 'feed');
     });
 
     test('changelog has aria-label', async ({ page }) => {
         const container = page.locator('#changelogContainer');
-        const ariaLabel = await container.getAttribute('aria-label');
-        
-        expect(ariaLabel).toBeTruthy();
+        const ariaLabel = container;
+
+        await expect(ariaLabel).toHaveAttribute('aria-label');
     });
 });
 
@@ -56,36 +56,40 @@ test.describe('Changelog Tab - Content', () => {
     test('changelog entries have version numbers', async ({ page }) => {
         const container = page.locator('#changelogContainer');
         const content = await container.textContent();
-        
+
         // Should contain version-like text
-        const hasVersion = content?.match(/v?\d+\.\d+/i) !== null ||
-                          content?.toLowerCase().includes('version') ||
-                          content?.toLowerCase().includes('update');
+        const hasVersion =
+            content?.match(/v?\d+\.\d+/i) !== null ||
+            content?.toLowerCase().includes('version') ||
+            content?.toLowerCase().includes('update');
         expect(hasVersion).toBe(true);
     });
 
     test('changelog entries have dates', async ({ page }) => {
         const container = page.locator('#changelogContainer');
         const content = await container.textContent();
-        
+
         // Should contain date-like text
-        const hasDate = content?.match(/\d{4}[-\/]\d{2}[-\/]\d{2}/) !== null ||
-                       content?.match(/\w+\s+\d+,?\s+\d{4}/) !== null ||
-                       content?.toLowerCase().includes('patch');
+        const hasDate =
+            content?.match(/\d{4}[-\/]\d{2}[-\/]\d{2}/) !== null ||
+            content?.match(/\w+\s+\d+,?\s+\d{4}/) !== null ||
+            content?.toLowerCase().includes('patch');
         // Dates may be formatted differently, just check content exists
         expect(content?.length).toBeGreaterThan(100);
     });
 
     test('changelog is scrollable when content overflows', async ({ page }) => {
         const container = page.locator('#changelogContainer');
-        
+
         // Check if scrollable
         const isScrollable = await container.evaluate(el => {
-            return el.scrollHeight > el.clientHeight || 
-                   getComputedStyle(el).overflowY === 'auto' ||
-                   getComputedStyle(el).overflowY === 'scroll';
+            return (
+                el.scrollHeight > el.clientHeight ||
+                getComputedStyle(el).overflowY === 'auto' ||
+                getComputedStyle(el).overflowY === 'scroll'
+            );
         });
-        
+
         // Container should either be scrollable or have minimal overflow
         expect(typeof isScrollable).toBe('boolean');
     });
@@ -98,7 +102,9 @@ test.describe('Changelog Tab - Navigation', () => {
         await page.waitForTimeout(500);
 
         // Check if changelog tab is active - may depend on URL param support
-        const changelogActive = await page.locator('.tab-btn[data-tab="changelog"]').evaluate(el => el.classList.contains('active'));
+        const changelogActive = await page
+            .locator('.tab-btn[data-tab="changelog"]')
+            .evaluate(el => el.classList.contains('active'));
         if (changelogActive) {
             await expect(page.locator('.tab-btn[data-tab="changelog"]')).toHaveClass(/active/);
         } else {

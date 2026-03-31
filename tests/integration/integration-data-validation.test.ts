@@ -346,17 +346,7 @@ describe('Integration - Cross-Reference Validation', () => {
     });
 
     it('should validate tome stat_affected is valid stat', () => {
-        const validStats = [
-            'damage',
-            'hp',
-            'health',
-            'crit',
-            'critical',
-            'attack speed',
-            'speed',
-            'armor',
-            'evasion',
-        ];
+        const validStats = ['damage', 'hp', 'health', 'crit', 'critical', 'attack speed', 'speed', 'armor', 'evasion'];
 
         const tome: Tome = {
             id: 'damage_tome',

@@ -195,7 +195,9 @@ function countRarityBorderPixels(imageData: any): {
  */
 function calculateColorVariance(imageData: any): number {
     const pixels = imageData.data;
-    let sumR = 0, sumG = 0, sumB = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
     let count = 0;
 
     for (let i = 0; i < pixels.length; i += 16) {
@@ -252,35 +254,35 @@ const DEFAULT_TEMPLATE_SIZE = 64;
  * Each toggle allows testing impact of individual pipeline stages.
  */
 interface PipelineConfig {
-    name: string;                         // Config name for reporting
+    name: string; // Config name for reporting
 
     // Template matching options
-    useMultiScale: boolean;               // Use multiple template scales [48, 64] vs just 64
+    useMultiScale: boolean; // Use multiple template scales [48, 64] vs just 64
 
     // Preprocessing options
-    useContrastEnhancement: boolean;      // Apply contrast enhancement
-    useColorNormalization: boolean;       // Apply color normalization
-    useSharpening: boolean;               // Apply image sharpening
-    useHistogramEqualization: boolean;    // Apply adaptive histogram equalization
+    useContrastEnhancement: boolean; // Apply contrast enhancement
+    useColorNormalization: boolean; // Apply color normalization
+    useSharpening: boolean; // Apply image sharpening
+    useHistogramEqualization: boolean; // Apply adaptive histogram equalization
 
     // Grid detection options
-    useDynamicGrid: boolean;              // Use dynamic grid detection vs static fallback
-    useResolutionAwareParams: boolean;    // Use resolution-specific grid parameters
+    useDynamicGrid: boolean; // Use dynamic grid detection vs static fallback
+    useResolutionAwareParams: boolean; // Use resolution-specific grid parameters
 
     // Filtering options
-    useRarityFiltering: boolean;          // Filter templates by detected rarity
-    useEmptyCellFilter: boolean;          // Skip empty cells
+    useRarityFiltering: boolean; // Filter templates by detected rarity
+    useEmptyCellFilter: boolean; // Skip empty cells
 
     // Similarity metrics (at least one must be true)
     metrics: {
-        ssim: boolean;                    // Structural similarity
-        ncc: boolean;                     // Normalized cross-correlation
-        histogram: boolean;               // Color histogram comparison
-        edge: boolean;                    // Edge-based similarity
+        ssim: boolean; // Structural similarity
+        ncc: boolean; // Normalized cross-correlation
+        histogram: boolean; // Color histogram comparison
+        edge: boolean; // Edge-based similarity
     };
 
     // Score combination
-    useAgreementBonus: boolean;           // Add bonus when metrics agree
+    useAgreementBonus: boolean; // Add bonus when metrics agree
 }
 
 /**
@@ -552,8 +554,8 @@ interface RunnerConfig {
     parallel: boolean;
     verbose: boolean;
     // Ablation testing options
-    ablationMode: boolean;              // Run ablation tests instead of strategy tests
-    ablationQuick: boolean;             // Use quick subset of ablation configs
+    ablationMode: boolean; // Run ablation tests instead of strategy tests
+    ablationQuick: boolean; // Use quick subset of ablation configs
     pipelineConfigs?: PipelineConfig[]; // Custom pipeline configs to test
 }
 
@@ -622,9 +624,10 @@ class OfflineCVRunner {
 
                 // Convert simple string array to structured format
                 const rawItems = data.items || [];
-                const structuredItems = Array.isArray(rawItems) && rawItems.length > 0 && typeof rawItems[0] === 'string'
-                    ? convertItemsArray(rawItems)
-                    : rawItems;
+                const structuredItems =
+                    Array.isArray(rawItems) && rawItems.length > 0 && typeof rawItems[0] === 'string'
+                        ? convertItemsArray(rawItems)
+                        : rawItems;
 
                 return {
                     name: imageName,
@@ -667,7 +670,9 @@ class OfflineCVRunner {
         for (const testCase of this.testCases) {
             const itemCount = testCase.groundTruth.items.reduce((sum, item) => sum + item.count, 0);
             console.log(`\n📋 Test Case: ${testCase.name}`);
-            console.log(`   Resolution: ${testCase.resolution}, Language: ${testCase.language}, Difficulty: ${testCase.difficulty}`);
+            console.log(
+                `   Resolution: ${testCase.resolution}, Language: ${testCase.language}, Difficulty: ${testCase.difficulty}`
+            );
             console.log(`   Ground truth: ${itemCount} items (${testCase.groundTruth.items.length} unique)`);
 
             for (const strategyName of this.config.strategies) {
@@ -687,8 +692,9 @@ class OfflineCVRunner {
      * Run ablation tests - systematically toggle pipeline components
      */
     async runAblationTests(): Promise<void> {
-        const configs = this.config.pipelineConfigs
-            || (this.config.ablationQuick ? generateQuickAblationConfigs() : generateAblationConfigs());
+        const configs =
+            this.config.pipelineConfigs ||
+            (this.config.ablationQuick ? generateQuickAblationConfigs() : generateAblationConfigs());
 
         console.log('🧪 Starting Ablation Test Mode\n');
         console.log(`Test cases: ${this.testCases.length}`);
@@ -738,10 +744,18 @@ class OfflineCVRunner {
         const off = '✗';
 
         console.log(`   Template: multi-scale=${config.useMultiScale ? on : off}`);
-        console.log(`   Preprocess: contrast=${config.useContrastEnhancement ? on : off} normalize=${config.useColorNormalization ? on : off} sharpen=${config.useSharpening ? on : off} histEq=${config.useHistogramEqualization ? on : off}`);
-        console.log(`   Grid: dynamic=${config.useDynamicGrid ? on : off} resAware=${config.useResolutionAwareParams ? on : off}`);
-        console.log(`   Filter: rarity=${config.useRarityFiltering ? on : off} empty=${config.useEmptyCellFilter ? on : off}`);
-        console.log(`   Metrics: ssim=${config.metrics.ssim ? on : off} ncc=${config.metrics.ncc ? on : off} hist=${config.metrics.histogram ? on : off} edge=${config.metrics.edge ? on : off}`);
+        console.log(
+            `   Preprocess: contrast=${config.useContrastEnhancement ? on : off} normalize=${config.useColorNormalization ? on : off} sharpen=${config.useSharpening ? on : off} histEq=${config.useHistogramEqualization ? on : off}`
+        );
+        console.log(
+            `   Grid: dynamic=${config.useDynamicGrid ? on : off} resAware=${config.useResolutionAwareParams ? on : off}`
+        );
+        console.log(
+            `   Filter: rarity=${config.useRarityFiltering ? on : off} empty=${config.useEmptyCellFilter ? on : off}`
+        );
+        console.log(
+            `   Metrics: ssim=${config.metrics.ssim ? on : off} ncc=${config.metrics.ncc ? on : off} hist=${config.metrics.histogram ? on : off} edge=${config.metrics.edge ? on : off}`
+        );
         console.log(`   Bonus: agreement=${config.useAgreementBonus ? on : off}`);
     }
 
@@ -784,12 +798,13 @@ class OfflineCVRunner {
 
             const emoji = passed ? '✅' : '❌';
             const f1Pct = (metrics.f1Score * 100).toFixed(1);
-            console.log(`   ${emoji} F1=${f1Pct}%, P=${(metrics.precision * 100).toFixed(1)}%, R=${(metrics.recall * 100).toFixed(1)}%, Time=${totalTime.toFixed(0)}ms`);
+            console.log(
+                `   ${emoji} F1=${f1Pct}%, P=${(metrics.precision * 100).toFixed(1)}%, R=${(metrics.recall * 100).toFixed(1)}%, Time=${totalTime.toFixed(0)}ms`
+            );
 
             if (this.config.verbose) {
                 this.printDetectionDebug(detections, testCase.groundTruth, metrics);
             }
-
         } catch (error) {
             console.error(`   ❌ Error: ${(error as Error).message}`);
 
@@ -843,7 +858,9 @@ class OfflineCVRunner {
             if (grid && grid.confidence >= 0.4 && grid.columns >= 3) {
                 gridPositions = this.generateGridROIs(grid);
                 if (this.config.verbose) {
-                    console.log(`      Grid detected: ${grid.columns}x${grid.rows}, conf=${(grid.confidence * 100).toFixed(0)}%`);
+                    console.log(
+                        `      Grid detected: ${grid.columns}x${grid.rows}, conf=${(grid.confidence * 100).toFixed(0)}%`
+                    );
                 }
             } else {
                 // Fall back to static
@@ -859,14 +876,12 @@ class OfflineCVRunner {
         }
 
         const detections: Array<{ id: string; name: string; confidence: number }> = [];
-        const CONFIDENCE_THRESHOLD = 0.40;
+        const CONFIDENCE_THRESHOLD = 0.4;
 
         // Process each grid cell
         for (const cell of gridPositions) {
             // Bounds check
-            if (cell.x < 0 || cell.y < 0 ||
-                cell.x + cell.width > width ||
-                cell.y + cell.height > height) {
+            if (cell.x < 0 || cell.y < 0 || cell.x + cell.width > width || cell.y + cell.height > height) {
                 continue;
             }
 
@@ -896,7 +911,10 @@ class OfflineCVRunner {
     /**
      * Basic static grid detection (no resolution-aware params)
      */
-    private detectGridPositionsBasic(width: number, height: number): Array<{ x: number; y: number; width: number; height: number }> {
+    private detectGridPositionsBasic(
+        width: number,
+        height: number
+    ): Array<{ x: number; y: number; width: number; height: number }> {
         const iconSize = 64;
         const spacing = 6;
         const bottomMargin = 30;
@@ -908,7 +926,7 @@ class OfflineCVRunner {
 
         for (let row = 0; row < maxRows; row++) {
             const rowY = height - bottomMargin - iconSize - row * rowHeight;
-            if (rowY < height * 0.70) break;
+            if (rowY < height * 0.7) break;
 
             const usableWidth = width - sideMargin * 2;
             const maxItemsPerRow = Math.min(15, Math.floor(usableWidth / (iconSize + spacing)));
@@ -952,7 +970,7 @@ class OfflineCVRunner {
         let bestMatch: { item: GameItem; confidence: number; rarity?: string } | null = null;
 
         // Prepare cell for matching
-        const margin = Math.round(cellImageData.width * 0.20);
+        const margin = Math.round(cellImageData.width * 0.2);
         const centerWidth = cellImageData.width - margin * 2;
         const centerHeight = cellImageData.height - margin * 2;
 
@@ -968,13 +986,7 @@ class OfflineCVRunner {
         for (const scale of scales) {
             const cellCanvas = createCanvas(scale, scale);
             const cellCtx = cellCanvas.getContext('2d');
-            cellCtx.drawImage(
-                tempCanvas,
-                margin, margin,
-                centerWidth, centerHeight,
-                0, 0,
-                scale, scale
-            );
+            cellCtx.drawImage(tempCanvas, margin, margin, centerWidth, centerHeight, 0, 0, scale, scale);
             cellDataByScale.set(scale, cellCtx.getImageData(0, 0, scale, scale));
         }
 
@@ -998,10 +1010,14 @@ class OfflineCVRunner {
                 const templateCenterCtx = templateCenterCanvas.getContext('2d');
                 templateCenterCtx.drawImage(
                     template.canvas,
-                    tMargin, tMargin,
-                    tCenterSize, tCenterSize,
-                    0, 0,
-                    scale, scale
+                    tMargin,
+                    tMargin,
+                    tCenterSize,
+                    tCenterSize,
+                    0,
+                    0,
+                    scale,
+                    scale
                 );
                 const templateData = templateCenterCtx.getImageData(0, 0, scale, scale);
 
@@ -1019,7 +1035,7 @@ class OfflineCVRunner {
                     bestMatch = {
                         item: template.item,
                         confidence: similarity,
-                        rarity: detectedRarity || undefined
+                        rarity: detectedRarity || undefined,
                     };
                 }
             }
@@ -1062,7 +1078,7 @@ class OfflineCVRunner {
 
         if (config.metrics.ssim) {
             scores.push(this.calculateSSIM(processed1, processed2));
-            weights.push(0.40);
+            weights.push(0.4);
         }
 
         if (config.metrics.ncc) {
@@ -1077,7 +1093,7 @@ class OfflineCVRunner {
 
         if (config.metrics.edge) {
             scores.push(this.calculateEdgeSimilarity(processed1, processed2));
-            weights.push(0.20);
+            weights.push(0.2);
         }
 
         // Calculate weighted score
@@ -1175,7 +1191,8 @@ class OfflineCVRunner {
 
         // Component impact analysis
         report += '### Component Impact Analysis\n\n';
-        report += 'Components sorted by impact when disabled (negative = component helps, positive = component hurts):\n\n';
+        report +=
+            'Components sorted by impact when disabled (negative = component helps, positive = component hurts):\n\n';
 
         const impacts: Array<{ component: string; impact: number }> = [];
 
@@ -1227,11 +1244,18 @@ class OfflineCVRunner {
 
         // Save JSON results
         const jsonPath = path.join(this.config.outputPath, 'ablation-results.json');
-        fs.writeFileSync(jsonPath, JSON.stringify({
-            summary: configStats,
-            impacts,
-            results: this.ablationResults,
-        }, null, 2));
+        fs.writeFileSync(
+            jsonPath,
+            JSON.stringify(
+                {
+                    summary: configStats,
+                    impacts,
+                    results: this.ablationResults,
+                },
+                null,
+                2
+            )
+        );
 
         console.log(`📄 JSON results saved to: ${jsonPath}`);
 
@@ -1299,14 +1323,14 @@ class OfflineCVRunner {
 
             const emoji = passed ? '✅' : '❌';
             const f1Pct = (metrics.f1Score * 100).toFixed(1);
-            console.log(`   ${emoji} ${strategyName}: F1=${f1Pct}%, Time=${totalTime.toFixed(0)}ms, Detections=${detections.length}`);
+            console.log(
+                `   ${emoji} ${strategyName}: F1=${f1Pct}%, Time=${totalTime.toFixed(0)}ms, Detections=${detections.length}`
+            );
 
             // Debug logging when verbose
             if (this.config.verbose) {
                 this.printDetectionDebug(detections, testCase.groundTruth, metrics);
             }
-
-
         } catch (error) {
             console.error(`   ❌ ${strategyName}: Error - ${(error as Error).message}`);
 
@@ -1360,7 +1384,9 @@ class OfflineCVRunner {
             // Use dynamically detected grid
             gridPositions = this.generateGridROIs(grid);
             if (this.config.verbose) {
-                console.log(`   Grid detected: ${grid.columns}x${grid.rows}, confidence: ${(grid.confidence * 100).toFixed(1)}%`);
+                console.log(
+                    `   Grid detected: ${grid.columns}x${grid.rows}, confidence: ${(grid.confidence * 100).toFixed(1)}%`
+                );
             }
         } else {
             // Fall back to static grid detection
@@ -1375,14 +1401,12 @@ class OfflineCVRunner {
         // Note: Offline runner produces lower similarity scores than browser version
         // because it lacks multi-scale templates and training data optimizations.
         // Use 0.40 threshold to improve recall while accepting some false positives.
-        const CONFIDENCE_THRESHOLD = 0.40;
+        const CONFIDENCE_THRESHOLD = 0.4;
 
         // Process each grid cell
         for (const cell of gridPositions) {
             // Bounds check
-            if (cell.x < 0 || cell.y < 0 ||
-                cell.x + cell.width > width ||
-                cell.y + cell.height > height) {
+            if (cell.x < 0 || cell.y < 0 || cell.x + cell.width > width || cell.y + cell.height > height) {
                 continue;
             }
 
@@ -1514,11 +1538,7 @@ class OfflineCVRunner {
     /**
      * Detect vertical edges (icon borders) using rarity colors (ported from real detector)
      */
-    private detectIconEdges(
-        ctx: any,
-        width: number,
-        bandRegion: { topY: number; bottomY: number }
-    ): number[] {
+    private detectIconEdges(ctx: any, width: number, bandRegion: { topY: number; bottomY: number }): number[] {
         const { topY, bottomY } = bandRegion;
         const bandHeight = bottomY - topY;
 
@@ -1717,9 +1737,7 @@ class OfflineCVRunner {
         const rows = Math.max(1, Math.min(3, Math.round(bandHeight / modeSpacing)));
 
         // P3.3: Clamp cell dimensions to reasonable range
-        const clampedCellSize = isReasonableSize
-            ? modeSpacing
-            : Math.max(30, Math.min(100, modeSpacing));
+        const clampedCellSize = isReasonableSize ? modeSpacing : Math.max(30, Math.min(100, modeSpacing));
 
         return {
             startX,
@@ -1735,7 +1753,10 @@ class OfflineCVRunner {
     /**
      * Generate grid cell ROIs from grid parameters
      */
-    private generateGridROIs(grid: GridParameters, maxCells: number = 50): Array<{ x: number; y: number; width: number; height: number }> {
+    private generateGridROIs(
+        grid: GridParameters,
+        maxCells: number = 50
+    ): Array<{ x: number; y: number; width: number; height: number }> {
         const cells: Array<{ x: number; y: number; width: number; height: number }> = [];
 
         for (let row = 0; row < grid.rows && cells.length < maxCells; row++) {
@@ -1793,8 +1814,14 @@ class OfflineCVRunner {
                     // Draw with scaling
                     ctx.drawImage(
                         img,
-                        0, 0, img.width, img.height,  // Source
-                        0, 0, scale, scale  // Dest
+                        0,
+                        0,
+                        img.width,
+                        img.height, // Source
+                        0,
+                        0,
+                        scale,
+                        scale // Dest
                     );
 
                     scaleMap.set(scale, {
@@ -1836,7 +1863,10 @@ class OfflineCVRunner {
      * Resolution-aware grid parameters
      * P3.1: Tuned for specific resolution categories
      */
-    private getGridParamsForResolution(width: number, height: number): {
+    private getGridParamsForResolution(
+        width: number,
+        height: number
+    ): {
         iconSize: number;
         spacing: number;
         bottomMargin: number;
@@ -1875,12 +1905,13 @@ class OfflineCVRunner {
                 sideMargin: width * 0.18,
                 maxRows: 3,
             };
-        } else { // 720p and below
+        } else {
+            // 720p and below
             return {
                 iconSize: 40,
                 spacing: 4,
                 bottomMargin: 20,
-                sideMargin: width * 0.20,
+                sideMargin: width * 0.2,
                 maxRows: 2,
             };
         }
@@ -1890,7 +1921,10 @@ class OfflineCVRunner {
      * Static fallback grid detection when dynamic detection fails
      * P3.1: Uses resolution-aware parameters
      */
-    private detectGridPositionsStatic(width: number, height: number): Array<{ x: number; y: number; width: number; height: number }> {
+    private detectGridPositionsStatic(
+        width: number,
+        height: number
+    ): Array<{ x: number; y: number; width: number; height: number }> {
         const params = this.getGridParamsForResolution(width, height);
         const { iconSize, spacing, bottomMargin, sideMargin, maxRows } = params;
 
@@ -1908,7 +1942,7 @@ class OfflineCVRunner {
 
         for (const rowY of rowYPositions) {
             // Only include rows in the bottom portion of screen
-            if (rowY < height * 0.70) break;
+            if (rowY < height * 0.7) break;
 
             // Calculate centered start position
             const totalWidth = maxItemsPerRow * (iconSize + spacing);
@@ -1935,7 +1969,9 @@ class OfflineCVRunner {
     private isEmptyCell(imageData: any): boolean {
         const pixels = imageData.data;
 
-        let sum = 0, sumSq = 0, count = 0;
+        let sum = 0,
+            sumSq = 0,
+            count = 0;
 
         // Sample pixels (every 4th for speed)
         for (let i = 0; i < pixels.length; i += 16) {
@@ -1953,8 +1989,8 @@ class OfflineCVRunner {
         const variance = sumSq / count - mean * mean;
 
         // Only reject very uniform or very dark cells
-        if (variance < 150) return true;  // Very uniform = empty
-        if (mean < 30) return true;       // Very dark = background
+        if (variance < 150) return true; // Very uniform = empty
+        if (mean < 30) return true; // Very dark = background
 
         return false;
     }
@@ -2056,7 +2092,7 @@ class OfflineCVRunner {
         let bestMatch: { item: GameItem; confidence: number; rarity?: string } | null = null;
 
         // Extract center region of cell (ignore edges that might have background)
-        const margin = Math.round(cellImageData.width * 0.20);
+        const margin = Math.round(cellImageData.width * 0.2);
         const centerWidth = cellImageData.width - margin * 2;
         const centerHeight = cellImageData.height - margin * 2;
 
@@ -2074,10 +2110,14 @@ class OfflineCVRunner {
             // Draw center region of cell, scaled to this template size
             cellCtx.drawImage(
                 tempCanvas,
-                margin, margin,  // Source x, y (center crop)
-                centerWidth, centerHeight,  // Source size
-                0, 0,  // Dest x, y
-                scale, scale  // Dest size
+                margin,
+                margin, // Source x, y (center crop)
+                centerWidth,
+                centerHeight, // Source size
+                0,
+                0, // Dest x, y
+                scale,
+                scale // Dest size
             );
             cellDataByScale.set(scale, cellCtx.getImageData(0, 0, scale, scale));
         }
@@ -2104,10 +2144,14 @@ class OfflineCVRunner {
 
                 templateCenterCtx.drawImage(
                     template.canvas,
-                    tMargin, tMargin,
-                    tCenterSize, tCenterSize,
-                    0, 0,
-                    scale, scale
+                    tMargin,
+                    tMargin,
+                    tCenterSize,
+                    tCenterSize,
+                    0,
+                    0,
+                    scale,
+                    scale
                 );
                 const templateData = templateCenterCtx.getImageData(0, 0, scale, scale);
 
@@ -2126,7 +2170,7 @@ class OfflineCVRunner {
                     bestMatch = {
                         item: template.item,
                         confidence: similarity,
-                        rarity: detectedRarity || undefined
+                        rarity: detectedRarity || undefined,
                     };
                 }
             }
@@ -2154,17 +2198,27 @@ class OfflineCVRunner {
      */
     private normalizeColors(imageData: any): any {
         const data = new Uint8ClampedArray(imageData.data);
-        let minR = 255, maxR = 0, minG = 255, maxG = 0, minB = 255, maxB = 0;
+        let minR = 255,
+            maxR = 0,
+            minG = 255,
+            maxG = 0,
+            minB = 255,
+            maxB = 0;
         for (let i = 0; i < data.length; i += 4) {
-            minR = Math.min(minR, data[i]); maxR = Math.max(maxR, data[i]);
-            minG = Math.min(minG, data[i+1]); maxG = Math.max(maxG, data[i+1]);
-            minB = Math.min(minB, data[i+2]); maxB = Math.max(maxB, data[i+2]);
+            minR = Math.min(minR, data[i]);
+            maxR = Math.max(maxR, data[i]);
+            minG = Math.min(minG, data[i + 1]);
+            maxG = Math.max(maxG, data[i + 1]);
+            minB = Math.min(minB, data[i + 2]);
+            maxB = Math.max(maxB, data[i + 2]);
         }
-        const rangeR = maxR - minR || 1, rangeG = maxG - minG || 1, rangeB = maxB - minB || 1;
+        const rangeR = maxR - minR || 1,
+            rangeG = maxG - minG || 1,
+            rangeB = maxB - minB || 1;
         for (let i = 0; i < data.length; i += 4) {
-            data[i] = Math.round((data[i] - minR) / rangeR * 255);
-            data[i+1] = Math.round((data[i+1] - minG) / rangeG * 255);
-            data[i+2] = Math.round((data[i+2] - minB) / rangeB * 255);
+            data[i] = Math.round(((data[i] - minR) / rangeR) * 255);
+            data[i + 1] = Math.round(((data[i + 1] - minG) / rangeG) * 255);
+            data[i + 2] = Math.round(((data[i + 2] - minB) / rangeB) * 255);
         }
         return { data, width: imageData.width, height: imageData.height };
     }
@@ -2261,25 +2315,40 @@ class OfflineCVRunner {
      */
     private calculateSSIM(img1: any, img2: any): number {
         if (img1.width !== img2.width || img1.height !== img2.height) return 0;
-        const data1 = img1.data, data2 = img2.data;
+        const data1 = img1.data,
+            data2 = img2.data;
         const n = data1.length / 4;
-        let mean1 = 0, mean2 = 0;
-        const gray1: number[] = [], gray2: number[] = [];
+        let mean1 = 0,
+            mean2 = 0;
+        const gray1: number[] = [],
+            gray2: number[] = [];
         for (let i = 0; i < data1.length; i += 4) {
-            const g1 = (data1[i] + data1[i+1] + data1[i+2]) / 3;
-            const g2 = (data2[i] + data2[i+1] + data2[i+2]) / 3;
-            gray1.push(g1); gray2.push(g2);
-            mean1 += g1; mean2 += g2;
+            const g1 = (data1[i] + data1[i + 1] + data1[i + 2]) / 3;
+            const g2 = (data2[i] + data2[i + 1] + data2[i + 2]) / 3;
+            gray1.push(g1);
+            gray2.push(g2);
+            mean1 += g1;
+            mean2 += g2;
         }
-        mean1 /= n; mean2 /= n;
-        let var1 = 0, var2 = 0, covar = 0;
+        mean1 /= n;
+        mean2 /= n;
+        let var1 = 0,
+            var2 = 0,
+            covar = 0;
         for (let i = 0; i < n; i++) {
-            const d1 = gray1[i] - mean1, d2 = gray2[i] - mean2;
-            var1 += d1 * d1; var2 += d2 * d2; covar += d1 * d2;
+            const d1 = gray1[i] - mean1,
+                d2 = gray2[i] - mean2;
+            var1 += d1 * d1;
+            var2 += d2 * d2;
+            covar += d1 * d2;
         }
-        var1 /= n; var2 /= n; covar /= n;
-        const C1 = (0.01 * 255) ** 2, C2 = (0.03 * 255) ** 2;
-        const ssim = ((2 * mean1 * mean2 + C1) * (2 * covar + C2)) / ((mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2));
+        var1 /= n;
+        var2 /= n;
+        covar /= n;
+        const C1 = (0.01 * 255) ** 2,
+            C2 = (0.03 * 255) ** 2;
+        const ssim =
+            ((2 * mean1 * mean2 + C1) * (2 * covar + C2)) / ((mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2));
         // SSIM returns value in [-1, 1] range, clamp to [0, 1] for similarity score
         // Note: Don't apply (ssim+1)/2 transformation - that inflates scores
         return Math.max(0, ssim);
@@ -2292,7 +2361,12 @@ class OfflineCVRunner {
         const pixels1 = imageData1.data;
         const pixels2 = imageData2.data;
 
-        let sum1 = 0, sum2 = 0, sumProduct = 0, sumSquare1 = 0, sumSquare2 = 0, count = 0;
+        let sum1 = 0,
+            sum2 = 0,
+            sumProduct = 0,
+            sumSquare1 = 0,
+            sumSquare2 = 0,
+            count = 0;
 
         const len = Math.min(pixels1.length, pixels2.length);
         for (let i = 0; i < len; i += 4) {
@@ -2333,7 +2407,8 @@ class OfflineCVRunner {
         const pixels1 = imageData1.data;
         const pixels2 = imageData2.data;
 
-        let count1 = 0, count2 = 0;
+        let count1 = 0,
+            count2 = 0;
 
         // Build histogram 1
         for (let i = 0; i < pixels1.length; i += 4) {
@@ -2400,9 +2475,12 @@ class OfflineCVRunner {
         };
 
         // Compare edge patterns
-        let sumProduct = 0, sumSq1 = 0, sumSq2 = 0;
+        let sumProduct = 0,
+            sumSq1 = 0,
+            sumSq2 = 0;
 
-        for (let y = 1; y < h1 - 1; y += 2) { // Sample every other pixel for speed
+        for (let y = 1; y < h1 - 1; y += 2) {
+            // Sample every other pixel for speed
             for (let x = 1; x < w1 - 1; x += 2) {
                 const e1 = getEdge(pixels1, x, y, w1, h1);
                 const e2 = getEdge(pixels2, x, y, w2, h2);
@@ -2438,11 +2516,8 @@ class OfflineCVRunner {
         const histogram = this.calculateHistogramSimilarity(processed1, processed2);
 
         // Weighted combination optimized for accuracy
-        const weights = { ssim: 0.40, ncc: 0.35, histogram: 0.25 };
-        const weightedScore =
-            ssim * weights.ssim +
-            ncc * weights.ncc +
-            histogram * weights.histogram;
+        const weights = { ssim: 0.4, ncc: 0.35, histogram: 0.25 };
+        const weightedScore = ssim * weights.ssim + ncc * weights.ncc + histogram * weights.histogram;
 
         // Bonus if methods agree
         let agreementBonus = 0;
@@ -2502,21 +2577,16 @@ class OfflineCVRunner {
         });
 
         // Calculate metrics
-        const precision = truePositives + falsePositives > 0
-            ? truePositives / (truePositives + falsePositives)
-            : 0;
+        const precision = truePositives + falsePositives > 0 ? truePositives / (truePositives + falsePositives) : 0;
 
-        const recall = truePositives + falseNegatives > 0
-            ? truePositives / (truePositives + falseNegatives)
-            : 0;
+        const recall = truePositives + falseNegatives > 0 ? truePositives / (truePositives + falseNegatives) : 0;
 
-        const f1Score = precision + recall > 0
-            ? 2 * (precision * recall) / (precision + recall)
-            : 0;
+        const f1Score = precision + recall > 0 ? (2 * (precision * recall)) / (precision + recall) : 0;
 
-        const accuracy = truePositives + falsePositives + falseNegatives > 0
-            ? truePositives / (truePositives + falsePositives + falseNegatives)
-            : 0;
+        const accuracy =
+            truePositives + falsePositives + falseNegatives > 0
+                ? truePositives / (truePositives + falsePositives + falseNegatives)
+                : 0;
 
         return {
             truePositives,
@@ -2565,7 +2635,9 @@ class OfflineCVRunner {
             if (expected) {
                 const matched = Math.min(data.count, expected.count);
                 if (matched > 0) {
-                    truePositiveItems.push(`${data.name} (${matched}/${expected.count}, conf=${(data.avgConf * 100).toFixed(0)}%)`);
+                    truePositiveItems.push(
+                        `${data.name} (${matched}/${expected.count}, conf=${(data.avgConf * 100).toFixed(0)}%)`
+                    );
                 }
                 if (data.count > expected.count) {
                     falsePositiveItems.push(`${data.name} (+${data.count - expected.count} extra)`);
@@ -2587,15 +2659,21 @@ class OfflineCVRunner {
         console.log(`      📊 TP=${metrics.truePositives}, FP=${metrics.falsePositives}, FN=${metrics.falseNegatives}`);
 
         if (truePositiveItems.length > 0) {
-            console.log(`      ✓ Correct: ${truePositiveItems.slice(0, 5).join(', ')}${truePositiveItems.length > 5 ? ` (+${truePositiveItems.length - 5} more)` : ''}`);
+            console.log(
+                `      ✓ Correct: ${truePositiveItems.slice(0, 5).join(', ')}${truePositiveItems.length > 5 ? ` (+${truePositiveItems.length - 5} more)` : ''}`
+            );
         }
 
         if (falsePositiveItems.length > 0) {
-            console.log(`      ✗ Wrong: ${falsePositiveItems.slice(0, 5).join(', ')}${falsePositiveItems.length > 5 ? ` (+${falsePositiveItems.length - 5} more)` : ''}`);
+            console.log(
+                `      ✗ Wrong: ${falsePositiveItems.slice(0, 5).join(', ')}${falsePositiveItems.length > 5 ? ` (+${falsePositiveItems.length - 5} more)` : ''}`
+            );
         }
 
         if (falseNegativeItems.length > 0) {
-            console.log(`      ○ Missed: ${falseNegativeItems.slice(0, 5).join(', ')}${falseNegativeItems.length > 5 ? ` (+${falseNegativeItems.length - 5} more)` : ''}`);
+            console.log(
+                `      ○ Missed: ${falseNegativeItems.slice(0, 5).join(', ')}${falseNegativeItems.length > 5 ? ` (+${falseNegativeItems.length - 5} more)` : ''}`
+            );
         }
     }
 
@@ -2610,7 +2688,7 @@ class OfflineCVRunner {
         // Summary
         const totalTests = this.results.length;
         const passedTests = this.results.filter(r => r.passed).length;
-        const passRate = (passedTests / totalTests * 100).toFixed(1);
+        const passRate = ((passedTests / totalTests) * 100).toFixed(1);
 
         report += '## Summary\n\n';
         report += `- Total Tests: ${totalTests}\n`;

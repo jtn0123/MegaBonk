@@ -1,7 +1,7 @@
 /**
  * E2E tests for OCR Feature
  * Tests that OCR loads and works in a real browser without CSP errors
- * 
+ *
  * NOTE: Skipped - OCR feature still in development
  */
 
@@ -13,7 +13,7 @@ test.skip(true, 'OCR feature still in development');
 test.describe('OCR Feature', () => {
     test.beforeEach(async ({ page }) => {
         // Collect console errors
-        page.on('console', (msg) => {
+        page.on('console', msg => {
             if (msg.type() === 'error') {
                 console.log(`Browser error: ${msg.text()}`);
             }
@@ -25,11 +25,8 @@ test.describe('OCR Feature', () => {
     test('should load app without CSP errors', async ({ page }) => {
         const cspErrors = [];
 
-        page.on('console', (msg) => {
-            if (
-                msg.type() === 'error' &&
-                msg.text().includes('Content Security Policy')
-            ) {
+        page.on('console', msg => {
+            if (msg.type() === 'error' && msg.text().includes('Content Security Policy')) {
                 cspErrors.push(msg.text());
             }
         });
@@ -50,7 +47,7 @@ test.describe('OCR Feature', () => {
 
         // Check that OCR initialized by looking for log message
         const logs = [];
-        page.on('console', (msg) => {
+        page.on('console', msg => {
             if (msg.text().includes('ocr.init')) {
                 logs.push(msg.text());
             }
@@ -87,12 +84,9 @@ test.describe('OCR Feature', () => {
     test('should not have blocked worker errors on page load', async ({ page }) => {
         const blockedErrors = [];
 
-        page.on('console', (msg) => {
+        page.on('console', msg => {
             const text = msg.text();
-            if (
-                msg.type() === 'error' &&
-                (text.includes('worker-src') || text.includes('blob:'))
-            ) {
+            if (msg.type() === 'error' && (text.includes('worker-src') || text.includes('blob:'))) {
                 blockedErrors.push(text);
             }
         });
@@ -112,12 +106,9 @@ test.describe('OCR Feature', () => {
     test('should not have jsdelivr CDN blocked errors', async ({ page }) => {
         const cdnErrors = [];
 
-        page.on('console', (msg) => {
+        page.on('console', msg => {
             const text = msg.text();
-            if (
-                msg.type() === 'error' &&
-                text.includes('cdn.jsdelivr.net')
-            ) {
+            if (msg.type() === 'error' && text.includes('cdn.jsdelivr.net')) {
                 cdnErrors.push(text);
             }
         });
@@ -154,7 +145,7 @@ test.describe('OCR Detection Buttons', () => {
     test('should have CV templates loaded', async ({ page }) => {
         // Check for CV initialization in logs
         const cvLogs = [];
-        page.on('console', (msg) => {
+        page.on('console', msg => {
             if (msg.text().includes('cv.load_templates')) {
                 cvLogs.push(msg.text());
             }

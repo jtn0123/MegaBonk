@@ -31,10 +31,7 @@ vi.mock('../../src/modules/image-layout.ts', () => ({
     }),
 }));
 
-import {
-    detectScreenType,
-    detectUIRegions,
-} from '../../src/modules/cv/regions.ts';
+import { detectScreenType, detectUIRegions } from '../../src/modules/cv/regions.ts';
 
 // ========================================
 // Test Helpers
@@ -51,16 +48,16 @@ function createMockCanvasContext(
 ): CanvasRenderingContext2D {
     const brightness = options?.brightness ?? 128;
     const variance = options?.variance ?? 0;
-    
+
     const mockCtx = {
         getImageData: vi.fn((x: number, y: number, w: number, h: number) => {
             const data = new Uint8ClampedArray(w * h * 4);
             for (let i = 0; i < w * h; i++) {
                 const idx = i * 4;
                 // Add variance to create different RGB values
-                const r = Math.min(255, Math.max(0, brightness + Math.floor((variance * ((i * 7) % 10 - 5)) / 5)));
-                const g = Math.min(255, Math.max(0, brightness + Math.floor((variance * ((i * 13) % 10 - 5)) / 5)));
-                const b = Math.min(255, Math.max(0, brightness + Math.floor((variance * ((i * 17) % 10 - 5)) / 5)));
+                const r = Math.min(255, Math.max(0, brightness + Math.floor((variance * (((i * 7) % 10) - 5)) / 5)));
+                const g = Math.min(255, Math.max(0, brightness + Math.floor((variance * (((i * 13) % 10) - 5)) / 5)));
+                const b = Math.min(255, Math.max(0, brightness + Math.floor((variance * (((i * 17) % 10) - 5)) / 5)));
                 data[idx] = r;
                 data[idx + 1] = g;
                 data[idx + 2] = b;
@@ -69,7 +66,7 @@ function createMockCanvasContext(
             return { data, width: w, height: h };
         }),
     } as unknown as CanvasRenderingContext2D;
-    
+
     return mockCtx;
 }
 
@@ -100,7 +97,7 @@ function createTransparentContext(width: number, height: number): CanvasRenderin
             return { data, width: w, height: h };
         }),
     } as unknown as CanvasRenderingContext2D;
-    
+
     return mockCtx;
 }
 
@@ -164,7 +161,7 @@ describe('detectScreenType', () => {
     it('should sample bottom 20% of screen', () => {
         const ctx = createMockCanvasContext(1920, 1080, { brightness: 100, variance: 50 });
         detectScreenType(ctx, 1920, 1080);
-        
+
         // Verify getImageData was called with bottom region
         expect(ctx.getImageData).toHaveBeenCalled();
         const call = vi.mocked(ctx.getImageData).mock.calls[0];
@@ -182,7 +179,7 @@ describe('detectUIRegions', () => {
         it('should detect pause menu regions when screen shows pause menu', () => {
             const ctx = createPauseMenuContext(1920, 1080);
             const regions = detectUIRegions(ctx, 1920, 1080);
-            
+
             expect(regions.pauseMenu).toBeDefined();
             expect(regions.inventory).toBeDefined();
             expect(regions.stats).toBeDefined();
@@ -191,7 +188,7 @@ describe('detectUIRegions', () => {
         it('should detect gameplay regions when screen shows gameplay', () => {
             const ctx = createGameplayContext(1920, 1080);
             const regions = detectUIRegions(ctx, 1920, 1080);
-            
+
             // The result depends on actual pixel analysis - may return pause_menu or gameplay regions
             // At minimum, stats should always be present in either mode
             expect(regions.stats).toBeDefined();
@@ -204,7 +201,7 @@ describe('detectUIRegions', () => {
         it('should return correct region labels', () => {
             const ctx = createPauseMenuContext(1920, 1080);
             const regions = detectUIRegions(ctx, 1920, 1080);
-            
+
             expect(regions.pauseMenu?.label).toBe('pause_menu');
             expect(regions.inventory?.label).toBe('inventory');
             expect(regions.stats?.label).toBe('stats');
@@ -213,14 +210,14 @@ describe('detectUIRegions', () => {
         it('should scale regions proportionally to resolution', () => {
             const ctx1080 = createPauseMenuContext(1920, 1080);
             const ctx720 = createPauseMenuContext(1280, 720);
-            
+
             const regions1080 = detectUIRegions(ctx1080, 1920, 1080);
             const regions720 = detectUIRegions(ctx720, 1280, 720);
-            
+
             // Inventory should be proportionally sized
             const ratio1080 = (regions1080.inventory?.width ?? 0) / 1920;
             const ratio720 = (regions720.inventory?.width ?? 0) / 1280;
-            
+
             // Ratios should be similar
             expect(Math.abs(ratio1080 - ratio720)).toBeLessThan(0.2);
         });
@@ -229,7 +226,7 @@ describe('detectUIRegions', () => {
     describe('without context (width, height signature)', () => {
         it('should default to pause_menu when no context provided', () => {
             const regions = detectUIRegions(1920, 1080);
-            
+
             // Should return pause menu regions by default
             expect(regions.pauseMenu).toBeDefined();
             expect(regions.inventory).toBeDefined();
@@ -237,7 +234,7 @@ describe('detectUIRegions', () => {
 
         it('should not return gameplay-specific regions without context', () => {
             const regions = detectUIRegions(1920, 1080);
-            
+
             // gameplay and character are only for gameplay screen type
             expect(regions.gameplay).toBeUndefined();
             expect(regions.character).toBeUndefined();
@@ -265,7 +262,7 @@ describe('detectUIRegions', () => {
         it('should use compact layout for Steam Deck', () => {
             const ctx = createPauseMenuContext(1280, 800);
             const regions = detectUIRegions(ctx, 1280, 800);
-            
+
             // Steam Deck has different proportions
             expect(regions.inventory).toBeDefined();
             expect(regions.inventory?.width).toBeGreaterThan(0);
@@ -273,7 +270,7 @@ describe('detectUIRegions', () => {
 
         it('should position inventory appropriately for Steam Deck', () => {
             const regions = detectUIRegions(1280, 800);
-            
+
             // Inventory should be positioned lower on Steam Deck layout
             expect(regions.inventory?.y).toBeGreaterThan(800 * 0.3);
         });
@@ -283,7 +280,7 @@ describe('detectUIRegions', () => {
         it('should use standard layout for PC resolutions', () => {
             const ctx = createPauseMenuContext(1920, 1080);
             const regions = detectUIRegions(ctx, 1920, 1080);
-            
+
             expect(regions.pauseMenu).toBeDefined();
             // PC layout should have centered pause menu
             expect(regions.pauseMenu?.x).toBeGreaterThan(1920 * 0.1);
@@ -295,7 +292,7 @@ describe('detectUIRegions', () => {
         it('should return regions based on detected screen type', () => {
             const ctx = createGameplayContext(1920, 1080);
             const regions = detectUIRegions(ctx, 1920, 1080);
-            
+
             // If gameplay is detected, validate gameplay regions
             if (regions.gameplay) {
                 expect(regions.gameplay.x).toBe(0);
@@ -311,12 +308,12 @@ describe('detectUIRegions', () => {
         it('should return character or inventory based on screen type', () => {
             const ctx = createGameplayContext(1920, 1080);
             const regions = detectUIRegions(ctx, 1920, 1080);
-            
+
             // Either character (gameplay) or inventory (pause) should be present
             const hasCharacter = regions.character !== undefined;
             const hasInventory = regions.inventory !== undefined;
             expect(hasCharacter || hasInventory).toBe(true);
-            
+
             if (regions.character) {
                 expect(regions.character.x).toBeLessThan(1920 * 0.2);
             }
@@ -325,7 +322,7 @@ describe('detectUIRegions', () => {
         it('should return stats region', () => {
             const ctx = createGameplayContext(1920, 1080);
             const regions = detectUIRegions(ctx, 1920, 1080);
-            
+
             // Stats should be present in both modes
             expect(regions.stats).toBeDefined();
             expect(regions.stats?.x).toBeGreaterThanOrEqual(0);
@@ -337,7 +334,7 @@ describe('detectUIRegions', () => {
         it('should return regions with positive dimensions', () => {
             const ctx = createPauseMenuContext(1920, 1080);
             const regions = detectUIRegions(ctx, 1920, 1080);
-            
+
             for (const [name, region] of Object.entries(regions)) {
                 if (region && typeof region === 'object' && 'width' in region) {
                     expect(region.width, `${name}.width`).toBeGreaterThan(0);
@@ -349,7 +346,7 @@ describe('detectUIRegions', () => {
         it('should return regions within screen bounds', () => {
             const ctx = createPauseMenuContext(1920, 1080);
             const regions = detectUIRegions(ctx, 1920, 1080);
-            
+
             for (const [name, region] of Object.entries(regions)) {
                 if (region && typeof region === 'object' && 'width' in region) {
                     expect(region.x, `${name}.x`).toBeGreaterThanOrEqual(0);

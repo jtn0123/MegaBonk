@@ -218,9 +218,10 @@ describe('QA Area 8: Search Functionality - Basic Text Search', () => {
 
     const searchItems = (query: string) => {
         const lowerQuery = query.toLowerCase();
-        return itemsData.items.filter((item: any) =>
-            item.name.toLowerCase().includes(lowerQuery) ||
-            (item.description && item.description.toLowerCase().includes(lowerQuery))
+        return itemsData.items.filter(
+            (item: any) =>
+                item.name.toLowerCase().includes(lowerQuery) ||
+                (item.description && item.description.toLowerCase().includes(lowerQuery))
         );
     };
 
@@ -410,9 +411,7 @@ describe('QA Area 15: Build Planner - Synergy Detection', () => {
     const itemsData = loadJsonFile('items.json');
 
     it('should have synergies defined for some items', () => {
-        const itemsWithSynergies = itemsData.items.filter(
-            (item: any) => item.synergies && item.synergies.length > 0
-        );
+        const itemsWithSynergies = itemsData.items.filter((item: any) => item.synergies && item.synergies.length > 0);
         expect(itemsWithSynergies.length).toBeGreaterThan(0);
     });
 
@@ -484,9 +483,7 @@ describe('QA Area 18: Calculator - Stack Cap Warnings', () => {
 
     it('should have stack_cap as number for all items', () => {
         // In the data schema, stack_cap is a number: positive = cap, -1 = unlimited
-        const itemsWithCaps = itemsData.items.filter((item: any) =>
-            item.stack_cap !== undefined && item.stack_cap > 0
-        );
+        const itemsWithCaps = itemsData.items.filter((item: any) => item.stack_cap !== undefined && item.stack_cap > 0);
         itemsWithCaps.forEach((item: any) => {
             expect(typeof item.stack_cap).toBe('number');
             expect(item.stack_cap).toBeGreaterThan(0);
@@ -609,7 +606,7 @@ describe('QA Area 22: Modal - Scaling Charts', () => {
         for (let i = 0; i <= maxStacks; i++) {
             data.push({
                 stack: i,
-                value: baseValue + (perStack * i)
+                value: baseValue + perStack * i,
             });
         }
         return data;
@@ -759,8 +756,12 @@ describe('QA Area 27: LocalStorage Persistence', () => {
     });
 
     const getItem = (key: string) => mockStorage[key] || null;
-    const setItem = (key: string, value: string) => { mockStorage[key] = value; };
-    const removeItem = (key: string) => { delete mockStorage[key]; };
+    const setItem = (key: string, value: string) => {
+        mockStorage[key] = value;
+    };
+    const removeItem = (key: string) => {
+        delete mockStorage[key];
+    };
 
     it('should save and retrieve favorites', () => {
         const favorites = ['item1', 'item2', 'item3'];
@@ -770,7 +771,10 @@ describe('QA Area 27: LocalStorage Persistence', () => {
     });
 
     it('should save and retrieve build history', () => {
-        const builds = [{ id: 1, name: 'Build 1' }, { id: 2, name: 'Build 2' }];
+        const builds = [
+            { id: 1, name: 'Build 1' },
+            { id: 2, name: 'Build 2' },
+        ];
         setItem('buildHistory', JSON.stringify(builds));
         const retrieved = JSON.parse(getItem('buildHistory') || '[]');
         expect(retrieved).toEqual(builds);
@@ -862,27 +866,26 @@ describe('QA Area 30: Image Loading and Fallbacks', () => {
 describe('QA Area 31: Advisor - Recommendation Logic', () => {
     const recommendChoice = (choices: any[], currentBuild: any) => {
         // Simple scoring: prefer items that have synergies with current build
-        return choices.map(choice => ({
-            ...choice,
-            score: choice.synergies ? choice.synergies.length * 10 : 0
-        })).sort((a, b) => b.score - a.score)[0];
+        return choices
+            .map(choice => ({
+                ...choice,
+                score: choice.synergies ? choice.synergies.length * 10 : 0,
+            }))
+            .sort((a, b) => b.score - a.score)[0];
     };
 
     it('should recommend item with most synergies', () => {
         const choices = [
             { id: 'item1', synergies: ['a'] },
             { id: 'item2', synergies: ['a', 'b', 'c'] },
-            { id: 'item3', synergies: ['a', 'b'] }
+            { id: 'item3', synergies: ['a', 'b'] },
         ];
         const recommended = recommendChoice(choices, {});
         expect(recommended.id).toBe('item2');
     });
 
     it('should handle items without synergies', () => {
-        const choices = [
-            { id: 'item1' },
-            { id: 'item2', synergies: ['a'] }
-        ];
+        const choices = [{ id: 'item1' }, { id: 'item2', synergies: ['a'] }];
         const recommended = recommendChoice(choices, {});
         expect(recommended.id).toBe('item2');
     });
@@ -931,7 +934,17 @@ describe('QA Area 33: Overcrit Detection', () => {
 });
 
 describe('QA Area 34: Tab Navigation State', () => {
-    const tabs = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator', 'advisor', 'changelog'];
+    const tabs = [
+        'items',
+        'weapons',
+        'tomes',
+        'characters',
+        'shrines',
+        'build-planner',
+        'calculator',
+        'advisor',
+        'changelog',
+    ];
 
     it('should have all expected tabs', () => {
         expect(tabs.length).toBe(9);
@@ -997,7 +1010,7 @@ describe('QA Area 36: Build Templates', () => {
         { name: 'Crit Build', focus: 'crit_chance' },
         { name: 'Tank Build', focus: 'hp' },
         { name: 'Speed Build', focus: 'attack_speed' },
-        { name: 'Glass Cannon', focus: 'damage' }
+        { name: 'Glass Cannon', focus: 'damage' },
     ];
 
     it('should have multiple build templates', () => {
@@ -1052,11 +1065,13 @@ describe('QA Area 39: Similar Items Functionality', () => {
     const itemsData = loadJsonFile('items.json');
 
     const findSimilarItems = (item: any) => {
-        return itemsData.items.filter((other: any) => {
-            if (other.id === item.id) return false;
-            // Same tier or same rarity
-            return other.tier === item.tier || other.rarity === item.rarity;
-        }).slice(0, 5);
+        return itemsData.items
+            .filter((other: any) => {
+                if (other.id === item.id) return false;
+                // Same tier or same rarity
+                return other.tier === item.tier || other.rarity === item.rarity;
+            })
+            .slice(0, 5);
     };
 
     it('should find similar items by tier', () => {

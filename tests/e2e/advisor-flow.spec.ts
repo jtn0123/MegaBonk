@@ -26,7 +26,7 @@ test.describe('Advisor Flow', () => {
         test('should show advisor header and description', async ({ page }) => {
             // Wait for advisor container to load
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
-            
+
             const header = page.locator('.advisor-header');
             await expect(header).toBeVisible({ timeout: 5000 });
 
@@ -67,7 +67,10 @@ test.describe('Advisor Flow', () => {
             // Upload zone may be optional - pass if exists and visible, or if not present
             const count = await uploadZone.count();
             if (count > 0) {
-                const isVisible = await uploadZone.first().isVisible().catch(() => false);
+                const isVisible = await uploadZone
+                    .first()
+                    .isVisible()
+                    .catch(() => false);
                 expect(isVisible || count === 0).toBe(true);
             } else {
                 // No upload zone found - feature may be optional
@@ -109,14 +112,14 @@ test.describe('Advisor Flow', () => {
         test('should allow adding current items', async ({ page }) => {
             // Wait for the button to be available
             await page.waitForSelector('#add-current-item', { timeout: 5000 });
-            
+
             const addItemBtn = page.locator('#add-current-item');
             await expect(addItemBtn).toBeVisible({ timeout: 5000 });
 
             // Click to add item
             await addItemBtn.click();
             await page.waitForTimeout(300);
-            
+
             // Verify button is still there (no crash)
             await expect(addItemBtn).toBeVisible();
         });
@@ -125,7 +128,7 @@ test.describe('Advisor Flow', () => {
             // Wait for the advisor container to be fully loaded
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500); // Allow for dynamic content to render
-            
+
             const addTomeBtn = page.locator('#add-current-tome');
             const count = await addTomeBtn.count();
             if (count > 0) {
@@ -153,7 +156,7 @@ test.describe('Advisor Flow', () => {
             // Wait for advisor to be fully loaded
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             const choiceCards = page.locator('.advisor-choice-card');
             const count = await choiceCards.count();
             // Allow for 0-3 choice cards depending on UI state
@@ -165,11 +168,11 @@ test.describe('Advisor Flow', () => {
             // Wait for advisor container to load
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             // Check if choice cards exist first
             const choiceCards = page.locator('.advisor-choice-card');
             const cardCount = await choiceCards.count();
-            
+
             if (cardCount > 0) {
                 for (let i = 1; i <= Math.min(cardCount, 3); i++) {
                     const typeSelect = page.locator(`#choice-${i}-type`);
@@ -187,7 +190,7 @@ test.describe('Advisor Flow', () => {
         test('should have entity selector for each choice', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             for (let i = 1; i <= 3; i++) {
                 const entitySelect = page.locator(`#choice-${i}-entity`);
                 if ((await entitySelect.count()) > 0) {
@@ -199,9 +202,9 @@ test.describe('Advisor Flow', () => {
         test('should update entity options when type changes', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             const typeSelect = page.locator('#choice-1-type');
-            if ((await typeSelect.count()) > 0 && await typeSelect.isVisible()) {
+            if ((await typeSelect.count()) > 0 && (await typeSelect.isVisible())) {
                 await typeSelect.selectOption('item');
                 await page.waitForTimeout(500);
 
@@ -217,24 +220,24 @@ test.describe('Advisor Flow', () => {
         test('should allow selecting tome type', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             const typeSelect = page.locator('#choice-1-type');
             if ((await typeSelect.count()) === 0) {
                 expect(true).toBe(true);
                 return;
             }
-            
+
             // Check if tome is an option
             const options = await typeSelect.locator('option').allTextContents();
             const hasTome = options.some(opt => opt.toLowerCase().includes('tome'));
-            
+
             if (hasTome) {
                 await typeSelect.selectOption('tome');
                 await page.waitForTimeout(300);
 
                 // Entity select should update with tome options
                 const entitySelect = page.locator('#choice-1-entity');
-                expect(await entitySelect.isVisible()).toBe(true);
+                await expect(entitySelect).toBeVisible();
             } else {
                 // Tome option not available, test passes
                 expect(true).toBe(true);
@@ -246,7 +249,7 @@ test.describe('Advisor Flow', () => {
         test('should have get recommendation button', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             const recommendBtn = page.locator('#get-recommendation');
             if ((await recommendBtn.count()) > 0) {
                 await expect(recommendBtn).toBeVisible();
@@ -259,7 +262,7 @@ test.describe('Advisor Flow', () => {
         test('should show results when recommendation requested', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             // Set up a character and weapon
             const characterSelect = page.locator('#advisor-character');
             if ((await characterSelect.count()) > 0) {
@@ -279,7 +282,7 @@ test.describe('Advisor Flow', () => {
 
             // Set up at least one choice if available
             const typeSelect = page.locator('#choice-1-type');
-            if ((await typeSelect.count()) > 0 && await typeSelect.isVisible()) {
+            if ((await typeSelect.count()) > 0 && (await typeSelect.isVisible())) {
                 await typeSelect.selectOption('item');
                 await page.waitForTimeout(300);
 
@@ -292,7 +295,7 @@ test.describe('Advisor Flow', () => {
 
             // Click get recommendation if button exists
             const recommendBtn = page.locator('#get-recommendation');
-            if ((await recommendBtn.count()) > 0 && await recommendBtn.isVisible()) {
+            if ((await recommendBtn.count()) > 0 && (await recommendBtn.isVisible())) {
                 await recommendBtn.click();
                 await page.waitForTimeout(1000);
 
@@ -308,10 +311,10 @@ test.describe('Advisor Flow', () => {
         test('should handle empty choices gracefully', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             // Click get recommendation without any selections if button exists
             const recommendBtn = page.locator('#get-recommendation');
-            if ((await recommendBtn.count()) > 0 && await recommendBtn.isVisible()) {
+            if ((await recommendBtn.count()) > 0 && (await recommendBtn.isVisible())) {
                 await recommendBtn.click();
                 await page.waitForTimeout(500);
             }
@@ -326,7 +329,7 @@ test.describe('Advisor Flow', () => {
         test.beforeEach(async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             // Set up minimal build for recommendation if elements exist
             const characterSelect = page.locator('#advisor-character');
             if ((await characterSelect.count()) > 0) {
@@ -338,7 +341,7 @@ test.describe('Advisor Flow', () => {
 
             // Set up a choice if available
             const typeSelect = page.locator('#choice-1-type');
-            if ((await typeSelect.count()) > 0 && await typeSelect.isVisible()) {
+            if ((await typeSelect.count()) > 0 && (await typeSelect.isVisible())) {
                 await typeSelect.selectOption('item');
                 await page.waitForTimeout(200);
 
@@ -351,7 +354,7 @@ test.describe('Advisor Flow', () => {
 
             // Get recommendation if button exists
             const recommendBtn = page.locator('#get-recommendation');
-            if ((await recommendBtn.count()) > 0 && await recommendBtn.isVisible()) {
+            if ((await recommendBtn.count()) > 0 && (await recommendBtn.isVisible())) {
                 await recommendBtn.click();
                 await page.waitForTimeout(500);
             }
@@ -359,7 +362,7 @@ test.describe('Advisor Flow', () => {
 
         test('should display recommendation results', async ({ page }) => {
             const resultsContent = page.locator('#advisor-results-content');
-            if ((await resultsContent.count()) > 0 && await resultsContent.isVisible()) {
+            if ((await resultsContent.count()) > 0 && (await resultsContent.isVisible())) {
                 // Results should have content
                 const text = await resultsContent.textContent();
                 expect(text?.length || 0).toBeGreaterThanOrEqual(0);
@@ -371,7 +374,7 @@ test.describe('Advisor Flow', () => {
 
         test('should show recommendation ranking', async ({ page }) => {
             const results = page.locator('#advisor-results');
-            if ((await results.count()) > 0 && await results.isVisible()) {
+            if ((await results.count()) > 0 && (await results.isVisible())) {
                 // May show ranking or comparison
                 const _ranking = results.locator('.ranking, .recommendation, .choice-recommendation');
                 // Results structure is app-specific
@@ -386,10 +389,10 @@ test.describe('Advisor Flow', () => {
         test('should have apply to advisor button in scan section', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             const applyBtn = page.locator('#scan-apply-to-advisor');
             // Button only appears after scan results - check if visible, not just exists
-            if ((await applyBtn.count()) > 0 && await applyBtn.isVisible()) {
+            if ((await applyBtn.count()) > 0 && (await applyBtn.isVisible())) {
                 await expect(applyBtn).toBeVisible();
             } else {
                 // Button not visible (no scan results yet) - this is expected
@@ -400,13 +403,13 @@ test.describe('Advisor Flow', () => {
         test('should populate advisor from scan results', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             // This test would require mock scan data
             // Just verify the button exists and is clickable
             const applyBtn = page.locator('#scan-apply-to-advisor');
 
             // Button only appears after scan - must check isVisible() not just count/enabled
-            if ((await applyBtn.count()) > 0 && await applyBtn.isVisible()) {
+            if ((await applyBtn.count()) > 0 && (await applyBtn.isVisible())) {
                 await applyBtn.click();
                 // Should apply detected items to current build
                 await page.waitForTimeout(300);
@@ -420,10 +423,10 @@ test.describe('Advisor Flow', () => {
         test('should allow removing added items', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             // Try to add an item first
             const addItemBtn = page.locator('#add-current-item');
-            if ((await addItemBtn.count()) > 0 && await addItemBtn.isVisible()) {
+            if ((await addItemBtn.count()) > 0 && (await addItemBtn.isVisible())) {
                 await addItemBtn.click();
                 await page.waitForTimeout(300);
 
@@ -445,9 +448,9 @@ test.describe('Advisor Flow', () => {
         test('should allow clearing all items', async ({ page }) => {
             await page.waitForSelector('.advisor-container', { timeout: 5000 });
             await page.waitForTimeout(500);
-            
+
             const clearBtn = page.locator('[data-action="clear-items"], .clear-items-btn');
-            if ((await clearBtn.count()) > 0 && await clearBtn.isVisible()) {
+            if ((await clearBtn.count()) > 0 && (await clearBtn.isVisible())) {
                 await clearBtn.click();
                 // All items should be cleared
                 const chips = page.locator('#advisor-current-items .chip');
@@ -548,8 +551,8 @@ test.describe('OCR Detection Accuracy', () => {
         // This is verified through the choice entity selects being editable
         const entitySelect = page.locator('#choice-1-entity');
         if ((await entitySelect.count()) > 0) {
-            const isEnabled = await entitySelect.isEnabled();
-            expect(isEnabled).toBe(true);
+            const isEnabled = entitySelect;
+            await expect(isEnabled).toBeEnabled();
         } else {
             // Entity select may not exist - test passes
             expect(true).toBe(true);

@@ -141,8 +141,8 @@ describe('Confidence Thresholds', () => {
         const thresholds = getConfidenceThresholds(strategy);
 
         expect(thresholds.pass1).toBe(0.85);
-        expect(thresholds.pass2).toBe(0.70);
-        expect(thresholds.pass3).toBe(0.60);
+        expect(thresholds.pass2).toBe(0.7);
+        expect(thresholds.pass3).toBe(0.6);
     });
 
     it('should adjust thresholds for different rarities with adaptive-rarity', () => {
@@ -169,8 +169,8 @@ describe('Confidence Thresholds', () => {
         const thresholds = getConfidenceThresholds(strategy);
 
         expect(thresholds.pass1).toBe(0.85);
-        expect(thresholds.pass2).toBe(0.70);
-        expect(thresholds.pass3).toBe(0.60);
+        expect(thresholds.pass2).toBe(0.7);
+        expect(thresholds.pass3).toBe(0.6);
     });
 });
 
@@ -397,7 +397,7 @@ describe('Color Profile Comparison', () => {
         };
         const similarity = compareColorProfiles(profile1, profile2);
         // 5 out of 7 regions match
-        expect(similarity).toBeCloseTo(5/7, 2);
+        expect(similarity).toBeCloseTo(5 / 7, 2);
     });
 });
 
@@ -444,7 +444,7 @@ describe('Feedback Corrections', () => {
 
         // Record 3 times - penalty starts after 2 corrections
         recordCorrection(detectedItem, actualItem, 0.75, 'hash1');
-        recordCorrection(detectedItem, actualItem, 0.70, 'hash2');
+        recordCorrection(detectedItem, actualItem, 0.7, 'hash2');
         recordCorrection(detectedItem, actualItem, 0.72, 'hash3');
 
         // Penalty is stored with key: `${detectedItem.id}-${actualItem.id}` = 'item1-item2'
@@ -480,7 +480,7 @@ describe('Feedback Corrections', () => {
 
     it('should import corrections from JSON', () => {
         const corrections = [
-            { detected: 'a', actual: 'b', confidence: 0.8, timestamp: Date.now(), imageHash: 'hash1' }
+            { detected: 'a', actual: 'b', confidence: 0.8, timestamp: Date.now(), imageHash: 'hash1' },
         ];
         importFeedbackCorrections(JSON.stringify(corrections));
 

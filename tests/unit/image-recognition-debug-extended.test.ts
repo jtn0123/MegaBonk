@@ -4,7 +4,17 @@
 // Focus: Debug overlay rendering, grid visualization, error state handling
 // ========================================
 
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest';
+
+vi.mock('../../src/modules/logger.ts', () => ({
+    logger: {
+        info: vi.fn(),
+        warn: vi.fn(),
+        error: vi.fn(),
+        debug: vi.fn(),
+        getSessionId: vi.fn(() => 'test-session-id-123'),
+    },
+}));
 import {
     setDebugEnabled,
     isDebugEnabled,
@@ -38,11 +48,7 @@ import type {
     ValidationTestCase,
     RegionOfInterest,
 } from '../../src/types/computer-vision';
-import {
-    createMockImageData,
-    createMockDetectionResults,
-    createMockSlots,
-} from '../fixtures/cv-test-fixtures';
+import { createMockImageData, createMockDetectionResults, createMockSlots } from '../fixtures/cv-test-fixtures';
 
 // ========================================
 // Mock Canvas and DOM APIs
@@ -63,13 +69,7 @@ class MockCanvasRenderingContext2D {
         this.canvas = canvas;
     }
 
-    drawImage(
-        _source: unknown,
-        _dx: number,
-        _dy: number,
-        _dw?: number,
-        _dh?: number
-    ): void {
+    drawImage(_source: unknown, _dx: number, _dy: number, _dw?: number, _dh?: number): void {
         this.operations.push('drawImage');
     }
 
@@ -236,8 +236,10 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
 
         // Assign mocks
         (globalThis as unknown as { document: typeof mockDocument }).document = mockDocument;
-        (globalThis as unknown as { window: typeof mockWindow }).window = mockWindow as unknown as Window & typeof globalThis;
-        (globalThis as unknown as { Image: typeof MockHTMLImageElement }).Image = MockHTMLImageElement as unknown as typeof Image;
+        (globalThis as unknown as { window: typeof mockWindow }).window = mockWindow as unknown as Window &
+            typeof globalThis;
+        (globalThis as unknown as { Image: typeof MockHTMLImageElement }).Image =
+            MockHTMLImageElement as unknown as typeof Image;
     });
 
     afterEach(() => {
@@ -485,9 +487,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         });
 
         it('should apply custom lineWidth from options', () => {
-            const regions: DebugRegion[] = [
-                { x: 0, y: 0, width: 100, height: 100, label: 'Test', color: '#ffffff' },
-            ];
+            const regions: DebugRegion[] = [{ x: 0, y: 0, width: 100, height: 100, label: 'Test', color: '#ffffff' }];
 
             drawDebugRegions(canvas as unknown as HTMLCanvasElement, regions, { lineWidth: 5 });
 
@@ -508,9 +508,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
 
             // Should not throw
             expect(() => {
-                drawDebugRegions(badCanvas, [
-                    { x: 0, y: 0, width: 100, height: 100, label: 'Test', color: '#fff' },
-                ]);
+                drawDebugRegions(badCanvas, [{ x: 0, y: 0, width: 100, height: 100, label: 'Test', color: '#fff' }]);
             }).not.toThrow();
         });
     });
@@ -542,12 +540,8 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         });
 
         it('should use different colors for occupied vs empty slots', () => {
-            const occupiedSlot: SlotInfo[] = [
-                { index: 0, x: 100, y: 900, width: 45, height: 45, occupied: true },
-            ];
-            const emptySlot: SlotInfo[] = [
-                { index: 0, x: 100, y: 900, width: 45, height: 45, occupied: false },
-            ];
+            const occupiedSlot: SlotInfo[] = [{ index: 0, x: 100, y: 900, width: 45, height: 45, occupied: true }];
+            const emptySlot: SlotInfo[] = [{ index: 0, x: 100, y: 900, width: 45, height: 45, occupied: false }];
 
             // Draw occupied
             drawSlotGrid(canvas as unknown as HTMLCanvasElement, occupiedSlot, '#ffffff');
@@ -561,9 +555,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         });
 
         it('should draw slot indices when showConfidenceLabels is enabled', () => {
-            const slots: SlotInfo[] = [
-                { index: 5, x: 100, y: 900, width: 45, height: 45, occupied: true },
-            ];
+            const slots: SlotInfo[] = [{ index: 5, x: 100, y: 900, width: 45, height: 45, occupied: true }];
 
             drawSlotGrid(canvas as unknown as HTMLCanvasElement, slots, '#ffffff', { showConfidenceLabels: true });
 
@@ -583,9 +575,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         });
 
         it('should skip rendering when showSlotGrid is false', () => {
-            const slots: SlotInfo[] = [
-                { index: 0, x: 100, y: 900, width: 45, height: 45, occupied: true },
-            ];
+            const slots: SlotInfo[] = [{ index: 0, x: 100, y: 900, width: 45, height: 45, occupied: true }];
 
             drawSlotGrid(canvas as unknown as HTMLCanvasElement, slots, '#ffffff', { showSlotGrid: false });
 
@@ -600,9 +590,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         });
 
         it('should use dashed line for empty slots', () => {
-            const slots: SlotInfo[] = [
-                { index: 0, x: 100, y: 900, width: 45, height: 45, occupied: false },
-            ];
+            const slots: SlotInfo[] = [{ index: 0, x: 100, y: 900, width: 45, height: 45, occupied: false }];
 
             drawSlotGrid(canvas as unknown as HTMLCanvasElement, slots, '#ffffff');
 
@@ -611,9 +599,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         });
 
         it('should use solid line for occupied slots', () => {
-            const slots: SlotInfo[] = [
-                { index: 0, x: 100, y: 900, width: 45, height: 45, occupied: true },
-            ];
+            const slots: SlotInfo[] = [{ index: 0, x: 100, y: 900, width: 45, height: 45, occupied: true }];
 
             drawSlotGrid(canvas as unknown as HTMLCanvasElement, slots, '#ffffff');
 
@@ -641,9 +627,11 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
             } as unknown as HTMLCanvasElement;
 
             expect(() => {
-                drawSlotGrid(badCanvas, [
-                    { index: 0, x: 100, y: 900, width: 45, height: 45, occupied: true },
-                ], '#ffffff');
+                drawSlotGrid(
+                    badCanvas,
+                    [{ index: 0, x: 100, y: 900, width: 45, height: 45, occupied: true }],
+                    '#ffffff'
+                );
             }).not.toThrow();
         });
     });
@@ -706,7 +694,9 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
                 } as CVDetectionResult,
             ];
 
-            drawDetectionBoxes(canvas as unknown as HTMLCanvasElement, detections, '#00ff88', { showConfidenceLabels: true });
+            drawDetectionBoxes(canvas as unknown as HTMLCanvasElement, detections, '#00ff88', {
+                showConfidenceLabels: true,
+            });
 
             const ops = ctx.getOperations();
             expect(ops.some(op => op.includes('Ice Cube') && op.includes('87%'))).toBe(true);
@@ -723,7 +713,9 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
                 } as CVDetectionResult,
             ];
 
-            drawDetectionBoxes(canvas as unknown as HTMLCanvasElement, detections, '#00ff88', { showConfidenceLabels: false });
+            drawDetectionBoxes(canvas as unknown as HTMLCanvasElement, detections, '#00ff88', {
+                showConfidenceLabels: false,
+            });
 
             const ops = ctx.getOperations();
             expect(ops.some(op => op.includes('Medkit'))).toBe(false);
@@ -756,7 +748,9 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
                 } as CVDetectionResult,
             ];
 
-            drawDetectionBoxes(canvas as unknown as HTMLCanvasElement, detections, '#00ff88', { showDetectionBoxes: false });
+            drawDetectionBoxes(canvas as unknown as HTMLCanvasElement, detections, '#00ff88', {
+                showDetectionBoxes: false,
+            });
 
             const ops = ctx.getOperations();
             expect(ops.filter(op => op.startsWith('strokeRect')).length).toBe(0);
@@ -799,15 +793,19 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
             } as unknown as HTMLCanvasElement;
 
             expect(() => {
-                drawDetectionBoxes(badCanvas, [
-                    {
-                        type: 'item',
-                        entity: { id: 'test', name: 'Test' },
-                        confidence: 0.9,
-                        position: { x: 0, y: 0, width: 50, height: 50 },
-                        method: 'template_match',
-                    } as CVDetectionResult,
-                ], '#00ff88');
+                drawDetectionBoxes(
+                    badCanvas,
+                    [
+                        {
+                            type: 'item',
+                            entity: { id: 'test', name: 'Test' },
+                            confidence: 0.9,
+                            position: { x: 0, y: 0, width: 50, height: 50 },
+                            method: 'template_match',
+                        } as CVDetectionResult,
+                    ],
+                    '#00ff88'
+                );
             }).not.toThrow();
         });
     });
@@ -839,7 +837,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         it('should reject when image fails to load', async () => {
             // Create a mock that triggers onerror - we need to override the global Image
             const originalImageMock = (globalThis as unknown as { Image: unknown }).Image;
-            
+
             // Create failing Image mock
             (globalThis as unknown as { Image: unknown }).Image = class FailingImage {
                 width = 1920;
@@ -1063,7 +1061,10 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         it('should provide setOptions function', () => {
             registerDebugCommands();
 
-            const cvDebug = (mockWindow as Record<string, unknown>).cvDebug as Record<string, (opts: Partial<DebugOverlayOptions>) => void>;
+            const cvDebug = (mockWindow as Record<string, unknown>).cvDebug as Record<
+                string,
+                (opts: Partial<DebugOverlayOptions>) => void
+            >;
             cvDebug.setOptions({ showSlotGrid: false });
 
             const options = getDebugOptions();
@@ -1073,7 +1074,10 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         it('should provide getOptions function', () => {
             registerDebugCommands();
 
-            const cvDebug = (mockWindow as Record<string, unknown>).cvDebug as Record<string, () => DebugOverlayOptions>;
+            const cvDebug = (mockWindow as Record<string, unknown>).cvDebug as Record<
+                string,
+                () => DebugOverlayOptions
+            >;
             const options = cvDebug.getOptions();
 
             expect(options.showRegionBounds).toBe(true);
@@ -1141,9 +1145,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
                 expectedItems: ['Big Bonk'],
                 expectedWeapons: [],
                 expectedTomes: [],
-                annotatedRegions: [
-                    { type: 'items_hotbar', x: 100, y: 900, width: 500, height: 100, confidence: 1 },
-                ],
+                annotatedRegions: [{ type: 'items_hotbar', x: 100, y: 900, width: 500, height: 100, confidence: 1 }],
             };
 
             const results = createMockDetectionResults(['Big Bonk'], [], [], undefined);
@@ -1165,9 +1167,7 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
                 expectedItems: [],
                 expectedWeapons: [],
                 expectedTomes: [],
-                annotatedRegions: [
-                    { type: 'items_hotbar', x: 100, y: 900, width: 500, height: 100, confidence: 1 },
-                ],
+                annotatedRegions: [{ type: 'items_hotbar', x: 100, y: 900, width: 500, height: 100, confidence: 1 }],
             };
 
             const results = createMockDetectionResults([], [], [], undefined);
@@ -1296,24 +1296,12 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
     // ========================================
 
     describe('console output when debug enabled', () => {
-        let consoleSpy: {
-            groupCollapsed: ReturnType<typeof vi.spyOn>;
-            groupEnd: ReturnType<typeof vi.spyOn>;
-            debug: ReturnType<typeof vi.spyOn>;
-            log: ReturnType<typeof vi.spyOn>;
-            table: ReturnType<typeof vi.spyOn>;
-            trace: ReturnType<typeof vi.spyOn>;
-        };
+        let loggerMock: { debug: ReturnType<typeof vi.fn> };
 
-        beforeEach(() => {
-            consoleSpy = {
-                groupCollapsed: vi.spyOn(console, 'groupCollapsed').mockImplementation(() => {}),
-                groupEnd: vi.spyOn(console, 'groupEnd').mockImplementation(() => {}),
-                debug: vi.spyOn(console, 'debug').mockImplementation(() => {}),
-                log: vi.spyOn(console, 'log').mockImplementation(() => {}),
-                table: vi.spyOn(console, 'table').mockImplementation(() => {}),
-                trace: vi.spyOn(console, 'trace').mockImplementation(() => {}),
-            };
+        beforeEach(async () => {
+            const { logger } = await import('../../src/modules/logger.ts');
+            loggerMock = logger as unknown as { debug: ReturnType<typeof vi.fn> };
+            loggerMock.debug.mockClear();
             setDebugEnabled(true);
         });
 
@@ -1325,39 +1313,52 @@ describe('Image Recognition Debug Module - Extended Tests', () => {
         it('should output to console when debug is enabled', () => {
             log('test', 'Debug message', { value: 42 });
 
-            expect(consoleSpy.groupCollapsed).toHaveBeenCalled();
-            expect(consoleSpy.trace).toHaveBeenCalled();
-            expect(consoleSpy.groupEnd).toHaveBeenCalled();
+            expect(loggerMock.debug).toHaveBeenCalledWith({
+                operation: 'cv.debug.test',
+                data: { message: 'Debug message', level: 'debug', detail: { value: 42 } },
+            });
         });
 
         it('should use console.table for object data', () => {
             log('test', 'Object data', { key: 'value', num: 123 });
 
-            expect(consoleSpy.table).toHaveBeenCalled();
+            expect(loggerMock.debug).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'cv.debug.test',
+                    data: expect.objectContaining({ detail: { key: 'value', num: 123 } }),
+                })
+            );
         });
 
         it('should use console.debug for primitive data', () => {
             log('test', 'String data', 'just a string');
 
-            expect(consoleSpy.debug).toHaveBeenCalledWith('just a string');
+            expect(loggerMock.debug).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({ detail: 'just a string' }),
+                })
+            );
         });
 
         it('should not use console.table for null data', () => {
             log('test', 'Null data', null);
 
-            expect(consoleSpy.debug).toHaveBeenCalledWith(null);
+            expect(loggerMock.debug).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    data: expect.objectContaining({ detail: null }),
+                })
+            );
         });
 
         it('should format different log levels with different styles', () => {
-            // Clear any previous calls by resetting the mock
-            consoleSpy.groupCollapsed.mockClear();
+            loggerMock.debug.mockClear();
 
             log('test', 'Debug', undefined, 'debug');
             log('test', 'Info', undefined, 'info');
             log('test', 'Warn', undefined, 'warn');
             log('test', 'Error', undefined, 'error');
 
-            expect(consoleSpy.groupCollapsed).toHaveBeenCalledTimes(4);
+            expect(loggerMock.debug).toHaveBeenCalledTimes(4);
         });
     });
 

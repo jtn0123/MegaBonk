@@ -913,7 +913,8 @@ describe('events-comprehensive', () => {
 
             const element = document.createElement('span');
             element.className = 'expandable-text';
-            element.dataset.fullText = 'This is a very long text that should be truncated initially and expanded when clicked by the user';
+            element.dataset.fullText =
+                'This is a very long text that should be truncated initially and expanded when clicked by the user';
             element.dataset.truncated = 'true';
             element.textContent = 'This is a very long text that...';
             document.body.appendChild(element);
@@ -929,7 +930,8 @@ describe('events-comprehensive', () => {
 
             const element = document.createElement('span');
             element.className = 'expandable-text';
-            element.dataset.fullText = 'This is a very long text that should be truncated initially and expanded when clicked by the user to see the full content';
+            element.dataset.fullText =
+                'This is a very long text that should be truncated initially and expanded when clicked by the user to see the full content';
             element.dataset.truncated = 'false';
             element.classList.add('expanded');
             document.body.appendChild(element);

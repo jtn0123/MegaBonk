@@ -213,14 +213,17 @@ export function createOneAndDoneItem(overrides: DeepPartial<Item> = {}): Item {
  */
 export function createItemsByRarity(): Record<Rarity, Item> {
     const rarities: Rarity[] = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
-    return rarities.reduce((acc, rarity) => {
-        acc[rarity] = createItem({
-            id: `${rarity}_item`,
-            name: `${rarity.charAt(0).toUpperCase() + rarity.slice(1)} Item`,
-            rarity,
-        });
-        return acc;
-    }, {} as Record<Rarity, Item>);
+    return rarities.reduce(
+        (acc, rarity) => {
+            acc[rarity] = createItem({
+                id: `${rarity}_item`,
+                name: `${rarity.charAt(0).toUpperCase() + rarity.slice(1)} Item`,
+                rarity,
+            });
+            return acc;
+        },
+        {} as Record<Rarity, Item>
+    );
 }
 
 /**
@@ -228,14 +231,17 @@ export function createItemsByRarity(): Record<Rarity, Item> {
  */
 export function createItemsByTier(): Record<Tier, Item> {
     const tiers: Tier[] = ['SS', 'S', 'A', 'B', 'C'];
-    return tiers.reduce((acc, tier) => {
-        acc[tier] = createItem({
-            id: `tier_${tier.toLowerCase()}_item`,
-            name: `Tier ${tier} Item`,
-            tier,
-        });
-        return acc;
-    }, {} as Record<Tier, Item>);
+    return tiers.reduce(
+        (acc, tier) => {
+            acc[tier] = createItem({
+                id: `tier_${tier.toLowerCase()}_item`,
+                name: `Tier ${tier} Item`,
+                tier,
+            });
+            return acc;
+        },
+        {} as Record<Tier, Item>
+    );
 }
 
 // ========================================

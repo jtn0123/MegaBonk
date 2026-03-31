@@ -4,7 +4,14 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';
-import { createMockAllData, createMockItem, createMockWeapon, createMockCharacter, createMockTome, createMockShrine } from '../helpers/mock-data.js';
+import {
+    createMockAllData,
+    createMockItem,
+    createMockWeapon,
+    createMockCharacter,
+    createMockTome,
+    createMockShrine,
+} from '../helpers/mock-data.js';
 
 // Mock modules
 vi.mock('../../src/modules/toast.ts', () => ({
@@ -96,9 +103,7 @@ describe('Advisor Module', () => {
             createMockTome({ id: 'tome-1', name: 'Tome 1', tier: 'S' }),
             createMockTome({ id: 'tome-2', name: 'Tome 2', tier: 'A' }),
         ];
-        mockGameData.shrines.shrines = [
-            createMockShrine({ id: 'shrine-1', name: 'Shrine 1', tier: 'A' }),
-        ];
+        mockGameData.shrines.shrines = [createMockShrine({ id: 'shrine-1', name: 'Shrine 1', tier: 'A' })];
     });
 
     afterEach(() => {
@@ -126,14 +131,16 @@ describe('Advisor Module', () => {
         it('should log initialization with counts', () => {
             initAdvisor(mockGameData);
 
-            expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'advisor.init',
-                data: expect.objectContaining({
-                    charactersCount: 2,
-                    weaponsCount: 2,
-                    itemsCount: 3,
-                }),
-            }));
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'advisor.init',
+                    data: expect.objectContaining({
+                        charactersCount: 2,
+                        weaponsCount: 2,
+                        itemsCount: 3,
+                    }),
+                })
+            );
         });
 
         it('should handle missing characters gracefully', () => {
@@ -156,9 +163,11 @@ describe('Advisor Module', () => {
             charSelect.value = 'char-1';
             charSelect.dispatchEvent(new Event('change'));
 
-            expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'advisor.character_selected',
-            }));
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'advisor.character_selected',
+                })
+            );
         });
     });
 
@@ -219,9 +228,7 @@ describe('Advisor Module', () => {
                 character: null,
                 weapon: null,
                 items: [],
-                tomes: [
-                    createMockTome({ id: 'tome-1', name: 'Tome 1' }),
-                ],
+                tomes: [createMockTome({ id: 'tome-1', name: 'Tome 1' })],
             };
 
             applyScannedBuild(scannedBuild);
@@ -241,15 +248,17 @@ describe('Advisor Module', () => {
 
             applyScannedBuild(scannedBuild);
 
-            expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'advisor.scanned_build_applied',
-                data: expect.objectContaining({
-                    character: 'Character 1',
-                    weapon: 'Weapon 1',
-                    itemsCount: 1,
-                    tomesCount: 1,
-                }),
-            }));
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'advisor.scanned_build_applied',
+                    data: expect.objectContaining({
+                        character: 'Character 1',
+                        weapon: 'Weapon 1',
+                        itemsCount: 1,
+                        tomesCount: 1,
+                    }),
+                })
+            );
         });
     });
 
@@ -308,12 +317,14 @@ describe('Advisor Module', () => {
             charSelect.value = 'char-1';
             charSelect.dispatchEvent(new Event('change'));
 
-            expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'advisor.character_selected',
-                data: expect.objectContaining({
-                    character: 'Character 1',
-                }),
-            }));
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'advisor.character_selected',
+                    data: expect.objectContaining({
+                        character: 'Character 1',
+                    }),
+                })
+            );
         });
 
         it('should clear character when empty option selected', () => {
@@ -328,9 +339,9 @@ describe('Advisor Module', () => {
             charSelect.dispatchEvent(new Event('change'));
 
             // Logger should only log the selection, not the deselection
-            const selectCalls = vi.mocked(logger.info).mock.calls.filter(
-                (call: any) => call[0]?.operation === 'advisor.character_selected'
-            );
+            const selectCalls = vi
+                .mocked(logger.info)
+                .mock.calls.filter((call: any) => call[0]?.operation === 'advisor.character_selected');
             expect(selectCalls.length).toBe(1);
         });
     });
@@ -345,12 +356,14 @@ describe('Advisor Module', () => {
             weaponSelect.value = 'weapon-1';
             weaponSelect.dispatchEvent(new Event('change'));
 
-            expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'advisor.weapon_selected',
-                data: expect.objectContaining({
-                    weapon: 'Weapon 1',
-                }),
-            }));
+            expect(logger.info).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'advisor.weapon_selected',
+                    data: expect.objectContaining({
+                        weapon: 'Weapon 1',
+                    }),
+                })
+            );
         });
     });
 
@@ -421,9 +434,7 @@ describe('Advisor Module', () => {
             const recommendBtn = document.getElementById('get-recommendation');
             recommendBtn?.click();
 
-            expect(ToastManager.error).toHaveBeenCalledWith(
-                expect.stringContaining('at least 2 choices')
-            );
+            expect(ToastManager.error).toHaveBeenCalledWith(expect.stringContaining('at least 2 choices'));
         });
 
         it('should include the current filled count in the low-choice error', () => {
@@ -522,12 +533,12 @@ describe('Advisor Module', () => {
 
             document.getElementById('get-recommendation')?.click();
 
-            expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'advisor.recommendation_error',
-            }));
-            expect(ToastManager.error).toHaveBeenCalledWith(
-                expect.stringContaining('Failed to generate')
+            expect(logger.error).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'advisor.recommendation_error',
+                })
             );
+            expect(ToastManager.error).toHaveBeenCalledWith(expect.stringContaining('Failed to generate'));
         });
     });
 
@@ -669,9 +680,7 @@ describe('Advisor Module', () => {
 
             document.getElementById('get-recommendation')?.click();
 
-            expect(scrollIntoViewMock).toHaveBeenCalledWith(
-                expect.objectContaining({ behavior: 'smooth' })
-            );
+            expect(scrollIntoViewMock).toHaveBeenCalledWith(expect.objectContaining({ behavior: 'smooth' }));
         });
     });
 
@@ -715,9 +724,7 @@ describe('Advisor Module', () => {
             document.getElementById('get-recommendation')?.click();
 
             expect(recommendBestChoice).toHaveBeenCalled();
-            expect(ToastManager.error).not.toHaveBeenCalledWith(
-                expect.stringContaining('Please select at least 2')
-            );
+            expect(ToastManager.error).not.toHaveBeenCalledWith(expect.stringContaining('Please select at least 2'));
         });
     });
 });

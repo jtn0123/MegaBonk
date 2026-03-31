@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 // Note: caches, Response, and navigator are browser globals used in page.evaluate() callbacks
 import { test, expect } from '@playwright/test';
 
@@ -108,8 +107,8 @@ test.describe('PWA Manifest', () => {
 
     test('should have proper PWA meta tags', async ({ page }) => {
         // Check for theme-color
-        const themeColor = await page.locator('meta[name="theme-color"]').getAttribute('content');
-        expect(themeColor).toBeTruthy();
+        const themeColor = page.locator('meta[name="theme-color"]');
+        await expect(themeColor).toHaveAttribute('content');
     });
 
     test('should have apple-touch-icon', async ({ page }) => {

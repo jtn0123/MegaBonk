@@ -91,10 +91,10 @@ describe('ToastManager', () => {
 
         it('should add toast-visible class after animation frame', () => {
             const toast = ToastManager.show('Animated message');
-            
+
             // Initially not visible
             expect(toast.classList.contains('toast-visible')).toBe(false);
-            
+
             // After animation frame
             vi.runAllTimers();
             // Note: requestAnimationFrame is async, so we need to advance
@@ -103,22 +103,22 @@ describe('ToastManager', () => {
         it('should auto-dismiss after default duration (3000ms)', () => {
             const toast = ToastManager.show('Dismissing message');
             const container = document.getElementById('toast-container');
-            
+
             expect(container?.contains(toast)).toBe(true);
-            
+
             // Advance past the duration
             vi.advanceTimersByTime(3000);
-            
+
             // Toast should start removal process
             expect(toast.classList.contains('toast-visible')).toBe(false);
         });
 
         it('should respect custom duration', () => {
             const toast = ToastManager.show('Quick message', 'info', 1000);
-            
+
             vi.advanceTimersByTime(500);
             expect(toast.classList.contains('toast-visible')).toBe(true);
-            
+
             vi.advanceTimersByTime(600);
             expect(toast.classList.contains('toast-visible')).toBe(false);
         });
@@ -126,12 +126,12 @@ describe('ToastManager', () => {
         it('should remove toast from DOM after transition', () => {
             const toast = ToastManager.show('Removing message', 'info', 100);
             const container = document.getElementById('toast-container');
-            
+
             expect(container?.contains(toast)).toBe(true);
-            
+
             // Advance past duration + fallback timeout
             vi.advanceTimersByTime(700);
-            
+
             expect(container?.contains(toast)).toBe(false);
         });
 
@@ -139,7 +139,7 @@ describe('ToastManager', () => {
             const toast1 = ToastManager.show('First');
             const toast2 = ToastManager.show('Second');
             const toast3 = ToastManager.show('Third');
-            
+
             const container = document.getElementById('toast-container');
             expect(container?.children.length).toBe(3);
         });
@@ -147,7 +147,7 @@ describe('ToastManager', () => {
         it('should auto-init container if not initialized', () => {
             // Don't call init() first
             ToastManager.show('Auto-init message');
-            
+
             const container = document.getElementById('toast-container');
             expect(container).not.toBeNull();
         });
@@ -195,7 +195,7 @@ describe('ToastManager', () => {
         it('should remove container from DOM', () => {
             ToastManager.init();
             expect(document.getElementById('toast-container')).not.toBeNull();
-            
+
             ToastManager.reset();
             expect(document.getElementById('toast-container')).toBeNull();
         });
@@ -203,7 +203,7 @@ describe('ToastManager', () => {
         it('should reset internal state', () => {
             ToastManager.init();
             ToastManager.reset();
-            
+
             // Should be able to init again
             ToastManager.init();
             expect(document.getElementById('toast-container')).not.toBeNull();
@@ -219,7 +219,7 @@ describe('ToastManager', () => {
             ToastManager.reset();
             ToastManager.reset();
             ToastManager.reset();
-            
+
             expect(document.getElementById('toast-container')).toBeNull();
         });
     });
@@ -255,14 +255,14 @@ describe('ToastManager', () => {
 
         it('should handle zero duration', () => {
             const toast = ToastManager.show('Instant', 'info', 0);
-            
+
             vi.advanceTimersByTime(0);
             expect(toast.classList.contains('toast-visible')).toBe(false);
         });
 
         it('should handle negative duration as immediate', () => {
             const toast = ToastManager.show('Negative', 'info', -100);
-            
+
             vi.advanceTimersByTime(0);
             // Should still work, treated as 0 or immediate
             expect(toast).toBeDefined();

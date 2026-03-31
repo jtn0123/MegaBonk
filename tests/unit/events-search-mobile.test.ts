@@ -13,7 +13,7 @@ import { handleSearchResultClick, clearHighlightTimeout } from '../../src/module
 const mockSwitchTab = vi.fn().mockImplementation(async (tabName: string) => {
     // Simulate async tab switch that renders content
     await new Promise(resolve => setTimeout(resolve, 10));
-    
+
     // Simulate content being rendered after tab switch
     const container = document.getElementById('itemsContainer');
     if (container && tabName === 'items') {
@@ -32,14 +32,14 @@ describe('Mobile Search Result Click', () => {
     beforeEach(() => {
         createMinimalDOM();
         clearHighlightTimeout();
-        
+
         // Setup mock switchTab on window
         (window as unknown as { switchTab: typeof mockSwitchTab }).switchTab = mockSwitchTab;
-        
+
         // Clear any existing content
         const container = document.getElementById('itemsContainer');
         if (container) container.innerHTML = '';
-        
+
         vi.clearAllMocks();
     });
 
@@ -157,7 +157,7 @@ describe('Mobile Search Result Click', () => {
         searchResultCard.className = 'search-result-card';
         searchResultCard.dataset.tabType = 'items';
         searchResultCard.dataset.entityId = 'test-item-1';
-        
+
         const childElement = document.createElement('span');
         childElement.textContent = 'Item Name';
         searchResultCard.appendChild(childElement);

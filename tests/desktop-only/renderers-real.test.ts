@@ -476,17 +476,19 @@ describe('Renderer XSS Prevention', () => {
     });
 
     it('should escape HTML in item names', () => {
-        const maliciousItem = [{
-            id: 'xss',
-            name: '<script>alert("xss")</script>',
-            tier: 'A' as const,
-            rarity: 'common' as const,
-            description: 'Test',
-            base_effect: 'Test',
-            detailed_description: 'Test',
-            one_and_done: false,
-            stacks_well: false,
-        }];
+        const maliciousItem = [
+            {
+                id: 'xss',
+                name: '<script>alert("xss")</script>',
+                tier: 'A' as const,
+                rarity: 'common' as const,
+                description: 'Test',
+                base_effect: 'Test',
+                detailed_description: 'Test',
+                one_and_done: false,
+                stacks_well: false,
+            },
+        ];
 
         renderItems(maliciousItem as any);
 
@@ -495,17 +497,19 @@ describe('Renderer XSS Prevention', () => {
     });
 
     it('should escape HTML in base_effect', () => {
-        const maliciousItem = [{
-            id: 'xss',
-            name: 'Test Item',
-            tier: 'A' as const,
-            rarity: 'common' as const,
-            description: 'Normal description',
-            base_effect: '<b>Bold</b> effect',
-            detailed_description: 'Normal',
-            one_and_done: false,
-            stacks_well: false,
-        }];
+        const maliciousItem = [
+            {
+                id: 'xss',
+                name: 'Test Item',
+                tier: 'A' as const,
+                rarity: 'common' as const,
+                description: 'Normal description',
+                base_effect: '<b>Bold</b> effect',
+                detailed_description: 'Normal',
+                one_and_done: false,
+                stacks_well: false,
+            },
+        ];
 
         renderItems(maliciousItem as any);
 
@@ -525,15 +529,17 @@ describe('Renderer Edge Cases', () => {
     it('should handle items with missing optional fields', () => {
         document.body.innerHTML = '<div id="itemsContainer"></div>';
 
-        const minimalItem = [{
-            id: 'minimal',
-            name: 'Minimal Item',
-            tier: 'C' as const,
-            rarity: 'common' as const,
-            description: '',
-            base_effect: '',
-            detailed_description: '',
-        }];
+        const minimalItem = [
+            {
+                id: 'minimal',
+                name: 'Minimal Item',
+                tier: 'C' as const,
+                rarity: 'common' as const,
+                description: '',
+                base_effect: '',
+                detailed_description: '',
+            },
+        ];
 
         expect(() => renderItems(minimalItem as any)).not.toThrow();
 
@@ -544,15 +550,17 @@ describe('Renderer Edge Cases', () => {
     it('should handle very long item names', () => {
         document.body.innerHTML = '<div id="itemsContainer"></div>';
 
-        const longNameItem = [{
-            id: 'long',
-            name: 'A'.repeat(200),
-            tier: 'A' as const,
-            rarity: 'rare' as const,
-            description: '',
-            base_effect: '',
-            detailed_description: '',
-        }];
+        const longNameItem = [
+            {
+                id: 'long',
+                name: 'A'.repeat(200),
+                tier: 'A' as const,
+                rarity: 'rare' as const,
+                description: '',
+                base_effect: '',
+                detailed_description: '',
+            },
+        ];
 
         expect(() => renderItems(longNameItem as any)).not.toThrow();
     });
@@ -560,15 +568,17 @@ describe('Renderer Edge Cases', () => {
     it('should handle items with unicode characters', () => {
         document.body.innerHTML = '<div id="itemsContainer"></div>';
 
-        const unicodeItem = [{
-            id: 'unicode',
-            name: '日本語アイテム 🔥',
-            tier: 'S' as const,
-            rarity: 'epic' as const,
-            description: 'Contains émojis and 日本語',
-            base_effect: '魔法 +10%',
-            detailed_description: 'More unicode: café ñ',
-        }];
+        const unicodeItem = [
+            {
+                id: 'unicode',
+                name: '日本語アイテム 🔥',
+                tier: 'S' as const,
+                rarity: 'epic' as const,
+                description: 'Contains émojis and 日本語',
+                base_effect: '魔法 +10%',
+                detailed_description: 'More unicode: café ñ',
+            },
+        ];
 
         expect(() => renderItems(unicodeItem as any)).not.toThrow();
 

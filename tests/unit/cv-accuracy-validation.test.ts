@@ -44,9 +44,9 @@ const createGroundTruth = (items: Array<{ id: string; name: string; count: numbe
  * Accuracy targets by difficulty
  */
 const ACCURACY_TARGETS = {
-    easy: { precision: 0.80, recall: 0.80, f1: 0.80 },
-    medium: { precision: 0.70, recall: 0.70, f1: 0.70 },
-    hard: { precision: 0.60, recall: 0.60, f1: 0.60 },
+    easy: { precision: 0.8, recall: 0.8, f1: 0.8 },
+    medium: { precision: 0.7, recall: 0.7, f1: 0.7 },
+    hard: { precision: 0.6, recall: 0.6, f1: 0.6 },
     extreme: { precision: 0.55, recall: 0.55, f1: 0.55 },
 };
 
@@ -75,7 +75,7 @@ describe('CV Accuracy Metrics Calculation', () => {
             session.setGroundTruth(groundTruth);
             session.recordDetections([
                 createDetection('wrench', 'Wrench', 0.95),
-                createDetection('wrench', 'Wrench', 0.90),
+                createDetection('wrench', 'Wrench', 0.9),
                 createDetection('medkit', 'Medkit', 0.88),
             ]);
 
@@ -93,13 +93,9 @@ describe('CV Accuracy Metrics Calculation', () => {
         it('should handle single item perfect detection', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'single-item');
 
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 1 },
-            ]));
+            session.setGroundTruth(createGroundTruth([{ id: 'wrench', name: 'Wrench', count: 1 }]));
 
-            session.recordDetections([
-                createDetection('wrench', 'Wrench', 0.95),
-            ]);
+            session.recordDetections([createDetection('wrench', 'Wrench', 0.95)]);
 
             const metrics = session.complete();
 
@@ -113,16 +109,18 @@ describe('CV Accuracy Metrics Calculation', () => {
         it('should calculate metrics for partial recall (missed items)', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'partial-recall');
 
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 3 },
-                { id: 'medkit', name: 'Medkit', count: 2 },
-            ]));
+            session.setGroundTruth(
+                createGroundTruth([
+                    { id: 'wrench', name: 'Wrench', count: 3 },
+                    { id: 'medkit', name: 'Medkit', count: 2 },
+                ])
+            );
 
             // Only detect 2 of 3 wrenches, 1 of 2 medkits
             session.recordDetections([
-                createDetection('wrench', 'Wrench', 0.90),
+                createDetection('wrench', 'Wrench', 0.9),
                 createDetection('wrench', 'Wrench', 0.85),
-                createDetection('medkit', 'Medkit', 0.80),
+                createDetection('medkit', 'Medkit', 0.8),
             ]);
 
             const metrics = session.complete();
@@ -138,15 +136,13 @@ describe('CV Accuracy Metrics Calculation', () => {
         it('should calculate metrics for false positives (over-detection)', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'over-detection');
 
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 1 },
-            ]));
+            session.setGroundTruth(createGroundTruth([{ id: 'wrench', name: 'Wrench', count: 1 }]));
 
             // Detect more than actually present
             session.recordDetections([
-                createDetection('wrench', 'Wrench', 0.90),
-                createDetection('wrench', 'Wrench', 0.70), // False positive
-                createDetection('medkit', 'Medkit', 0.60), // False positive (wrong item)
+                createDetection('wrench', 'Wrench', 0.9),
+                createDetection('wrench', 'Wrench', 0.7), // False positive
+                createDetection('medkit', 'Medkit', 0.6), // False positive (wrong item)
             ]);
 
             const metrics = session.complete();
@@ -161,18 +157,20 @@ describe('CV Accuracy Metrics Calculation', () => {
         it('should calculate metrics for mixed errors', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'mixed-errors');
 
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 2 },
-                { id: 'medkit', name: 'Medkit', count: 2 },
-                { id: 'battery', name: 'Battery', count: 1 },
-            ]));
+            session.setGroundTruth(
+                createGroundTruth([
+                    { id: 'wrench', name: 'Wrench', count: 2 },
+                    { id: 'medkit', name: 'Medkit', count: 2 },
+                    { id: 'battery', name: 'Battery', count: 1 },
+                ])
+            );
 
             // Detect: 1 wrench (miss 1), 3 medkits (1 FP), 0 battery (miss 1), 1 wrong item
             session.recordDetections([
-                createDetection('wrench', 'Wrench', 0.90),
+                createDetection('wrench', 'Wrench', 0.9),
                 createDetection('medkit', 'Medkit', 0.85),
-                createDetection('medkit', 'Medkit', 0.80),
-                createDetection('medkit', 'Medkit', 0.70), // FP
+                createDetection('medkit', 'Medkit', 0.8),
+                createDetection('medkit', 'Medkit', 0.7), // FP
                 createDetection('oats', 'Oats', 0.65), // Wrong item
             ]);
 
@@ -191,9 +189,7 @@ describe('CV Accuracy Metrics Calculation', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'empty-truth');
 
             session.setGroundTruth(createGroundTruth([]));
-            session.recordDetections([
-                createDetection('wrench', 'Wrench', 0.90),
-            ]);
+            session.recordDetections([createDetection('wrench', 'Wrench', 0.9)]);
 
             const metrics = session.complete();
 
@@ -206,9 +202,7 @@ describe('CV Accuracy Metrics Calculation', () => {
         it('should handle empty detections', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'empty-detections');
 
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 2 },
-            ]));
+            session.setGroundTruth(createGroundTruth([{ id: 'wrench', name: 'Wrench', count: 2 }]));
             session.recordDetections([]);
 
             const metrics = session.complete();
@@ -222,9 +216,7 @@ describe('CV Accuracy Metrics Calculation', () => {
         it('should handle no ground truth set', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'no-truth');
 
-            session.recordDetections([
-                createDetection('wrench', 'Wrench', 0.90),
-            ]);
+            session.recordDetections([createDetection('wrench', 'Wrench', 0.9)]);
 
             const metrics = session.complete();
 
@@ -237,14 +229,12 @@ describe('CV Accuracy Metrics Calculation', () => {
         it('should handle high count items (stacking)', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'high-count');
 
-            session.setGroundTruth(createGroundTruth([
-                { id: 'ice_cube', name: 'Ice Cube', count: 10 },
-            ]));
+            session.setGroundTruth(createGroundTruth([{ id: 'ice_cube', name: 'Ice Cube', count: 10 }]));
 
             // Detect 8 of 10
-            const detections = Array(8).fill(null).map((_, i) =>
-                createDetection('ice_cube', 'Ice Cube', 0.90 - i * 0.02)
-            );
+            const detections = Array(8)
+                .fill(null)
+                .map((_, i) => createDetection('ice_cube', 'Ice Cube', 0.9 - i * 0.02));
             session.recordDetections(detections);
 
             const metrics = session.complete();
@@ -274,14 +264,20 @@ describe('CV Accuracy Target Validation', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'easy-precision');
 
             // Simulate easy scenario: 10 items, detect 9 correctly, 1 FP
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 5 },
-                { id: 'medkit', name: 'Medkit', count: 5 },
-            ]));
+            session.setGroundTruth(
+                createGroundTruth([
+                    { id: 'wrench', name: 'Wrench', count: 5 },
+                    { id: 'medkit', name: 'Medkit', count: 5 },
+                ])
+            );
 
             session.recordDetections([
-                ...Array(5).fill(null).map(() => createDetection('wrench', 'Wrench', 0.92)),
-                ...Array(4).fill(null).map(() => createDetection('medkit', 'Medkit', 0.88)),
+                ...Array(5)
+                    .fill(null)
+                    .map(() => createDetection('wrench', 'Wrench', 0.92)),
+                ...Array(4)
+                    .fill(null)
+                    .map(() => createDetection('medkit', 'Medkit', 0.88)),
                 createDetection('oats', 'Oats', 0.65), // 1 FP
             ]);
 
@@ -293,15 +289,21 @@ describe('CV Accuracy Target Validation', () => {
         it('should meet 80% recall target for clean UI scenarios', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'easy-recall');
 
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 5 },
-                { id: 'medkit', name: 'Medkit', count: 5 },
-            ]));
+            session.setGroundTruth(
+                createGroundTruth([
+                    { id: 'wrench', name: 'Wrench', count: 5 },
+                    { id: 'medkit', name: 'Medkit', count: 5 },
+                ])
+            );
 
             // Detect 8 of 10 items
             session.recordDetections([
-                ...Array(4).fill(null).map(() => createDetection('wrench', 'Wrench', 0.92)),
-                ...Array(4).fill(null).map(() => createDetection('medkit', 'Medkit', 0.88)),
+                ...Array(4)
+                    .fill(null)
+                    .map(() => createDetection('wrench', 'Wrench', 0.92)),
+                ...Array(4)
+                    .fill(null)
+                    .map(() => createDetection('medkit', 'Medkit', 0.88)),
             ]);
 
             const metrics = session.complete();
@@ -314,20 +316,28 @@ describe('CV Accuracy Target Validation', () => {
         it('should meet 70% precision for moderate complexity', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'medium-precision');
 
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 3 },
-                { id: 'medkit', name: 'Medkit', count: 3 },
-                { id: 'battery', name: 'Battery', count: 2 },
-                { id: 'backpack', name: 'Backpack', count: 2 },
-            ]));
+            session.setGroundTruth(
+                createGroundTruth([
+                    { id: 'wrench', name: 'Wrench', count: 3 },
+                    { id: 'medkit', name: 'Medkit', count: 3 },
+                    { id: 'battery', name: 'Battery', count: 2 },
+                    { id: 'backpack', name: 'Backpack', count: 2 },
+                ])
+            );
 
             // 7 correct, 2 FP, 1 FN
             session.recordDetections([
-                ...Array(2).fill(null).map(() => createDetection('wrench', 'Wrench', 0.85)),
-                ...Array(3).fill(null).map(() => createDetection('medkit', 'Medkit', 0.80)),
-                ...Array(2).fill(null).map(() => createDetection('battery', 'Battery', 0.78)),
+                ...Array(2)
+                    .fill(null)
+                    .map(() => createDetection('wrench', 'Wrench', 0.85)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('medkit', 'Medkit', 0.8)),
+                ...Array(2)
+                    .fill(null)
+                    .map(() => createDetection('battery', 'Battery', 0.78)),
                 createDetection('oats', 'Oats', 0.65),
-                createDetection('cheese', 'Cheese', 0.60),
+                createDetection('cheese', 'Cheese', 0.6),
             ]);
 
             const metrics = session.complete();
@@ -338,17 +348,25 @@ describe('CV Accuracy Target Validation', () => {
         it('should meet 70% F1 score for mid-game scenarios', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'medium-f1');
 
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 4 },
-                { id: 'medkit', name: 'Medkit', count: 4 },
-                { id: 'battery', name: 'Battery', count: 2 },
-            ]));
+            session.setGroundTruth(
+                createGroundTruth([
+                    { id: 'wrench', name: 'Wrench', count: 4 },
+                    { id: 'medkit', name: 'Medkit', count: 4 },
+                    { id: 'battery', name: 'Battery', count: 2 },
+                ])
+            );
 
             // Balanced errors: some FP, some FN
             session.recordDetections([
-                ...Array(3).fill(null).map(() => createDetection('wrench', 'Wrench', 0.85)),
-                ...Array(3).fill(null).map(() => createDetection('medkit', 'Medkit', 0.80)),
-                ...Array(2).fill(null).map(() => createDetection('battery', 'Battery', 0.78)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('wrench', 'Wrench', 0.85)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('medkit', 'Medkit', 0.8)),
+                ...Array(2)
+                    .fill(null)
+                    .map(() => createDetection('battery', 'Battery', 0.78)),
                 createDetection('oats', 'Oats', 0.65), // 1 FP
             ]);
 
@@ -363,27 +381,39 @@ describe('CV Accuracy Target Validation', () => {
             const session = startMetricsTracking(STRATEGY_PRESETS.current, 'hard-accuracy');
 
             // 20 items total - late game scenario
-            session.setGroundTruth(createGroundTruth([
-                { id: 'wrench', name: 'Wrench', count: 4 },
-                { id: 'medkit', name: 'Medkit', count: 4 },
-                { id: 'battery', name: 'Battery', count: 3 },
-                { id: 'backpack', name: 'Backpack', count: 3 },
-                { id: 'turbo_skates', name: 'Turbo Skates', count: 3 },
-                { id: 'ice_crystal', name: 'Ice Crystal', count: 3 },
-            ]));
+            session.setGroundTruth(
+                createGroundTruth([
+                    { id: 'wrench', name: 'Wrench', count: 4 },
+                    { id: 'medkit', name: 'Medkit', count: 4 },
+                    { id: 'battery', name: 'Battery', count: 3 },
+                    { id: 'backpack', name: 'Backpack', count: 3 },
+                    { id: 'turbo_skates', name: 'Turbo Skates', count: 3 },
+                    { id: 'ice_crystal', name: 'Ice Crystal', count: 3 },
+                ])
+            );
 
             // Detect 13 correct, 3 FP, 7 FN
             session.recordDetections([
-                ...Array(3).fill(null).map(() => createDetection('wrench', 'Wrench', 0.80)),
-                ...Array(3).fill(null).map(() => createDetection('medkit', 'Medkit', 0.75)),
-                ...Array(2).fill(null).map(() => createDetection('battery', 'Battery', 0.72)),
-                ...Array(2).fill(null).map(() => createDetection('backpack', 'Backpack', 0.70)),
-                ...Array(2).fill(null).map(() => createDetection('turbo_skates', 'Turbo Skates', 0.68)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('wrench', 'Wrench', 0.8)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('medkit', 'Medkit', 0.75)),
+                ...Array(2)
+                    .fill(null)
+                    .map(() => createDetection('battery', 'Battery', 0.72)),
+                ...Array(2)
+                    .fill(null)
+                    .map(() => createDetection('backpack', 'Backpack', 0.7)),
+                ...Array(2)
+                    .fill(null)
+                    .map(() => createDetection('turbo_skates', 'Turbo Skates', 0.68)),
                 createDetection('ice_crystal', 'Ice Crystal', 0.65),
                 // 3 FPs
                 createDetection('oats', 'Oats', 0.55),
                 createDetection('cheese', 'Cheese', 0.52),
-                createDetection('borgar', 'Borgar', 0.50),
+                createDetection('borgar', 'Borgar', 0.5),
             ]);
 
             const metrics = session.complete();
@@ -414,14 +444,30 @@ describe('CV Accuracy Target Validation', () => {
 
             // Detect ~55% correctly
             const detections = [
-                ...Array(3).fill(null).map(() => createDetection('wrench', 'Wrench', 0.75)),
-                ...Array(3).fill(null).map(() => createDetection('medkit', 'Medkit', 0.70)),
-                ...Array(3).fill(null).map(() => createDetection('battery', 'Battery', 0.68)),
-                ...Array(3).fill(null).map(() => createDetection('backpack', 'Backpack', 0.65)),
-                ...Array(3).fill(null).map(() => createDetection('turbo_skates', 'Turbo Skates', 0.62)),
-                ...Array(3).fill(null).map(() => createDetection('ice_crystal', 'Ice Crystal', 0.60)),
-                ...Array(2).fill(null).map(() => createDetection('dragonfire', 'Dragonfire', 0.58)),
-                ...Array(2).fill(null).map(() => createDetection('moldy_cheese', 'Moldy Cheese', 0.55)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('wrench', 'Wrench', 0.75)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('medkit', 'Medkit', 0.7)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('battery', 'Battery', 0.68)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('backpack', 'Backpack', 0.65)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('turbo_skates', 'Turbo Skates', 0.62)),
+                ...Array(3)
+                    .fill(null)
+                    .map(() => createDetection('ice_crystal', 'Ice Crystal', 0.6)),
+                ...Array(2)
+                    .fill(null)
+                    .map(() => createDetection('dragonfire', 'Dragonfire', 0.58)),
+                ...Array(2)
+                    .fill(null)
+                    .map(() => createDetection('moldy_cheese', 'Moldy Cheese', 0.55)),
             ];
             session.recordDetections(detections);
 
@@ -455,8 +501,12 @@ describe('CV Accuracy Regression Detection', () => {
         const session1 = startMetricsTracking(STRATEGY_PRESETS.current, 'baseline');
         session1.setGroundTruth(groundTruth);
         session1.recordDetections([
-            ...Array(5).fill(null).map(() => createDetection('wrench', 'Wrench', 0.90)),
-            ...Array(4).fill(null).map(() => createDetection('medkit', 'Medkit', 0.85)),
+            ...Array(5)
+                .fill(null)
+                .map(() => createDetection('wrench', 'Wrench', 0.9)),
+            ...Array(4)
+                .fill(null)
+                .map(() => createDetection('medkit', 'Medkit', 0.85)),
         ]);
         const baseline = session1.complete();
 
@@ -464,8 +514,12 @@ describe('CV Accuracy Regression Detection', () => {
         const session2 = startMetricsTracking(STRATEGY_PRESETS.current, 'regression');
         session2.setGroundTruth(groundTruth);
         session2.recordDetections([
-            ...Array(3).fill(null).map(() => createDetection('wrench', 'Wrench', 0.80)),
-            ...Array(2).fill(null).map(() => createDetection('medkit', 'Medkit', 0.75)),
+            ...Array(3)
+                .fill(null)
+                .map(() => createDetection('wrench', 'Wrench', 0.8)),
+            ...Array(2)
+                .fill(null)
+                .map(() => createDetection('medkit', 'Medkit', 0.75)),
         ]);
         const regressed = session2.complete();
 
@@ -475,15 +529,15 @@ describe('CV Accuracy Regression Detection', () => {
     });
 
     it('should track improvement between strategy changes', () => {
-        const groundTruth = createGroundTruth([
-            { id: 'wrench', name: 'Wrench', count: 10 },
-        ]);
+        const groundTruth = createGroundTruth([{ id: 'wrench', name: 'Wrench', count: 10 }]);
 
         // Strategy A
         const sessionA = startMetricsTracking(STRATEGY_PRESETS.fast, 'strategy-a');
         sessionA.setGroundTruth(groundTruth);
         sessionA.recordDetections(
-            Array(6).fill(null).map(() => createDetection('wrench', 'Wrench', 0.70))
+            Array(6)
+                .fill(null)
+                .map(() => createDetection('wrench', 'Wrench', 0.7))
         );
         const metricsA = sessionA.complete();
 
@@ -491,7 +545,9 @@ describe('CV Accuracy Regression Detection', () => {
         const sessionB = startMetricsTracking(STRATEGY_PRESETS.accurate, 'strategy-b');
         sessionB.setGroundTruth(groundTruth);
         sessionB.recordDetections(
-            Array(8).fill(null).map(() => createDetection('wrench', 'Wrench', 0.85))
+            Array(8)
+                .fill(null)
+                .map(() => createDetection('wrench', 'Wrench', 0.85))
         );
         const metricsB = sessionB.complete();
 
@@ -511,21 +567,18 @@ describe('CV Accuracy Regression Detection', () => {
         const accuracies: number[] = [];
 
         strategies.forEach((strategyName, i) => {
-            const session = startMetricsTracking(
-                STRATEGY_PRESETS[strategyName],
-                strategyName
-            );
+            const session = startMetricsTracking(STRATEGY_PRESETS[strategyName], strategyName);
             session.setGroundTruth(groundTruth);
 
             // Simulate different accuracy for each strategy
             const detectCount = 6 + i * 2; // 6, 8, 10
             session.recordDetections([
-                ...Array(Math.min(5, detectCount)).fill(null).map(() =>
-                    createDetection('wrench', 'Wrench', 0.75 + i * 0.05)
-                ),
-                ...Array(Math.max(0, detectCount - 5)).fill(null).map(() =>
-                    createDetection('medkit', 'Medkit', 0.70 + i * 0.05)
-                ),
+                ...Array(Math.min(5, detectCount))
+                    .fill(null)
+                    .map(() => createDetection('wrench', 'Wrench', 0.75 + i * 0.05)),
+                ...Array(Math.max(0, detectCount - 5))
+                    .fill(null)
+                    .map(() => createDetection('medkit', 'Medkit', 0.7 + i * 0.05)),
             ]);
 
             const metrics = session.complete();
@@ -556,14 +609,14 @@ describe('CV Confidence Distribution Analysis', () => {
         session.recordDetections([
             // High confidence (>=0.85)
             createDetection('item1', 'Item 1', 0.95),
-            createDetection('item2', 'Item 2', 0.90),
+            createDetection('item2', 'Item 2', 0.9),
             createDetection('item3', 'Item 3', 0.85),
             // Medium confidence (0.70-0.85)
-            createDetection('item4', 'Item 4', 0.80),
+            createDetection('item4', 'Item 4', 0.8),
             createDetection('item5', 'Item 5', 0.75),
             // Low confidence (<0.70)
             createDetection('item6', 'Item 6', 0.65),
-            createDetection('item7', 'Item 7', 0.50),
+            createDetection('item7', 'Item 7', 0.5),
         ]);
 
         const metrics = session.complete();
@@ -577,9 +630,9 @@ describe('CV Confidence Distribution Analysis', () => {
         const session = startMetricsTracking(STRATEGY_PRESETS.current, 'avg-confidence');
 
         session.recordDetections([
-            createDetection('item1', 'Item 1', 0.90),
-            createDetection('item2', 'Item 2', 0.80),
-            createDetection('item3', 'Item 3', 0.70),
+            createDetection('item1', 'Item 1', 0.9),
+            createDetection('item2', 'Item 2', 0.8),
+            createDetection('item3', 'Item 3', 0.7),
         ]);
 
         const metrics = session.complete();
@@ -591,14 +644,14 @@ describe('CV Confidence Distribution Analysis', () => {
         const session = startMetricsTracking(STRATEGY_PRESETS.current, 'median-confidence');
 
         session.recordDetections([
-            createDetection('item1', 'Item 1', 0.50),
-            createDetection('item2', 'Item 2', 0.70),
-            createDetection('item3', 'Item 3', 0.90),
+            createDetection('item1', 'Item 1', 0.5),
+            createDetection('item2', 'Item 2', 0.7),
+            createDetection('item3', 'Item 3', 0.9),
         ]);
 
         const metrics = session.complete();
 
-        expect(metrics.medianConfidence).toBe(0.70);
+        expect(metrics.medianConfidence).toBe(0.7);
     });
 
     it('should handle empty detections for confidence stats', () => {

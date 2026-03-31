@@ -38,9 +38,9 @@ vi.mock('../../src/modules/cv-strategy.ts', () => ({
 vi.mock('../../src/modules/computer-vision-enhanced.ts', () => ({
     initEnhancedCV: vi.fn(),
     loadEnhancedTemplates: vi.fn().mockResolvedValue(undefined),
-    detectItemsWithEnhancedCV: vi.fn().mockResolvedValue([
-        { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.9 },
-    ]),
+    detectItemsWithEnhancedCV: vi
+        .fn()
+        .mockResolvedValue([{ type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.9 }]),
 }));
 
 vi.mock('../../src/modules/cv-metrics.ts', () => ({
@@ -81,7 +81,11 @@ import {
 import { ToastManager } from '../../src/modules/toast.ts';
 import { logger } from '../../src/modules/logger.ts';
 import { setActiveStrategy } from '../../src/modules/cv-strategy.ts';
-import { initEnhancedCV, loadEnhancedTemplates, detectItemsWithEnhancedCV } from '../../src/modules/computer-vision-enhanced.ts';
+import {
+    initEnhancedCV,
+    loadEnhancedTemplates,
+    detectItemsWithEnhancedCV,
+} from '../../src/modules/computer-vision-enhanced.ts';
 import { autoDetectFromImage } from '../../src/modules/ocr';
 import { combineDetections, aggregateDuplicates } from '../../src/modules/computer-vision.ts';
 
@@ -207,20 +211,13 @@ describe('Scan Build Enhanced Module', () => {
         it('should run OCR detection', async () => {
             await handleEnhancedHybridDetect(mockImageDataUrl);
 
-            expect(autoDetectFromImage).toHaveBeenCalledWith(
-                mockImageDataUrl,
-                expect.any(Function)
-            );
+            expect(autoDetectFromImage).toHaveBeenCalledWith(mockImageDataUrl, expect.any(Function));
         });
 
         it('should run enhanced CV detection', async () => {
             await handleEnhancedHybridDetect(mockImageDataUrl);
 
-            expect(detectItemsWithEnhancedCV).toHaveBeenCalledWith(
-                mockImageDataUrl,
-                'optimized',
-                expect.any(Function)
-            );
+            expect(detectItemsWithEnhancedCV).toHaveBeenCalledWith(mockImageDataUrl, 'optimized', expect.any(Function));
         });
 
         it('should combine OCR and CV results', async () => {
@@ -528,7 +525,9 @@ describe('Scan Build Enhanced Module', () => {
         });
 
         it('should handle no metrics available', async () => {
-            (await import('../../src/modules/cv-metrics.ts')).metricsTracker.getMetricsForStrategy = vi.fn().mockReturnValue([]);
+            (await import('../../src/modules/cv-metrics.ts')).metricsTracker.getMetricsForStrategy = vi
+                .fn()
+                .mockReturnValue([]);
 
             const mockImageDataUrl = 'data:image/png;base64,abc123';
             const result = await handleEnhancedHybridDetect(mockImageDataUrl);
@@ -565,11 +564,7 @@ describe('Scan Build Enhanced Module', () => {
             const mockImageDataUrl = 'data:image/png;base64,abc123';
             await handleEnhancedHybridDetect(mockImageDataUrl);
 
-            expect(detectItemsWithEnhancedCV).toHaveBeenCalledWith(
-                mockImageDataUrl,
-                'accurate',
-                expect.any(Function)
-            );
+            expect(detectItemsWithEnhancedCV).toHaveBeenCalledWith(mockImageDataUrl, 'accurate', expect.any(Function));
         });
     });
 });

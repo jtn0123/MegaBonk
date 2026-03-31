@@ -82,7 +82,7 @@ describe('MetricsTracker', () => {
 
         session.recordDetections([
             createMockDetection('item1', 'Item 1', 0.95),
-            createMockDetection('item2', 'Item 2', 0.80),
+            createMockDetection('item2', 'Item 2', 0.8),
             createMockDetection('item3', 'Item 3', 0.65),
         ]);
 
@@ -97,12 +97,12 @@ describe('MetricsTracker', () => {
         session.recordDetections([
             // High confidence (>=0.85)
             createMockDetection('item1', 'Item 1', 0.95),
-            createMockDetection('item2', 'Item 2', 0.90),
+            createMockDetection('item2', 'Item 2', 0.9),
             // Medium confidence (0.70-0.85)
-            createMockDetection('item3', 'Item 3', 0.80),
+            createMockDetection('item3', 'Item 3', 0.8),
             createMockDetection('item4', 'Item 4', 0.75),
             // Low confidence (<0.70)
-            createMockDetection('item5', 'Item 5', 0.60),
+            createMockDetection('item5', 'Item 5', 0.6),
         ]);
 
         const metrics = session.complete();
@@ -116,9 +116,9 @@ describe('MetricsTracker', () => {
         const session = startMetricsTracking(STRATEGY_PRESETS.current, 'test');
 
         session.recordDetections([
-            createMockDetection('item1', 'Item 1', 0.80),
-            createMockDetection('item2', 'Item 2', 0.90),
-            createMockDetection('item3', 'Item 3', 1.00),
+            createMockDetection('item1', 'Item 1', 0.8),
+            createMockDetection('item2', 'Item 2', 0.9),
+            createMockDetection('item3', 'Item 3', 1.0),
         ]);
 
         const metrics = session.complete();
@@ -130,14 +130,14 @@ describe('MetricsTracker', () => {
         const session = startMetricsTracking(STRATEGY_PRESETS.current, 'test');
 
         session.recordDetections([
-            createMockDetection('item1', 'Item 1', 0.60),
-            createMockDetection('item2', 'Item 2', 0.80),
-            createMockDetection('item3', 'Item 3', 0.90),
+            createMockDetection('item1', 'Item 1', 0.6),
+            createMockDetection('item2', 'Item 2', 0.8),
+            createMockDetection('item3', 'Item 3', 0.9),
         ]);
 
         const metrics = session.complete();
 
-        expect(metrics.medianConfidence).toBeCloseTo(0.80, 2);
+        expect(metrics.medianConfidence).toBeCloseTo(0.8, 2);
     });
 
     it('should track cell statistics', () => {
@@ -231,9 +231,9 @@ describe('Ground Truth Validation', () => {
 
         // Simulate detections: 2 correct, 1 wrong, 1 missed
         session.recordDetections([
-            createMockDetection('item1', 'Item 1', 0.90), // True positive
+            createMockDetection('item1', 'Item 1', 0.9), // True positive
             createMockDetection('item2', 'Item 2', 0.85), // True positive
-            createMockDetection('item4', 'Wrong', 0.80), // False positive (wrong item)
+            createMockDetection('item4', 'Wrong', 0.8), // False positive (wrong item)
         ]);
         // item3 is missed - false negative
 
@@ -249,14 +249,12 @@ describe('Ground Truth Validation', () => {
         const session = startMetricsTracking(STRATEGY_PRESETS.current, 'test');
 
         const groundTruth: GroundTruth = {
-            items: [
-                { id: 'item1', name: 'Item 1', count: 1 },
-            ],
+            items: [{ id: 'item1', name: 'Item 1', count: 1 }],
         };
 
         session.recordDetections([
-            createMockDetection('item1', 'Item 1', 0.90), // TP
-            createMockDetection('item2', 'Wrong', 0.80), // FP
+            createMockDetection('item1', 'Item 1', 0.9), // TP
+            createMockDetection('item2', 'Wrong', 0.8), // FP
         ]);
 
         session.setGroundTruth(groundTruth);
@@ -277,7 +275,7 @@ describe('Ground Truth Validation', () => {
         };
 
         session.recordDetections([
-            createMockDetection('item1', 'Item 1', 0.90), // TP
+            createMockDetection('item1', 'Item 1', 0.9), // TP
         ]);
         // item2 is missed - FN
 
@@ -299,7 +297,7 @@ describe('Ground Truth Validation', () => {
         };
 
         session.recordDetections([
-            createMockDetection('item1', 'Item 1', 0.90), // TP
+            createMockDetection('item1', 'Item 1', 0.9), // TP
             createMockDetection('item2', 'Item 2', 0.85), // TP
         ]);
 
@@ -325,7 +323,7 @@ describe('Strategy Comparison', () => {
         const session1 = startMetricsTracking(STRATEGY_PRESETS.current, 'current');
         session1.startMatching();
         session1.endMatching();
-        session1.recordDetections([createMockDetection('item1', 'Item 1', 0.90)]);
+        session1.recordDetections([createMockDetection('item1', 'Item 1', 0.9)]);
         session1.complete();
 
         // Run with fast strategy
@@ -361,12 +359,12 @@ describe('Strategy Comparison', () => {
         };
 
         const session1 = startMetricsTracking(STRATEGY_PRESETS.current, 'current');
-        session1.recordDetections([createMockDetection('item1', 'Item 1', 0.90)]);
+        session1.recordDetections([createMockDetection('item1', 'Item 1', 0.9)]);
         session1.setGroundTruth(groundTruth);
         session1.complete();
 
         const session2 = startMetricsTracking(STRATEGY_PRESETS.fast, 'fast');
-        session2.recordDetections([createMockDetection('item2', 'Wrong', 0.80)]); // Wrong detection
+        session2.recordDetections([createMockDetection('item2', 'Wrong', 0.8)]); // Wrong detection
         session2.setGroundTruth(groundTruth);
         session2.complete();
 
@@ -405,7 +403,7 @@ describe('Metrics Export', () => {
 
     it('should export metrics as JSON', () => {
         const session = startMetricsTracking(STRATEGY_PRESETS.current, 'test');
-        session.recordDetections([createMockDetection('item1', 'Item 1', 0.90)]);
+        session.recordDetections([createMockDetection('item1', 'Item 1', 0.9)]);
         session.complete();
 
         const json = metricsTracker.exportMetrics();
@@ -423,7 +421,7 @@ describe('Metrics Export', () => {
         session.startMatching();
         session.endMatching();
         session.recordDetections([
-            createMockDetection('item1', 'Item 1', 0.90),
+            createMockDetection('item1', 'Item 1', 0.9),
             createMockDetection('item2', 'Item 2', 0.85),
         ]);
         session.complete();
@@ -503,13 +501,11 @@ describe('Metrics Edge Cases', () => {
         const session = startMetricsTracking(STRATEGY_PRESETS.current, 'test');
 
         const groundTruth: GroundTruth = {
-            items: [
-                { id: 'item1', name: 'Item 1', count: 2 },
-            ],
+            items: [{ id: 'item1', name: 'Item 1', count: 2 }],
         };
 
         session.recordDetections([
-            createMockDetection('item1', 'Item 1', 0.90),
+            createMockDetection('item1', 'Item 1', 0.9),
             createMockDetection('item1', 'Item 1', 0.85),
         ]);
         session.setGroundTruth(groundTruth);

@@ -44,16 +44,22 @@ test.describe('Cross-Feature Workflows', () => {
                 await page.waitForTimeout(300);
 
                 // Verify the item expanded by checking for expanded content or active state
-                const expandedItem = page.locator('#itemsContainer .item-card.active, #itemsContainer .item-card[data-expanded="true"]').first();
+                const expandedItem = page
+                    .locator('#itemsContainer .item-card.active, #itemsContainer .item-card[data-expanded="true"]')
+                    .first();
                 // Check if we can see the expanded content (longer description, synergies, etc.)
-                const expandedContent = firstItem.locator('.item-full-description, .item-synergies, .item-expanded-content');
-                
+                const expandedContent = firstItem.locator(
+                    '.item-full-description, .item-synergies, .item-expanded-content'
+                );
+
                 // Either the card has active class OR has expanded content visible
                 const hasExpanded = (await expandedItem.count()) > 0 || (await expandedContent.count()) > 0;
                 expect(hasExpanded || (await firstItem.locator('text=Click to collapse').count()) > 0).toBeTruthy();
 
                 // Step 5: Try to add to build via the expanded item's button (if exists)
-                const addToBuildBtn = firstItem.locator('[data-action="add-to-build"], .add-to-build-btn, button:has-text("Add to Build")');
+                const addToBuildBtn = firstItem.locator(
+                    '[data-action="add-to-build"], .add-to-build-btn, button:has-text("Add to Build")'
+                );
                 if ((await addToBuildBtn.count()) > 0) {
                     await addToBuildBtn.click();
 
@@ -127,8 +133,8 @@ test.describe('Cross-Feature Workflows', () => {
                 // Check for share code display or clipboard
                 const shareCode = page.locator('.share-code, [data-share-code], #buildShareCode');
                 if ((await shareCode.count()) > 0) {
-                    const code = await shareCode.textContent();
-                    expect(code).toBeTruthy();
+                    const code = shareCode;
+                    await expect(code).toHaveText();
                 }
             }
         });
@@ -254,9 +260,14 @@ test.describe('Cross-Feature Workflows', () => {
             await page.waitForTimeout(300);
             if (await modal.isVisible()) {
                 await page.evaluate(() => {
-                    document.dispatchEvent(new KeyboardEvent('keydown', {
-                        key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-                    }));
+                    document.dispatchEvent(
+                        new KeyboardEvent('keydown', {
+                            key: 'Escape',
+                            code: 'Escape',
+                            bubbles: true,
+                            cancelable: true,
+                        })
+                    );
                 });
             }
             await expect(modal).toBeHidden({ timeout: 5000 });
@@ -327,9 +338,14 @@ test.describe('Cross-Feature Workflows', () => {
                     await page.waitForTimeout(300);
                     if (await modal.isVisible()) {
                         await page.evaluate(() => {
-                            document.dispatchEvent(new KeyboardEvent('keydown', {
-                                key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-                            }));
+                            document.dispatchEvent(
+                                new KeyboardEvent('keydown', {
+                                    key: 'Escape',
+                                    code: 'Escape',
+                                    bubbles: true,
+                                    cancelable: true,
+                                })
+                            );
                         });
                     }
                     await expect(modal).toBeHidden({ timeout: 5000 });
@@ -447,9 +463,14 @@ test.describe('Cross-Feature Workflows', () => {
             await page.waitForTimeout(500);
             if (await modal.isVisible()) {
                 await page.evaluate(() => {
-                    document.dispatchEvent(new KeyboardEvent('keydown', {
-                        key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-                    }));
+                    document.dispatchEvent(
+                        new KeyboardEvent('keydown', {
+                            key: 'Escape',
+                            code: 'Escape',
+                            bubbles: true,
+                            cancelable: true,
+                        })
+                    );
                 });
             }
 

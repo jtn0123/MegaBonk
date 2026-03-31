@@ -125,14 +125,14 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should create modal with correct id', () => {
             showShortcutsModal();
-            
+
             const modal = document.getElementById('shortcuts-modal');
             expect(modal).not.toBeNull();
         });
 
         it('should have modal and shortcuts-modal classes', () => {
             showShortcutsModal();
-            
+
             const modal = document.getElementById('shortcuts-modal');
             expect(modal?.classList.contains('modal')).toBe(true);
             expect(modal?.classList.contains('shortcuts-modal')).toBe(true);
@@ -148,7 +148,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should include modal header with keyboard icon and title', () => {
             showShortcutsModal();
-            
+
             const header = document.querySelector('.modal-header');
             expect(header).not.toBeNull();
             expect(header?.textContent).toContain('Keyboard Shortcuts');
@@ -157,7 +157,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should include subtitle in header', () => {
             showShortcutsModal();
-            
+
             const subtitle = document.querySelector('.modal-subtitle');
             expect(subtitle).not.toBeNull();
             expect(subtitle?.textContent).toContain('Navigate faster');
@@ -165,7 +165,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should include close button', () => {
             showShortcutsModal();
-            
+
             const closeBtn = document.getElementById('shortcuts-modal-close');
             expect(closeBtn).not.toBeNull();
             expect(closeBtn?.textContent).toBe('×');
@@ -173,14 +173,14 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should include all shortcut categories', () => {
             showShortcutsModal();
-            
+
             const categories = document.querySelectorAll('.shortcuts-category');
             expect(categories.length).toBe(getAllShortcuts().length);
         });
 
         it('should display category titles', () => {
             showShortcutsModal();
-            
+
             const titles = document.querySelectorAll('.shortcuts-category-title');
             const titleTexts = Array.from(titles).map(t => t.textContent);
 
@@ -193,7 +193,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should display shortcut keys in kbd elements', () => {
             showShortcutsModal();
-            
+
             const kbdElements = document.querySelectorAll('kbd.shortcut-key');
             expect(kbdElements.length).toBeGreaterThan(0);
 
@@ -206,7 +206,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should display shortcut descriptions', () => {
             showShortcutsModal();
-            
+
             const descriptions = document.querySelectorAll('.shortcut-description');
             expect(descriptions.length).toBeGreaterThan(0);
 
@@ -217,7 +217,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should display key separators for multi-key shortcuts', () => {
             showShortcutsModal();
-            
+
             const separators = document.querySelectorAll('.key-separator');
             expect(separators.length).toBeGreaterThan(0);
             expect(separators[0].textContent).toBe('+');
@@ -225,7 +225,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should include footer with tip', () => {
             showShortcutsModal();
-            
+
             const footer = document.querySelector('.modal-footer');
             expect(footer).not.toBeNull();
 
@@ -237,7 +237,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should close modal when close button is clicked', () => {
             showShortcutsModal();
-            
+
             const closeBtn = document.getElementById('shortcuts-modal-close');
             closeBtn?.click();
             vi.advanceTimersByTime(300); // Wait for animation timeout
@@ -247,7 +247,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should close modal when backdrop is clicked', () => {
             showShortcutsModal();
-            
+
             const modal = document.getElementById('shortcuts-modal');
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             Object.defineProperty(clickEvent, 'target', { value: modal });
@@ -259,7 +259,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should not close modal when modal content is clicked', () => {
             showShortcutsModal();
-            
+
             const content = document.querySelector('.shortcuts-modal-content');
             const clickEvent = new MouseEvent('click', { bubbles: true, cancelable: true });
             Object.defineProperty(clickEvent, 'target', { value: content });
@@ -270,7 +270,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should close modal when Escape key is pressed', () => {
             showShortcutsModal();
-            
+
             const escapeEvent = new KeyboardEvent('keydown', {
                 key: 'Escape',
                 bubbles: true,
@@ -283,10 +283,10 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
 
         it('should add show class on next animation frame', () => {
             showShortcutsModal();
-            
+
             // Run the requestAnimationFrame callback via fake timers
             vi.advanceTimersByTime(16); // ~1 frame at 60fps
-            
+
             const modal = document.getElementById('shortcuts-modal');
             expect(modal?.classList.contains('active')).toBe(true); // The code uses 'active' not 'show'
         });
@@ -828,7 +828,7 @@ describe('Keyboard Shortcuts Module - Comprehensive Coverage', () => {
         it('should handle target without matches method', () => {
             // Create a mock event with a target that doesn't have matches
             const event = new KeyboardEvent('keydown', { key: '1', bubbles: true });
-            
+
             // This tests the null check for target and target.matches
             expect(() => document.dispatchEvent(event)).not.toThrow();
         });

@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { shouldShowWhatsNew, dismissWhatsNew, showWhatsNewModal, initWhatsNew, initFooterVersion } from '../../src/modules/whats-new.ts';
+import {
+    shouldShowWhatsNew,
+    dismissWhatsNew,
+    showWhatsNewModal,
+    initWhatsNew,
+    initFooterVersion,
+} from '../../src/modules/whats-new.ts';
 
 describe('whats-new', () => {
     beforeEach(() => {
@@ -195,9 +201,7 @@ describe('whats-new', () => {
         it('should handle release with no published_at', async () => {
             vi.spyOn(globalThis, 'fetch').mockResolvedValue({
                 ok: true,
-                json: async () => [
-                    { tag_name: 'v1.0.0', published_at: null, body: 'Notes' },
-                ],
+                json: async () => [{ tag_name: 'v1.0.0', published_at: null, body: 'Notes' }],
             } as Response);
 
             await showWhatsNewModal();
@@ -208,9 +212,7 @@ describe('whats-new', () => {
         it('should handle release with no body', async () => {
             vi.spyOn(globalThis, 'fetch').mockResolvedValue({
                 ok: true,
-                json: async () => [
-                    { tag_name: 'v1.0.0', published_at: '2026-01-01T00:00:00Z', body: null },
-                ],
+                json: async () => [{ tag_name: 'v1.0.0', published_at: '2026-01-01T00:00:00Z', body: null }],
             } as Response);
 
             await showWhatsNewModal();
@@ -222,7 +224,11 @@ describe('whats-new', () => {
             vi.spyOn(globalThis, 'fetch').mockResolvedValue({
                 ok: true,
                 json: async () => [
-                    { tag_name: 'v1.0.0', published_at: '2026-01-01T00:00:00Z', body: '## Big Header\n### Small Header' },
+                    {
+                        tag_name: 'v1.0.0',
+                        published_at: '2026-01-01T00:00:00Z',
+                        body: '## Big Header\n### Small Header',
+                    },
                 ],
             } as Response);
 
@@ -235,9 +241,7 @@ describe('whats-new', () => {
         it('should convert markdown bold to HTML', async () => {
             vi.spyOn(globalThis, 'fetch').mockResolvedValue({
                 ok: true,
-                json: async () => [
-                    { tag_name: 'v1.0.0', published_at: '2026-01-01T00:00:00Z', body: '**bold text**' },
-                ],
+                json: async () => [{ tag_name: 'v1.0.0', published_at: '2026-01-01T00:00:00Z', body: '**bold text**' }],
             } as Response);
 
             await showWhatsNewModal();

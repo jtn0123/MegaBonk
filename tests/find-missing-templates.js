@@ -25,4 +25,4 @@ const missing = [];
 
 console.log(`\nTotal missing: ${missing.length}`);
 console.log(`Total expected unique items: ${allExpected.size}`);
-console.log(`Coverage: ${((allExpected.size - missing.length) / allExpected.size * 100).toFixed(1)}%`);
+console.log(`Coverage: ${(((allExpected.size - missing.length) / allExpected.size) * 100).toFixed(1)}%`);

@@ -313,9 +313,7 @@ describe('Unified Template Manager', () => {
         });
 
         it('should default maxCount to 5', () => {
-            const samples = Array.from({ length: 10 }, (_, i) =>
-                createTrainingSample({ id: `s${i}` })
-            );
+            const samples = Array.from({ length: 10 }, (_, i) => createTrainingSample({ id: `s${i}` }));
 
             const result = selectBestTemplates(samples, { preferDiversity: false });
             expect(result.length).toBe(5);
@@ -363,9 +361,7 @@ describe('Unified Template Manager', () => {
         });
 
         it('should handle samples with unknown source', () => {
-            const samples = [
-                createTrainingSample({ id: 's1', source: undefined as any }),
-            ];
+            const samples = [createTrainingSample({ id: 's1', source: undefined as any })];
 
             const result = selectBestTemplates(samples);
             expect(result.length).toBe(1);
@@ -709,10 +705,7 @@ describe('Unified Template Manager', () => {
     // ========================================
     describe('prioritizeItems', () => {
         it('should prioritize common items', () => {
-            const items = [
-                createMockItem('sword', 'common'),
-                createMockItem('gem', 'rare'),
-            ] as any[];
+            const items = [createMockItem('sword', 'common'), createMockItem('gem', 'rare')] as any[];
 
             const { priority, standard } = prioritizeItems(items);
 
@@ -723,10 +716,7 @@ describe('Unified Template Manager', () => {
         });
 
         it('should prioritize uncommon items', () => {
-            const items = [
-                createMockItem('shield', 'uncommon'),
-                createMockItem('staff', 'epic'),
-            ] as any[];
+            const items = [createMockItem('shield', 'uncommon'), createMockItem('staff', 'epic')] as any[];
 
             const { priority, standard } = prioritizeItems(items);
 

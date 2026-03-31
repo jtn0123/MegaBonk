@@ -12,30 +12,41 @@ const TEMPLATE_DIR = './test-results/extracted-templates';
 
 // Per-item calibrated thresholds
 const ITEM_THRESHOLDS = {
-    'backpack': 0.52,
-    'beer': 0.57,
-    'borgar': 0.56,
-    'feathers': 0.51,
-    'ghost': 0.57,
-    'oats': 0.61,
-    'wrench': 0.50,
+    backpack: 0.52,
+    beer: 0.57,
+    borgar: 0.56,
+    feathers: 0.51,
+    ghost: 0.57,
+    oats: 0.61,
+    wrench: 0.5,
 };
 
 const DEFAULT_THRESHOLD = 0.55;
 const MIN_VARIANCE = 400;
 
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 function detectGridPositions(width, height) {
@@ -47,7 +58,7 @@ function detectGridPositions(width, height) {
     const positions = [];
 
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        const y = height - bottomMargin - row * rowHeight - iconSize;
         if (y < height * 0.65) continue;
         const sideMargin = Math.round(width * 0.15);
         const cellWidth = iconSize + spacing;
@@ -62,7 +73,10 @@ function detectGridPositions(width, height) {
 }
 
 function normalizeItemId(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
 }
 
 async function loadTemplates() {
@@ -95,10 +109,14 @@ async function analyzeImage(imagePath, templates) {
     for (const pos of positions) {
         const cellData = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
 
-        let sum = 0, sumSq = 0, count = 0;
+        let sum = 0,
+            sumSq = 0,
+            count = 0;
         for (let i = 0; i < cellData.data.length; i += 4) {
-            const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
-            sum += gray; sumSq += gray * gray; count++;
+            const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
+            sum += gray;
+            sumSq += gray * gray;
+            count++;
         }
         const variance = sumSq / count - (sum / count) ** 2;
         if (variance < MIN_VARIANCE) continue;
@@ -108,10 +126,11 @@ async function analyzeImage(imagePath, templates) {
         const srcCanvas = createCanvas(pos.width, pos.height);
         srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
         const margin = Math.round(pos.width * 0.1);
-        resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+        resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin * 2, pos.height - margin * 2, 0, 0, 32, 32);
         const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
-        let bestMatch = null, bestScore = 0;
+        let bestMatch = null,
+            bestScore = 0;
         for (const [itemId, template] of templates) {
             const score = calculateNCC(resizedCell, template.imageData);
             const threshold = ITEM_THRESHOLDS[itemId] || DEFAULT_THRESHOLD;
@@ -125,7 +144,7 @@ async function analyzeImage(imagePath, templates) {
             detections.push({
                 item: bestMatch,
                 confidence: bestScore,
-                position: { row: pos.row, col: pos.col, x: pos.x, y: pos.y }
+                position: { row: pos.row, col: pos.col, x: pos.x, y: pos.y },
             });
         }
     }
@@ -142,7 +161,7 @@ async function analyzeImage(imagePath, templates) {
         gridSlots: positions.length,
         detections,
         itemCounts: Object.fromEntries(itemCounts),
-        totalDetected: detections.length
+        totalDetected: detections.length,
     };
 }
 
@@ -162,7 +181,9 @@ async function main() {
         const gt = JSON.parse(fs.readFileSync(GT_PATH, 'utf-8'));
         const testCases = Object.entries(gt).filter(([k]) => !k.startsWith('_'));
 
-        let totalTP = 0, totalFP = 0, totalFN = 0;
+        let totalTP = 0,
+            totalFP = 0,
+            totalFN = 0;
 
         console.log('| Image | Detected | TP | FP | FN | Top Items |');
         console.log('|-------|----------|----|----|-----|-----------|');
@@ -179,7 +200,9 @@ async function main() {
                 expectedCounts.set(item, (expectedCounts.get(item) || 0) + 1);
             }
 
-            let tp = 0, fp = 0, fn = 0;
+            let tp = 0,
+                fp = 0,
+                fn = 0;
             for (const [item, expected] of expectedCounts) {
                 const detected = result.itemCounts[item] || 0;
                 tp += Math.min(expected, detected);
@@ -200,21 +223,22 @@ async function main() {
                 .map(([k, v]) => `${k}:${v}`)
                 .join(' ');
 
-            console.log(`| ${filename.slice(9, 28).padEnd(19)} | ${String(result.totalDetected).padStart(8)} | ${String(tp).padStart(2)} | ${String(fp).padStart(2)} | ${String(fn).padStart(3)} | ${topItems} |`);
+            console.log(
+                `| ${filename.slice(9, 28).padEnd(19)} | ${String(result.totalDetected).padStart(8)} | ${String(tp).padStart(2)} | ${String(fp).padStart(2)} | ${String(fn).padStart(3)} | ${topItems} |`
+            );
         }
 
         console.log('|-------|----------|----|----|-----|-----------|');
 
         const precision = totalTP / (totalTP + totalFP) || 0;
         const recall = totalTP / (totalTP + totalFN) || 0;
-        const f1 = 2 * precision * recall / (precision + recall) || 0;
+        const f1 = (2 * precision * recall) / (precision + recall) || 0;
 
         console.log(`\n=== Results ===`);
         console.log(`TP: ${totalTP}, FP: ${totalFP}, FN: ${totalFN}`);
         console.log(`Precision: ${(precision * 100).toFixed(1)}%`);
         console.log(`Recall: ${(recall * 100).toFixed(1)}%`);
         console.log(`F1 Score: ${(f1 * 100).toFixed(1)}%`);
-
     } else {
         // Analyze specific images
         for (const imagePath of imagePaths) {

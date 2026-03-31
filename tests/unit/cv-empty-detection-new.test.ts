@@ -74,11 +74,7 @@ describe('Empty Cell Detection - New Methods', () => {
 
         it('should return many bins for colorful image', () => {
             const colorfulImage = image.create(40, 40, (x, y) => {
-                return [
-                    Math.min(255, x * 6),
-                    Math.min(255, y * 6),
-                    Math.min(255, (x + y) * 3),
-                ];
+                return [Math.min(255, x * 6), Math.min(255, y * 6), Math.min(255, (x + y) * 3)];
             });
             const histWidth = calculateHistogramWidth(colorfulImage);
             expect(histWidth).toBeGreaterThan(10);
@@ -103,11 +99,7 @@ describe('Empty Cell Detection - New Methods', () => {
                 const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
                 if (dist < radius) {
                     // Colorful center with variance
-                    return [
-                        200 + ((x * 7) % 55),
-                        100 + ((y * 11) % 55),
-                        50 + (((x + y) * 3) % 55),
-                    ];
+                    return [200 + ((x * 7) % 55), 100 + ((y * 11) % 55), 50 + (((x + y) * 3) % 55)];
                 }
                 // Uniform grey edges
                 return [80, 80, 80];
@@ -155,9 +147,10 @@ describe('Empty Cell Detection - New Methods', () => {
             // Create a realistic item icon: colorful center, more uniform edges
             // This pattern has high center/edge variance ratio
             const colorfulImage = image.create(40, 40, (x, y) => {
-                const cx = 20, cy = 20;
+                const cx = 20,
+                    cy = 20;
                 const distFromCenter = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
-                
+
                 if (distFromCenter < 15) {
                     // Colorful center with multiple distinct colors based on angle
                     const angle = Math.atan2(y - cy, x - cx);

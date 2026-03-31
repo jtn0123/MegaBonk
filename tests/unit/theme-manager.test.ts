@@ -12,11 +12,11 @@ describe('Theme Manager', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         localStorage.clear();
-        
+
         // Reset document styles
         document.documentElement.style.cssText = '';
         document.documentElement.removeAttribute('data-theme');
-        
+
         // Remove any existing theme toggle buttons
         const existingButton = document.getElementById('theme-toggle');
         if (existingButton) {
@@ -41,7 +41,7 @@ describe('Theme Manager', () => {
     afterEach(() => {
         window.matchMedia = originalMatchMedia;
         localStorage.clear();
-        
+
         // Cleanup
         const button = document.getElementById('theme-toggle');
         if (button) {
@@ -94,9 +94,9 @@ describe('Theme Manager', () => {
             localStorage.getItem = vi.fn().mockImplementation(() => {
                 throw new Error('localStorage error');
             });
-            
+
             expect(themeManager.getStoredTheme()).toBeNull();
-            
+
             localStorage.getItem = originalGetItem;
         });
     });
@@ -112,7 +112,7 @@ describe('Theme Manager', () => {
                 addEventListener: vi.fn(),
                 removeEventListener: vi.fn(),
             }));
-            
+
             expect(themeManager.getSystemTheme()).toBe('dark');
         });
 
@@ -123,15 +123,15 @@ describe('Theme Manager', () => {
                 addEventListener: vi.fn(),
                 removeEventListener: vi.fn(),
             }));
-            
+
             expect(themeManager.getSystemTheme()).toBe('light');
         });
 
         it('should return light when matchMedia is not available', () => {
             window.matchMedia = undefined as any;
-            
+
             expect(themeManager.getSystemTheme()).toBe('light');
-            
+
             window.matchMedia = mockMatchMedia;
         });
     });
@@ -143,7 +143,7 @@ describe('Theme Manager', () => {
         it('should set data-theme attribute on document', () => {
             themeManager.applyTheme('dark');
             expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
-            
+
             themeManager.applyTheme('light');
             expect(document.documentElement.getAttribute('data-theme')).toBe('light');
         });
@@ -151,14 +151,14 @@ describe('Theme Manager', () => {
         it('should store theme in localStorage', () => {
             themeManager.applyTheme('dark');
             expect(localStorage.getItem('megabonk-theme')).toBe('dark');
-            
+
             themeManager.applyTheme('light');
             expect(localStorage.getItem('megabonk-theme')).toBe('light');
         });
 
         it('should apply dark theme CSS variables', () => {
             themeManager.applyTheme('dark');
-            
+
             const root = document.documentElement;
             expect(root.style.getPropertyValue('--bg-primary')).toBe('#0f0f14');
             expect(root.style.getPropertyValue('--text-primary')).toBe('#ffffff');
@@ -167,7 +167,7 @@ describe('Theme Manager', () => {
 
         it('should apply light theme CSS variables', () => {
             themeManager.applyTheme('light');
-            
+
             const root = document.documentElement;
             expect(root.style.getPropertyValue('--bg-primary')).toBe('#ffffff');
             expect(root.style.getPropertyValue('--text-primary')).toBe('#1a1a1a');
@@ -176,7 +176,7 @@ describe('Theme Manager', () => {
 
         it('should set rarity colors', () => {
             themeManager.applyTheme('dark');
-            
+
             const root = document.documentElement;
             expect(root.style.getPropertyValue('--rarity-common')).toBe('#6b9b6b');
             expect(root.style.getPropertyValue('--rarity-legendary')).toBe('#f0a800');
@@ -184,7 +184,7 @@ describe('Theme Manager', () => {
 
         it('should set tier colors', () => {
             themeManager.applyTheme('dark');
-            
+
             const root = document.documentElement;
             expect(root.style.getPropertyValue('--tier-ss')).toBe('#ffd700');
             expect(root.style.getPropertyValue('--tier-s')).toBe('#22c55e');
@@ -192,7 +192,7 @@ describe('Theme Manager', () => {
 
         it('should set chart colors', () => {
             themeManager.applyTheme('dark');
-            
+
             const root = document.documentElement;
             expect(root.style.getPropertyValue('--chart-line')).toBe('#e94560');
         });
@@ -202,17 +202,17 @@ describe('Theme Manager', () => {
             localStorage.setItem = vi.fn().mockImplementation(() => {
                 throw new Error('localStorage error');
             });
-            
+
             // Should not throw
             expect(() => themeManager.applyTheme('dark')).not.toThrow();
-            
+
             localStorage.setItem = originalSetItem;
         });
 
         it('should update currentTheme state', () => {
             themeManager.applyTheme('light');
             expect(themeManager.getTheme()).toBe('light');
-            
+
             themeManager.applyTheme('dark');
             expect(themeManager.getTheme()).toBe('dark');
         });
@@ -224,18 +224,18 @@ describe('Theme Manager', () => {
     describe('toggleTheme', () => {
         it('should toggle from dark to light', () => {
             themeManager.applyTheme('dark');
-            
+
             const newTheme = themeManager.toggleTheme();
-            
+
             expect(newTheme).toBe('light');
             expect(themeManager.getTheme()).toBe('light');
         });
 
         it('should toggle from light to dark', () => {
             themeManager.applyTheme('light');
-            
+
             const newTheme = themeManager.toggleTheme();
-            
+
             expect(newTheme).toBe('dark');
             expect(themeManager.getTheme()).toBe('dark');
         });
@@ -243,7 +243,7 @@ describe('Theme Manager', () => {
         it('should update CSS variables on toggle', () => {
             themeManager.applyTheme('dark');
             themeManager.toggleTheme();
-            
+
             const root = document.documentElement;
             expect(root.style.getPropertyValue('--bg-primary')).toBe('#ffffff');
         });
@@ -251,7 +251,7 @@ describe('Theme Manager', () => {
         it('should persist toggled theme', () => {
             themeManager.applyTheme('dark');
             themeManager.toggleTheme();
-            
+
             expect(localStorage.getItem('megabonk-theme')).toBe('light');
         });
     });
@@ -273,7 +273,7 @@ describe('Theme Manager', () => {
         it('should ignore invalid theme values', () => {
             themeManager.applyTheme('dark');
             themeManager.setTheme('invalid' as any);
-            
+
             // Should remain dark
             expect(themeManager.getTheme()).toBe('dark');
         });
@@ -286,7 +286,7 @@ describe('Theme Manager', () => {
         it('should return current theme', () => {
             themeManager.applyTheme('dark');
             expect(themeManager.getTheme()).toBe('dark');
-            
+
             themeManager.applyTheme('light');
             expect(themeManager.getTheme()).toBe('light');
         });
@@ -298,20 +298,20 @@ describe('Theme Manager', () => {
     describe('init', () => {
         it('should apply initial theme', () => {
             themeManager.init();
-            
+
             expect(document.documentElement.getAttribute('data-theme')).toBeTruthy();
         });
 
         it('should create theme toggle button', () => {
             themeManager.init();
-            
+
             const button = document.getElementById('theme-toggle');
             expect(button).not.toBeNull();
         });
 
         it('should set button accessibility attributes', () => {
             themeManager.init();
-            
+
             const button = document.getElementById('theme-toggle');
             expect(button?.getAttribute('aria-label')).toBe('Toggle theme');
             expect(button?.getAttribute('title')).toContain('Toggle');
@@ -321,7 +321,7 @@ describe('Theme Manager', () => {
             themeManager.init();
             themeManager.init();
             themeManager.init();
-            
+
             const buttons = document.querySelectorAll('#theme-toggle');
             expect(buttons.length).toBe(1);
         });
@@ -333,14 +333,14 @@ describe('Theme Manager', () => {
     describe('createThemeToggleButton', () => {
         it('should create button with correct id', () => {
             themeManager.createThemeToggleButton();
-            
+
             const button = document.getElementById('theme-toggle');
             expect(button).not.toBeNull();
         });
 
         it('should have theme-toggle class', () => {
             themeManager.createThemeToggleButton();
-            
+
             const button = document.getElementById('theme-toggle');
             expect(button?.classList.contains('theme-toggle')).toBe(true);
         });
@@ -348,7 +348,7 @@ describe('Theme Manager', () => {
         it('should show sun emoji when in dark mode', () => {
             themeManager.applyTheme('dark');
             themeManager.createThemeToggleButton();
-            
+
             const button = document.getElementById('theme-toggle');
             expect(button?.innerHTML).toBe('☀️');
         });
@@ -356,7 +356,7 @@ describe('Theme Manager', () => {
         it('should show moon emoji when in light mode', () => {
             themeManager.applyTheme('light');
             themeManager.createThemeToggleButton();
-            
+
             const button = document.getElementById('theme-toggle');
             expect(button?.innerHTML).toBe('🌙');
         });
@@ -364,20 +364,20 @@ describe('Theme Manager', () => {
         it('should toggle theme on click', () => {
             themeManager.applyTheme('dark');
             themeManager.createThemeToggleButton();
-            
+
             const button = document.getElementById('theme-toggle');
             button?.click();
-            
+
             expect(themeManager.getTheme()).toBe('light');
         });
 
         it('should update button content on click', () => {
             themeManager.applyTheme('dark');
             themeManager.createThemeToggleButton();
-            
+
             const button = document.getElementById('theme-toggle');
             button?.click();
-            
+
             expect(button?.innerHTML).toBe('🌙');
         });
     });
@@ -392,9 +392,9 @@ describe('Theme Manager', () => {
                 matches: false,
                 addEventListener: addEventListenerMock,
             }));
-            
+
             themeManager.init();
-            
+
             expect(addEventListenerMock).toHaveBeenCalledWith('change', expect.any(Function));
         });
     });
@@ -406,7 +406,7 @@ describe('Theme Manager', () => {
         it('should set all required dark theme variables', () => {
             themeManager.applyTheme('dark');
             const root = document.documentElement;
-            
+
             const requiredVars = [
                 '--rarity-common',
                 '--rarity-uncommon',
@@ -430,7 +430,7 @@ describe('Theme Manager', () => {
                 '--tier-b',
                 '--tier-c',
             ];
-            
+
             requiredVars.forEach(varName => {
                 expect(root.style.getPropertyValue(varName)).not.toBe('');
             });
@@ -439,7 +439,7 @@ describe('Theme Manager', () => {
         it('should set all required light theme variables', () => {
             themeManager.applyTheme('light');
             const root = document.documentElement;
-            
+
             // Just check a few key ones differ from dark
             expect(root.style.getPropertyValue('--bg-primary')).toBe('#ffffff');
             expect(root.style.getPropertyValue('--text-primary')).toBe('#1a1a1a');

@@ -190,26 +190,30 @@ describe('renderers/common.ts', () => {
     describe('initChartsAsync()', () => {
         it('should call initializeItemCharts via requestAnimationFrame', async () => {
             const { initializeItemCharts } = await import('../../../src/modules/charts.ts');
-            
+
             initChartsAsync('initializeItemCharts', 'test_context');
 
             // Wait for requestAnimationFrame and async import
-            await new Promise(resolve => requestAnimationFrame(() => {
-                setTimeout(resolve, 50);
-            }));
+            await new Promise(resolve =>
+                requestAnimationFrame(() => {
+                    setTimeout(resolve, 50);
+                })
+            );
 
             expect(initializeItemCharts).toHaveBeenCalled();
         });
 
         it('should call initializeTomeCharts via requestAnimationFrame', async () => {
             const { initializeTomeCharts } = await import('../../../src/modules/charts.ts');
-            
+
             initChartsAsync('initializeTomeCharts', 'test_context');
 
             // Wait for requestAnimationFrame and async import
-            await new Promise(resolve => requestAnimationFrame(() => {
-                setTimeout(resolve, 50);
-            }));
+            await new Promise(resolve =>
+                requestAnimationFrame(() => {
+                    setTimeout(resolve, 50);
+                })
+            );
 
             expect(initializeTomeCharts).toHaveBeenCalled();
         });
@@ -226,13 +230,15 @@ describe('renderers/common.ts', () => {
             // Re-import to get new mock
             vi.resetModules();
             const { initChartsAsync: freshInitChartsAsync } = await import('../../../src/modules/renderers/common.ts');
-            
+
             freshInitChartsAsync('initializeItemCharts', 'error_test');
 
             // Wait for requestAnimationFrame and async import
-            await new Promise(resolve => requestAnimationFrame(() => {
-                setTimeout(resolve, 100);
-            }));
+            await new Promise(resolve =>
+                requestAnimationFrame(() => {
+                    setTimeout(resolve, 100);
+                })
+            );
 
             // Logger should have been called with warning
             expect(logger.warn).toHaveBeenCalled();

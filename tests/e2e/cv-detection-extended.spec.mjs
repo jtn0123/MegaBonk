@@ -1,9 +1,9 @@
 /**
  * Extended E2E Browser Tests for CV Detection Module
- * 
+ *
  * These tests specifically target low-coverage areas in detection.ts
  * and related CV modules to push coverage from 78% to 85%+
- * 
+ *
  * Run with: COVERAGE=true npx playwright test tests/e2e/cv-detection-extended.spec.mjs --config=playwright.coverage.config.js
  */
 
@@ -21,6 +21,7 @@ const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-scre
 
 // Check if dev server is running before all tests
 let serverAvailable = false;
+
 test.beforeAll(async () => {
     try {
         const response = await fetch('http://localhost:5173', { method: 'HEAD' });
@@ -46,7 +47,11 @@ async function waitForFullCVInit(page) {
     await page.waitForSelector('#itemsContainer .item-card', { timeout: 30000 });
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(
-        () => window.allData && window.allData.items && window.allData.items.length > 0 && typeof window.initCV === 'function',
+        () =>
+            window.allData &&
+            window.allData.items &&
+            window.allData.items.length > 0 &&
+            typeof window.initCV === 'function',
         { timeout: 60000 }
     );
     await page.evaluate(async () => {
@@ -62,8 +67,7 @@ async function waitForCVFunctions(page) {
     await page.waitForSelector('#itemsContainer .item-card', { timeout: 30000 });
     await page.waitForLoadState('networkidle');
     await page.waitForFunction(
-        () => typeof window.calculateSimilarity === 'function' &&
-              typeof window.calculateIoU === 'function',
+        () => typeof window.calculateSimilarity === 'function' && typeof window.calculateIoU === 'function',
         { timeout: 30000 }
     );
 }
@@ -75,9 +79,12 @@ test.describe('Color Analysis Functions', () => {
     // Skip: CV tests are slow and have dedicated workflow
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
-        if (!serverAvailable) { testInfo.skip(); return; }
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -94,7 +101,7 @@ test.describe('Color Analysis Functions', () => {
                 const imageData = ctx.getImageData(0, 0, 50, 50);
                 return window.extractDominantColors(imageData, 3);
             });
-            
+
             expect(result).toBeDefined();
             expect(Array.isArray(result)).toBe(true);
             expect(result.length).toBeGreaterThan(0);
@@ -115,7 +122,7 @@ test.describe('Color Analysis Functions', () => {
                 const imageData = ctx.getImageData(0, 0, 100, 50);
                 return window.extractDominantColors(imageData, 5);
             });
-            
+
             expect(result.length).toBeGreaterThanOrEqual(2);
         });
 
@@ -134,7 +141,7 @@ test.describe('Color Analysis Functions', () => {
                 const imageData = ctx.getImageData(0, 0, 100, 100);
                 return window.extractDominantColors(imageData, 10);
             });
-            
+
             expect(result.length).toBeGreaterThanOrEqual(3);
         });
     });
@@ -155,7 +162,7 @@ test.describe('Color Analysis Functions', () => {
                 const imageData = ctx.getImageData(0, 0, 50, 50);
                 return window.detectBorderRarity(imageData);
             });
-            
+
             // May return uncommon or null depending on detection sensitivity
             expect(['uncommon', 'common', null]).toContain(result);
         });
@@ -175,7 +182,7 @@ test.describe('Color Analysis Functions', () => {
                 const imageData = ctx.getImageData(0, 0, 50, 50);
                 return window.detectBorderRarity(imageData);
             });
-            
+
             expect(['rare', 'common', null]).toContain(result);
         });
 
@@ -194,7 +201,7 @@ test.describe('Color Analysis Functions', () => {
                 const imageData = ctx.getImageData(0, 0, 50, 50);
                 return window.detectBorderRarity(imageData);
             });
-            
+
             expect(['epic', 'common', null]).toContain(result);
         });
 
@@ -213,7 +220,7 @@ test.describe('Color Analysis Functions', () => {
                 const imageData = ctx.getImageData(0, 0, 50, 50);
                 return window.detectBorderRarity(imageData);
             });
-            
+
             expect(['legendary', 'common', null]).toContain(result);
         });
 
@@ -228,7 +235,7 @@ test.describe('Color Analysis Functions', () => {
                 const imageData = ctx.getImageData(0, 0, 50, 50);
                 return window.detectBorderRarity(imageData);
             });
-            
+
             expect([null, 'common']).toContain(result);
         });
     });
@@ -334,9 +341,12 @@ test.describe('CV Metrics and Configuration', () => {
     // Skip: CV tests are slow and have dedicated workflow
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
-        if (!serverAvailable) { testInfo.skip(); return; }
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -347,7 +357,7 @@ test.describe('CV Metrics and Configuration', () => {
                 if (typeof window.getCVMetrics !== 'function') return null;
                 return window.getCVMetrics();
             });
-            
+
             if (result !== null) {
                 expect(result).toHaveProperty('enabled');
                 expect(result).toHaveProperty('runs');
@@ -362,7 +372,7 @@ test.describe('CV Metrics and Configuration', () => {
                 if (typeof window.getDetectionConfig !== 'function') return null;
                 return window.getDetectionConfig(1920, 1080);
             });
-            
+
             if (result !== null) {
                 expect(result).toHaveProperty('dynamicThreshold');
                 expect(result).toHaveProperty('resolutionTier');
@@ -376,7 +386,7 @@ test.describe('CV Metrics and Configuration', () => {
                 if (typeof window.getDetectionConfig !== 'function') return null;
                 return window.getDetectionConfig(3840, 2160);
             });
-            
+
             if (result !== null) {
                 expect(result.resolutionTier).toBeDefined();
             }
@@ -387,7 +397,7 @@ test.describe('CV Metrics and Configuration', () => {
                 if (typeof window.getDetectionConfig !== 'function') return null;
                 return window.getDetectionConfig();
             });
-            
+
             if (result !== null) {
                 expect(result).toHaveProperty('dynamicThreshold');
                 expect(result).toHaveProperty('scoringConfig');
@@ -402,7 +412,7 @@ test.describe('CV Metrics and Configuration', () => {
                 window.clearDetectionCache();
                 return 'cleared';
             });
-            
+
             expect(['cleared', 'not_available']).toContain(result);
         });
     });
@@ -415,9 +425,12 @@ test.describe('Region Detection', () => {
     // Skip: CV tests are slow and have dedicated workflow
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000); // Reduced: doesn't need full template init
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
-        if (!serverAvailable) { testInfo.skip(); return; }
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForCVFunctions(page); // Changed: doesn't need full template init
     });
@@ -425,16 +438,19 @@ test.describe('Region Detection', () => {
     test.describe('detectUIRegions', () => {
         test('should detect regions for gameplay screenshot', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_33_english_forest_early.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const { ctx, width, height } = await window.loadImageToCanvas(imageDataUrl);
                 const regions = window.detectUIRegions(ctx, width, height);
-                return { 
+                return {
                     hasRegions: !!regions,
                     keys: Object.keys(regions || {}),
                     hotbar: regions?.hotbar,
-                    equipment: regions?.equipment
+                    equipment: regions?.equipment,
                 };
             }, base64Image);
 
@@ -461,9 +477,12 @@ test.describe('Region Detection', () => {
     test.describe('detectScreenType variations', () => {
         test('should detect gameplay on colorful image', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_75_portuguese_hell_final.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const { ctx, width, height } = await window.loadImageToCanvas(imageDataUrl);
                 return window.detectScreenType(ctx, width, height);
             }, base64Image);
@@ -495,9 +514,12 @@ test.describe('Hotbar and Edge Detection', () => {
     // Skip: CV tests are slow and have dedicated workflow
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000); // Reduced: doesn't need full template init
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
-        if (!serverAvailable) { testInfo.skip(); return; }
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForCVFunctions(page); // Changed: doesn't need full template init
     });
@@ -552,7 +574,7 @@ test.describe('Hotbar and Edge Detection', () => {
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
                 ctx.fillStyle = '#1a1a1a';
                 ctx.fillRect(0, 0, 1920, 1080);
-                
+
                 // Draw colored borders like item icons
                 const colors = ['#00ff00', '#0088ff', '#aa00ff', '#ffa500'];
                 let x = 300;
@@ -562,7 +584,7 @@ test.describe('Hotbar and Edge Detection', () => {
                     ctx.strokeRect(x, 950, 48, 48);
                     x += 55;
                 }
-                
+
                 const hotbar = { topY: 940, bottomY: 1010 };
                 const edges = window.detectIconEdges(ctx, 1920, hotbar);
                 return { count: edges.length, edges: edges.slice(0, 8) };
@@ -579,7 +601,7 @@ test.describe('Hotbar and Edge Detection', () => {
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
                 ctx.fillStyle = '#333';
                 ctx.fillRect(0, 0, 1920, 1080);
-                
+
                 const hotbar = { topY: 900, bottomY: 1000 };
                 return window.detectIconEdges(ctx, 1920, hotbar);
             });
@@ -597,7 +619,7 @@ test.describe('Hotbar and Edge Detection', () => {
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
                 ctx.fillStyle = '#555';
                 ctx.fillRect(0, 0, 1920, 1080);
-                
+
                 return window.detectIconScale(ctx, 1920, 1080);
             });
 
@@ -608,9 +630,12 @@ test.describe('Hotbar and Edge Detection', () => {
 
         test('should detect scale from real gameplay', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_52_spanish_ocean.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const { ctx, width, height } = await window.loadImageToCanvas(imageDataUrl);
                 return window.detectIconScale(ctx, width, height);
             }, base64Image);
@@ -629,11 +654,14 @@ test.describe('Hotbar and Edge Detection', () => {
 test.describe('Detection Pipeline', () => {
     // Skip: CV tests are slow and have dedicated workflow
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
-    test.skip(({ }, testInfo) => process.env.COVERAGE === 'true', 'Skip slow detection tests in coverage mode');
+    test.skip(({}, testInfo) => process.env.COVERAGE === 'true', 'Skip slow detection tests in coverage mode');
     test.setTimeout(180000);
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
-        if (!serverAvailable) { testInfo.skip(); return; }
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForFullCVInit(page);
     });
@@ -641,9 +669,12 @@ test.describe('Detection Pipeline', () => {
     test.describe('detectItemsWithCV with different images', () => {
         test('should detect items in desert screenshot', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_21_english_desert_scorpion.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const start = performance.now();
                 const detections = await window.detectItemsWithCV(imageDataUrl);
                 return {
@@ -652,8 +683,8 @@ test.describe('Detection Pipeline', () => {
                     firstItems: detections.slice(0, 3).map(d => ({
                         name: d.entity?.name,
                         confidence: d.confidence,
-                        hasPosition: !!d.position
-                    }))
+                        hasPosition: !!d.position,
+                    })),
                 };
             }, base64Image);
 
@@ -663,13 +694,16 @@ test.describe('Detection Pipeline', () => {
 
         test('should detect items in snow screenshot', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_108_english_snow_boss.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const detections = await window.detectItemsWithCV(imageDataUrl);
                 return {
                     count: detections.length,
-                    items: detections.slice(0, 5).map(d => d.entity?.name)
+                    items: detections.slice(0, 5).map(d => d.entity?.name),
                 };
             }, base64Image);
 
@@ -679,13 +713,16 @@ test.describe('Detection Pipeline', () => {
 
         test('should detect items in ocean screenshot', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_52_spanish_ocean.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const detections = await window.detectItemsWithCV(imageDataUrl);
                 return {
                     count: detections.length,
-                    items: detections.slice(0, 5).map(d => d.entity?.name)
+                    items: detections.slice(0, 5).map(d => d.entity?.name),
                 };
             }, base64Image);
 
@@ -695,9 +732,12 @@ test.describe('Detection Pipeline', () => {
 
         test('should detect items in crypt screenshot', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_112_russian_crypt_boss.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const detections = await window.detectItemsWithCV(imageDataUrl);
                 return { count: detections.length };
             }, base64Image);
@@ -708,9 +748,12 @@ test.describe('Detection Pipeline', () => {
 
         test('should handle progress callback', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_66_russian_desert.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const progressUpdates = [];
                 const callback = (progress, status) => {
                     progressUpdates.push({ progress, status });
@@ -719,7 +762,7 @@ test.describe('Detection Pipeline', () => {
                 return {
                     count: detections.length,
                     progressCount: progressUpdates.length,
-                    finalProgress: progressUpdates[progressUpdates.length - 1]?.progress
+                    finalProgress: progressUpdates[progressUpdates.length - 1]?.progress,
                 };
             }, base64Image);
 
@@ -731,35 +774,38 @@ test.describe('Detection Pipeline', () => {
     test.describe('runEnsembleDetection', () => {
         test('should run ensemble detection on a cell', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_33_english_forest_early.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 if (typeof window.runEnsembleDetection !== 'function') {
                     return { notAvailable: true };
                 }
-                
+
                 const { ctx, width, height } = await window.loadImageToCanvas(imageDataUrl);
                 const items = window.allData?.items?.items || [];
-                
+
                 if (items.length === 0) {
                     return { noItems: true };
                 }
-                
+
                 // Create a cell in the hotbar region
                 const cell = {
                     x: 400,
                     y: Math.floor(height * 0.88),
                     width: 48,
                     height: 48,
-                    label: 'test_cell'
+                    label: 'test_cell',
                 };
-                
+
                 try {
                     const ensembleResult = await window.runEnsembleDetection(ctx, width, height, items, cell);
                     return {
                         hasResult: !!ensembleResult,
                         itemId: ensembleResult?.itemId,
-                        confidence: ensembleResult?.confidence
+                        confidence: ensembleResult?.confidence,
                     };
                 } catch (e) {
                     return { error: e.message };
@@ -779,9 +825,12 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
     // Skip: CV tests are slow and have dedicated workflow
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
-        if (!serverAvailable) { testInfo.skip(); return; }
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -792,29 +841,43 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
                 return window.verifyGridPattern([], 50);
             });
             expect(result.isValid).toBe(true);
-            expect(result.filteredDetections.length).toBe(0);
+            expect(result.filteredDetections).toHaveLength(0);
         });
 
         test('should handle single detection', async ({ page }) => {
             const result = await page.evaluate(() => {
-                const detections = [{
-                    type: 'item',
-                    entity: { id: '1', name: 'Test' },
-                    confidence: 0.9,
-                    position: { x: 100, y: 900, width: 48, height: 48 },
-                    method: 'template_match'
-                }];
+                const detections = [
+                    {
+                        type: 'item',
+                        entity: { id: '1', name: 'Test' },
+                        confidence: 0.9,
+                        position: { x: 100, y: 900, width: 48, height: 48 },
+                        method: 'template_match',
+                    },
+                ];
                 return window.verifyGridPattern(detections, 50);
             });
             expect(result.isValid).toBe(true);
-            expect(result.filteredDetections.length).toBe(1);
+            expect(result.filteredDetections).toHaveLength(1);
         });
 
         test('should handle two detections', async ({ page }) => {
             const result = await page.evaluate(() => {
                 const detections = [
-                    { type: 'item', entity: { id: '1', name: 'Test1' }, confidence: 0.9, position: { x: 100, y: 900, width: 48, height: 48 }, method: 'template_match' },
-                    { type: 'item', entity: { id: '2', name: 'Test2' }, confidence: 0.85, position: { x: 150, y: 900, width: 48, height: 48 }, method: 'template_match' }
+                    {
+                        type: 'item',
+                        entity: { id: '1', name: 'Test1' },
+                        confidence: 0.9,
+                        position: { x: 100, y: 900, width: 48, height: 48 },
+                        method: 'template_match',
+                    },
+                    {
+                        type: 'item',
+                        entity: { id: '2', name: 'Test2' },
+                        confidence: 0.85,
+                        position: { x: 150, y: 900, width: 48, height: 48 },
+                        method: 'template_match',
+                    },
                 ];
                 return window.verifyGridPattern(detections, 50);
             });
@@ -832,12 +895,12 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
                         entity: { id: `${i}`, name: `Item${i}` },
                         confidence: 0.8,
                         position: { x: xPositions[i], y: 900, width: 48, height: 48 },
-                        method: 'template_match'
+                        method: 'template_match',
                     });
                 }
                 return window.verifyGridPattern(detections, 50);
             });
-            
+
             expect(result.isValid).toBeDefined();
         });
 
@@ -852,7 +915,7 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
                             entity: { id: `r${row}c${col}`, name: `Item` },
                             confidence: 0.8,
                             position: { x: 100 + col * 55, y: 850 + row * 55, width: 50, height: 50 },
-                            method: 'template_match'
+                            method: 'template_match',
                         });
                     }
                 }
@@ -867,13 +930,15 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
     test.describe('nonMaxSuppression edge cases', () => {
         test('should handle single detection', async ({ page }) => {
             const result = await page.evaluate(() => {
-                const detections = [{
-                    type: 'item',
-                    entity: { id: '1', name: 'Test' },
-                    confidence: 0.9,
-                    position: { x: 100, y: 100, width: 50, height: 50 },
-                    method: 'template_match'
-                }];
+                const detections = [
+                    {
+                        type: 'item',
+                        entity: { id: '1', name: 'Test' },
+                        confidence: 0.9,
+                        position: { x: 100, y: 100, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
+                ];
                 return window.nonMaxSuppression(detections, 0.3).length;
             });
             expect(result).toBe(1);
@@ -882,13 +947,25 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
         test('should handle completely overlapping detections', async ({ page }) => {
             const result = await page.evaluate(() => {
                 const detections = [
-                    { type: 'item', entity: { id: '1', name: 'High' }, confidence: 0.95, position: { x: 100, y: 100, width: 50, height: 50 }, method: 'template_match' },
-                    { type: 'item', entity: { id: '2', name: 'Low' }, confidence: 0.6, position: { x: 100, y: 100, width: 50, height: 50 }, method: 'template_match' }
+                    {
+                        type: 'item',
+                        entity: { id: '1', name: 'High' },
+                        confidence: 0.95,
+                        position: { x: 100, y: 100, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
+                    {
+                        type: 'item',
+                        entity: { id: '2', name: 'Low' },
+                        confidence: 0.6,
+                        position: { x: 100, y: 100, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
                 ];
                 const filtered = window.nonMaxSuppression(detections, 0.3);
                 return { count: filtered.length, keptId: filtered[0]?.entity.id };
             });
-            
+
             expect(result.count).toBe(1);
             expect(result.keptId).toBe('1');
         });
@@ -896,9 +973,27 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
         test('should handle adjacent non-overlapping detections', async ({ page }) => {
             const result = await page.evaluate(() => {
                 const detections = [
-                    { type: 'item', entity: { id: '1', name: 'A' }, confidence: 0.9, position: { x: 0, y: 0, width: 50, height: 50 }, method: 'template_match' },
-                    { type: 'item', entity: { id: '2', name: 'B' }, confidence: 0.9, position: { x: 55, y: 0, width: 50, height: 50 }, method: 'template_match' },
-                    { type: 'item', entity: { id: '3', name: 'C' }, confidence: 0.9, position: { x: 110, y: 0, width: 50, height: 50 }, method: 'template_match' }
+                    {
+                        type: 'item',
+                        entity: { id: '1', name: 'A' },
+                        confidence: 0.9,
+                        position: { x: 0, y: 0, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
+                    {
+                        type: 'item',
+                        entity: { id: '2', name: 'B' },
+                        confidence: 0.9,
+                        position: { x: 55, y: 0, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
+                    {
+                        type: 'item',
+                        entity: { id: '3', name: 'C' },
+                        confidence: 0.9,
+                        position: { x: 110, y: 0, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
                 ];
                 return window.nonMaxSuppression(detections, 0.3).length;
             });
@@ -909,7 +1004,13 @@ test.describe('Grid Verification and NMS Edge Cases', () => {
             const result = await page.evaluate(() => {
                 const detections = [
                     { type: 'item', entity: { id: '1', name: 'NoPos' }, confidence: 0.9, method: 'template_match' },
-                    { type: 'item', entity: { id: '2', name: 'HasPos' }, confidence: 0.8, position: { x: 100, y: 100, width: 50, height: 50 }, method: 'template_match' }
+                    {
+                        type: 'item',
+                        entity: { id: '2', name: 'HasPos' },
+                        confidence: 0.8,
+                        position: { x: 100, y: 100, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
                 ];
                 return window.nonMaxSuppression(detections, 0.3).length;
             });
@@ -925,9 +1026,12 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
     // Skip: CV tests are slow and have dedicated workflow
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
-        if (!serverAvailable) { testInfo.skip(); return; }
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -954,18 +1058,18 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
                 canvas.width = 50;
                 canvas.height = 50;
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                
+
                 // Image 1: Solid with full alpha
                 ctx.fillStyle = 'rgba(255, 0, 0, 1)';
                 ctx.fillRect(0, 0, 50, 50);
                 const data1 = ctx.getImageData(0, 0, 50, 50);
-                
+
                 // Image 2: Same color with partial alpha
                 ctx.clearRect(0, 0, 50, 50);
                 ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
                 ctx.fillRect(0, 0, 50, 50);
                 const data2 = ctx.getImageData(0, 0, 50, 50);
-                
+
                 return window.calculateSimilarity(data1, data2);
             });
             expect(result).toBeLessThan(1);
@@ -977,12 +1081,12 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
                 canvas.width = 50;
                 canvas.height = 50;
                 const ctx = canvas.getContext('2d', { willReadFrequently: true });
-                
+
                 // Base color
                 ctx.fillStyle = 'blue';
                 ctx.fillRect(0, 0, 50, 50);
                 const data1 = ctx.getImageData(0, 0, 50, 50);
-                
+
                 // Same with noise
                 ctx.fillStyle = 'blue';
                 ctx.fillRect(0, 0, 50, 50);
@@ -992,7 +1096,7 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
                     ctx.fillRect(Math.random() * 50, Math.random() * 50, 2, 2);
                 }
                 const data2 = ctx.getImageData(0, 0, 50, 50);
-                
+
                 return window.calculateSimilarity(data1, data2);
             });
             expect(result).toBeGreaterThan(0.3);
@@ -1010,11 +1114,11 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
                 ctx.fillStyle = 'red';
                 ctx.fillRect(0, 0, 20, 20);
                 const source = ctx.getImageData(0, 0, 20, 20);
-                
+
                 const resized = window.resizeImageData(source, 100, 100);
                 return resized ? { width: resized.width, height: resized.height } : null;
             });
-            
+
             expect(result).not.toBeNull();
             expect(result.width).toBe(100);
             expect(result.height).toBe(100);
@@ -1029,11 +1133,11 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
                 ctx.fillStyle = 'green';
                 ctx.fillRect(0, 0, 100, 100);
                 const source = ctx.getImageData(0, 0, 100, 100);
-                
+
                 const resized = window.resizeImageData(source, 20, 20);
                 return resized ? { width: resized.width, height: resized.height } : null;
             });
-            
+
             expect(result).not.toBeNull();
             expect(result.width).toBe(20);
             expect(result.height).toBe(20);
@@ -1048,11 +1152,11 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
                 ctx.fillStyle = 'blue';
                 ctx.fillRect(0, 0, 100, 50);
                 const source = ctx.getImageData(0, 0, 100, 50);
-                
+
                 const resized = window.resizeImageData(source, 50, 25);
                 return resized ? { width: resized.width, height: resized.height } : null;
             });
-            
+
             expect(result).not.toBeNull();
             expect(result.width).toBe(50);
             expect(result.height).toBe(25);
@@ -1069,11 +1173,11 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
                 ctx.fillStyle = 'purple';
                 ctx.fillRect(0, 0, 50, 50);
                 const pngDataUrl = canvas.toDataURL('image/png');
-                
+
                 const loaded = await window.loadImageToCanvas(pngDataUrl);
                 return { width: loaded.width, height: loaded.height, hasCtx: !!loaded.ctx };
             });
-            
+
             expect(result.width).toBe(50);
             expect(result.height).toBe(50);
             expect(result.hasCtx).toBe(true);
@@ -1092,14 +1196,14 @@ test.describe('Similarity and Image Processing Edge Cases', () => {
                 ctx.fillStyle = gradient;
                 ctx.fillRect(0, 0, 1920, 1080);
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-                
+
                 const start = performance.now();
                 const loaded = await window.loadImageToCanvas(dataUrl);
                 const duration = performance.now() - start;
-                
+
                 return { width: loaded.width, height: loaded.height, duration };
             });
-            
+
             expect(result.width).toBe(1920);
             expect(result.height).toBe(1080);
             expect(result.duration).toBeLessThan(5000);
@@ -1114,9 +1218,12 @@ test.describe('Cell Analysis Edge Cases', () => {
     // Skip: CV tests are slow and have dedicated workflow
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
-        if (!serverAvailable) { testInfo.skip(); return; }
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -1222,9 +1329,12 @@ test.describe('Grid Fitting and Icon Size Detection', () => {
     // Skip: CV tests are slow and have dedicated workflow
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
-        if (!serverAvailable) { testInfo.skip(); return; }
+        if (!serverAvailable) {
+            testInfo.skip();
+            return;
+        }
         await page.goto('/');
         await waitForCVFunctions(page);
     });
@@ -1258,14 +1368,14 @@ test.describe('Grid Fitting and Icon Size Detection', () => {
             const result = await page.evaluate(() => {
                 return window.getAdaptiveIconSizes(1280, 800);
             });
-            expect(result.length).toBe(3);
+            expect(result).toHaveLength(3);
         });
 
         test('should return sizes for ultrawide', async ({ page }) => {
             const result = await page.evaluate(() => {
                 return window.getAdaptiveIconSizes(3440, 1440);
             });
-            expect(result.length).toBe(3);
+            expect(result).toHaveLength(3);
             expect(result[0]).toBeGreaterThan(40);
         });
 
@@ -1273,7 +1383,7 @@ test.describe('Grid Fitting and Icon Size Detection', () => {
             const result = await page.evaluate(() => {
                 return window.getAdaptiveIconSizes(800, 600);
             });
-            expect(result.length).toBe(3);
+            expect(result).toHaveLength(3);
         });
     });
 

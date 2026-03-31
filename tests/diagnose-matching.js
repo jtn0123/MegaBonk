@@ -21,8 +21,8 @@ function detectGridPositions(width, height) {
 
     const rowYPositions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
-        if (y >= height * 0.70) rowYPositions.push(y);
+        const y = height - bottomMargin - row * rowHeight - iconSize;
+        if (y >= height * 0.7) rowYPositions.push(y);
     }
 
     const sideMargin = Math.round(width * 0.15);
@@ -40,10 +40,14 @@ function detectGridPositions(width, height) {
 }
 
 function isEmptyCell(imageData) {
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
@@ -52,17 +56,28 @@ function isEmptyCell(imageData) {
 
 // Different matching approaches
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 function calculateColorHistogramSimilarity(d1, d2, bins = 16) {
@@ -72,46 +87,56 @@ function calculateColorHistogramSimilarity(d1, d2, bins = 16) {
     const binSize = 256 / bins;
     for (let i = 0; i < d1.data.length; i += 4) {
         hist1.r[Math.floor(d1.data[i] / binSize)]++;
-        hist1.g[Math.floor(d1.data[i+1] / binSize)]++;
-        hist1.b[Math.floor(d1.data[i+2] / binSize)]++;
+        hist1.g[Math.floor(d1.data[i + 1] / binSize)]++;
+        hist1.b[Math.floor(d1.data[i + 2] / binSize)]++;
     }
     for (let i = 0; i < d2.data.length; i += 4) {
         hist2.r[Math.floor(d2.data[i] / binSize)]++;
-        hist2.g[Math.floor(d2.data[i+1] / binSize)]++;
-        hist2.b[Math.floor(d2.data[i+2] / binSize)]++;
+        hist2.g[Math.floor(d2.data[i + 1] / binSize)]++;
+        hist2.b[Math.floor(d2.data[i + 2] / binSize)]++;
     }
 
     // Normalize and calculate intersection
-    const n1 = d1.data.length / 4, n2 = d2.data.length / 4;
+    const n1 = d1.data.length / 4,
+        n2 = d2.data.length / 4;
     let intersection = 0;
     for (let i = 0; i < bins; i++) {
-        intersection += Math.min(hist1.r[i]/n1, hist2.r[i]/n2);
-        intersection += Math.min(hist1.g[i]/n1, hist2.g[i]/n2);
-        intersection += Math.min(hist1.b[i]/n1, hist2.b[i]/n2);
+        intersection += Math.min(hist1.r[i] / n1, hist2.r[i] / n2);
+        intersection += Math.min(hist1.g[i] / n1, hist2.g[i] / n2);
+        intersection += Math.min(hist1.b[i] / n1, hist2.b[i] / n2);
     }
     return intersection / 3;
 }
 
 function extractEdges(imageData) {
-    const w = imageData.width, h = imageData.height;
+    const w = imageData.width,
+        h = imageData.height;
     const gray = new Float32Array(w * h);
     const edges = new Float32Array(w * h);
 
     // Convert to grayscale
     for (let i = 0; i < w * h; i++) {
-        gray[i] = (imageData.data[i*4] + imageData.data[i*4+1] + imageData.data[i*4+2]) / 3;
+        gray[i] = (imageData.data[i * 4] + imageData.data[i * 4 + 1] + imageData.data[i * 4 + 2]) / 3;
     }
 
     // Simple Sobel edge detection
     for (let y = 1; y < h - 1; y++) {
         for (let x = 1; x < w - 1; x++) {
-            const gx = gray[(y-1)*w + x+1] - gray[(y-1)*w + x-1] +
-                      2*gray[y*w + x+1] - 2*gray[y*w + x-1] +
-                      gray[(y+1)*w + x+1] - gray[(y+1)*w + x-1];
-            const gy = gray[(y+1)*w + x-1] - gray[(y-1)*w + x-1] +
-                      2*gray[(y+1)*w + x] - 2*gray[(y-1)*w + x] +
-                      gray[(y+1)*w + x+1] - gray[(y-1)*w + x+1];
-            edges[y * w + x] = Math.sqrt(gx*gx + gy*gy);
+            const gx =
+                gray[(y - 1) * w + x + 1] -
+                gray[(y - 1) * w + x - 1] +
+                2 * gray[y * w + x + 1] -
+                2 * gray[y * w + x - 1] +
+                gray[(y + 1) * w + x + 1] -
+                gray[(y + 1) * w + x - 1];
+            const gy =
+                gray[(y + 1) * w + x - 1] -
+                gray[(y - 1) * w + x - 1] +
+                2 * gray[(y + 1) * w + x] -
+                2 * gray[(y - 1) * w + x] +
+                gray[(y + 1) * w + x + 1] -
+                gray[(y - 1) * w + x + 1];
+            edges[y * w + x] = Math.sqrt(gx * gx + gy * gy);
         }
     }
     return { edges, width: w, height: h };
@@ -119,17 +144,23 @@ function extractEdges(imageData) {
 
 function calculateEdgeSimilarity(e1, e2) {
     const len = Math.min(e1.edges.length, e2.edges.length);
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0;
     for (let i = 0; i < len; i++) {
-        s1 += e1.edges[i]; s2 += e2.edges[i];
+        s1 += e1.edges[i];
+        s2 += e2.edges[i];
         sp += e1.edges[i] * e2.edges[i];
         ss1 += e1.edges[i] * e1.edges[i];
         ss2 += e2.edges[i] * e2.edges[i];
     }
-    const m1 = s1/len, m2 = s2/len;
-    const num = sp/len - m1*m2;
-    const den = Math.sqrt((ss1/len - m1*m1) * (ss2/len - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / len,
+        m2 = s2 / len;
+    const num = sp / len - m1 * m2;
+    const den = Math.sqrt((ss1 / len - m1 * m1) * (ss2 / len - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 async function diagnose() {
@@ -154,7 +185,7 @@ async function diagnose() {
             templates.set(item.id, {
                 item,
                 canvas,
-                imageData: ctx.getImageData(0, 0, img.width, img.height)
+                imageData: ctx.getImageData(0, 0, img.width, img.height),
             });
         } catch {}
     }
@@ -209,9 +240,7 @@ async function diagnose() {
         const srcCtx = srcCanvas.getContext('2d');
         srcCtx.putImageData(cellData, 0, 0);
 
-        resizeCtx.drawImage(srcCanvas, margin, margin,
-            cell.width - margin*2, cell.height - margin*2,
-            0, 0, 48, 48);
+        resizeCtx.drawImage(srcCanvas, margin, margin, cell.width - margin * 2, cell.height - margin * 2, 0, 0, 48, 48);
         const resizedCell = resizeCtx.getImageData(0, 0, 48, 48);
 
         // Compare with all templates using multiple methods
@@ -222,9 +251,17 @@ async function diagnose() {
             const tempCanvas = createCanvas(48, 48);
             const tempCtx = tempCanvas.getContext('2d');
             const tMargin = Math.round(template.canvas.width * 0.1);
-            tempCtx.drawImage(template.canvas, tMargin, tMargin,
-                template.canvas.width - tMargin*2, template.canvas.height - tMargin*2,
-                0, 0, 48, 48);
+            tempCtx.drawImage(
+                template.canvas,
+                tMargin,
+                tMargin,
+                template.canvas.width - tMargin * 2,
+                template.canvas.height - tMargin * 2,
+                0,
+                0,
+                48,
+                48
+            );
             const resizedTemplate = tempCtx.getImageData(0, 0, 48, 48);
 
             const ncc = calculateNCC(resizedCell, resizedTemplate);
@@ -247,7 +284,9 @@ async function diagnose() {
         console.log('Top 5 matches:');
         for (let i = 0; i < 5 && i < scores.length; i++) {
             const s = scores[i];
-            console.log(`  ${i+1}. ${s.name.padEnd(25)} NCC=${(s.ncc*100).toFixed(1)}% Hist=${(s.hist*100).toFixed(1)}% Edge=${(s.edge*100).toFixed(1)}% Combined=${(s.combined*100).toFixed(1)}%`);
+            console.log(
+                `  ${i + 1}. ${s.name.padEnd(25)} NCC=${(s.ncc * 100).toFixed(1)}% Hist=${(s.hist * 100).toFixed(1)}% Edge=${(s.edge * 100).toFixed(1)}% Combined=${(s.combined * 100).toFixed(1)}%`
+            );
         }
 
         matchResults.push({
@@ -255,7 +294,7 @@ async function diagnose() {
             cellNum,
             variance,
             topMatch: scores[0],
-            topMatches: scores.slice(0, 5)
+            topMatches: scores.slice(0, 5),
         });
 
         if (cellNum >= 15) break; // Limit for readability
@@ -280,7 +319,7 @@ async function diagnose() {
         vizCtx.fillRect(cell.x, cell.y - 12, 60, 12);
         vizCtx.fillStyle = '#fff';
         vizCtx.font = '9px monospace';
-        vizCtx.fillText(`${(topMatch.combined*100).toFixed(0)}%`, cell.x + 2, cell.y - 2);
+        vizCtx.fillText(`${(topMatch.combined * 100).toFixed(0)}%`, cell.x + 2, cell.y - 2);
     }
 
     // Info panel
@@ -299,9 +338,9 @@ async function diagnose() {
         `  Combined > 40%: ${matchResults.filter(r => r.topMatch.combined > 0.4).length}`,
         '',
         'Method comparison (avg for top matches):',
-        `  NCC:      ${(matchResults.reduce((s, r) => s + r.topMatch.ncc, 0) / matchResults.length * 100).toFixed(1)}%`,
-        `  Histogram: ${(matchResults.reduce((s, r) => s + r.topMatch.hist, 0) / matchResults.length * 100).toFixed(1)}%`,
-        `  Edge:     ${(matchResults.reduce((s, r) => s + r.topMatch.edge, 0) / matchResults.length * 100).toFixed(1)}%`
+        `  NCC:      ${((matchResults.reduce((s, r) => s + r.topMatch.ncc, 0) / matchResults.length) * 100).toFixed(1)}%`,
+        `  Histogram: ${((matchResults.reduce((s, r) => s + r.topMatch.hist, 0) / matchResults.length) * 100).toFixed(1)}%`,
+        `  Edge:     ${((matchResults.reduce((s, r) => s + r.topMatch.edge, 0) / matchResults.length) * 100).toFixed(1)}%`,
     ];
 
     lines.forEach((line, i) => vizCtx.fillText(line, 10, image.height + 18 + i * 15));

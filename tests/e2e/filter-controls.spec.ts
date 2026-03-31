@@ -63,8 +63,8 @@ test.describe('Filter Controls', () => {
             await page.selectOption('#tierFilter', 'all');
             await page.waitForTimeout(200);
 
-            const allCount = await page.locator('#itemsContainer .item-card').count();
-            expect(allCount).toBe(80);
+            const allCount = page.locator('#itemsContainer .item-card');
+            await expect(allCount).toHaveCount(80);
         });
     });
 
@@ -325,7 +325,7 @@ test.describe('Search Filters', () => {
         // Clear search
         await page.fill('#searchInput', '');
         await page.waitForTimeout(500);
-        expect(await page.locator('#itemsContainer .item-card').count()).toBe(80);
+        await expect(page.locator('#itemsContainer .item-card')).toHaveCount(80);
     });
 
     test('should show "no results" state for non-matching search', async ({ page }) => {

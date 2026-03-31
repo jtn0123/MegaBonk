@@ -19,8 +19,8 @@ function detectGridPositions(width, height) {
 
     const rowYPositions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
-        if (y >= height * 0.70) rowYPositions.push(y);
+        const y = height - bottomMargin - row * rowHeight - iconSize;
+        if (y >= height * 0.7) rowYPositions.push(y);
     }
 
     const sideMargin = Math.round(width * 0.15);
@@ -38,10 +38,14 @@ function detectGridPositions(width, height) {
 }
 
 function isEmptyCell(imageData) {
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
@@ -49,17 +53,28 @@ function isEmptyCell(imageData) {
 }
 
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 async function cluster() {
@@ -94,14 +109,23 @@ async function cluster() {
             const srcCanvas = createCanvas(pos.width, pos.height);
             srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.12);
-            resizeCtx.drawImage(srcCanvas, margin, margin,
-                pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
 
             allCrops.push({
                 canvas: resizeCanvas,
                 imageData: resizeCtx.getImageData(0, 0, 32, 32),
                 source: filename,
-                cluster: -1
+                cluster: -1,
             });
         }
     }
@@ -143,8 +167,7 @@ async function cluster() {
     }
 
     // Sort by size
-    const sortedClusters = Array.from(clusterSizes.entries())
-        .sort((a, b) => b[1] - a[1]);
+    const sortedClusters = Array.from(clusterSizes.entries()).sort((a, b) => b[1] - a[1]);
 
     console.log('Top clusters by size:');
     const largeClusters = sortedClusters.filter(([_, size]) => size >= 2);
@@ -190,16 +213,11 @@ async function cluster() {
         const members = allCrops.filter(c => c.cluster === clusterId).slice(0, maxCols);
 
         for (let col = 0; col < members.length; col++) {
-            mCtx.drawImage(members[col].canvas,
-                col * cellSize + 2, row * cellSize + 2,
-                cellSize - 4, cellSize - 4);
+            mCtx.drawImage(members[col].canvas, col * cellSize + 2, row * cellSize + 2, cellSize - 4, cellSize - 4);
         }
     }
 
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'cluster-montage.png'),
-        montage.toBuffer('image/png')
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'cluster-montage.png'), montage.toBuffer('image/png'));
 
     console.log(`\nMontage saved: ${OUTPUT_DIR}/cluster-montage.png`);
     console.log(`Clusters saved to: ${OUTPUT_DIR}/`);
@@ -215,7 +233,9 @@ async function cluster() {
     console.log(`Larger (size>=3): ${larger}`);
 
     const totalInClusters = largeClusters.reduce((sum, [_, size]) => sum + size, 0);
-    console.log(`\nCrops in multi-member clusters: ${totalInClusters}/${allCrops.length} (${(totalInClusters/allCrops.length*100).toFixed(1)}%)`);
+    console.log(
+        `\nCrops in multi-member clusters: ${totalInClusters}/${allCrops.length} (${((totalInClusters / allCrops.length) * 100).toFixed(1)}%)`
+    );
 }
 
 cluster().catch(console.error);

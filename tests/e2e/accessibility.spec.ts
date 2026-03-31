@@ -14,10 +14,10 @@ test.describe('Keyboard Navigation', () => {
     test('Tab key navigates through interactive elements', async ({ page }) => {
         // Start from body
         await page.locator('body').focus();
-        
+
         // Tab through elements
         await page.keyboard.press('Tab');
-        
+
         // Should focus something
         const focused = await page.evaluate(() => document.activeElement?.tagName);
         expect(focused).toBeTruthy();
@@ -27,14 +27,14 @@ test.describe('Keyboard Navigation', () => {
         // Test that pressing Enter on a clickable element activates it
         // Cards may not have native keyboard support, so test with a button/tab instead
         const firstTab = page.locator('.tab-btn').first();
-        
+
         await firstTab.focus();
         await page.waitForTimeout(200);
-        
+
         // Verify focus worked
         const isFocused = await firstTab.evaluate(el => el === document.activeElement);
         expect(isFocused).toBe(true);
-        
+
         // For cards, test with click (keyboard activation on divs requires explicit implementation)
         const firstCard = page.locator('#itemsContainer .item-card').first();
         await firstCard.click();
@@ -60,7 +60,7 @@ test.describe('Keyboard Navigation', () => {
     test('/ focuses search input', async ({ page }) => {
         await page.locator('body').click();
         await page.keyboard.press('/');
-        
+
         const searchInput = page.locator('#searchInput');
         await expect(searchInput).toBeFocused();
     });
@@ -69,10 +69,10 @@ test.describe('Keyboard Navigation', () => {
         test.skip(browserName === 'webkit', 'WebKit Tab key navigation between tab buttons differs in Playwright');
         const firstTab = page.locator('.tab-btn').first();
         await firstTab.focus();
-        
+
         // Tab to next tab button
         await page.keyboard.press('Tab');
-        
+
         const secondTab = page.locator('.tab-btn').nth(1);
         await expect(secondTab).toBeFocused();
     });
@@ -87,13 +87,13 @@ test.describe('Focus Management', () => {
     test('focus visible indicator on interactive elements', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         await searchInput.focus();
-        
+
         // Should have visible focus indicator (outline or box-shadow)
         const outline = await searchInput.evaluate(el => {
             const style = getComputedStyle(el);
             return style.outline || style.boxShadow;
         });
-        
+
         expect(outline).toBeTruthy();
     });
 
@@ -111,7 +111,7 @@ test.describe('Focus Management', () => {
             const modal = document.getElementById('itemModal');
             return modal?.contains(document.activeElement);
         });
-        
+
         expect(focusedInModal).toBe(true);
     });
 
@@ -129,7 +129,7 @@ test.describe('Focus Management', () => {
             return {
                 tagName: el?.tagName,
                 className: el?.className,
-                id: el?.id
+                id: el?.id,
             };
         });
         // Focus should be somewhere in the document (not stuck on modal)
@@ -151,15 +151,15 @@ test.describe('ARIA Attributes', () => {
         const count = await tabs.count();
 
         for (let i = 0; i < count; i++) {
-            const role = await tabs.nth(i).getAttribute('role');
-            expect(role).toBe('tab');
+            const role = tabs.nth(i);
+            await expect(role).toHaveAttribute('role', 'tab');
         }
     });
 
     test('active tab has aria-selected="true"', async ({ page }) => {
         const activeTab = page.locator('.tab-btn.active');
-        const ariaSelected = await activeTab.getAttribute('aria-selected');
-        expect(ariaSelected).toBe('true');
+        const ariaSelected = activeTab;
+        await expect(ariaSelected).toHaveAttribute('aria-selected', 'true');
     });
 
     test('tab panels have role="tabpanel"', async ({ page }) => {
@@ -170,8 +170,8 @@ test.describe('ARIA Attributes', () => {
 
     test('modal has role="dialog"', async ({ page }) => {
         const modal = page.locator('#itemModal');
-        const role = await modal.getAttribute('role');
-        expect(role).toBe('dialog');
+        const role = modal;
+        await expect(role).toHaveAttribute('role', 'dialog');
     });
 
     test('modal has aria-modal="true"', async ({ page }) => {
@@ -179,17 +179,17 @@ test.describe('ARIA Attributes', () => {
         await page.waitForTimeout(500);
 
         const modal = page.locator('#itemModal');
-        const ariaModal = await modal.getAttribute('aria-modal');
-        expect(ariaModal).toBe('true');
+        const ariaModal = modal;
+        await expect(ariaModal).toHaveAttribute('aria-modal', 'true');
     });
 
     test('search input has appropriate aria attributes', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
-        
+
         // Should have accessible name
         const ariaLabel = await searchInput.getAttribute('aria-label');
         const placeholder = await searchInput.getAttribute('placeholder');
-        
+
         expect(ariaLabel || placeholder).toBeTruthy();
     });
 
@@ -198,8 +198,8 @@ test.describe('ARIA Attributes', () => {
         const count = await images.count();
 
         for (let i = 0; i < Math.min(count, 20); i++) {
-            const alt = await images.nth(i).getAttribute('alt');
-            expect(alt).toBeTruthy();
+            const alt = images.nth(i);
+            await expect(alt).toHaveAttribute('alt');
             expect(alt?.length).toBeGreaterThan(0);
         }
     });
@@ -243,8 +243,8 @@ test.describe('Screen Reader Support', () => {
         await page.waitForTimeout(500);
 
         const modal = page.locator('#itemModal');
-        const labelledBy = await modal.getAttribute('aria-labelledby');
-        expect(labelledBy).toBeTruthy();
+        const labelledBy = modal;
+        await expect(labelledBy).toHaveAttribute('aria-labelledby');
     });
 
     test('buttons have accessible names', async ({ page }) => {
@@ -256,7 +256,7 @@ test.describe('Screen Reader Support', () => {
             const text = await btn.textContent();
             const ariaLabel = await btn.getAttribute('aria-label');
             const title = await btn.getAttribute('title');
-            
+
             // Should have some accessible name
             expect(text?.trim() || ariaLabel || title).toBeTruthy();
         }
@@ -271,7 +271,7 @@ test.describe('Color Contrast', () => {
 
     test('text is readable on cards', async ({ page }) => {
         const firstCardText = page.locator('#itemsContainer .item-card .item-name').first();
-        
+
         const styles = await firstCardText.evaluate(el => {
             const style = getComputedStyle(el);
             return {
@@ -294,7 +294,7 @@ test.describe('Color Contrast', () => {
             const outline = style.outline;
             const boxShadow = style.boxShadow;
             const borderColor = style.borderColor;
-            
+
             // Should have some visual focus indicator
             return outline !== 'none' || boxShadow !== 'none' || borderColor !== 'initial';
         });

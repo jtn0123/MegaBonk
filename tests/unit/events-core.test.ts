@@ -99,7 +99,11 @@ import { switchTab } from '../../src/modules/events-tabs.ts';
 import { clearFilters, saveFilterState } from '../../src/modules/filters.ts';
 import { toggleFavorite } from '../../src/modules/favorites.ts';
 import { ToastManager } from '../../src/modules/toast.ts';
-import { isSearchDropdownVisible, hideSearchDropdown, handleDropdownKeyboard } from '../../src/modules/search-dropdown.ts';
+import {
+    isSearchDropdownVisible,
+    hideSearchDropdown,
+    handleDropdownKeyboard,
+} from '../../src/modules/search-dropdown.ts';
 import { handleSearchResultClick } from '../../src/modules/events-search.ts';
 import { getState } from '../../src/modules/store.ts';
 import { renderTabContent } from '../../src/modules/renderers.ts';
@@ -157,21 +161,13 @@ function createTestDOM() {
     `;
 }
 
-function triggerEvent(
-    element: Element | Window | Document,
-    eventType: string,
-    options: EventInit = {}
-) {
+function triggerEvent(element: Element | Window | Document, eventType: string, options: EventInit = {}) {
     const event = new Event(eventType, { bubbles: true, cancelable: true, ...options });
     element.dispatchEvent(event);
     return event;
 }
 
-function triggerKeyboardEvent(
-    element: Element | Document,
-    key: string,
-    options: Partial<KeyboardEventInit> = {}
-) {
+function triggerKeyboardEvent(element: Element | Document, key: string, options: Partial<KeyboardEventInit> = {}) {
     const event = new KeyboardEvent('keydown', {
         key,
         bubbles: true,
@@ -182,11 +178,7 @@ function triggerKeyboardEvent(
     return event;
 }
 
-function triggerMouseEvent(
-    element: Element,
-    eventType: string,
-    options: Partial<MouseEventInit> = {}
-) {
+function triggerMouseEvent(element: Element, eventType: string, options: Partial<MouseEventInit> = {}) {
     const event = new MouseEvent(eventType, {
         bubbles: true,
         cancelable: true,
@@ -324,7 +316,7 @@ describe('toggleTextExpand', () => {
     it('should add collapse indicator on collapse', () => {
         const element = document.querySelector('.expandable-text') as HTMLElement;
         element.dataset.truncated = 'false';
-        
+
         toggleTextExpand(element);
 
         const indicator = element.querySelector('.expand-indicator');
@@ -374,34 +366,22 @@ describe('setupEventDelegation', () => {
     it('should register keydown listener', () => {
         const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
         setupEventDelegation();
-        
-        expect(addEventListenerSpy).toHaveBeenCalledWith(
-            'keydown',
-            expect.any(Function),
-            expect.anything()
-        );
+
+        expect(addEventListenerSpy).toHaveBeenCalledWith('keydown', expect.any(Function), expect.anything());
     });
 
     it('should register click listener', () => {
         const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
         setupEventDelegation();
-        
-        expect(addEventListenerSpy).toHaveBeenCalledWith(
-            'click',
-            expect.any(Function),
-            expect.anything()
-        );
+
+        expect(addEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function), expect.anything());
     });
 
     it('should register change listener', () => {
         const addEventListenerSpy = vi.spyOn(document, 'addEventListener');
         setupEventDelegation();
-        
-        expect(addEventListenerSpy).toHaveBeenCalledWith(
-            'change',
-            expect.any(Function),
-            expect.anything()
-        );
+
+        expect(addEventListenerSpy).toHaveBeenCalledWith('change', expect.any(Function), expect.anything());
     });
 });
 
@@ -424,18 +404,18 @@ describe('keyboard event handling', () => {
     describe('Escape key', () => {
         it('should hide search dropdown when visible', () => {
             (isSearchDropdownVisible as Mock).mockReturnValue(true);
-            
+
             triggerKeyboardEvent(document, 'Escape');
-            
+
             expect(hideSearchDropdown).toHaveBeenCalled();
             expect(closeModal).not.toHaveBeenCalled();
         });
 
         it('should close modal when dropdown is not visible', () => {
             (isSearchDropdownVisible as Mock).mockReturnValue(false);
-            
+
             triggerKeyboardEvent(document, 'Escape');
-            
+
             expect(closeModal).toHaveBeenCalled();
         });
     });
@@ -714,7 +694,7 @@ describe('setupTabButtonListeners', () => {
 
     it('should add click listeners to all tab buttons', () => {
         setupTabButtonListeners();
-        
+
         const tabBtn = document.querySelector('[data-tab="items"]') as HTMLButtonElement;
         triggerMouseEvent(tabBtn, 'click');
 
@@ -760,11 +740,7 @@ describe('setupTabScrollIndicators', () => {
 
         setupTabScrollIndicators();
 
-        expect(addEventListenerSpy).toHaveBeenCalledWith(
-            'scroll',
-            expect.any(Function),
-            expect.anything()
-        );
+        expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), expect.anything());
     });
 
     it('should add resize event listener to window', () => {
@@ -772,11 +748,7 @@ describe('setupTabScrollIndicators', () => {
 
         setupTabScrollIndicators();
 
-        expect(addEventListenerSpy).toHaveBeenCalledWith(
-            'resize',
-            expect.any(Function),
-            expect.anything()
-        );
+        expect(addEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function), expect.anything());
     });
 });
 
@@ -797,7 +769,7 @@ describe('setupModalListeners', () => {
 
     it('should add click listener to close buttons', () => {
         setupModalListeners();
-        
+
         const closeBtn = document.querySelector('.close') as HTMLElement;
         triggerMouseEvent(closeBtn, 'click');
 
@@ -856,11 +828,7 @@ describe('setupCompareButtonListener', () => {
 
         setupCompareButtonListener();
 
-        expect(addEventListenerSpy).toHaveBeenCalledWith(
-            'click',
-            expect.any(Function),
-            expect.anything()
-        );
+        expect(addEventListenerSpy).toHaveBeenCalledWith('click', expect.any(Function), expect.anything());
     });
 });
 
@@ -885,7 +853,7 @@ describe('setupFilterToggle', () => {
 
     it('should toggle filters-expanded class on click', () => {
         setupFilterToggle();
-        
+
         const toggleBtn = document.getElementById('filter-toggle-btn') as HTMLButtonElement;
         const filters = document.getElementById('filters') as HTMLElement;
 
@@ -934,14 +902,10 @@ describe('setupStickySearchHideOnScroll', () => {
 
     it('should add scroll listener on mobile', () => {
         const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
-        
+
         setupStickySearchHideOnScroll();
 
-        expect(addEventListenerSpy).toHaveBeenCalledWith(
-            'scroll',
-            expect.any(Function),
-            expect.anything()
-        );
+        expect(addEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), expect.anything());
     });
 
     it('should not add listener on desktop', () => {
@@ -960,13 +924,11 @@ describe('setupStickySearchHideOnScroll', () => {
 
         const addEventListenerSpy = vi.spyOn(window, 'addEventListener');
         vi.clearAllMocks();
-        
+
         setupStickySearchHideOnScroll();
 
         // Should not have scroll listener
-        const scrollCalls = addEventListenerSpy.mock.calls.filter(
-            call => call[0] === 'scroll'
-        );
+        const scrollCalls = addEventListenerSpy.mock.calls.filter(call => call[0] === 'scroll');
         expect(scrollCalls.length).toBe(0);
     });
 });
@@ -1170,17 +1132,17 @@ describe('edge cases', () => {
 
     it('should handle click on non-Element target', () => {
         setupEventDelegation();
-        
+
         // Create event with non-Element target
         const event = new MouseEvent('click', { bubbles: true });
         Object.defineProperty(event, 'target', { value: null });
-        
+
         expect(() => document.dispatchEvent(event)).not.toThrow();
     });
 
     it('should handle missing tab attribute on tab button', () => {
         setupTabButtonListeners();
-        
+
         const btn = document.createElement('button');
         btn.className = 'tab-btn';
         // No data-tab attribute
@@ -1191,17 +1153,17 @@ describe('edge cases', () => {
 
     it('should handle breakpoint card with invalid target', () => {
         setupEventDelegation();
-        
+
         const card = document.querySelector('.breakpoint-card') as HTMLElement;
         card.dataset.target = 'not-a-number';
-        
+
         // Should not throw on click
         expect(() => triggerMouseEvent(card, 'click')).not.toThrow();
     });
 
     it('should handle favorite button without required data', () => {
         setupEventDelegation();
-        
+
         const btn = document.createElement('button');
         btn.className = 'favorite-btn';
         // Missing data-tab and data-id
@@ -1258,13 +1220,13 @@ describe('mobile viewport handling', () => {
     it('should handle entity type mapping', () => {
         // Test the type mapping used in card click handlers
         const typeMap: Record<string, string> = {
-            'item': 'items',
-            'weapon': 'weapons',
-            'tome': 'tomes',
-            'character': 'characters',
-            'shrine': 'shrines',
+            item: 'items',
+            weapon: 'weapons',
+            tome: 'tomes',
+            character: 'characters',
+            shrine: 'shrines',
         };
-        
+
         expect(typeMap['item']).toBe('items');
         expect(typeMap['weapon']).toBe('weapons');
     });

@@ -55,7 +55,9 @@ function createMockDetection(
 /**
  * Create multiple detections for testing ensemble
  */
-function createMockDetections(items: Array<{ strategyId: StrategyId; itemId: string; confidence: number }>): StrategyDetection[] {
+function createMockDetections(
+    items: Array<{ strategyId: StrategyId; itemId: string; confidence: number }>
+): StrategyDetection[] {
     return items.map((item, index) =>
         createMockDetection(item.strategyId, item.itemId, item.confidence, `template_${index}`)
     );
@@ -272,9 +274,7 @@ describe('Ensemble Detector - Combine Strategy Detections', () => {
     });
 
     it('should combine single detection', () => {
-        const detections = createMockDetections([
-            { strategyId: 'default', itemId: 'item_1', confidence: 0.85 },
-        ]);
+        const detections = createMockDetections([{ strategyId: 'default', itemId: 'item_1', confidence: 0.85 }]);
 
         const result = combineStrategyDetections(detections, mockPosition);
 
@@ -466,9 +466,7 @@ describe('Ensemble Detector - Combine Strategy Detections', () => {
     });
 
     it('should include passesThreshold field', () => {
-        const detections = createMockDetections([
-            { strategyId: 'default', itemId: 'item_1', confidence: 0.8 },
-        ]);
+        const detections = createMockDetections([{ strategyId: 'default', itemId: 'item_1', confidence: 0.8 }]);
 
         const result = combineStrategyDetections(detections, mockPosition);
 
@@ -702,10 +700,7 @@ describe('Ensemble Detector - Edge Cases', () => {
             },
         };
 
-        const result = combineStrategyDetections(
-            [detection],
-            { x: 100, y: 200, width: 45, height: 45 }
-        );
+        const result = combineStrategyDetections([detection], { x: 100, y: 200, width: 45, height: 45 });
 
         expect(result).toBeDefined();
         expect(result?.strategyResults[0]?.metrics).toBeDefined();
@@ -723,11 +718,7 @@ describe('Ensemble Detector - Edge Cases', () => {
             minAgreement: 1,
         };
 
-        const result = combineStrategyDetections(
-            detections,
-            { x: 100, y: 200, width: 45, height: 45 },
-            config
-        );
+        const result = combineStrategyDetections(detections, { x: 100, y: 200, width: 45, height: 45 }, config);
 
         expect(result).toBeDefined();
         expect(result?.confidence).toBeGreaterThanOrEqual(0);
@@ -737,19 +728,11 @@ describe('Ensemble Detector - Edge Cases', () => {
         const detections: StrategyDetection[] = [];
         for (let i = 0; i < 20; i++) {
             detections.push(
-                createMockDetection(
-                    'default',
-                    `item_${i % 3}`,
-                    0.5 + Math.random() * 0.4,
-                    `template_${i}`
-                )
+                createMockDetection('default', `item_${i % 3}`, 0.5 + Math.random() * 0.4, `template_${i}`)
             );
         }
 
-        const result = combineStrategyDetections(
-            detections,
-            { x: 100, y: 200, width: 45, height: 45 }
-        );
+        const result = combineStrategyDetections(detections, { x: 100, y: 200, width: 45, height: 45 });
 
         expect(result).toBeDefined();
     });
@@ -763,15 +746,9 @@ describe('Ensemble Detector - Edge Cases', () => {
             parallel: false,
         };
 
-        const detections = createMockDetections([
-            { strategyId: 'fast', itemId: 'item_1', confidence: 0.85 },
-        ]);
+        const detections = createMockDetections([{ strategyId: 'fast', itemId: 'item_1', confidence: 0.85 }]);
 
-        const result = combineStrategyDetections(
-            detections,
-            { x: 100, y: 200, width: 45, height: 45 },
-            config
-        );
+        const result = combineStrategyDetections(detections, { x: 100, y: 200, width: 45, height: 45 }, config);
 
         expect(result).toBeDefined();
         expect(result?.itemId).toBe('item_1');

@@ -2,7 +2,7 @@
 // Batch Scan and About Tab E2E Tests
 // ========================================
 // Tests for batch screenshot processing and about page functionality
-// 
+//
 // NOTE: Skipped - OCR/Scan features still in development
 
 import { test, expect, Page } from '@playwright/test';
@@ -29,7 +29,7 @@ test.describe('Batch Scan - UI Accessibility', () => {
         // Scan section should be visible in advisor tab
         const scanSection = page.locator('.scan-section');
         await expect(scanSection).toBeVisible();
-        
+
         // Should have scan header
         const scanHeader = scanSection.locator('h3');
         await expect(scanHeader).toContainText('Scan Your Build');
@@ -51,7 +51,7 @@ test.describe('Batch Scan - UI Accessibility', () => {
         const scanSection = page.locator('.scan-section');
         const hint = scanSection.locator('.scan-hint');
         await expect(hint.first()).toBeVisible();
-        
+
         const hintText = await hint.first().textContent();
         expect(hintText?.toLowerCase()).toContain('jpg');
     });
@@ -80,22 +80,22 @@ test.describe('Batch Scan - Multiple File Upload', () => {
     test('upload button triggers file input', async ({ page }) => {
         const uploadBtn = page.locator('#scan-upload-btn');
         await expect(uploadBtn).toBeVisible();
-        
+
         // Clicking upload should be possible (triggers hidden file input)
         // Just verify the button is clickable without actually opening file dialog
-        const isDisabled = await uploadBtn.isDisabled();
-        expect(isDisabled).toBe(false);
+        const isDisabled = uploadBtn;
+        await expect(isDisabled).toBeEnabled();
     });
 
     test('scan section has proper structure for batch processing', async ({ page }) => {
         // Verify the scan section has all necessary elements for batch processing
         const scanSection = page.locator('.scan-section');
         await expect(scanSection).toBeVisible();
-        
+
         // Has file input for multiple files
         const fileInput = page.locator('#scan-file-input');
         await expect(fileInput).toBeAttached();
-        
+
         // Has detection area (hidden initially)
         const autoDetectArea = page.locator('#scan-auto-detect-area');
         await expect(autoDetectArea).toBeAttached();
@@ -202,14 +202,14 @@ test.describe('Batch Scan - Error Handling', () => {
 
     test('handles non-image files gracefully', async ({ page }) => {
         const fileInput = page.locator('#scan-file-input');
-        
+
         // Try to upload a non-image file
         await fileInput.setInputFiles({
             name: 'test.txt',
             mimeType: 'text/plain',
-            buffer: Buffer.from('not an image')
+            buffer: Buffer.from('not an image'),
         });
-        
+
         // Wait and verify page didn't crash
         await page.waitForTimeout(500);
         const scanSection = page.locator('.scan-section');
@@ -219,10 +219,10 @@ test.describe('Batch Scan - Error Handling', () => {
     test('handles empty file selection gracefully', async ({ page }) => {
         const uploadBtn = page.locator('#scan-upload-btn');
         await uploadBtn.click();
-        
+
         // Press escape to cancel file dialog
         await page.keyboard.press('Escape');
-        
+
         // Page should remain functional
         await page.waitForTimeout(300);
         const scanSection = page.locator('.scan-section');
@@ -240,16 +240,16 @@ test.describe('Batch Scan - Error Handling', () => {
         // Verify page stability after multiple tab interactions
         const uploadBtn = page.locator('#scan-upload-btn');
         await expect(uploadBtn).toBeVisible();
-        
+
         // Click upload button
         await uploadBtn.click();
         await page.keyboard.press('Escape');
-        
+
         // Page should still be functional
         await page.waitForTimeout(300);
         const scanSection = page.locator('.scan-section');
         await expect(scanSection).toBeVisible();
-        
+
         // Upload button should still be clickable
         await expect(uploadBtn).toBeVisible();
     });
@@ -294,7 +294,7 @@ test.describe('About Tab - Version Info', () => {
     test('version info displays correctly', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should contain version label
         expect(text?.toLowerCase()).toContain('version');
     });
@@ -302,7 +302,7 @@ test.describe('About Tab - Version Info', () => {
     test('version shows a version number', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should contain version pattern (e.g., 1.0.0 or v1.0)
         const hasVersion = text?.match(/\d+\.\d+\.\d+|\d+\.\d+/) !== null;
         expect(hasVersion).toBe(true);
@@ -311,7 +311,7 @@ test.describe('About Tab - Version Info', () => {
     test('build date is visible', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should contain build date label
         expect(text?.toLowerCase()).toContain('build date');
     });
@@ -319,7 +319,7 @@ test.describe('About Tab - Version Info', () => {
     test('build date shows actual date', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should contain date-like text (month names, numeric dates, or time)
         // Build date format is like "Jan 30, 2025, 08:00 PM" or similar
         const hasDate = text?.match(/\d{4}|\w{3,}\s+\d{1,2}|AM|PM|\d{1,2}:\d{2}/) !== null;
@@ -329,7 +329,7 @@ test.describe('About Tab - Version Info', () => {
     test('commit info is visible', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should contain commit label
         expect(text?.toLowerCase()).toContain('commit');
     });
@@ -337,7 +337,7 @@ test.describe('About Tab - Version Info', () => {
     test('branch info is visible', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should contain branch label
         expect(text?.toLowerCase()).toContain('branch');
     });
@@ -354,11 +354,12 @@ test.describe('About Tab - Credits and Attribution', () => {
     test('credits/attribution section is present', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should contain some form of attribution or disclaimer
-        const hasAttribution = text?.toLowerCase().includes('community') ||
-                              text?.toLowerCase().includes('not affiliated') ||
-                              text?.toLowerCase().includes('made');
+        const hasAttribution =
+            text?.toLowerCase().includes('community') ||
+            text?.toLowerCase().includes('not affiliated') ||
+            text?.toLowerCase().includes('made');
         expect(hasAttribution).toBe(true);
     });
 
@@ -378,7 +379,7 @@ test.describe('About Tab - Credits and Attribution', () => {
     test('app title is displayed', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should contain app name
         expect(text?.toLowerCase()).toContain('megabonk');
     });
@@ -388,12 +389,13 @@ test.describe('About Tab - Credits and Attribution', () => {
         // Wait for content to render
         await page.waitForTimeout(500);
         const text = await aboutContent.textContent();
-        
+
         // Should contain some descriptive text
-        const hasSubtitle = text?.toLowerCase().includes('guide') ||
-                           text?.toLowerCase().includes('companion') ||
-                           text?.toLowerCase().includes('complete') ||
-                           text?.toLowerCase().includes('megabonk');
+        const hasSubtitle =
+            text?.toLowerCase().includes('guide') ||
+            text?.toLowerCase().includes('companion') ||
+            text?.toLowerCase().includes('complete') ||
+            text?.toLowerCase().includes('megabonk');
         expect(hasSubtitle).toBe(true);
     });
 });
@@ -423,7 +425,7 @@ test.describe('About Tab - External Links', () => {
 
     test('releases link is present', async ({ page }) => {
         const releasesLink = page.locator('#aboutContainer a[href*="releases"]');
-        if (await releasesLink.count() > 0) {
+        if ((await releasesLink.count()) > 0) {
             await expect(releasesLink.first()).toBeVisible();
         } else {
             // Releases might be combined with GitHub link
@@ -435,7 +437,7 @@ test.describe('About Tab - External Links', () => {
 
     test('issues/bug report link is present', async ({ page }) => {
         const issuesLink = page.locator('#aboutContainer a[href*="issues"]');
-        if (await issuesLink.count() > 0) {
+        if ((await issuesLink.count()) > 0) {
             await expect(issuesLink.first()).toBeVisible();
         } else {
             // Check for bug report text
@@ -448,9 +450,9 @@ test.describe('About Tab - External Links', () => {
     test('external links have proper text descriptions', async ({ page }) => {
         const links = page.locator('#aboutContainer .about-link, #aboutContainer a');
         const count = await links.count();
-        
+
         expect(count).toBeGreaterThan(0);
-        
+
         // Check at least one link has descriptive text
         for (let i = 0; i < Math.min(count, 3); i++) {
             const linkText = await links.nth(i).textContent();
@@ -469,7 +471,7 @@ test.describe('About Tab - Data Source Acknowledgments', () => {
 
     test('features list is displayed', async ({ page }) => {
         const featuresList = page.locator('.about-features, .about-features-section');
-        if (await featuresList.count() > 0) {
+        if ((await featuresList.count()) > 0) {
             await expect(featuresList.first()).toBeVisible();
         }
     });
@@ -477,7 +479,7 @@ test.describe('About Tab - Data Source Acknowledgments', () => {
     test('item count is shown in features', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should mention items with a count
         const hasItemCount = text?.match(/\d+\s*items/i) !== null;
         expect(hasItemCount).toBe(true);
@@ -486,7 +488,7 @@ test.describe('About Tab - Data Source Acknowledgments', () => {
     test('weapon count is shown in features', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should mention weapons with a count
         const hasWeaponCount = text?.match(/\d+\s*weapons/i) !== null;
         expect(hasWeaponCount).toBe(true);
@@ -495,7 +497,7 @@ test.describe('About Tab - Data Source Acknowledgments', () => {
     test('tome count is shown in features', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should mention tomes with a count
         const hasTomeCount = text?.match(/\d+\s*tomes/i) !== null;
         expect(hasTomeCount).toBe(true);
@@ -504,7 +506,7 @@ test.describe('About Tab - Data Source Acknowledgments', () => {
     test('character count is shown in features', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should mention characters with a count
         const hasCharacterCount = text?.match(/\d+\s*(playable\s*)?characters/i) !== null;
         expect(hasCharacterCount).toBe(true);
@@ -515,7 +517,7 @@ test.describe('About Tab - Data Source Acknowledgments', () => {
         // Wait for content to render
         await page.waitForTimeout(500);
         const text = await aboutContent.textContent();
-        
+
         // Should mention shrines (might show "0 shrine types" if data not loaded)
         const hasShrineCount = text?.match(/\d+\s*shrine/i) !== null;
         expect(hasShrineCount).toBe(true);
@@ -533,7 +535,7 @@ test.describe('About Tab - Last Updated Info', () => {
     test('last updated date is visible via build date', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Build date serves as last updated indicator
         expect(text?.toLowerCase()).toContain('build date');
     });
@@ -541,7 +543,7 @@ test.describe('About Tab - Last Updated Info', () => {
     test('build date contains year', async ({ page }) => {
         const aboutContent = page.locator('#aboutContainer');
         const text = await aboutContent.textContent();
-        
+
         // Should contain a year (2023, 2024, 2025, etc.)
         const hasYear = text?.match(/20\d{2}/) !== null;
         expect(hasYear).toBe(true);
@@ -549,9 +551,9 @@ test.describe('About Tab - Last Updated Info', () => {
 
     test('commit hash provides update traceability', async ({ page }) => {
         const commitLink = page.locator('#aboutContainer a[href*="commit"], .about-commit-link');
-        if (await commitLink.count() > 0) {
+        if ((await commitLink.count()) > 0) {
             await expect(commitLink.first()).toBeVisible();
-            
+
             // Should link to GitHub commit
             const href = await commitLink.first().getAttribute('href');
             expect(href).toContain('github.com');
@@ -567,7 +569,9 @@ test.describe('About Tab - Navigation', () => {
         await page.waitForTimeout(500);
 
         // Check if about tab is active - may depend on URL param support
-        const aboutActive = await page.locator('.tab-btn[data-tab="about"]').evaluate(el => el.classList.contains('active'));
+        const aboutActive = await page
+            .locator('.tab-btn[data-tab="about"]')
+            .evaluate(el => el.classList.contains('active'));
         if (aboutActive) {
             await expect(page.locator('.tab-btn[data-tab="about"]')).toHaveClass(/active/);
         } else {
@@ -595,7 +599,7 @@ test.describe('About Tab - Navigation', () => {
 
         const aboutBtn = page.locator('.tab-btn[data-tab="about"]');
         const text = await aboutBtn.textContent();
-        
+
         // Should contain info icon or "About" text
         expect(text?.toLowerCase()).toContain('about');
     });
@@ -606,10 +610,10 @@ test.describe('About Tab - Responsive', () => {
         // SKIPPED: About tab is hidden on mobile viewport (design choice)
         // The app prioritizes core functionality tabs on smaller screens
         await page.setViewportSize({ width: 375, height: 667 });
-        
+
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
-        
+
         const aboutTab = page.locator('.tab-btn[data-tab="about"]');
         await aboutTab.scrollIntoViewIfNeeded();
         await aboutTab.click();
@@ -623,10 +627,10 @@ test.describe('About Tab - Responsive', () => {
         // SKIPPED: About tab is hidden on tablet viewport (design choice)
         // The app prioritizes core functionality tabs on smaller screens
         await page.setViewportSize({ width: 768, height: 1024 });
-        
+
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
-        
+
         const aboutTab = page.locator('.tab-btn[data-tab="about"]');
         await aboutTab.scrollIntoViewIfNeeded();
         await aboutTab.click();
@@ -640,10 +644,10 @@ test.describe('About Tab - Responsive', () => {
         // SKIPPED: About tab is hidden on mobile viewport (design choice)
         // The app prioritizes core functionality tabs on smaller screens
         await page.setViewportSize({ width: 375, height: 667 });
-        
+
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
-        
+
         const aboutTab = page.locator('.tab-btn[data-tab="about"]');
         await aboutTab.scrollIntoViewIfNeeded();
         await aboutTab.click();
@@ -651,10 +655,10 @@ test.describe('About Tab - Responsive', () => {
 
         const githubLink = page.locator('#aboutContainer a[href*="github.com"]').first();
         await expect(githubLink).toBeVisible();
-        
+
         // Verify link is interactive
-        const isDisabled = await githubLink.isDisabled();
-        expect(isDisabled).toBe(false);
+        const isDisabled = githubLink;
+        await expect(isDisabled).toBeEnabled();
     });
 });
 
@@ -670,14 +674,15 @@ test.describe('About Tab - No Errors', () => {
         await page.waitForTimeout(500);
 
         // Filter out known acceptable errors (PWA, network, etc.)
-        const criticalErrors = errors.filter(e => 
-            !e.includes('favicon') && 
-            !e.includes('manifest') &&
-            !e.includes('service worker') &&
-            !e.includes('ServiceWorker') &&
-            !e.includes('workbox') &&
-            !e.includes('404') &&
-            !e.includes('network')
+        const criticalErrors = errors.filter(
+            e =>
+                !e.includes('favicon') &&
+                !e.includes('manifest') &&
+                !e.includes('service worker') &&
+                !e.includes('ServiceWorker') &&
+                !e.includes('workbox') &&
+                !e.includes('404') &&
+                !e.includes('network')
         );
 
         expect(criticalErrors).toHaveLength(0);
@@ -698,15 +703,16 @@ test.describe('About Tab - No Errors', () => {
         await page.waitForTimeout(500);
 
         // Filter out known acceptable errors (PWA, network, static assets)
-        const criticalErrors = consoleErrors.filter(e => 
-            !e.includes('favicon') && 
-            !e.includes('manifest') &&
-            !e.includes('service worker') &&
-            !e.includes('ServiceWorker') &&
-            !e.includes('workbox') &&
-            !e.includes('404') &&
-            !e.includes('Failed to load resource') &&
-            !e.includes('net::')
+        const criticalErrors = consoleErrors.filter(
+            e =>
+                !e.includes('favicon') &&
+                !e.includes('manifest') &&
+                !e.includes('service worker') &&
+                !e.includes('ServiceWorker') &&
+                !e.includes('workbox') &&
+                !e.includes('404') &&
+                !e.includes('Failed to load resource') &&
+                !e.includes('net::')
         );
 
         expect(criticalErrors).toHaveLength(0);

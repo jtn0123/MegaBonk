@@ -21,7 +21,7 @@ test.describe('Advisor Tab - Basic UI', () => {
     test('should display character selection dropdown', async ({ page }) => {
         const characterSelect = page.locator('#advisor-character');
         await expect(characterSelect).toBeVisible();
-        
+
         // Wait for options to load
         await page.waitForTimeout(500);
         const options = characterSelect.locator('option');
@@ -32,7 +32,7 @@ test.describe('Advisor Tab - Basic UI', () => {
     test('should display weapon selection dropdown', async ({ page }) => {
         const weaponSelect = page.locator('#advisor-weapon');
         await expect(weaponSelect).toBeVisible();
-        
+
         // Wait for options to load
         await page.waitForTimeout(500);
         const options = weaponSelect.locator('option');
@@ -101,10 +101,10 @@ test.describe('Advisor Tab - Choice Selection', () => {
 
     test('choice type options include item, weapon, tome, shrine', async ({ page }) => {
         const choice1Type = page.locator('#choice-1-type');
-        
+
         const options = await choice1Type.locator('option').allTextContents();
         const optionsLower = options.map(o => o.toLowerCase());
-        
+
         expect(optionsLower.some(o => o.includes('item'))).toBe(true);
         expect(optionsLower.some(o => o.includes('weapon'))).toBe(true);
         expect(optionsLower.some(o => o.includes('tome'))).toBe(true);
@@ -173,12 +173,12 @@ test.describe('Advisor Tab - Recommendations', () => {
     test('should show recommendation results after getting recommendation', async ({ page }) => {
         // Set up a basic build - wait for data to load
         await page.waitForTimeout(500);
-        
+
         const charOptions = await page.locator('#advisor-character option').count();
         if (charOptions > 1) {
             await page.selectOption('#advisor-character', { index: 1 });
         }
-        
+
         const weaponOptions = await page.locator('#advisor-weapon option').count();
         if (weaponOptions > 1) {
             await page.selectOption('#advisor-weapon', { index: 1 });
@@ -187,7 +187,7 @@ test.describe('Advisor Tab - Recommendations', () => {
         // Set up choices
         await page.selectOption('#choice-1-type', 'item');
         await page.waitForTimeout(500);
-        
+
         const entityOptions = await page.locator('#choice-1-entity option').count();
         if (entityOptions > 1) {
             await page.selectOption('#choice-1-entity', { index: 1 });
@@ -195,7 +195,7 @@ test.describe('Advisor Tab - Recommendations', () => {
 
         await page.selectOption('#choice-2-type', 'item');
         await page.waitForTimeout(500);
-        
+
         const entity2Options = await page.locator('#choice-2-entity option').count();
         if (entity2Options > 1) {
             await page.selectOption('#choice-2-entity', { index: Math.min(2, entity2Options - 1) });
@@ -215,17 +215,17 @@ test.describe('Advisor Tab - Recommendations', () => {
     test('should display recommendation content', async ({ page }) => {
         // Wait for data to load
         await page.waitForTimeout(500);
-        
+
         // Set up build and choices if options available
         const charOptions = await page.locator('#advisor-character option').count();
         if (charOptions > 1) {
             await page.selectOption('#advisor-character', { index: 1 });
             await page.selectOption('#advisor-weapon', { index: 1 });
         }
-        
+
         await page.selectOption('#choice-1-type', 'item');
         await page.waitForTimeout(500);
-        
+
         const entityOptions = await page.locator('#choice-1-entity option').count();
         if (entityOptions > 1) {
             await page.selectOption('#choice-1-entity', { index: 1 });
@@ -253,7 +253,10 @@ test.describe('Build Planner - Scan Build Section', () => {
         const scanSection = page.locator('#build-planner-scan-section, .scan-section');
         try {
             await scanSection.first().waitFor({ state: 'visible', timeout: 10000 });
-        } catch { test.skip(); return; }
+        } catch {
+            test.skip();
+            return;
+        }
         await expect(scanSection.first()).toBeVisible();
     });
 
@@ -261,7 +264,10 @@ test.describe('Build Planner - Scan Build Section', () => {
         const uploadBtn = page.locator('#scan-upload-btn, .scan-upload-btn');
         try {
             await uploadBtn.first().waitFor({ state: 'visible', timeout: 10000 });
-        } catch { test.skip(); return; }
+        } catch {
+            test.skip();
+            return;
+        }
         await expect(uploadBtn.first()).toBeVisible();
     });
 
@@ -269,7 +275,10 @@ test.describe('Build Planner - Scan Build Section', () => {
         const fileInput = page.locator('#scan-file-input, input[type="file"][accept*="image"]');
         try {
             await fileInput.first().waitFor({ state: 'attached', timeout: 10000 });
-        } catch { test.skip(); return; }
+        } catch {
+            test.skip();
+            return;
+        }
         await expect(fileInput.first()).toBeAttached();
     });
 });

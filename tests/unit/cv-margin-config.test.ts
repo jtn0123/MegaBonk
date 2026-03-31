@@ -57,20 +57,26 @@ describe('Margin Configuration', () => {
 
         it('CONSERVATIVE_MARGIN_CONFIG should be more cautious', () => {
             expect(CONSERVATIVE_MARGIN_CONFIG.baseCellMargin).toBeGreaterThan(DEFAULT_MARGIN_CONFIG.baseCellMargin);
-            expect(CONSERVATIVE_MARGIN_CONFIG.baseTemplateMargin).toBeGreaterThan(DEFAULT_MARGIN_CONFIG.baseTemplateMargin);
+            expect(CONSERVATIVE_MARGIN_CONFIG.baseTemplateMargin).toBeGreaterThan(
+                DEFAULT_MARGIN_CONFIG.baseTemplateMargin
+            );
         });
 
         it('should have complete rarity adjustments', () => {
             const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary', 'unknown'];
             for (const rarity of rarities) {
                 expect(DEFAULT_MARGIN_CONFIG.rarityAdjustments).toHaveProperty(rarity);
-                expect(typeof DEFAULT_MARGIN_CONFIG.rarityAdjustments[rarity as keyof typeof DEFAULT_MARGIN_CONFIG.rarityAdjustments]).toBe('number');
+                expect(
+                    typeof DEFAULT_MARGIN_CONFIG.rarityAdjustments[
+                        rarity as keyof typeof DEFAULT_MARGIN_CONFIG.rarityAdjustments
+                    ]
+                ).toBe('number');
             }
         });
 
         it('should have resolution configs for all tiers', () => {
             expect(DEFAULT_MARGIN_CONFIG.resolutionConfigs.length).toBeGreaterThanOrEqual(4);
-            
+
             // Check for 720p, 1080p, 1440p, 4K coverage
             const coverages = DEFAULT_MARGIN_CONFIG.resolutionConfigs;
             expect(coverages.some(c => c.minWidth === 0)).toBe(true); // Low res

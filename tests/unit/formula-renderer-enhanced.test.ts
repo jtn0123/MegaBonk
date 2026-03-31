@@ -282,7 +282,7 @@ describe('Formula Renderer - Enhanced Coverage', () => {
             expect(result).toContain('&quot;');
         });
 
-        it('should escape \' character', () => {
+        it("should escape ' character", () => {
             const result = renderFormula("Value = 'test'");
             expect(result).toContain('&#039;');
         });

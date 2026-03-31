@@ -18,8 +18,8 @@ function detectGridPositions(width, height) {
 
     const rowYPositions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
-        if (y >= height * 0.70) rowYPositions.push(y);
+        const y = height - bottomMargin - row * rowHeight - iconSize;
+        if (y >= height * 0.7) rowYPositions.push(y);
     }
 
     const sideMargin = Math.round(width * 0.15);
@@ -37,42 +37,52 @@ function detectGridPositions(width, height) {
 }
 
 function analyzeCell(imageData) {
-    const w = imageData.width, h = imageData.height;
-    let sum = 0, sumSq = 0, count = 0;
+    const w = imageData.width,
+        h = imageData.height;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     let edgeCount = 0;
 
     // Full image variance
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
 
     // Center region variance (exclude edges)
     const margin = Math.round(w * 0.2);
-    let centerSum = 0, centerSumSq = 0, centerCount = 0;
+    let centerSum = 0,
+        centerSumSq = 0,
+        centerCount = 0;
     for (let y = margin; y < h - margin; y++) {
         for (let x = margin; x < w - margin; x++) {
             const i = (y * w + x) * 4;
-            const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-            centerSum += gray; centerSumSq += gray * gray; centerCount++;
+            const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+            centerSum += gray;
+            centerSumSq += gray * gray;
+            centerCount++;
         }
     }
     const centerMean = centerCount > 0 ? centerSum / centerCount : 0;
     const centerVariance = centerCount > 0 ? centerSumSq / centerCount - centerMean * centerMean : 0;
 
     // Edge content (is content concentrated at edges?)
-    let edgeContent = 0, centerContent = 0;
+    let edgeContent = 0,
+        centerContent = 0;
     const gray = new Float32Array(w * h);
     for (let i = 0; i < w * h; i++) {
-        gray[i] = (imageData.data[i*4] + imageData.data[i*4+1] + imageData.data[i*4+2]) / 3;
+        gray[i] = (imageData.data[i * 4] + imageData.data[i * 4 + 1] + imageData.data[i * 4 + 2]) / 3;
     }
 
     for (let y = 1; y < h - 1; y++) {
         for (let x = 1; x < w - 1; x++) {
-            const gx = Math.abs(gray[y*w + x+1] - gray[y*w + x-1]);
-            const gy = Math.abs(gray[(y+1)*w + x] - gray[(y-1)*w + x]);
+            const gx = Math.abs(gray[y * w + x + 1] - gray[y * w + x - 1]);
+            const gy = Math.abs(gray[(y + 1) * w + x] - gray[(y - 1) * w + x]);
             const edgeMag = gx + gy;
 
             if (x < margin || x >= w - margin || y < margin || y >= h - margin) {
@@ -85,8 +95,7 @@ function analyzeCell(imageData) {
         }
     }
 
-    const edgeRatio = edgeContent > 0 && centerContent > 0 ?
-        edgeContent / (edgeContent + centerContent) : 0;
+    const edgeRatio = edgeContent > 0 && centerContent > 0 ? edgeContent / (edgeContent + centerContent) : 0;
 
     return {
         variance,
@@ -94,7 +103,7 @@ function analyzeCell(imageData) {
         centerVariance,
         centerMean,
         edgeRatio,
-        edgeDensity: edgeCount / ((w-2) * (h-2))
+        edgeDensity: edgeCount / ((w - 2) * (h - 2)),
     };
 }
 
@@ -128,17 +137,28 @@ function isLikelyFalsePositive(stats) {
 }
 
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 async function loadTemplates() {
@@ -155,7 +175,7 @@ async function loadTemplates() {
             const canvas = createCanvas(32, 32);
             const ctx = canvas.getContext('2d');
             const margin = Math.round(img.width * 0.1);
-            ctx.drawImage(img, margin, margin, img.width - margin*2, img.height - margin*2, 0, 0, 32, 32);
+            ctx.drawImage(img, margin, margin, img.width - margin * 2, img.height - margin * 2, 0, 0, 32, 32);
             templates.set(item.id, ctx.getImageData(0, 0, 32, 32));
         } catch {}
     }
@@ -168,8 +188,11 @@ async function test(filterEnabled) {
     const gt = JSON.parse(fs.readFileSync(GT_PATH, 'utf-8'));
     const testCases = Object.entries(gt).filter(([k]) => !k.startsWith('_'));
 
-    let totalTP = 0, totalFP = 0, totalFN = 0;
-    let totalCells = 0, filteredCells = 0;
+    let totalTP = 0,
+        totalFP = 0,
+        totalFN = 0;
+    let totalCells = 0,
+        filteredCells = 0;
 
     for (const [filename, data] of testCases) {
         const imagePath = path.join('./test-images/gameplay', filename);
@@ -210,8 +233,17 @@ async function test(filterEnabled) {
             const srcCanvas = createCanvas(pos.width, pos.height);
             srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.12);
-            resizeCtx.drawImage(srcCanvas, margin, margin,
-                pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
             let bestMatch = null;
@@ -230,7 +262,9 @@ async function test(filterEnabled) {
             }
         }
 
-        let tp = 0, fp = 0, fn = 0;
+        let tp = 0,
+            fp = 0,
+            fn = 0;
         detections.forEach((count, id) => {
             const expected = truth.get(id) || 0;
             tp += Math.min(count, expected);
@@ -248,12 +282,17 @@ async function test(filterEnabled) {
 
     const precision = totalTP + totalFP > 0 ? totalTP / (totalTP + totalFP) : 0;
     const recall = totalTP + totalFN > 0 ? totalTP / (totalTP + totalFN) : 0;
-    const f1 = precision + recall > 0 ? 2 * precision * recall / (precision + recall) : 0;
+    const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0;
 
     return {
-        precision, recall, f1,
-        tp: totalTP, fp: totalFP, fn: totalFN,
-        totalCells, filteredCells
+        precision,
+        recall,
+        f1,
+        tp: totalTP,
+        fp: totalFP,
+        fn: totalFN,
+        totalCells,
+        filteredCells,
     };
 }
 
@@ -272,10 +311,14 @@ async function main() {
     console.log('| Configuration     | Precision | Recall  | F1 Score | Cells |');
     console.log('|-------------------|-----------|---------|----------|-------|');
 
-    console.log(`| Without filter    | ${(withoutFilter.precision*100).toFixed(1).padStart(8)}% | ${(withoutFilter.recall*100).toFixed(1).padStart(6)}% | ${(withoutFilter.f1*100).toFixed(1).padStart(7)}% | ${withoutFilter.totalCells} |`);
-    console.log(`| With filter       | ${(withFilter.precision*100).toFixed(1).padStart(8)}% | ${(withFilter.recall*100).toFixed(1).padStart(6)}% | ${(withFilter.f1*100).toFixed(1).padStart(7)}% | ${withFilter.totalCells - withFilter.filteredCells} |`);
+    console.log(
+        `| Without filter    | ${(withoutFilter.precision * 100).toFixed(1).padStart(8)}% | ${(withoutFilter.recall * 100).toFixed(1).padStart(6)}% | ${(withoutFilter.f1 * 100).toFixed(1).padStart(7)}% | ${withoutFilter.totalCells} |`
+    );
+    console.log(
+        `| With filter       | ${(withFilter.precision * 100).toFixed(1).padStart(8)}% | ${(withFilter.recall * 100).toFixed(1).padStart(6)}% | ${(withFilter.f1 * 100).toFixed(1).padStart(7)}% | ${withFilter.totalCells - withFilter.filteredCells} |`
+    );
 
-    const improvement = ((withFilter.f1 - withoutFilter.f1) / withoutFilter.f1 * 100);
+    const improvement = ((withFilter.f1 - withoutFilter.f1) / withoutFilter.f1) * 100;
     console.log(`\nFiltered ${withFilter.filteredCells} likely false positives`);
     console.log(`F1 change: ${improvement >= 0 ? '+' : ''}${improvement.toFixed(1)}%`);
 }

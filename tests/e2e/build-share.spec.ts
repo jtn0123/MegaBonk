@@ -10,10 +10,13 @@ test.describe('Build Planner - Export and Share', () => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="build-planner"]');
-        await page.waitForFunction(() => {
-            const select = document.getElementById('build-character');
-            return select && select.options.length > 1;
-        }, { timeout: 5000 });
+        await page.waitForFunction(
+            () => {
+                const select = document.getElementById('build-character');
+                return select && select.options.length > 1;
+            },
+            { timeout: 5000 }
+        );
     });
 
     test('export build button is visible', async ({ page }) => {
@@ -60,7 +63,7 @@ test.describe('Build Planner - Export and Share', () => {
         // Just verify the button was clickable and no crash occurred
         const exportBtn = page.locator('#export-build');
         await expect(exportBtn).toBeVisible();
-        
+
         // Either we got a dialog, or clipboard worked, or export silently succeeded
         expect(dialogMessage.length > 0 || true).toBe(true);
     });
@@ -91,7 +94,7 @@ test.describe('Build Planner - Export and Share', () => {
         // Verify button worked and no crash occurred
         const shareBtn = page.locator('#share-build-url');
         await expect(shareBtn).toBeVisible();
-        
+
         // Either dialog was shown with URL or operation completed silently
         expect(dialogMessage.length > 0 || true).toBe(true);
     });
@@ -100,7 +103,7 @@ test.describe('Build Planner - Export and Share', () => {
         // Set up a build
         await page.selectOption('#build-character', { index: 1 });
         await page.selectOption('#build-weapon', { index: 1 });
-        
+
         // Select a tome
         const tomeCheckbox = page.locator('#tomes-selection input[type="checkbox"]').first();
         await tomeCheckbox.click();
@@ -129,19 +132,22 @@ test.describe('Build Planner - URL Loading', () => {
         // Navigate to page and manually click tab (URL param may not auto-switch)
         await page.goto('/');
         await page.waitForSelector('#itemsContainer', { timeout: 15000 });
-        
+
         // Click build planner tab
         await page.click('.tab-btn[data-tab="build-planner"]');
-        
+
         // Wait for build planner tab to become active
-        await page.waitForFunction(() => {
-            const tab = document.getElementById('build-planner-tab');
-            return tab && tab.classList.contains('active');
-        }, { timeout: 10000 });
+        await page.waitForFunction(
+            () => {
+                const tab = document.getElementById('build-planner-tab');
+                return tab && tab.classList.contains('active');
+            },
+            { timeout: 10000 }
+        );
 
         // Verify planner loaded
         await expect(page.locator('#build-planner-tab')).toHaveClass(/active/);
-        
+
         // Character dropdown should be available
         const characterSelect = page.locator('#build-character');
         await expect(characterSelect).toBeVisible();
@@ -153,10 +159,13 @@ test.describe('Build Planner - Action Buttons State', () => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="build-planner"]');
-        await page.waitForFunction(() => {
-            const select = document.getElementById('build-character');
-            return select && select.options.length > 1;
-        }, { timeout: 5000 });
+        await page.waitForFunction(
+            () => {
+                const select = document.getElementById('build-character');
+                return select && select.options.length > 1;
+            },
+            { timeout: 5000 }
+        );
     });
 
     test('buttons are enabled when build has selections', async ({ page }) => {
@@ -167,7 +176,7 @@ test.describe('Build Planner - Action Buttons State', () => {
         // Export button should be enabled/clickable
         const exportBtn = page.locator('#export-build');
         const isDisabled = await exportBtn.isDisabled();
-        
+
         // Button may or may not be disabled based on implementation
         // Just verify it exists and doesn't crash
         await expect(exportBtn).toBeVisible();
@@ -196,10 +205,13 @@ test.describe('Build Planner - Stats Display', () => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="build-planner"]');
-        await page.waitForFunction(() => {
-            const select = document.getElementById('build-character');
-            return select && select.options.length > 1;
-        }, { timeout: 5000 });
+        await page.waitForFunction(
+            () => {
+                const select = document.getElementById('build-character');
+                return select && select.options.length > 1;
+            },
+            { timeout: 5000 }
+        );
     });
 
     test('build stats container exists', async ({ page }) => {
@@ -220,7 +232,7 @@ test.describe('Build Planner - Stats Display', () => {
         await page.waitForTimeout(300);
 
         const afterContent = await statsContainer.textContent();
-        
+
         // Content should change (or at least be non-empty)
         expect(afterContent?.length).toBeGreaterThan(0);
     });
@@ -228,14 +240,14 @@ test.describe('Build Planner - Stats Display', () => {
     test('stats show damage, hp, and crit', async ({ page }) => {
         await page.selectOption('#build-character', { index: 1 });
         await page.selectOption('#build-weapon', { index: 1 });
-        
+
         // Wait for stats container to have content
         await page.waitForTimeout(500);
 
         // Stats container should exist
         const statsContainer = page.locator('#build-stats');
         await expect(statsContainer).toBeAttached();
-        
+
         // Container should have some content (either stats or placeholder)
         const content = await statsContainer.textContent();
         expect(content?.length ?? 0).toBeGreaterThanOrEqual(0);

@@ -255,7 +255,7 @@ describe('Mobile Filters - UI/UX Validation', () => {
             tierFilter.dispatchEvent(new Event('change', { bubbles: true }));
 
             // Wait for badge update (setTimeout in subscribe)
-            return new Promise<void>((resolve) => {
+            return new Promise<void>(resolve => {
                 setTimeout(() => {
                     updateFilterBadge();
                     const btn = document.querySelector('.mobile-filter-btn');

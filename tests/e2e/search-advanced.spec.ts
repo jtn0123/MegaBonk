@@ -12,7 +12,10 @@ test.describe('Search History', () => {
     test.beforeEach(async ({ page }) => {
         // Clear localStorage to start fresh
         await page.goto('/');
-        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
+        await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL');
+        });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -24,12 +27,12 @@ test.describe('Search History', () => {
         // Use type() to simulate real typing which properly triggers input events
         await searchInput.click();
         await searchInput.pressSequentially('Anvil', { delay: 50 });
-        
+
         // Wait for debounce (300ms) + extra time for search to complete
         await page.waitForTimeout(600);
 
         // Check localStorage
-        const history = await page.evaluate((key) => {
+        const history = await page.evaluate(key => {
             const stored = localStorage.getItem(key);
             return stored ? JSON.parse(stored) : [];
         }, SEARCH_HISTORY_KEY);
@@ -44,13 +47,13 @@ test.describe('Search History', () => {
         await searchInput.fill('A');
         await page.waitForTimeout(500);
 
-        const history = await page.evaluate((key) => {
+        const history = await page.evaluate(key => {
             const stored = localStorage.getItem(key);
             return stored ? JSON.parse(stored) : [];
         }, SEARCH_HISTORY_KEY);
 
         expect(history).not.toContain('A');
-        expect(history.length).toBe(0);
+        expect(history).toHaveLength(0);
     });
 
     test('stores multiple search terms in order', async ({ page }) => {
@@ -66,7 +69,7 @@ test.describe('Search History', () => {
         await searchInput.fill('anvil');
         await page.waitForTimeout(400);
 
-        const history = await page.evaluate((key) => {
+        const history = await page.evaluate(key => {
             const stored = localStorage.getItem(key);
             return stored ? JSON.parse(stored) : [];
         }, SEARCH_HISTORY_KEY);
@@ -90,7 +93,7 @@ test.describe('Search History', () => {
         await searchInput.fill('Anvil');
         await page.waitForTimeout(400);
 
-        const history = await page.evaluate((key) => {
+        const history = await page.evaluate(key => {
             const stored = localStorage.getItem(key);
             return stored ? JSON.parse(stored) : [];
         }, SEARCH_HISTORY_KEY);
@@ -107,13 +110,13 @@ test.describe('Search History', () => {
         // Search for something using pressSequentially for proper input events
         await searchInput.click();
         await searchInput.pressSequentially('damage', { delay: 50 });
-        
+
         // Wait for search results to appear (confirms search ran)
         await page.waitForSelector('.search-result-card', { timeout: 8000 });
         await page.waitForTimeout(200); // Extra wait for localStorage write
 
         // Verify history was saved before reload
-        const historyBeforeReload = await page.evaluate((key) => {
+        const historyBeforeReload = await page.evaluate(key => {
             const stored = localStorage.getItem(key);
             return stored ? JSON.parse(stored) : [];
         }, SEARCH_HISTORY_KEY);
@@ -124,7 +127,7 @@ test.describe('Search History', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
         // Check history still exists
-        const history = await page.evaluate((key) => {
+        const history = await page.evaluate(key => {
             const stored = localStorage.getItem(key);
             return stored ? JSON.parse(stored) : [];
         }, SEARCH_HISTORY_KEY);
@@ -137,9 +140,18 @@ test.describe('Search History', () => {
 
         // Add more than MAX_SEARCH_HISTORY (10) items
         const searchTerms = [
-            'term1', 'term2', 'term3', 'term4', 'term5',
-            'term6', 'term7', 'term8', 'term9', 'term10',
-            'term11', 'term12'
+            'term1',
+            'term2',
+            'term3',
+            'term4',
+            'term5',
+            'term6',
+            'term7',
+            'term8',
+            'term9',
+            'term10',
+            'term11',
+            'term12',
         ];
 
         for (const term of searchTerms) {
@@ -147,7 +159,7 @@ test.describe('Search History', () => {
             await page.waitForTimeout(350); // Enough time for debounce + save
         }
 
-        const history = await page.evaluate((key) => {
+        const history = await page.evaluate(key => {
             const stored = localStorage.getItem(key);
             return stored ? JSON.parse(stored) : [];
         }, SEARCH_HISTORY_KEY);
@@ -165,7 +177,10 @@ test.describe('Search History', () => {
 test.describe('Search History Dropdown', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
+        await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL');
+        });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -199,7 +214,7 @@ test.describe('Search History Dropdown', () => {
         await page.waitForTimeout(300);
 
         const historyDropdown = page.locator('.search-history-dropdown');
-        await expect(historyDropdown).not.toBeVisible();
+        await expect(historyDropdown).toBeHidden();
     });
 
     test('displays "Recent Searches" header', async ({ page }) => {
@@ -237,7 +252,7 @@ test.describe('Search History Dropdown', () => {
         await page.waitForTimeout(300);
 
         const historyItems = page.locator('.search-history-item');
-        expect(await historyItems.count()).toBe(3);
+        await expect(historyItems).toHaveCount(3);
     });
 
     test('shows clear history button', async ({ page }) => {
@@ -264,7 +279,7 @@ test.describe('Search History Dropdown', () => {
         await searchInput.click();
         await searchInput.pressSequentially('test', { delay: 50 });
         await page.waitForTimeout(600); // Wait for debounce + history save
-        
+
         // Clear input and trigger dropdown
         await searchInput.clear();
         await searchInput.blur();
@@ -279,7 +294,7 @@ test.describe('Search History Dropdown', () => {
         await page.locator('header, .tabs, h1').first().click({ force: true });
         await page.waitForTimeout(300);
 
-        await expect(historyDropdown).not.toBeVisible();
+        await expect(historyDropdown).toBeHidden();
     });
 
     test('closes dropdown on Escape key', async ({ page }) => {
@@ -289,7 +304,7 @@ test.describe('Search History Dropdown', () => {
         await searchInput.click();
         await searchInput.pressSequentially('test', { delay: 50 });
         await page.waitForTimeout(600);
-        
+
         // Clear and show dropdown
         await searchInput.clear();
         await searchInput.blur();
@@ -304,14 +319,17 @@ test.describe('Search History Dropdown', () => {
         await page.keyboard.press('Escape');
         await page.waitForTimeout(300);
 
-        await expect(historyDropdown).not.toBeVisible();
+        await expect(historyDropdown).toBeHidden();
     });
 });
 
 test.describe('Search History Keyboard Navigation', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
+        await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL');
+        });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -382,10 +400,10 @@ test.describe('Search History Keyboard Navigation', () => {
         // Add history using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('anvil', { delay: 50 });
-        
+
         // Wait for debounce and search to complete
         await page.waitForTimeout(600);
-        
+
         // Clear input
         await searchInput.clear();
         await page.waitForTimeout(200);
@@ -397,7 +415,7 @@ test.describe('Search History Keyboard Navigation', () => {
         // Check if dropdown appears
         const historyDropdown = page.locator('.search-history-dropdown');
         const dropdownVisible = await historyDropdown.isVisible().catch(() => false);
-        
+
         if (!dropdownVisible) {
             // History dropdown didn't appear - skip rest of test
             // This can happen if history wasn't saved or dropdown logic changed
@@ -408,11 +426,11 @@ test.describe('Search History Keyboard Navigation', () => {
         // Navigate down to first item
         await page.keyboard.press('ArrowDown');
         await page.waitForTimeout(300);
-        
+
         // Check if item is highlighted
         const firstItem = page.locator('.search-history-item').first();
         const hasActiveClass = await firstItem.evaluate(el => el.classList.contains('active')).catch(() => false);
-        
+
         if (hasActiveClass) {
             // Select with Enter
             await page.keyboard.press('Enter');
@@ -431,7 +449,7 @@ test.describe('Search History Keyboard Navigation', () => {
         await searchInput.click();
         await searchInput.pressSequentially('bonk', { delay: 50 });
         await page.waitForTimeout(600);
-        
+
         // Clear input
         await searchInput.clear();
 
@@ -459,11 +477,11 @@ test.describe('Search History Keyboard Navigation', () => {
         // Add history using pressSequentially
         await searchInput.click();
         await searchInput.pressSequentially('Anvil', { delay: 50 });
-        
+
         // Wait for initial search to complete
         await page.waitForSelector('.search-result-card', { timeout: 8000 });
         await page.waitForTimeout(200);
-        
+
         // Clear input
         await searchInput.clear();
         await page.waitForTimeout(300);
@@ -481,7 +499,7 @@ test.describe('Search History Keyboard Navigation', () => {
         // Navigate and verify highlight
         await page.keyboard.press('ArrowDown');
         await page.waitForTimeout(300);
-        
+
         const firstItem = page.locator('.search-history-item').first();
         await expect(firstItem).toHaveClass(/active/);
 
@@ -505,7 +523,10 @@ test.describe('Search History Keyboard Navigation', () => {
 test.describe('Clear Search History', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
+        await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL');
+        });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -537,10 +558,10 @@ test.describe('Clear Search History', () => {
         await page.waitForTimeout(300);
 
         // Dropdown should close
-        await expect(historyDropdown).not.toBeVisible();
+        await expect(historyDropdown).toBeHidden();
 
         // localStorage should be empty
-        const history = await page.evaluate((key) => {
+        const history = await page.evaluate(key => {
             const stored = localStorage.getItem(key);
             return stored ? JSON.parse(stored) : null;
         }, SEARCH_HISTORY_KEY);
@@ -556,16 +577,16 @@ test.describe('Clear Search History', () => {
         await searchInput.pressSequentially('test', { delay: 50 });
         await page.waitForTimeout(600);
         await searchInput.clear();
-        
+
         // Show and clear history
         await searchInput.blur();
         await page.waitForTimeout(100);
         await searchInput.focus();
         await page.waitForTimeout(500);
-        
+
         const historyDropdown = page.locator('.search-history-dropdown');
         await expect(historyDropdown).toBeVisible({ timeout: 5000 });
-        
+
         await page.locator('.clear-history-btn').click();
         await page.waitForTimeout(300);
 
@@ -575,14 +596,17 @@ test.describe('Clear Search History', () => {
         await searchInput.focus();
         await page.waitForTimeout(500);
 
-        await expect(historyDropdown).not.toBeVisible();
+        await expect(historyDropdown).toBeHidden();
     });
 });
 
 test.describe('Search Suggestions', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
+        await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL');
+        });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -607,8 +631,8 @@ test.describe('Search Suggestions', () => {
         const searchInput = page.locator('#searchInput');
 
         // Get initial count (should be 80 items)
-        const initialCount = await page.locator('#itemsContainer .item-card').count();
-        expect(initialCount).toBe(80);
+        const initialCount = page.locator('#itemsContainer .item-card');
+        await expect(initialCount).toHaveCount(80);
 
         // Type search using pressSequentially
         await searchInput.click();
@@ -652,8 +676,8 @@ test.describe('Search Suggestions', () => {
         expect(damageCount).toBeGreaterThan(0);
 
         // Verify different results by checking first card changed
-        const firstDamageText = await searchResults.first().textContent();
-        expect(firstDamageText).not.toBe(firstAnvilText);
+        const firstDamageText = searchResults.first();
+        await expect(firstDamageText).not.toHaveText(firstAnvilText);
     });
 
     test('empty search shows all items', async ({ page }) => {
@@ -663,7 +687,7 @@ test.describe('Search Suggestions', () => {
         await searchInput.click();
         await searchInput.pressSequentially('Anvil', { delay: 50 });
         await page.waitForTimeout(600);
-        
+
         const searchResults = page.locator('.search-result-card');
         await expect(searchResults.first()).toBeVisible({ timeout: 5000 });
         const searchResultsCount = await searchResults.count();
@@ -675,7 +699,7 @@ test.describe('Search Suggestions', () => {
 
         // Should show all items (back to regular .item-card display)
         await expect(page.locator('#itemsContainer .item-card').first()).toBeVisible({ timeout: 5000 });
-        expect(await page.locator('#itemsContainer .item-card').count()).toBe(80);
+        await expect(page.locator('#itemsContainer .item-card')).toHaveCount(80);
     });
 });
 
@@ -683,7 +707,10 @@ test.describe('Search Suggestions', () => {
 test.describe.skip('Search History ARIA Accessibility', () => {
     test.beforeEach(async ({ page }) => {
         await page.goto('/');
-        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
+        await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL');
+        });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });

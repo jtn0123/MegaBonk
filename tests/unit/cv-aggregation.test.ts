@@ -78,20 +78,14 @@ describe('aggregateDuplicates', () => {
         });
 
         it('should handle confidence values at boundaries', () => {
-            const detections = [
-                createDetection('item', 'Item', 0.0),
-                createDetection('item', 'Item', 1.0),
-            ];
+            const detections = [createDetection('item', 'Item', 0.0), createDetection('item', 'Item', 1.0)];
             const result = aggregateDuplicates(detections);
 
             expect(result[0].confidence).toBe(1.0);
         });
 
         it('should handle very small confidence differences', () => {
-            const detections = [
-                createDetection('item', 'Item', 0.8999999),
-                createDetection('item', 'Item', 0.9000001),
-            ];
+            const detections = [createDetection('item', 'Item', 0.8999999), createDetection('item', 'Item', 0.9000001)];
             const result = aggregateDuplicates(detections);
 
             expect(result[0].confidence).toBeCloseTo(0.9000001);
@@ -113,10 +107,7 @@ describe('aggregateDuplicates', () => {
         });
 
         it('should handle missing positions', () => {
-            const detections = [
-                createDetection('item', 'Item', 0.7),
-                createDetection('item', 'Item', 0.8),
-            ];
+            const detections = [createDetection('item', 'Item', 0.7), createDetection('item', 'Item', 0.8)];
             const result = aggregateDuplicates(detections);
 
             expect(result[0].position).toBeUndefined();
@@ -163,10 +154,7 @@ describe('aggregateDuplicates', () => {
         });
 
         it('should default count to 1 when not specified', () => {
-            const detections = [
-                createDetection('item', 'Item', 0.8),
-                createDetection('item', 'Item', 0.9),
-            ];
+            const detections = [createDetection('item', 'Item', 0.8), createDetection('item', 'Item', 0.9)];
             const result = aggregateDuplicates(detections);
 
             expect(result[0].count).toBe(2);
@@ -287,9 +275,7 @@ describe('combineDetections', () => {
         });
 
         it('should keep different items from both sources', () => {
-            const ocrResults = [
-                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 },
-            ];
+            const ocrResults = [{ type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 }];
             const cvResults = [createDetection('shield', 'Shield', 0.8)];
 
             const result = combineDetections(ocrResults, cvResults);
@@ -298,12 +284,8 @@ describe('combineDetections', () => {
         });
 
         it('should differentiate by type as well as id', () => {
-            const ocrResults = [
-                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 },
-            ];
-            const cvResults = [
-                createDetection('sword', 'Sword', 0.8, 'weapon'),
-            ];
+            const ocrResults = [{ type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 }];
+            const cvResults = [createDetection('sword', 'Sword', 0.8, 'weapon')];
 
             const result = combineDetections(ocrResults, cvResults);
 
@@ -330,9 +312,7 @@ describe('combineDetections', () => {
 
     describe('Method Assignment', () => {
         it('should default method to template_match when not specified', () => {
-            const ocrResults = [
-                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 },
-            ];
+            const ocrResults = [{ type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 }];
 
             const result = combineDetections(ocrResults, []);
 
@@ -361,9 +341,7 @@ describe('combineDetections', () => {
         });
 
         it('should handle undefined positions', () => {
-            const ocrResults = [
-                { type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 },
-            ];
+            const ocrResults = [{ type: 'item', entity: { id: 'sword', name: 'Sword' }, confidence: 0.7 }];
 
             const result = combineDetections(ocrResults, []);
 
@@ -384,9 +362,7 @@ describe('combineDetections', () => {
         });
 
         it('should handle zero confidence', () => {
-            const ocrResults = [
-                { type: 'item', entity: { id: 'zero', name: 'Zero' }, confidence: 0 },
-            ];
+            const ocrResults = [{ type: 'item', entity: { id: 'zero', name: 'Zero' }, confidence: 0 }];
 
             const result = combineDetections(ocrResults, []);
 

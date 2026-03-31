@@ -52,7 +52,10 @@ const simulateJPEGArtifacts = (imageData: ImageData, quality: number): ImageData
     for (let by = 0; by < imageData.height; by += blockSize) {
         for (let bx = 0; bx < imageData.width; bx += blockSize) {
             // Calculate block average
-            let sumR = 0, sumG = 0, sumB = 0, count = 0;
+            let sumR = 0,
+                sumG = 0,
+                sumB = 0,
+                count = 0;
 
             for (let y = by; y < Math.min(by + blockSize, imageData.height); y++) {
                 for (let x = bx; x < Math.min(bx + blockSize, imageData.width); x++) {
@@ -94,7 +97,11 @@ const calculateSimilarity = (img1: ImageData, img2: ImageData): number => {
         return 0;
     }
 
-    let sum1 = 0, sum2 = 0, sumSq1 = 0, sumSq2 = 0, sumProduct = 0;
+    let sum1 = 0,
+        sum2 = 0,
+        sumSq1 = 0,
+        sumSq2 = 0,
+        sumProduct = 0;
     const n = img1.width * img1.height;
 
     for (let i = 0; i < img1.data.length; i += 4) {
@@ -130,7 +137,7 @@ describe('CV JPEG Compression Resilience', () => {
             const compressed = simulateJPEGArtifacts(original, 90);
 
             const similarity = calculateSimilarity(original, compressed);
-            expect(similarity).toBeGreaterThan(0.90);
+            expect(similarity).toBeGreaterThan(0.9);
         });
 
         it('should maintain >80% similarity at quality 75%', () => {
@@ -138,7 +145,7 @@ describe('CV JPEG Compression Resilience', () => {
             const compressed = simulateJPEGArtifacts(original, 75);
 
             const similarity = calculateSimilarity(original, compressed);
-            expect(similarity).toBeGreaterThan(0.80);
+            expect(similarity).toBeGreaterThan(0.8);
         });
 
         it('should maintain >60% similarity at quality 50%', () => {
@@ -146,7 +153,7 @@ describe('CV JPEG Compression Resilience', () => {
             const compressed = simulateJPEGArtifacts(original, 50);
 
             const similarity = calculateSimilarity(original, compressed);
-            expect(similarity).toBeGreaterThan(0.60);
+            expect(similarity).toBeGreaterThan(0.6);
         });
 
         it('should handle severe compression at quality 25%', () => {
@@ -155,7 +162,7 @@ describe('CV JPEG Compression Resilience', () => {
 
             const similarity = calculateSimilarity(original, compressed);
             // Even at very low quality, should have some correlation
-            expect(similarity).toBeGreaterThan(0.30);
+            expect(similarity).toBeGreaterThan(0.3);
         });
     });
 
@@ -192,7 +199,7 @@ describe('CV JPEG Compression Resilience', () => {
             // For low variance gradient, compression should preserve structure
             const similarity = calculateSimilarity(original, compressed);
             // At quality 50%, expect reasonable similarity
-            expect(similarity).toBeGreaterThan(0.70);
+            expect(similarity).toBeGreaterThan(0.7);
         });
     });
 
@@ -202,7 +209,9 @@ describe('CV JPEG Compression Resilience', () => {
             const compressed = simulateJPEGArtifacts(redImage, 75);
 
             // Check average color
-            let sumR = 0, sumG = 0, sumB = 0;
+            let sumR = 0,
+                sumG = 0,
+                sumB = 0;
             const pixelCount = compressed.width * compressed.height;
             for (let i = 0; i < compressed.data.length; i += 4) {
                 sumR += compressed.data[i]!;
@@ -222,7 +231,7 @@ describe('CV JPEG Compression Resilience', () => {
 
         it('should handle color bleeding at low quality', () => {
             // Image with sharp color boundary
-            const image = cvTestKit.image.create(64, 64, (x) => {
+            const image = cvTestKit.image.create(64, 64, x => {
                 return x < 32 ? [255, 0, 0] : [0, 0, 255];
             });
             const compressed = simulateJPEGArtifacts(image, 30);
@@ -266,7 +275,7 @@ describe('CV Similar Item Confusion Detection', () => {
             // Simulate detection where color variants might be confused
             const detections = [
                 createDetection('wrench', 'Wrench', 0.85, 'common'),
-                createDetection('golden_wrench', 'Golden Wrench', 0.60, 'legendary'),
+                createDetection('golden_wrench', 'Golden Wrench', 0.6, 'legendary'),
             ];
 
             // For color variants, there should be a significant confidence gap
@@ -305,7 +314,8 @@ describe('CV Similar Item Confusion Detection', () => {
             for (let i = 0; i < 15; i++) simulateDetection('golden_wrench', 'wrench');
 
             // Calculate confusion rate
-            const wrenchConfusionRate = confusionMatrix.wrench!.golden_wrench! /
+            const wrenchConfusionRate =
+                confusionMatrix.wrench!.golden_wrench! /
                 (confusionMatrix.wrench!.wrench! + confusionMatrix.wrench!.golden_wrench!);
 
             expect(wrenchConfusionRate).toBeLessThan(0.15); // <15% confusion is acceptable
@@ -315,7 +325,7 @@ describe('CV Similar Item Confusion Detection', () => {
     describe('Shape Similarity Confusion', () => {
         it('should maintain >70% accuracy for similar shaped items', () => {
             // Items with similar shapes should still be distinguishable
-            const similarityThreshold = 0.70;
+            const similarityThreshold = 0.7;
 
             // Test with similar shaped items
             const results = [
@@ -368,7 +378,7 @@ describe('CV Similar Item Confusion Detection', () => {
             const categoryConfusion: Record<string, number> = {
                 food: 0.12, // 12% confusion within food category
                 equipment: 0.08, // 8% confusion within equipment
-                consumables: 0.10, // 10% confusion within consumables
+                consumables: 0.1, // 10% confusion within consumables
             };
 
             // All categories should have <15% internal confusion
@@ -394,16 +404,18 @@ describe('CV Similar Item Confusion Detection', () => {
             // Populate with mock data (high diagonal = good)
             items.forEach(item => {
                 matrix[item]![item] = 95; // 95% correct
-                items.filter(i => i !== item).forEach(other => {
-                    matrix[item]![other] = Math.floor(5 / (items.length - 1)); // Split remaining 5%
-                });
+                items
+                    .filter(i => i !== item)
+                    .forEach(other => {
+                        matrix[item]![other] = Math.floor(5 / (items.length - 1)); // Split remaining 5%
+                    });
             });
 
             // Verify diagonal dominance
             items.forEach(item => {
                 const correctRate = matrix[item]![item]!;
                 const totalRate = Object.values(matrix[item]!).reduce((a, b) => a + b, 0);
-                expect(correctRate / totalRate).toBeGreaterThan(0.90);
+                expect(correctRate / totalRate).toBeGreaterThan(0.9);
             });
         });
 
@@ -434,12 +446,14 @@ describe('CV Performance Stress Tests', () => {
             const items = 50;
 
             // Simulate detection of 50 items
-            const detections = Array(items).fill(null).map((_, i) => ({
-                entity: { id: `item_${i}`, name: `Item ${i}` },
-                confidence: 0.70 + Math.random() * 0.25,
-                x: (i % 10) * 64,
-                y: Math.floor(i / 10) * 64,
-            }));
+            const detections = Array(items)
+                .fill(null)
+                .map((_, i) => ({
+                    entity: { id: `item_${i}`, name: `Item ${i}` },
+                    confidence: 0.7 + Math.random() * 0.25,
+                    x: (i % 10) * 64,
+                    y: Math.floor(i / 10) * 64,
+                }));
 
             const endTime = performance.now();
             const duration = endTime - startTime;
@@ -450,31 +464,35 @@ describe('CV Performance Stress Tests', () => {
 
         it('should handle 75 items within 6 seconds', () => {
             const items = 75;
-            const detections = Array(items).fill(null).map((_, i) => ({
-                entity: { id: `item_${i}`, name: `Item ${i}` },
-                confidence: 0.65 + Math.random() * 0.30,
-                x: (i % 10) * 64,
-                y: Math.floor(i / 10) * 64,
-            }));
+            const detections = Array(items)
+                .fill(null)
+                .map((_, i) => ({
+                    entity: { id: `item_${i}`, name: `Item ${i}` },
+                    confidence: 0.65 + Math.random() * 0.3,
+                    x: (i % 10) * 64,
+                    y: Math.floor(i / 10) * 64,
+                }));
 
             expect(detections.length).toBe(75);
         });
 
         it('should handle 100 items (stress test)', () => {
             const items = 100;
-            const detections = Array(items).fill(null).map((_, i) => ({
-                entity: { id: `item_${i}`, name: `Item ${i}` },
-                confidence: 0.60 + Math.random() * 0.35,
-                x: (i % 10) * 64,
-                y: Math.floor(i / 10) * 64,
-            }));
+            const detections = Array(items)
+                .fill(null)
+                .map((_, i) => ({
+                    entity: { id: `item_${i}`, name: `Item ${i}` },
+                    confidence: 0.6 + Math.random() * 0.35,
+                    x: (i % 10) * 64,
+                    y: Math.floor(i / 10) * 64,
+                }));
 
             expect(detections.length).toBe(100);
 
             // Calculate confidence distribution
             const highConf = detections.filter(d => d.confidence >= 0.85).length;
-            const medConf = detections.filter(d => d.confidence >= 0.70 && d.confidence < 0.85).length;
-            const lowConf = detections.filter(d => d.confidence < 0.70).length;
+            const medConf = detections.filter(d => d.confidence >= 0.7 && d.confidence < 0.85).length;
+            const lowConf = detections.filter(d => d.confidence < 0.7).length;
 
             expect(highConf + medConf + lowConf).toBe(100);
         });
@@ -485,10 +503,12 @@ describe('CV Performance Stress Tests', () => {
             const runs: number[] = [];
 
             for (let run = 0; run < 5; run++) {
-                const detections = Array(50).fill(null).map((_, i) => ({
-                    entity: { id: `item_${i}`, name: `Item ${i}` },
-                    confidence: 0.80,
-                }));
+                const detections = Array(50)
+                    .fill(null)
+                    .map((_, i) => ({
+                        entity: { id: `item_${i}`, name: `Item ${i}` },
+                        confidence: 0.8,
+                    }));
                 runs.push(detections.length);
             }
 
@@ -500,10 +520,12 @@ describe('CV Performance Stress Tests', () => {
             const results: number[] = [];
 
             for (let i = 0; i < 10; i++) {
-                const detections = Array(20).fill(null).map((_, j) => ({
-                    entity: { id: `item_${j}`, name: `Item ${j}` },
-                    confidence: 0.75 + Math.random() * 0.20,
-                }));
+                const detections = Array(20)
+                    .fill(null)
+                    .map((_, j) => ({
+                        entity: { id: `item_${j}`, name: `Item ${j}` },
+                        confidence: 0.75 + Math.random() * 0.2,
+                    }));
                 results.push(detections.length);
             }
 
@@ -519,15 +541,17 @@ describe('CV Performance Stress Tests', () => {
             const startTime = performance.now();
 
             // Simulate processing 50 cells
-            const processed = Array(cellCount).fill(null).map((_, i) => {
-                // Simulate some work
-                const image = cvTestKit.image.solid(64, 64, 128, 128, 128);
-                return {
-                    cell: i,
-                    processed: true,
-                    pixels: image.data.length / 4,
-                };
-            });
+            const processed = Array(cellCount)
+                .fill(null)
+                .map((_, i) => {
+                    // Simulate some work
+                    const image = cvTestKit.image.solid(64, 64, 128, 128, 128);
+                    return {
+                        cell: i,
+                        processed: true,
+                        pixels: image.data.length / 4,
+                    };
+                });
 
             const endTime = performance.now();
             const duration = (endTime - startTime) / 1000; // Convert to seconds
@@ -566,10 +590,12 @@ describe('CV Performance Stress Tests', () => {
             [10, 20, 40].forEach(itemCount => {
                 const start = performance.now();
 
-                const detections = Array(itemCount).fill(null).map((_, i) => ({
-                    entity: { id: `item_${i}`, name: `Item ${i}` },
-                    confidence: 0.80,
-                }));
+                const detections = Array(itemCount)
+                    .fill(null)
+                    .map((_, i) => ({
+                        entity: { id: `item_${i}`, name: `Item ${i}` },
+                        confidence: 0.8,
+                    }));
 
                 measurements.push({
                     items: itemCount,
@@ -587,32 +613,36 @@ describe('CV Performance Stress Tests', () => {
             const uniqueItems = 50;
 
             // Each item is unique - no template reuse
-            const detections = Array(uniqueItems).fill(null).map((_, i) => ({
-                entity: {
-                    id: `unique_item_${i}`,
-                    name: `Unique Item ${i}`,
-                    rarity: ['common', 'uncommon', 'rare', 'epic', 'legendary'][i % 5],
-                },
-                confidence: 0.70 + Math.random() * 0.25,
-            }));
+            const detections = Array(uniqueItems)
+                .fill(null)
+                .map((_, i) => ({
+                    entity: {
+                        id: `unique_item_${i}`,
+                        name: `Unique Item ${i}`,
+                        rarity: ['common', 'uncommon', 'rare', 'epic', 'legendary'][i % 5],
+                    },
+                    confidence: 0.7 + Math.random() * 0.25,
+                }));
 
             // Should still complete
             expect(detections.length).toBe(50);
 
             // Confidence should be reasonable
             const avgConfidence = detections.reduce((sum, d) => sum + d.confidence, 0) / detections.length;
-            expect(avgConfidence).toBeGreaterThan(0.70);
+            expect(avgConfidence).toBeGreaterThan(0.7);
         });
     });
 
     describe('Degradation Under Load', () => {
         it('should maintain >60% accuracy at 70+ items', () => {
             // As item count increases, accuracy may decrease
-            const targetAccuracy = 0.60;
+            const targetAccuracy = 0.6;
             const itemCount = 70;
 
             // Simulate detection with some errors at high load
-            const actualItems = Array(itemCount).fill(null).map((_, i) => `item_${i}`);
+            const actualItems = Array(itemCount)
+                .fill(null)
+                .map((_, i) => `item_${i}`);
             const detectedItems = actualItems.map((item, i) => {
                 // 65% correct detection at high load
                 return Math.random() < 0.65 ? item : `wrong_item_${i}`;
@@ -630,10 +660,12 @@ describe('CV Performance Stress Tests', () => {
             const maxItems = 100;
 
             expect(() => {
-                const detections = Array(maxItems).fill(null).map((_, i) => ({
-                    entity: { id: `item_${i}`, name: `Item ${i}` },
-                    confidence: 0.50 + Math.random() * 0.45,
-                }));
+                const detections = Array(maxItems)
+                    .fill(null)
+                    .map((_, i) => ({
+                        entity: { id: `item_${i}`, name: `Item ${i}` },
+                        confidence: 0.5 + Math.random() * 0.45,
+                    }));
                 return detections.length;
             }).not.toThrow();
         });

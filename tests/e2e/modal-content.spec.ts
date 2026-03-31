@@ -14,17 +14,17 @@ test.describe('Item Modal Content', () => {
     test('modal displays item name as title', async ({ page }) => {
         // Get first item name
         const firstCardName = await page.locator('#itemsContainer .item-card .item-name').first().textContent();
-        
+
         // Open modal
         await page.locator('#itemsContainer .item-card').first().click();
-        
+
         // Wait for modal to be visible
         const modal = page.locator('#itemModal');
         await expect(modal).toHaveClass(/active/, { timeout: 3000 });
         await page.waitForTimeout(300);
 
         // The modal should contain the item name somewhere in its body
-        // The actual title element might be "Item Details" for accessibility, 
+        // The actual title element might be "Item Details" for accessibility,
         // but the item name should appear prominently in the modal content
         const modalBody = page.locator('#modalBody');
         await expect(modalBody).toContainText(firstCardName?.trim() || '');
@@ -93,12 +93,12 @@ test.describe('Modal Chart Rendering', () => {
     test('scaling chart renders for stackable items', async ({ page }) => {
         // Find an item that stacks well (Big Bonk is known to have a chart)
         const bigBonkCard = page.locator('#itemsContainer .item-card:has-text("Big Bonk")');
-        if (await bigBonkCard.count() > 0) {
+        if ((await bigBonkCard.count()) > 0) {
             await bigBonkCard.first().click();
             await page.waitForTimeout(800); // Wait for chart animation
 
             const chartCanvas = page.locator('#modalBody canvas, #modalBody .scaling-chart');
-            if (await chartCanvas.count() > 0) {
+            if ((await chartCanvas.count()) > 0) {
                 await expect(chartCanvas.first()).toBeVisible();
             }
         }
@@ -106,12 +106,12 @@ test.describe('Modal Chart Rendering', () => {
 
     test('chart container has proper dimensions', async ({ page }) => {
         const bigBonkCard = page.locator('#itemsContainer .item-card:has-text("Big Bonk")');
-        if (await bigBonkCard.count() > 0) {
+        if ((await bigBonkCard.count()) > 0) {
             await bigBonkCard.first().click();
             await page.waitForTimeout(800);
 
             const chartContainer = page.locator('#modalBody .modal-graph-container');
-            if (await chartContainer.count() > 0) {
+            if ((await chartContainer.count()) > 0) {
                 const box = await chartContainer.first().boundingBox();
                 expect(box?.width).toBeGreaterThan(100);
                 expect(box?.height).toBeGreaterThan(100);
@@ -141,14 +141,14 @@ test.describe('Modal - Similar Items', () => {
         await page.waitForTimeout(500);
 
         const similarItem = page.locator('#modalBody .similar-item-card, #modalBody .similar-items a').first();
-        if (await similarItem.count() > 0) {
+        if ((await similarItem.count()) > 0) {
             const originalTitle = await page.locator('#modalBody h2').first().textContent();
-            
+
             await similarItem.click();
             await page.waitForTimeout(500);
 
-            const newTitle = await page.locator('#modalBody h2').first().textContent();
-            expect(newTitle).not.toBe(originalTitle);
+            const newTitle = page.locator('#modalBody h2').first();
+            await expect(newTitle).not.toHaveText(originalTitle);
         }
     });
 });
@@ -167,7 +167,7 @@ test.describe('Modal - Synergies', () => {
             await page.waitForTimeout(500);
 
             const synergies = page.locator('#modalBody .synergies-section, #modalBody .synergy-tag');
-            if (await synergies.count() > 0) {
+            if ((await synergies.count()) > 0) {
                 await expect(synergies.first()).toBeVisible();
                 break;
             }
@@ -192,7 +192,7 @@ test.describe('Modal - Formula Display', () => {
             await page.waitForTimeout(500);
 
             const formula = page.locator('#modalBody .item-formula, #modalBody [class*="formula"]');
-            if (await formula.count() > 0) {
+            if ((await formula.count()) > 0) {
                 await expect(formula.first()).toBeVisible();
                 break;
             }
@@ -217,7 +217,7 @@ test.describe('Weapon Modal', () => {
 
         const modalBody = page.locator('#modalBody');
         await expect(modalBody).toBeVisible();
-        
+
         // Should contain weapon-specific info
         const content = await modalBody.textContent();
         expect(content?.length).toBeGreaterThan(50);
@@ -228,7 +228,7 @@ test.describe('Weapon Modal', () => {
         await page.waitForTimeout(500);
 
         const upgradeSection = page.locator('#modalBody .upgrades, #modalBody [class*="upgrade"], #modalBody table');
-        if (await upgradeSection.count() > 0) {
+        if ((await upgradeSection.count()) > 0) {
             await expect(upgradeSection.first()).toBeVisible();
         }
     });
@@ -248,7 +248,7 @@ test.describe('Character Modal', () => {
 
         const modalBody = page.locator('#modalBody');
         await expect(modalBody).toBeVisible();
-        
+
         // Should contain character info
         const content = await modalBody.textContent();
         expect(content?.length).toBeGreaterThan(50);
@@ -276,7 +276,7 @@ test.describe('Tome Modal', () => {
         await page.waitForTimeout(800);
 
         const chart = page.locator('#modalBody canvas, #modalBody .scaling-chart');
-        if (await chart.count() > 0) {
+        if ((await chart.count()) > 0) {
             await expect(chart.first()).toBeVisible();
         }
     });
@@ -296,7 +296,7 @@ test.describe('Shrine Modal', () => {
 
         const modalBody = page.locator('#modalBody');
         await expect(modalBody).toBeVisible();
-        
+
         const content = await modalBody.textContent();
         expect(content?.length).toBeGreaterThan(30);
     });

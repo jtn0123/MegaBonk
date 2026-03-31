@@ -1,9 +1,9 @@
 /**
  * E2E Browser Tests for CV Detection Module
- * 
+ *
  * These tests exercise the CV detection code in a real browser environment,
  * covering functions that require browser Image/Canvas APIs (not available in jsdom).
- * 
+ *
  * Run with: npx playwright test tests/e2e/cv-detection-coverage.spec.mjs
  */
 
@@ -22,6 +22,7 @@ const TEST_IMAGES_DIR = path.join(__dirname, '../../test-images/gameplay/pc-scre
 
 // Check if dev server is running before all tests
 let serverAvailable = false;
+
 test.beforeAll(async () => {
     try {
         const response = await fetch('http://localhost:5173', { method: 'HEAD' });
@@ -76,13 +77,13 @@ async function waitForCVReady(page) {
         },
         { timeout: 60000 }
     );
-    
+
     await page.evaluate(async () => {
         if (typeof window.initCV === 'function' && window.allData) {
             await window.initCV(window.allData);
         }
     });
-    
+
     await page.waitForTimeout(500);
 }
 
@@ -94,7 +95,7 @@ test.describe('CV Utility Functions', () => {
     // Skip: CV tests are slow and have dedicated workflow - run separately
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
         if (!serverAvailable) {
             testInfo.skip();
@@ -146,9 +147,27 @@ test.describe('CV Utility Functions', () => {
         test('should remove overlapping lower-confidence detections', async ({ page }) => {
             const result = await page.evaluate(() => {
                 const detections = [
-                    { type: 'item', entity: { id: '1', name: 'Item1' }, confidence: 0.9, position: { x: 10, y: 10, width: 50, height: 50 }, method: 'template_match' },
-                    { type: 'item', entity: { id: '2', name: 'Item2' }, confidence: 0.7, position: { x: 15, y: 15, width: 50, height: 50 }, method: 'template_match' },
-                    { type: 'item', entity: { id: '3', name: 'Item3' }, confidence: 0.8, position: { x: 200, y: 200, width: 50, height: 50 }, method: 'template_match' },
+                    {
+                        type: 'item',
+                        entity: { id: '1', name: 'Item1' },
+                        confidence: 0.9,
+                        position: { x: 10, y: 10, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
+                    {
+                        type: 'item',
+                        entity: { id: '2', name: 'Item2' },
+                        confidence: 0.7,
+                        position: { x: 15, y: 15, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
+                    {
+                        type: 'item',
+                        entity: { id: '3', name: 'Item3' },
+                        confidence: 0.8,
+                        position: { x: 200, y: 200, width: 50, height: 50 },
+                        method: 'template_match',
+                    },
                 ];
                 const filtered = window.nonMaxSuppression(detections, 0.3);
                 return { count: filtered.length, ids: filtered.map(d => d.entity.id) };
@@ -167,7 +186,9 @@ test.describe('CV Utility Functions', () => {
 
         test('should keep detections without positions', async ({ page }) => {
             const result = await page.evaluate(() => {
-                const detections = [{ type: 'item', entity: { id: '1', name: 'Item1' }, confidence: 0.9, method: 'template_match' }];
+                const detections = [
+                    { type: 'item', entity: { id: '1', name: 'Item1' }, confidence: 0.9, method: 'template_match' },
+                ];
                 return window.nonMaxSuppression(detections, 0.3).length;
             });
             expect(result).toBe(1);
@@ -256,13 +277,19 @@ test.describe('CV Utility Functions', () => {
                 const detections = [];
                 for (let col = 0; col < 5; col++) {
                     detections.push({
-                        type: 'item', entity: { id: `item_${col}`, name: `Item ${col}` }, confidence: 0.8,
+                        type: 'item',
+                        entity: { id: `item_${col}`, name: `Item ${col}` },
+                        confidence: 0.8,
                         position: { x: 100 + col * spacing, y: 900, width: spacing - 5, height: spacing - 5 },
                         method: 'template_match',
                     });
                 }
                 const verification = window.verifyGridPattern(detections, spacing);
-                return { isValid: verification.isValid, confidence: verification.confidence, filteredCount: verification.filteredDetections.length };
+                return {
+                    isValid: verification.isValid,
+                    confidence: verification.confidence,
+                    filteredCount: verification.filteredDetections.length,
+                };
             });
 
             expect(result.isValid).toBe(true);
@@ -272,7 +299,15 @@ test.describe('CV Utility Functions', () => {
 
         test('should handle small detection sets', async ({ page }) => {
             const result = await page.evaluate(() => {
-                const detections = [{ type: 'item', entity: { id: '1', name: 'Item' }, confidence: 0.8, position: { x: 100, y: 900, width: 45, height: 45 }, method: 'template_match' }];
+                const detections = [
+                    {
+                        type: 'item',
+                        entity: { id: '1', name: 'Item' },
+                        confidence: 0.8,
+                        position: { x: 100, y: 900, width: 45, height: 45 },
+                        method: 'template_match',
+                    },
+                ];
                 const verification = window.verifyGridPattern(detections, 50);
                 return { isValid: verification.isValid, filteredCount: verification.filteredDetections.length };
             });
@@ -288,7 +323,7 @@ test.describe('CV Utility Functions', () => {
 test.describe('CV Canvas Functions', () => {
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000);
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
         if (!serverAvailable) {
             testInfo.skip();
@@ -397,7 +432,12 @@ test.describe('CV Canvas Functions', () => {
                 const sourceData = ctx.getImageData(0, 0, 100, 100);
                 const resized = window.resizeImageData(sourceData, 50, 50);
                 if (!resized) return { success: false };
-                return { success: true, newWidth: resized.width, newHeight: resized.height, hasData: resized.data.length > 0 };
+                return {
+                    success: true,
+                    newWidth: resized.width,
+                    newHeight: resized.height,
+                    hasData: resized.data.length > 0,
+                };
             });
 
             expect(result.success).toBe(true);
@@ -479,7 +519,7 @@ test.describe('CV Canvas Functions', () => {
 test.describe('CV Detection - Image Tests', () => {
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
     test.setTimeout(60000); // Reduced: coverage collected even on timeout
-    
+
     test.beforeEach(async ({ page }, testInfo) => {
         if (!serverAvailable) {
             testInfo.skip();
@@ -492,12 +532,20 @@ test.describe('CV Detection - Image Tests', () => {
     test.describe('detectHotbarRegion', () => {
         test('should detect hotbar region in gameplay screenshot', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_33_english_forest_early.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const { ctx, width, height } = await window.loadImageToCanvas(imageDataUrl);
                 const hotbar = window.detectHotbarRegion(ctx, width, height);
-                return { topY: hotbar.topY, bottomY: hotbar.bottomY, confidence: hotbar.confidence, imageHeight: height };
+                return {
+                    topY: hotbar.topY,
+                    bottomY: hotbar.bottomY,
+                    confidence: hotbar.confidence,
+                    imageHeight: height,
+                };
             }, base64Image);
 
             expect(result.topY).toBeGreaterThan(result.imageHeight * 0.5);
@@ -525,9 +573,12 @@ test.describe('CV Detection - Image Tests', () => {
     test.describe('detectIconScale', () => {
         test('should detect icon scale from image', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_75_portuguese_hell_final.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const { ctx, width, height } = await window.loadImageToCanvas(imageDataUrl);
                 const scale = window.detectIconScale(ctx, width, height);
                 return scale;
@@ -543,13 +594,20 @@ test.describe('CV Detection - Image Tests', () => {
     test.describe('detectIconEdges', () => {
         test('should detect edges in hotbar region', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_108_english_snow_boss.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const { ctx, width, height } = await window.loadImageToCanvas(imageDataUrl);
                 const hotbar = window.detectHotbarRegion(ctx, width, height);
                 const edges = window.detectIconEdges(ctx, width, hotbar);
-                return { edgeCount: edges.length, firstFewEdges: edges.slice(0, 5), hotbarConfidence: hotbar.confidence };
+                return {
+                    edgeCount: edges.length,
+                    firstFewEdges: edges.slice(0, 5),
+                    hotbarConfidence: hotbar.confidence,
+                };
             }, base64Image);
 
             console.log(`Found ${result.edgeCount} icon edges`);
@@ -560,9 +618,12 @@ test.describe('CV Detection - Image Tests', () => {
     test.describe('detectItemsWithCV', () => {
         test('should detect items in gameplay screenshot', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_33_english_forest_early.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const startTime = performance.now();
                 const detections = await window.detectItemsWithCV(imageDataUrl);
                 const duration = performance.now() - startTime;
@@ -581,9 +642,12 @@ test.describe('CV Detection - Image Tests', () => {
 
         test('should use cache on second call', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_21_english_desert_scorpion.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const start1 = performance.now();
                 const detections1 = await window.detectItemsWithCV(imageDataUrl);
                 const duration1 = performance.now() - start1;
@@ -602,9 +666,12 @@ test.describe('CV Detection - Image Tests', () => {
     test.describe('Region Detection', () => {
         test('should detect UI regions', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_281_turkish_hell.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const { ctx, width, height } = await window.loadImageToCanvas(imageDataUrl);
                 const regions = window.detectUIRegions(ctx, width, height);
                 return { hasRegions: !!regions, hotbar: !!regions?.hotbar, equipment: !!regions?.equipment };
@@ -615,12 +682,18 @@ test.describe('CV Detection - Image Tests', () => {
 
         test('should detect screen type', async ({ page }) => {
             const base64Image = loadTestImageBase64('level_803_russian_stress_test.jpg');
-            if (!base64Image) { test.skip(); return; }
+            if (!base64Image) {
+                test.skip();
+                return;
+            }
 
-            const result = await page.evaluate(async (imageDataUrl) => {
+            const result = await page.evaluate(async imageDataUrl => {
                 const { ctx, width, height } = await window.loadImageToCanvas(imageDataUrl);
                 const screenType = window.detectScreenType(ctx, width, height);
-                return { type: screenType, isValidType: ['gameplay', 'inventory', 'pause_menu', 'unknown'].includes(screenType) };
+                return {
+                    type: screenType,
+                    isValidType: ['gameplay', 'inventory', 'pause_menu', 'unknown'].includes(screenType),
+                };
             }, base64Image);
 
             expect(result.isValidType).toBe(true);

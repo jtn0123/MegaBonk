@@ -218,7 +218,7 @@ export const createCanvasMock = (width = 1920, height = 1080) => {
         height,
         getContext: vi.fn(() => context),
         toDataURL: vi.fn(() => 'data:image/png;base64,mock'),
-        toBlob: vi.fn((cb) => cb(new Blob())),
+        toBlob: vi.fn(cb => cb(new Blob())),
         context,
     };
 };

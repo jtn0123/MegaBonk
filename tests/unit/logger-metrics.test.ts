@@ -40,11 +40,11 @@ describe('EventBuilder', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
         vi.useFakeTimers();
-        
+
         // Re-import to get fresh instances
         const metricsModule = await import('../../src/modules/logger-metrics.ts');
         const coreModule = await import('../../src/modules/logger-core.ts');
-        
+
         EventBuilder = metricsModule.EventBuilder;
         Logger = coreModule.Logger;
         LogLevel = coreModule.LogLevel;
@@ -59,7 +59,7 @@ describe('EventBuilder', () => {
         it('should create an event with the specified operation', () => {
             const builder = new EventBuilder('test.operation');
             const event = builder.getEvent();
-            
+
             expect(event.operation).toBe('test.operation');
         });
 
@@ -67,14 +67,14 @@ describe('EventBuilder', () => {
             const now = Date.now();
             const builder = new EventBuilder('test.operation');
             const event = builder.getEvent();
-            
+
             expect(event.timestamp).toBe(now);
         });
 
         it('should initialize with empty data object', () => {
             const builder = new EventBuilder('test.operation');
             const event = builder.getEvent();
-            
+
             expect(event.data).toEqual({});
         });
     });
@@ -83,18 +83,15 @@ describe('EventBuilder', () => {
         it('should add a single data field', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('key1', 'value1');
-            
+
             const event = builder.getEvent();
             expect(event.data).toEqual({ key1: 'value1' });
         });
 
         it('should add multiple data fields via chaining', () => {
             const builder = new EventBuilder('test.operation');
-            builder
-                .addData('key1', 'value1')
-                .addData('key2', 42)
-                .addData('key3', { nested: true });
-            
+            builder.addData('key1', 'value1').addData('key2', 42).addData('key3', { nested: true });
+
             const event = builder.getEvent();
             expect(event.data).toEqual({
                 key1: 'value1',
@@ -106,14 +103,14 @@ describe('EventBuilder', () => {
         it('should return this for method chaining', () => {
             const builder = new EventBuilder('test.operation');
             const result = builder.addData('key', 'value');
-            
+
             expect(result).toBe(builder);
         });
 
         it('should overwrite existing keys', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('key', 'original').addData('key', 'updated');
-            
+
             const event = builder.getEvent();
             expect(event.data?.key).toBe('updated');
         });
@@ -121,7 +118,7 @@ describe('EventBuilder', () => {
         it('should handle null and undefined values', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('nullKey', null).addData('undefinedKey', undefined);
-            
+
             const event = builder.getEvent();
             expect(event.data?.nullKey).toBeNull();
             expect(event.data?.undefinedKey).toBeUndefined();
@@ -130,7 +127,7 @@ describe('EventBuilder', () => {
         it('should handle array values', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('items', ['a', 'b', 'c']);
-            
+
             const event = builder.getEvent();
             expect(event.data?.items).toEqual(['a', 'b', 'c']);
         });
@@ -144,7 +141,7 @@ describe('EventBuilder', () => {
                 field2: 'value2',
                 field3: 123,
             });
-            
+
             const event = builder.getEvent();
             expect(event.data).toEqual({
                 field1: 'value1',
@@ -157,7 +154,7 @@ describe('EventBuilder', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('existing', 'original');
             builder.mergeData({ new: 'data' });
-            
+
             const event = builder.getEvent();
             expect(event.data).toEqual({
                 existing: 'original',
@@ -169,7 +166,7 @@ describe('EventBuilder', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('key', 'original');
             builder.mergeData({ key: 'merged' });
-            
+
             const event = builder.getEvent();
             expect(event.data?.key).toBe('merged');
         });
@@ -177,7 +174,7 @@ describe('EventBuilder', () => {
         it('should return this for method chaining', () => {
             const builder = new EventBuilder('test.operation');
             const result = builder.mergeData({ a: 1 });
-            
+
             expect(result).toBe(builder);
         });
 
@@ -185,7 +182,7 @@ describe('EventBuilder', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('existing', 'value');
             builder.mergeData({});
-            
+
             const event = builder.getEvent();
             expect(event.data).toEqual({ existing: 'value' });
         });
@@ -195,7 +192,7 @@ describe('EventBuilder', () => {
         it('should set success to true', () => {
             const builder = new EventBuilder('test.operation');
             builder.setSuccess(true);
-            
+
             const event = builder.getEvent();
             expect(event.success).toBe(true);
         });
@@ -203,7 +200,7 @@ describe('EventBuilder', () => {
         it('should set success to false', () => {
             const builder = new EventBuilder('test.operation');
             builder.setSuccess(false);
-            
+
             const event = builder.getEvent();
             expect(event.success).toBe(false);
         });
@@ -211,14 +208,14 @@ describe('EventBuilder', () => {
         it('should return this for method chaining', () => {
             const builder = new EventBuilder('test.operation');
             const result = builder.setSuccess(true);
-            
+
             expect(result).toBe(builder);
         });
 
         it('should allow changing success value', () => {
             const builder = new EventBuilder('test.operation');
             builder.setSuccess(true).setSuccess(false);
-            
+
             const event = builder.getEvent();
             expect(event.success).toBe(false);
         });
@@ -228,7 +225,7 @@ describe('EventBuilder', () => {
         it('should set duration in milliseconds', () => {
             const builder = new EventBuilder('test.operation');
             builder.setDuration(150);
-            
+
             const event = builder.getEvent();
             expect(event.durationMs).toBe(150);
         });
@@ -236,14 +233,14 @@ describe('EventBuilder', () => {
         it('should return this for method chaining', () => {
             const builder = new EventBuilder('test.operation');
             const result = builder.setDuration(100);
-            
+
             expect(result).toBe(builder);
         });
 
         it('should allow setting zero duration', () => {
             const builder = new EventBuilder('test.operation');
             builder.setDuration(0);
-            
+
             const event = builder.getEvent();
             expect(event.durationMs).toBe(0);
         });
@@ -251,7 +248,7 @@ describe('EventBuilder', () => {
         it('should allow updating duration', () => {
             const builder = new EventBuilder('test.operation');
             builder.setDuration(100).setDuration(200);
-            
+
             const event = builder.getEvent();
             expect(event.durationMs).toBe(200);
         });
@@ -260,11 +257,11 @@ describe('EventBuilder', () => {
     describe('autoDuration', () => {
         it('should calculate duration from construction time', () => {
             const builder = new EventBuilder('test.operation');
-            
+
             // Advance time by 100ms
             vi.advanceTimersByTime(100);
             builder.autoDuration();
-            
+
             const event = builder.getEvent();
             expect(event.durationMs).toBe(100);
         });
@@ -272,13 +269,13 @@ describe('EventBuilder', () => {
         it('should return this for method chaining', () => {
             const builder = new EventBuilder('test.operation');
             const result = builder.autoDuration();
-            
+
             expect(result).toBe(builder);
         });
 
         it('should round duration to nearest integer', () => {
             const builder = new EventBuilder('test.operation');
-            
+
             // Mock performance.now to return a fractional value
             const originalPerformanceNow = performance.now;
             let callCount = 0;
@@ -286,13 +283,13 @@ describe('EventBuilder', () => {
                 callCount++;
                 return callCount === 1 ? 0 : 150.7;
             });
-            
+
             const builder2 = new EventBuilder('test.operation');
             builder2.autoDuration();
-            
+
             const event = builder2.getEvent();
             expect(Number.isInteger(event.durationMs)).toBe(true);
-            
+
             performance.now = originalPerformanceNow;
         });
     });
@@ -305,7 +302,7 @@ describe('EventBuilder', () => {
                 message: 'Something went wrong',
             };
             builder.setError(error);
-            
+
             const event = builder.getEvent();
             expect(event.error).toEqual(error);
         });
@@ -317,7 +314,7 @@ describe('EventBuilder', () => {
                 name: 'TestError',
                 message: 'Error occurred',
             });
-            
+
             const event = builder.getEvent();
             expect(event.success).toBe(false);
         });
@@ -328,7 +325,7 @@ describe('EventBuilder', () => {
                 name: 'Error',
                 message: 'test',
             });
-            
+
             expect(result).toBe(builder);
         });
 
@@ -343,7 +340,7 @@ describe('EventBuilder', () => {
                 retriable: true,
             };
             builder.setError(error);
-            
+
             const event = builder.getEvent();
             expect(event.error).toEqual(error);
         });
@@ -353,7 +350,7 @@ describe('EventBuilder', () => {
         it('should set correlation ID', () => {
             const builder = new EventBuilder('test.operation');
             builder.setCorrelationId('corr-123-abc');
-            
+
             const event = builder.getEvent();
             expect(event.correlationId).toBe('corr-123-abc');
         });
@@ -361,7 +358,7 @@ describe('EventBuilder', () => {
         it('should return this for method chaining', () => {
             const builder = new EventBuilder('test.operation');
             const result = builder.setCorrelationId('id-123');
-            
+
             expect(result).toBe(builder);
         });
     });
@@ -374,7 +371,7 @@ describe('EventBuilder', () => {
                 userAgent: 'test-agent',
             };
             builder.setContext(context);
-            
+
             const event = builder.getEvent();
             expect(event.context).toEqual(context);
         });
@@ -382,7 +379,7 @@ describe('EventBuilder', () => {
         it('should return this for method chaining', () => {
             const builder = new EventBuilder('test.operation');
             const result = builder.setContext({ currentTab: 'test' });
-            
+
             expect(result).toBe(builder);
         });
 
@@ -397,7 +394,7 @@ describe('EventBuilder', () => {
                 customField: 'custom value',
             };
             builder.setContext(context);
-            
+
             const event = builder.getEvent();
             expect(event.context).toEqual(context);
         });
@@ -407,10 +404,10 @@ describe('EventBuilder', () => {
         it('should return a copy of the event', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('key', 'value');
-            
+
             const event1 = builder.getEvent();
             const event2 = builder.getEvent();
-            
+
             expect(event1).toEqual(event2);
             expect(event1).not.toBe(event2); // Different objects
         });
@@ -418,10 +415,10 @@ describe('EventBuilder', () => {
         it('should return a copy of the data', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('key', 'value');
-            
+
             const event = builder.getEvent();
             event.data!.key = 'modified';
-            
+
             const event2 = builder.getEvent();
             expect(event2.data?.key).toBe('value'); // Original unchanged
         });
@@ -434,9 +431,9 @@ describe('EventBuilder', () => {
                 .setDuration(100)
                 .setCorrelationId('corr-id')
                 .setContext({ currentTab: 'items' });
-            
+
             const event = builder.getEvent();
-            
+
             expect(event.operation).toBe('test.operation');
             expect(event.data).toEqual({ dataKey: 'dataValue' });
             expect(event.success).toBe(true);
@@ -451,7 +448,7 @@ describe('EventBuilder', () => {
         it('should emit at INFO level by default', () => {
             const builder = new EventBuilder('test.operation');
             builder.emit();
-            
+
             expect(mockLogger.info).toHaveBeenCalledTimes(1);
             expect(mockLogger.debug).not.toHaveBeenCalled();
             expect(mockLogger.warn).not.toHaveBeenCalled();
@@ -461,7 +458,7 @@ describe('EventBuilder', () => {
         it('should emit at DEBUG level when specified', () => {
             const builder = new EventBuilder('test.operation');
             builder.emit(LogLevel.DEBUG);
-            
+
             expect(mockLogger.debug).toHaveBeenCalledTimes(1);
             expect(mockLogger.info).not.toHaveBeenCalled();
         });
@@ -469,14 +466,14 @@ describe('EventBuilder', () => {
         it('should emit at INFO level when specified', () => {
             const builder = new EventBuilder('test.operation');
             builder.emit(LogLevel.INFO);
-            
+
             expect(mockLogger.info).toHaveBeenCalledTimes(1);
         });
 
         it('should emit at WARN level when specified', () => {
             const builder = new EventBuilder('test.operation');
             builder.emit(LogLevel.WARN);
-            
+
             expect(mockLogger.warn).toHaveBeenCalledTimes(1);
             expect(mockLogger.info).not.toHaveBeenCalled();
         });
@@ -484,7 +481,7 @@ describe('EventBuilder', () => {
         it('should emit at ERROR level when specified', () => {
             const builder = new EventBuilder('test.operation');
             builder.emit(LogLevel.ERROR);
-            
+
             expect(mockLogger.error).toHaveBeenCalledTimes(1);
             expect(mockLogger.info).not.toHaveBeenCalled();
         });
@@ -493,7 +490,7 @@ describe('EventBuilder', () => {
             const builder = new EventBuilder('test.operation');
             builder.addData('key1', 'value1').addData('key2', 42);
             builder.emit();
-            
+
             const emittedEvent = mockLogger.info.mock.calls[0][0];
             expect(emittedEvent.data).toEqual({
                 key1: 'value1',
@@ -505,7 +502,7 @@ describe('EventBuilder', () => {
             const builder = new EventBuilder('test.operation');
             vi.advanceTimersByTime(50);
             builder.emit();
-            
+
             const emittedEvent = mockLogger.info.mock.calls[0][0];
             expect(emittedEvent.durationMs).toBe(50);
         });
@@ -515,7 +512,7 @@ describe('EventBuilder', () => {
             builder.setDuration(999);
             vi.advanceTimersByTime(50);
             builder.emit();
-            
+
             const emittedEvent = mockLogger.info.mock.calls[0][0];
             expect(emittedEvent.durationMs).toBe(999);
         });
@@ -523,7 +520,7 @@ describe('EventBuilder', () => {
         it('should include operation in emitted event', () => {
             const builder = new EventBuilder('my.custom.operation');
             builder.emit();
-            
+
             const emittedEvent = mockLogger.info.mock.calls[0][0];
             expect(emittedEvent.operation).toBe('my.custom.operation');
         });
@@ -532,7 +529,7 @@ describe('EventBuilder', () => {
             const builder = new EventBuilder('test.operation');
             builder.setSuccess(true);
             builder.emit();
-            
+
             const emittedEvent = mockLogger.info.mock.calls[0][0];
             expect(emittedEvent.success).toBe(true);
         });
@@ -542,7 +539,7 @@ describe('EventBuilder', () => {
             const error = { name: 'TestError', message: 'test error' };
             builder.setError(error);
             builder.emit(LogLevel.ERROR);
-            
+
             const emittedEvent = mockLogger.error.mock.calls[0][0];
             expect(emittedEvent.error).toEqual(error);
             expect(emittedEvent.success).toBe(false);
@@ -552,7 +549,7 @@ describe('EventBuilder', () => {
     describe('method chaining', () => {
         it('should support full fluent API', () => {
             const builder = new EventBuilder('data.load');
-            
+
             builder
                 .addData('filesLoaded', ['items', 'weapons'])
                 .mergeData({ cached: true, source: 'api' })
@@ -560,9 +557,9 @@ describe('EventBuilder', () => {
                 .setDuration(150)
                 .setCorrelationId('load-123')
                 .setContext({ currentTab: 'items' });
-            
+
             const event = builder.getEvent();
-            
+
             expect(event.operation).toBe('data.load');
             expect(event.data).toEqual({
                 filesLoaded: ['items', 'weapons'],
@@ -577,13 +574,9 @@ describe('EventBuilder', () => {
 
         it('should emit after chained operations', () => {
             const builder = new EventBuilder('build.update');
-            
-            builder
-                .addData('characterId', 'char-1')
-                .addData('weaponId', 'weapon-1')
-                .setSuccess(true)
-                .emit();
-            
+
+            builder.addData('characterId', 'char-1').addData('weaponId', 'weapon-1').setSuccess(true).emit();
+
             expect(mockLogger.info).toHaveBeenCalledTimes(1);
             const emittedEvent = mockLogger.info.mock.calls[0][0];
             expect(emittedEvent.data?.characterId).toBe('char-1');
@@ -594,7 +587,7 @@ describe('EventBuilder', () => {
         it('should handle empty operation name', () => {
             const builder = new EventBuilder('');
             const event = builder.getEvent();
-            
+
             expect(event.operation).toBe('');
         });
 
@@ -602,7 +595,7 @@ describe('EventBuilder', () => {
             const longName = 'a'.repeat(1000);
             const builder = new EventBuilder(longName);
             const event = builder.getEvent();
-            
+
             expect(event.operation).toBe(longName);
         });
 
@@ -611,7 +604,7 @@ describe('EventBuilder', () => {
             builder.addData('key-with-dash', 'value');
             builder.addData('key.with.dots', 'value');
             builder.addData('key_with_underscore', 'value');
-            
+
             const event = builder.getEvent();
             expect(event.data?.['key-with-dash']).toBe('value');
             expect(event.data?.['key.with.dots']).toBe('value');
@@ -622,7 +615,7 @@ describe('EventBuilder', () => {
             const builder = new EventBuilder('test');
             const circular: Record<string, unknown> = { name: 'test' };
             circular.self = circular;
-            
+
             // Should not throw
             expect(() => builder.addData('circular', circular)).not.toThrow();
         });
@@ -632,7 +625,7 @@ describe('EventBuilder', () => {
             builder.emit();
             builder.emit();
             builder.emit();
-            
+
             expect(mockLogger.info).toHaveBeenCalledTimes(3);
         });
     });

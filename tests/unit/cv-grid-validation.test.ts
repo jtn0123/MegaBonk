@@ -5,16 +5,8 @@
 // calculateOverallConfidence and compareWithPreset which are pure functions
 
 import { describe, it, expect } from 'vitest';
-import {
-    calculateOverallConfidence,
-    compareWithPreset,
-} from '../../src/modules/cv/grid-validation.ts';
-import type {
-    BandRegion,
-    IconMetrics,
-    ValidationResult,
-    GridCalibration,
-} from '../../src/modules/cv/grid-types.ts';
+import { calculateOverallConfidence, compareWithPreset } from '../../src/modules/cv/grid-validation.ts';
+import type { BandRegion, IconMetrics, ValidationResult, GridCalibration } from '../../src/modules/cv/grid-types.ts';
 
 // Helper functions to create test data
 function createBandRegion(confidence: number): BandRegion {
@@ -329,17 +321,17 @@ describe('compareWithPreset', () => {
 
         it('should recommend cautious for low match score', () => {
             // Need many fields to differ to get low match score
-            const auto = createCalibration({ 
+            const auto = createCalibration({
                 iconWidth: 48,
                 iconHeight: 48,
                 xSpacing: 4,
                 ySpacing: 4,
             });
-            const preset = createCalibration({ 
-                iconWidth: 96,  // Outside tolerance (3)
+            const preset = createCalibration({
+                iconWidth: 96, // Outside tolerance (3)
                 iconHeight: 96, // Outside tolerance (3)
-                xSpacing: 20,   // Outside tolerance (2)
-                ySpacing: 20,   // Outside tolerance (2)
+                xSpacing: 20, // Outside tolerance (2)
+                ySpacing: 20, // Outside tolerance (2)
             });
 
             const result = compareWithPreset(auto, preset);

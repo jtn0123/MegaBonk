@@ -317,7 +317,7 @@ describe('data-service', () => {
             const mockChangelog = { patches: [{ version: '1.0.0', date: '2024-01-01', changes: [] }] };
 
             return vi.fn().mockImplementation((url: string) => {
-                return new Promise((resolve) => {
+                return new Promise(resolve => {
                     setTimeout(() => {
                         let data = {};
                         if (url.includes('items')) data = mockAllData.items;
@@ -468,7 +468,7 @@ describe('data-service', () => {
                     return Promise.reject(new Error('Weapons unavailable'));
                 }
 
-                return new Promise((resolve) => {
+                return new Promise(resolve => {
                     setTimeout(() => {
                         let data = {};
                         if (url.includes('items')) data = mockAllData.items;
@@ -491,9 +491,7 @@ describe('data-service', () => {
             expect(ToastManager.error).not.toHaveBeenCalled();
 
             // Should show warning about unavailable data
-            expect(ToastManager.warning).toHaveBeenCalledWith(
-                expect.stringContaining('weapons')
-            );
+            expect(ToastManager.warning).toHaveBeenCalledWith(expect.stringContaining('weapons'));
 
             // Should log the partial failure
             const { logger } = await import('../../src/modules/logger.ts');
@@ -558,7 +556,7 @@ describe('data-service', () => {
                     return Promise.reject(new Error('Shrines unavailable'));
                 }
 
-                return new Promise((resolve) => {
+                return new Promise(resolve => {
                     setTimeout(() => {
                         let data = {};
                         if (url.includes('items')) data = mockAllData.items;

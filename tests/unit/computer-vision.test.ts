@@ -4,11 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-    initCV,
-    detectItemsWithCV,
-    detectUIRegions,
-} from '../../src/modules/computer-vision';
+import { initCV, detectItemsWithCV, detectUIRegions } from '../../src/modules/computer-vision';
 import { detectUILayout, detectResolution } from '../../src/modules/test-utils';
 import type { AllGameData } from '../../src/types';
 
@@ -172,10 +168,7 @@ describe('Computer Vision - Region Detection', () => {
         const regions720p = detectUIRegions(1280, 720);
 
         const ratio = 1920 / 1280;
-        expect(regions1080p.inventory?.width).toBeCloseTo(
-            regions720p.inventory!.width * ratio,
-            -1
-        );
+        expect(regions1080p.inventory?.width).toBeCloseTo(regions720p.inventory!.width * ratio, -1);
     });
 
     it('should detect Steam Deck regions differently', () => {

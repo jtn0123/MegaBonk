@@ -17,7 +17,7 @@ const GRID_PARAMS = {
     spacingXBase: 10,
     spacingYBase: 45,
     cols: 4,
-    rows: 2
+    rows: 2,
 };
 
 function detectWeaponTomeGrid(width, height) {
@@ -40,7 +40,7 @@ function detectWeaponTomeGrid(width, height) {
                 height: iconSize,
                 row,
                 col,
-                type: row === 0 ? 'weapon' : 'tome'
+                type: row === 0 ? 'weapon' : 'tome',
             });
         }
     }
@@ -50,11 +50,15 @@ function detectWeaponTomeGrid(width, height) {
 
 function isEmptySlot(ctx, x, y, w, h) {
     const imageData = ctx.getImageData(Math.round(x), Math.round(y), w, h);
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
 
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
 
     const mean = sum / count;
@@ -63,17 +67,28 @@ function isEmptySlot(ctx, x, y, w, h) {
 }
 
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 async function loadTemplates() {
@@ -94,7 +109,7 @@ async function loadTemplates() {
             ctx.drawImage(img, 0, 0, 32, 32);
             weapons.set(weapon.id, {
                 name: weapon.name,
-                imageData: ctx.getImageData(0, 0, 32, 32)
+                imageData: ctx.getImageData(0, 0, 32, 32),
             });
         } catch {}
     }
@@ -113,7 +128,7 @@ async function loadTemplates() {
             ctx.drawImage(img, 0, 0, 32, 32);
             tomes.set(tome.id, {
                 name: tome.name,
-                imageData: ctx.getImageData(0, 0, 32, 32)
+                imageData: ctx.getImageData(0, 0, 32, 32),
             });
         } catch {}
     }
@@ -191,7 +206,7 @@ async function main() {
                     slot: pos.col + 1,
                     id: result.match.id,
                     name: result.match.name,
-                    confidence: result.confidence
+                    confidence: result.confidence,
                 };
 
                 if (pos.type === 'weapon') {
@@ -212,7 +227,7 @@ async function main() {
             filename,
             weapons: detectedWeapons,
             tomes: detectedTomes,
-            expected: expectedWeapons
+            expected: expectedWeapons,
         });
 
         // Create visualization
@@ -241,7 +256,11 @@ async function main() {
 
         vizCtx.fillText(`Weapons: ${detectedWeapons.map(w => w.name).join(', ') || 'none'}`, 10, image.height + 20);
         vizCtx.fillText(`Tomes: ${detectedTomes.map(t => t.name).join(', ') || 'none'}`, 10, image.height + 40);
-        vizCtx.fillText(`Expected (first 4): ${expectedWeapons.slice(0, 4).join(', ') || 'N/A'}`, 10, image.height + 60);
+        vizCtx.fillText(
+            `Expected (first 4): ${expectedWeapons.slice(0, 4).join(', ') || 'N/A'}`,
+            10,
+            image.height + 60
+        );
 
         // Draw mini slots
         let slotX = 10;
@@ -279,10 +298,7 @@ async function main() {
     }
 
     // Save results
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'results.json'),
-        JSON.stringify(allResults, null, 2)
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'results.json'), JSON.stringify(allResults, null, 2));
 
     console.log(`\nResults saved to: ${OUTPUT_DIR}/`);
 }

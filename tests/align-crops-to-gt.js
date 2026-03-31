@@ -19,8 +19,8 @@ function detectGridPositions(width, height) {
 
     const rowYPositions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
-        if (y >= height * 0.70) rowYPositions.push(y);
+        const y = height - bottomMargin - row * rowHeight - iconSize;
+        if (y >= height * 0.7) rowYPositions.push(y);
     }
 
     const sideMargin = Math.round(width * 0.15);
@@ -38,10 +38,14 @@ function detectGridPositions(width, height) {
 }
 
 function isEmptyCell(imageData) {
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
@@ -81,8 +85,17 @@ async function align() {
                 const srcCanvas = createCanvas(pos.width, pos.height);
                 srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
                 const margin = Math.round(pos.width * 0.12);
-                resizeCtx.drawImage(srcCanvas, margin, margin,
-                    pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+                resizeCtx.drawImage(
+                    srcCanvas,
+                    margin,
+                    margin,
+                    pos.width - margin * 2,
+                    pos.height - margin * 2,
+                    0,
+                    0,
+                    32,
+                    32
+                );
 
                 cells.push({ pos, canvas: resizeCanvas });
             }
@@ -95,9 +108,7 @@ async function align() {
         });
 
         // Get expected items
-        const expectedItems = data.items.map(item =>
-            item.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-        );
+        const expectedItems = data.items.map(item => item.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
 
         const detected = cells.length;
         const expected = expectedItems.length;
@@ -156,10 +167,7 @@ async function align() {
         fs.mkdirSync(itemDir, { recursive: true });
 
         for (let i = 0; i < canvases.length; i++) {
-            fs.writeFileSync(
-                path.join(itemDir, `${itemId}_${i}.png`),
-                canvases[i].toBuffer('image/png')
-            );
+            fs.writeFileSync(path.join(itemDir, `${itemId}_${i}.png`), canvases[i].toBuffer('image/png'));
         }
     }
 
@@ -168,8 +176,7 @@ async function align() {
 
     // Summary of what was aligned
     console.log('\nAligned items:');
-    const sortedItems = Array.from(alignedItems.entries())
-        .sort((a, b) => b[1].length - a[1].length);
+    const sortedItems = Array.from(alignedItems.entries()).sort((a, b) => b[1].length - a[1].length);
 
     for (const [id, canvases] of sortedItems.slice(0, 20)) {
         console.log(`  ${id}: ${canvases.length} examples`);

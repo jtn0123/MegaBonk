@@ -511,9 +511,7 @@ describe('utils - Data Lookup', () => {
                 { id: 'item1', name: 'Item 1' },
                 { id: 'item2', name: 'Item 2' },
             ],
-            weapons: [
-                { id: 'weapon1', name: 'Weapon 1' },
-            ],
+            weapons: [{ id: 'weapon1', name: 'Weapon 1' }],
         };
 
         it('should find entity by ID', () => {
@@ -635,7 +633,7 @@ describe('utils - Performance Utilities', () => {
         it('should preserve this context', () => {
             const obj = {
                 value: 42,
-                fn: vi.fn(function(this: { value: number }) {
+                fn: vi.fn(function (this: { value: number }) {
                     return this.value;
                 }),
             };

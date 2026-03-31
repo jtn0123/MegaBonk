@@ -69,11 +69,11 @@ const BASELINE: ExperimentConfig = {
 
 // Parameter variations to test (one at a time)
 const EXPERIMENTS: Record<string, number[]> = {
-    testThreshold: [0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60, 0.65],
-    centerMargin: [0.05, 0.10, 0.15, 0.20, 0.25, 0.30],
+    testThreshold: [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65],
+    centerMargin: [0.05, 0.1, 0.15, 0.2, 0.25, 0.3],
     histogramBins: [8, 12, 16, 20, 24, 32],
-    rarityBoost: [1.0, 1.05, 1.10, 1.15, 1.20, 1.25, 1.30],
-    agreementThreshold: [0.05, 0.08, 0.10, 0.12, 0.15, 0.20],
+    rarityBoost: [1.0, 1.05, 1.1, 1.15, 1.2, 1.25, 1.3],
+    agreementThreshold: [0.05, 0.08, 0.1, 0.12, 0.15, 0.2],
     emptyVarianceThreshold: [100, 200, 300, 400, 500, 600],
     borderPixels: [1, 2, 3, 4, 5],
     edgeSampleStep: [1, 2, 3, 4],
@@ -206,7 +206,10 @@ function loadTestCases(): TestCase[] {
         .filter((tc): tc is TestCase => tc !== null);
 }
 
-function detectGridPositions(width: number, height: number): Array<{ x: number; y: number; width: number; height: number }> {
+function detectGridPositions(
+    width: number,
+    height: number
+): Array<{ x: number; y: number; width: number; height: number }> {
     const iconSize = Math.round(40 * (height / 720));
     const spacing = Math.round(4 * (height / 720));
     const positions: Array<{ x: number; y: number; width: number; height: number }> = [];
@@ -220,7 +223,7 @@ function detectGridPositions(width: number, height: number): Array<{ x: number; 
         height - bottomMargin - iconSize - rowHeight * 2,
     ];
 
-    const sideMargin = Math.round(width * 0.20);
+    const sideMargin = Math.round(width * 0.2);
     const usableWidth = width - sideMargin * 2;
     const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
 
@@ -245,8 +248,12 @@ function detectGridPositions(width: number, height: number): Array<{ x: number; 
 
 function isEmptyCell(imageData: any, config: ExperimentConfig): boolean {
     const pixels = imageData.data;
-    let sum = 0, sumSq = 0, count = 0;
-    let sumR = 0, sumG = 0, sumB = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
 
     for (let i = 0; i < pixels.length; i += 4) {
         const r = pixels[i];
@@ -283,7 +290,10 @@ function detectRarityFromBorder(imageData: any, config: ExperimentConfig): strin
     const { width, height, data } = imageData;
     const borderPixels = config.borderPixels;
 
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
 
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < borderPixels; y++) {
@@ -331,7 +341,12 @@ function calculateNCC(imageData1: any, imageData2: any): number {
     const pixels1 = imageData1.data;
     const pixels2 = imageData2.data;
 
-    let sum1 = 0, sum2 = 0, sumProduct = 0, sumSquare1 = 0, sumSquare2 = 0, count = 0;
+    let sum1 = 0,
+        sum2 = 0,
+        sumProduct = 0,
+        sumSquare1 = 0,
+        sumSquare2 = 0,
+        count = 0;
 
     const len = Math.min(pixels1.length, pixels2.length);
     for (let i = 0; i < len; i += 4) {
@@ -366,7 +381,8 @@ function calculateHistogramSimilarity(imageData1: any, imageData2: any, config: 
     const pixels1 = imageData1.data;
     const pixels2 = imageData2.data;
 
-    let count1 = 0, count2 = 0;
+    let count1 = 0,
+        count2 = 0;
 
     for (let i = 0; i < pixels1.length; i += 4) {
         const rBin = Math.min(bins - 1, Math.floor(pixels1[i] / binSize));
@@ -420,7 +436,9 @@ function calculateEdgeSimilarity(imageData1: any, imageData2: any, config: Exper
         return Math.sqrt(gx * gx + gy * gy);
     };
 
-    let sumProduct = 0, sumSq1 = 0, sumSq2 = 0;
+    let sumProduct = 0,
+        sumSq1 = 0,
+        sumSq2 = 0;
     const step = config.edgeSampleStep;
 
     for (let y = 1; y < h1 - 1; y += step) {
@@ -498,10 +516,14 @@ async function findBestMatch(
         const tMargin = Math.round(template.width * config.centerMargin);
         resizedCtx.drawImage(
             template.canvas,
-            tMargin, tMargin,
-            template.width - tMargin * 2, template.height - tMargin * 2,
-            0, 0,
-            centerWidth, centerHeight
+            tMargin,
+            tMargin,
+            template.width - tMargin * 2,
+            template.height - tMargin * 2,
+            0,
+            0,
+            centerWidth,
+            centerHeight
         );
         const templateData = resizedCtx.getImageData(0, 0, centerWidth, centerHeight);
 
@@ -584,17 +606,11 @@ function calculateMetrics(
         }
     });
 
-    const precision = truePositives + falsePositives > 0
-        ? truePositives / (truePositives + falsePositives)
-        : 0;
+    const precision = truePositives + falsePositives > 0 ? truePositives / (truePositives + falsePositives) : 0;
 
-    const recall = truePositives + falseNegatives > 0
-        ? truePositives / (truePositives + falseNegatives)
-        : 0;
+    const recall = truePositives + falseNegatives > 0 ? truePositives / (truePositives + falseNegatives) : 0;
 
-    const f1 = precision + recall > 0
-        ? 2 * (precision * recall) / (precision + recall)
-        : 0;
+    const f1 = precision + recall > 0 ? (2 * (precision * recall)) / (precision + recall) : 0;
 
     return { precision, recall, f1 };
 }
@@ -653,9 +669,7 @@ async function main() {
     console.log(`Loaded ${templateCache.size} templates\n`);
 
     // If a specific parameter is provided, only test that one
-    const paramsToRun = paramToTest && EXPERIMENTS[paramToTest]
-        ? [paramToTest]
-        : Object.keys(EXPERIMENTS);
+    const paramsToRun = paramToTest && EXPERIMENTS[paramToTest] ? [paramToTest] : Object.keys(EXPERIMENTS);
 
     const allResults: ExperimentResult[] = [];
 
@@ -686,15 +700,15 @@ async function main() {
                 baselineF1 = avgF1;
             }
 
-            const change = baselineF1 > 0
-                ? ((avgF1 - baselineF1) / baselineF1 * 100).toFixed(1)
-                : '---';
+            const change = baselineF1 > 0 ? (((avgF1 - baselineF1) / baselineF1) * 100).toFixed(1) : '---';
             const changeStr = baselineF1 > 0 && avgF1 > baselineF1 ? `+${change}%` : `${change}%`;
 
             const isBaseline = value === BASELINE[paramName as keyof ExperimentConfig];
             const marker = isBaseline ? ' *' : '';
 
-            console.log(`| ${String(value).padEnd(10)}${marker} | ${(avgF1 * 100).toFixed(2).padEnd(8)}% | ${avgTime.toFixed(0).padStart(6)}ms | ${changeStr.padStart(6)} |`);
+            console.log(
+                `| ${String(value).padEnd(10)}${marker} | ${(avgF1 * 100).toFixed(2).padEnd(8)}% | ${avgTime.toFixed(0).padStart(6)}ms | ${changeStr.padStart(6)} |`
+            );
 
             allResults.push({
                 parameter: paramName,
@@ -710,7 +724,9 @@ async function main() {
     console.log('\n\n' + '='.repeat(60));
     console.log('SUMMARY: Optimal Values');
     console.log('='.repeat(60));
-    console.log(`| ${'Parameter'.padEnd(25)} | ${'Baseline'.padEnd(10)} | ${'Optimal'.padEnd(10)} | ${'F1 Gain'.padEnd(8)} |`);
+    console.log(
+        `| ${'Parameter'.padEnd(25)} | ${'Baseline'.padEnd(10)} | ${'Optimal'.padEnd(10)} | ${'F1 Gain'.padEnd(8)} |`
+    );
     console.log(`|${'-'.repeat(27)}|${'-'.repeat(12)}|${'-'.repeat(12)}|${'-'.repeat(10)}|`);
 
     const parameterBests = new Map<string, { value: number; f1: number }>();
@@ -726,21 +742,30 @@ async function main() {
         const baseline = BASELINE[param as keyof ExperimentConfig];
         const baselineResult = allResults.find(r => r.parameter === param && r.value === baseline);
         const baselineF1 = baselineResult?.avgF1 || 0;
-        const gain = baselineF1 > 0 ? ((best.f1 - baselineF1) / baselineF1 * 100).toFixed(1) : '---';
+        const gain = baselineF1 > 0 ? (((best.f1 - baselineF1) / baselineF1) * 100).toFixed(1) : '---';
         const gainStr = best.f1 > baselineF1 ? `+${gain}%` : `${gain}%`;
 
-        console.log(`| ${param.padEnd(25)} | ${String(baseline).padEnd(10)} | ${String(best.value).padEnd(10)} | ${gainStr.padEnd(8)} |`);
+        console.log(
+            `| ${param.padEnd(25)} | ${String(baseline).padEnd(10)} | ${String(best.value).padEnd(10)} | ${gainStr.padEnd(8)} |`
+        );
     }
 
     // Save results to JSON
     const outputPath = path.join(__dirname, '../test-results/experiment-results.json');
     fs.mkdirSync(path.dirname(outputPath), { recursive: true });
-    fs.writeFileSync(outputPath, JSON.stringify({
-        timestamp: new Date().toISOString(),
-        baseline: BASELINE,
-        results: allResults,
-        bestPerParameter: Object.fromEntries(parameterBests),
-    }, null, 2));
+    fs.writeFileSync(
+        outputPath,
+        JSON.stringify(
+            {
+                timestamp: new Date().toISOString(),
+                baseline: BASELINE,
+                results: allResults,
+                bestPerParameter: Object.fromEntries(parameterBests),
+            },
+            null,
+            2
+        )
+    );
 
     console.log(`\n\nResults saved to: ${outputPath}`);
 }

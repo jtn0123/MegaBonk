@@ -439,10 +439,7 @@ describe('Build UI Module', () => {
         });
 
         it('should render synergy messages', () => {
-            renderSynergiesDisplay([
-                '✓ Knight synergizes with Sword!',
-                '✓ Shield works great with Sword',
-            ]);
+            renderSynergiesDisplay(['✓ Knight synergizes with Sword!', '✓ Shield works great with Sword']);
             const container = document.getElementById('build-synergies');
             expect(container?.textContent).toContain('Synergies Found');
             expect(container?.querySelectorAll('li')).toHaveLength(2);
@@ -586,10 +583,7 @@ describe('Build UI Module', () => {
     // ========================================
     describe('setItemCheckboxes', () => {
         beforeEach(() => {
-            mockItems.push(
-                createItem({ id: 'item_1', name: 'Item 1' }),
-                createItem({ id: 'item_2', name: 'Item 2' })
-            );
+            mockItems.push(createItem({ id: 'item_1', name: 'Item 1' }), createItem({ id: 'item_2', name: 'Item 2' }));
             renderItemsSelection();
         });
 
@@ -653,11 +647,7 @@ describe('Build UI Module', () => {
     // ========================================
     describe('getSelectedTomeIds', () => {
         beforeEach(() => {
-            mockTomes.push(
-                createTome({ id: 'tome_1' }),
-                createTome({ id: 'tome_2' }),
-                createTome({ id: 'tome_3' })
-            );
+            mockTomes.push(createTome({ id: 'tome_1' }), createTome({ id: 'tome_2' }), createTome({ id: 'tome_3' }));
             renderTomesSelection();
         });
 
@@ -684,10 +674,7 @@ describe('Build UI Module', () => {
     // ========================================
     describe('getSelectedItemIds', () => {
         beforeEach(() => {
-            mockItems.push(
-                createItem({ id: 'item_1' }),
-                createItem({ id: 'item_2' })
-            );
+            mockItems.push(createItem({ id: 'item_1' }), createItem({ id: 'item_2' }));
             renderItemsSelection();
         });
 
@@ -814,9 +801,7 @@ describe('Build UI Module', () => {
 
         it('should handle missing elements gracefully', () => {
             document.body.innerHTML = '';
-            expect(() =>
-                setupBuildPlannerEvents(vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn())
-            ).not.toThrow();
+            expect(() => setupBuildPlannerEvents(vi.fn(), vi.fn(), vi.fn(), vi.fn(), vi.fn())).not.toThrow();
         });
     });
 

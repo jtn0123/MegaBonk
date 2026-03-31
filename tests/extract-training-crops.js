@@ -25,7 +25,7 @@ function detectGridPositions(width, height) {
         height - bottomMargin - iconSize - rowHeight * 2,
     ];
 
-    const sideMargin = Math.round(width * 0.20);
+    const sideMargin = Math.round(width * 0.2);
     const usableWidth = width - sideMargin * 2;
     const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
 
@@ -40,7 +40,7 @@ function detectGridPositions(width, height) {
                 width: iconSize,
                 height: iconSize,
                 row: rowYPositions.indexOf(rowY),
-                col: i
+                col: i,
             });
         }
     }
@@ -49,10 +49,14 @@ function detectGridPositions(width, height) {
 
 // Check if cell is likely empty
 function isEmptyCell(imageData) {
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
@@ -73,7 +77,7 @@ async function extractCrops() {
         totalImages: 0,
         totalCrops: 0,
         itemCounts: new Map(),
-        skippedEmpty: 0
+        skippedEmpty: 0,
     };
 
     for (const [name, data] of testCases) {
@@ -156,9 +160,17 @@ async function extractCrops() {
 
             // Center crop with margin
             const margin = Math.round(img.width * 0.1);
-            cropCtx.drawImage(img, margin, margin,
-                img.width - margin*2, img.height - margin*2,
-                0, 0, CROP_SIZE, CROP_SIZE);
+            cropCtx.drawImage(
+                img,
+                margin,
+                margin,
+                img.width - margin * 2,
+                img.height - margin * 2,
+                0,
+                0,
+                CROP_SIZE,
+                CROP_SIZE
+            );
 
             // Save to labeled directory
             const itemId = item.id;

@@ -105,11 +105,7 @@ function createDetection(
 /**
  * Create a simple data URL for testing
  */
-function createDataUrl(
-    width: number = 100,
-    height: number = 100,
-    color: string = '#808080'
-): string {
+function createDataUrl(width: number = 100, height: number = 100, color: string = '#808080'): string {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
@@ -226,10 +222,7 @@ describe('runEnsembleDetection', () => {
             { id: 'item2', name: 'Test Item 2', rarity: 'uncommon' },
         ];
 
-        const result = await runEnsembleDetection(ctx, 1920, 1080, items as any, [
-            'template_match',
-            'color_filter',
-        ]);
+        const result = await runEnsembleDetection(ctx, 1920, 1080, items as any, ['template_match', 'color_filter']);
 
         // Result may be null if strategies fail
         if (result !== null) {
@@ -363,9 +356,7 @@ describe('verifyGridPattern - adaptive tolerance coverage', () => {
         const detections: CVDetectionResult[] = [];
         for (let i = 0; i < 10; i++) {
             const jitter = (Math.random() - 0.5) * 6; // ±3px jitter
-            detections.push(
-                createDetection(`i${i}`, 100 + i * 60 + jitter, 100, 48, 48)
-            );
+            detections.push(createDetection(`i${i}`, 100 + i * 60 + jitter, 100, 48, 48));
         }
 
         const result = verifyGridPattern(detections, 48);
@@ -585,9 +576,7 @@ describe('nonMaxSuppression additional cases', () => {
         const detections: CVDetectionResult[] = [];
         // Create 20 overlapping detections
         for (let i = 0; i < 20; i++) {
-            detections.push(
-                createDetection(`item${i}`, 100 + i * 2, 100 + i * 2, 50, 50, 0.9 - i * 0.02)
-            );
+            detections.push(createDetection(`item${i}`, 100 + i * 2, 100 + i * 2, 50, 50, 0.9 - i * 0.02));
         }
 
         const result = nonMaxSuppression(detections, 0.3);
@@ -653,13 +642,13 @@ describe.skip('detectItemsWithCV coverage', () => {
 
         // Check for various progress stages
         const calls = progressCallback.mock.calls;
-        const progressValues = calls.map((c) => c[0]);
+        const progressValues = calls.map(c => c[0]);
 
         // Should have some progress updates
         expect(progressValues.length).toBeGreaterThan(0);
 
         // Should reach 100% at some point
-        expect(progressValues.some((v) => v === 100)).toBe(true);
+        expect(progressValues.some(v => v === 100)).toBe(true);
     });
 
     it('handles game-like screenshot', async () => {
@@ -886,9 +875,7 @@ describe('getUncertainDetectionsFromResults extended', () => {
     it('handles large number of detections', () => {
         const detections: CVDetectionResult[] = [];
         for (let i = 0; i < 100; i++) {
-            detections.push(
-                createDetection(`item${i}`, i * 60, 0, 48, 48, 0.5 + Math.random() * 0.4)
-            );
+            detections.push(createDetection(`item${i}`, i * 60, 0, 48, 48, 0.5 + Math.random() * 0.4));
         }
 
         const result = getUncertainDetectionsFromResults(detections);

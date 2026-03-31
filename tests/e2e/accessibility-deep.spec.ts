@@ -98,13 +98,15 @@ test.describe('Screen Reader Announcements', () => {
 
     test('toast notifications have aria-live region', async ({ page }) => {
         // Check for toast/notification container
-        const toastContainer = page.locator('[role="status"], [role="alert"], [aria-live="polite"], [aria-live="assertive"], .toast-container, #toast-container');
-        
+        const toastContainer = page.locator(
+            '[role="status"], [role="alert"], [aria-live="polite"], [aria-live="assertive"], .toast-container, #toast-container'
+        );
+
         // Container might be created dynamically, so we trigger an action first
         // Search for something to potentially trigger a notification
         await page.locator('#searchInput').fill('nonexistent-item-xyz');
         await page.waitForTimeout(500);
-        
+
         // Check if any live region exists
         const liveRegions = await page.locator('[aria-live]').count();
         expect(liveRegions).toBeGreaterThan(0);
@@ -113,24 +115,24 @@ test.describe('Screen Reader Announcements', () => {
     test('dynamic content updates announce to screen readers', async ({ page }) => {
         // Filter items and check that results are announced
         const itemsContainer = page.locator('#itemsContainer');
-        
+
         // Get initial item count
         const initialCount = await page.locator('#itemsContainer .item-card').count();
-        
+
         // Filter to reduce items
         await page.locator('#searchInput').fill('bonk');
         await page.waitForTimeout(500);
-        
+
         const filteredCount = await page.locator('#itemsContainer .item-card').count();
-        
+
         // Verify filtering worked (items changed)
         expect(filteredCount).toBeLessThan(initialCount);
-        
+
         // Check container or parent has appropriate aria attributes for dynamic content
         const hasAriaAtomic = await itemsContainer.getAttribute('aria-atomic');
         const hasAriaRelevant = await itemsContainer.getAttribute('aria-relevant');
         const hasAriaLive = await itemsContainer.getAttribute('aria-live');
-        
+
         // At minimum, the container should exist and be accessible
         await expect(itemsContainer).toBeVisible();
     });
@@ -144,13 +146,13 @@ test.describe('Screen Reader Announcements', () => {
         await expect(modal).toHaveClass(/active/);
 
         // Modal should have role dialog and be announced
-        const role = await modal.getAttribute('role');
-        const ariaModal = await modal.getAttribute('aria-modal');
-        const ariaLabelledby = await modal.getAttribute('aria-labelledby');
+        const role = modal;
+        const ariaModal = modal;
+        const ariaLabelledby = modal;
 
-        expect(role).toBe('dialog');
-        expect(ariaModal).toBe('true');
-        expect(ariaLabelledby).toBeTruthy();
+        await expect(role).toHaveAttribute('role', 'dialog');
+        await expect(ariaModal).toHaveAttribute('aria-modal', 'true');
+        await expect(ariaLabelledby).toHaveAttribute('aria-labelledby');
     });
 
     test('tab switching announces new content region', async ({ page }) => {
@@ -238,7 +240,7 @@ test.describe('Focus Management - Modal Focus Trap', () => {
 
     test('focus returns to trigger element after modal closes', async ({ page }) => {
         const firstCard = page.locator('#itemsContainer .item-card').first();
-        
+
         // Get a reference attribute to identify the card
         await firstCard.click();
         await page.waitForTimeout(500);
@@ -251,7 +253,7 @@ test.describe('Focus Management - Modal Focus Trap', () => {
         // Focus should be near the trigger (on card or body)
         const activeElementTag = await page.evaluate(() => document.activeElement?.tagName);
         const activeElementClass = await page.evaluate(() => document.activeElement?.className);
-        
+
         // Should have returned focus somewhere reasonable
         expect(activeElementTag).toBeTruthy();
     });
@@ -276,8 +278,8 @@ test.describe('Focus Management - Focus Restoration', () => {
     test('focus restores after dropdown/select closes', async ({ page }) => {
         // Test with filter dropdowns if present
         const filterSelect = page.locator('select, [role="combobox"], [role="listbox"]').first();
-        
-        if (await filterSelect.count() > 0 && await filterSelect.isVisible()) {
+
+        if ((await filterSelect.count()) > 0 && (await filterSelect.isVisible())) {
             await filterSelect.focus();
             await page.keyboard.press('Enter');
             await page.waitForTimeout(200);
@@ -326,12 +328,14 @@ test.describe('Skip Links', () => {
     });
 
     test('skip link exists and is first focusable element', async ({ page }) => {
-        const skipLink = page.locator('a[href="#main"], a[href="#content"], .skip-link, .skip-to-content, [class*="skip"]').first();
-        
+        const skipLink = page
+            .locator('a[href="#main"], a[href="#content"], .skip-link, .skip-to-content, [class*="skip"]')
+            .first();
+
         // Tab once from body to get first focusable
         await page.locator('body').focus();
         await page.keyboard.press('Tab');
-        
+
         const firstFocused = await page.evaluate(() => {
             const el = document.activeElement;
             return {
@@ -342,25 +346,27 @@ test.describe('Skip Links', () => {
         });
 
         // If skip link exists, it should be among first focusable elements
-        if (await skipLink.count() > 0) {
-            await expect(skipLink).toBeVisible({ timeout: 100 }).catch(() => {
-                // Skip links often hidden until focused - that's okay
-            });
+        if ((await skipLink.count()) > 0) {
+            await expect(skipLink)
+                .toBeVisible({ timeout: 100 })
+                .catch(() => {
+                    // Skip links often hidden until focused - that's okay
+                });
         }
     });
 
     test('skip link becomes visible on focus', async ({ page }) => {
         const skipLink = page.locator('a[href="#main"], a[href="#content"], .skip-link').first();
-        
-        if (await skipLink.count() > 0) {
+
+        if ((await skipLink.count()) > 0) {
             await skipLink.focus();
-            
+
             // Should become visible when focused
             const isVisibleOrNearlyVisible = await skipLink.evaluate(el => {
                 const style = getComputedStyle(el);
                 return style.opacity !== '0' && style.visibility !== 'hidden';
             });
-            
+
             // Skip links can be visually hidden but should become visible on focus
             // This is acceptable behavior
         }
@@ -368,8 +374,8 @@ test.describe('Skip Links', () => {
 
     test('skip link navigates to main content', async ({ page }) => {
         const skipLink = page.locator('a[href="#main"], a[href="#content"], .skip-link').first();
-        
-        if (await skipLink.count() > 0) {
+
+        if ((await skipLink.count()) > 0) {
             await skipLink.focus();
             await page.keyboard.press('Enter');
             await page.waitForTimeout(200);
@@ -379,7 +385,7 @@ test.describe('Skip Links', () => {
                 const el = document.activeElement;
                 return el?.id || el?.tagName;
             });
-            
+
             expect(focusedElement).toBeTruthy();
         }
     });
@@ -396,8 +402,8 @@ test.describe('Heading Hierarchy', () => {
     });
 
     test('page has exactly one h1', async ({ page }) => {
-        const h1Count = await page.locator('h1').count();
-        expect(h1Count).toBe(1);
+        const h1Count = page.locator('h1');
+        await expect(h1Count).toHaveCount(1);
     });
 
     test('h1 contains meaningful page title', async ({ page }) => {
@@ -468,14 +474,14 @@ test.describe('Heading Hierarchy', () => {
     test('tab panels have appropriate heading levels', async ({ page }) => {
         // Check each tab has proper heading structure
         const tabs = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
-        
+
         for (const tab of tabs) {
             await page.click(`.tab-btn[data-tab="${tab}"]`);
             await page.waitForTimeout(300);
 
-            const tabHeadings = await page.evaluate((tabName) => {
-                const panel = document.getElementById(`${tabName}-tab`) || 
-                             document.querySelector(`[data-tab="${tabName}"]`);
+            const tabHeadings = await page.evaluate(tabName => {
+                const panel =
+                    document.getElementById(`${tabName}-tab`) || document.querySelector(`[data-tab="${tabName}"]`);
                 if (!panel) return [];
                 const h = panel.querySelectorAll('h2, h3, h4');
                 return Array.from(h).map(el => parseInt(el.tagName.substring(1)));
@@ -501,16 +507,22 @@ test.describe('Color Contrast', () => {
         // This test checks text elements have reasonable contrast
         // Note: Computed styles often show transparent backgrounds, making contrast calculation
         // less reliable. We check for obviously problematic cases only.
-        
+
         const contrastResults = await page.evaluate(() => {
             const elements = document.querySelectorAll('h1, h2, h3, .item-name');
-            const results: Array<{ element: string; color: string; bgColor: string; fontSize: string; isVisible: boolean }> = [];
+            const results: Array<{
+                element: string;
+                color: string;
+                bgColor: string;
+                fontSize: string;
+                isVisible: boolean;
+            }> = [];
 
             for (let i = 0; i < Math.min(elements.length, 15); i++) {
                 const el = elements[i] as HTMLElement;
                 const style = getComputedStyle(el);
                 const rect = el.getBoundingClientRect();
-                
+
                 if (style.display === 'none' || style.visibility === 'hidden' || rect.width === 0) continue;
 
                 // Get computed background by walking up the tree
@@ -534,12 +546,12 @@ test.describe('Color Contrast', () => {
 
         // Verify we can read text on page (basic sanity check)
         expect(contrastResults.length).toBeGreaterThan(0);
-        
+
         // Check that colors are being computed (not all transparent)
-        const hasNonTransparent = contrastResults.some(r => 
-            r.bgColor !== 'rgba(0, 0, 0, 0)' && r.bgColor !== 'transparent'
+        const hasNonTransparent = contrastResults.some(
+            r => r.bgColor !== 'rgba(0, 0, 0, 0)' && r.bgColor !== 'transparent'
         );
-        
+
         // Log any low contrast issues found for debugging
         for (const result of contrastResults) {
             const contrast = getContrastRatio(result.color, result.bgColor);
@@ -547,7 +559,7 @@ test.describe('Color Contrast', () => {
                 console.log(`Low contrast warning: ${result.element} - ratio ${contrast.toFixed(2)}`);
             }
         }
-        
+
         // Basic check: page has visible text elements
         expect(contrastResults.filter(r => r.isVisible).length).toBeGreaterThan(0);
     });
@@ -673,13 +685,11 @@ test.describe('Keyboard Navigation Completeness', () => {
 
     test('item cards are keyboard accessible', async ({ page }) => {
         const firstCard = page.locator('#itemsContainer .item-card').first();
-        
+
         // Cards can be made accessible via tabindex or being focusable elements
         const tabindex = await firstCard.getAttribute('tabindex');
         const role = await firstCard.getAttribute('role');
-        const isNativelyFocusable = await firstCard.evaluate(el => 
-            el.tagName === 'BUTTON' || el.tagName === 'A'
-        );
+        const isNativelyFocusable = await firstCard.evaluate(el => el.tagName === 'BUTTON' || el.tagName === 'A');
 
         // If card has tabindex or is a focusable element, test keyboard interaction
         if (tabindex === '0' || isNativelyFocusable || role === 'button') {
@@ -702,7 +712,7 @@ test.describe('Keyboard Navigation Completeness', () => {
     test('arrow keys work for tab navigation', async ({ page }) => {
         const firstTab = page.locator('.tab-btn').first();
         await firstTab.focus();
-        
+
         const initialTab = await page.evaluate(() => document.activeElement?.getAttribute('data-tab'));
 
         // Try right arrow for tab navigation
@@ -710,7 +720,7 @@ test.describe('Keyboard Navigation Completeness', () => {
         await page.waitForTimeout(100);
 
         const newActiveTab = await page.evaluate(() => document.activeElement?.getAttribute('data-tab'));
-        
+
         // Arrow key navigation may or may not be implemented
         // Just verify no errors occurred
         expect(newActiveTab).toBeTruthy();
@@ -731,8 +741,8 @@ test.describe('Keyboard Navigation Completeness', () => {
 
     test('view toggle buttons are keyboard accessible', async ({ page }) => {
         const viewToggle = page.locator('[data-view], .view-toggle button, .view-btn').first();
-        
-        if (await viewToggle.count() > 0 && await viewToggle.isVisible()) {
+
+        if ((await viewToggle.count()) > 0 && (await viewToggle.isVisible())) {
             await viewToggle.focus();
             await expect(viewToggle).toBeFocused();
 
@@ -762,8 +772,8 @@ test.describe('ARIA Roles on Interactive Elements', () => {
         const tabCount = await tabs.count();
 
         for (let i = 0; i < tabCount; i++) {
-            const role = await tabs.nth(i).getAttribute('role');
-            expect(role).toBe('tab');
+            const role = tabs.nth(i);
+            await expect(role).toHaveAttribute('role', 'tab');
         }
     });
 
@@ -790,8 +800,8 @@ test.describe('ARIA Roles on Interactive Elements', () => {
         expect(panelCount).toBeGreaterThan(0);
 
         for (let i = 0; i < panelCount; i++) {
-            const labelledby = await panels.nth(i).getAttribute('aria-labelledby');
-            expect(labelledby).toBeTruthy();
+            const labelledby = panels.nth(i);
+            await expect(labelledby).toHaveAttribute('aria-labelledby');
         }
     });
 
@@ -800,14 +810,14 @@ test.describe('ARIA Roles on Interactive Elements', () => {
         await page.waitForTimeout(500);
 
         const modal = page.locator('#itemModal');
-        
-        const role = await modal.getAttribute('role');
-        const ariaModal = await modal.getAttribute('aria-modal');
-        const ariaLabelledby = await modal.getAttribute('aria-labelledby');
 
-        expect(role).toBe('dialog');
-        expect(ariaModal).toBe('true');
-        expect(ariaLabelledby).toBeTruthy();
+        const role = modal;
+        const ariaModal = modal;
+        const ariaLabelledby = modal;
+
+        await expect(role).toHaveAttribute('role', 'dialog');
+        await expect(ariaModal).toHaveAttribute('aria-modal', 'true');
+        await expect(ariaLabelledby).toHaveAttribute('aria-labelledby');
     });
 
     test('clickable cards have appropriate role or semantics', async ({ page }) => {
@@ -819,10 +829,10 @@ test.describe('ARIA Roles on Interactive Elements', () => {
         const firstCard = cards.first();
         await firstCard.click();
         await page.waitForTimeout(500);
-        
+
         // Verify clicking works - this confirms cards are interactive
         await expect(page.locator('#itemModal')).toHaveClass(/active/);
-        
+
         // Close modal
         await page.keyboard.press('Escape');
         await page.waitForTimeout(300);
@@ -844,7 +854,7 @@ test.describe('ARIA Roles on Interactive Elements', () => {
         });
 
         // Cards should indicate interactivity via cursor or contain interactive elements
-        const isInteractive = 
+        const isInteractive =
             cardStructure.role === 'button' ||
             cardStructure.tabindex === '0' ||
             cardStructure.cursor === 'pointer' ||
@@ -899,12 +909,12 @@ test.describe('Form Labels and Error Announcements', () => {
 
     test('search input has accessible label', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
-        
+
         const ariaLabel = await searchInput.getAttribute('aria-label');
         const labelledby = await searchInput.getAttribute('aria-labelledby');
         const placeholder = await searchInput.getAttribute('placeholder');
         const id = await searchInput.getAttribute('id');
-        
+
         // Check for associated label element
         const labelFor = await page.locator(`label[for="${id}"]`).count();
 
@@ -974,12 +984,14 @@ test.describe('Form Labels and Error Announcements', () => {
         await page.waitForTimeout(500);
 
         // Check for error message containers
-        const errorContainers = page.locator('[role="alert"], [aria-live="assertive"], .error-message, .validation-error');
-        
+        const errorContainers = page.locator(
+            '[role="alert"], [aria-live="assertive"], .error-message, .validation-error'
+        );
+
         // They may not be visible until an error occurs
         // Just verify the structure exists if any error containers are present
         const count = await errorContainers.count();
-        
+
         if (count > 0) {
             for (let i = 0; i < count; i++) {
                 const container = errorContainers.nth(i);
@@ -1034,7 +1046,7 @@ test.describe('Image Alt Text Completeness', () => {
 
         // All images should have alt attribute
         expect(missingAlt).toBe(0);
-        
+
         // Most images should have meaningful alt text (not empty)
         // Some decorative images may have empty alt=""
         expect(emptyAlt).toBeLessThan(count * 0.1);
@@ -1053,7 +1065,7 @@ test.describe('Image Alt Text Completeness', () => {
                 // Alt should not be just the filename
                 const srcFilename = src?.split('/').pop()?.split('.')[0];
                 expect(alt).not.toBe(srcFilename);
-                
+
                 // Alt should not contain file extension
                 expect(alt).not.toMatch(/\.(png|jpg|jpeg|gif|webp|svg)$/i);
             }
@@ -1068,8 +1080,8 @@ test.describe('Image Alt Text Completeness', () => {
         const count = await images.count();
 
         for (let i = 0; i < count; i++) {
-            const alt = await images.nth(i).getAttribute('alt');
-            expect(alt).toBeTruthy();
+            const alt = images.nth(i);
+            await expect(alt).toHaveAttribute('alt');
             expect(alt?.length).toBeGreaterThan(0);
         }
     });
@@ -1082,8 +1094,8 @@ test.describe('Image Alt Text Completeness', () => {
         const count = await images.count();
 
         for (let i = 0; i < count; i++) {
-            const alt = await images.nth(i).getAttribute('alt');
-            expect(alt).toBeTruthy();
+            const alt = images.nth(i);
+            await expect(alt).toHaveAttribute('alt');
             expect(alt?.length).toBeGreaterThan(0);
         }
     });
@@ -1098,8 +1110,8 @@ test.describe('Image Alt Text Completeness', () => {
         for (let i = 0; i < count; i++) {
             const img = modalImages.nth(i);
             if (await img.isVisible()) {
-                const alt = await img.getAttribute('alt');
-                expect(alt).toBeTruthy();
+                const alt = img;
+                await expect(alt).toHaveAttribute('alt');
             }
         }
     });
@@ -1129,7 +1141,7 @@ test.describe('Reduced Motion Preferences', () => {
 
         // Open modal
         await page.locator('#itemsContainer .item-card').first().click();
-        
+
         // With reduced motion, modal should appear quickly
         const startTime = Date.now();
         await expect(page.locator('#itemModal')).toHaveClass(/active/);
@@ -1145,7 +1157,7 @@ test.describe('Reduced Motion Preferences', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
         const card = page.locator('#itemsContainer .item-card').first();
-        
+
         // Get transition duration with reduced motion
         const transitionDuration = await card.evaluate(el => {
             const style = getComputedStyle(el);
@@ -1188,7 +1200,7 @@ test.describe('Reduced Motion Preferences', () => {
             // Check if any element has reduced motion applied
             const testEl = document.querySelector('.item-card, button, .tab-btn');
             if (!testEl) return { hasStyles: false };
-            
+
             const style = getComputedStyle(testEl);
             return {
                 hasStyles: true,
@@ -1247,8 +1259,8 @@ test.describe('Language and Semantics', () => {
     });
 
     test('html element has lang attribute', async ({ page }) => {
-        const lang = await page.locator('html').getAttribute('lang');
-        expect(lang).toBeTruthy();
+        const lang = page.locator('html');
+        await expect(lang).toHaveAttribute('lang');
         expect(lang).toMatch(/^[a-z]{2}/i);
     });
 
@@ -1316,10 +1328,10 @@ test.describe('Link Accessibility', () => {
         // Note: Visual/text indicators for new tabs are a best practice but not required by WCAG
         // The key requirement is that users aren't surprised - external links in context
         // (like footer social links) are generally understood to open new tabs
-        
+
         let linksWithSecurityAttr = 0;
         let linksWithAnyIndicator = 0;
-        
+
         for (let i = 0; i < count; i++) {
             const link = newTabLinks.nth(i);
             const rel = await link.getAttribute('rel');
@@ -1334,7 +1346,7 @@ test.describe('Link Accessibility', () => {
 
             // Check for any indication (visual, textual, or ARIA)
             const accessibleName = `${text} ${ariaLabel || ''} ${title || ''}`.toLowerCase();
-            const hasIndicator = 
+            const hasIndicator =
                 accessibleName.includes('new') ||
                 accessibleName.includes('external') ||
                 accessibleName.includes('↗') ||
@@ -1396,7 +1408,7 @@ test.describe('Touch Target Size', () => {
             // Check visible size is reasonable
             expect(box.width).toBeGreaterThanOrEqual(16);
             expect(box.height).toBeGreaterThanOrEqual(16);
-            
+
             // Also check if padding extends the clickable area
             const effectiveSize = await closeButton.evaluate(el => {
                 const style = getComputedStyle(el);
@@ -1407,7 +1419,7 @@ test.describe('Touch Target Size', () => {
                     totalHeight: el.getBoundingClientRect().height + paddingY,
                 };
             });
-            
+
             // Total clickable area including padding should be reasonable
             // Note: Some designs use smaller visible buttons but larger click targets
             expect(effectiveSize.totalWidth + effectiveSize.totalHeight).toBeGreaterThan(32);

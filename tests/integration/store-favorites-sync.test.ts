@@ -3,7 +3,13 @@
  */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { getState, setState, subscribe, resetStore, batchUpdate } from '../../src/modules/store.ts';
-import { loadFavorites, toggleFavorite, isFavorite, getFavorites, clearAllFavorites } from '../../src/modules/favorites.ts';
+import {
+    loadFavorites,
+    toggleFavorite,
+    isFavorite,
+    getFavorites,
+    clearAllFavorites,
+} from '../../src/modules/favorites.ts';
 
 describe('Integration: Store ↔ Favorites ↔ localStorage', () => {
     beforeEach(() => {
@@ -12,13 +18,16 @@ describe('Integration: Store ↔ Favorites ↔ localStorage', () => {
     });
 
     it('should initialize favorites from localStorage', () => {
-        localStorage.setItem('megabonk_favorites', JSON.stringify({
-            items: ['sword', 'shield'],
-            weapons: [],
-            tomes: [],
-            characters: [],
-            shrines: [],
-        }));
+        localStorage.setItem(
+            'megabonk_favorites',
+            JSON.stringify({
+                items: ['sword', 'shield'],
+                weapons: [],
+                tomes: [],
+                characters: [],
+                shrines: [],
+            })
+        );
         const loaded = loadFavorites();
         expect(loaded).toBe(true);
         expect(isFavorite('items', 'sword')).toBe(true);
@@ -36,7 +45,7 @@ describe('Integration: Store ↔ Favorites ↔ localStorage', () => {
     it('should persist favorites to localStorage', () => {
         loadFavorites();
         toggleFavorite('items', 'potion');
-        
+
         const stored = JSON.parse(localStorage.getItem('megabonk_favorites') || '{}');
         expect(stored.items).toContain('potion');
     });
@@ -45,7 +54,7 @@ describe('Integration: Store ↔ Favorites ↔ localStorage', () => {
         loadFavorites();
         toggleFavorite('items', 'sword');
         toggleFavorite('weapons', 'axe');
-        
+
         clearAllFavorites();
         expect(getFavorites('items')).toHaveLength(0);
         expect(getFavorites('weapons')).toHaveLength(0);
@@ -72,7 +81,7 @@ describe('Integration: Store ↔ Favorites ↔ localStorage', () => {
     it('should batch update store state', () => {
         const callback = vi.fn();
         subscribe('currentTab', callback);
-        
+
         batchUpdate({ currentTab: 'weapons' });
         expect(getState('currentTab')).toBe('weapons');
     });
@@ -82,7 +91,7 @@ describe('Integration: Store ↔ Favorites ↔ localStorage', () => {
         toggleFavorite('items', 'a');
         toggleFavorite('items', 'b');
         toggleFavorite('weapons', 'c');
-        
+
         expect(getFavorites('items')).toHaveLength(2);
         expect(getFavorites('weapons')).toHaveLength(1);
         expect(getFavorites('tomes')).toHaveLength(0);

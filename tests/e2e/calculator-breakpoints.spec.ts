@@ -26,7 +26,7 @@ test.describe('Calculator Breakpoint Cards', () => {
 
     test('Big Bonk breakpoint card exists', async ({ page }) => {
         const bigBonkCard = page.locator('.breakpoint-card[data-item="big_bonk"]');
-        if (await bigBonkCard.count() > 0) {
+        if ((await bigBonkCard.count()) > 0) {
             await expect(bigBonkCard).toBeVisible();
             await expect(bigBonkCard).toContainText('Big Bonk');
         }
@@ -34,7 +34,7 @@ test.describe('Calculator Breakpoint Cards', () => {
 
     test('Spicy Meatball breakpoint card exists', async ({ page }) => {
         const spicyCard = page.locator('.breakpoint-card[data-item="spicy_meatball"]');
-        if (await spicyCard.count() > 0) {
+        if ((await spicyCard.count()) > 0) {
             await expect(spicyCard).toBeVisible();
             await expect(spicyCard).toContainText('Spicy Meatball');
         }
@@ -42,7 +42,7 @@ test.describe('Calculator Breakpoint Cards', () => {
 
     test('Forbidden Juice breakpoint card exists', async ({ page }) => {
         const juiceCard = page.locator('.breakpoint-card[data-item="forbidden_juice"]');
-        if (await juiceCard.count() > 0) {
+        if ((await juiceCard.count()) > 0) {
             await expect(juiceCard).toBeVisible();
             await expect(juiceCard).toContainText('Forbidden Juice');
         }
@@ -50,7 +50,7 @@ test.describe('Calculator Breakpoint Cards', () => {
 
     test('Ice Cube breakpoint card exists', async ({ page }) => {
         const iceCard = page.locator('.breakpoint-card[data-item="ice_cube"]');
-        if (await iceCard.count() > 0) {
+        if ((await iceCard.count()) > 0) {
             await expect(iceCard).toBeVisible();
             await expect(iceCard).toContainText('Ice Cube');
         }
@@ -58,7 +58,7 @@ test.describe('Calculator Breakpoint Cards', () => {
 
     test('breakpoint cards have icon, title, and answer', async ({ page }) => {
         const firstCard = page.locator('.breakpoint-card').first();
-        
+
         // Should have icon
         const icon = firstCard.locator('.bp-icon');
         await expect(icon).toBeVisible();
@@ -83,18 +83,18 @@ test.describe('Calculator Breakpoint Cards', () => {
         // Item select should be populated
         const itemSelect = page.locator('#calc-item-select');
         const selectedValue = await itemSelect.inputValue();
-        
+
         // Either the item is selected or results are shown
         // Implementation may auto-calculate
         if (itemAttr) {
             // Value might be the item id or the result is already shown
-            expect(selectedValue.length > 0 || await page.locator('#calc-result').isVisible()).toBe(true);
+            expect(selectedValue.length > 0 || (await page.locator('#calc-result').isVisible())).toBe(true);
         }
     });
 
     test('breakpoint cards are keyboard accessible', async ({ page }) => {
         const firstCard = page.locator('.breakpoint-card').first();
-        
+
         // Focus the card
         await firstCard.focus();
         await expect(firstCard).toBeFocused();
@@ -107,13 +107,13 @@ test.describe('Calculator Breakpoint Cards', () => {
     test('breakpoint cards have aria-labels', async ({ page }) => {
         const firstCard = page.locator('.breakpoint-card').first();
         const ariaLabel = await firstCard.getAttribute('aria-label');
-        
+
         expect(ariaLabel?.length).toBeGreaterThan(0);
     });
 
     test('pressing Enter on breakpoint card activates it', async ({ page }) => {
         const firstCard = page.locator('.breakpoint-card').first();
-        
+
         await firstCard.focus();
         await page.keyboard.press('Enter');
         await page.waitForTimeout(300);
@@ -137,7 +137,7 @@ test.describe('Calculator Breakpoint Answers', () => {
 
     test('Big Bonk shows 50 stacks for 100%', async ({ page }) => {
         const bigBonkCard = page.locator('.breakpoint-card[data-item="big_bonk"]');
-        if (await bigBonkCard.count() > 0) {
+        if ((await bigBonkCard.count()) > 0) {
             const answer = bigBonkCard.locator('.bp-answer');
             await expect(answer).toContainText('50');
         }
@@ -145,7 +145,7 @@ test.describe('Calculator Breakpoint Answers', () => {
 
     test('Spicy Meatball shows 4 stacks for 100%', async ({ page }) => {
         const spicyCard = page.locator('.breakpoint-card[data-item="spicy_meatball"]');
-        if (await spicyCard.count() > 0) {
+        if ((await spicyCard.count()) > 0) {
             const answer = spicyCard.locator('.bp-answer');
             await expect(answer).toContainText('4');
         }
@@ -153,7 +153,7 @@ test.describe('Calculator Breakpoint Answers', () => {
 
     test('Forbidden Juice shows 10 stacks for 100%', async ({ page }) => {
         const juiceCard = page.locator('.breakpoint-card[data-item="forbidden_juice"]');
-        if (await juiceCard.count() > 0) {
+        if ((await juiceCard.count()) > 0) {
             const answer = juiceCard.locator('.bp-answer');
             await expect(answer).toContainText('10');
         }
@@ -161,7 +161,7 @@ test.describe('Calculator Breakpoint Answers', () => {
 
     test('Ice Cube shows 5 stacks for 100%', async ({ page }) => {
         const iceCard = page.locator('.breakpoint-card[data-item="ice_cube"]');
-        if (await iceCard.count() > 0) {
+        if ((await iceCard.count()) > 0) {
             const answer = iceCard.locator('.bp-answer');
             await expect(answer).toContainText('5');
         }

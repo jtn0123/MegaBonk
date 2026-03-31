@@ -28,39 +28,29 @@ const testGameData: AllGameData = {
     weapons: {
         version: '1.0.0',
         last_updated: '2024-01-01',
-        weapons: [
-            { id: 'weapon1', name: 'Weapon 1', tier: 'S' as const, rarity: 'legendary' as const },
-        ],
+        weapons: [{ id: 'weapon1', name: 'Weapon 1', tier: 'S' as const, rarity: 'legendary' as const }],
     } as any,
     tomes: {
         version: '1.0.0',
         last_updated: '2024-01-01',
-        tomes: [
-            { id: 'tome1', name: 'Tome 1', tier: 'SS' as const, rarity: 'legendary' as const },
-        ],
+        tomes: [{ id: 'tome1', name: 'Tome 1', tier: 'SS' as const, rarity: 'legendary' as const }],
     } as any,
     characters: {
         version: '1.0.0',
         last_updated: '2024-01-01',
-        characters: [
-            { id: 'char1', name: 'Character 1', tier: 'A' as const, rarity: 'epic' as const },
-        ],
+        characters: [{ id: 'char1', name: 'Character 1', tier: 'A' as const, rarity: 'epic' as const }],
     } as any,
     shrines: {
         version: '1.0.0',
         last_updated: '2024-01-01',
-        shrines: [
-            { id: 'shrine1', name: 'Shrine 1', tier: 'B' as const, rarity: 'rare' as const },
-        ],
+        shrines: [{ id: 'shrine1', name: 'Shrine 1', tier: 'B' as const, rarity: 'rare' as const }],
     } as any,
     stats: {
         version: '1.0.0',
         formulas: {},
     } as any,
     changelog: {
-        patches: [
-            { version: '1.0.0', date: '2024-01-01', changes: [] },
-        ],
+        patches: [{ version: '1.0.0', date: '2024-01-01', changes: [] }],
     } as any,
 };
 

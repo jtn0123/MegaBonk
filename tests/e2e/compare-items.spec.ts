@@ -12,9 +12,11 @@ test.describe('Compare Items - Selection', () => {
     });
 
     test('compare checkboxes exist on item cards', async ({ page }) => {
-        const compareCheckboxes = page.locator('#itemsContainer .compare-checkbox, #itemsContainer .compare-checkbox-label');
+        const compareCheckboxes = page.locator(
+            '#itemsContainer .compare-checkbox, #itemsContainer .compare-checkbox-label'
+        );
         const count = await compareCheckboxes.count();
-        
+
         // If compare feature is enabled, should have checkboxes
         if (count > 0) {
             expect(count).toBeGreaterThan(0);
@@ -25,7 +27,7 @@ test.describe('Compare Items - Selection', () => {
     });
 
     test('selecting one item shows no compare button', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -37,11 +39,11 @@ test.describe('Compare Items - Selection', () => {
 
         // Compare button should not be visible (need 2+ items)
         const compareBtn = page.locator('#compare-btn');
-        await expect(compareBtn).not.toBeVisible();
+        await expect(compareBtn).toBeHidden();
     });
 
     test('selecting two items shows compare button', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -58,7 +60,7 @@ test.describe('Compare Items - Selection', () => {
     });
 
     test('compare button shows selected count', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -75,7 +77,7 @@ test.describe('Compare Items - Selection', () => {
     });
 
     test('selecting three items updates count', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -93,7 +95,7 @@ test.describe('Compare Items - Selection', () => {
     });
 
     test('cannot select more than 3 items for comparison', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -122,7 +124,7 @@ test.describe('Compare Items - Selection', () => {
     });
 
     test('deselecting item updates count', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -139,7 +141,7 @@ test.describe('Compare Items - Selection', () => {
 
         // Compare button should be hidden (only 1 item selected)
         const compareBtn = page.locator('#compare-btn');
-        await expect(compareBtn).not.toBeVisible();
+        await expect(compareBtn).toBeHidden();
     });
 });
 
@@ -150,7 +152,7 @@ test.describe('Compare Items - Modal', () => {
     });
 
     test('clicking compare button opens modal', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -171,7 +173,7 @@ test.describe('Compare Items - Modal', () => {
     });
 
     test('compare modal shows selected items', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -190,12 +192,12 @@ test.describe('Compare Items - Modal', () => {
         // Modal should contain both item names
         const compareBody = page.locator('#compareBody');
         const content = await compareBody.textContent();
-        
+
         expect(content?.includes(firstName!.trim()) || content?.includes(secondName!.trim())).toBe(true);
     });
 
     test('compare modal has comparison columns', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -209,12 +211,12 @@ test.describe('Compare Items - Modal', () => {
 
         // Should have 2 columns
         const columns = page.locator('.compare-column');
-        const count = await columns.count();
-        expect(count).toBe(2);
+        const count = columns;
+        await expect(count).toHaveCount(2);
     });
 
     test('compare modal close button works', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -232,11 +234,11 @@ test.describe('Compare Items - Modal', () => {
         await page.click('#closeCompare');
         await page.waitForTimeout(200);
 
-        await expect(page.locator('#compareModal')).not.toBeVisible();
+        await expect(page.locator('#compareModal')).toBeHidden();
     });
 
     test('compare modal closes on Escape key', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -254,11 +256,11 @@ test.describe('Compare Items - Modal', () => {
         await page.keyboard.press('Escape');
         await page.waitForTimeout(200);
 
-        await expect(page.locator('#compareModal')).not.toBeVisible();
+        await expect(page.locator('#compareModal')).toBeHidden();
     });
 
     test('comparing 3 items shows 3 columns', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -273,8 +275,8 @@ test.describe('Compare Items - Modal', () => {
 
         // Should have 3 columns
         const columns = page.locator('.compare-column');
-        const count = await columns.count();
-        expect(count).toBe(3);
+        const count = columns;
+        await expect(count).toHaveCount(3);
     });
 });
 
@@ -285,7 +287,7 @@ test.describe('Compare Items - Floating Button', () => {
     });
 
     test('floating compare button has correct styling', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -304,7 +306,7 @@ test.describe('Compare Items - Floating Button', () => {
     });
 
     test('floating button position is fixed', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
@@ -316,12 +318,12 @@ test.describe('Compare Items - Floating Button', () => {
 
         const compareBtn = page.locator('#compare-btn');
         const position = await compareBtn.evaluate(el => getComputedStyle(el).position);
-        
+
         expect(position).toBe('fixed');
     });
 
     test('floating button stays visible when scrolling', async ({ page }) => {
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;

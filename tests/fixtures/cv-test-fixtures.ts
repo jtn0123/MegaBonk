@@ -11,27 +11,28 @@ import type { ValidationTestCase, ScreenRegions, RegionOfInterest, SlotInfo } fr
 // ========================================
 
 // Create ImageData class if not available (Node.js environment)
-const ImageDataClass = typeof ImageData !== 'undefined'
-    ? ImageData
-    : class MockImageData {
-        data: Uint8ClampedArray;
-        width: number;
-        height: number;
-        colorSpace: string = 'srgb';
+const ImageDataClass =
+    typeof ImageData !== 'undefined'
+        ? ImageData
+        : class MockImageData {
+              data: Uint8ClampedArray;
+              width: number;
+              height: number;
+              colorSpace: string = 'srgb';
 
-        constructor(data: Uint8ClampedArray | number, widthOrHeight?: number, height?: number) {
-            if (data instanceof Uint8ClampedArray) {
-                this.data = data;
-                this.width = widthOrHeight!;
-                this.height = height ?? (data.length / 4 / widthOrHeight!);
-            } else {
-                // data is width, widthOrHeight is height
-                this.width = data;
-                this.height = widthOrHeight!;
-                this.data = new Uint8ClampedArray(this.width * this.height * 4);
-            }
-        }
-    };
+              constructor(data: Uint8ClampedArray | number, widthOrHeight?: number, height?: number) {
+                  if (data instanceof Uint8ClampedArray) {
+                      this.data = data;
+                      this.width = widthOrHeight!;
+                      this.height = height ?? data.length / 4 / widthOrHeight!;
+                  } else {
+                      // data is width, widthOrHeight is height
+                      this.width = data;
+                      this.height = widthOrHeight!;
+                      this.data = new Uint8ClampedArray(this.width * this.height * 4);
+                  }
+              }
+          };
 
 // ========================================
 // Resolution Test Cases
@@ -383,12 +384,7 @@ export const VALIDATION_TEST_CASES: ValidationTestCase[] = [
 // Mock Detection Results
 // ========================================
 
-export function createMockDetectionResults(
-    items: string[],
-    weapons: string[],
-    tomes: string[],
-    character?: string
-) {
+export function createMockDetectionResults(items: string[], weapons: string[], tomes: string[], character?: string) {
     return {
         items: items.map((name, i) => ({
             type: 'item' as const,
@@ -401,7 +397,7 @@ export function createMockDetectionResults(
         weapons: weapons.map((name, i) => ({
             type: 'weapon' as const,
             entity: { id: name.toLowerCase().replace(/\s+/g, '_'), name },
-            confidence: 0.80 + Math.random() * 0.15,
+            confidence: 0.8 + Math.random() * 0.15,
             position: { x: 50 + i * 55, y: 25, width: 50, height: 50 },
             method: 'template_match' as const,
             slotIndex: i,

@@ -870,9 +870,7 @@ describe('changelog.ts - Edge Cases', () => {
         });
 
         it('should show filtered count when different from total', () => {
-            const patches = [
-                { id: '1', version: '1.0.0', title: 'A', date: '2024-01-01' },
-            ];
+            const patches = [{ id: '1', version: '1.0.0', title: 'A', date: '2024-01-01' }];
 
             updateChangelogStats(patches);
 
@@ -902,9 +900,7 @@ describe('changelog.ts - Edge Cases', () => {
         });
 
         it('should use singular when showing 1 patch', () => {
-            const patches = [
-                { id: '1', version: '1.0.0', title: 'A', date: '2024-01-01' },
-            ];
+            const patches = [{ id: '1', version: '1.0.0', title: 'A', date: '2024-01-01' }];
 
             updateChangelogStats(patches);
 

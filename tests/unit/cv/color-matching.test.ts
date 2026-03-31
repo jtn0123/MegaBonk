@@ -16,7 +16,9 @@ import {
 import type { DetailedColorCategory } from '../../../src/modules/cv/color-extraction';
 import { polyfillImageData, createImageData } from './test-helpers';
 
-beforeAll(() => { polyfillImageData(); });
+beforeAll(() => {
+    polyfillImageData();
+});
 
 // ========================================
 // Tests

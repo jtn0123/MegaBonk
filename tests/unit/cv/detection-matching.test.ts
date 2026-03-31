@@ -6,7 +6,9 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { polyfillImageData } from './test-helpers';
 
-beforeAll(() => { polyfillImageData(); });
+beforeAll(() => {
+    polyfillImageData();
+});
 
 // Mock heavy dependencies
 vi.mock('../../../src/modules/cv/state.ts', () => ({
@@ -173,7 +175,7 @@ describe('detection-matching', () => {
             tplCanvas.width = 40;
             tplCanvas.height = 40;
             const tplCtx = tplCanvas.getContext('2d')!;
-            
+
             const templateMap = new Map();
             templateMap.set('item1', { canvas: tplCanvas, ctx: tplCtx, width: 40, height: 40 });
             vi.mocked(getItemTemplates).mockReturnValue(templateMap);
@@ -185,7 +187,7 @@ describe('detection-matching', () => {
 
             const items = [{ id: 'item1', name: 'Test Item', rarity: 'common' }] as any[];
             const result = findBestTemplateMatch(ctx, { x: 0, y: 0, width: 40, height: 40 }, items, 0.5);
-            
+
             expect(result).not.toBeNull();
             expect(result!.similarity).toBe(0.75);
             expect(result!.item.id).toBe('item1');
@@ -196,7 +198,7 @@ describe('detection-matching', () => {
             tplCanvas.width = 40;
             tplCanvas.height = 40;
             const tplCtx = tplCanvas.getContext('2d')!;
-            
+
             const templateMap = new Map();
             templateMap.set('item1', { canvas: tplCanvas, ctx: tplCtx, width: 40, height: 40 });
             vi.mocked(getItemTemplates).mockReturnValue(templateMap);

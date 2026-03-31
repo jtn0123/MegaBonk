@@ -130,7 +130,7 @@ describe('State Store', () => {
             setState('currentTab', 'tomes');
             setState('compareItems', ['a']);
             setState('currentTab', 'characters');
-            
+
             expect(getState('currentTab')).toBe('characters');
             expect(getState('compareItems')).toEqual(['a']);
         });
@@ -143,32 +143,32 @@ describe('State Store', () => {
         it('should call subscriber when state changes', async () => {
             const callback = vi.fn();
             subscribe('currentTab', callback);
-            
+
             setState('currentTab', 'weapons');
             await flushMicrotasks();
-            
+
             expect(callback).toHaveBeenCalledWith('weapons');
         });
 
         it('should not call subscriber for different key changes', () => {
             const callback = vi.fn();
             subscribe('currentTab', callback);
-            
+
             setState('compareItems', ['test']);
-            
+
             expect(callback).not.toHaveBeenCalled();
         });
 
         it('should call multiple subscribers', async () => {
             const callback1 = vi.fn();
             const callback2 = vi.fn();
-            
+
             subscribe('currentTab', callback1);
             subscribe('currentTab', callback2);
-            
+
             setState('currentTab', 'shrines');
             await flushMicrotasks();
-            
+
             expect(callback1).toHaveBeenCalledWith('shrines');
             expect(callback2).toHaveBeenCalledWith('shrines');
         });
@@ -176,37 +176,37 @@ describe('State Store', () => {
         it('should return unsubscribe function', () => {
             const callback = vi.fn();
             const unsubscribe = subscribe('currentTab', callback);
-            
+
             unsubscribe();
             setState('currentTab', 'calculator');
-            
+
             expect(callback).not.toHaveBeenCalled();
         });
 
         it('should handle unsubscribe correctly with multiple subscribers', async () => {
             const callback1 = vi.fn();
             const callback2 = vi.fn();
-            
+
             const unsub1 = subscribe('currentTab', callback1);
             subscribe('currentTab', callback2);
-            
+
             unsub1();
             setState('currentTab', 'advisor');
             await flushMicrotasks();
-            
+
             expect(callback1).not.toHaveBeenCalled();
             expect(callback2).toHaveBeenCalledWith('advisor');
         });
 
         it('should receive new value in subscriber', async () => {
             let receivedValue: TabName | null = null;
-            subscribe('currentTab', (value) => {
+            subscribe('currentTab', value => {
                 receivedValue = value;
             });
-            
+
             setState('currentTab', 'changelog');
             await flushMicrotasks();
-            
+
             expect(receivedValue).toBe('changelog');
         });
     });
@@ -218,9 +218,9 @@ describe('State Store', () => {
         it('should reset state to initial values', () => {
             setState('currentTab', 'weapons');
             setState('compareItems', ['item1', 'item2', 'item3']);
-            
+
             resetStore();
-            
+
             expect(getState('currentTab')).toBe('items');
             expect(getState('compareItems')).toEqual([]);
         });
@@ -234,9 +234,9 @@ describe('State Store', () => {
                 name: 'My Build',
                 notes: 'Notes',
             });
-            
+
             resetStore();
-            
+
             const build = getState('currentBuild');
             expect(build.character).toBeNull();
             expect(build.weapon).toBeNull();
@@ -252,9 +252,9 @@ describe('State Store', () => {
                 characters: ['e'],
                 shrines: ['f'],
             });
-            
+
             resetStore();
-            
+
             const favorites = getState('favorites');
             expect(favorites.items).toEqual([]);
             expect(favorites.weapons).toEqual([]);
@@ -277,7 +277,7 @@ describe('State Store', () => {
             'changelog',
         ];
 
-        it.each(validTabs)('should accept %s as a valid tab', (tab) => {
+        it.each(validTabs)('should accept %s as a valid tab', tab => {
             setState('currentTab', tab);
             expect(getState('currentTab')).toBe(tab);
         });
@@ -302,7 +302,7 @@ describe('State Store', () => {
                 name: '',
                 notes: '',
             });
-            
+
             const build = getState('currentBuild');
             expect(build.character).toBeNull();
             expect(build.weapon).toBeNull();
@@ -320,10 +320,10 @@ describe('State Store', () => {
                 throw new Error('Subscriber error');
             });
             const normalCallback = vi.fn();
-            
+
             subscribe('currentTab', errorCallback);
             subscribe('currentTab', normalCallback);
-            
+
             // Should not throw, other subscribers should still be called
             expect(() => setState('currentTab', 'weapons')).not.toThrow();
         });
@@ -333,13 +333,13 @@ describe('State Store', () => {
                 throw new Error('Subscriber error');
             });
             const normalCallback = vi.fn();
-            
+
             subscribe('currentTab', errorCallback);
             subscribe('currentTab', normalCallback);
-            
+
             setState('currentTab', 'weapons');
             await flushMicrotasks();
-            
+
             // Both should have been called - normal callback should still work
             expect(errorCallback).toHaveBeenCalledWith('weapons');
             expect(normalCallback).toHaveBeenCalledWith('weapons');
@@ -353,31 +353,31 @@ describe('State Store', () => {
         it('should remove all subscribers', () => {
             const callback1 = vi.fn();
             const callback2 = vi.fn();
-            
+
             subscribe('currentTab', callback1);
             subscribe('compareItems', callback2);
-            
+
             clearSubscribers();
-            
+
             setState('currentTab', 'weapons');
             setState('compareItems', ['item1']);
-            
+
             expect(callback1).not.toHaveBeenCalled();
             expect(callback2).not.toHaveBeenCalled();
         });
 
         it('should allow new subscriptions after clearing', async () => {
             const callback = vi.fn();
-            
+
             subscribe('currentTab', callback);
             clearSubscribers();
-            
+
             const newCallback = vi.fn();
             subscribe('currentTab', newCallback);
-            
+
             setState('currentTab', 'tomes');
             await flushMicrotasks();
-            
+
             expect(callback).not.toHaveBeenCalled();
             expect(newCallback).toHaveBeenCalledWith('tomes');
         });
@@ -472,9 +472,9 @@ describe('State Store', () => {
             disableWindowSync();
             // Store initial window values
             const initialTab = window.currentTab;
-            
+
             setState('currentTab', 'changelog');
-            
+
             // Window should not have been updated (or at least should reflect old state)
             // Note: In jsdom, window properties may persist, so we check it wasn't updated
             expect(window.currentTab).toBe(initialTab);
@@ -484,9 +484,9 @@ describe('State Store', () => {
             disableWindowSync();
             setState('currentTab', 'advisor');
             setState('compareItems', ['test1', 'test2']);
-            
+
             enableWindowSync();
-            
+
             expect(window.currentTab).toBe('advisor');
             expect(window.compareItems).toEqual(['test1', 'test2']);
         });
@@ -494,9 +494,9 @@ describe('State Store', () => {
         it('should sync state to window on resetStore when enabled', () => {
             enableWindowSync();
             setState('currentTab', 'weapons');
-            
+
             resetStore();
-            
+
             expect(window.currentTab).toBe('items');
             expect(window.compareItems).toEqual([]);
         });
@@ -508,7 +508,7 @@ describe('State Store', () => {
     describe('getFullState', () => {
         it('should return a copy of the entire state', () => {
             const fullState = getFullState();
-            
+
             expect(fullState).toHaveProperty('currentTab');
             expect(fullState).toHaveProperty('filteredData');
             expect(fullState).toHaveProperty('allData');
@@ -520,9 +520,9 @@ describe('State Store', () => {
         it('should reflect current state values', () => {
             setState('currentTab', 'shrines');
             setState('compareItems', ['item1', 'item2']);
-            
+
             const fullState = getFullState();
-            
+
             expect(fullState.currentTab).toBe('shrines');
             expect(fullState.compareItems).toEqual(['item1', 'item2']);
         });
@@ -530,10 +530,10 @@ describe('State Store', () => {
         it('should return a shallow copy', () => {
             const fullState1 = getFullState();
             const fullState2 = getFullState();
-            
+
             // They should be different objects
             expect(fullState1).not.toBe(fullState2);
-            
+
             // But contain the same values
             expect(fullState1.currentTab).toBe(fullState2.currentTab);
         });
@@ -541,7 +541,7 @@ describe('State Store', () => {
         it('should not allow modifying internal state', () => {
             const fullState = getFullState();
             fullState.currentTab = 'changelog';
-            
+
             // Internal state should be unchanged
             expect(getState('currentTab')).toBe('items');
         });
@@ -556,7 +556,7 @@ describe('State Store', () => {
                 currentTab: 'weapons',
                 compareItems: ['a', 'b'],
             });
-            
+
             expect(getState('currentTab')).toBe('weapons');
             expect(getState('compareItems')).toEqual(['a', 'b']);
         });
@@ -564,15 +564,15 @@ describe('State Store', () => {
         it('should notify subscribers for each changed key', () => {
             const tabCallback = vi.fn();
             const itemsCallback = vi.fn();
-            
+
             subscribe('currentTab', tabCallback);
             subscribe('compareItems', itemsCallback);
-            
+
             batchUpdate({
                 currentTab: 'tomes',
                 compareItems: ['x'],
             });
-            
+
             expect(tabCallback).toHaveBeenCalledWith('tomes');
             expect(itemsCallback).toHaveBeenCalledWith(['x']);
         });
@@ -580,31 +580,31 @@ describe('State Store', () => {
         it('should only notify subscribers once per key', () => {
             const callback = vi.fn();
             subscribe('currentTab', callback);
-            
+
             batchUpdate({
                 currentTab: 'calculator',
             });
-            
+
             expect(callback).toHaveBeenCalledTimes(1);
         });
 
         it('should handle empty updates', () => {
             const callback = vi.fn();
             subscribe('currentTab', callback);
-            
+
             batchUpdate({});
-            
+
             expect(callback).not.toHaveBeenCalled();
         });
 
         it('should skip undefined values', () => {
             setState('currentTab', 'weapons');
-            
+
             batchUpdate({
                 currentTab: undefined,
                 compareItems: ['test'],
             });
-            
+
             // currentTab should be unchanged
             expect(getState('currentTab')).toBe('weapons');
             expect(getState('compareItems')).toEqual(['test']);
@@ -612,12 +612,12 @@ describe('State Store', () => {
 
         it('should sync to window when enabled', () => {
             enableWindowSync();
-            
+
             batchUpdate({
                 currentTab: 'advisor',
                 compareItems: ['batch1', 'batch2'],
             });
-            
+
             expect(window.currentTab).toBe('advisor');
             expect(window.compareItems).toEqual(['batch1', 'batch2']);
         });
@@ -625,11 +625,11 @@ describe('State Store', () => {
         it('should not sync to window when disabled', () => {
             disableWindowSync();
             const initialTab = window.currentTab;
-            
+
             batchUpdate({
                 currentTab: 'changelog',
             });
-            
+
             expect(window.currentTab).toBe(initialTab);
         });
 
@@ -658,7 +658,7 @@ describe('State Store', () => {
                 stats: undefined,
                 changelog: undefined,
             };
-            
+
             batchUpdate({
                 currentTab: 'build-planner',
                 filteredData: [{ id: 'f1', name: 'Filtered' }] as any,
@@ -667,7 +667,7 @@ describe('State Store', () => {
                 compareItems: ['c1', 'c2'],
                 favorites,
             });
-            
+
             expect(getState('currentTab')).toBe('build-planner');
             expect(getState('filteredData')).toEqual([{ id: 'f1', name: 'Filtered' }]);
             expect(getState('allData')).toEqual(allData);
@@ -681,10 +681,10 @@ describe('State Store', () => {
                 throw new Error('Batch subscriber error');
             });
             const normalCallback = vi.fn();
-            
+
             subscribe('currentTab', errorCallback);
             subscribe('currentTab', normalCallback);
-            
+
             expect(() => batchUpdate({ currentTab: 'weapons' })).not.toThrow();
             expect(normalCallback).toHaveBeenCalledWith('weapons');
         });
@@ -697,30 +697,30 @@ describe('State Store', () => {
         it('should clean up subscriber map when last subscriber unsubscribes', async () => {
             const callback = vi.fn();
             const unsubscribe = subscribe('currentTab', callback);
-            
+
             unsubscribe();
-            
+
             // After unsubscribing the only subscriber, re-subscribing should work
             const newCallback = vi.fn();
             subscribe('currentTab', newCallback);
-            
+
             setState('currentTab', 'weapons');
             await flushMicrotasks();
-            
+
             expect(callback).not.toHaveBeenCalled();
             expect(newCallback).toHaveBeenCalledWith('weapons');
         });
 
         it('should handle subscribing to multiple keys', async () => {
             const results: string[] = [];
-            
-            subscribe('currentTab', (val) => results.push(`tab:${val}`));
-            subscribe('compareItems', (val) => results.push(`items:${val.length}`));
-            
+
+            subscribe('currentTab', val => results.push(`tab:${val}`));
+            subscribe('compareItems', val => results.push(`items:${val.length}`));
+
             setState('currentTab', 'tomes');
             setState('compareItems', ['a', 'b', 'c']);
             await flushMicrotasks();
-            
+
             expect(results).toContain('tab:tomes');
             expect(results).toContain('items:3');
         });
@@ -728,10 +728,10 @@ describe('State Store', () => {
         it('should handle unsubscribe called multiple times', () => {
             const callback = vi.fn();
             const unsubscribe = subscribe('currentTab', callback);
-            
+
             unsubscribe();
             unsubscribe(); // Second call should be safe
-            
+
             setState('currentTab', 'weapons');
             expect(callback).not.toHaveBeenCalled();
         });

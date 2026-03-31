@@ -43,8 +43,8 @@ describe('Recently Viewed Module', () => {
         });
 
         it('should clean up entries older than 7 days', () => {
-            const oldTimestamp = Date.now() - (8 * 24 * 60 * 60 * 1000); // 8 days ago
-            const recentTimestamp = Date.now() - (1 * 24 * 60 * 60 * 1000); // 1 day ago
+            const oldTimestamp = Date.now() - 8 * 24 * 60 * 60 * 1000; // 8 days ago
+            const recentTimestamp = Date.now() - 1 * 24 * 60 * 60 * 1000; // 1 day ago
 
             const testData = [
                 { type: 'items', id: 'old_item', timestamp: oldTimestamp },

@@ -23,7 +23,7 @@ function detectGridPositions(width, height) {
         height - bottomMargin - iconSize - rowHeight * 2,
     ];
 
-    const sideMargin = Math.round(width * 0.20);
+    const sideMargin = Math.round(width * 0.2);
     const usableWidth = width - sideMargin * 2;
     const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
 
@@ -38,7 +38,7 @@ function detectGridPositions(width, height) {
                 width: iconSize,
                 height: iconSize,
                 row: rowYPositions.indexOf(rowY),
-                col: i
+                col: i,
             });
         }
     }
@@ -48,10 +48,14 @@ function detectGridPositions(width, height) {
 // Empty cell detection
 function isEmptyCell(ctx, x, y, w, h) {
     const imageData = ctx.getImageData(x, y, w, h);
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
@@ -138,9 +142,9 @@ async function analyzeImage(imagePath, expectedItems) {
             nonEmpty: nonEmptyCount,
             empty: emptyCount,
             expected: expectedItems,
-            mismatch: nonEmptyCount - expectedItems
+            mismatch: nonEmptyCount - expectedItems,
         },
-        cellStats
+        cellStats,
     };
 }
 
@@ -168,7 +172,9 @@ async function main() {
         const buffer = result.canvas.toBuffer('image/png');
         fs.writeFileSync(outputPath, buffer);
 
-        console.log(`  Cells: ${result.stats.nonEmpty} detected vs ${result.stats.expected} expected (${result.stats.mismatch > 0 ? '+' : ''}${result.stats.mismatch})`);
+        console.log(
+            `  Cells: ${result.stats.nonEmpty} detected vs ${result.stats.expected} expected (${result.stats.mismatch > 0 ? '+' : ''}${result.stats.mismatch})`
+        );
     }
 
     // Summary
@@ -179,16 +185,21 @@ async function main() {
     console.log('\n| Image | Resolution | Scale | Detected | Expected | Mismatch |');
     console.log('|-------|------------|-------|----------|----------|----------|');
 
-    let totalDetected = 0, totalExpected = 0;
+    let totalDetected = 0,
+        totalExpected = 0;
     for (const s of allStats) {
         const shortName = s.name.slice(9, 35);
-        console.log(`| ${shortName.padEnd(25)} | ${s.width}x${s.height} | ${s.scale.toFixed(2)} | ${String(s.nonEmpty).padStart(8)} | ${String(s.expected).padStart(8)} | ${(s.mismatch > 0 ? '+' : '') + s.mismatch} |`);
+        console.log(
+            `| ${shortName.padEnd(25)} | ${s.width}x${s.height} | ${s.scale.toFixed(2)} | ${String(s.nonEmpty).padStart(8)} | ${String(s.expected).padStart(8)} | ${(s.mismatch > 0 ? '+' : '') + s.mismatch} |`
+        );
         totalDetected += s.nonEmpty;
         totalExpected += s.expected;
     }
 
     console.log('|-------|------------|-------|----------|----------|----------|');
-    console.log(`| TOTAL |            |       | ${String(totalDetected).padStart(8)} | ${String(totalExpected).padStart(8)} | ${(totalDetected - totalExpected > 0 ? '+' : '') + (totalDetected - totalExpected)} |`);
+    console.log(
+        `| TOTAL |            |       | ${String(totalDetected).padStart(8)} | ${String(totalExpected).padStart(8)} | ${(totalDetected - totalExpected > 0 ? '+' : '') + (totalDetected - totalExpected)} |`
+    );
 
     console.log(`\nDebug images saved to: ${OUTPUT_DIR}/`);
 

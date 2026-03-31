@@ -11,8 +11,7 @@ vi.mock('../../src/modules/cv/index.ts', () => ({
     loadItemTemplates: vi.fn().mockResolvedValue(undefined),
     detectItemsWithCV: vi.fn().mockResolvedValue([]),
     combineDetections: vi.fn((ocrResults: unknown[]) => ocrResults),
-    aggregateDuplicates: vi.fn((results: Array<{ entity: Item | Tome }>) => 
-        results.map((r) => ({ ...r, count: 1 }))),
+    aggregateDuplicates: vi.fn((results: Array<{ entity: Item | Tome }>) => results.map(r => ({ ...r, count: 1 }))),
     isFullyLoaded: vi.fn().mockReturnValue(true),
 }));
 
@@ -145,7 +144,7 @@ describe('Batch Scan Module', () => {
         it('should reject non-image files', async () => {
             const textFile = createMockFile('test.txt', 'text/plain');
             const files = [textFile];
-            
+
             const results = await processBatch(files);
             expect(results).toEqual([]);
             expect(ToastManager.error).toHaveBeenCalledWith('No valid image files selected');
@@ -155,7 +154,7 @@ describe('Batch Scan Module', () => {
             // Create a mock file that reports a large size
             const largeFile = new File(['x'], 'large.png', { type: 'image/png' });
             Object.defineProperty(largeFile, 'size', { value: 15 * 1024 * 1024 });
-            
+
             const results = await processBatch([largeFile]);
             expect(results).toEqual([]);
         });
@@ -188,7 +187,7 @@ describe('Batch Scan Module', () => {
     describe('getBatchSummary', () => {
         it('should return zeros for empty results', () => {
             const summary = getBatchSummary();
-            
+
             expect(summary).toEqual({
                 totalScreenshots: 0,
                 successfulScans: 0,
@@ -221,7 +220,7 @@ describe('Batch Scan Module', () => {
             renderBatchResultsGrid('test-container');
 
             expect(container.innerHTML).toContain('No screenshots processed yet');
-            
+
             document.body.removeChild(container);
         });
 
@@ -237,7 +236,7 @@ describe('Batch Scan Module', () => {
             renderBatchResultsGrid('test-container-2');
 
             expect(container.innerHTML).toContain('Upload multiple screenshots');
-            
+
             document.body.removeChild(container);
         });
     });
@@ -295,7 +294,7 @@ describe('Batch Scan Module', () => {
 
         it('should handle mixed valid and invalid files', async () => {
             initBatchScan(mockGameData);
-            
+
             const invalidFile = createMockFile('test.txt', 'text/plain');
             // Only invalid file should be filtered out
             const results = await processBatch([invalidFile]);
@@ -306,7 +305,7 @@ describe('Batch Scan Module', () => {
             initBatchScan(mockGameData);
             __resetForTesting();
             __resetForTesting();
-            
+
             // Should be able to initialize again
             expect(() => initBatchScan(mockGameData)).not.toThrow();
         });

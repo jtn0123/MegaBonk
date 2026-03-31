@@ -5,11 +5,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import {
-    initOCR,
-    extractTextFromImage,
-    autoDetectFromImage,
-} from '../../src/modules/ocr';
+import { initOCR, extractTextFromImage, autoDetectFromImage } from '../../src/modules/ocr';
 import type { AllGameData } from '../../src/types';
 
 // Mock Tesseract.js to avoid actual network calls in unit tests
@@ -166,11 +162,7 @@ describe('Tesseract.js Integration', () => {
 
             await extractTextFromImage(mockImageDataUrl);
 
-            expect(Tesseract.default.recognize).toHaveBeenCalledWith(
-                expect.any(String),
-                'eng',
-                expect.any(Object)
-            );
+            expect(Tesseract.default.recognize).toHaveBeenCalledWith(expect.any(String), 'eng', expect.any(Object));
         });
     });
 
@@ -202,15 +194,11 @@ describe('Tesseract.js Integration', () => {
     describe('Error Handling', () => {
         it('should handle OCR failures gracefully', async () => {
             const Tesseract = await import('tesseract.js');
-            vi.mocked(Tesseract.default.recognize).mockRejectedValueOnce(
-                new Error('Worker failed to load')
-            );
+            vi.mocked(Tesseract.default.recognize).mockRejectedValueOnce(new Error('Worker failed to load'));
 
             const mockImageDataUrl = 'data:image/png;base64,test';
 
-            await expect(extractTextFromImage(mockImageDataUrl)).rejects.toThrow(
-                'Worker failed to load'
-            );
+            await expect(extractTextFromImage(mockImageDataUrl)).rejects.toThrow('Worker failed to load');
         });
 
         it('should handle empty OCR results', async () => {
@@ -234,9 +222,7 @@ describe('Tesseract.js Integration', () => {
         it('should not require external script loading in tests', () => {
             // This test verifies our mock doesn't try to load external scripts
             // In a real browser, CSP issues would cause Tesseract to fail to load
-            expect(vi.isMockFunction((import('tesseract.js') as any).default?.recognize)).toBe(
-                false
-            );
+            expect(vi.isMockFunction((import('tesseract.js') as any).default?.recognize)).toBe(false);
         });
     });
 });

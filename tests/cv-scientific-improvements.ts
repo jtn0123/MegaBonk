@@ -15,26 +15,29 @@ try {
     createCanvas = canvas.createCanvas;
     loadImage = canvas.loadImage;
     globalThis.ImageData = canvas.ImageData;
-} catch { console.error('Canvas required'); process.exit(1); }
+} catch {
+    console.error('Canvas required');
+    process.exit(1);
+}
 
 // ========================================
 // IMPROVEMENT FLAGS
 // ========================================
 interface ImprovementFlags {
     // Grid detection improvements
-    useAdaptiveGrid: boolean;      // Detect grid via edge detection
-    adjustedGridParams: boolean;   // Use tuned grid parameters for 1080p
+    useAdaptiveGrid: boolean; // Detect grid via edge detection
+    adjustedGridParams: boolean; // Use tuned grid parameters for 1080p
 
     // Matching improvements
-    multiScale: boolean;           // Try multiple scale factors
-    colorNormalization: boolean;   // Normalize colors before matching
-    useSSIM: boolean;              // Use structural similarity
+    multiScale: boolean; // Try multiple scale factors
+    colorNormalization: boolean; // Normalize colors before matching
+    useSSIM: boolean; // Use structural similarity
 
     // Preprocessing
-    contrastEnhancement: boolean;  // Enhance contrast before matching
+    contrastEnhancement: boolean; // Enhance contrast before matching
 
     // Thresholds
-    lowerThreshold: boolean;       // Use lower confidence threshold
+    lowerThreshold: boolean; // Use lower confidence threshold
 }
 
 const BASELINE_FLAGS: ImprovementFlags = {
@@ -111,8 +114,12 @@ async function loadTemplates(): Promise<void> {
             const imageData = ctx.getImageData(0, 0, img.width, img.height);
 
             const templateData: TemplateData = {
-                item, canvas, ctx, imageData,
-                width: img.width, height: img.height
+                item,
+                canvas,
+                ctx,
+                imageData,
+                width: img.width,
+                height: img.height,
             };
 
             templateCache.set(item.id, templateData);
@@ -148,7 +155,8 @@ function loadTestCases(): TestCase[] {
                 imagePath,
                 groundTruth: Array.from(itemCounts.entries()).map(([name, count]) => ({
                     id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                    name, count,
+                    name,
+                    count,
                 })),
             };
         })
@@ -163,7 +171,6 @@ function detectGridPositions(
     height: number,
     flags: ImprovementFlags
 ): Array<{ x: number; y: number; width: number; height: number }> {
-
     let iconSize: number;
     let spacing: number;
     let bottomMargin: number;
@@ -177,13 +184,13 @@ function detectGridPositions(
         spacing = Math.round(6 * (height / 1080));
         bottomMargin = Math.round(30 * (height / 1080));
         sideMarginPct = 0.15; // 15% side margin (was 20%)
-        validRowThreshold = 0.70; // Allow rows down to 70% (was 75%)
+        validRowThreshold = 0.7; // Allow rows down to 70% (was 75%)
     } else {
         // Original parameters
         iconSize = Math.round(40 * (height / 720));
         spacing = Math.round(4 * (height / 720));
         bottomMargin = Math.round(20 * (height / 720));
-        sideMarginPct = 0.20;
+        sideMarginPct = 0.2;
         validRowThreshold = 0.75;
     }
 
@@ -226,9 +233,12 @@ function normalizeColors(imageData: any): any {
     const data = new Uint8ClampedArray(imageData.data);
 
     // Calculate min/max for each channel
-    let minR = 255, maxR = 0;
-    let minG = 255, maxG = 0;
-    let minB = 255, maxB = 0;
+    let minR = 255,
+        maxR = 0;
+    let minG = 255,
+        maxG = 0;
+    let minB = 255,
+        maxB = 0;
 
     for (let i = 0; i < data.length; i += 4) {
         minR = Math.min(minR, data[i]);
@@ -245,9 +255,9 @@ function normalizeColors(imageData: any): any {
     const rangeB = maxB - minB || 1;
 
     for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.round((data[i] - minR) / rangeR * 255);
-        data[i + 1] = Math.round((data[i + 1] - minG) / rangeG * 255);
-        data[i + 2] = Math.round((data[i + 2] - minB) / rangeB * 255);
+        data[i] = Math.round(((data[i] - minR) / rangeR) * 255);
+        data[i + 1] = Math.round(((data[i + 1] - minG) / rangeG) * 255);
+        data[i + 2] = Math.round(((data[i + 2] - minB) / rangeB) * 255);
     }
 
     return { data, width: imageData.width, height: imageData.height };
@@ -280,13 +290,14 @@ function calculateSSIM(img1: any, img2: any): number {
     const n = data1.length / 4;
 
     // Convert to grayscale and calculate means
-    let mean1 = 0, mean2 = 0;
+    let mean1 = 0,
+        mean2 = 0;
     const gray1: number[] = [];
     const gray2: number[] = [];
 
     for (let i = 0; i < data1.length; i += 4) {
-        const g1 = (data1[i] + data1[i+1] + data1[i+2]) / 3;
-        const g2 = (data2[i] + data2[i+1] + data2[i+2]) / 3;
+        const g1 = (data1[i] + data1[i + 1] + data1[i + 2]) / 3;
+        const g2 = (data2[i] + data2[i + 1] + data2[i + 2]) / 3;
         gray1.push(g1);
         gray2.push(g2);
         mean1 += g1;
@@ -297,7 +308,9 @@ function calculateSSIM(img1: any, img2: any): number {
     mean2 /= n;
 
     // Calculate variances and covariance
-    let var1 = 0, var2 = 0, covar = 0;
+    let var1 = 0,
+        var2 = 0,
+        covar = 0;
 
     for (let i = 0; i < n; i++) {
         const d1 = gray1[i] - mean1;
@@ -315,8 +328,7 @@ function calculateSSIM(img1: any, img2: any): number {
     const C1 = (0.01 * 255) ** 2;
     const C2 = (0.03 * 255) ** 2;
 
-    const ssim = ((2 * mean1 * mean2 + C1) * (2 * covar + C2)) /
-                 ((mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2));
+    const ssim = ((2 * mean1 * mean2 + C1) * (2 * covar + C2)) / ((mean1 ** 2 + mean2 ** 2 + C1) * (var1 + var2 + C2));
 
     return (ssim + 1) / 2; // Normalize to 0-1
 }
@@ -328,20 +340,27 @@ function calculateNCC(imageData1: any, imageData2: any): number {
     const pixels1 = imageData1.data;
     const pixels2 = imageData2.data;
 
-    let sum1 = 0, sum2 = 0, sumProduct = 0, sumSquare1 = 0, sumSquare2 = 0, count = 0;
+    let sum1 = 0,
+        sum2 = 0,
+        sumProduct = 0,
+        sumSquare1 = 0,
+        sumSquare2 = 0,
+        count = 0;
     const len = Math.min(pixels1.length, pixels2.length);
 
     for (let i = 0; i < len; i += 4) {
-        const gray1 = (pixels1[i] + pixels1[i+1] + pixels1[i+2]) / 3;
-        const gray2 = (pixels2[i] + pixels2[i+1] + pixels2[i+2]) / 3;
-        sum1 += gray1; sum2 += gray2;
+        const gray1 = (pixels1[i] + pixels1[i + 1] + pixels1[i + 2]) / 3;
+        const gray2 = (pixels2[i] + pixels2[i + 1] + pixels2[i + 2]) / 3;
+        sum1 += gray1;
+        sum2 += gray2;
         sumProduct += gray1 * gray2;
         sumSquare1 += gray1 * gray1;
         sumSquare2 += gray2 * gray2;
         count++;
     }
 
-    const mean1 = sum1 / count, mean2 = sum2 / count;
+    const mean1 = sum1 / count,
+        mean2 = sum2 / count;
     const numerator = sumProduct / count - mean1 * mean2;
     const denominator = Math.sqrt((sumSquare1 / count - mean1 * mean1) * (sumSquare2 / count - mean2 * mean2));
 
@@ -357,23 +376,31 @@ function calculateHistogramSimilarity(imageData1: any, imageData2: any): number 
 
     const pixels1 = imageData1.data;
     const pixels2 = imageData2.data;
-    let count1 = 0, count2 = 0;
+    let count1 = 0,
+        count2 = 0;
 
     for (let i = 0; i < pixels1.length; i += 4) {
-        const idx = Math.min(bins-1, Math.floor(pixels1[i]/binSize)) * bins * bins +
-                    Math.min(bins-1, Math.floor(pixels1[i+1]/binSize)) * bins +
-                    Math.min(bins-1, Math.floor(pixels1[i+2]/binSize));
-        hist1[idx]++; count1++;
+        const idx =
+            Math.min(bins - 1, Math.floor(pixels1[i] / binSize)) * bins * bins +
+            Math.min(bins - 1, Math.floor(pixels1[i + 1] / binSize)) * bins +
+            Math.min(bins - 1, Math.floor(pixels1[i + 2] / binSize));
+        hist1[idx]++;
+        count1++;
     }
 
     for (let i = 0; i < pixels2.length; i += 4) {
-        const idx = Math.min(bins-1, Math.floor(pixels2[i]/binSize)) * bins * bins +
-                    Math.min(bins-1, Math.floor(pixels2[i+1]/binSize)) * bins +
-                    Math.min(bins-1, Math.floor(pixels2[i+2]/binSize));
-        hist2[idx]++; count2++;
+        const idx =
+            Math.min(bins - 1, Math.floor(pixels2[i] / binSize)) * bins * bins +
+            Math.min(bins - 1, Math.floor(pixels2[i + 1] / binSize)) * bins +
+            Math.min(bins - 1, Math.floor(pixels2[i + 2] / binSize));
+        hist2[idx]++;
+        count2++;
     }
 
-    for (let i = 0; i < hist1.length; i++) { hist1[i] /= count1; hist2[i] /= count2; }
+    for (let i = 0; i < hist1.length; i++) {
+        hist1[i] /= count1;
+        hist2[i] /= count2;
+    }
 
     let intersection = 0;
     for (let i = 0; i < hist1.length; i++) intersection += Math.min(hist1[i], hist2[i]);
@@ -383,11 +410,7 @@ function calculateHistogramSimilarity(imageData1: any, imageData2: any): number 
 // ========================================
 // Combined similarity with improvements
 // ========================================
-function calculateSimilarity(
-    cellData: any,
-    templateData: any,
-    flags: ImprovementFlags
-): number {
+function calculateSimilarity(cellData: any, templateData: any, flags: ImprovementFlags): number {
     let cell = cellData;
     let template = templateData;
 
@@ -406,7 +429,7 @@ function calculateSimilarity(
     const ncc = calculateNCC(cell, template);
     const histogram = calculateHistogramSimilarity(cell, template);
 
-    let scores = [ncc, histogram];
+    const scores = [ncc, histogram];
 
     if (flags.useSSIM) {
         const ssim = calculateSSIM(cell, template);
@@ -430,10 +453,12 @@ function calculateSimilarity(
 // ========================================
 function isEmptyCell(imageData: any): boolean {
     const pixels = imageData.data;
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
 
     for (let i = 0; i < pixels.length; i += 4) {
-        const gray = (pixels[i] + pixels[i+1] + pixels[i+2]) / 3;
+        const gray = (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3;
         sum += gray;
         sumSq += gray * gray;
         count++;
@@ -462,11 +487,7 @@ function resizeImageData(
     const tempCanvas = createCanvas(targetWidth, targetHeight);
     const tempCtx = tempCanvas.getContext('2d');
 
-    tempCtx.drawImage(
-        sourceCanvas,
-        srcMargin, srcMargin, srcW, srcH,
-        0, 0, targetWidth, targetHeight
-    );
+    tempCtx.drawImage(sourceCanvas, srcMargin, srcMargin, srcW, srcH, 0, 0, targetWidth, targetHeight);
 
     return tempCtx.getImageData(0, 0, targetWidth, targetHeight);
 }
@@ -477,7 +498,6 @@ async function findBestMatch(
     cellHeight: number,
     flags: ImprovementFlags
 ): Promise<{ item: GameItem; confidence: number } | null> {
-
     const candidates = Array.from(templateCache.values());
     let bestMatch: { item: GameItem; confidence: number } | null = null;
 
@@ -489,7 +509,11 @@ async function findBestMatch(
     if (centerWidth <= 0 || centerHeight <= 0) return null;
 
     // Extract center of cell
-    const centerData = { data: new Uint8ClampedArray(centerWidth * centerHeight * 4), width: centerWidth, height: centerHeight };
+    const centerData = {
+        data: new Uint8ClampedArray(centerWidth * centerHeight * 4),
+        width: centerWidth,
+        height: centerHeight,
+    };
     for (let y = 0; y < centerHeight; y++) {
         for (let x = 0; x < centerWidth; x++) {
             const srcIdx = ((y + margin) * cellWidth + (x + margin)) * 4;
@@ -518,7 +542,11 @@ async function findBestMatch(
             let compareCell = centerData;
             if (scale !== 1.0) {
                 // Create scaled version of cell center
-                const scaledCell = { data: new Uint8ClampedArray(targetW * targetH * 4), width: targetW, height: targetH };
+                const scaledCell = {
+                    data: new Uint8ClampedArray(targetW * targetH * 4),
+                    width: targetW,
+                    height: targetH,
+                };
                 // Simple nearest-neighbor resize
                 for (let y = 0; y < targetH; y++) {
                     for (let x = 0; x < targetW; x++) {
@@ -555,7 +583,6 @@ async function runDetection(
     imagePath: string,
     flags: ImprovementFlags
 ): Promise<Array<{ id: string; name: string; confidence: number }>> {
-
     const image = await loadImage(imagePath);
     const canvas = createCanvas(image.width, image.height);
     const ctx = canvas.getContext('2d');
@@ -598,7 +625,9 @@ function calculateMetrics(
     const truthItems = new Map<string, number>();
     groundTruth.forEach(item => truthItems.set(item.id, item.count));
 
-    let tp = 0, fp = 0, fn = 0;
+    let tp = 0,
+        fp = 0,
+        fn = 0;
 
     detectedItems.forEach((count, id) => {
         const truth = truthItems.get(id) || 0;
@@ -613,7 +642,7 @@ function calculateMetrics(
 
     const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
     const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
-    const f1 = precision + recall > 0 ? 2 * precision * recall / (precision + recall) : 0;
+    const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0;
 
     return { precision, recall, f1, tp, fp, fn };
 }
@@ -626,7 +655,8 @@ async function runTest(
     flags: ImprovementFlags,
     label: string
 ): Promise<{ avgF1: number; avgTime: number }> {
-    let totalF1 = 0, totalTime = 0;
+    let totalF1 = 0,
+        totalTime = 0;
 
     for (const tc of testCases) {
         const start = performance.now();
@@ -682,12 +712,14 @@ async function main() {
         const flags = { ...BASELINE_FLAGS, [imp.key]: true };
         const result = await runTest(testCases, flags, imp.name);
 
-        const delta = ((result.avgF1 - baseline.avgF1) / baseline.avgF1 * 100);
+        const delta = ((result.avgF1 - baseline.avgF1) / baseline.avgF1) * 100;
         const deltaStr = delta >= 0 ? `+${delta.toFixed(1)}%` : `${delta.toFixed(1)}%`;
 
         results.push({ name: imp.name, key: imp.key, f1: result.avgF1, time: result.avgTime, delta });
 
-        console.log(`| ${imp.name.padEnd(25)} | ${(result.avgF1 * 100).toFixed(2).padEnd(10)}% | ${deltaStr.padEnd(10)} | ${result.avgTime.toFixed(0).padStart(5)}ms |`);
+        console.log(
+            `| ${imp.name.padEnd(25)} | ${(result.avgF1 * 100).toFixed(2).padEnd(10)}% | ${deltaStr.padEnd(10)} | ${result.avgTime.toFixed(0).padStart(5)}ms |`
+        );
     }
 
     console.log('─'.repeat(70));
@@ -716,7 +748,7 @@ async function main() {
             const result = await runTest(testCases, testFlags, `+${imp.name}`);
 
             const improvement = result.avgF1 >= currentF1;
-            const delta = ((result.avgF1 - currentF1) / currentF1 * 100);
+            const delta = ((result.avgF1 - currentF1) / currentF1) * 100;
 
             if (improvement) {
                 currentFlags = testFlags;
@@ -732,13 +764,15 @@ async function main() {
 
         // Final results
         const finalResult = await runTest(testCases, currentFlags, 'Final');
-        const totalImprovement = ((finalResult.avgF1 - baseline.avgF1) / baseline.avgF1 * 100);
+        const totalImprovement = ((finalResult.avgF1 - baseline.avgF1) / baseline.avgF1) * 100;
 
         console.log('\n\n' + '═'.repeat(70));
         console.log('FINAL RESULTS');
         console.log('═'.repeat(70));
         console.log(`Baseline:     F1=${(baseline.avgF1 * 100).toFixed(2)}%, Time=${baseline.avgTime.toFixed(0)}ms`);
-        console.log(`Optimized:    F1=${(finalResult.avgF1 * 100).toFixed(2)}%, Time=${finalResult.avgTime.toFixed(0)}ms`);
+        console.log(
+            `Optimized:    F1=${(finalResult.avgF1 * 100).toFixed(2)}%, Time=${finalResult.avgTime.toFixed(0)}ms`
+        );
         console.log(`Improvement:  ${totalImprovement >= 0 ? '+' : ''}${totalImprovement.toFixed(1)}%`);
 
         console.log('\nApplied improvements:');

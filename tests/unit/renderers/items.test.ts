@@ -251,7 +251,8 @@ describe('renderers/items.ts', () => {
         it('should add expand indicator for long descriptions', async () => {
             const longDescItem = {
                 ...mockItem,
-                detailed_description: 'This is a very long description that exceeds the maximum length allowed for truncation and should show an expand indicator at the end of the text',
+                detailed_description:
+                    'This is a very long description that exceeds the maximum length allowed for truncation and should show an expand indicator at the end of the text',
             };
             await renderItems([longDescItem] as any);
 
@@ -262,7 +263,8 @@ describe('renderers/items.ts', () => {
         it('should store full text in data attribute for expandable descriptions', async () => {
             const longDescItem = {
                 ...mockItem,
-                detailed_description: 'This is a very long description that exceeds the maximum length allowed for truncation. It should have the full text stored in a data attribute.',
+                detailed_description:
+                    'This is a very long description that exceeds the maximum length allowed for truncation. It should have the full text stored in a data attribute.',
             };
             await renderItems([longDescItem] as any);
 

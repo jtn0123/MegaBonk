@@ -11,7 +11,9 @@ test.describe('Theme Toggle', () => {
     });
 
     test('theme toggle button is visible', async ({ page }) => {
-        const themeToggle = page.locator('.theme-toggle, #theme-toggle, [aria-label*="theme"], button:has-text("🌙"), button:has-text("☀")');
+        const themeToggle = page.locator(
+            '.theme-toggle, #theme-toggle, [aria-label*="theme"], button:has-text("🌙"), button:has-text("☀")'
+        );
         await expect(themeToggle.first()).toBeVisible();
     });
 
@@ -24,38 +26,38 @@ test.describe('Theme Toggle', () => {
         await themeToggle.click();
         await page.waitForTimeout(100);
 
-        const newTheme = await html.getAttribute('data-theme');
-        expect(newTheme).not.toBe(initialTheme);
+        const newTheme = html;
+        await expect(newTheme).not.toHaveAttribute('data-theme', initialTheme);
     });
 
     test('theme persists after page reload', async ({ page }) => {
         const html = page.locator('html');
-        
+
         // Get initial theme
         const initialTheme = await html.getAttribute('data-theme');
-        
+
         // Toggle theme
         const themeToggle = page.locator('.theme-toggle, #theme-toggle, [aria-label*="theme"]').first();
         await themeToggle.click();
         await page.waitForTimeout(300);
-        
-        const themeAfterToggle = await html.getAttribute('data-theme');
-        
+
+        const themeAfterToggle = html;
+
         // Verify theme actually changed
-        expect(themeAfterToggle).not.toBe(initialTheme);
+        await expect(themeAfterToggle).not.toHaveAttribute('data-theme', initialTheme);
 
         // Reload page
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.waitForTimeout(200); // Allow theme script to run
 
-        const themeAfterReload = await html.getAttribute('data-theme');
-        expect(themeAfterReload).toBe(themeAfterToggle);
+        const themeAfterReload = html;
+        await expect(themeAfterReload).toHaveAttribute('data-theme', themeAfterToggle);
     });
 
     test('light theme has appropriate colors', async ({ page }) => {
         const html = page.locator('html');
-        
+
         // Ensure we're in light theme
         await html.evaluate(el => el.setAttribute('data-theme', 'light'));
         await page.waitForTimeout(100);
@@ -64,14 +66,14 @@ test.describe('Theme Toggle', () => {
         const bgColor = await page.evaluate(() => {
             return getComputedStyle(document.body).backgroundColor;
         });
-        
+
         // Light theme should have a light background (high RGB values)
         expect(bgColor).toBeTruthy();
     });
 
     test('dark theme has appropriate colors', async ({ page }) => {
         const html = page.locator('html');
-        
+
         // Ensure we're in dark theme
         await html.evaluate(el => el.setAttribute('data-theme', 'dark'));
         await page.waitForTimeout(100);
@@ -80,13 +82,13 @@ test.describe('Theme Toggle', () => {
         const bgColor = await page.evaluate(() => {
             return getComputedStyle(document.body).backgroundColor;
         });
-        
+
         expect(bgColor).toBeTruthy();
     });
 
     test('theme toggle is keyboard accessible', async ({ page }) => {
         const themeToggle = page.locator('.theme-toggle, #theme-toggle, [aria-label*="theme"]').first();
-        
+
         // Tab to theme toggle
         await themeToggle.focus();
         await expect(themeToggle).toBeFocused();
@@ -98,8 +100,8 @@ test.describe('Theme Toggle', () => {
         await page.keyboard.press('Enter');
         await page.waitForTimeout(100);
 
-        const newTheme = await html.getAttribute('data-theme');
-        expect(newTheme).not.toBe(initialTheme);
+        const newTheme = html;
+        await expect(newTheme).not.toHaveAttribute('data-theme', initialTheme);
     });
 
     test('theme affects card styling', async ({ page }) => {
@@ -107,7 +109,7 @@ test.describe('Theme Toggle', () => {
 
         // Helper to set theme via ThemeManager (which updates CSS variables properly)
         const setTheme = async (theme: 'dark' | 'light') => {
-            await page.evaluate((t) => {
+            await page.evaluate(t => {
                 // @ts-expect-error - themeManager is exposed on window
                 if (window.themeManager) {
                     // @ts-expect-error - setTheme exists
@@ -137,7 +139,7 @@ test.describe('Theme Toggle', () => {
             return {
                 bg: style.backgroundColor,
                 color: style.color,
-                border: style.borderColor
+                border: style.borderColor,
             };
         });
 
@@ -148,15 +150,16 @@ test.describe('Theme Toggle', () => {
             return {
                 bg: style.backgroundColor,
                 color: style.color,
-                border: style.borderColor
+                border: style.borderColor,
             };
         });
 
         // At least one style property should differ between themes
-        const stylesMatch = darkStyles.bg === lightStyles.bg && 
-                          darkStyles.color === lightStyles.color && 
-                          darkStyles.border === lightStyles.border;
-        
+        const stylesMatch =
+            darkStyles.bg === lightStyles.bg &&
+            darkStyles.color === lightStyles.color &&
+            darkStyles.border === lightStyles.border;
+
         expect(stylesMatch).toBe(false);
     });
 });
@@ -166,10 +169,10 @@ test.describe('Theme - System Preference', () => {
         // First navigate to the page
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
-        
+
         // Clear any stored theme preference
         await page.evaluate(() => localStorage.removeItem('theme'));
-        
+
         // Emulate dark mode system preference
         await page.emulateMedia({ colorScheme: 'dark' });
         await page.reload();
@@ -177,9 +180,9 @@ test.describe('Theme - System Preference', () => {
 
         // Check if dark theme is applied (may depend on implementation)
         const html = page.locator('html');
-        const theme = await html.getAttribute('data-theme');
-        
+        const theme = html;
+
         // Theme should exist (either dark from system or from previous storage)
-        expect(theme).toBeTruthy();
+        await expect(theme).toHaveAttribute('data-theme');
     });
 });

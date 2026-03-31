@@ -43,10 +43,10 @@ import type { CVDetectionResult, ROI } from '../../src/types';
 const createMockImageData = (width: number, height: number, fillValue: number = 128): ImageData => {
     const data = new Uint8ClampedArray(width * height * 4);
     for (let i = 0; i < data.length; i += 4) {
-        data[i] = fillValue;     // R
+        data[i] = fillValue; // R
         data[i + 1] = fillValue; // G
         data[i + 2] = fillValue; // B
-        data[i + 3] = 255;       // A
+        data[i + 3] = 255; // A
     }
     return { width, height, data, colorSpace: 'srgb' } as ImageData;
 };
@@ -58,11 +58,11 @@ const createGradientImageData = (width: number, height: number): ImageData => {
     const data = new Uint8ClampedArray(width * height * 4);
     for (let i = 0; i < data.length; i += 4) {
         const pixelIndex = Math.floor(i / 4);
-        const value = (pixelIndex % 256);
-        data[i] = value;         // R
-        data[i + 1] = value;     // G
-        data[i + 2] = value;     // B
-        data[i + 3] = 255;       // A
+        const value = pixelIndex % 256;
+        data[i] = value; // R
+        data[i + 1] = value; // G
+        data[i + 2] = value; // B
+        data[i + 3] = 255; // A
     }
     return { width, height, data, colorSpace: 'srgb' } as ImageData;
 };
@@ -70,11 +70,7 @@ const createGradientImageData = (width: number, height: number): ImageData => {
 /**
  * Create mock CVDetectionResult
  */
-const createDetection = (
-    id: string,
-    confidence: number,
-    position?: Partial<ROI>
-): CVDetectionResult => ({
+const createDetection = (id: string, confidence: number, position?: Partial<ROI>): CVDetectionResult => ({
     type: 'item',
     entity: {
         id,
@@ -318,10 +314,7 @@ describe('nonMaxSuppression', () => {
     });
 
     it('handles detections without position', () => {
-        const detections = [
-            createDetection('wrench', 0.9),
-            createDetection('medkit', 0.85),
-        ];
+        const detections = [createDetection('wrench', 0.9), createDetection('medkit', 0.85)];
 
         // Remove positions
         detections[0].position = undefined;

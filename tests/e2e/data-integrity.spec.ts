@@ -28,7 +28,7 @@ test.describe('Data Loading', () => {
     test('weapons tab loads exactly 29 weapons', async ({ page }) => {
         await page.click('.tab-btn[data-tab="weapons"]');
         await page.waitForSelector('#weaponsContainer .item-card', { timeout: 15000 });
-        
+
         const cards = page.locator('#weaponsContainer .item-card');
         await expect(cards).toHaveCount(EXPECTED_COUNTS.weapons);
     });
@@ -36,7 +36,7 @@ test.describe('Data Loading', () => {
     test('tomes tab loads exactly 23 tomes', async ({ page }) => {
         await page.click('.tab-btn[data-tab="tomes"]');
         await page.waitForSelector('#tomesContainer .item-card', { timeout: 15000 });
-        
+
         const cards = page.locator('#tomesContainer .item-card');
         await expect(cards).toHaveCount(EXPECTED_COUNTS.tomes);
     });
@@ -44,7 +44,7 @@ test.describe('Data Loading', () => {
     test('characters tab loads exactly 20 characters', async ({ page }) => {
         await page.click('.tab-btn[data-tab="characters"]');
         await page.waitForSelector('#charactersContainer .item-card', { timeout: 15000 });
-        
+
         const cards = page.locator('#charactersContainer .item-card');
         await expect(cards).toHaveCount(EXPECTED_COUNTS.characters);
     });
@@ -52,7 +52,7 @@ test.describe('Data Loading', () => {
     test('shrines tab loads exactly 8 shrines', async ({ page }) => {
         await page.click('.tab-btn[data-tab="shrines"]');
         await page.waitForSelector('#shrinesContainer .item-card', { timeout: 15000 });
-        
+
         const cards = page.locator('#shrinesContainer .item-card');
         await expect(cards).toHaveCount(EXPECTED_COUNTS.shrines);
     });
@@ -108,7 +108,7 @@ test.describe('Image Loading', () => {
 
         const images = page.locator('#weaponsContainer .item-card img');
         const count = await images.count();
-        
+
         // Check multiple images, allow some failures
         let loadedCount = 0;
         for (let i = 0; i < Math.min(count, 5); i++) {
@@ -140,8 +140,8 @@ test.describe('Card Data Attributes', () => {
         const count = await cards.count();
 
         for (let i = 0; i < count; i++) {
-            const entityType = await cards.nth(i).getAttribute('data-entity-type');
-            expect(entityType).toBe('item');
+            const entityType = cards.nth(i);
+            await expect(entityType).toHaveAttribute('data-entity-type', 'item');
         }
     });
 
@@ -150,8 +150,8 @@ test.describe('Card Data Attributes', () => {
         const count = await cards.count();
 
         for (let i = 0; i < count; i++) {
-            const entityId = await cards.nth(i).getAttribute('data-entity-id');
-            expect(entityId).toBeTruthy();
+            const entityId = cards.nth(i);
+            await expect(entityId).toHaveAttribute('data-entity-id');
             expect(entityId?.length).toBeGreaterThan(0);
         }
     });
@@ -189,9 +189,9 @@ test.describe('Content Integrity', () => {
 
     test('all item cards have visible name', async ({ page }) => {
         const names = page.locator('#itemsContainer .item-card .item-name');
-        const count = await names.count();
+        const count = names;
 
-        expect(count).toBe(EXPECTED_COUNTS.items);
+        await expect(count).toHaveCount(EXPECTED_COUNTS.items);
 
         for (let i = 0; i < Math.min(count, 20); i++) {
             const text = await names.nth(i).textContent();
@@ -201,9 +201,9 @@ test.describe('Content Integrity', () => {
 
     test('all item cards have effect text', async ({ page }) => {
         const effects = page.locator('#itemsContainer .item-card .item-effect');
-        const count = await effects.count();
+        const count = effects;
 
-        expect(count).toBe(EXPECTED_COUNTS.items);
+        await expect(count).toHaveCount(EXPECTED_COUNTS.items);
 
         for (let i = 0; i < Math.min(count, 20); i++) {
             const text = await effects.nth(i).textContent();
@@ -212,7 +212,9 @@ test.describe('Content Integrity', () => {
     });
 
     test('all item cards have tier label', async ({ page }) => {
-        const tiers = page.locator('#itemsContainer .item-card .tier-label, #itemsContainer .item-card [class*="tier"]');
+        const tiers = page.locator(
+            '#itemsContainer .item-card .tier-label, #itemsContainer .item-card [class*="tier"]'
+        );
         const count = await tiers.count();
 
         // Each card should have a tier indicator
@@ -275,7 +277,12 @@ test.describe('No Console Errors', () => {
         page.on('pageerror', err => {
             // Filter out non-critical errors (image loading, network issues)
             const msg = err.message.toLowerCase();
-            if (!msg.includes('image') && !msg.includes('404') && !msg.includes('network') && !msg.includes('failed to load')) {
+            if (
+                !msg.includes('image') &&
+                !msg.includes('404') &&
+                !msg.includes('network') &&
+                !msg.includes('failed to load')
+            ) {
                 criticalErrors.push(err.message);
             }
         });
@@ -283,7 +290,17 @@ test.describe('No Console Errors', () => {
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 25000 });
 
-        const tabs = ['weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator', 'advisor', 'changelog', 'about'];
+        const tabs = [
+            'weapons',
+            'tomes',
+            'characters',
+            'shrines',
+            'build-planner',
+            'calculator',
+            'advisor',
+            'changelog',
+            'about',
+        ];
         for (const tab of tabs) {
             await page.click(`.tab-btn[data-tab="${tab}"]`);
             await page.waitForTimeout(500);
@@ -297,7 +314,7 @@ test.describe('No Console Errors', () => {
 test.describe('Network Requests', () => {
     test('no failed data requests', async ({ page }) => {
         const failedRequests: string[] = [];
-        
+
         page.on('response', response => {
             if (response.status() >= 400 && response.url().includes('/data/')) {
                 failedRequests.push(`${response.status()}: ${response.url()}`);

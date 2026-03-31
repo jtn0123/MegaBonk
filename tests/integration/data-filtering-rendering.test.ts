@@ -8,10 +8,38 @@ import { groupBy, filterMap, partition, uniqueBy, countBy } from '../../src/modu
 import type { AllGameData, Item, Weapon } from '../../src/types/index.ts';
 
 const mockItems: Item[] = [
-    { id: 'sword', name: 'Iron Sword', description: 'A basic sword', tier: 'B', rarity: 'common', tags: ['melee', 'damage'] },
-    { id: 'shield', name: 'Wooden Shield', description: 'A basic shield', tier: 'C', rarity: 'common', tags: ['defense'] },
-    { id: 'potion', name: 'Health Potion', description: 'Restores health', tier: 'A', rarity: 'uncommon', tags: ['healing'] },
-    { id: 'crown', name: 'Golden Crown', description: 'A legendary crown', tier: 'SS', rarity: 'legendary', tags: ['special'] },
+    {
+        id: 'sword',
+        name: 'Iron Sword',
+        description: 'A basic sword',
+        tier: 'B',
+        rarity: 'common',
+        tags: ['melee', 'damage'],
+    },
+    {
+        id: 'shield',
+        name: 'Wooden Shield',
+        description: 'A basic shield',
+        tier: 'C',
+        rarity: 'common',
+        tags: ['defense'],
+    },
+    {
+        id: 'potion',
+        name: 'Health Potion',
+        description: 'Restores health',
+        tier: 'A',
+        rarity: 'uncommon',
+        tags: ['healing'],
+    },
+    {
+        id: 'crown',
+        name: 'Golden Crown',
+        description: 'A legendary crown',
+        tier: 'SS',
+        rarity: 'legendary',
+        tags: ['special'],
+    },
     { id: 'ring', name: 'Silver Ring', description: 'Boosts stats', tier: 'S', rarity: 'rare', tags: ['utility'] },
 ];
 
@@ -62,7 +90,7 @@ describe('Integration: Data → Filtering → Search Pipeline', () => {
     it('should partition items into tier groups', () => {
         const [highTier, lowTier] = partition(mockItems, item => ['SS', 'S', 'A'].includes(item.tier));
         expect(highTier.length).toBe(3); // potion(A), crown(SS), ring(S)
-        expect(lowTier.length).toBe(2);  // sword(B), shield(C)
+        expect(lowTier.length).toBe(2); // sword(B), shield(C)
     });
 
     it('should count items by rarity', () => {

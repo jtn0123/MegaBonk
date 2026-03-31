@@ -347,7 +347,12 @@ describe('CV State Module - Coverage Enhancement', () => {
             it('returns cached result on subsequent calls', async () => {
                 const mockPresets = {
                     version: '1.0',
-                    presets: { '1920x1080': { resolution: { width: 1920, height: 1080 }, calibration: createMockCalibration() } },
+                    presets: {
+                        '1920x1080': {
+                            resolution: { width: 1920, height: 1080 },
+                            calibration: createMockCalibration(),
+                        },
+                    },
                 };
 
                 const fetchSpy = vi.spyOn(global, 'fetch').mockResolvedValue({
@@ -473,7 +478,10 @@ describe('CV State Module - Coverage Enhancement', () => {
                 const mockPresets = {
                     version: '1.0',
                     presets: {
-                        '1920x1080': { resolution: { width: 1920, height: 1080 }, calibration: createMockCalibration() },
+                        '1920x1080': {
+                            resolution: { width: 1920, height: 1080 },
+                            calibration: createMockCalibration(),
+                        },
                         '1280x720': { resolution: { width: 1280, height: 720 }, calibration: createMockCalibration() },
                     },
                 };
@@ -620,7 +628,15 @@ describe('CV State Module - Coverage Enhancement', () => {
         it('clears grid presets', async () => {
             vi.spyOn(global, 'fetch').mockResolvedValue({
                 ok: true,
-                json: async () => ({ version: '1.0', presets: { '1920x1080': { resolution: { width: 1920, height: 1080 }, calibration: createMockCalibration() } } }),
+                json: async () => ({
+                    version: '1.0',
+                    presets: {
+                        '1920x1080': {
+                            resolution: { width: 1920, height: 1080 },
+                            calibration: createMockCalibration(),
+                        },
+                    },
+                }),
             } as Response);
 
             await loadGridPresets();

@@ -14,12 +14,17 @@ const BIOME_SIGNATURES = {
     snow: { dominant: { r: [100, 140], g: [110, 150], b: [125, 165] }, name: 'Snow' },
     hell: { dominant: { r: [100, 140], g: [35, 85], b: [25, 75] }, name: 'Hell' },
     ocean: { dominant: { r: [10, 60], g: [100, 150], b: [130, 180] }, name: 'Ocean' },
-    crypt: { dominant: { r: [85, 125], g: [70, 105], b: [90, 130] }, name: 'Crypt' }
+    crypt: { dominant: { r: [85, 125], g: [70, 105], b: [90, 130] }, name: 'Crypt' },
 };
 
 const WEAPON_TOME_GRID = {
-    leftMarginBase: 6, topMarginBase: 135, iconSizeBase: 32,
-    spacingXBase: 10, spacingYBase: 45, cols: 4, rows: 2
+    leftMarginBase: 6,
+    topMarginBase: 135,
+    iconSizeBase: 32,
+    spacingXBase: 10,
+    spacingYBase: 45,
+    cols: 4,
+    rows: 2,
 };
 
 // ==================== DETECTION FUNCTIONS ====================
@@ -30,36 +35,49 @@ function detectBiome(ctx, width, height) {
         { x: width * 0.2, y: height * 0.4, w: width * 0.2, h: height * 0.2 },
     ];
 
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
     for (const region of regions) {
-        const data = ctx.getImageData(Math.round(region.x), Math.round(region.y),
-                                       Math.round(region.w), Math.round(region.h));
+        const data = ctx.getImageData(
+            Math.round(region.x),
+            Math.round(region.y),
+            Math.round(region.w),
+            Math.round(region.h)
+        );
         for (let i = 0; i < data.data.length; i += 4) {
-            sumR += data.data[i]; sumG += data.data[i+1]; sumB += data.data[i+2];
+            sumR += data.data[i];
+            sumG += data.data[i + 1];
+            sumB += data.data[i + 2];
             count++;
         }
     }
 
     const avg = { r: sumR / count, g: sumG / count, b: sumB / count };
 
-    let bestBiome = 'unknown', bestScore = -1;
+    let bestBiome = 'unknown',
+        bestScore = -1;
     for (const [biome, sig] of Object.entries(BIOME_SIGNATURES)) {
         let score = 0;
         const d = sig.dominant;
         if (avg.r >= d.r[0] && avg.r <= d.r[1]) score += 2;
         if (avg.g >= d.g[0] && avg.g <= d.g[1]) score += 2;
         if (avg.b >= d.b[0] && avg.b <= d.b[1]) score += 2;
-        score += Math.max(0, 3 - Math.abs(avg.r - (d.r[0] + d.r[1])/2) / 30);
-        score += Math.max(0, 3 - Math.abs(avg.g - (d.g[0] + d.g[1])/2) / 30);
-        score += Math.max(0, 3 - Math.abs(avg.b - (d.b[0] + d.b[1])/2) / 30);
-        if (score > bestScore) { bestScore = score; bestBiome = biome; }
+        score += Math.max(0, 3 - Math.abs(avg.r - (d.r[0] + d.r[1]) / 2) / 30);
+        score += Math.max(0, 3 - Math.abs(avg.g - (d.g[0] + d.g[1]) / 2) / 30);
+        score += Math.max(0, 3 - Math.abs(avg.b - (d.b[0] + d.b[1]) / 2) / 30);
+        if (score > bestScore) {
+            bestScore = score;
+            bestBiome = biome;
+        }
     }
 
     return {
         biome: bestBiome,
         biomeName: BIOME_SIGNATURES[bestBiome]?.name || 'Unknown',
         confidence: Math.min(1, bestScore / 15),
-        avgColor: avg
+        avgColor: avg,
     };
 }
 
@@ -74,7 +92,7 @@ function detectInventoryGrid(ctx, width, height) {
     const rows = [];
 
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        const y = height - bottomMargin - row * rowHeight - iconSize;
         if (y < height * 0.65) continue;
 
         const sideMargin = Math.round(width * 0.15);
@@ -88,10 +106,14 @@ function detectInventoryGrid(ctx, width, height) {
             const x = startX + col * cellWidth;
             const cellData = ctx.getImageData(x, y, iconSize, iconSize);
 
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < cellData.data.length; i += 4) {
-                const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const mean = sum / count;
             const variance = sumSq / count - mean * mean;
@@ -110,7 +132,8 @@ function detectInventoryGrid(ctx, width, height) {
 function detectWeaponsAndTomes(ctx, width, height) {
     const scale = height / 720;
     const p = WEAPON_TOME_GRID;
-    const weapons = [], tomes = [];
+    const weapons = [],
+        tomes = [];
 
     for (let row = 0; row < p.rows; row++) {
         for (let col = 0; col < p.cols; col++) {
@@ -119,10 +142,14 @@ function detectWeaponsAndTomes(ctx, width, height) {
             const y = Math.round(p.topMarginBase * scale) + row * (iconSize + Math.round(p.spacingYBase * scale));
 
             const data = ctx.getImageData(x, y, iconSize, iconSize);
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < data.data.length; i += 4) {
-                const gray = (data.data[i] + data.data[i+1] + data.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (data.data[i] + data.data[i + 1] + data.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const variance = sumSq / count - (sum / count) ** 2;
             const isEmpty = variance < 500 || sum / count < 40;
@@ -138,7 +165,7 @@ function detectWeaponsAndTomes(ctx, width, height) {
         weapons: weapons.filter(w => !w.isEmpty),
         tomes: tomes.filter(t => !t.isEmpty),
         weaponCount: weapons.filter(w => !w.isEmpty).length,
-        tomeCount: tomes.filter(t => !t.isEmpty).length
+        tomeCount: tomes.filter(t => !t.isEmpty).length,
     };
 }
 
@@ -151,9 +178,10 @@ function detectUIState(ctx, width, height) {
         Math.round(height * 0.4)
     );
 
-    let darkPixels = 0, totalPixels = centerData.data.length / 4;
+    let darkPixels = 0;
+    const totalPixels = centerData.data.length / 4;
     for (let i = 0; i < centerData.data.length; i += 4) {
-        const brightness = (centerData.data[i] + centerData.data[i+1] + centerData.data[i+2]) / 3;
+        const brightness = (centerData.data[i] + centerData.data[i + 1] + centerData.data[i + 2]) / 3;
         if (brightness < 60) darkPixels++;
     }
 
@@ -163,7 +191,7 @@ function detectUIState(ctx, width, height) {
     const leftData = ctx.getImageData(0, Math.round(height * 0.2), Math.round(width * 0.15), Math.round(height * 0.5));
     let leftDark = 0;
     for (let i = 0; i < leftData.data.length; i += 4) {
-        const b = (leftData.data[i] + leftData.data[i+1] + leftData.data[i+2]) / 3;
+        const b = (leftData.data[i] + leftData.data[i + 1] + leftData.data[i + 2]) / 3;
         if (b < 50) leftDark++;
     }
     const leftDarkRatio = leftDark / (leftData.data.length / 4);
@@ -182,35 +210,35 @@ function runValidation(data) {
     checks.push({
         name: 'weapons_valid',
         passed: data.equipment.weaponCount >= 0 && data.equipment.weaponCount <= 4,
-        value: data.equipment.weaponCount
+        value: data.equipment.weaponCount,
     });
 
     // Tomes in range
     checks.push({
         name: 'tomes_valid',
         passed: data.equipment.tomeCount >= 0 && data.equipment.tomeCount <= 4,
-        value: data.equipment.tomeCount
+        value: data.equipment.tomeCount,
     });
 
     // Items reasonable
     checks.push({
         name: 'items_valid',
         passed: data.inventory.totalItems >= 0 && data.inventory.totalItems <= 60,
-        value: data.inventory.totalItems
+        value: data.inventory.totalItems,
     });
 
     // Has some equipment
     checks.push({
         name: 'has_equipment',
         passed: data.equipment.weaponCount > 0 || data.equipment.tomeCount > 0,
-        value: data.equipment.weaponCount + data.equipment.tomeCount
+        value: data.equipment.weaponCount + data.equipment.tomeCount,
     });
 
     // Biome detected
     checks.push({
         name: 'biome_detected',
         passed: data.biome.biome !== 'unknown' && data.biome.confidence > 0.4,
-        value: data.biome.confidence
+        value: data.biome.confidence,
     });
 
     const passed = checks.filter(c => c.passed).length;
@@ -228,7 +256,7 @@ async function analyzeScreenshot(imagePath, options = {}) {
     const result = {
         file: path.basename(imagePath),
         resolution: { width: image.width, height: image.height },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
     };
 
     // Detect UI state first
@@ -244,18 +272,20 @@ async function analyzeScreenshot(imagePath, options = {}) {
     if (result.uiState.state === 'gameplay') {
         result.inventory = detectInventoryGrid(ctx, image.width, image.height);
     } else {
-        result.inventory = { items: [], rows: [], totalItems: 0, note: 'Inventory popup detected - different detection needed' };
+        result.inventory = {
+            items: [],
+            rows: [],
+            totalItems: 0,
+            note: 'Inventory popup detected - different detection needed',
+        };
     }
 
     // Run validation
     result.validation = runValidation(result);
 
     // Calculate overall confidence
-    result.overallConfidence = (
-        result.biome.confidence * 0.2 +
-        result.uiState.confidence * 0.2 +
-        result.validation.score * 0.6
-    );
+    result.overallConfidence =
+        result.biome.confidence * 0.2 + result.uiState.confidence * 0.2 + result.validation.score * 0.6;
 
     return result;
 }
@@ -287,7 +317,9 @@ async function main() {
                 results.push(result);
 
                 const shortName = filename.slice(9, 30);
-                console.log(`| ${shortName.padEnd(21)} | ${result.uiState.state.slice(0, 8).padEnd(8)} | ${result.biome.biome.padEnd(6)} | ${String(result.equipment.weaponCount).padStart(4)} | ${String(result.equipment.tomeCount).padStart(5)} | ${String(result.inventory.totalItems).padStart(5)} | ${result.validation.passed}/${result.validation.total} | ${(result.overallConfidence * 100).toFixed(0).padStart(3)}% |`);
+                console.log(
+                    `| ${shortName.padEnd(21)} | ${result.uiState.state.slice(0, 8).padEnd(8)} | ${result.biome.biome.padEnd(6)} | ${String(result.equipment.weaponCount).padStart(4)} | ${String(result.equipment.tomeCount).padStart(5)} | ${String(result.inventory.totalItems).padStart(5)} | ${result.validation.passed}/${result.validation.total} | ${(result.overallConfidence * 100).toFixed(0).padStart(3)}% |`
+                );
             } catch (err) {
                 console.log(`| ${filename.slice(9, 30).padEnd(21)} | ERROR: ${err.message.slice(0, 40)} |`);
             }
@@ -306,7 +338,6 @@ async function main() {
             fs.writeFileSync('./test-results/analysis-results.json', JSON.stringify(results, null, 2));
             console.log('\nJSON saved to: ./test-results/analysis-results.json');
         }
-
     } else {
         // Analyze specific image(s)
         for (const imagePath of imagePaths) {

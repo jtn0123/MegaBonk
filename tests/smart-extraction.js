@@ -20,8 +20,8 @@ function detectGridPositions(width, height) {
 
     const rowYPositions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
-        if (y >= height * 0.70) rowYPositions.push(y);
+        const y = height - bottomMargin - row * rowHeight - iconSize;
+        if (y >= height * 0.7) rowYPositions.push(y);
     }
 
     const sideMargin = Math.round(width * 0.15);
@@ -39,40 +39,54 @@ function detectGridPositions(width, height) {
 }
 
 function getCellStats(imageData) {
-    let sum = 0, sumSq = 0, count = 0;
-    let sumR = 0, sumG = 0, sumB = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
     let edgeSum = 0;
 
-    const w = imageData.width, h = imageData.height;
+    const w = imageData.width,
+        h = imageData.height;
     const gray = new Float32Array(w * h);
 
     for (let i = 0; i < w * h; i++) {
-        gray[i] = (imageData.data[i*4] + imageData.data[i*4+1] + imageData.data[i*4+2]) / 3;
-        sum += gray[i]; sumSq += gray[i] * gray[i];
-        sumR += imageData.data[i*4];
-        sumG += imageData.data[i*4+1];
-        sumB += imageData.data[i*4+2];
+        gray[i] = (imageData.data[i * 4] + imageData.data[i * 4 + 1] + imageData.data[i * 4 + 2]) / 3;
+        sum += gray[i];
+        sumSq += gray[i] * gray[i];
+        sumR += imageData.data[i * 4];
+        sumG += imageData.data[i * 4 + 1];
+        sumB += imageData.data[i * 4 + 2];
         count++;
     }
 
     // Simple edge count (Sobel magnitude > threshold)
     for (let y = 1; y < h - 1; y++) {
         for (let x = 1; x < w - 1; x++) {
-            const gx = gray[(y-1)*w + x+1] - gray[(y-1)*w + x-1] +
-                      2*gray[y*w + x+1] - 2*gray[y*w + x-1] +
-                      gray[(y+1)*w + x+1] - gray[(y+1)*w + x-1];
-            const gy = gray[(y+1)*w + x-1] - gray[(y-1)*w + x-1] +
-                      2*gray[(y+1)*w + x] - 2*gray[(y-1)*w + x] +
-                      gray[(y+1)*w + x+1] - gray[(y-1)*w + x+1];
-            if (Math.sqrt(gx*gx + gy*gy) > 30) edgeSum++;
+            const gx =
+                gray[(y - 1) * w + x + 1] -
+                gray[(y - 1) * w + x - 1] +
+                2 * gray[y * w + x + 1] -
+                2 * gray[y * w + x - 1] +
+                gray[(y + 1) * w + x + 1] -
+                gray[(y + 1) * w + x - 1];
+            const gy =
+                gray[(y + 1) * w + x - 1] -
+                gray[(y - 1) * w + x - 1] +
+                2 * gray[(y + 1) * w + x] -
+                2 * gray[(y - 1) * w + x] +
+                gray[(y + 1) * w + x + 1] -
+                gray[(y - 1) * w + x + 1];
+            if (Math.sqrt(gx * gx + gy * gy) > 30) edgeSum++;
         }
     }
 
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
-    const edgeDensity = edgeSum / ((w-2) * (h-2));
+    const edgeDensity = edgeSum / ((w - 2) * (h - 2));
 
-    return { mean, variance, edgeDensity, avgR: sumR/count, avgG: sumG/count, avgB: sumB/count };
+    return { mean, variance, edgeDensity, avgR: sumR / count, avgG: sumG / count, avgB: sumB / count };
 }
 
 // Stricter empty detection using multiple criteria
@@ -83,24 +97,35 @@ function isLikelyEmpty(stats, biome = 'default') {
 
     if (stats.variance < varianceThreshold) return true;
     if (stats.edgeDensity < edgeThreshold) return true;
-    if (stats.mean < 25) return true;  // Too dark
+    if (stats.mean < 25) return true; // Too dark
 
     return false;
 }
 
 // Simple NCC for template comparison
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 async function extract() {
@@ -122,7 +147,7 @@ async function extract() {
             const canvas = createCanvas(32, 32);
             const ctx = canvas.getContext('2d');
             const margin = Math.round(img.width * 0.1);
-            ctx.drawImage(img, margin, margin, img.width - margin*2, img.height - margin*2, 0, 0, 32, 32);
+            ctx.drawImage(img, margin, margin, img.width - margin * 2, img.height - margin * 2, 0, 0, 32, 32);
             templates.set(item.id, { item, imageData: ctx.getImageData(0, 0, 32, 32) });
         } catch {}
     }
@@ -152,9 +177,7 @@ async function extract() {
         const positions = detectGridPositions(image.width, image.height);
 
         // Expected items for this image
-        const expectedItems = data.items.map(item =>
-            item.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-        );
+        const expectedItems = data.items.map(item => item.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
         const expectedCounts = new Map();
         expectedItems.forEach(id => expectedCounts.set(id, (expectedCounts.get(id) || 0) + 1));
 
@@ -177,7 +200,17 @@ async function extract() {
             const srcCanvas = createCanvas(pos.width, pos.height);
             srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.12);
-            resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
             const resizedData = resizeCtx.getImageData(0, 0, 32, 32);
 
             // Find best template match
@@ -199,7 +232,7 @@ async function extract() {
                 bestMatch,
                 bestScore,
                 // Check if best match is in expected items
-                matchInExpected: expectedCounts.has(bestMatch)
+                matchInExpected: expectedCounts.has(bestMatch),
             });
         }
 
@@ -211,7 +244,7 @@ async function extract() {
         const matchedCount = cells.filter(c => c.matchInExpected && c.bestScore > 0.4).length;
         console.log(`${name.slice(9, 40)}`);
         console.log(`  Detected: ${cells.length} | Expected: ${expectedItems.length} | Filtered: ${filtered}`);
-        console.log(`  Matches in expected: ${matchedCount} (${(matchedCount/cells.length*100).toFixed(0)}%)`);
+        console.log(`  Matches in expected: ${matchedCount} (${((matchedCount / cells.length) * 100).toFixed(0)}%)`);
 
         // Extract crops with auto-labels
         for (const cell of cells) {
@@ -235,7 +268,7 @@ async function extract() {
                 label,
                 confidence,
                 bestScore: cell.bestScore,
-                canvas: cell.resizeCanvas
+                canvas: cell.resizeCanvas,
             });
         }
     }
@@ -248,16 +281,18 @@ async function extract() {
     console.log(`\nTotal detected: ${totalDetected}`);
     console.log(`Total expected: ${totalExpected}`);
     console.log(`Total filtered (empty): ${totalFiltered}`);
-    console.log(`Detection accuracy: ${((1 - Math.abs(totalDetected - totalExpected) / totalExpected) * 100).toFixed(1)}%`);
+    console.log(
+        `Detection accuracy: ${((1 - Math.abs(totalDetected - totalExpected) / totalExpected) * 100).toFixed(1)}%`
+    );
 
     const highConf = extractedItems.filter(i => i.confidence === 'high').length;
     const medConf = extractedItems.filter(i => i.confidence === 'medium').length;
     const lowConf = extractedItems.filter(i => i.confidence === 'low').length;
 
     console.log(`\nLabel confidence distribution:`);
-    console.log(`  High (score > 0.5, in expected): ${highConf} (${(highConf/totalDetected*100).toFixed(1)}%)`);
-    console.log(`  Medium (score > 0.4, in expected): ${medConf} (${(medConf/totalDetected*100).toFixed(1)}%)`);
-    console.log(`  Low (unknown): ${lowConf} (${(lowConf/totalDetected*100).toFixed(1)}%)`);
+    console.log(`  High (score > 0.5, in expected): ${highConf} (${((highConf / totalDetected) * 100).toFixed(1)}%)`);
+    console.log(`  Medium (score > 0.4, in expected): ${medConf} (${((medConf / totalDetected) * 100).toFixed(1)}%)`);
+    console.log(`  Low (unknown): ${lowConf} (${((lowConf / totalDetected) * 100).toFixed(1)}%)`);
 
     // Save high-confidence items grouped by label
     const highConfByLabel = new Map();
@@ -276,10 +311,7 @@ async function extract() {
         fs.mkdirSync(labelDir, { recursive: true });
 
         for (let i = 0; i < items.length; i++) {
-            fs.writeFileSync(
-                path.join(labelDir, `${label}_${i}.png`),
-                items[i].canvas.toBuffer('image/png')
-            );
+            fs.writeFileSync(path.join(labelDir, `${label}_${i}.png`), items[i].canvas.toBuffer('image/png'));
         }
     }
 
@@ -313,13 +345,10 @@ async function extract() {
             mCtx.fillRect(x, y + cellSize - 14, cellSize - 4, 12);
             mCtx.fillStyle = '#0f0';
             mCtx.font = '8px monospace';
-            mCtx.fillText(`${(item.bestScore*100).toFixed(0)}%`, x + 2, y + cellSize - 4);
+            mCtx.fillText(`${(item.bestScore * 100).toFixed(0)}%`, x + 2, y + cellSize - 4);
         }
 
-        fs.writeFileSync(
-            path.join(OUTPUT_DIR, 'high-confidence-montage.png'),
-            montage.toBuffer('image/png')
-        );
+        fs.writeFileSync(path.join(OUTPUT_DIR, 'high-confidence-montage.png'), montage.toBuffer('image/png'));
         console.log(`\nHigh-confidence montage saved: ${OUTPUT_DIR}/high-confidence-montage.png`);
     }
 

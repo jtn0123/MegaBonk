@@ -49,7 +49,7 @@ function calculateAccuracyMetrics(detected, expected) {
     // Calculate true positives (correctly detected items with correct count)
     let truePositives = 0;
     let totalDetectedItems = 0;
-    let totalExpectedItems = expected.length;
+    const totalExpectedItems = expected.length;
 
     // For each expected item, check if detected
     for (const [item, expectedCount] of Object.entries(expectedCounts)) {
@@ -69,7 +69,7 @@ function calculateAccuracyMetrics(detected, expected) {
     totalDetectedItems = detected.length;
 
     // False negatives: in ground truth but not detected, or too few copies
-    let falseNegatives = totalExpectedItems - truePositives;
+    const falseNegatives = totalExpectedItems - truePositives;
 
     // Metrics
     const precision = totalDetectedItems > 0 ? truePositives / totalDetectedItems : 0;
@@ -121,6 +121,7 @@ function calculateAccuracyMetrics(detected, expected) {
 
 // Check if dev server is running before all tests
 let serverAvailable = false;
+
 test.beforeAll(async () => {
     try {
         const response = await fetch('http://localhost:5173', { method: 'HEAD' });
@@ -134,7 +135,7 @@ test.beforeAll(async () => {
 test.describe('CV Accuracy Tests', () => {
     // Skip: CV tests are slow and have dedicated workflow - run separately
     test.skip(true, 'CV tests disabled for main e2e - use cv-testing workflow');
-    
+
     test.beforeEach(async ({ page }) => {
         // Navigate to the app
         await page.goto('/');

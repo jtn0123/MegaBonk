@@ -226,9 +226,7 @@ describe('partition', () => {
 
 describe('filterMap', () => {
     it('should filter and map in single pass', () => {
-        const result = filterMap(testItems, item =>
-            item.active ? item.name.toUpperCase() : undefined
-        );
+        const result = filterMap(testItems, item => (item.active ? item.name.toUpperCase() : undefined));
 
         expect(result).toEqual(['ALPHA', 'BETA', 'DELTA']);
     });
@@ -252,9 +250,7 @@ describe('filterMap', () => {
     });
 
     it('should provide index to callback', () => {
-        const result = filterMap([10, 20, 30], (item, index) =>
-            index % 2 === 0 ? item : undefined
-        );
+        const result = filterMap([10, 20, 30], (item, index) => (index % 2 === 0 ? item : undefined));
 
         expect(result).toEqual([10, 30]); // Items at even indices
     });
@@ -286,9 +282,7 @@ describe('findInCollection', () => {
             ],
         },
         weapons: {
-            weapons: [
-                { id: 'bow', name: 'Bow' },
-            ],
+            weapons: [{ id: 'bow', name: 'Bow' }],
         },
     };
 
@@ -513,11 +507,9 @@ describe('maxBy', () => {
 
     it('should skip undefined items during iteration', () => {
         // Note: maxBy uses first defined item as initial max
-        const items = [
-            { name: 'low', value: 5 },
-            undefined,
-            { name: 'high', value: 10 },
-        ] as Array<{ name: string; value: number } | undefined>;
+        const items = [{ name: 'low', value: 5 }, undefined, { name: 'high', value: 10 }] as Array<
+            { name: string; value: number } | undefined
+        >;
         const max = maxBy(items, item => item?.value ?? 0);
 
         expect(max?.name).toBe('high');

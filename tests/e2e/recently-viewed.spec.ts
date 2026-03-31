@@ -15,7 +15,10 @@ test.describe('Recently Viewed', () => {
     test.beforeEach(async ({ page }) => {
         // Clear localStorage and navigate fresh
         await page.goto('/');
-        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
+        await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL');
+        });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
     });
@@ -28,13 +31,13 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // Check localStorage
-            const stored = await page.evaluate((key) => {
+            const stored = await page.evaluate(key => {
                 return localStorage.getItem(key);
             }, STORAGE_KEY);
 
             expect(stored).not.toBeNull();
             const parsed = JSON.parse(stored!);
-            expect(parsed.length).toBe(1);
+            expect(parsed).toHaveLength(1);
             expect(parsed[0].type).toBe('items');
         });
 
@@ -49,10 +52,10 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // Check localStorage
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
-            
-            expect(parsed.length).toBe(1);
+
+            expect(parsed).toHaveLength(1);
             expect(parsed[0].type).toBe('weapons');
         });
 
@@ -67,10 +70,10 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // Check localStorage
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
-            
-            expect(parsed.length).toBe(1);
+
+            expect(parsed).toHaveLength(1);
             expect(parsed[0].type).toBe('tomes');
         });
 
@@ -85,10 +88,10 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // Check localStorage
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
-            
-            expect(parsed.length).toBe(1);
+
+            expect(parsed).toHaveLength(1);
             expect(parsed[0].type).toBe('characters');
         });
 
@@ -103,10 +106,10 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // Check localStorage
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
-            
-            expect(parsed.length).toBe(1);
+
+            expect(parsed).toHaveLength(1);
             expect(parsed[0].type).toBe('shrines');
         });
 
@@ -131,11 +134,11 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // Check localStorage has all three
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
-            
-            expect(parsed.length).toBe(3);
-            
+
+            expect(parsed).toHaveLength(3);
+
             // Most recent should be first
             expect(parsed[0].type).toBe('characters');
             expect(parsed[1].type).toBe('weapons');
@@ -153,10 +156,10 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // Should only have one entry
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
-            
-            expect(parsed.length).toBe(1);
+
+            expect(parsed).toHaveLength(1);
         });
 
         test('should move item to front when re-viewed', async ({ page }) => {
@@ -170,7 +173,7 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // Get the initial order
-            let stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            let stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             let parsed = JSON.parse(stored!);
             const secondItemId = parsed[0].id;
             const firstItemId = parsed[1].id;
@@ -181,10 +184,10 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // First item should now be at the front
-            stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             parsed = JSON.parse(stored!);
-            
-            expect(parsed.length).toBe(2);
+
+            expect(parsed).toHaveLength(2);
             expect(parsed[0].id).toBe(firstItemId);
             expect(parsed[1].id).toBe(secondItemId);
         });
@@ -193,7 +196,7 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemsContainer .item-card >> nth=0');
             await page.click('#itemModal .close');
 
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
 
             expect(parsed[0].id).toBeDefined();
@@ -210,7 +213,7 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // Get the stored ID before reload
-            let stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            let stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const beforeReload = JSON.parse(stored!);
 
             // Reload the page
@@ -218,23 +221,23 @@ test.describe('Recently Viewed', () => {
             await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
             // Check localStorage still has the item
-            stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const afterReload = JSON.parse(stored!);
 
-            expect(afterReload.length).toBe(1);
+            expect(afterReload).toHaveLength(1);
             expect(afterReload[0].id).toBe(beforeReload[0].id);
         });
 
         test('should include timestamp in stored entries', async ({ page }) => {
             const beforeTime = Date.now();
-            
+
             await page.click('#itemsContainer .item-card >> nth=0');
             await expect(page.locator('#itemModal')).toBeVisible();
             await page.click('#itemModal .close');
 
             const afterTime = Date.now();
 
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
 
             expect(parsed[0].timestamp).toBeDefined();
@@ -249,12 +252,14 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemsContainer .item-card >> nth=1');
             await page.click('#itemModal .close');
 
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
-            
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
+
             // Should not throw when parsing
             let parsed;
-            expect(() => { parsed = JSON.parse(stored!); }).not.toThrow();
-            
+            expect(() => {
+                parsed = JSON.parse(stored!);
+            }).not.toThrow();
+
             expect(Array.isArray(parsed)).toBe(true);
         });
 
@@ -262,7 +267,7 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemsContainer .item-card >> nth=0');
             await page.click('#itemModal .close');
 
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
             const entry = parsed[0];
 
@@ -278,7 +283,7 @@ test.describe('Recently Viewed', () => {
             // View more than MAX_RECENT_ITEMS different items
             for (let i = 0; i < MAX_RECENT_ITEMS + 3; i++) {
                 // Scroll if needed to make item visible
-                await page.evaluate((index) => {
+                await page.evaluate(index => {
                     const card = document.querySelectorAll('#itemsContainer .item-card')[index];
                     if (card) card.scrollIntoView({ block: 'center' });
                 }, i);
@@ -295,17 +300,17 @@ test.describe('Recently Viewed', () => {
             await page.waitForTimeout(300);
 
             // Check localStorage is capped
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
 
             expect(parsed.length).toBeLessThanOrEqual(MAX_RECENT_ITEMS);
         });
 
-        // Skip: flaky due to scroll/click timing issues when iterating many items  
+        // Skip: flaky due to scroll/click timing issues when iterating many items
         test.skip('newest entries are kept when cap reached', async ({ page }) => {
             // View MAX_RECENT_ITEMS + 2 items
             for (let i = 0; i < MAX_RECENT_ITEMS + 2; i++) {
-                await page.evaluate((index) => {
+                await page.evaluate(index => {
                     const card = document.querySelectorAll('#itemsContainer .item-card')[index];
                     if (card) card.scrollIntoView({ block: 'center' });
                 }, i);
@@ -322,7 +327,7 @@ test.describe('Recently Viewed', () => {
             await page.waitForTimeout(300);
 
             // Get the stored data
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored!);
 
             // Verify capped and timestamps in descending order (newest first)
@@ -347,12 +352,13 @@ test.describe('Recently Viewed', () => {
 
             // Check if recently viewed section exists or data is in localStorage
             const recentSection = page.locator('.recently-viewed-section');
-            const hasSectionOrData = await recentSection.count() > 0 || 
-                await page.evaluate((key) => {
+            const hasSectionOrData =
+                (await recentSection.count()) > 0 ||
+                (await page.evaluate(key => {
                     const data = localStorage.getItem(key);
                     return data && JSON.parse(data).length > 0;
-                }, STORAGE_KEY);
-            
+                }, STORAGE_KEY));
+
             expect(hasSectionOrData).toBe(true);
         });
 
@@ -366,8 +372,8 @@ test.describe('Recently Viewed', () => {
             await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
             // Check for clear button if section is rendered
-            const sectionExists = await page.locator('.recently-viewed-section').count() > 0;
-            
+            const sectionExists = (await page.locator('.recently-viewed-section').count()) > 0;
+
             if (sectionExists) {
                 const clearBtn = page.locator('.clear-recent-btn');
                 await expect(clearBtn).toBeVisible();
@@ -385,27 +391,27 @@ test.describe('Recently Viewed', () => {
             await page.reload();
             await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
-            const sectionExists = await page.locator('.recently-viewed-section').count() > 0;
-            
+            const sectionExists = (await page.locator('.recently-viewed-section').count()) > 0;
+
             if (sectionExists) {
                 // Click clear button
                 await page.click('.clear-recent-btn');
                 await page.waitForTimeout(100);
 
                 // Section should be removed
-                await expect(page.locator('.recently-viewed-section')).not.toBeVisible();
+                await expect(page.locator('.recently-viewed-section')).toBeHidden();
 
                 // localStorage should be empty
-                const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+                const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
                 const parsed = JSON.parse(stored || '[]');
-                expect(parsed.length).toBe(0);
+                expect(parsed).toHaveLength(0);
             } else {
                 // If section not rendered, verify we can at least clear via localStorage
-                await page.evaluate((key) => {
+                await page.evaluate(key => {
                     localStorage.setItem(key, '[]');
                 }, STORAGE_KEY);
 
-                const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+                const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
                 expect(stored).toBe('[]');
             }
         });
@@ -414,7 +420,7 @@ test.describe('Recently Viewed', () => {
             // View an item
             await page.click('#itemsContainer .item-card >> nth=0');
             await expect(page.locator('#itemModal')).toBeVisible();
-            
+
             // Get item name from modal
             const itemName = await page.locator('#modalBody h2, #modalBody .item-name').first().textContent();
             await page.click('#itemModal .close');
@@ -423,18 +429,18 @@ test.describe('Recently Viewed', () => {
             await page.reload();
             await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
-            const sectionExists = await page.locator('.recently-viewed-section').count() > 0;
-            
+            const sectionExists = (await page.locator('.recently-viewed-section').count()) > 0;
+
             if (sectionExists) {
                 // Click on the recent item
                 await page.click('.recently-viewed-section .recent-item >> nth=0');
-                
+
                 // Modal should open
                 await expect(page.locator('#itemModal')).toBeVisible();
-                
+
                 // Should show the same item
-                const modalItemName = await page.locator('#modalBody h2, #modalBody .item-name').first().textContent();
-                expect(modalItemName).toBe(itemName);
+                const modalItemName = page.locator('#modalBody h2, #modalBody .item-name').first();
+                await expect(modalItemName).toHaveText(itemName);
             }
         });
 
@@ -447,11 +453,11 @@ test.describe('Recently Viewed', () => {
             await page.reload();
             await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
-            const sectionExists = await page.locator('.recently-viewed-section').count() > 0;
-            
+            const sectionExists = (await page.locator('.recently-viewed-section').count()) > 0;
+
             if (sectionExists) {
                 const recentItem = page.locator('.recent-item').first();
-                
+
                 // Should have tabindex for keyboard access
                 await expect(recentItem).toHaveAttribute('tabindex', '0');
                 await expect(recentItem).toHaveAttribute('role', 'button');
@@ -459,7 +465,7 @@ test.describe('Recently Viewed', () => {
                 // Focus and press Enter
                 await recentItem.focus();
                 await page.keyboard.press('Enter');
-                
+
                 // Modal should open
                 await expect(page.locator('#itemModal')).toBeVisible();
             }
@@ -472,8 +478,8 @@ test.describe('Recently Viewed', () => {
             await page.reload();
             await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
 
-            const sectionExists = await page.locator('.recently-viewed-section').count() > 0;
-            
+            const sectionExists = (await page.locator('.recently-viewed-section').count()) > 0;
+
             if (sectionExists) {
                 const header = page.locator('.recently-viewed-section h3');
                 await expect(header).toContainText('Recently Viewed');
@@ -484,13 +490,19 @@ test.describe('Recently Viewed', () => {
     test.describe('Data Cleanup', () => {
         test('should clean up entries older than 7 days on load', async ({ page }) => {
             // Inject old entry directly into localStorage
-            const oldTimestamp = Date.now() - (8 * 24 * 60 * 60 * 1000); // 8 days ago
-            await page.evaluate(({ key, timestamp }) => {
-                localStorage.setItem(key, JSON.stringify([
-                    { type: 'items', id: 'old-item', timestamp },
-                    { type: 'items', id: 'new-item', timestamp: Date.now() }
-                ]));
-            }, { key: STORAGE_KEY, timestamp: oldTimestamp });
+            const oldTimestamp = Date.now() - 8 * 24 * 60 * 60 * 1000; // 8 days ago
+            await page.evaluate(
+                ({ key, timestamp }) => {
+                    localStorage.setItem(
+                        key,
+                        JSON.stringify([
+                            { type: 'items', id: 'old-item', timestamp },
+                            { type: 'items', id: 'new-item', timestamp: Date.now() },
+                        ])
+                    );
+                },
+                { key: STORAGE_KEY, timestamp: oldTimestamp }
+            );
 
             // Reload to trigger cleanup
             await page.reload();
@@ -500,21 +512,22 @@ test.describe('Recently Viewed', () => {
             await page.waitForTimeout(500);
 
             // Check that old entry was cleaned up
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored || '[]');
 
-            expect(parsed.length).toBe(1);
+            expect(parsed).toHaveLength(1);
             expect(parsed[0].id).toBe('new-item');
         });
 
         test('should keep entries less than 7 days old', async ({ page }) => {
             // Inject entry from 3 days ago
-            const recentTimestamp = Date.now() - (3 * 24 * 60 * 60 * 1000); // 3 days ago
-            await page.evaluate(({ key, timestamp }) => {
-                localStorage.setItem(key, JSON.stringify([
-                    { type: 'items', id: 'recent-item', timestamp }
-                ]));
-            }, { key: STORAGE_KEY, timestamp: recentTimestamp });
+            const recentTimestamp = Date.now() - 3 * 24 * 60 * 60 * 1000; // 3 days ago
+            await page.evaluate(
+                ({ key, timestamp }) => {
+                    localStorage.setItem(key, JSON.stringify([{ type: 'items', id: 'recent-item', timestamp }]));
+                },
+                { key: STORAGE_KEY, timestamp: recentTimestamp }
+            );
 
             // Reload to trigger cleanup
             await page.reload();
@@ -524,27 +537,28 @@ test.describe('Recently Viewed', () => {
             await page.waitForTimeout(500);
 
             // Entry should still exist
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored || '[]');
 
-            expect(parsed.length).toBe(1);
+            expect(parsed).toHaveLength(1);
             expect(parsed[0].id).toBe('recent-item');
         });
 
         test('boundary case: entry exactly 7 days old', async ({ page }) => {
             // Entry at exactly 7 days (should be kept, boundary)
-            const sevenDaysAgo = Date.now() - (7 * 24 * 60 * 60 * 1000);
-            await page.evaluate(({ key, timestamp }) => {
-                localStorage.setItem(key, JSON.stringify([
-                    { type: 'items', id: 'boundary-item', timestamp }
-                ]));
-            }, { key: STORAGE_KEY, timestamp: sevenDaysAgo });
+            const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+            await page.evaluate(
+                ({ key, timestamp }) => {
+                    localStorage.setItem(key, JSON.stringify([{ type: 'items', id: 'boundary-item', timestamp }]));
+                },
+                { key: STORAGE_KEY, timestamp: sevenDaysAgo }
+            );
 
             await page.reload();
             await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
             await page.waitForTimeout(500);
 
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             const parsed = JSON.parse(stored || '[]');
 
             // Boundary behavior depends on implementation (> vs >=)
@@ -556,7 +570,7 @@ test.describe('Recently Viewed', () => {
     test.describe('Error Handling', () => {
         test('should handle corrupted localStorage gracefully', async ({ page }) => {
             // Set corrupted data
-            await page.evaluate((key) => {
+            await page.evaluate(key => {
                 localStorage.setItem(key, 'not-valid-json');
             }, STORAGE_KEY);
 
@@ -571,7 +585,7 @@ test.describe('Recently Viewed', () => {
 
         test('should handle missing localStorage gracefully', async ({ page }) => {
             // Module should initialize even if localStorage is empty
-            await page.evaluate((key) => localStorage.removeItem(key), STORAGE_KEY);
+            await page.evaluate(key => localStorage.removeItem(key), STORAGE_KEY);
 
             // Reload
             await page.reload();
@@ -583,19 +597,22 @@ test.describe('Recently Viewed', () => {
             await page.click('#itemModal .close');
 
             // And now localStorage should have an entry
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             expect(stored).not.toBeNull();
         });
 
         test('should handle malformed entries gracefully', async ({ page }) => {
             // Set malformed entries
-            await page.evaluate((key) => {
-                localStorage.setItem(key, JSON.stringify([
-                    { type: 'items', id: 'valid-item', timestamp: Date.now() },
-                    { type: 'invalid' }, // Missing required fields
-                    null, // Null entry
-                    { type: 'items', id: 'another-valid', timestamp: Date.now() }
-                ]));
+            await page.evaluate(key => {
+                localStorage.setItem(
+                    key,
+                    JSON.stringify([
+                        { type: 'items', id: 'valid-item', timestamp: Date.now() },
+                        { type: 'invalid' }, // Missing required fields
+                        null, // Null entry
+                        { type: 'items', id: 'another-valid', timestamp: Date.now() },
+                    ])
+                );
             }, STORAGE_KEY);
 
             // Reload - should not crash
@@ -610,14 +627,14 @@ test.describe('Recently Viewed', () => {
         test('should recover from localStorage quota exceeded', async ({ page }) => {
             // This test verifies the app handles storage errors gracefully
             // We can't actually exceed quota easily, but we verify normal operation
-            
+
             // View an item
             await page.click('#itemsContainer .item-card >> nth=0');
             await expect(page.locator('#itemModal')).toBeVisible();
             await page.click('#itemModal .close');
 
             // Verify data was saved
-            const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+            const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
             expect(stored).not.toBeNull();
         });
     });
@@ -633,7 +650,7 @@ test.describe('Recently Viewed', () => {
 
             for (const { tab, container, expectedType } of typesToTest) {
                 // Clear before each
-                await page.evaluate((key) => localStorage.removeItem(key), STORAGE_KEY);
+                await page.evaluate(key => localStorage.removeItem(key), STORAGE_KEY);
 
                 await page.click(`.tab-btn[data-tab="${tab}"]`);
                 await page.waitForSelector(`#${container} .item-card`, { timeout: 10000 });
@@ -641,9 +658,9 @@ test.describe('Recently Viewed', () => {
                 await expect(page.locator('#itemModal')).toBeVisible();
                 await page.click('#itemModal .close');
 
-                const stored = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
+                const stored = await page.evaluate(key => localStorage.getItem(key), STORAGE_KEY);
                 const parsed = JSON.parse(stored!);
-                
+
                 expect(parsed[0].type).toBe(expectedType);
             }
         });

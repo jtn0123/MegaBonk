@@ -35,7 +35,7 @@ async function main() {
         cols: 8,
         rows: 5,
         spacingX: 16,
-        spacingY: 84  // Vertical spacing including count label area
+        spacingY: 84, // Vertical spacing including count label area
     };
 
     // Item names from ground truth (row by row, left to right)
@@ -43,17 +43,37 @@ async function main() {
         // Row 1
         ['feathers', 'milk', 'ice-cube', 'wrench', 'honeycomb', 'backpack', 'borgar', 'ice-crystal'],
         // Row 2
-        ['moldy-cheese', 'golden-sneakers', 'demonic-soul', 'sucky-magnet', 'time-bracelet', 'forbidden-juice', 'medkit', 'spiky-shield'],
+        [
+            'moldy-cheese',
+            'golden-sneakers',
+            'demonic-soul',
+            'sucky-magnet',
+            'time-bracelet',
+            'forbidden-juice',
+            'medkit',
+            'spiky-shield',
+        ],
         // Row 3
         ['cursed-doll', 'campfire', 'pink-blob', 'ghost', 'turbo-skates', 'credit-card-red', 'unknown-1', 'unknown-2'],
         // Row 4 (may be empty or partial)
         ['unknown-3', 'unknown-4', 'unknown-5', 'unknown-6', 'unknown-7', 'unknown-8', 'unknown-9', 'unknown-10'],
         // Row 5
-        ['unknown-11', 'unknown-12', 'unknown-13', 'unknown-14', 'unknown-15', 'unknown-16', 'unknown-17', 'unknown-18']
+        [
+            'unknown-11',
+            'unknown-12',
+            'unknown-13',
+            'unknown-14',
+            'unknown-15',
+            'unknown-16',
+            'unknown-17',
+            'unknown-18',
+        ],
     ];
 
     console.log(`\nExtracting ${gridConfig.cols}x${gridConfig.rows} grid...`);
-    console.log(`Grid config: startX=${gridConfig.startX}, startY=${gridConfig.startY}, iconSize=${gridConfig.iconSize}\n`);
+    console.log(
+        `Grid config: startX=${gridConfig.startX}, startY=${gridConfig.startY}, iconSize=${gridConfig.iconSize}\n`
+    );
 
     let extracted = 0;
 
@@ -66,10 +86,14 @@ async function main() {
             const cellData = ctx.getImageData(x, y, gridConfig.iconSize, gridConfig.iconSize);
 
             // Check if cell has content (variance check)
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < cellData.data.length; i += 4) {
-                const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const variance = sumSq / count - (sum / count) ** 2;
 

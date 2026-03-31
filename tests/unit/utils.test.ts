@@ -328,11 +328,7 @@ describe('utils - sorting', () => {
         });
 
         it('should handle missing properties', () => {
-            const data = [
-                { name: 'Item1' },
-                { name: 'Item2', tier: 'A' as const },
-                { name: 'Item3' },
-            ];
+            const data = [{ name: 'Item1' }, { name: 'Item2', tier: 'A' as const }, { name: 'Item3' }];
             expect(() => sortData(data as any, 'tier')).not.toThrow();
         });
 
@@ -350,11 +346,7 @@ describe('utils - sorting', () => {
         });
 
         it('should handle case-insensitive name sorting', () => {
-            const data = [
-                { name: 'zebra' },
-                { name: 'Apple' },
-                { name: 'MANGO' },
-            ];
+            const data = [{ name: 'zebra' }, { name: 'Apple' }, { name: 'MANGO' }];
             const sorted = sortData(data as any, 'name');
             expect(sorted[0].name).toBe('Apple');
         });

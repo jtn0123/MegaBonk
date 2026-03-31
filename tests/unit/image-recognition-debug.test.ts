@@ -113,7 +113,7 @@ describe('Image Recognition Debug Module', () => {
             log('test', 'Test message', { data: 123 });
 
             const logs = getLogs();
-            const testLogs = logs.filter((l) => l.category === 'test');
+            const testLogs = logs.filter(l => l.category === 'test');
             expect(testLogs.length).toBe(1);
             expect(testLogs[0].category).toBe('test');
             expect(testLogs[0].message).toBe('Test message');
@@ -126,7 +126,7 @@ describe('Image Recognition Debug Module', () => {
             const after = Date.now();
 
             const logs = getLogs();
-            const testLog = logs.find((l) => l.category === 'test');
+            const testLog = logs.find(l => l.category === 'test');
             expect(testLog).toBeDefined();
             expect(testLog!.timestamp).toBeGreaterThanOrEqual(before);
             expect(testLog!.timestamp).toBeLessThanOrEqual(after);
@@ -140,7 +140,7 @@ describe('Image Recognition Debug Module', () => {
 
             const logs = getLogs();
             // Find our test logs (skip any system logs from beforeEach)
-            const testLogs = logs.filter((l) => l.category === 'test');
+            const testLogs = logs.filter(l => l.category === 'test');
             expect(testLogs[0].level).toBe('debug');
             expect(testLogs[1].level).toBe('info');
             expect(testLogs[2].level).toBe('warn');
@@ -154,7 +154,7 @@ describe('Image Recognition Debug Module', () => {
 
             const filtered = getLogsByCategory('cat1');
             expect(filtered.length).toBe(2);
-            expect(filtered.every((l) => l.category === 'cat1')).toBe(true);
+            expect(filtered.every(l => l.category === 'cat1')).toBe(true);
         });
 
         it('should filter logs by level', () => {
@@ -216,12 +216,7 @@ describe('Image Recognition Debug Module', () => {
         });
 
         it('should record detection', () => {
-            const results = createMockDetectionResults(
-                ['Big Bonk', 'Ice Cube'],
-                ['Hammer'],
-                ['HP Tome'],
-                'Megachad'
-            );
+            const results = createMockDetectionResults(['Big Bonk', 'Ice Cube'], ['Hammer'], ['HP Tome'], 'Megachad');
 
             recordDetection(results as any);
 
@@ -282,12 +277,7 @@ describe('Image Recognition Debug Module', () => {
                 expectedCharacter: 'Megachad',
             };
 
-            const results = createMockDetectionResults(
-                ['Big Bonk', 'Ice Cube'],
-                ['Hammer'],
-                ['HP Tome'],
-                'Megachad'
-            );
+            const results = createMockDetectionResults(['Big Bonk', 'Ice Cube'], ['Hammer'], ['HP Tome'], 'Megachad');
 
             const validation = validateDetectionResults(results as any, testCase);
 
@@ -445,7 +435,7 @@ describe('Image Recognition Debug Module', () => {
             expect(analysis).toBeDefined();
         });
 
-        getColorTestCases().forEach((testCase) => {
+        getColorTestCases().forEach(testCase => {
             it(`should identify ${testCase.name} as dominant`, () => {
                 const region = { x: 0, y: 0, width: 10, height: 10 };
                 const analysis = analyzeRegionColors(testCase.imageData, region);

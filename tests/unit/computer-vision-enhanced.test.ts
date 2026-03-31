@@ -66,7 +66,7 @@ let storedGameData = { ...mockGameData };
 
 vi.mock('../../src/modules/cv/state.ts', () => ({
     getAllData: vi.fn(() => storedGameData),
-    setAllData: vi.fn((data) => {
+    setAllData: vi.fn(data => {
         storedGameData = data;
     }),
 }));
@@ -86,11 +86,11 @@ vi.mock('../../src/modules/cv-strategy.ts', () => ({
     })),
     getConfidenceThresholds: vi.fn(() => ({
         pass1: 0.85,
-        pass2: 0.70,
+        pass2: 0.7,
         pass3: 0.55,
     })),
     rgbToHSV: vi.fn((r, g, b) => ({
-        h: (r + g + b) / 3 / 255 * 360,
+        h: ((r + g + b) / 3 / 255) * 360,
         s: 0.5,
         v: Math.max(r, g, b) / 255,
     })),
@@ -130,7 +130,7 @@ vi.mock('../../src/modules/computer-vision.ts', () => ({
         { x: 64, y: 0, width: 64, height: 64 },
         { x: 128, y: 0, width: 64, height: 64 },
     ]),
-    aggregateDuplicates: vi.fn((detections) => detections),
+    aggregateDuplicates: vi.fn(detections => detections),
 }));
 
 // Mock cv/color
@@ -150,12 +150,12 @@ function createMockImageData(width = 64, height = 64): ImageData {
         const pixelIndex = Math.floor(i / 4);
         const x = pixelIndex % width;
         const y = Math.floor(pixelIndex / width);
-        
+
         // Create a gradient pattern for more realistic data
-        imageData.data[i] = (x * 4) % 256;        // R
-        imageData.data[i + 1] = (y * 4) % 256;    // G
+        imageData.data[i] = (x * 4) % 256; // R
+        imageData.data[i + 1] = (y * 4) % 256; // G
         imageData.data[i + 2] = ((x + y) * 2) % 256; // B
-        imageData.data[i + 3] = 255;              // A
+        imageData.data[i + 3] = 255; // A
     }
     return imageData;
 }
@@ -208,7 +208,7 @@ describe('computer-vision-enhanced module', () => {
             if (tagName === 'canvas') {
                 const canvas = originalCreateElement('canvas') as HTMLCanvasElement;
                 const mockImageData = createMockImageData(64, 64);
-                
+
                 const mockCtx = {
                     drawImage: vi.fn(),
                     getImageData: vi.fn((_x: number, _y: number, w: number, h: number) => {
@@ -219,7 +219,7 @@ describe('computer-vision-enhanced module', () => {
                     fillRect: vi.fn(),
                     clearRect: vi.fn(),
                 };
-                
+
                 vi.spyOn(canvas, 'getContext').mockReturnValue(mockCtx as unknown as CanvasRenderingContext2D);
                 return canvas;
             }
@@ -323,7 +323,8 @@ describe('computer-vision-enhanced module', () => {
         });
 
         it('should allow re-initialization after reset', async () => {
-            const { initEnhancedCV, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { initEnhancedCV, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             const gameData = {
                 items: { items: [{ id: 'test', name: 'Test', rarity: 'common', image: 'test.png' }] },
@@ -351,7 +352,8 @@ describe('computer-vision-enhanced module', () => {
             // Reset module state first
             vi.resetModules();
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
             const { logger } = await import('../../src/modules/logger.ts');
 
             resetEnhancedCVState();
@@ -369,7 +371,8 @@ describe('computer-vision-enhanced module', () => {
         it('should not reload if already loaded', async () => {
             vi.resetModules();
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
             const { logger } = await import('../../src/modules/logger.ts');
 
             resetEnhancedCVState();
@@ -390,9 +393,7 @@ describe('computer-vision-enhanced module', () => {
 
             storedGameData = {
                 items: {
-                    items: [
-                        { id: 'no_image', name: 'No Image Item', rarity: 'common', image: '' },
-                    ],
+                    items: [{ id: 'no_image', name: 'No Image Item', rarity: 'common', image: '' }],
                 },
                 weapons: { weapons: [] },
                 tomes: { tomes: [] },
@@ -401,7 +402,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -421,7 +423,8 @@ describe('computer-vision-enhanced module', () => {
                 return img;
             }) as unknown as typeof Image;
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -440,17 +443,19 @@ describe('computer-vision-enhanced module', () => {
             const mockImageData = new ImageData(10, 10);
             // Fill with red pixels
             for (let i = 0; i < mockImageData.data.length; i += 4) {
-                mockImageData.data[i] = 255;     // R
-                mockImageData.data[i + 1] = 0;   // G
-                mockImageData.data[i + 2] = 0;   // B
+                mockImageData.data[i] = 255; // R
+                mockImageData.data[i + 1] = 0; // G
+                mockImageData.data[i + 2] = 0; // B
                 mockImageData.data[i + 3] = 255; // A
             }
 
             const profile = extractColorProfile(mockImageData);
 
-            expect(profile).toEqual(expect.objectContaining({
-                dominant: expect.any(String),
-            }));
+            expect(profile).toEqual(
+                expect.objectContaining({
+                    dominant: expect.any(String),
+                })
+            );
         });
 
         it('should convert RGB to HSV correctly', async () => {
@@ -458,11 +463,13 @@ describe('computer-vision-enhanced module', () => {
 
             const hsv = rgbToHSV(255, 0, 0);
 
-            expect(hsv).toEqual(expect.objectContaining({
-                h: expect.any(Number),
-                s: expect.any(Number),
-                v: expect.any(Number),
-            }));
+            expect(hsv).toEqual(
+                expect.objectContaining({
+                    h: expect.any(Number),
+                    s: expect.any(Number),
+                    v: expect.any(Number),
+                })
+            );
         });
     });
 
@@ -509,9 +516,7 @@ describe('computer-vision-enhanced module', () => {
 
             const gameData = {
                 items: {
-                    items: [
-                        { id: 'no_rarity', name: 'No Rarity Item', image: 'test.png' },
-                    ],
+                    items: [{ id: 'no_rarity', name: 'No Rarity Item', image: 'test.png' }],
                 },
                 weapons: { weapons: [] },
                 tomes: { tomes: [] },
@@ -586,7 +591,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -610,7 +616,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -651,7 +658,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -666,7 +674,8 @@ describe('computer-vision-enhanced module', () => {
         it('should maintain separate state for templates', async () => {
             vi.resetModules();
 
-            const { initEnhancedCV, resetEnhancedCVState, loadEnhancedTemplates } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { initEnhancedCV, resetEnhancedCVState, loadEnhancedTemplates } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             // Initialize with data
             initEnhancedCV(storedGameData as any);
@@ -740,7 +749,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -760,7 +770,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -773,9 +784,7 @@ describe('computer-vision-enhanced module', () => {
 
             storedGameData = {
                 items: {
-                    items: [
-                        { id: 'null_image', name: 'Null Image', rarity: 'common', image: null },
-                    ],
+                    items: [{ id: 'null_image', name: 'Null Image', rarity: 'common', image: null }],
                 },
                 weapons: { weapons: [] },
                 tomes: { tomes: [] },
@@ -784,7 +793,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -810,7 +820,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
             const { logger } = await import('../../src/modules/logger.ts');
 
             resetEnhancedCVState();
@@ -846,7 +857,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -873,7 +885,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
 
             resetEnhancedCVState();
 
@@ -882,7 +895,7 @@ describe('computer-vision-enhanced module', () => {
     });
 
     // ========================================
-    // Window Export Tests  
+    // Window Export Tests
     // ========================================
     describe('window exports', () => {
         it('should export functions to window object', async () => {
@@ -913,7 +926,8 @@ describe('computer-vision-enhanced module', () => {
             });
             global.Image = errorImage as unknown as typeof Image;
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
             const { logger } = await import('../../src/modules/logger.ts');
 
             resetEnhancedCVState();
@@ -950,7 +964,8 @@ describe('computer-vision-enhanced module', () => {
                 stats: null,
             };
 
-            const { loadEnhancedTemplates, resetEnhancedCVState } = await import('../../src/modules/computer-vision-enhanced.ts');
+            const { loadEnhancedTemplates, resetEnhancedCVState } =
+                await import('../../src/modules/computer-vision-enhanced.ts');
             const { logger } = await import('../../src/modules/logger.ts');
 
             resetEnhancedCVState();

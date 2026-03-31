@@ -21,7 +21,7 @@ test.describe('Similar Items - Section Display', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 await expect(similarSection).toBeVisible();
                 await expect(similarSection.locator('h3')).toContainText('Items Like This');
                 foundSimilarSection = true;
@@ -44,10 +44,10 @@ test.describe('Similar Items - Section Display', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const similarCards = similarSection.locator('.similar-item-card');
                 const count = await similarCards.count();
-                
+
                 expect(count).toBeGreaterThan(0);
                 expect(count).toBeLessThanOrEqual(5); // Default maxResults is 5
                 break;
@@ -66,15 +66,15 @@ test.describe('Similar Items - Section Display', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const firstSimilarCard = similarSection.locator('.similar-item-card').first();
-                
+
                 // Check for name
                 const name = firstSimilarCard.locator('.similar-item-name');
                 await expect(name).toBeVisible();
                 const nameText = await name.textContent();
                 expect(nameText?.trim().length).toBeGreaterThan(0);
-                
+
                 // Check for reason (e.g., "Same tier", "Shared synergies")
                 const reason = firstSimilarCard.locator('.similar-item-reason');
                 await expect(reason).toBeVisible();
@@ -96,16 +96,16 @@ test.describe('Similar Items - Section Display', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const firstSimilarCard = similarSection.locator('.similar-item-card').first();
-                
+
                 // Should have either an image or an icon
                 const image = firstSimilarCard.locator('.similar-item-image, img');
                 const icon = firstSimilarCard.locator('.similar-item-icon');
-                
-                const hasImage = await image.count() > 0;
-                const hasIcon = await icon.count() > 0;
-                
+
+                const hasImage = (await image.count()) > 0;
+                const hasIcon = (await icon.count()) > 0;
+
                 expect(hasImage || hasIcon).toBe(true);
                 break;
             }
@@ -130,19 +130,19 @@ test.describe('Similar Items - Click Navigation', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 // Get the original modal content
                 const originalContent = await page.locator('#modalBody').textContent();
                 const similarCard = similarSection.locator('.similar-item-card').first();
                 const similarItemName = await similarCard.locator('.similar-item-name').textContent();
-                
+
                 // Click the similar item
                 await similarCard.click();
                 await page.waitForTimeout(600);
-                
+
                 // Modal should now show the similar item - check content changed
-                const newContent = await page.locator('#modalBody').textContent();
-                expect(newContent).not.toBe(originalContent);
+                const newContent = page.locator('#modalBody');
+                await expect(newContent).not.toHaveText(originalContent);
                 // The new content should contain the similar item's name
                 expect(newContent).toContain(similarItemName?.trim() || '');
                 return;
@@ -164,11 +164,11 @@ test.describe('Similar Items - Click Navigation', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 // Click first similar item
                 await similarSection.locator('.similar-item-card').first().click();
                 await page.waitForTimeout(600);
-                
+
                 // The new modal might also have similar items
                 const newSimilarSection = page.locator('#modalBody .similar-items-section');
                 // This test just verifies navigation works, section presence varies by item
@@ -194,36 +194,42 @@ test.describe('Similar Items - Click Navigation', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 // Record first item (A) content
                 const contentA = await page.locator('#modalBody').textContent();
                 visitedContents.push(contentA || '');
 
                 // Get name of similar item we'll click
-                const similarNameB = await similarSection.locator('.similar-item-card .similar-item-name').first().textContent();
+                const similarNameB = await similarSection
+                    .locator('.similar-item-card .similar-item-name')
+                    .first()
+                    .textContent();
 
                 // Navigate to B
                 await similarSection.locator('.similar-item-card').first().click();
                 await page.waitForTimeout(600);
 
-                const contentB = await page.locator('#modalBody').textContent();
+                const contentB = page.locator('#modalBody');
                 visitedContents.push(contentB || '');
-                expect(contentB).not.toBe(contentA);
+                await expect(contentB).not.toHaveText(contentA);
                 expect(contentB).toContain(similarNameB?.trim() || '');
 
                 // Check if B has similar items to navigate to C
                 const similarSectionB = page.locator('#modalBody .similar-items-section');
-                if (await similarSectionB.count() > 0) {
-                    const similarNameC = await similarSectionB.locator('.similar-item-card .similar-item-name').first().textContent();
-                    
+                if ((await similarSectionB.count()) > 0) {
+                    const similarNameC = await similarSectionB
+                        .locator('.similar-item-card .similar-item-name')
+                        .first()
+                        .textContent();
+
                     await similarSectionB.locator('.similar-item-card').first().click();
                     await page.waitForTimeout(600);
 
-                    const contentC = await page.locator('#modalBody').textContent();
+                    const contentC = page.locator('#modalBody');
                     visitedContents.push(contentC || '');
-                    expect(contentC).not.toBe(contentB);
+                    await expect(contentC).not.toHaveText(contentB);
                     expect(contentC).toContain(similarNameC?.trim() || '');
-                    
+
                     // Successfully navigated through chain
                     expect(visitedContents.length).toBeGreaterThanOrEqual(3);
                 }
@@ -252,10 +258,10 @@ test.describe('Similar Items - Similarity Criteria', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const reasons = await similarSection.locator('.similar-item-reason').allTextContents();
                 const hasTierReason = reasons.some(r => r.toLowerCase().includes('tier'));
-                
+
                 if (hasTierReason) {
                     expect(hasTierReason).toBe(true);
                     return;
@@ -299,18 +305,18 @@ test.describe('Similar Items - Similarity Criteria', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const similarCards = similarSection.locator('.similar-item-card');
                 const count = await similarCards.count();
 
                 for (let j = 0; j < count; j++) {
                     const card = similarCards.nth(j);
-                    const dataType = await card.getAttribute('data-type');
-                    const dataId = await card.getAttribute('data-id');
+                    const dataType = card;
+                    const dataId = card;
 
-                    expect(dataType).toBeTruthy();
+                    await expect(dataType).toHaveAttribute('data-type');
                     expect(['items', 'weapons', 'tomes', 'characters']).toContain(dataType);
-                    expect(dataId).toBeTruthy();
+                    await expect(dataId).toHaveAttribute('data-id');
                     expect(dataId?.length).toBeGreaterThan(0);
                 }
                 return;
@@ -338,11 +344,11 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const firstCard = similarSection.locator('.similar-item-card').first();
-                const tabindex = await firstCard.getAttribute('tabindex');
-                
-                expect(tabindex).toBe('0');
+                const tabindex = firstCard;
+
+                await expect(tabindex).toHaveAttribute('tabindex', '0');
                 return;
             }
 
@@ -361,11 +367,11 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const firstCard = similarSection.locator('.similar-item-card').first();
-                const ariaLabel = await firstCard.getAttribute('aria-label');
-                
-                expect(ariaLabel).toBeTruthy();
+                const ariaLabel = firstCard;
+
+                await expect(ariaLabel).toHaveAttribute('aria-label');
                 expect(ariaLabel).toContain('View');
                 return;
             }
@@ -385,11 +391,11 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const firstCard = similarSection.locator('.similar-item-card').first();
-                const role = await firstCard.getAttribute('role');
-                
-                expect(role).toBe('button');
+                const role = firstCard;
+
+                await expect(role).toHaveAttribute('role', 'button');
                 return;
             }
 
@@ -408,22 +414,22 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const originalContent = await page.locator('#modalBody').textContent();
                 const firstCard = similarSection.locator('.similar-item-card').first();
                 const similarItemName = await firstCard.locator('.similar-item-name').textContent();
-                
+
                 // Focus the card
                 await firstCard.focus();
                 await page.waitForTimeout(100);
-                
+
                 // Press Enter to activate
                 await page.keyboard.press('Enter');
                 await page.waitForTimeout(600);
-                
+
                 // Modal should show different item
-                const newContent = await page.locator('#modalBody').textContent();
-                expect(newContent).not.toBe(originalContent);
+                const newContent = page.locator('#modalBody');
+                await expect(newContent).not.toHaveText(originalContent);
                 expect(newContent).toContain(similarItemName?.trim() || '');
                 return;
             }
@@ -443,22 +449,22 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const originalContent = await page.locator('#modalBody').textContent();
                 const firstCard = similarSection.locator('.similar-item-card').first();
                 const similarItemName = await firstCard.locator('.similar-item-name').textContent();
-                
+
                 // Focus the card
                 await firstCard.focus();
                 await page.waitForTimeout(100);
-                
+
                 // Press Space to activate
                 await page.keyboard.press('Space');
                 await page.waitForTimeout(600);
-                
+
                 // Modal should show different item
-                const newContent = await page.locator('#modalBody').textContent();
-                expect(newContent).not.toBe(originalContent);
+                const newContent = page.locator('#modalBody');
+                await expect(newContent).not.toHaveText(originalContent);
                 expect(newContent).toContain(similarItemName?.trim() || '');
                 return;
             }
@@ -478,25 +484,25 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const similarCards = similarSection.locator('.similar-item-card');
                 const count = await similarCards.count();
-                
+
                 if (count >= 2) {
                     // Focus first card
                     await similarCards.first().focus();
                     await page.waitForTimeout(100);
-                    
+
                     // Tab to next card
                     await page.keyboard.press('Tab');
                     await page.waitForTimeout(100);
-                    
+
                     // Second card should be focused
                     const focusedElement = await page.evaluate(() => {
                         const el = document.activeElement;
                         return el?.classList.contains('similar-item-card');
                     });
-                    
+
                     expect(focusedElement).toBe(true);
                     return;
                 }
@@ -521,19 +527,19 @@ test.describe('Similar Items - Different Entity Types', () => {
         await page.waitForSelector('#weaponsContainer .item-card', { timeout: 10000 });
 
         const cards = page.locator('#weaponsContainer .item-card');
-        
+
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 await expect(similarSection).toBeVisible();
-                
+
                 // Verify the similar items are weapons
                 const firstCard = similarSection.locator('.similar-item-card').first();
-                const dataType = await firstCard.getAttribute('data-type');
-                expect(dataType).toBe('weapons');
+                const dataType = firstCard;
+                await expect(dataType).toHaveAttribute('data-type', 'weapons');
                 return;
             }
 
@@ -550,19 +556,19 @@ test.describe('Similar Items - Different Entity Types', () => {
         await page.waitForSelector('#tomesContainer .item-card', { timeout: 10000 });
 
         const cards = page.locator('#tomesContainer .item-card');
-        
+
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 await expect(similarSection).toBeVisible();
-                
+
                 // Verify the similar items are tomes
                 const firstCard = similarSection.locator('.similar-item-card').first();
-                const dataType = await firstCard.getAttribute('data-type');
-                expect(dataType).toBe('tomes');
+                const dataType = firstCard;
+                await expect(dataType).toHaveAttribute('data-type', 'tomes');
                 return;
             }
 
@@ -578,19 +584,19 @@ test.describe('Similar Items - Different Entity Types', () => {
         await page.waitForSelector('#charactersContainer .item-card', { timeout: 10000 });
 
         const cards = page.locator('#charactersContainer .item-card');
-        
+
         for (let i = 0; i < Math.min(10, await cards.count()); i++) {
             await cards.nth(i).click();
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 await expect(similarSection).toBeVisible();
-                
+
                 // Verify the similar items are characters
                 const firstCard = similarSection.locator('.similar-item-card').first();
-                const dataType = await firstCard.getAttribute('data-type');
-                expect(dataType).toBe('characters');
+                const dataType = firstCard;
+                await expect(dataType).toHaveAttribute('data-type', 'characters');
                 return;
             }
 
@@ -616,16 +622,16 @@ test.describe('Similar Items - Visual Feedback', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const firstCard = similarSection.locator('.similar-item-card').first();
-                
+
                 // Get initial state
                 const initialCursor = await firstCard.evaluate(el => getComputedStyle(el).cursor);
-                
+
                 // Hover over card
                 await firstCard.hover();
                 await page.waitForTimeout(100);
-                
+
                 // Should have pointer cursor indicating clickability
                 const hoverCursor = await firstCard.evaluate(el => getComputedStyle(el).cursor);
                 expect(hoverCursor === 'pointer' || initialCursor === 'pointer').toBe(true);
@@ -647,23 +653,25 @@ test.describe('Similar Items - Visual Feedback', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const firstCard = similarSection.locator('.similar-item-card').first();
-                
+
                 // Focus the card
                 await firstCard.focus();
                 await page.waitForTimeout(100);
-                
+
                 // Should have visible focus indicator
                 const hasVisibleFocus = await firstCard.evaluate(el => {
                     const style = getComputedStyle(el);
-                    return style.outline !== 'none' || 
-                           style.boxShadow !== 'none' || 
-                           style.borderColor !== 'initial' ||
-                           el.classList.contains('focus-visible') ||
-                           el.matches(':focus');
+                    return (
+                        style.outline !== 'none' ||
+                        style.boxShadow !== 'none' ||
+                        style.borderColor !== 'initial' ||
+                        el.classList.contains('focus-visible') ||
+                        el.matches(':focus')
+                    );
                 });
-                
+
                 expect(hasVisibleFocus).toBe(true);
                 return;
             }
@@ -683,10 +691,10 @@ test.describe('Similar Items - Visual Feedback', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 const grid = similarSection.locator('.similar-items-grid');
                 const box = await grid.boundingBox();
-                
+
                 expect(box).toBeTruthy();
                 expect(box?.width).toBeGreaterThan(100);
                 expect(box?.height).toBeGreaterThan(50);
@@ -721,15 +729,20 @@ test.describe('Similar Items - Edge Cases', () => {
 
             // Shrines should not have similar items (not supported)
             const similarSection = page.locator('#modalBody .similar-items-section');
-            expect(await similarSection.count()).toBe(0);
+            await expect(similarSection).toHaveCount(0);
 
             await page.keyboard.press('Escape');
             await page.waitForTimeout(300);
             if (await modal.isVisible()) {
                 await page.evaluate(() => {
-                    document.dispatchEvent(new KeyboardEvent('keydown', {
-                        key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-                    }));
+                    document.dispatchEvent(
+                        new KeyboardEvent('keydown', {
+                            key: 'Escape',
+                            code: 'Escape',
+                            bubbles: true,
+                            cancelable: true,
+                        })
+                    );
                 });
             }
             await expect(modal).toBeHidden({ timeout: 5000 });
@@ -744,19 +757,22 @@ test.describe('Similar Items - Edge Cases', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0) {
+            if ((await similarSection.count()) > 0) {
                 // Get original modal content
                 const originalContent = await page.locator('#modalBody').textContent();
-                const similarItemName = await similarSection.locator('.similar-item-card .similar-item-name').first().textContent();
-                
+                const similarItemName = await similarSection
+                    .locator('.similar-item-card .similar-item-name')
+                    .first()
+                    .textContent();
+
                 // Navigate to similar item
                 await similarSection.locator('.similar-item-card').first().click();
                 await page.waitForTimeout(600);
-                
+
                 // Content should be different and contain the similar item's name
-                const newContent = await page.locator('#modalBody').textContent();
-                
-                expect(newContent).not.toBe(originalContent);
+                const newContent = page.locator('#modalBody');
+
+                await expect(newContent).not.toHaveText(originalContent);
                 expect(newContent).toContain(similarItemName?.trim() || '');
                 return;
             }
@@ -776,21 +792,24 @@ test.describe('Similar Items - Edge Cases', () => {
             await page.waitForTimeout(600);
 
             const similarSection = page.locator('#modalBody .similar-items-section');
-            if (await similarSection.count() > 0 && await similarSection.locator('.similar-item-card').count() >= 2) {
+            if (
+                (await similarSection.count()) > 0 &&
+                (await similarSection.locator('.similar-item-card').count()) >= 2
+            ) {
                 // Rapid click on multiple similar items
                 const firstCard = similarSection.locator('.similar-item-card').first();
                 const secondCard = similarSection.locator('.similar-item-card').nth(1);
-                
+
                 await firstCard.click({ delay: 50 });
                 await secondCard.click({ delay: 50 });
-                
+
                 // Wait for navigation to settle
                 await page.waitForTimeout(800);
-                
+
                 // Modal should still be open and functional
                 const modal = page.locator('#itemModal');
                 await expect(modal).toHaveClass(/active/);
-                
+
                 const modalBody = page.locator('#modalBody');
                 await expect(modalBody).toBeVisible();
                 return;

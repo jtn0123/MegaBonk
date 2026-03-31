@@ -11,22 +11,25 @@ try {
     createCanvas = canvas.createCanvas;
     loadImage = canvas.loadImage;
     globalThis.ImageData = canvas.ImageData;
-} catch { console.error('Canvas required'); process.exit(1); }
+} catch {
+    console.error('Canvas required');
+    process.exit(1);
+}
 
 interface GridParams {
-    iconSizeBase: number;      // Base icon size at reference resolution
-    spacingBase: number;       // Base spacing at reference resolution
-    bottomMarginBase: number;  // Base bottom margin at reference resolution
-    sideMarginPct: number;     // Side margin as percentage of width
-    refHeight: number;         // Reference height for scaling
-    rowThreshold: number;      // Minimum Y as percentage of height
+    iconSizeBase: number; // Base icon size at reference resolution
+    spacingBase: number; // Base spacing at reference resolution
+    bottomMarginBase: number; // Base bottom margin at reference resolution
+    sideMarginPct: number; // Side margin as percentage of width
+    refHeight: number; // Reference height for scaling
+    rowThreshold: number; // Minimum Y as percentage of height
 }
 
 const BASELINE_PARAMS: GridParams = {
     iconSizeBase: 40,
     spacingBase: 4,
     bottomMarginBase: 20,
-    sideMarginPct: 0.20,
+    sideMarginPct: 0.2,
     refHeight: 720,
     rowThreshold: 0.75,
 };
@@ -36,13 +39,23 @@ const PARAM_VARIATIONS: Record<keyof GridParams, number[]> = {
     iconSizeBase: [35, 40, 45, 50, 55, 60],
     spacingBase: [2, 4, 6, 8],
     bottomMarginBase: [15, 20, 25, 30, 35],
-    sideMarginPct: [0.10, 0.15, 0.20, 0.25],
+    sideMarginPct: [0.1, 0.15, 0.2, 0.25],
     refHeight: [720, 800, 1080],
-    rowThreshold: [0.65, 0.70, 0.75, 0.80],
+    rowThreshold: [0.65, 0.7, 0.75, 0.8],
 };
 
-interface GameItem { id: string; name: string; image?: string; rarity: string; }
-interface TemplateData { item: GameItem; canvas: any; width: number; height: number; }
+interface GameItem {
+    id: string;
+    name: string;
+    image?: string;
+    rarity: string;
+}
+interface TemplateData {
+    item: GameItem;
+    canvas: any;
+    width: number;
+    height: number;
+}
 
 const templateCache = new Map<string, TemplateData>();
 
@@ -51,41 +64,62 @@ function enhanceContrast(imageData: any, factor: number = 1.5): any {
     const data = new Uint8ClampedArray(imageData.data);
     for (let i = 0; i < data.length; i += 4) {
         data[i] = Math.min(255, Math.max(0, 128 + (data[i] - 128) * factor));
-        data[i+1] = Math.min(255, Math.max(0, 128 + (data[i+1] - 128) * factor));
-        data[i+2] = Math.min(255, Math.max(0, 128 + (data[i+2] - 128) * factor));
+        data[i + 1] = Math.min(255, Math.max(0, 128 + (data[i + 1] - 128) * factor));
+        data[i + 2] = Math.min(255, Math.max(0, 128 + (data[i + 2] - 128) * factor));
     }
     return { data, width: imageData.width, height: imageData.height };
 }
 
 function normalizeColors(imageData: any): any {
     const data = new Uint8ClampedArray(imageData.data);
-    let minR = 255, maxR = 0, minG = 255, maxG = 0, minB = 255, maxB = 0;
+    let minR = 255,
+        maxR = 0,
+        minG = 255,
+        maxG = 0,
+        minB = 255,
+        maxB = 0;
     for (let i = 0; i < data.length; i += 4) {
-        minR = Math.min(minR, data[i]); maxR = Math.max(maxR, data[i]);
-        minG = Math.min(minG, data[i+1]); maxG = Math.max(maxG, data[i+1]);
-        minB = Math.min(minB, data[i+2]); maxB = Math.max(maxB, data[i+2]);
+        minR = Math.min(minR, data[i]);
+        maxR = Math.max(maxR, data[i]);
+        minG = Math.min(minG, data[i + 1]);
+        maxG = Math.max(maxG, data[i + 1]);
+        minB = Math.min(minB, data[i + 2]);
+        maxB = Math.max(maxB, data[i + 2]);
     }
-    const rR = maxR - minR || 1, rG = maxG - minG || 1, rB = maxB - minB || 1;
+    const rR = maxR - minR || 1,
+        rG = maxG - minG || 1,
+        rB = maxB - minB || 1;
     for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.round((data[i] - minR) / rR * 255);
-        data[i+1] = Math.round((data[i+1] - minG) / rG * 255);
-        data[i+2] = Math.round((data[i+2] - minB) / rB * 255);
+        data[i] = Math.round(((data[i] - minR) / rR) * 255);
+        data[i + 1] = Math.round(((data[i + 1] - minG) / rG) * 255);
+        data[i + 2] = Math.round(((data[i + 2] - minB) / rB) * 255);
     }
     return { data, width: imageData.width, height: imageData.height };
 }
 
 function calculateNCC(d1: any, d2: any): number {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 async function loadTemplates() {
@@ -137,10 +171,14 @@ function detectGridPositions(width: number, height: number, params: GridParams) 
 }
 
 function isEmptyCell(imageData: any): boolean {
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
@@ -154,7 +192,8 @@ let lastMatchSize = { w: 0, h: 0 };
 
 async function findBestMatch(cellData: any, cellW: number, cellH: number) {
     const margin = Math.round(cellW * 0.15);
-    const cw = cellW - margin * 2, ch = cellH - margin * 2;
+    const cw = cellW - margin * 2,
+        ch = cellH - margin * 2;
     if (cw <= 0 || ch <= 0) return null;
 
     const centerData = { data: new Uint8ClampedArray(cw * ch * 4), width: cw, height: ch };
@@ -163,9 +202,9 @@ async function findBestMatch(cellData: any, cellW: number, cellH: number) {
             const src = ((y + margin) * cellW + (x + margin)) * 4;
             const dst = (y * cw + x) * 4;
             centerData.data[dst] = cellData.data[src];
-            centerData.data[dst+1] = cellData.data[src+1];
-            centerData.data[dst+2] = cellData.data[src+2];
-            centerData.data[dst+3] = cellData.data[src+3];
+            centerData.data[dst + 1] = cellData.data[src + 1];
+            centerData.data[dst + 2] = cellData.data[src + 2];
+            centerData.data[dst + 3] = cellData.data[src + 3];
         }
     }
 
@@ -184,8 +223,17 @@ async function findBestMatch(cellData: any, cellW: number, cellH: number) {
     for (const template of templateCache.values()) {
         const tMargin = Math.round(template.width * 0.15);
         matchCtx.clearRect(0, 0, cw, ch);
-        matchCtx.drawImage(template.canvas, tMargin, tMargin,
-            template.width - tMargin*2, template.height - tMargin*2, 0, 0, cw, ch);
+        matchCtx.drawImage(
+            template.canvas,
+            tMargin,
+            tMargin,
+            template.width - tMargin * 2,
+            template.height - tMargin * 2,
+            0,
+            0,
+            cw,
+            ch
+        );
         let templateData = matchCtx.getImageData(0, 0, cw, ch);
         templateData = enhanceContrast(templateData);
         templateData = normalizeColors(templateData);
@@ -207,13 +255,16 @@ function loadTestCases() {
             const imagePath = path.join(__dirname, '../test-images/gameplay', name);
             if (!fs.existsSync(imagePath)) return null;
             const itemCounts = new Map<string, number>();
-            for (const item of (data.items || [])) {
+            for (const item of data.items || []) {
                 itemCounts.set(item, (itemCounts.get(item) || 0) + 1);
             }
             return {
-                name, imagePath,
+                name,
+                imagePath,
                 groundTruth: Array.from(itemCounts.entries()).map(([name, count]) => ({
-                    id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'), name, count
+                    id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+                    name,
+                    count,
                 })),
             };
         })
@@ -247,13 +298,22 @@ async function runTest(testCases: any[], params: GridParams): Promise<number> {
         const truth = new Map<string, number>();
         tc.groundTruth.forEach((t: any) => truth.set(t.id, t.count));
 
-        let tp = 0, fp = 0, fn = 0;
-        detected.forEach((c, id) => { const t = truth.get(id) || 0; tp += Math.min(c, t); if (c > t) fp += c - t; });
-        truth.forEach((c, id) => { const d = detected.get(id) || 0; if (d < c) fn += c - d; });
+        let tp = 0,
+            fp = 0,
+            fn = 0;
+        detected.forEach((c, id) => {
+            const t = truth.get(id) || 0;
+            tp += Math.min(c, t);
+            if (c > t) fp += c - t;
+        });
+        truth.forEach((c, id) => {
+            const d = detected.get(id) || 0;
+            if (d < c) fn += c - d;
+        });
 
         const p = tp + fp > 0 ? tp / (tp + fp) : 0;
         const r = tp + fn > 0 ? tp / (tp + fn) : 0;
-        const f1 = p + r > 0 ? 2 * p * r / (p + r) : 0;
+        const f1 = p + r > 0 ? (2 * p * r) / (p + r) : 0;
         totalF1 += f1;
     }
 
@@ -286,7 +346,7 @@ async function main() {
         for (const value of values) {
             const testParams = { ...BASELINE_PARAMS, [param]: value };
             const f1 = await runTest(testCases, testParams);
-            const delta = ((f1 - baselineF1) / baselineF1 * 100);
+            const delta = ((f1 - baselineF1) / baselineF1) * 100;
 
             results.push({ param, value, f1, delta });
 
@@ -312,7 +372,7 @@ async function main() {
     const optimalParams = { ...BASELINE_PARAMS };
     for (const [param, best] of paramBests) {
         const baseline = BASELINE_PARAMS[param as keyof GridParams];
-        const delta = ((best.f1 - baselineF1) / baselineF1 * 100);
+        const delta = ((best.f1 - baselineF1) / baselineF1) * 100;
         console.log(`${param}: ${baseline} → ${best.value} (${delta >= 0 ? '+' : ''}${delta.toFixed(1)}%)`);
         (optimalParams as any)[param] = best.value;
     }
@@ -320,9 +380,11 @@ async function main() {
     // Test combined optimal params
     console.log('\n\nTesting combined optimal parameters...');
     const combinedF1 = await runTest(testCases, optimalParams);
-    const combinedDelta = ((combinedF1 - baselineF1) / baselineF1 * 100);
+    const combinedDelta = ((combinedF1 - baselineF1) / baselineF1) * 100;
 
-    console.log(`\nCombined: F1=${(combinedF1 * 100).toFixed(2)}% (${combinedDelta >= 0 ? '+' : ''}${combinedDelta.toFixed(1)}%)`);
+    console.log(
+        `\nCombined: F1=${(combinedF1 * 100).toFixed(2)}% (${combinedDelta >= 0 ? '+' : ''}${combinedDelta.toFixed(1)}%)`
+    );
 
     // Incremental combination
     console.log('\n\nIncremental combination (keeping only improvements)...');
@@ -348,7 +410,9 @@ async function main() {
     console.log('FINAL OPTIMIZED GRID PARAMETERS');
     console.log('═'.repeat(60));
     console.log(JSON.stringify(currentParams, null, 2));
-    console.log(`\nFinal F1: ${(currentF1 * 100).toFixed(2)}% (${((currentF1 - baselineF1) / baselineF1 * 100).toFixed(1)}% improvement)`);
+    console.log(
+        `\nFinal F1: ${(currentF1 * 100).toFixed(2)}% (${(((currentF1 - baselineF1) / baselineF1) * 100).toFixed(1)}% improvement)`
+    );
 }
 
 main().catch(console.error);

@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  * CV Debug Module - Comprehensive Coverage Tests
  * Tests for debug visualization: overlays, heatmaps, histograms, strategy comparison
- * 
+ *
  * Note: Async image loading functions are skipped due to jsdom limitations.
  * Focus on synchronous canvas rendering functions.
  */
@@ -30,11 +30,7 @@ function createMockCanvas(width: number = 800, height: number = 600): HTMLCanvas
     return canvas;
 }
 
-function createMockDetection(
-    name: string,
-    confidence: number,
-    position?: Partial<ROI>
-): CVDetectionResult {
+function createMockDetection(name: string, confidence: number, position?: Partial<ROI>): CVDetectionResult {
     return cvTestKit.detection.item(name, confidence, position);
 }
 
@@ -222,10 +218,7 @@ describe('renderConfidenceHeatmap', () => {
     });
 
     it('should render heatmap for detections', () => {
-        const detections = [
-            createMockDetection('Wrench', 0.95),
-            createMockDetection('Medkit', 0.75),
-        ];
+        const detections = [createMockDetection('Wrench', 0.95), createMockDetection('Medkit', 0.75)];
 
         expect(() => renderConfidenceHeatmap(canvas, detections)).not.toThrow();
     });
@@ -279,11 +272,11 @@ describe('renderConfidenceHeatmap', () => {
 
     it('should color different confidence bands correctly', () => {
         const detections = [
-            createMockDetection('A', 0.95, { x: 0, y: 0 }),    // 0.9-1.0 green
-            createMockDetection('B', 0.85, { x: 50, y: 0 }),   // 0.8-0.9 
-            createMockDetection('C', 0.75, { x: 100, y: 0 }),  // 0.7-0.8 yellow
-            createMockDetection('D', 0.65, { x: 150, y: 0 }),  // 0.6-0.7 orange
-            createMockDetection('E', 0.55, { x: 200, y: 0 }),  // <0.6 red
+            createMockDetection('A', 0.95, { x: 0, y: 0 }), // 0.9-1.0 green
+            createMockDetection('B', 0.85, { x: 50, y: 0 }), // 0.8-0.9
+            createMockDetection('C', 0.75, { x: 100, y: 0 }), // 0.7-0.8 yellow
+            createMockDetection('D', 0.65, { x: 150, y: 0 }), // 0.6-0.7 orange
+            createMockDetection('E', 0.55, { x: 200, y: 0 }), // <0.6 red
         ];
 
         expect(() => renderConfidenceHeatmap(canvas, detections, 0.6)).not.toThrow();
@@ -297,7 +290,7 @@ describe('renderConfidenceHeatmap', () => {
 
     it('should handle many detections', () => {
         const detections = Array.from({ length: 50 }, (_, i) =>
-            createMockDetection(`Item${i}`, 0.5 + (i / 100), { x: i * 10, y: 0 })
+            createMockDetection(`Item${i}`, 0.5 + i / 100, { x: i * 10, y: 0 })
         );
 
         expect(() => renderConfidenceHeatmap(canvas, detections)).not.toThrow();
@@ -305,9 +298,9 @@ describe('renderConfidenceHeatmap', () => {
 
     it('should handle detections at boundary confidence values', () => {
         const detections = [
-            createMockDetection('A', 0.9),   // Exactly at boundary
-            createMockDetection('B', 0.8),   // Exactly at boundary
-            createMockDetection('C', 0.7),   // Exactly at boundary
+            createMockDetection('A', 0.9), // Exactly at boundary
+            createMockDetection('B', 0.8), // Exactly at boundary
+            createMockDetection('C', 0.7), // Exactly at boundary
         ];
 
         expect(() => renderConfidenceHeatmap(canvas, detections)).not.toThrow();
@@ -433,9 +426,7 @@ describe('renderMatchingSteps', () => {
     });
 
     it('should handle step at index 0', () => {
-        const steps: MatchingStep[] = [
-            createMatchingStep('t1', 'Test', 0.9, true),
-        ];
+        const steps: MatchingStep[] = [createMatchingStep('t1', 'Test', 0.9, true)];
 
         expect(() => renderMatchingSteps(canvas, steps, 0)).not.toThrow();
     });
@@ -468,11 +459,7 @@ describe('renderMatchingSteps', () => {
 
         renderMatchingSteps(canvas, steps, 0);
 
-        expect(fillTextSpy).toHaveBeenCalledWith(
-            'Template Matching Steps',
-            expect.any(Number),
-            expect.any(Number)
-        );
+        expect(fillTextSpy).toHaveBeenCalledWith('Template Matching Steps', expect.any(Number), expect.any(Number));
     });
 
     it('should format similarity as percentage', () => {
@@ -549,33 +536,29 @@ describe('renderConfidenceHistogram', () => {
     it('should bin detections into 10 buckets', () => {
         // Create detections across all bins
         const detections = [
-            createMockDetection('A', 0.05),  // Bin 0
-            createMockDetection('B', 0.15),  // Bin 1
-            createMockDetection('C', 0.25),  // Bin 2
-            createMockDetection('D', 0.35),  // Bin 3
-            createMockDetection('E', 0.45),  // Bin 4
-            createMockDetection('F', 0.55),  // Bin 5
-            createMockDetection('G', 0.65),  // Bin 6
-            createMockDetection('H', 0.75),  // Bin 7
-            createMockDetection('I', 0.85),  // Bin 8
-            createMockDetection('J', 0.95),  // Bin 9
+            createMockDetection('A', 0.05), // Bin 0
+            createMockDetection('B', 0.15), // Bin 1
+            createMockDetection('C', 0.25), // Bin 2
+            createMockDetection('D', 0.35), // Bin 3
+            createMockDetection('E', 0.45), // Bin 4
+            createMockDetection('F', 0.55), // Bin 5
+            createMockDetection('G', 0.65), // Bin 6
+            createMockDetection('H', 0.75), // Bin 7
+            createMockDetection('I', 0.85), // Bin 8
+            createMockDetection('J', 0.95), // Bin 9
         ];
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
     });
 
     it('should handle max confidence (1.0) in last bin', () => {
-        const detections = [
-            createMockDetection('Perfect', 0.999),
-        ];
+        const detections = [createMockDetection('Perfect', 0.999)];
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
     });
 
     it('should handle zero confidence', () => {
-        const detections = [
-            createMockDetection('Zero', 0.0),
-        ];
+        const detections = [createMockDetection('Zero', 0.0)];
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
     });
@@ -597,9 +580,9 @@ describe('renderConfidenceHistogram', () => {
 
     it('should color bars based on confidence range', () => {
         const detections = [
-            createMockDetection('High', 0.95),  // Green
-            createMockDetection('Med', 0.75),   // Yellow/Orange
-            createMockDetection('Low', 0.55),   // Red
+            createMockDetection('High', 0.95), // Green
+            createMockDetection('Med', 0.75), // Yellow/Orange
+            createMockDetection('Low', 0.55), // Red
         ];
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
@@ -633,11 +616,7 @@ describe('renderConfidenceHistogram', () => {
 
         renderConfidenceHistogram(canvas, detections);
 
-        expect(fillTextSpy).toHaveBeenCalledWith(
-            'Confidence Distribution',
-            expect.any(Number),
-            expect.any(Number)
-        );
+        expect(fillTextSpy).toHaveBeenCalledWith('Confidence Distribution', expect.any(Number), expect.any(Number));
     });
 
     it('should set dashed line for threshold', () => {
@@ -661,17 +640,16 @@ describe('renderConfidenceHistogram', () => {
     });
 
     it('should handle many detections in same bin', () => {
-        const detections = Array.from({ length: 50 }, (_, i) =>
-            createMockDetection(`Item${i}`, 0.91 + (i * 0.001))  // All in bin 9
+        const detections = Array.from(
+            { length: 50 },
+            (_, i) => createMockDetection(`Item${i}`, 0.91 + i * 0.001) // All in bin 9
         );
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
     });
 
     it('should handle detections spread evenly across bins', () => {
-        const detections = Array.from({ length: 100 }, (_, i) =>
-            createMockDetection(`Item${i}`, i / 100)
-        );
+        const detections = Array.from({ length: 100 }, (_, i) => createMockDetection(`Item${i}`, i / 100));
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
     });
@@ -684,18 +662,14 @@ describe('renderConfidenceHistogram', () => {
 describe('Edge Cases', () => {
     it('should handle negative position values in heatmap', () => {
         const canvas = createMockCanvas(800, 600);
-        const detections = [
-            createMockDetection('Test', 0.9, { x: -10, y: -10, width: 50, height: 50 }),
-        ];
+        const detections = [createMockDetection('Test', 0.9, { x: -10, y: -10, width: 50, height: 50 })];
 
         expect(() => renderConfidenceHeatmap(canvas, detections)).not.toThrow();
     });
 
     it('should handle zero-size detections in heatmap', () => {
         const canvas = createMockCanvas(800, 600);
-        const detections = [
-            createMockDetection('Test', 0.9, { x: 100, y: 100, width: 0, height: 0 }),
-        ];
+        const detections = [createMockDetection('Test', 0.9, { x: 100, y: 100, width: 0, height: 0 })];
 
         expect(() => renderConfidenceHeatmap(canvas, detections)).not.toThrow();
     });
@@ -795,9 +769,7 @@ describe('Performance', () => {
 
     it('should handle rendering large histogram efficiently', () => {
         const canvas = createMockCanvas(800, 600);
-        const detections = Array.from({ length: 500 }, (_, i) =>
-            createMockDetection(`Item${i}`, Math.random())
-        );
+        const detections = Array.from({ length: 500 }, (_, i) => createMockDetection(`Item${i}`, Math.random()));
 
         const start = performance.now();
         renderConfidenceHistogram(canvas, detections);

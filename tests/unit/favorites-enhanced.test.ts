@@ -60,7 +60,7 @@ describe('Favorites Module - Enhanced Coverage', () => {
 
             // Reset the cached availability check
             // This requires re-importing the module, so we test the behavior indirectly
-            
+
             // Even without localStorage, the basic operations should work in memory
             const result = toggleFavorite('items', 'test_item');
             expect(result).toBe(true);
@@ -113,7 +113,7 @@ describe('Favorites Module - Enhanced Coverage', () => {
 
             // Force a fresh check (this would be the behavior on first load)
             resetStore();
-            
+
             // The test write/read cycle returns wrong value
             // This tests the path where localStorage "works" but doesn't properly store
             expect(() => loadFavorites()).not.toThrow();
@@ -127,13 +127,13 @@ describe('Favorites Module - Enhanced Coverage', () => {
         it('should handle QuotaExceededError when saving', () => {
             // First, ensure favorites are loaded normally
             loadFavorites();
-            
+
             // Then make setItem throw QuotaExceededError
             const quotaError = new Error('Quota exceeded');
             quotaError.name = 'QuotaExceededError';
-            
+
             const originalSetItem = localStorage.setItem.bind(localStorage);
-            vi.spyOn(localStorage, 'setItem').mockImplementation((key) => {
+            vi.spyOn(localStorage, 'setItem').mockImplementation(key => {
                 if (key === 'megabonk_favorites') {
                     throw quotaError;
                 }
@@ -144,7 +144,7 @@ describe('Favorites Module - Enhanced Coverage', () => {
             const result = toggleFavorite('items', 'quota_test');
             expect(result).toBe(true);
             expect(getState('favorites').items).toContain('quota_test');
-            
+
             // Should have called ToastManager.error
             expect(ToastManager.error).toHaveBeenCalledWith(
                 'Storage full. Try clearing browser cache to save favorites.'
@@ -154,11 +154,11 @@ describe('Favorites Module - Enhanced Coverage', () => {
         it('should handle SecurityError when saving', () => {
             // First, ensure favorites are loaded normally
             loadFavorites();
-            
+
             // Then make setItem throw SecurityError
             const securityError = new Error('Security error');
             securityError.name = 'SecurityError';
-            
+
             vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
                 throw securityError;
             });
@@ -166,21 +166,19 @@ describe('Favorites Module - Enhanced Coverage', () => {
             // Toggle should still work in memory
             const result = toggleFavorite('items', 'security_test');
             expect(result).toBe(true);
-            
+
             // Should have called ToastManager.warning
-            expect(ToastManager.warning).toHaveBeenCalledWith(
-                'Favorites disabled in private browsing mode'
-            );
+            expect(ToastManager.warning).toHaveBeenCalledWith('Favorites disabled in private browsing mode');
         });
 
         it('should handle generic errors when saving', () => {
             // First, ensure favorites are loaded normally
             loadFavorites();
-            
+
             // Then make setItem throw a generic error
             const genericError = new Error('Unknown error');
             genericError.name = 'Error';
-            
+
             vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
                 throw genericError;
             });
@@ -188,7 +186,7 @@ describe('Favorites Module - Enhanced Coverage', () => {
             // Toggle should still work in memory
             const result = toggleFavorite('items', 'generic_test');
             expect(result).toBe(true);
-            
+
             // Should have called ToastManager.error with generic message
             expect(ToastManager.error).toHaveBeenCalledWith('Failed to save favorite');
         });
@@ -196,12 +194,12 @@ describe('Favorites Module - Enhanced Coverage', () => {
         it('should silently handle errors when ToastManager throws', () => {
             // First, ensure favorites are loaded normally
             loadFavorites();
-            
+
             // Make ToastManager throw
             vi.mocked(ToastManager.error).mockImplementation(() => {
                 throw new Error('ToastManager not initialized');
             });
-            
+
             // Make setItem throw
             vi.spyOn(localStorage, 'setItem').mockImplementation(() => {
                 throw new Error('Storage error');
@@ -250,15 +248,13 @@ describe('Favorites Module - Enhanced Coverage', () => {
             localStorage.setItem('megabonk_favorites', 'invalid json {{{');
 
             loadFavorites();
-            
-            expect(ToastManager.warning).toHaveBeenCalledWith(
-                'Could not load saved favorites. Using fresh list.'
-            );
+
+            expect(ToastManager.warning).toHaveBeenCalledWith('Could not load saved favorites. Using fresh list.');
         });
 
         it('should handle ToastManager throwing during load warning', () => {
             localStorage.setItem('megabonk_favorites', 'invalid json');
-            
+
             vi.mocked(ToastManager.warning).mockImplementation(() => {
                 throw new Error('ToastManager not ready');
             });
@@ -298,7 +294,7 @@ describe('Favorites Module - Enhanced Coverage', () => {
         it('should persist cleared state to localStorage', () => {
             loadFavorites();
             toggleFavorite('items', 'to_clear');
-            
+
             clearAllFavorites();
 
             const stored = localStorage.getItem('megabonk_favorites');
@@ -390,7 +386,7 @@ describe('Favorites Module - Enhanced Coverage', () => {
             });
 
             const originalItems = getState('favorites').items;
-            
+
             toggleFavorite('items', 'item2');
 
             // Original reference should be unchanged
@@ -407,7 +403,7 @@ describe('Favorites Module - Enhanced Coverage', () => {
         it('should persist favorites across load/save cycles', () => {
             // Initial load
             loadFavorites();
-            
+
             // Add some favorites
             toggleFavorite('items', 'item1');
             toggleFavorite('weapons', 'weapon1');
