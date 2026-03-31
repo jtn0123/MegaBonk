@@ -52,7 +52,6 @@ if (globalThis.window !== undefined) {
     // Core
     window.initCV = initCV;
 
-
     window.detectItemsWithCV = detectItemsWithCV;
     window.detectGridPositions = detectGridPositions;
     window.detectItemCounts = detectItemCounts;

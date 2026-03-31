@@ -80,7 +80,6 @@ export function computeBreakpoint(data: BreakpointData, itemId: string, target: 
     }
 
     // Calculate stacks needed
-    let stacksNeeded = 0;
     const firstValue = item.scaling_per_stack[0] ?? null;
 
     // Validate that first value is a valid positive number
@@ -90,7 +89,7 @@ export function computeBreakpoint(data: BreakpointData, itemId: string, target: 
     }
 
     const perStack = firstValue;
-    stacksNeeded = Math.ceil(target / perStack);
+    let stacksNeeded = Math.ceil(target / perStack);
 
     // Cap checks
     const isCapped = item.stack_cap != null && item.stack_cap > 0 && stacksNeeded > item.stack_cap;
@@ -182,7 +181,6 @@ export function calculateBreakpoint(): void {
     }
 
     // Calculate stacks needed
-    let stacksNeeded = 0;
     const perStack = item.scaling_per_stack[0] ?? null; // Value per stack from first entry
 
     // Check for division by zero and validate perStack is a valid number
@@ -192,7 +190,7 @@ export function calculateBreakpoint(): void {
         return;
     }
 
-    stacksNeeded = Math.ceil(target / perStack);
+    let stacksNeeded = Math.ceil(target / perStack);
 
     // Bug fix: Track if original calculation exceeded cap BEFORE capping
     // Using === only checks if final value equals cap, not if we were limited

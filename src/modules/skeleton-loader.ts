@@ -167,7 +167,6 @@ function generateWeaponSkeletonCard(): string {
     `;
 }
 
-
 /**
  * Get skeleton generator for a specific tab
  */

@@ -20,7 +20,6 @@ import {
     syncFiltersToSheet,
     applyFiltersFromSheet,
     clearSheetFilters,
-
     updateFilterBadge as _updateFilterBadge,
 } from './mobile-filter-logic.ts';
 

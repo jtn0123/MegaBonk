@@ -18,7 +18,7 @@ export function initChartsAsync(chartInitFn: 'initializeItemCharts' | 'initializ
         try {
             const charts = await import('../charts.ts');
             charts[chartInitFn]();
-        } catch (err) {
+        } catch {
             logger.warn({
                 operation: 'chart.init',
                 error: { name: 'ImportError', message: `Failed to initialize ${chartInitFn}`, module: 'renderers' },

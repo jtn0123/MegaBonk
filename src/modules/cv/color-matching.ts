@@ -32,12 +32,8 @@ export function matchesRarityColor(r: number, g: number, b: number, rarity: stri
     const hsl = rgbToHsl(r, g, b);
 
     // Handle hue wraparound for red/orange
-    let hueMatch = false;
-    if (def.h[0] <= def.h[1]) {
-        hueMatch = hsl.h >= def.h[0] && hsl.h <= def.h[1];
-    } else {
-        hueMatch = hsl.h >= def.h[0] || hsl.h <= def.h[1];
-    }
+    const hueMatch =
+        def.h[0] <= def.h[1] ? hsl.h >= def.h[0] && hsl.h <= def.h[1] : hsl.h >= def.h[0] || hsl.h <= def.h[1];
 
     const satMatch = hsl.s >= def.s[0] && hsl.s <= def.s[1];
     const lumMatch = hsl.l >= def.l[0] && hsl.l <= def.l[1];

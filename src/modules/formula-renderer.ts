@@ -95,34 +95,6 @@ function highlightVariables(text: string): string {
 }
 
 /**
- * Parse and render fractions in a formula string
- * Detects patterns like "X / Y" and "X / (expression)"
- */
-function parseFractions(formula: string): string {
-    // Pattern to match fractions: handles "X / Y" and "X / (expression)"
-    // Using a simpler approach: find "/" and determine numerator/denominator
-
-    let result = formula;
-
-    // Handle parenthesized denominators: X / (...)
-    result = result.replaceAll(/(\w+(?:\s?[%×*]?\s?\w+){0,5})\s*\/\s*\(([^)]+)\)/g, (_, num, den) =>
-        renderFraction(num, `(${den})`)
-    );
-
-    // Handle simple fractions: X / Y (word or number)
-    // But avoid replacing already-processed fractions or "/" in text like "stack/copy"
-    result = result.replaceAll(/(\d+(?:\.\d+)?|\w+)\s{0,3}\/\s{0,3}(\d+(?:\.\d+)?)/g, (match, num, den) => {
-        // Skip if it's a word/word pattern like "stack/copy"
-        if (/^[a-zA-Z]+\/[a-zA-Z]+$/.test(match)) {
-            return match;
-        }
-        return renderFraction(num, den);
-    });
-
-    return result;
-}
-
-/**
  * Render a formula string to styled HTML
  * @param formula - The formula text to render
  * @returns HTML string with styled formula
@@ -139,19 +111,7 @@ export function renderFormula(formula: string): string {
         return `<span class="formula-text">${escapeHtml(formula)}</span>`;
     }
 
-    // Process the formula
-    let html = escapeHtml(formula);
-
-    // Unescape the fractions we're about to process (they need raw /)
-    html = formula;
-
-    // Parse and render fractions first (before escaping)
-    html = parseFractions(html);
-
-    // Now escape any remaining HTML (but preserve our already-rendered spans)
-    // We need to be careful here - only escape text nodes
-
-    // Actually, let's rebuild: escape first, then add styling
+    // Escape first, then add styling
     let processed = escapeHtml(formula);
 
     // Style standalone equals signs (surrounded by whitespace, indicating math equals not HTML attribute)

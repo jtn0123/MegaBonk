@@ -5,6 +5,7 @@
 import type { EntityType } from '../types/index.ts';
 import { getState, setState, type FavoritesState } from './store.ts';
 import { ToastManager } from './toast.ts';
+import { logger } from './logger.ts';
 
 // Re-export type for backwards compatibility
 export type { FavoritesState } from './store.ts';
@@ -109,7 +110,10 @@ function applyStoredFavorites(stored: string): boolean {
 
 export function loadFavorites(): boolean {
     if (!isLocalStorageAvailable()) {
-        console.debug('[favorites] localStorage unavailable - favorites will not persist');
+        logger.debug({
+            operation: 'favorites.storage_unavailable',
+            data: { reason: 'localStorage unavailable - favorites will not persist' },
+        });
         safeWarning('Favorites will not be saved in this browser mode.');
         return false;
     }
@@ -119,7 +123,7 @@ export function loadFavorites(): boolean {
         if (stored) return applyStoredFavorites(stored);
         return true;
     } catch (error) {
-        console.debug('[favorites] Failed to parse stored favorites:', (error as Error).message);
+        logger.debug({ operation: 'favorites.parse_failed', data: { error: (error as Error).message } });
         safeWarning('Could not load saved favorites. Using fresh list.');
         return false;
     }
@@ -143,15 +147,18 @@ function saveFavorites(): void {
         try {
             if (err.name === 'QuotaExceededError') {
                 // Storage is full - suggest clearing cache
-                console.debug('[favorites] localStorage quota exceeded:', err.message);
+                logger.debug({ operation: 'favorites.quota_exceeded', data: { error: err.message } });
                 ToastManager.error('Storage full. Try clearing browser cache to save favorites.');
             } else if (err.name === 'SecurityError') {
                 // Private browsing or cookies disabled
-                console.debug('[favorites] localStorage blocked (private browsing?):', err.message);
+                logger.debug({
+                    operation: 'favorites.storage_blocked',
+                    data: { error: err.message, reason: 'private browsing' },
+                });
                 ToastManager.warning('Favorites disabled in private browsing mode');
             } else {
                 // Other errors (general unavailability)
-                console.debug('[favorites] localStorage unavailable:', err.message);
+                logger.debug({ operation: 'favorites.storage_error', data: { error: err.message } });
                 ToastManager.error('Failed to save favorite');
             }
         } catch {

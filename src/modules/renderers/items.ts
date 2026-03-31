@@ -67,7 +67,9 @@ export async function renderItems(items: Item[]): Promise<void> {
             </div>
         `;
         } else {
-            const placeholderText = item.one_and_done ? 'One-and-done: no scaling benefit from stacks' : 'Flat bonus: does not scale';
+            const placeholderText = item.one_and_done
+                ? 'One-and-done: no scaling benefit from stacks'
+                : 'Flat bonus: does not scale';
             graphHtml = `
             <div class="item-graph-placeholder">
                 <span>${placeholderText}</span>

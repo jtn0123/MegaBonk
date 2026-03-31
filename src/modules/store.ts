@@ -148,8 +148,12 @@ export function getState<K extends keyof AppState>(key: K): AppState[K] {
  * @param key - State key to set
  * @param value - New value
  */
-export function setState<K extends keyof AppState>(key: K, value: AppState[K] | ((prev: AppState[K]) => AppState[K])): void {
-    const resolvedValue = typeof value === 'function' ? (value as (prev: AppState[K]) => AppState[K])(state[key]) : value;
+export function setState<K extends keyof AppState>(
+    key: K,
+    value: AppState[K] | ((prev: AppState[K]) => AppState[K])
+): void {
+    const resolvedValue =
+        typeof value === 'function' ? (value as (prev: AppState[K]) => AppState[K])(state[key]) : value;
     state[key] = resolvedValue;
 
     // Sync to window for backwards compatibility

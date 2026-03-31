@@ -364,7 +364,7 @@ export function findSimilarItems(type: EntityType, id: string, config: Partial<S
     const { maxResults, minScore } = { ...DEFAULT_CONFIG, ...config };
 
     let sourceEntity: Entity | undefined;
-    let candidates: { entity: Entity; type: EntityType }[] = [];
+    let candidates: { entity: Entity; type: EntityType }[];
 
     // Bug fix: Add explicit null guards before .find() to prevent TypeError
     switch (type) {

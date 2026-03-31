@@ -135,7 +135,10 @@ async function tryFallback<TReturn>(
         const value = (await fallback(err)) as Awaited<TReturn>;
         return { value, ok: true };
     } catch (fallbackError) {
-        logBoundaryError(fallbackError as Error, moduleName, phase, { recoveryAttempted: true, recoverySucceeded: false });
+        logBoundaryError(fallbackError as Error, moduleName, phase, {
+            recoveryAttempted: true,
+            recoverySucceeded: false,
+        });
         if (phase === 'fallback_failed') throw fallbackError;
         return { ok: false };
     }
@@ -163,7 +166,9 @@ export function withErrorBoundary<TArgs extends unknown[], TReturn>(
                 const recentBreadcrumbs = getRecentBreadcrumbs(60000);
 
                 logBoundaryError(err, moduleName, 'caught', {
-                    retries, maxRetries, stateSnapshot,
+                    retries,
+                    maxRetries,
+                    stateSnapshot,
                     breadcrumbCount: recentBreadcrumbs.length,
                 });
 
@@ -184,13 +189,20 @@ export function withErrorBoundary<TArgs extends unknown[], TReturn>(
                 if (!silent) {
                     try {
                         ToastManager.error(`An error occurred in ${moduleName}. Some features may not work correctly.`);
-                    } catch { /* ToastManager not initialized */ }
+                    } catch {
+                        /* ToastManager not initialized */
+                    }
                 }
 
                 const fallbackResult = await tryFallback<TReturn>(fallback, err, moduleName, 'fallback_failed');
                 if (fallbackResult.ok) return fallbackResult.value;
 
-                const boundaryResult = await tryFallback<TReturn>(boundary?.fallback, err, moduleName, 'boundary_fallback_failed');
+                const boundaryResult = await tryFallback<TReturn>(
+                    boundary?.fallback,
+                    err,
+                    moduleName,
+                    'boundary_fallback_failed'
+                );
                 if (boundaryResult.ok) return boundaryResult.value;
 
                 // Re-throw if no recovery options

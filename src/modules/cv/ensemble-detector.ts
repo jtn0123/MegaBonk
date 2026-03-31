@@ -451,7 +451,10 @@ export function combineStrategyDetections(
     }
 
     // Find best strategy
-    const bestDet = winnerDetections.reduce<(typeof winnerDetections)[0] | undefined>((best, d) => (!best || d.confidence > best.confidence ? d : best), undefined)!;
+    const bestDet = winnerDetections.reduce<(typeof winnerDetections)[0] | undefined>(
+        (best, d) => (!best || d.confidence > best.confidence ? d : best),
+        undefined
+    )!;
 
     return {
         itemId: winnerItemId,

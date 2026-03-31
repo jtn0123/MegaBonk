@@ -149,9 +149,9 @@ export function generateRandomBuild(constraints: BuildConstraints = {}): RandomB
     }
 
     // Filter weapons and characters for challenge mode
-    let filteredWeapons = challengeMode ? filterByTier(weapons, 'B', false, true) : weapons;
+    const filteredWeapons = challengeMode ? filterByTier(weapons, 'B', false, true) : weapons;
 
-    let filteredCharacters = challengeMode ? filterByTier(characters, 'B', false, true) : characters;
+    const filteredCharacters = challengeMode ? filterByTier(characters, 'B', false, true) : characters;
 
     // Generate random selections
     const character = randomElement(filteredCharacters);
@@ -410,7 +410,7 @@ async function handleApplyToBuildPlanner(): Promise<void> {
             const buildPlannerTab = document.querySelector('.tab-btn[data-tab="build-planner"]') as HTMLElement;
             buildPlannerTab?.click();
         }
-    } catch (error) {
+    } catch {
         logger.warn({
             operation: 'random-build.apply',
             error: { name: 'ImportError', message: 'Failed to apply build', module: 'random-build' },

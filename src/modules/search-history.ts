@@ -5,6 +5,7 @@
 
 import { escapeHtml } from './utils.ts';
 import { MAX_SEARCH_HISTORY } from './constants.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // Constants
@@ -31,14 +32,14 @@ export function getSearchHistory(): string[] {
 
         // Validate it's an array
         if (!Array.isArray(parsed)) {
-            console.debug('[search-history] Invalid history format, expected array');
+            logger.debug({ operation: 'search_history.invalid_format', data: { reason: 'expected array' } });
             return [];
         }
 
         // Filter to only valid string entries
         return parsed.filter((item): item is string => typeof item === 'string' && item.length > 0);
     } catch (error) {
-        console.debug('[search-history] localStorage unavailable:', (error as Error).message);
+        logger.debug({ operation: 'search_history.storage_unavailable', data: { error: (error as Error).message } });
         return [];
     }
 }
@@ -62,7 +63,7 @@ export function addToSearchHistory(term: string): void {
 
         localStorage.setItem(SEARCH_HISTORY_KEY, JSON.stringify(history));
     } catch (error) {
-        console.debug('[search-history] localStorage unavailable:', (error as Error).message);
+        logger.debug({ operation: 'search_history.storage_unavailable', data: { error: (error as Error).message } });
     }
 }
 
@@ -73,7 +74,7 @@ export function clearSearchHistory(): void {
     try {
         localStorage.removeItem(SEARCH_HISTORY_KEY);
     } catch (error) {
-        console.debug('[search-history] localStorage unavailable:', (error as Error).message);
+        logger.debug({ operation: 'search_history.storage_unavailable', data: { error: (error as Error).message } });
     }
 }
 
