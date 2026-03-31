@@ -60,8 +60,10 @@
     "steam:analyze": "npx tsx scripts/analyze-screenshots.ts",
     "steam:pipeline": "npx tsx scripts/steam-screenshot-pipeline.ts",
     "steam:pipeline:full": "npx tsx scripts/steam-screenshot-pipeline.ts --limit 50 --auto-organize --generate-labels",
-    "lint": "tsc --noEmit && eslint *.js scripts/*.js",
-    "lint:fix": "eslint *.js scripts/*.js --fix",
+    "lint": "tsc --noEmit && eslint *.js scripts/*.js src/ tests/",
+    "lint:fix": "eslint *.js scripts/*.js src/ tests/ --fix",
+    "lint:src": "eslint src/",
+    "lint:tests": "eslint tests/",
     "format": "prettier --write \"src/**/*.{ts,css,html,json}\"",
     "format:check": "prettier --check \"src/**/*.{ts,css,html,json}\"",
     "typecheck": "tsc --noEmit",
@@ -117,6 +119,7 @@
     "canvas": "^3.2.2",
     "eslint": "^10.1.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-playwright": "^2.10.1",
     "eslint-plugin-prettier": "^5.5.4",
     "husky": "^9.1.7",
     "jsdom": "^29.0.1",
@@ -129,6 +132,7 @@
     "serve": "^14.2.6",
     "sharp": "^0.34.5",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.58.0",
     "vite": "^8.0.3",
     "vite-plugin-istanbul": "^8.0.0",
     "vite-plugin-pwa": "^1.2.0",
@@ -148,6 +152,7 @@
   },
   "lint-staged": {
     "src/**/*.ts": [
+      "eslint --fix",
       "prettier --write"
     ],
     "*.js": [
@@ -157,7 +162,8 @@
     "src/**/*.{css,html,json}": [
       "prettier --write"
     ],
-    "tests/**/*.(test|spec).(js|ts)": [
+    "tests/**/*.(test|spec).(js|ts|mjs)": [
+      "eslint --fix",
       "node scripts/check-test-cleanup.js"
     ],
     "tests/setup.js": [
