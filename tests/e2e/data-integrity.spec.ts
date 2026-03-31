@@ -150,8 +150,8 @@ test.describe('Card Data Attributes', () => {
         const count = await cards.count();
 
         for (let i = 0; i < count; i++) {
-            const entityId = cards.nth(i);
-            await expect(entityId).toHaveAttribute('data-entity-id');
+            const entityId = await cards.nth(i).getAttribute('data-entity-id');
+            expect(entityId).toBeTruthy();
             expect(entityId?.length).toBeGreaterThan(0);
         }
     });

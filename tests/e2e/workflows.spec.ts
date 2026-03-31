@@ -133,8 +133,8 @@ test.describe('Cross-Feature Workflows', () => {
                 // Check for share code display or clipboard
                 const shareCode = page.locator('.share-code, [data-share-code], #buildShareCode');
                 if ((await shareCode.count()) > 0) {
-                    const code = shareCode;
-                    await expect(code).toHaveText();
+                    const code = await shareCode.textContent();
+                    expect(code).toBeTruthy();
                 }
             }
         });

@@ -211,7 +211,9 @@ module.exports = [
             // Style preferences — warn for incremental improvement
             'playwright/no-wait-for-selector': 'off',
             'playwright/prefer-locator': 'off',
-            'playwright/prefer-web-first-assertions': 'warn',
+            // Disabled: auto-fix incorrectly converts textContent()/getAttribute()/count()
+            // to Locators when results are used as primitives in subsequent code
+            'playwright/prefer-web-first-assertions': 'off',
             'playwright/no-networkidle': 'warn',
         },
     },

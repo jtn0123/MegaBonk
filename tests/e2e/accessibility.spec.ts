@@ -198,8 +198,8 @@ test.describe('ARIA Attributes', () => {
         const count = await images.count();
 
         for (let i = 0; i < Math.min(count, 20); i++) {
-            const alt = images.nth(i);
-            await expect(alt).toHaveAttribute('alt');
+            const alt = await images.nth(i).getAttribute('alt');
+            expect(alt).toBeTruthy();
             expect(alt?.length).toBeGreaterThan(0);
         }
     });

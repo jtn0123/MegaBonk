@@ -567,8 +567,8 @@ test.describe('Breadcrumb Navigation', () => {
                 await page.waitForTimeout(300);
 
                 // Check breadcrumb viewer has content
-                const content = breadcrumbViewer;
-                await expect(content).toHaveText();
+                const content = await breadcrumbViewer.textContent();
+                expect(content).toBeTruthy();
             }
         }
     });

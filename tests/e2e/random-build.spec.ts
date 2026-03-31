@@ -402,12 +402,12 @@ test.describe('Random Build Generator', () => {
             await page.selectOption('#build-character', { index: 1 });
             await page.selectOption('#build-weapon', { index: 1 });
 
-            const selectedChar = page.locator('#build-character');
-            const selectedWeapon = page.locator('#build-weapon');
+            const selectedChar = await page.locator('#build-character').inputValue();
+            const selectedWeapon = await page.locator('#build-weapon').inputValue();
 
             // Verify initial selections were made
-            await expect(selectedChar).toHaveValue();
-            await expect(selectedWeapon).toHaveValue();
+            expect(selectedChar).toBeTruthy();
+            expect(selectedWeapon).toBeTruthy();
 
             // Switch tabs
             await page.click('.tab-btn[data-tab="items"]');
@@ -435,11 +435,11 @@ test.describe('Random Build Generator', () => {
             }
 
             // Final state should be valid
-            const charValue = page.locator('#build-character');
-            const weaponValue = page.locator('#build-weapon');
+            const charValue = await page.locator('#build-character').inputValue();
+            const weaponValue = await page.locator('#build-weapon').inputValue();
 
-            await expect(charValue).toHaveValue();
-            await expect(weaponValue).toHaveValue();
+            expect(charValue).toBeTruthy();
+            expect(weaponValue).toBeTruthy();
         });
     });
 });

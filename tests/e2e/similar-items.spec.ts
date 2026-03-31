@@ -141,8 +141,8 @@ test.describe('Similar Items - Click Navigation', () => {
                 await page.waitForTimeout(600);
 
                 // Modal should now show the similar item - check content changed
-                const newContent = page.locator('#modalBody');
-                await expect(newContent).not.toHaveText(originalContent);
+                const newContent = await page.locator('#modalBody').textContent();
+                expect(newContent).not.toBe(originalContent);
                 // The new content should contain the similar item's name
                 expect(newContent).toContain(similarItemName?.trim() || '');
                 return;
@@ -209,9 +209,9 @@ test.describe('Similar Items - Click Navigation', () => {
                 await similarSection.locator('.similar-item-card').first().click();
                 await page.waitForTimeout(600);
 
-                const contentB = page.locator('#modalBody');
+                const contentB = await page.locator('#modalBody').textContent();
                 visitedContents.push(contentB || '');
-                await expect(contentB).not.toHaveText(contentA);
+                expect(contentB).not.toBe(contentA);
                 expect(contentB).toContain(similarNameB?.trim() || '');
 
                 // Check if B has similar items to navigate to C
@@ -225,9 +225,9 @@ test.describe('Similar Items - Click Navigation', () => {
                     await similarSectionB.locator('.similar-item-card').first().click();
                     await page.waitForTimeout(600);
 
-                    const contentC = page.locator('#modalBody');
+                    const contentC = await page.locator('#modalBody').textContent();
                     visitedContents.push(contentC || '');
-                    await expect(contentC).not.toHaveText(contentB);
+                    expect(contentC).not.toBe(contentB);
                     expect(contentC).toContain(similarNameC?.trim() || '');
 
                     // Successfully navigated through chain
@@ -311,12 +311,12 @@ test.describe('Similar Items - Similarity Criteria', () => {
 
                 for (let j = 0; j < count; j++) {
                     const card = similarCards.nth(j);
-                    const dataType = card;
-                    const dataId = card;
+                    const dataType = await card.getAttribute('data-type');
+                    const dataId = await card.getAttribute('data-id');
 
-                    await expect(dataType).toHaveAttribute('data-type');
+                    expect(dataType).toBeTruthy();
                     expect(['items', 'weapons', 'tomes', 'characters']).toContain(dataType);
-                    await expect(dataId).toHaveAttribute('data-id');
+                    expect(dataId).toBeTruthy();
                     expect(dataId?.length).toBeGreaterThan(0);
                 }
                 return;
@@ -369,9 +369,9 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
             const similarSection = page.locator('#modalBody .similar-items-section');
             if ((await similarSection.count()) > 0) {
                 const firstCard = similarSection.locator('.similar-item-card').first();
-                const ariaLabel = firstCard;
+                const ariaLabel = await firstCard.getAttribute('aria-label');
 
-                await expect(ariaLabel).toHaveAttribute('aria-label');
+                expect(ariaLabel).toBeTruthy();
                 expect(ariaLabel).toContain('View');
                 return;
             }
@@ -428,8 +428,8 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
                 await page.waitForTimeout(600);
 
                 // Modal should show different item
-                const newContent = page.locator('#modalBody');
-                await expect(newContent).not.toHaveText(originalContent);
+                const newContent = await page.locator('#modalBody').textContent();
+                expect(newContent).not.toBe(originalContent);
                 expect(newContent).toContain(similarItemName?.trim() || '');
                 return;
             }
@@ -463,8 +463,8 @@ test.describe('Similar Items - Keyboard Accessibility', () => {
                 await page.waitForTimeout(600);
 
                 // Modal should show different item
-                const newContent = page.locator('#modalBody');
-                await expect(newContent).not.toHaveText(originalContent);
+                const newContent = await page.locator('#modalBody').textContent();
+                expect(newContent).not.toBe(originalContent);
                 expect(newContent).toContain(similarItemName?.trim() || '');
                 return;
             }
@@ -770,9 +770,9 @@ test.describe('Similar Items - Edge Cases', () => {
                 await page.waitForTimeout(600);
 
                 // Content should be different and contain the similar item's name
-                const newContent = page.locator('#modalBody');
+                const newContent = await page.locator('#modalBody').textContent();
 
-                await expect(newContent).not.toHaveText(originalContent);
+                expect(newContent).not.toBe(originalContent);
                 expect(newContent).toContain(similarItemName?.trim() || '');
                 return;
             }

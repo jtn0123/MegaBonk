@@ -303,10 +303,10 @@ test.describe('Synergies - Item Modal', () => {
         await page.waitForSelector('#modalBody', { state: 'visible' });
 
         // Synergy info should still be displayed (modal renders same content)
-        const newModalContent = page.locator('#modalBody');
+        const newModalContent = await page.locator('#modalBody').textContent();
         expect(newModalContent?.length).toBeGreaterThan(10);
         // Content should be similar (same item)
-        await expect(newModalContent).toHaveText(modalContent);
+        expect(newModalContent).toBe(modalContent);
     });
 });
 

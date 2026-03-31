@@ -71,7 +71,7 @@ test.describe('Modal Interactions', () => {
     test('should show correct modal for different items', async ({ page }) => {
         // Open first item modal
         await page.click('#itemsContainer .item-card >> nth=0');
-        const firstItemModal = page.locator('#modalBody');
+        const firstItemModal = await page.locator('#modalBody').textContent();
         await page.click('#itemModal .close');
 
         // Open second item modal
@@ -79,7 +79,7 @@ test.describe('Modal Interactions', () => {
         const secondItemModal = await page.locator('#modalBody').textContent();
 
         // Content should be different
-        await expect(firstItemModal).not.toHaveText(secondItemModal);
+        expect(firstItemModal).not.toBe(secondItemModal);
     });
 
     test('should trap focus in modal when open', async ({ page }) => {

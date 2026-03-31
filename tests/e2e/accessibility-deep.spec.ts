@@ -1080,8 +1080,8 @@ test.describe('Image Alt Text Completeness', () => {
         const count = await images.count();
 
         for (let i = 0; i < count; i++) {
-            const alt = images.nth(i);
-            await expect(alt).toHaveAttribute('alt');
+            const alt = await images.nth(i).getAttribute('alt');
+            expect(alt).toBeTruthy();
             expect(alt?.length).toBeGreaterThan(0);
         }
     });
@@ -1094,8 +1094,8 @@ test.describe('Image Alt Text Completeness', () => {
         const count = await images.count();
 
         for (let i = 0; i < count; i++) {
-            const alt = images.nth(i);
-            await expect(alt).toHaveAttribute('alt');
+            const alt = await images.nth(i).getAttribute('alt');
+            expect(alt).toBeTruthy();
             expect(alt?.length).toBeGreaterThan(0);
         }
     });
@@ -1259,8 +1259,8 @@ test.describe('Language and Semantics', () => {
     });
 
     test('html element has lang attribute', async ({ page }) => {
-        const lang = page.locator('html');
-        await expect(lang).toHaveAttribute('lang');
+        const lang = await page.locator('html').getAttribute('lang');
+        expect(lang).toBeTruthy();
         expect(lang).toMatch(/^[a-z]{2}/i);
     });
 

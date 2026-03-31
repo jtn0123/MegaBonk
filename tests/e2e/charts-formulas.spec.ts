@@ -662,8 +662,8 @@ test.describe('Chart Accessibility', () => {
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
             if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
-                const ariaLabel = chartCanvas.first();
-                await expect(ariaLabel).toHaveAttribute('aria-label');
+                const ariaLabel = await chartCanvas.first().getAttribute('aria-label');
+                expect(ariaLabel).toBeTruthy();
                 expect(ariaLabel?.length).toBeGreaterThan(5);
                 break;
             }
