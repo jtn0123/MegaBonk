@@ -306,40 +306,64 @@ async function fetchAndValidate(url: string, type: DataType): Promise<unknown> {
  * Merges into the existing store without blocking the UI.
  */
 async function loadDeferredData(): Promise<void> {
-    try {
-        const [shrines, stats, changelog] = (await Promise.all([
-            fetchAndValidate('./data/shrines.json', 'shrines'),
-            fetchAndValidate('./data/stats.json', 'stats'),
-            fetchAndValidate('./data/changelog.json', 'changelog'),
-        ])) as [ShrinesData, Stats, ChangelogData];
+    const deferredTypes = ['shrines', 'stats', 'changelog'] as const;
+    const deferredResults = await Promise.allSettled([
+        fetchAndValidate('./data/shrines.json', 'shrines'),
+        fetchAndValidate('./data/stats.json', 'stats'),
+        fetchAndValidate('./data/changelog.json', 'changelog'),
+    ]);
 
-        setState('allData', (prev: AllGameData) => ({ ...prev, shrines, stats, changelog }));
+    const shrines = deferredResults[0].status === 'fulfilled' ? (deferredResults[0].value as ShrinesData) : undefined;
+    const stats = deferredResults[1].status === 'fulfilled' ? (deferredResults[1].value as Stats) : undefined;
+    const changelog =
+        deferredResults[2].status === 'fulfilled' ? (deferredResults[2].value as ChangelogData) : undefined;
 
-        const currentTab = getState('currentTab');
-        if (DEFERRED_RENDER_TABS.has(currentTab)) {
-            import('./renderers/tab-content.ts')
-                .then(({ renderTabContent }) => renderTabContent(currentTab))
-                .catch(error => {
-                    const err = error as Error;
-                    logger.warn({
-                        operation: 'data.deferred_render',
-                        error: { name: err.name, message: err.message, module: 'data-service' },
-                        data: { currentTab },
-                    });
-                });
+    const loadedDeferred: string[] = [];
+    const failedDeferred: string[] = [];
+
+    deferredResults.forEach((result, i) => {
+        const type = deferredTypes[i]!;
+        if (result.status === 'fulfilled') {
+            loadedDeferred.push(type);
+        } else {
+            failedDeferred.push(type);
+            const reason = result.reason as Error;
+            logger.warn({
+                operation: 'data.deferred_load.partial',
+                error: { name: reason?.name, message: reason?.message, module: 'data-service' },
+                data: { failedType: type },
+            });
         }
+    });
 
-        logger.debug({
-            operation: 'data.deferred_load',
-            data: { filesLoaded: ['shrines', 'stats', 'changelog'] },
-        });
-    } catch (error) {
-        const err = error as Error;
-        logger.warn({
-            operation: 'data.deferred_load',
-            error: { name: err.name, message: err.message, module: 'data-service' },
-        });
+    // Merge whatever loaded successfully into state
+    const mergeData: Partial<AllGameData> = {};
+    if (shrines) mergeData.shrines = shrines;
+    if (stats) mergeData.stats = stats;
+    if (changelog) mergeData.changelog = changelog;
+
+    if (Object.keys(mergeData).length > 0) {
+        setState('allData', (prev: AllGameData) => ({ ...prev, ...mergeData }));
     }
+
+    const currentTab = getState('currentTab');
+    if (DEFERRED_RENDER_TABS.has(currentTab)) {
+        import('./renderers/tab-content.ts')
+            .then(({ renderTabContent }) => renderTabContent(currentTab))
+            .catch(error => {
+                const err = error as Error;
+                logger.warn({
+                    operation: 'data.deferred_render',
+                    error: { name: err.name, message: err.message, module: 'data-service' },
+                    data: { currentTab },
+                });
+            });
+    }
+
+    logger.debug({
+        operation: 'data.deferred_load',
+        data: { filesLoaded: loadedDeferred, filesFailed: failedDeferred },
+    });
 }
 
 /**
@@ -357,12 +381,45 @@ export async function loadAllData(): Promise<void> {
 
     try {
         // Phase 1: Load essential data needed for the default tab
-        const [items, weapons, tomes, characters] = (await Promise.all([
+        // Use allSettled so one failure doesn't prevent the rest from loading
+        const essentialResults = await Promise.allSettled([
             fetchAndValidate('./data/items.json', 'items'),
             fetchAndValidate('./data/weapons.json', 'weapons'),
             fetchAndValidate('./data/tomes.json', 'tomes'),
             fetchAndValidate('./data/characters.json', 'characters'),
-        ])) as [ItemsData, WeaponsData, TomesData, CharactersData];
+        ]);
+
+        const essentialTypes = ['items', 'weapons', 'tomes', 'characters'] as const;
+        const failedTypes: string[] = [];
+
+        const items = essentialResults[0].status === 'fulfilled' ? (essentialResults[0].value as ItemsData) : undefined;
+        const weapons =
+            essentialResults[1].status === 'fulfilled' ? (essentialResults[1].value as WeaponsData) : undefined;
+        const tomes = essentialResults[2].status === 'fulfilled' ? (essentialResults[2].value as TomesData) : undefined;
+        const characters =
+            essentialResults[3].status === 'fulfilled' ? (essentialResults[3].value as CharactersData) : undefined;
+
+        essentialResults.forEach((result, i) => {
+            if (result.status === 'rejected') {
+                const type = essentialTypes[i]!;
+                failedTypes.push(type);
+                const reason = result.reason as Error;
+                logger.warn({
+                    operation: 'data.load.partial',
+                    error: { name: reason?.name, message: reason?.message, module: 'data-service' },
+                    data: { failedType: type },
+                });
+            }
+        });
+
+        // If ALL essential fetches failed, show full error screen
+        if (failedTypes.length === essentialTypes.length) {
+            throw new Error(`All essential data failed to load: ${failedTypes.join(', ')}`);
+        }
+
+        if (failedTypes.length > 0) {
+            ToastManager.warning(`Some data unavailable: ${failedTypes.join(', ')}. Other features still work.`);
+        }
 
         // Update store with essential data (deferred fields will be merged later)
         const newData: AllGameData = { items, weapons, tomes, characters };
@@ -390,12 +447,14 @@ export async function loadAllData(): Promise<void> {
 
         // Log data load wide event
         const loadDuration = Math.round(performance.now() - loadStartTime);
+        const loadedTypes = essentialTypes.filter(t => !failedTypes.includes(t));
         logger.info({
             operation: 'data.load',
             durationMs: loadDuration,
-            success: true,
+            success: failedTypes.length === 0,
             data: {
-                filesLoaded: ['items', 'weapons', 'tomes', 'characters'],
+                filesLoaded: loadedTypes,
+                filesFailed: failedTypes,
                 deferredFiles: ['shrines', 'stats', 'changelog'],
                 itemCounts: {
                     items: items?.items?.length || 0,

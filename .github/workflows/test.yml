@@ -58,7 +58,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [changes]
-    if: needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
+    # Always run on main to ensure SonarCloud gets fresh coverage data
+    if: github.ref == 'refs/heads/main' || needs.changes.outputs.src == 'true' || needs.changes.outputs.deps == 'true'
 
     steps:
       - name: Checkout code
@@ -393,7 +394,8 @@ jobs:
   sonarqube:
     name: SonarCloud Scan
     needs: [unit-tests, e2e-tests]
-    if: always() && needs.unit-tests.result == 'success'
+    # Run when unit-tests succeeds OR was skipped (paths-filter on PRs)
+    if: always() && (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped')
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:

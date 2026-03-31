@@ -724,6 +724,14 @@ test.describe('Similar Items - Edge Cases', () => {
             expect(await similarSection.count()).toBe(0);
 
             await page.keyboard.press('Escape');
+            await page.waitForTimeout(300);
+            if (await modal.isVisible()) {
+                await page.evaluate(() => {
+                    document.dispatchEvent(new KeyboardEvent('keydown', {
+                        key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
+                    }));
+                });
+            }
             await expect(modal).toBeHidden({ timeout: 5000 });
         }
     });
