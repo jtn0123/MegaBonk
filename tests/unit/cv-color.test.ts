@@ -3,11 +3,7 @@
  * CV Color Analysis Module Tests
  */
 import { describe, it, expect } from 'vitest';
-import {
-    rgbToHsl,
-    matchesRarityColor,
-    RARITY_BORDER_COLORS,
-} from '../../src/modules/cv/color.ts';
+import { rgbToHsl, matchesRarityColor, RARITY_BORDER_COLORS } from '../../src/modules/cv/color.ts';
 
 describe('CV Color Module', () => {
     // ========================================
@@ -262,10 +258,10 @@ describe('CV Color Module', () => {
         it('should not match wrong rarity for obvious colors', () => {
             // Pure red should not match green (uncommon)
             expect(matchesRarityColor(255, 0, 0, 'uncommon')).toBe(false);
-            
+
             // Pure blue should not match orange (legendary)
             expect(matchesRarityColor(0, 0, 255, 'legendary')).toBe(false);
-            
+
             // Pure green should not match blue (rare)
             expect(matchesRarityColor(0, 255, 0, 'rare')).toBe(false);
         });
@@ -273,7 +269,7 @@ describe('CV Color Module', () => {
         it('should handle edge case RGB values', () => {
             // Black
             expect(matchesRarityColor(0, 0, 0, 'common')).toBe(false);
-            
+
             // White
             expect(matchesRarityColor(255, 255, 255, 'common')).toBe(false);
         });
@@ -286,7 +282,7 @@ describe('CV Color Module', () => {
         it('should handle RGB values at boundaries', () => {
             // Minimum values
             expect(() => rgbToHsl(0, 0, 0)).not.toThrow();
-            
+
             // Maximum values
             expect(() => rgbToHsl(255, 255, 255)).not.toThrow();
         });

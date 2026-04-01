@@ -156,7 +156,8 @@ describe('orchestrator - detectItemsWithCV', () => {
             grid: null,
         } as any);
 
-        const { detectIconsWithSlidingWindow } = await import('../../src/modules/cv/detection-pipeline/sliding-window.ts');
+        const { detectIconsWithSlidingWindow } =
+            await import('../../src/modules/cv/detection-pipeline/sliding-window.ts');
         vi.mocked(detectIconsWithSlidingWindow).mockResolvedValueOnce([mockDetection]);
 
         const results = await detectItemsWithCV('data:image/png;base64,abc');
@@ -183,7 +184,8 @@ describe('orchestrator - detectItemsWithCV', () => {
 
     it('should route worker detections through shared post-processing', async () => {
         const { detectItemsWithWorkers } = await import('../../src/modules/cv/detection-pipeline/worker-detection.ts');
-        const { boostConfidenceWithContext, cacheResults } = await import('../../src/modules/cv/detection-processing.ts');
+        const { boostConfidenceWithContext, cacheResults } =
+            await import('../../src/modules/cv/detection-processing.ts');
         vi.mocked(detectItemsWithWorkers).mockResolvedValueOnce([mockDetection]);
         const originalWorker = globalThis.Worker;
         (globalThis as typeof globalThis & { Worker: typeof Worker }).Worker = vi.fn() as unknown as typeof Worker;
@@ -213,7 +215,11 @@ describe('orchestrator - detectItemsWithCV', () => {
         const { setCVDetectionInProgress } = await import('../../src/modules/cv/detection-config.ts');
         vi.mocked(loadImageToCanvas).mockRejectedValueOnce(new Error('fail'));
 
-        try { await detectItemsWithCV('data:image/png;base64,abc'); } catch { /* expected */ }
+        try {
+            await detectItemsWithCV('data:image/png;base64,abc');
+        } catch {
+            /* expected */
+        }
         expect(setCVDetectionInProgress).toHaveBeenCalledWith(false);
     });
 
@@ -243,16 +249,30 @@ describe('orchestrator - detectItemsWithCV', () => {
     });
 
     it('should log active learning when uncertain detections found', async () => {
-        const { findUncertainDetections, shouldPromptForLearning } = await import('../../src/modules/cv/active-learning.ts');
+        const { findUncertainDetections, shouldPromptForLearning } =
+            await import('../../src/modules/cv/active-learning.ts');
         vi.mocked(findUncertainDetections).mockReturnValueOnce([
-            { detection: { detectedItemName: 'Sword', confidence: 0.55, detectedItemId: '1', x: 0, y: 0, width: 48, height: 48 }, alternatives: [] },
+            {
+                detection: {
+                    detectedItemName: 'Sword',
+                    confidence: 0.55,
+                    detectedItemId: '1',
+                    x: 0,
+                    y: 0,
+                    width: 48,
+                    height: 48,
+                },
+                alternatives: [],
+            },
         ]);
         vi.mocked(shouldPromptForLearning).mockReturnValueOnce(true);
 
         const { logger } = await import('../../src/modules/logger.ts');
         await detectItemsWithCV('data:image/png;base64,abc');
-        expect(logger.info).toHaveBeenCalledWith(expect.objectContaining({
-            operation: 'cv.active_learning.uncertain_found',
-        }));
+        expect(logger.info).toHaveBeenCalledWith(
+            expect.objectContaining({
+                operation: 'cv.active_learning.uncertain_found',
+            })
+        );
     });
 });

@@ -29,7 +29,7 @@ vi.mock('../../src/modules/cv/scoring-config.ts', () => ({
     }),
     calculateWeightedScore: vi.fn().mockImplementation((ncc, ssim, histogram, edge) => {
         // Simple weighted average
-        return (ncc * 0.4 + ssim * 0.3 + histogram * 0.2 + edge * 0.1);
+        return ncc * 0.4 + ssim * 0.3 + histogram * 0.2 + edge * 0.1;
     }),
 }));
 
@@ -48,7 +48,7 @@ vi.mock('../../src/modules/cv/ensemble-detector.ts', () => ({
 
 // Mock active-learning
 vi.mock('../../src/modules/cv/active-learning.ts', () => ({
-    findUncertainDetections: vi.fn().mockImplementation((detections) => {
+    findUncertainDetections: vi.fn().mockImplementation(detections => {
         // Return detections with confidence between 0.4 and 0.6 as uncertain
         return detections
             .filter((d: { confidence: number }) => d.confidence >= 0.4 && d.confidence <= 0.6)
@@ -87,7 +87,9 @@ const createDetection = (id: string, confidence: number, position?: Partial<ROI>
     entity: { id, name: id, rarity: 'common', tier: 'B', base_effect: '', unlocked_by_default: true },
     confidence,
     method: 'template_match',
-    position: position ? { x: position.x ?? 0, y: position.y ?? 0, width: position.width ?? 64, height: position.height ?? 64 } : undefined,
+    position: position
+        ? { x: position.x ?? 0, y: position.y ?? 0, width: position.width ?? 64, height: position.height ?? 64 }
+        : undefined,
 });
 
 // Mock canvas context helper
@@ -96,21 +98,21 @@ const createMockCanvasContext = (width: number, height: number): CanvasRendering
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d')!;
-    
+
     // Fill with a pattern so we have some variation for detection algorithms
     ctx.fillStyle = '#333333';
     ctx.fillRect(0, 0, width, height);
-    
+
     // Add some colored "icons" in the hotbar area
     ctx.fillStyle = '#00ff00'; // Green (uncommon rarity)
     ctx.fillRect(100, height - 60, 48, 48);
-    
+
     ctx.fillStyle = '#0066ff'; // Blue (rare rarity)
     ctx.fillRect(160, height - 60, 48, 48);
-    
+
     ctx.fillStyle = '#ff9900'; // Orange (legendary)
     ctx.fillRect(220, height - 60, 48, 48);
-    
+
     return ctx;
 };
 
@@ -121,7 +123,7 @@ const createMockCanvasContext = (width: number, height: number): CanvasRendering
 describe('getDetectionConfig (expanded)', () => {
     it('returns config with all expected properties', () => {
         const config = getDetectionConfig(1920, 1080);
-        
+
         expect(config).toHaveProperty('dynamicThreshold');
         expect(config).toHaveProperty('resolutionTier');
         expect(config).toHaveProperty('selectedStrategies');
@@ -131,7 +133,7 @@ describe('getDetectionConfig (expanded)', () => {
     it('returns different thresholds for different resolutions', () => {
         const config720 = getDetectionConfig(1280, 720);
         const config4K = getDetectionConfig(3840, 2160);
-        
+
         // Both should have valid numeric thresholds
         expect(typeof config720.dynamicThreshold).toBe('number');
         expect(typeof config4K.dynamicThreshold).toBe('number');
@@ -141,21 +143,21 @@ describe('getDetectionConfig (expanded)', () => {
 
     it('returns valid config when no dimensions provided', () => {
         const config = getDetectionConfig();
-        
+
         expect(config.dynamicThreshold).toBeGreaterThan(0);
         expect(config.dynamicThreshold).toBeLessThan(1);
     });
 
     it('selectedStrategies is an array', () => {
         const config = getDetectionConfig(1920, 1080);
-        
+
         expect(Array.isArray(config.selectedStrategies)).toBe(true);
         expect(config.selectedStrategies.length).toBeGreaterThan(0);
     });
 
     it('scoringConfig has threshold values', () => {
         const config = getDetectionConfig();
-        
+
         expect(config.scoringConfig).toHaveProperty('thresholds');
         expect(config.scoringConfig.thresholds).toBeDefined();
     });
@@ -176,7 +178,7 @@ describe('getUncertainDetectionsFromResults', () => {
             createDetection('item1', 0.5, { x: 100, y: 600 }),
             { ...createDetection('item2', 0.5), position: undefined },
         ];
-        
+
         const result = getUncertainDetectionsFromResults(detections);
         // Should only process detections with position
         expect(result.length).toBeLessThanOrEqual(detections.length);
@@ -188,20 +190,18 @@ describe('getUncertainDetectionsFromResults', () => {
             createDetection('uncertain', 0.5, { x: 200, y: 600 }),
             createDetection('certain_low', 0.3, { x: 300, y: 600 }),
         ];
-        
+
         const result = getUncertainDetectionsFromResults(detections);
-        
+
         // Should find the uncertain detection
         expect(result.length).toBeGreaterThanOrEqual(0);
     });
 
     it('returns alternatives for uncertain detections', () => {
-        const detections: CVDetectionResult[] = [
-            createDetection('uncertain', 0.5, { x: 100, y: 600 }),
-        ];
-        
+        const detections: CVDetectionResult[] = [createDetection('uncertain', 0.5, { x: 100, y: 600 })];
+
         const result = getUncertainDetectionsFromResults(detections);
-        
+
         if (result.length > 0) {
             expect(result[0]).toHaveProperty('alternatives');
         }
@@ -211,11 +211,11 @@ describe('getUncertainDetectionsFromResults', () => {
         const detections = Array.from({ length: 50 }, (_, i) =>
             createDetection(`item_${i}`, 0.4 + (i % 3) * 0.1, { x: i * 60, y: 600 })
         );
-        
+
         const start = performance.now();
         getUncertainDetectionsFromResults(detections);
         const elapsed = performance.now() - start;
-        
+
         expect(elapsed).toBeLessThan(100);
     });
 });
@@ -228,7 +228,7 @@ describe('detectHotbarRegion', () => {
     it('returns hotbar region with expected properties', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const result = detectHotbarRegion(ctx, 1920, 1080);
-        
+
         expect(result).toHaveProperty('topY');
         expect(result).toHaveProperty('bottomY');
         expect(result).toHaveProperty('confidence');
@@ -237,14 +237,14 @@ describe('detectHotbarRegion', () => {
     it('returns topY less than bottomY', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const result = detectHotbarRegion(ctx, 1920, 1080);
-        
+
         expect(result.topY).toBeLessThan(result.bottomY);
     });
 
     it('hotbar is in bottom portion of screen', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const result = detectHotbarRegion(ctx, 1920, 1080);
-        
+
         // Hotbar should be in bottom 35% of screen
         expect(result.topY).toBeGreaterThan(1080 * 0.65);
     });
@@ -252,7 +252,7 @@ describe('detectHotbarRegion', () => {
     it('confidence is between 0 and 1', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const result = detectHotbarRegion(ctx, 1920, 1080);
-        
+
         expect(result.confidence).toBeGreaterThanOrEqual(0);
         expect(result.confidence).toBeLessThanOrEqual(1);
     });
@@ -260,10 +260,10 @@ describe('detectHotbarRegion', () => {
     it('handles different resolutions', () => {
         const ctx720 = createMockCanvasContext(1280, 720);
         const ctx4K = createMockCanvasContext(3840, 2160);
-        
+
         const result720 = detectHotbarRegion(ctx720, 1280, 720);
         const result4K = detectHotbarRegion(ctx4K, 3840, 2160);
-        
+
         // Both should have valid results
         expect(result720.topY).toBeLessThan(720);
         expect(result4K.topY).toBeLessThan(2160);
@@ -272,7 +272,7 @@ describe('detectHotbarRegion', () => {
     it('handles small canvases', () => {
         const ctx = createMockCanvasContext(640, 480);
         const result = detectHotbarRegion(ctx, 640, 480);
-        
+
         expect(result).toHaveProperty('topY');
         expect(result).toHaveProperty('bottomY');
     });
@@ -286,18 +286,18 @@ describe('detectIconEdges', () => {
     it('returns array of x positions', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const bandRegion = { topY: 900, bottomY: 1080 };
-        
+
         const edges = detectIconEdges(ctx, 1920, bandRegion);
-        
+
         expect(Array.isArray(edges)).toBe(true);
     });
 
     it('edges are sorted by x position', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const bandRegion = { topY: 900, bottomY: 1080 };
-        
+
         const edges = detectIconEdges(ctx, 1920, bandRegion);
-        
+
         for (let i = 1; i < edges.length; i++) {
             expect(edges[i]).toBeGreaterThanOrEqual(edges[i - 1]);
         }
@@ -306,9 +306,9 @@ describe('detectIconEdges', () => {
     it('edges are within screen width', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const bandRegion = { topY: 900, bottomY: 1080 };
-        
+
         const edges = detectIconEdges(ctx, 1920, bandRegion);
-        
+
         for (const edge of edges) {
             expect(edge).toBeGreaterThanOrEqual(0);
             expect(edge).toBeLessThan(1920);
@@ -318,9 +318,9 @@ describe('detectIconEdges', () => {
     it('handles narrow band region', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const bandRegion = { topY: 1050, bottomY: 1080 };
-        
+
         const edges = detectIconEdges(ctx, 1920, bandRegion);
-        
+
         expect(Array.isArray(edges)).toBe(true);
     });
 
@@ -330,10 +330,10 @@ describe('detectIconEdges', () => {
         canvas.height = 1080;
         const ctx = canvas.getContext('2d')!;
         // Don't draw anything - empty canvas
-        
+
         const bandRegion = { topY: 900, bottomY: 1080 };
         const edges = detectIconEdges(ctx, 1920, bandRegion);
-        
+
         expect(Array.isArray(edges)).toBe(true);
     });
 });
@@ -346,7 +346,7 @@ describe('detectIconScale', () => {
     it('returns scale detection result', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const result = detectIconScale(ctx, 1920, 1080);
-        
+
         expect(result).toHaveProperty('iconSize');
         expect(result).toHaveProperty('confidence');
         expect(result).toHaveProperty('method');
@@ -355,14 +355,14 @@ describe('detectIconScale', () => {
     it('iconSize is a positive number', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const result = detectIconScale(ctx, 1920, 1080);
-        
+
         expect(result.iconSize).toBeGreaterThan(0);
     });
 
     it('confidence is between 0 and 1', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const result = detectIconScale(ctx, 1920, 1080);
-        
+
         expect(result.confidence).toBeGreaterThanOrEqual(0);
         expect(result.confidence).toBeLessThanOrEqual(1);
     });
@@ -370,17 +370,17 @@ describe('detectIconScale', () => {
     it('method is either edge_analysis or resolution_fallback', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const result = detectIconScale(ctx, 1920, 1080);
-        
+
         expect(['edge_analysis', 'resolution_fallback']).toContain(result.method);
     });
 
     it('returns reasonable icon sizes for different resolutions', () => {
         const ctx720 = createMockCanvasContext(1280, 720);
         const ctx4K = createMockCanvasContext(3840, 2160);
-        
+
         const result720 = detectIconScale(ctx720, 1280, 720);
         const result4K = detectIconScale(ctx4K, 3840, 2160);
-        
+
         // Icon sizes should be in reasonable range (25-100px)
         expect(result720.iconSize).toBeGreaterThanOrEqual(25);
         expect(result720.iconSize).toBeLessThanOrEqual(100);
@@ -412,7 +412,7 @@ describe('getCVMetrics (expanded)', () => {
     it('metrics structure is consistent across calls', () => {
         const metrics1 = getCVMetrics();
         const metrics2 = getCVMetrics();
-        
+
         expect(Object.keys(metrics1)).toEqual(Object.keys(metrics2));
     });
 });
@@ -425,9 +425,9 @@ describe('calculateIoU (edge cases)', () => {
     it('handles very large boxes', () => {
         const box1: ROI = { x: 0, y: 0, width: 10000, height: 10000 };
         const box2: ROI = { x: 5000, y: 5000, width: 10000, height: 10000 };
-        
+
         const iou = calculateIoU(box1, box2);
-        
+
         expect(iou).toBeGreaterThan(0);
         expect(iou).toBeLessThan(1);
     });
@@ -435,9 +435,9 @@ describe('calculateIoU (edge cases)', () => {
     it('handles boxes at origin', () => {
         const box1: ROI = { x: 0, y: 0, width: 10, height: 10 };
         const box2: ROI = { x: 0, y: 0, width: 20, height: 20 };
-        
+
         const iou = calculateIoU(box1, box2);
-        
+
         // box1 is contained in box2, IoU = 100/(400) = 0.25
         expect(iou).toBeCloseTo(0.25, 2);
     });
@@ -445,18 +445,18 @@ describe('calculateIoU (edge cases)', () => {
     it('handles 1x1 pixel boxes', () => {
         const box1: ROI = { x: 100, y: 100, width: 1, height: 1 };
         const box2: ROI = { x: 100, y: 100, width: 1, height: 1 };
-        
+
         const iou = calculateIoU(box1, box2);
-        
+
         expect(iou).toBe(1);
     });
 
     it('handles boxes with equal areas but different shapes', () => {
-        const box1: ROI = { x: 0, y: 0, width: 100, height: 100 };  // Area = 10000
-        const box2: ROI = { x: 0, y: 0, width: 200, height: 50 };   // Area = 10000
-        
+        const box1: ROI = { x: 0, y: 0, width: 100, height: 100 }; // Area = 10000
+        const box2: ROI = { x: 0, y: 0, width: 200, height: 50 }; // Area = 10000
+
         const iou = calculateIoU(box1, box2);
-        
+
         // Intersection is 100*50 = 5000
         // Union is 10000 + 10000 - 5000 = 15000
         // IoU = 5000/15000 = 0.333
@@ -475,21 +475,18 @@ describe('nonMaxSuppression (edge cases)', () => {
             createDetection('b', 0.8, { x: 10, y: 10, width: 64, height: 64 }),
             createDetection('c', 0.8, { x: 20, y: 20, width: 64, height: 64 }),
         ];
-        
+
         const result = nonMaxSuppression(detections, 0.3);
-        
+
         // Some should be suppressed due to overlap
         expect(result.length).toBeLessThanOrEqual(detections.length);
     });
 
     it('preserves order for equal confidence non-overlapping', () => {
-        const detections = [
-            createDetection('a', 0.8, { x: 0, y: 0 }),
-            createDetection('b', 0.8, { x: 200, y: 200 }),
-        ];
-        
+        const detections = [createDetection('a', 0.8, { x: 0, y: 0 }), createDetection('b', 0.8, { x: 200, y: 200 })];
+
         const result = nonMaxSuppression(detections, 0.3);
-        
+
         expect(result).toHaveLength(2);
     });
 
@@ -498,10 +495,10 @@ describe('nonMaxSuppression (edge cases)', () => {
             createDetection('a', 0.9, { x: 0, y: 0, width: 50, height: 50 }),
             createDetection('b', 0.8, { x: 100, y: 100, width: 50, height: 50 }),
         ];
-        
+
         // IoU = 0 for non-overlapping, so both should pass even with threshold 0
         const result = nonMaxSuppression(detections, 0);
-        
+
         expect(result).toHaveLength(2);
     });
 
@@ -510,10 +507,10 @@ describe('nonMaxSuppression (edge cases)', () => {
             createDetection('a', 0.9, { x: 0, y: 0, width: 64, height: 64 }),
             createDetection('b', 0.8, { x: 10, y: 10, width: 64, height: 64 }),
         ];
-        
+
         // With threshold 1, only identical boxes get suppressed
         const result = nonMaxSuppression(detections, 1);
-        
+
         expect(result).toHaveLength(2);
     });
 });
@@ -530,11 +527,11 @@ describe('verifyGridPattern (edge cases)', () => {
             createDetection('item2', 0.85, { x: 100 + spacing, y: 600, width: 48, height: 48 }),
             createDetection('item3', 0.88, { x: 100 + spacing * 2, y: 600, width: 48, height: 48 }),
             createDetection('item4', 0.82, { x: 100 + spacing * 3, y: 600, width: 48, height: 48 }),
-            createDetection('item5', 0.80, { x: 100 + spacing * 4, y: 600, width: 48, height: 48 }),
+            createDetection('item5', 0.8, { x: 100 + spacing * 4, y: 600, width: 48, height: 48 }),
         ];
-        
+
         const result = verifyGridPattern(detections, 48);
-        
+
         expect(result.isValid).toBe(true);
         expect(result.confidence).toBeGreaterThan(0.7);
     });
@@ -546,9 +543,9 @@ describe('verifyGridPattern (edge cases)', () => {
             createDetection('item2', 0.85, { x: 100 + spacing * 2, y: 600, width: 48, height: 48 }), // Gap
             createDetection('item3', 0.88, { x: 100 + spacing * 3, y: 600, width: 48, height: 48 }),
         ];
-        
+
         const result = verifyGridPattern(detections, 48);
-        
+
         // Should still recognize grid pattern with gaps
         expect(result).toHaveProperty('isValid');
     });
@@ -563,9 +560,9 @@ describe('verifyGridPattern (edge cases)', () => {
             createDetection('item3', 0.88, { x: 100, y: 600 + spacing, width: 48, height: 48 }),
             createDetection('item4', 0.82, { x: 100 + spacing, y: 600 + spacing, width: 48, height: 48 }),
         ];
-        
+
         const result = verifyGridPattern(detections, 48);
-        
+
         expect(result).toHaveProperty('gridParams');
     });
 
@@ -576,10 +573,10 @@ describe('verifyGridPattern (edge cases)', () => {
             createDetection('item3', 0.88),
         ];
         // Remove positions
-        detections.forEach(d => d.position = undefined);
-        
+        detections.forEach(d => (d.position = undefined));
+
         const result = verifyGridPattern(detections, 48);
-        
+
         // Should handle gracefully
         expect(result.isValid).toBe(true);
     });
@@ -592,9 +589,9 @@ describe('verifyGridPattern (edge cases)', () => {
             createDetection('item3', 0.88, { x: 100 + spacing * 2, y: 600, width: 48, height: 48 }),
             createDetection('item4', 0.82, { x: 100 + spacing * 3, y: 600, width: 48, height: 48 }),
         ];
-        
+
         const result = verifyGridPattern(detections, 48);
-        
+
         if (result.gridParams) {
             expect(result.gridParams).toHaveProperty('xSpacing');
             expect(result.gridParams).toHaveProperty('ySpacing');
@@ -627,10 +624,10 @@ describe('fitsGrid (additional)', () => {
     });
 
     it('handles grid with non-zero origin', () => {
-        expect(fitsGrid(25, 25, 50, 5)).toBe(true);  // 25 - 25 = 0, on grid
-        expect(fitsGrid(75, 25, 50, 5)).toBe(true);  // 75 - 25 = 50, 50%50=0, on grid
+        expect(fitsGrid(25, 25, 50, 5)).toBe(true); // 25 - 25 = 0, on grid
+        expect(fitsGrid(75, 25, 50, 5)).toBe(true); // 75 - 25 = 50, 50%50=0, on grid
         expect(fitsGrid(100, 25, 50, 5)).toBe(false); // 100 - 25 = 75, 75%50=25, not on grid
-        expect(fitsGrid(125, 25, 50, 5)).toBe(true);  // 125 - 25 = 100, 100%50=0, on grid
+        expect(fitsGrid(125, 25, 50, 5)).toBe(true); // 125 - 25 = 100, 100%50=0, on grid
     });
 });
 
@@ -642,14 +639,14 @@ describe('extractCountRegion (additional)', () => {
     it('count region is always square', () => {
         const cell: ROI = { x: 100, y: 200, width: 80, height: 60 };
         const countRegion = extractCountRegion(cell);
-        
+
         expect(countRegion.width).toBe(countRegion.height);
     });
 
     it('preserves label relationship', () => {
         const cell: ROI = { x: 0, y: 0, width: 64, height: 64, label: 'inventory_slot_0' };
         const countRegion = extractCountRegion(cell);
-        
+
         expect(countRegion.label).toContain('inventory_slot_0');
         expect(countRegion.label).toContain('count');
     });
@@ -657,7 +654,7 @@ describe('extractCountRegion (additional)', () => {
     it('handles edge case of exactly 100px cell', () => {
         const cell: ROI = { x: 0, y: 0, width: 100, height: 100 };
         const countRegion = extractCountRegion(cell);
-        
+
         // 25% of 100 = 25, which equals max
         expect(countRegion.width).toBe(25);
     });
@@ -665,14 +662,14 @@ describe('extractCountRegion (additional)', () => {
     it('handles cell smaller than 100px', () => {
         const cell: ROI = { x: 0, y: 0, width: 40, height: 40 };
         const countRegion = extractCountRegion(cell);
-        
+
         // 25% of 40 = 10
         expect(countRegion.width).toBe(10);
     });
 });
 
 // ========================================
-// setWorkerBasePath Additional Tests  
+// setWorkerBasePath Additional Tests
 // ========================================
 
 describe('setWorkerBasePath (additional)', () => {
@@ -729,25 +726,25 @@ describe('calculateSimilarity (additional)', () => {
     it('handles checkerboard pattern', () => {
         const img = createPatternImageData(8, 8);
         const similarity = calculateSimilarity(img, img);
-        
+
         expect(similarity).toBeGreaterThan(0);
     });
 
     it('different patterns have lower similarity', () => {
         const checker = createPatternImageData(8, 8);
         const uniform = createMockImageData(8, 8, 128);
-        
+
         const similarity = calculateSimilarity(checker, uniform);
-        
+
         expect(similarity).toBeLessThan(0.9);
     });
 
     it('handles different sized images gracefully', () => {
         const small = createMockImageData(4, 4, 128);
         const large = createMockImageData(64, 64, 128);
-        
+
         const similarity = calculateSimilarity(small, large);
-        
+
         expect(typeof similarity).toBe('number');
         expect(similarity).toBeGreaterThanOrEqual(0);
         expect(similarity).toBeLessThanOrEqual(1);
@@ -756,9 +753,9 @@ describe('calculateSimilarity (additional)', () => {
     it('handles extreme brightness differences', () => {
         const dark = createMockImageData(8, 8, 0);
         const bright = createMockImageData(8, 8, 255);
-        
+
         const similarity = calculateSimilarity(dark, bright);
-        
+
         expect(typeof similarity).toBe('number');
     });
 });
@@ -776,9 +773,9 @@ describe('resizeImageData (additional)', () => {
         ctx.fillStyle = 'blue';
         ctx.fillRect(0, 0, 4, 4);
         const imageData = ctx.getImageData(0, 0, 4, 4);
-        
+
         const resized = resizeImageData(imageData, 100, 100);
-        
+
         expect(resized).not.toBeNull();
         expect(resized!.width).toBe(100);
         expect(resized!.height).toBe(100);
@@ -792,9 +789,9 @@ describe('resizeImageData (additional)', () => {
         ctx.fillStyle = 'green';
         ctx.fillRect(0, 0, 200, 200);
         const imageData = ctx.getImageData(0, 0, 200, 200);
-        
+
         const resized = resizeImageData(imageData, 2, 2);
-        
+
         expect(resized).not.toBeNull();
         expect(resized!.width).toBe(2);
         expect(resized!.height).toBe(2);
@@ -808,13 +805,13 @@ describe('resizeImageData (additional)', () => {
         ctx.fillStyle = 'rgb(100, 150, 200)';
         ctx.fillRect(0, 0, 10, 10);
         const imageData = ctx.getImageData(0, 0, 10, 10);
-        
+
         const resized = resizeImageData(imageData, 5, 5);
-        
+
         expect(resized).not.toBeNull();
         // Center pixel should be approximately the same color
         const centerIdx = (2 * 5 + 2) * 4;
-        expect(resized!.data[centerIdx]).toBeGreaterThan(80);  // R
+        expect(resized!.data[centerIdx]).toBeGreaterThan(80); // R
         expect(resized!.data[centerIdx + 1]).toBeGreaterThan(130); // G
         expect(resized!.data[centerIdx + 2]).toBeGreaterThan(180); // B
     });
@@ -827,13 +824,13 @@ describe('resizeImageData (additional)', () => {
 describe('detectGridPositions (additional)', () => {
     it('generates positions with consistent spacing', () => {
         const positions = detectGridPositions(1920, 1080);
-        
+
         if (positions.length > 1) {
             const spacings = [];
             for (let i = 1; i < positions.length; i++) {
                 spacings.push(positions[i].x - positions[i - 1].x);
             }
-            
+
             // All spacings should be similar
             const avgSpacing = spacings.reduce((a, b) => a + b, 0) / spacings.length;
             for (const spacing of spacings) {
@@ -844,7 +841,7 @@ describe('detectGridPositions (additional)', () => {
 
     it('positions have width equal to height (square cells)', () => {
         const positions = detectGridPositions(1920, 1080);
-        
+
         for (const pos of positions) {
             expect(pos.width).toBe(pos.height);
         }
@@ -852,14 +849,14 @@ describe('detectGridPositions (additional)', () => {
 
     it('handles ultrawide resolution', () => {
         const positions = detectGridPositions(3440, 1440);
-        
+
         expect(positions.length).toBeGreaterThan(0);
         expect(positions.length).toBeLessThanOrEqual(30);
     });
 
     it('handles portrait-ish resolution', () => {
         const positions = detectGridPositions(800, 1200);
-        
+
         expect(Array.isArray(positions)).toBe(true);
     });
 });
@@ -871,7 +868,7 @@ describe('detectGridPositions (additional)', () => {
 describe('loadImageToCanvas', () => {
     // Import dynamically to get the function
     let loadImageToCanvas: typeof import('../../src/modules/cv/detection.ts').loadImageToCanvas;
-    
+
     beforeEach(async () => {
         const detection = await import('../../src/modules/cv/detection.ts');
         loadImageToCanvas = detection.loadImageToCanvas;
@@ -910,9 +907,9 @@ describe('calculateIoU (comprehensive)', () => {
         // Box1 is mostly inside Box2
         const box1: ROI = { x: 100, y: 100, width: 20, height: 20 };
         const box2: ROI = { x: 90, y: 90, width: 50, height: 50 };
-        
+
         const iou = calculateIoU(box1, box2);
-        
+
         // box1 area = 400, box2 area = 2500
         // intersection = box1 (fully contained) = 400
         // union = 2500
@@ -922,9 +919,9 @@ describe('calculateIoU (comprehensive)', () => {
     it('handles wide boxes', () => {
         const box1: ROI = { x: 0, y: 0, width: 1000, height: 10 };
         const box2: ROI = { x: 500, y: 0, width: 1000, height: 10 };
-        
+
         const iou = calculateIoU(box1, box2);
-        
+
         // Intersection = 500*10 = 5000
         // Union = 10000 + 10000 - 5000 = 15000
         expect(iou).toBeCloseTo(0.333, 2);
@@ -933,9 +930,9 @@ describe('calculateIoU (comprehensive)', () => {
     it('handles tall boxes', () => {
         const box1: ROI = { x: 0, y: 0, width: 10, height: 1000 };
         const box2: ROI = { x: 0, y: 500, width: 10, height: 1000 };
-        
+
         const iou = calculateIoU(box1, box2);
-        
+
         expect(iou).toBeCloseTo(0.333, 2);
     });
 });
@@ -953,9 +950,9 @@ describe('nonMaxSuppression (comprehensive)', () => {
             createDetection('c', 0.75, { x: 160, y: 0, width: 100, height: 100 }),
             createDetection('d', 0.65, { x: 240, y: 0, width: 100, height: 100 }),
         ];
-        
+
         const result = nonMaxSuppression(detections, 0.1);
-        
+
         // Should suppress overlapping ones but keep separated ones
         expect(result.length).toBeLessThan(4);
         expect(result[0].entity.id).toBe('a'); // Highest confidence kept
@@ -966,24 +963,22 @@ describe('nonMaxSuppression (comprehensive)', () => {
         const gridSize = 5;
         const cellSize = 50;
         const gap = 10;
-        
+
         for (let row = 0; row < gridSize; row++) {
             for (let col = 0; col < gridSize; col++) {
-                detections.push(createDetection(
-                    `cell_${row}_${col}`,
-                    0.8 + Math.random() * 0.15,
-                    { 
-                        x: col * (cellSize + gap), 
+                detections.push(
+                    createDetection(`cell_${row}_${col}`, 0.8 + Math.random() * 0.15, {
+                        x: col * (cellSize + gap),
                         y: row * (cellSize + gap),
                         width: cellSize,
-                        height: cellSize
-                    }
-                ));
+                        height: cellSize,
+                    })
+                );
             }
         }
-        
+
         const result = nonMaxSuppression(detections, 0.3);
-        
+
         // Non-overlapping grid should keep all detections
         expect(result.length).toBe(25);
     });
@@ -991,11 +986,11 @@ describe('nonMaxSuppression (comprehensive)', () => {
     it('handles detections with very similar confidences', () => {
         const detections = [
             createDetection('a', 0.8001, { x: 0, y: 0, width: 64, height: 64 }),
-            createDetection('b', 0.8000, { x: 10, y: 10, width: 64, height: 64 }),
+            createDetection('b', 0.8, { x: 10, y: 10, width: 64, height: 64 }),
         ];
-        
+
         const result = nonMaxSuppression(detections, 0.3);
-        
+
         // Should still keep just one due to overlap
         expect(result.length).toBe(1);
         expect(result[0].entity.id).toBe('a'); // Slightly higher confidence
@@ -1013,11 +1008,11 @@ describe('verifyGridPattern (comprehensive)', () => {
             createDetection('item2', 0.85, { x: 150, y: 600, width: 48, height: 48 }), // 50px gap
             createDetection('item3', 0.88, { x: 200, y: 600, width: 48, height: 48 }), // 50px gap
             createDetection('outlier', 0.82, { x: 280, y: 600, width: 48, height: 48 }), // 80px gap (outlier)
-            createDetection('item4', 0.80, { x: 330, y: 600, width: 48, height: 48 }), // 50px gap
+            createDetection('item4', 0.8, { x: 330, y: 600, width: 48, height: 48 }), // 50px gap
         ];
-        
+
         const result = verifyGridPattern(detections, 48);
-        
+
         // Should still recognize mostly valid grid
         expect(result).toHaveProperty('filteredDetections');
     });
@@ -1026,9 +1021,9 @@ describe('verifyGridPattern (comprehensive)', () => {
         const detections = Array.from({ length: 20 }, (_, i) =>
             createDetection(`item_${i}`, 0.8, { x: 100 + i * 50, y: 600, width: 48, height: 48 })
         );
-        
+
         const result = verifyGridPattern(detections, 48);
-        
+
         expect(result.isValid).toBe(true);
         expect(result.confidence).toBeGreaterThan(0.5);
     });
@@ -1037,9 +1032,9 @@ describe('verifyGridPattern (comprehensive)', () => {
         const detections = Array.from({ length: 10 }, (_, i) =>
             createDetection(`item_${i}`, 0.8, { x: 100 + i * 30, y: 600, width: 28, height: 28 })
         );
-        
+
         const result = verifyGridPattern(detections, 28);
-        
+
         expect(result).toHaveProperty('isValid');
     });
 
@@ -1048,9 +1043,9 @@ describe('verifyGridPattern (comprehensive)', () => {
         const perfectGrid = Array.from({ length: 8 }, (_, i) =>
             createDetection(`item_${i}`, 0.8, { x: 100 + i * 50, y: 600, width: 48, height: 48 })
         );
-        
+
         const perfectResult = verifyGridPattern(perfectGrid, 48);
-        
+
         // Grid with outliers
         const mixedGrid = [
             ...Array.from({ length: 6 }, (_, i) =>
@@ -1059,9 +1054,9 @@ describe('verifyGridPattern (comprehensive)', () => {
             createDetection('outlier1', 0.8, { x: 500, y: 600, width: 48, height: 48 }),
             createDetection('outlier2', 0.8, { x: 700, y: 600, width: 48, height: 48 }),
         ];
-        
+
         const mixedResult = verifyGridPattern(mixedGrid, 48);
-        
+
         // Perfect grid should have higher confidence
         expect(perfectResult.confidence).toBeGreaterThanOrEqual(mixedResult.confidence - 0.3);
     });
@@ -1079,9 +1074,9 @@ describe('detectHotbarRegion (comprehensive)', () => {
         const ctx = canvas.getContext('2d')!;
         ctx.fillStyle = '#1a1a1a';
         ctx.fillRect(0, 0, 1920, 1080);
-        
+
         const result = detectHotbarRegion(ctx, 1920, 1080);
-        
+
         // Should still return valid bounds even for dark canvas
         expect(result.topY).toBeLessThan(result.bottomY);
         expect(result.bottomY).toBeLessThanOrEqual(1080);
@@ -1092,32 +1087,32 @@ describe('detectHotbarRegion (comprehensive)', () => {
         canvas.width = 1920;
         canvas.height = 1080;
         const ctx = canvas.getContext('2d')!;
-        
+
         // Dark background
         ctx.fillStyle = '#222';
         ctx.fillRect(0, 0, 1920, 1080);
-        
+
         // Bright hotbar area
         ctx.fillStyle = '#ffcc00';
         ctx.fillRect(0, 900, 1920, 180);
-        
+
         const result = detectHotbarRegion(ctx, 1920, 1080);
-        
+
         expect(result.topY).toBeGreaterThan(800);
     });
 
     it('handles various aspect ratios', () => {
         const testCases = [
-            { w: 1920, h: 1080 },  // 16:9
-            { w: 2560, h: 1080 },  // 21:9 ultrawide
-            { w: 1280, h: 1024 },  // 5:4
-            { w: 1600, h: 900 },   // 16:9
+            { w: 1920, h: 1080 }, // 16:9
+            { w: 2560, h: 1080 }, // 21:9 ultrawide
+            { w: 1280, h: 1024 }, // 5:4
+            { w: 1600, h: 900 }, // 16:9
         ];
-        
+
         for (const { w, h } of testCases) {
             const ctx = createMockCanvasContext(w, h);
             const result = detectHotbarRegion(ctx, w, h);
-            
+
             expect(result.topY).toBeLessThan(h);
             expect(result.bottomY).toBeLessThanOrEqual(h);
         }
@@ -1134,11 +1129,11 @@ describe('detectIconEdges (comprehensive)', () => {
         canvas.width = 1920;
         canvas.height = 1080;
         const ctx = canvas.getContext('2d')!;
-        
+
         // Dark background
         ctx.fillStyle = '#222';
         ctx.fillRect(0, 0, 1920, 1080);
-        
+
         // Add some "icon" boxes with green borders (uncommon rarity)
         for (let i = 0; i < 5; i++) {
             const x = 200 + i * 60;
@@ -1146,9 +1141,9 @@ describe('detectIconEdges (comprehensive)', () => {
             ctx.lineWidth = 3;
             ctx.strokeRect(x, 950, 48, 48);
         }
-        
+
         const edges = detectIconEdges(ctx, 1920, { topY: 900, bottomY: 1080 });
-        
+
         expect(Array.isArray(edges)).toBe(true);
     });
 
@@ -1157,7 +1152,7 @@ describe('detectIconEdges (comprehensive)', () => {
         canvas.width = 1920;
         canvas.height = 1080;
         const ctx = canvas.getContext('2d')!;
-        
+
         // Just fill with noise-like pattern
         for (let y = 0; y < 1080; y += 10) {
             for (let x = 0; x < 1920; x += 10) {
@@ -1165,9 +1160,9 @@ describe('detectIconEdges (comprehensive)', () => {
                 ctx.fillRect(x, y, 10, 10);
             }
         }
-        
+
         const edges = detectIconEdges(ctx, 1920, { topY: 900, bottomY: 1080 });
-        
+
         // Should not crash, return array
         expect(Array.isArray(edges)).toBe(true);
     });
@@ -1175,7 +1170,7 @@ describe('detectIconEdges (comprehensive)', () => {
     it('returns edges in sorted order', () => {
         const ctx = createMockCanvasContext(1920, 1080);
         const edges = detectIconEdges(ctx, 1920, { topY: 900, bottomY: 1080 });
-        
+
         for (let i = 1; i < edges.length; i++) {
             expect(edges[i]).toBeGreaterThanOrEqual(edges[i - 1]);
         }
@@ -1193,9 +1188,9 @@ describe('detectIconScale (comprehensive)', () => {
         canvas.height = 1080;
         const ctx = canvas.getContext('2d')!;
         // Empty canvas
-        
+
         const result = detectIconScale(ctx, 1920, 1080);
-        
+
         expect(result.method).toBe('resolution_fallback');
     });
 
@@ -1204,11 +1199,11 @@ describe('detectIconScale (comprehensive)', () => {
         canvas.width = 1920;
         canvas.height = 1080;
         const ctx = canvas.getContext('2d')!;
-        
+
         // Background
         ctx.fillStyle = '#222';
         ctx.fillRect(0, 0, 1920, 1080);
-        
+
         // Draw icons with consistent 60px spacing
         const iconSize = 48;
         const spacing = 60;
@@ -1220,9 +1215,9 @@ describe('detectIconScale (comprehensive)', () => {
             ctx.fillStyle = '#446644';
             ctx.fillRect(x + 3, 953, iconSize - 6, iconSize - 6);
         }
-        
+
         const result = detectIconScale(ctx, 1920, 1080);
-        
+
         expect(result.iconSize).toBeGreaterThan(0);
         expect(result.confidence).toBeGreaterThanOrEqual(0);
     });
@@ -1230,7 +1225,7 @@ describe('detectIconScale (comprehensive)', () => {
     it('handles very high resolution', () => {
         const ctx = createMockCanvasContext(3840, 2160);
         const result = detectIconScale(ctx, 3840, 2160);
-        
+
         expect(result.iconSize).toBeGreaterThan(0);
         expect(result.iconSize).toBeLessThan(200);
     });
@@ -1250,10 +1245,10 @@ describe('getAdaptiveIconSizes (comprehensive)', () => {
             [3840, 2160],
             [5120, 2880],
         ];
-        
+
         for (const [width, height] of testResolutions) {
             const sizes = getAdaptiveIconSizes(width, height);
-            
+
             // All sizes should be reasonable for icons (20-100px)
             for (const size of sizes) {
                 expect(size).toBeGreaterThan(20);
@@ -1267,7 +1262,7 @@ describe('getAdaptiveIconSizes (comprehensive)', () => {
         // (though this depends on the mock returning different categories)
         const sizes720 = getAdaptiveIconSizes(1280, 720);
         const sizes4K = getAdaptiveIconSizes(3840, 2160);
-        
+
         // At minimum, both should return valid arrays
         expect(sizes720.length).toBe(3);
         expect(sizes4K.length).toBe(3);
@@ -1281,7 +1276,7 @@ describe('getAdaptiveIconSizes (comprehensive)', () => {
 describe('detectGridPositions (additional)', () => {
     it('all positions are in the hotbar region', () => {
         const positions = detectGridPositions(1920, 1080);
-        
+
         for (const pos of positions) {
             // Should be near bottom of screen
             expect(pos.y).toBeGreaterThan(1080 * 0.85);
@@ -1292,13 +1287,13 @@ describe('detectGridPositions (additional)', () => {
         const positions = detectGridPositions(1920, 1080);
         const labels = positions.map(p => p.label);
         const uniqueLabels = new Set(labels);
-        
+
         expect(uniqueLabels.size).toBe(labels.length);
     });
 
     it('respects margin parameter behavior', () => {
         const positions = detectGridPositions(1920, 1080);
-        
+
         // First position should have 50px margin
         if (positions.length > 0) {
             expect(positions[0].x).toBeGreaterThanOrEqual(50);
@@ -1307,7 +1302,7 @@ describe('detectGridPositions (additional)', () => {
 
     it('handles minimum viable resolution', () => {
         const positions = detectGridPositions(320, 240);
-        
+
         expect(Array.isArray(positions)).toBe(true);
     });
 });
@@ -1346,7 +1341,7 @@ describe('extractCountRegion (comprehensive)', () => {
     it('handles cells at origin', () => {
         const cell: ROI = { x: 0, y: 0, width: 64, height: 64 };
         const countRegion = extractCountRegion(cell);
-        
+
         expect(countRegion.x).toBeGreaterThanOrEqual(0);
         expect(countRegion.y).toBeGreaterThanOrEqual(0);
     });
@@ -1354,7 +1349,7 @@ describe('extractCountRegion (comprehensive)', () => {
     it('handles cells at screen edge', () => {
         const cell: ROI = { x: 1856, y: 1016, width: 64, height: 64 };
         const countRegion = extractCountRegion(cell);
-        
+
         // Count region should still be within cell
         expect(countRegion.x).toBeGreaterThanOrEqual(cell.x);
         expect(countRegion.y).toBeGreaterThanOrEqual(cell.y);
@@ -1363,7 +1358,7 @@ describe('extractCountRegion (comprehensive)', () => {
     it('handles very small cells', () => {
         const cell: ROI = { x: 100, y: 100, width: 10, height: 10 };
         const countRegion = extractCountRegion(cell);
-        
+
         // Should still produce valid region
         expect(countRegion.width).toBeGreaterThan(0);
         expect(countRegion.height).toBeGreaterThan(0);
@@ -1372,10 +1367,10 @@ describe('extractCountRegion (comprehensive)', () => {
     it('handles non-square cells', () => {
         const wideCell: ROI = { x: 0, y: 0, width: 100, height: 50 };
         const tallCell: ROI = { x: 0, y: 0, width: 50, height: 100 };
-        
+
         const wideRegion = extractCountRegion(wideCell);
         const tallRegion = extractCountRegion(tallCell);
-        
+
         // Regions should be square and use smaller dimension
         expect(wideRegion.width).toBe(wideRegion.height);
         expect(tallRegion.width).toBe(tallRegion.height);
@@ -1401,7 +1396,7 @@ describe('fitsGrid (comprehensive)', () => {
 
     it('handles edge of tolerance at both ends', () => {
         // At tolerance boundary
-        expect(fitsGrid(5, 0, 50, 5)).toBe(true);  // offset = 5, tolerance = 5
+        expect(fitsGrid(5, 0, 50, 5)).toBe(true); // offset = 5, tolerance = 5
         expect(fitsGrid(45, 0, 50, 5)).toBe(true); // offset = 45, spacing - tolerance = 45
     });
 
@@ -1431,31 +1426,31 @@ describe('calculateSimilarity (comprehensive)', () => {
     it('handles 2x2 images', () => {
         const img = createMockImageData(2, 2, 100);
         const similarity = calculateSimilarity(img, img);
-        
+
         expect(typeof similarity).toBe('number');
     });
 
     it('handles 1x1 images', () => {
         const img = createMockImageData(1, 1, 100);
         const similarity = calculateSimilarity(img, img);
-        
+
         expect(typeof similarity).toBe('number');
     });
 
     it('handles large images', () => {
         const img = createMockImageData(128, 128, 100);
         const similarity = calculateSimilarity(img, img);
-        
+
         expect(similarity).toBeGreaterThanOrEqual(0);
     });
 
     it('returns consistent results', () => {
         const img1 = createMockImageData(16, 16, 100);
         const img2 = createMockImageData(16, 16, 150);
-        
+
         const sim1 = calculateSimilarity(img1, img2);
         const sim2 = calculateSimilarity(img1, img2);
-        
+
         expect(sim1).toBe(sim2);
     });
 });
@@ -1473,9 +1468,9 @@ describe('resizeImageData (comprehensive)', () => {
         ctx.fillStyle = 'blue';
         ctx.fillRect(0, 0, 64, 64);
         const imageData = ctx.getImageData(0, 0, 64, 64);
-        
+
         const resized = resizeImageData(imageData, 32, 32);
-        
+
         expect(resized).not.toBeNull();
         expect(resized!.width).toBe(32);
         expect(resized!.height).toBe(32);
@@ -1487,9 +1482,9 @@ describe('resizeImageData (comprehensive)', () => {
         canvas.height = 64;
         const ctx = canvas.getContext('2d')!;
         const imageData = ctx.getImageData(0, 0, 64, 64);
-        
+
         const resized = resizeImageData(imageData, 100, 50);
-        
+
         expect(resized).not.toBeNull();
         expect(resized!.width).toBe(100);
         expect(resized!.height).toBe(50);
@@ -1503,13 +1498,13 @@ describe('resizeImageData (comprehensive)', () => {
         ctx.fillStyle = 'rgb(200, 100, 50)';
         ctx.fillRect(0, 0, 32, 32);
         const imageData = ctx.getImageData(0, 0, 32, 32);
-        
+
         const resized = resizeImageData(imageData, 32, 32);
-        
+
         expect(resized).not.toBeNull();
         // Check center pixel is approximately same color
         const centerIdx = (16 * 32 + 16) * 4;
-        expect(resized!.data[centerIdx]).toBeGreaterThan(150);  // R ~200
+        expect(resized!.data[centerIdx]).toBeGreaterThan(150); // R ~200
         expect(resized!.data[centerIdx + 1]).toBeGreaterThan(50); // G ~100
         expect(resized!.data[centerIdx + 2]).toBeGreaterThan(30); // B ~50
     });
@@ -1525,7 +1520,7 @@ describe('getCVMetrics and getDetectionConfig interaction', () => {
         const config1 = getDetectionConfig(1920, 1080);
         const metrics2 = getCVMetrics();
         const config2 = getDetectionConfig(1920, 1080);
-        
+
         // Structure should be consistent
         expect(Object.keys(metrics1)).toEqual(Object.keys(metrics2));
         expect(Object.keys(config1)).toEqual(Object.keys(config2));
@@ -1536,7 +1531,7 @@ describe('getCVMetrics and getDetectionConfig interaction', () => {
         // but the function should still work
         const config1 = getDetectionConfig(1920, 1080);
         const config2 = getDetectionConfig(3840, 2160);
-        
+
         expect(typeof config1.dynamicThreshold).toBe('number');
         expect(typeof config2.dynamicThreshold).toBe('number');
     });
@@ -1554,25 +1549,25 @@ describe('getCVMetrics and getDetectionConfig interaction', () => {
 describe('Performance', () => {
     it('detectHotbarRegion completes in reasonable time', () => {
         const ctx = createMockCanvasContext(1920, 1080);
-        
+
         const start = performance.now();
         for (let i = 0; i < 5; i++) {
             detectHotbarRegion(ctx, 1920, 1080);
         }
         const elapsed = performance.now() - start;
-        
+
         expect(elapsed).toBeLessThan(20000); // 5 iterations < 20s (relaxed for CI)
     });
 
     it('detectIconScale completes in reasonable time', () => {
         const ctx = createMockCanvasContext(1920, 1080);
-        
+
         const start = performance.now();
         for (let i = 0; i < 5; i++) {
             detectIconScale(ctx, 1920, 1080);
         }
         const elapsed = performance.now() - start;
-        
+
         expect(elapsed).toBeLessThan(20000); // 5 iterations < 20s (relaxed for CI)
     });
 
@@ -1580,11 +1575,11 @@ describe('Performance', () => {
         const detections = Array.from({ length: 100 }, (_, i) =>
             createDetection(`item_${i}`, 0.8, { x: 100 + (i % 10) * 50, y: 600 + Math.floor(i / 10) * 50 })
         );
-        
+
         const start = performance.now();
         verifyGridPattern(detections, 48);
         const elapsed = performance.now() - start;
-        
+
         expect(elapsed).toBeLessThan(100);
     });
 });

@@ -9,37 +9,47 @@ globalThis.ImageData = ImageData;
 const OUTPUT_DIR = './training-data/ingame-style-templates';
 
 function analyzeImage(imageData) {
-    let sumGray = 0, sumGraySq = 0;
+    let sumGray = 0,
+        sumGraySq = 0;
     const pixels = imageData.width * imageData.height;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sumGray += gray; sumGraySq += gray * gray;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sumGray += gray;
+        sumGraySq += gray * gray;
     }
     return sumGraySq / pixels - (sumGray / pixels) ** 2;
 }
 
 function heavyBlur(imageData, radius) {
-    const w = imageData.width, h = imageData.height;
+    const w = imageData.width,
+        h = imageData.height;
     const data = imageData.data;
     const result = new Uint8ClampedArray(data.length);
 
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
-            let r = 0, g = 0, b = 0, a = 0, count = 0;
+            let r = 0,
+                g = 0,
+                b = 0,
+                a = 0,
+                count = 0;
             for (let dy = -radius; dy <= radius; dy++) {
                 for (let dx = -radius; dx <= radius; dx++) {
-                    const nx = Math.min(w-1, Math.max(0, x + dx));
-                    const ny = Math.min(h-1, Math.max(0, y + dy));
+                    const nx = Math.min(w - 1, Math.max(0, x + dx));
+                    const ny = Math.min(h - 1, Math.max(0, y + dy));
                     const i = (ny * w + nx) * 4;
-                    r += data[i]; g += data[i+1]; b += data[i+2]; a += data[i+3];
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                    a += data[i + 3];
                     count++;
                 }
             }
             const i = (y * w + x) * 4;
             result[i] = r / count;
-            result[i+1] = g / count;
-            result[i+2] = b / count;
-            result[i+3] = a / count;
+            result[i + 1] = g / count;
+            result[i + 2] = b / count;
+            result[i + 3] = a / count;
         }
     }
     return new ImageData(result, w, h);
@@ -49,8 +59,8 @@ function reduceContrast(imageData, factor) {
     const data = new Uint8ClampedArray(imageData.data);
     for (let i = 0; i < data.length; i += 4) {
         data[i] = Math.round(128 + (data[i] - 128) * factor);
-        data[i+1] = Math.round(128 + (data[i+1] - 128) * factor);
-        data[i+2] = Math.round(128 + (data[i+2] - 128) * factor);
+        data[i + 1] = Math.round(128 + (data[i + 1] - 128) * factor);
+        data[i + 2] = Math.round(128 + (data[i + 2] - 128) * factor);
     }
     return new ImageData(data, imageData.width, imageData.height);
 }
@@ -59,15 +69,17 @@ function adjustBrightness(imageData, factor) {
     const data = new Uint8ClampedArray(imageData.data);
     for (let i = 0; i < data.length; i += 4) {
         data[i] = Math.min(255, Math.round(data[i] * factor));
-        data[i+1] = Math.min(255, Math.round(data[i+1] * factor));
-        data[i+2] = Math.min(255, Math.round(data[i+2] * factor));
+        data[i + 1] = Math.min(255, Math.round(data[i + 1] * factor));
+        data[i + 2] = Math.min(255, Math.round(data[i + 2] * factor));
     }
     return new ImageData(data, imageData.width, imageData.height);
 }
 
 function downscaleUpscale(imageData, scale) {
-    const w = imageData.width, h = imageData.height;
-    const smallW = Math.round(w / scale), smallH = Math.round(h / scale);
+    const w = imageData.width,
+        h = imageData.height;
+    const smallW = Math.round(w / scale),
+        smallH = Math.round(h / scale);
 
     // Downscale
     const smallCanvas = createCanvas(smallW, smallH);
@@ -120,9 +132,7 @@ function createIngameStyleVariants(imageData, targetVariance = 600) {
     }
 
     // Sort by how close to target variance
-    variants.sort((a, b) =>
-        Math.abs(a.variance - targetVariance) - Math.abs(b.variance - targetVariance)
-    );
+    variants.sort((a, b) => Math.abs(a.variance - targetVariance) - Math.abs(b.variance - targetVariance));
 
     return variants.slice(0, 8); // Keep best 8 variants
 }
@@ -147,7 +157,7 @@ async function main() {
             const canvas = createCanvas(48, 48);
             const ctx = canvas.getContext('2d');
             const margin = Math.round(img.width * 0.08);
-            ctx.drawImage(img, margin, margin, img.width - margin*2, img.height - margin*2, 0, 0, 48, 48);
+            ctx.drawImage(img, margin, margin, img.width - margin * 2, img.height - margin * 2, 0, 0, 48, 48);
             const imageData = ctx.getImageData(0, 0, 48, 48);
             templates.push({ id: item.id, name: item.name, imageData });
         } catch {}
@@ -184,7 +194,7 @@ async function main() {
                 id: template.id,
                 variant: i,
                 variance: v.variance,
-                params: { blur: v.blur, contrast: v.contrast, downscale: v.downscale }
+                params: { blur: v.blur, contrast: v.contrast, downscale: v.downscale },
             });
         }
 
@@ -245,10 +255,7 @@ async function main() {
         }
     }
 
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'ingame-style-montage.png'),
-        montage.toBuffer('image/png')
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'ingame-style-montage.png'), montage.toBuffer('image/png'));
 
     console.log(`\nMontage saved: ${OUTPUT_DIR}/ingame-style-montage.png`);
     console.log(`Templates saved to: ${OUTPUT_DIR}/by-item/`);

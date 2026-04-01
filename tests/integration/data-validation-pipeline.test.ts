@@ -2,26 +2,35 @@
  * Integration: Schema validation → Data validation → Cross-reference checking
  */
 import { describe, it, expect } from 'vitest';
-import { validateDataStructure, validateCrossReferences, validateRarity, validateTier, validateAllData } from '../../src/modules/data-validation.ts';
+import {
+    validateDataStructure,
+    validateCrossReferences,
+    validateRarity,
+    validateTier,
+    validateAllData,
+} from '../../src/modules/data-validation.ts';
 import type { AllGameData } from '../../src/types/index.ts';
 
 const validData: AllGameData = {
     items: {
         items: [
             { id: 'sword', name: 'Sword', description: 'A sword', tier: 'B', rarity: 'common' },
-            { id: 'shield', name: 'Shield', description: 'A shield', tier: 'C', rarity: 'uncommon', synergies: ['sword'] },
+            {
+                id: 'shield',
+                name: 'Shield',
+                description: 'A shield',
+                tier: 'C',
+                rarity: 'uncommon',
+                synergies: ['sword'],
+            },
         ],
     },
     weapons: {
-        weapons: [
-            { id: 'axe', name: 'Axe', description: 'An axe', tier: 'A', image: '' },
-        ],
+        weapons: [{ id: 'axe', name: 'Axe', description: 'An axe', tier: 'A', image: '' }],
     },
     tomes: { tomes: [] },
     characters: {
-        characters: [
-            { id: 'warrior', name: 'Warrior', description: 'A fighter', tier: 'S', image: '' },
-        ],
+        characters: [{ id: 'warrior', name: 'Warrior', description: 'A fighter', tier: 'S', image: '' }],
     },
     shrines: { shrines: [] },
 };
@@ -71,7 +80,10 @@ describe('Integration: Data Validation Pipeline', () => {
     });
 
     it('should validate structure with missing optional fields', () => {
-        const result = validateDataStructure({ items: [{ id: 'a', name: 'A', description: 'desc', tier: 'B', rarity: 'common' }] } as any, 'items');
+        const result = validateDataStructure(
+            { items: [{ id: 'a', name: 'A', description: 'desc', tier: 'B', rarity: 'common' }] } as any,
+            'items'
+        );
         expect(result).toBeDefined();
     });
 });

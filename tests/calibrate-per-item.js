@@ -18,17 +18,28 @@ let srcCtx = null;
 let lastSrcSize = 0;
 
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 function detectGridPositions(width, height) {
@@ -39,7 +50,7 @@ function detectGridPositions(width, height) {
     const rowHeight = Math.round(40 * scale);
     const positions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        const y = height - bottomMargin - row * rowHeight - iconSize;
         if (y < height * 0.65) continue;
         const sideMargin = Math.round(width * 0.15);
         const cellWidth = iconSize + spacing;
@@ -54,7 +65,10 @@ function detectGridPositions(width, height) {
 }
 
 function normalizeItemId(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
 }
 
 async function main() {
@@ -79,7 +93,7 @@ async function main() {
     const testCases = Object.entries(gt).filter(([k]) => !k.startsWith('_'));
 
     // Collect all match scores for each item
-    const itemScores = new Map();  // itemId -> { trueMatches: [], falseMatches: [] }
+    const itemScores = new Map(); // itemId -> { trueMatches: [], falseMatches: [] }
 
     for (const [filename, data] of testCases) {
         const imagePath = path.join('./test-images/gameplay', filename);
@@ -103,10 +117,14 @@ async function main() {
         for (const pos of positions) {
             const cellData = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
 
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < cellData.data.length; i += 4) {
-                const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const variance = sumSq / count - (sum / count) ** 2;
             if (variance < 350) continue;
@@ -121,7 +139,17 @@ async function main() {
             srcCtx.putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.1);
             resizeCtx.clearRect(0, 0, 32, 32);
-            resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
             // Check each template
@@ -159,14 +187,12 @@ async function main() {
 
         if (trueScores.length === 0) {
             console.log(`| ${itemId.padEnd(12)} | N/A | N/A | N/A | 0.60 | N/A |`);
-            optimalThresholds[itemId] = 0.60;
+            optimalThresholds[itemId] = 0.6;
             continue;
         }
 
         const trueMean = trueScores.reduce((a, b) => a + b, 0) / trueScores.length;
-        const falseMean = falseScores.length > 0
-            ? falseScores.reduce((a, b) => a + b, 0) / falseScores.length
-            : 0.4;
+        const falseMean = falseScores.length > 0 ? falseScores.reduce((a, b) => a + b, 0) / falseScores.length : 0.4;
 
         const trueMin = Math.min(...trueScores);
         const falseMax = falseScores.length > 0 ? Math.max(...falseScores) : 0.4;
@@ -180,11 +206,13 @@ async function main() {
         const falseAbove = falseScores.filter(s => s >= optThreshold).length;
         const estPrecision = trueAbove / (trueAbove + falseAbove) || 0;
         const estRecall = trueAbove / trueScores.length || 0;
-        const estF1 = 2 * estPrecision * estRecall / (estPrecision + estRecall) || 0;
+        const estF1 = (2 * estPrecision * estRecall) / (estPrecision + estRecall) || 0;
 
-        optimalThresholds[itemId] = Math.max(0.50, Math.min(0.75, optThreshold));
+        optimalThresholds[itemId] = Math.max(0.5, Math.min(0.75, optThreshold));
 
-        console.log(`| ${itemId.slice(0, 12).padEnd(12)} | ${trueMean.toFixed(2).padStart(9)} | ${falseMean.toFixed(2).padStart(10)} | ${separation.toFixed(2).padStart(10)} | ${optThreshold.toFixed(2).padStart(10)} | ${(estF1 * 100).toFixed(0).padStart(10)}% |`);
+        console.log(
+            `| ${itemId.slice(0, 12).padEnd(12)} | ${trueMean.toFixed(2).padStart(9)} | ${falseMean.toFixed(2).padStart(10)} | ${separation.toFixed(2).padStart(10)} | ${optThreshold.toFixed(2).padStart(10)} | ${(estF1 * 100).toFixed(0).padStart(10)}% |`
+        );
     }
 
     console.log('|------|-----------|------------|------------|------------|-------------|\n');
@@ -200,7 +228,9 @@ async function main() {
     // Test with optimized thresholds
     console.log('\n=== Testing Optimized Thresholds ===\n');
 
-    let totalTP = 0, totalFP = 0, totalFN = 0;
+    let totalTP = 0,
+        totalFP = 0,
+        totalFN = 0;
 
     for (const [filename, data] of testCases) {
         const imagePath = path.join('./test-images/gameplay', filename);
@@ -224,10 +254,14 @@ async function main() {
         for (const pos of positions) {
             const cellData = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
 
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < cellData.data.length; i += 4) {
-                const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const variance = sumSq / count - (sum / count) ** 2;
             if (variance < 400) continue;
@@ -242,13 +276,24 @@ async function main() {
             srcCtx.putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.1);
             resizeCtx.clearRect(0, 0, 32, 32);
-            resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
-            let bestMatch = null, bestScore = 0;
+            let bestMatch = null,
+                bestScore = 0;
             for (const [itemId, template] of templates) {
                 const score = calculateNCC(resizedCell, template.imageData);
-                const threshold = optimalThresholds[itemId] || 0.60;
+                const threshold = optimalThresholds[itemId] || 0.6;
                 if (score >= threshold && score > bestScore) {
                     bestScore = score;
                     bestMatch = itemId;
@@ -273,7 +318,7 @@ async function main() {
 
     const precision = totalTP / (totalTP + totalFP) || 0;
     const recall = totalTP / (totalTP + totalFN) || 0;
-    const f1 = 2 * precision * recall / (precision + recall) || 0;
+    const f1 = (2 * precision * recall) / (precision + recall) || 0;
 
     console.log(`TP: ${totalTP}, FP: ${totalFP}, FN: ${totalFN}`);
     console.log(`Precision: ${(precision * 100).toFixed(1)}%`);
@@ -283,10 +328,7 @@ async function main() {
     console.log(`Improvement: ${(f1 * 100 - 21.6).toFixed(1)}%`);
 
     // Save calibration
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'item-thresholds.json'),
-        JSON.stringify(optimalThresholds, null, 2)
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'item-thresholds.json'), JSON.stringify(optimalThresholds, null, 2));
     console.log(`\nCalibration saved to: ${OUTPUT_DIR}/item-thresholds.json`);
 }
 

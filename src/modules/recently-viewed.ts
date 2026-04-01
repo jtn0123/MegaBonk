@@ -47,7 +47,10 @@ export function loadRecentlyViewed(): void {
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
             const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed) && parsed.every(item => item && typeof item.type === 'string' && typeof item.id === 'string')) {
+            if (
+                Array.isArray(parsed) &&
+                parsed.every(item => item && typeof item.type === 'string' && typeof item.id === 'string')
+            ) {
                 recentlyViewed = parsed;
             } else {
                 recentlyViewed = [];
@@ -57,7 +60,7 @@ export function loadRecentlyViewed(): void {
             recentlyViewed = recentlyViewed.filter(entry => entry.timestamp > weekAgo);
             saveRecentlyViewed();
         }
-    } catch (error) {
+    } catch {
         logger.warn({
             operation: 'recently-viewed.load',
             error: { name: 'StorageError', message: 'Failed to load recently viewed', module: 'recently-viewed' },
@@ -72,7 +75,7 @@ export function loadRecentlyViewed(): void {
 function saveRecentlyViewed(): void {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(recentlyViewed));
-    } catch (error) {
+    } catch {
         logger.warn({
             operation: 'recently-viewed.save',
             error: { name: 'StorageError', message: 'Failed to save recently viewed', module: 'recently-viewed' },

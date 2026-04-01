@@ -19,11 +19,13 @@ describe('Chart Loader Module', () => {
                     type: 'line',
                     data: {
                         labels: ['A', 'B', 'C'],
-                        datasets: [{
-                            label: 'Test',
-                            data: [1, 2, 3]
-                        }]
-                    }
+                        datasets: [
+                            {
+                                label: 'Test',
+                                data: [1, 2, 3],
+                            },
+                        ],
+                    },
                 });
             }).not.toThrow();
         });

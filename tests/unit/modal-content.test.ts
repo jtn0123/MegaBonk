@@ -14,11 +14,7 @@ vi.mock('../../src/modules/utils.ts', () => ({
     ),
     escapeHtml: vi.fn((str: string) => {
         if (!str) return '';
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }),
     isValidExternalUrl: vi.fn(() => true),
 }));

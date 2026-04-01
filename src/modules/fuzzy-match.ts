@@ -217,11 +217,16 @@ function compareNumeric(raw: string | number, operator: string, thresholdStr: st
     const numValue = typeof raw === 'number' ? raw : Number.parseFloat(raw);
     if (Number.isNaN(threshold) || Number.isNaN(numValue)) return false;
     switch (operator) {
-        case '>=': return numValue >= threshold;
-        case '<=': return numValue <= threshold;
-        case '>': return numValue > threshold;
-        case '<': return numValue < threshold;
-        default: return false;
+        case '>=':
+            return numValue >= threshold;
+        case '<=':
+            return numValue <= threshold;
+        case '>':
+            return numValue > threshold;
+        case '<':
+            return numValue < threshold;
+        default:
+            return false;
     }
 }
 

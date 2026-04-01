@@ -116,11 +116,11 @@ describe('Logger', () => {
         it('should generate unique session IDs for different instances', () => {
             const logger1 = createFreshLogger();
             const id1 = logger1.getSessionId();
-            
+
             // Create new instance
             const logger2 = createFreshLogger();
             const id2 = logger2.getSessionId();
-            
+
             expect(id1).not.toBe(id2);
         });
     });
@@ -178,7 +178,7 @@ describe('Logger', () => {
             const originalConfig = logger.getConfig();
             logger.configure({ minLevel: LogLevel.WARN });
             const newConfig = logger.getConfig();
-            
+
             // Updated field
             expect(newConfig.minLevel).toBe(LogLevel.WARN);
             // Preserved fields
@@ -384,7 +384,7 @@ describe('Logger', () => {
             it('should include global context in logged events', () => {
                 logger.setContext('currentTab', 'items');
                 logger.info({ operation: 'test.context' });
-                
+
                 const call = consoleMocks.info.mock.calls[0];
                 const eventArg = call[call.length - 1];
                 expect(eventArg.context.currentTab).toBe('items');
@@ -404,10 +404,10 @@ describe('Logger', () => {
 
         it('should measure elapsed time', async () => {
             const stopTimer = logger.startTimer('test');
-            
+
             // Wait a bit using real timers for performance.now()
             await new Promise(resolve => setTimeout(resolve, 50));
-            
+
             const elapsed = stopTimer();
             expect(elapsed).toBeGreaterThanOrEqual(40); // Allow some variance
             expect(elapsed).toBeLessThan(200);
@@ -421,15 +421,15 @@ describe('Logger', () => {
 
         it('should allow multiple timers simultaneously', async () => {
             const timer1 = logger.startTimer('fast');
-            
+
             await new Promise(resolve => setTimeout(resolve, 20));
             const timer2 = logger.startTimer('slow');
-            
+
             await new Promise(resolve => setTimeout(resolve, 30));
-            
+
             const elapsed1 = timer1();
             const elapsed2 = timer2();
-            
+
             expect(elapsed1).toBeGreaterThan(elapsed2);
         });
     });
@@ -468,7 +468,7 @@ describe('Logger', () => {
             it('should return the most recent correlation ID', () => {
                 const id1 = logger.startOperation('op1');
                 expect(logger.getCurrentCorrelationId()).toBe(id1);
-                
+
                 const id2 = logger.startOperation('op2');
                 expect(logger.getCurrentCorrelationId()).toBe(id2);
             });
@@ -478,7 +478,7 @@ describe('Logger', () => {
             it('should remove correlation ID from stack', () => {
                 const id = logger.startOperation('op');
                 expect(logger.getCurrentCorrelationId()).toBe(id);
-                
+
                 logger.endOperation(id);
                 expect(logger.getCurrentCorrelationId()).toBeUndefined();
             });
@@ -486,12 +486,12 @@ describe('Logger', () => {
             it('should handle nested operations correctly', () => {
                 const id1 = logger.startOperation('outer');
                 const id2 = logger.startOperation('inner');
-                
+
                 expect(logger.getCurrentCorrelationId()).toBe(id2);
-                
+
                 logger.endOperation(id2);
                 expect(logger.getCurrentCorrelationId()).toBe(id1);
-                
+
                 logger.endOperation(id1);
                 expect(logger.getCurrentCorrelationId()).toBeUndefined();
             });
@@ -531,7 +531,7 @@ describe('Logger', () => {
 
         it('should log error on failure', async () => {
             const testError = new Error('Test failure');
-            
+
             await expect(
                 logger.withOperation('test.fail', async () => {
                     throw testError;
@@ -548,11 +548,7 @@ describe('Logger', () => {
         });
 
         it('should include metadata in log', async () => {
-            await logger.withOperation(
-                'test.metadata',
-                async () => 'done',
-                { itemId: '123', count: 5 }
-            );
+            await logger.withOperation('test.metadata', async () => 'done', { itemId: '123', count: 5 });
 
             const call = consoleMocks.info.mock.calls[0];
             const eventArg = call[call.length - 1];
@@ -801,7 +797,7 @@ describe('Logger edge cases', () => {
     it('should handle circular references in data', () => {
         const circular: any = { a: 1 };
         circular.self = circular;
-        
+
         // Should not throw when logging circular data
         expect(() => {
             logger.info({

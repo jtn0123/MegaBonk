@@ -4,6 +4,8 @@
 // Shared DOM manipulation patterns
 // ========================================
 
+import { logger } from './logger.ts';
+
 /**
  * Options for creating an element
  */
@@ -175,7 +177,7 @@ export function createEventListenerManager(): EventListenerManager {
                 try {
                     cleanup?.();
                 } catch (error) {
-                    console.debug('[dom-utils] cleanup failed (element may have been removed):', error);
+                    logger.debug({ operation: 'dom.cleanup_failed', data: { error: String(error) } });
                 }
             }
 

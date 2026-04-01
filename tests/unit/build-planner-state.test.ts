@@ -22,7 +22,9 @@ vi.mock('../../src/modules/store.ts', () => {
     };
     return {
         getState: vi.fn((key: string) => state[key]),
-        setState: vi.fn((key: string, value: any) => { state[key] = typeof value === 'function' ? value(state[key]) : value; }),
+        setState: vi.fn((key: string, value: any) => {
+            state[key] = typeof value === 'function' ? value(state[key]) : value;
+        }),
         resetStore: vi.fn(() => {
             state = { currentBuild: { character: null, weapon: null, tomes: [], items: [], name: '', notes: '' } };
         }),
@@ -123,7 +125,9 @@ describe('build-planner-state', () => {
         });
 
         it('should parse valid history from localStorage', () => {
-            const history = [{ character: 'cl4nk', weapon: 'sword', tomes: [], items: [], name: 'Build 1', timestamp: Date.now() }];
+            const history = [
+                { character: 'cl4nk', weapon: 'sword', tomes: [], items: [], name: 'Build 1', timestamp: Date.now() },
+            ];
             localStorage.setItem('megabonk_build_history', JSON.stringify(history));
             expect(getBuildHistory()).toEqual(history);
         });

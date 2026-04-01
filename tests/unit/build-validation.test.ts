@@ -516,10 +516,7 @@ describe('Build Validation Module', () => {
 
         it('should return empty array for build with no conflicts', () => {
             const build = createBuild({
-                items: [
-                    createItem({ id: 'gym_sauce' }),
-                    createItem({ id: 'beer' }),
-                ],
+                items: [createItem({ id: 'gym_sauce' }), createItem({ id: 'beer' })],
             });
             const warnings = detectAntiSynergies(build);
             expect(warnings).toHaveLength(0);
@@ -541,10 +538,7 @@ describe('Build Validation Module', () => {
 
         it('should not warn about 2 or fewer crit items', () => {
             const build = createBuild({
-                items: [
-                    createItem({ id: 'clover' }),
-                    createItem({ id: 'eagle_claw' }),
-                ],
+                items: [createItem({ id: 'clover' }), createItem({ id: 'eagle_claw' })],
             });
             const warnings = detectAntiSynergies(build);
             expect(warnings).toHaveLength(0);
@@ -552,11 +546,7 @@ describe('Build Validation Module', () => {
 
         it('should not warn about non-crit items', () => {
             const build = createBuild({
-                items: [
-                    createItem({ id: 'item_1' }),
-                    createItem({ id: 'item_2' }),
-                    createItem({ id: 'item_3' }),
-                ],
+                items: [createItem({ id: 'item_1' }), createItem({ id: 'item_2' }), createItem({ id: 'item_3' })],
             });
             const warnings = detectAntiSynergies(build);
             expect(warnings).toHaveLength(0);
@@ -839,9 +829,7 @@ describe('Build Validation Module', () => {
         });
 
         it('should handle builds with many items', () => {
-            const items = Array.from({ length: 50 }, (_, i) =>
-                createItem({ id: `item_${i}`, name: `Item ${i}` })
-            );
+            const items = Array.from({ length: 50 }, (_, i) => createItem({ id: `item_${i}`, name: `Item ${i}` }));
             const build = createBuild({
                 weapon: createWeapon({ name: 'Sword' }),
                 items,

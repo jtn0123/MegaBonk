@@ -58,11 +58,7 @@ describe('sortData - Pure Function Tests', () => {
         });
 
         it('should handle objects without name property', () => {
-            const data = [
-                { id: '1' },
-                { id: '2', name: 'Has Name' },
-                { id: '3' },
-            ];
+            const data = [{ id: '1' }, { id: '2', name: 'Has Name' }, { id: '3' }];
 
             const result = sortData(data as any, 'name');
             // Objects without name should sort to beginning (empty string)

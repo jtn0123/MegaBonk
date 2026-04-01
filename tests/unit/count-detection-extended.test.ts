@@ -2,7 +2,7 @@
  * @vitest-environment jsdom
  * Extended Coverage Tests for count-detection.ts
  * Targets uncovered branches: digit recognition, X prefix, sanity checks
- * 
+ *
  * Key insight: For 1080p (medium profile), count region is:
  * - Position: bottom-right of cell
  * - textWidth = cellWidth * 0.4
@@ -108,7 +108,7 @@ describe('binarize - Extended Coverage', () => {
         const imageData: SimpleImageData = {
             data: new Uint8ClampedArray(16),
             width: 2,
-            height: 2
+            height: 2,
         };
         const binary = binarize(imageData);
         expect(binary.length).toBe(2);
@@ -134,14 +134,14 @@ describe('binarize - Extended Coverage', () => {
 
 describe('detectCount - Digit Recognition in Count Region', () => {
     it('should find components in the actual count region', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Create a component in the count region
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
             // Place a 5x8 rectangle (meets size requirements) in the count region
-            if (x >= region.x + 5 && x < region.x + 10 &&
-                y >= region.y + 2 && y < region.y + 10) {
+            if (x >= region.x + 5 && x < region.x + 10 && y >= region.y + 2 && y < region.y + 10) {
                 return [255, 255, 255, 255];
             }
             return [30, 30, 30, 255];
@@ -153,11 +153,12 @@ describe('detectCount - Digit Recognition in Count Region', () => {
     });
 
     it('should detect a digit-1-like vertical bar pattern', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         const digitFn = createDigitOneInRegion(region.x, region.y);
-        
+
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
             if (digitFn(x, y)) {
                 return [255, 255, 255, 255];
@@ -171,12 +172,14 @@ describe('detectCount - Digit Recognition in Count Region', () => {
     });
 
     it('should handle multiple digit-like components sorted left to right', () => {
-        const cellWidth = 120, cellHeight = 100;
+        const cellWidth = 120,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Two vertical bars side by side (like "11")
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            const y1 = region.y + 3, y2 = region.y + 10;
+            const y1 = region.y + 3,
+                y2 = region.y + 10;
             // First digit at x offset 5
             if (x >= region.x + 5 && x < region.x + 8 && y >= y1 && y < y2) {
                 return [255, 255, 255, 255];
@@ -193,13 +196,13 @@ describe('detectCount - Digit Recognition in Count Region', () => {
     });
 
     it('should filter components that are too small (noise)', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // 2x3 component - too small (width < 3)
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            if (x >= region.x + 5 && x < region.x + 7 &&
-                y >= region.y + 5 && y < region.y + 8) {
+            if (x >= region.x + 5 && x < region.x + 7 && y >= region.y + 5 && y < region.y + 8) {
                 return [255, 255, 255, 255];
             }
             return [30, 30, 30, 255];
@@ -211,13 +214,13 @@ describe('detectCount - Digit Recognition in Count Region', () => {
     });
 
     it('should filter components that are too short (height < 5)', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // 5x4 component - too short (height < 5)
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            if (x >= region.x + 5 && x < region.x + 10 &&
-                y >= region.y + 5 && y < region.y + 9) {
+            if (x >= region.x + 5 && x < region.x + 10 && y >= region.y + 5 && y < region.y + 9) {
                 return [255, 255, 255, 255];
             }
             return [30, 30, 30, 255];
@@ -228,13 +231,13 @@ describe('detectCount - Digit Recognition in Count Region', () => {
     });
 
     it('should detect yellow text pixels', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Yellow component (R>200, G>180, B<100)
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            if (x >= region.x + 5 && x < region.x + 10 &&
-                y >= region.y + 2 && y < region.y + 10) {
+            if (x >= region.x + 5 && x < region.x + 10 && y >= region.y + 2 && y < region.y + 10) {
                 return [255, 200, 50, 255]; // Yellow
             }
             return [30, 30, 30, 255];
@@ -245,12 +248,12 @@ describe('detectCount - Digit Recognition in Count Region', () => {
     });
 
     it('should detect light gray text pixels (avg > 180)', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            if (x >= region.x + 5 && x < region.x + 10 &&
-                y >= region.y + 2 && y < region.y + 10) {
+            if (x >= region.x + 5 && x < region.x + 10 && y >= region.y + 2 && y < region.y + 10) {
                 return [190, 190, 190, 255]; // Light gray
             }
             return [30, 30, 30, 255];
@@ -267,15 +270,18 @@ describe('detectCount - Digit Recognition in Count Region', () => {
 
 describe('detectCount - X Prefix Detection', () => {
     it('should detect X pattern with diagonal pixels', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // X shape: diagonals meeting in center
-        const cx = region.x + 8, cy = region.y + 6;
-        
+        const cx = region.x + 8,
+            cy = region.y + 6;
+
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
             // Check if on diagonal lines of X
-            const dx = x - cx, dy = y - cy;
+            const dx = x - cx,
+                dy = y - cy;
             if (Math.abs(dx) <= 3 && Math.abs(dy) <= 3) {
                 // Both diagonals
                 if (Math.abs(dx - dy) <= 1 || Math.abs(dx + dy) <= 1) {
@@ -290,14 +296,17 @@ describe('detectCount - X Prefix Detection', () => {
     });
 
     it('should return x? when X is detected but no digits recognized', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // X shape that's detected but no valid digit follows
-        const cx = region.x + 8, cy = region.y + 6;
-        
+        const cx = region.x + 8,
+            cy = region.y + 6;
+
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            const dx = x - cx, dy = y - cy;
+            const dx = x - cx,
+                dy = y - cy;
             if (Math.abs(dx) <= 3 && Math.abs(dy) <= 3) {
                 if (Math.abs(dx - dy) <= 1 || Math.abs(dx + dy) <= 1) {
                     return [255, 255, 255, 255];
@@ -377,13 +386,13 @@ describe('hasCountOverlay - Extended Coverage', () => {
     });
 
     it('should return true for image with bright count region', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Fill 50% of count region with white (well above 10% threshold)
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            if (x >= region.x && x < region.x + region.width / 2 &&
-                y >= region.y && y < region.y + region.height) {
+            if (x >= region.x && x < region.x + region.width / 2 && y >= region.y && y < region.y + region.height) {
                 return [255, 255, 255, 255];
             }
             return [30, 30, 30, 255];
@@ -394,13 +403,13 @@ describe('hasCountOverlay - Extended Coverage', () => {
     });
 
     it('should check RGB channels correctly', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Only R and G bright, B is dark - not white
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            if (x >= region.x && x < region.x + region.width &&
-                y >= region.y && y < region.y + region.height) {
+            if (x >= region.x && x < region.x + region.width && y >= region.y && y < region.y + region.height) {
                 return [255, 255, 100, 255]; // Not R>200 && G>200 && B>200
             }
             return [30, 30, 30, 255];
@@ -417,17 +426,17 @@ describe('hasCountOverlay - Extended Coverage', () => {
     });
 
     it('should use 10% threshold for bright pixel detection', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
         const regionArea = region.width * region.height;
-        
+
         // Create exactly 11% white pixels (above 10% threshold)
         let whiteCount = 0;
         const targetWhite = Math.ceil(regionArea * 0.11);
-        
+
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            if (x >= region.x && x < region.x + region.width &&
-                y >= region.y && y < region.y + region.height) {
+            if (x >= region.x && x < region.x + region.width && y >= region.y && y < region.y + region.height) {
                 if (whiteCount < targetWhite) {
                     whiteCount++;
                     return [255, 255, 255, 255];
@@ -448,13 +457,16 @@ describe('hasCountOverlay - Extended Coverage', () => {
 
 describe('detectCount - Component Finding', () => {
     it('should handle L-shaped component', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // L shape in count region
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            const x1 = region.x + 5, x2 = region.x + 15;
-            const y1 = region.y + 2, y2 = region.y + 12;
+            const x1 = region.x + 5,
+                x2 = region.x + 15;
+            const y1 = region.y + 2,
+                y2 = region.y + 12;
             // Vertical part
             if (x >= x1 && x < x1 + 3 && y >= y1 && y < y2) {
                 return [255, 255, 255, 255];
@@ -471,14 +483,17 @@ describe('detectCount - Component Finding', () => {
     });
 
     it('should visit all BFS neighbors', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Plus sign shape to exercise all 4 neighbor directions
-        const cx = region.x + 10, cy = region.y + 8;
-        
+        const cx = region.x + 10,
+            cy = region.y + 8;
+
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            const dx = Math.abs(x - cx), dy = Math.abs(y - cy);
+            const dx = Math.abs(x - cx),
+                dy = Math.abs(y - cy);
             // Horizontal bar
             if (dx <= 4 && dy <= 1) return [255, 255, 255, 255];
             // Vertical bar
@@ -491,13 +506,13 @@ describe('detectCount - Component Finding', () => {
     });
 
     it('should filter components wider than half the region width', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Very wide component (> width/2 of region)
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            if (x >= region.x && x < region.x + region.width - 2 &&
-                y >= region.y + 3 && y < region.y + 10) {
+            if (x >= region.x && x < region.x + region.width - 2 && y >= region.y + 3 && y < region.y + 10) {
                 return [255, 255, 255, 255];
             }
             return [30, 30, 30, 255];
@@ -515,13 +530,13 @@ describe('detectCount - Component Finding', () => {
 
 describe('detectCount - Pattern Matching', () => {
     it('should resize binary image to match 5x7 digit pattern', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Large rectangle that needs resizing to 5x7
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
-            if (x >= region.x + 3 && x < region.x + 18 &&
-                y >= region.y + 1 && y < region.y + 15) {
+            if (x >= region.x + 3 && x < region.x + 18 && y >= region.y + 1 && y < region.y + 15) {
                 return [255, 255, 255, 255];
             }
             return [30, 30, 30, 255];
@@ -532,13 +547,15 @@ describe('detectCount - Pattern Matching', () => {
     });
 
     it('should match vertical line pattern to digit 1', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Vertical bar similar to digit "1" pattern
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
             const cx = region.x + 10;
-            const y1 = region.y + 2, y2 = region.y + 14;
+            const y1 = region.y + 2,
+                y2 = region.y + 14;
             // Center column
             if (x >= cx - 1 && x <= cx + 1 && y >= y1 && y < y2) {
                 return [255, 255, 255, 255];
@@ -553,12 +570,14 @@ describe('detectCount - Pattern Matching', () => {
     it('should apply sanity check when count exceeds 99', () => {
         // Create image with 3+ digit-like components that would combine to >99
         // Using a larger cell to fit 3 separate components
-        const cellWidth = 150, cellHeight = 100;
+        const cellWidth = 150,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // Three vertical bars representing "111" = 111 > 99
-        const y1 = region.y + 2, y2 = region.y + 12;
-        
+        const y1 = region.y + 2,
+            y2 = region.y + 12;
+
         const imageData = createTestImageData(cellWidth, cellHeight, (x, y) => {
             // First digit at x offset 3
             if (x >= region.x + 3 && x < region.x + 6 && y >= y1 && y < y2) {
@@ -636,7 +655,7 @@ describe('correctToCommonStack - Extended Coverage', () => {
     it('should handle boundary confidence values', () => {
         // The threshold is > 0.8, so 0.80 is NOT above it
         expect(correctToCommonStack(11, 0.79)).toBe(10);
-        expect(correctToCommonStack(11, 0.80)).toBe(10);
+        expect(correctToCommonStack(11, 0.8)).toBe(10);
         expect(correctToCommonStack(11, 0.81)).toBe(11);
     });
 
@@ -701,14 +720,14 @@ describe('detectCounts - Extended Coverage', () => {
 
 describe('Count Detection - Integration', () => {
     it('should work with hasCountOverlay pre-filtering', () => {
-        const cellWidth = 100, cellHeight = 100;
+        const cellWidth = 100,
+            cellHeight = 100;
         const region = getCountRegion(0, 0, cellWidth, cellHeight);
-        
+
         // First cell has bright pixels, second doesn't
         const imageData = createTestImageData(200, 100, (x, y) => {
             // Bright region in first cell's count area
-            if (x >= region.x && x < region.x + 20 &&
-                y >= region.y && y < region.y + 15) {
+            if (x >= region.x && x < region.x + 20 && y >= region.y && y < region.y + 15) {
                 return [255, 255, 255, 255];
             }
             return [30, 30, 30, 255];
@@ -719,9 +738,7 @@ describe('Count Detection - Integration', () => {
             { x: 100, y: 0, width: cellWidth, height: cellHeight },
         ];
 
-        const filtered = cells.filter(c =>
-            hasCountOverlay(imageData, c.x, c.y, c.width, c.height)
-        );
+        const filtered = cells.filter(c => hasCountOverlay(imageData, c.x, c.y, c.width, c.height));
 
         const results = detectCounts(imageData, filtered);
         expect(results.length).toBeLessThanOrEqual(cells.length);
@@ -730,17 +747,16 @@ describe('Count Detection - Integration', () => {
     it('should handle realistic inventory cell', () => {
         const cellSize = 64;
         const region = getCountRegion(0, 0, cellSize, cellSize);
-        
+
         const imageData = createTestImageData(cellSize, cellSize, (x, y) => {
             // Background
             const bg = Math.floor(80 + (x + y) * 0.5);
-            
+
             // Count region pixels
-            if (x >= region.x + 3 && x < region.x + 7 &&
-                y >= region.y + 2 && y < region.y + 10) {
+            if (x >= region.x + 3 && x < region.x + 7 && y >= region.y + 2 && y < region.y + 10) {
                 return [255, 255, 255, 255];
             }
-            
+
             return [bg, bg, bg, 255];
         });
 

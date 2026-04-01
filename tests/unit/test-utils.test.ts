@@ -146,11 +146,7 @@ describe('Test Utils - Accuracy Metrics', () => {
     });
 
     it('should handle duplicate detections correctly', () => {
-        const detected = [
-            mockDetection('Sword'),
-            mockDetection('Sword'),
-            mockDetection('Shield'),
-        ];
+        const detected = [mockDetection('Sword'), mockDetection('Sword'), mockDetection('Shield')];
         const groundTruth = ['Sword', 'Shield'];
 
         const metrics = calculateAccuracyMetrics(detected, groundTruth);
@@ -593,7 +589,7 @@ describe('Test Utils - getTestImageURLs', () => {
 
     it('should have valid structure for each test image', () => {
         const images = getTestImageURLs();
-        
+
         images.forEach(image => {
             expect(image).toHaveProperty('name');
             expect(image).toHaveProperty('url');
@@ -607,7 +603,7 @@ describe('Test Utils - getTestImageURLs', () => {
 
     it('should have valid type values (gameplay or pause_menu)', () => {
         const images = getTestImageURLs();
-        
+
         images.forEach(image => {
             expect(['gameplay', 'pause_menu']).toContain(image.type);
         });
@@ -615,7 +611,7 @@ describe('Test Utils - getTestImageURLs', () => {
 
     it('should have valid ground truth structure', () => {
         const images = getTestImageURLs();
-        
+
         images.forEach(image => {
             expect(Array.isArray(image.groundTruth.items)).toBe(true);
             expect(Array.isArray(image.groundTruth.tomes)).toBe(true);
@@ -625,7 +621,7 @@ describe('Test Utils - getTestImageURLs', () => {
     it('should include PC 1080p pause menu test image', () => {
         const images = getTestImageURLs();
         const pc1080p = images.find(img => img.name === 'pc_1080p_pause_menu');
-        
+
         expect(pc1080p).toBeDefined();
         expect(pc1080p?.resolution).toBe('1920x1080');
         expect(pc1080p?.type).toBe('pause_menu');
@@ -634,7 +630,7 @@ describe('Test Utils - getTestImageURLs', () => {
     it('should include Steam Deck test image', () => {
         const images = getTestImageURLs();
         const steamDeck = images.find(img => img.name === 'steam_deck_pause_menu');
-        
+
         expect(steamDeck).toBeDefined();
         expect(steamDeck?.resolution).toBe('1280x800');
     });
@@ -642,14 +638,14 @@ describe('Test Utils - getTestImageURLs', () => {
     it('should include gameplay test image', () => {
         const images = getTestImageURLs();
         const gameplay = images.find(img => img.type === 'gameplay');
-        
+
         expect(gameplay).toBeDefined();
     });
 
     it('should have non-empty item arrays in ground truth for pause menus', () => {
         const images = getTestImageURLs();
         const pauseMenus = images.filter(img => img.type === 'pause_menu');
-        
+
         pauseMenus.forEach(img => {
             expect(img.groundTruth.items.length).toBeGreaterThan(0);
         });
@@ -658,7 +654,7 @@ describe('Test Utils - getTestImageURLs', () => {
     it('should have character and weapon in pause menu ground truth', () => {
         const images = getTestImageURLs();
         const pauseMenus = images.filter(img => img.type === 'pause_menu');
-        
+
         pauseMenus.forEach(img => {
             expect(img.groundTruth.character).toBeDefined();
             expect(img.groundTruth.weapon).toBeDefined();
@@ -871,10 +867,10 @@ describe('Test Utils - runAutomatedTest', () => {
 
     // Mock Image class for browser-like environment
     let originalImage: typeof globalThis.Image | undefined;
-    
+
     beforeEach(() => {
         originalImage = globalThis.Image;
-        
+
         // Mock Image class
         class MockImage {
             width = 1920;
@@ -891,7 +887,7 @@ describe('Test Utils - runAutomatedTest', () => {
                 }, 0);
             }
         }
-        
+
         // Add setter for src that triggers onload
         Object.defineProperty(MockImage.prototype, 'src', {
             set(value: string) {
@@ -904,7 +900,7 @@ describe('Test Utils - runAutomatedTest', () => {
                 return this._srcValue || '';
             },
         });
-        
+
         globalThis.Image = MockImage as unknown as typeof Image;
     });
 
@@ -929,12 +925,7 @@ describe('Test Utils - runAutomatedTest', () => {
             weapon: { id: 'hammer', name: 'Hammer' },
         });
 
-        const result = await runAutomatedTest(
-            'data:image/png;base64,fake',
-            groundTruth,
-            mockDetectionFn,
-            'ocr'
-        );
+        const result = await runAutomatedTest('data:image/png;base64,fake', groundTruth, mockDetectionFn, 'ocr');
 
         expect(result.accuracy).toBe(1.0);
         expect(result.precision).toBe(1.0);
@@ -959,12 +950,7 @@ describe('Test Utils - runAutomatedTest', () => {
             weapon: null,
         });
 
-        const result = await runAutomatedTest(
-            'data:image/png;base64,fake',
-            groundTruth,
-            mockDetectionFn,
-            'hybrid'
-        );
+        const result = await runAutomatedTest('data:image/png;base64,fake', groundTruth, mockDetectionFn, 'hybrid');
 
         expect(result.accuracy).toBeCloseTo(0.333, 2);
         expect(result.precision).toBe(1.0);
@@ -980,12 +966,7 @@ describe('Test Utils - runAutomatedTest', () => {
 
         const mockDetectionFn = vi.fn().mockRejectedValue(new Error('Detection failed'));
 
-        const result = await runAutomatedTest(
-            'data:image/png;base64,fake',
-            groundTruth,
-            mockDetectionFn,
-            'ocr'
-        );
+        const result = await runAutomatedTest('data:image/png;base64,fake', groundTruth, mockDetectionFn, 'ocr');
 
         expect(result.accuracy).toBe(0);
         expect(result.precision).toBe(0);
@@ -1012,12 +993,7 @@ describe('Test Utils - runAutomatedTest', () => {
             };
         });
 
-        const result = await runAutomatedTest(
-            'data:image/png;base64,fake',
-            groundTruth,
-            mockDetectionFn,
-            'ocr'
-        );
+        const result = await runAutomatedTest('data:image/png;base64,fake', groundTruth, mockDetectionFn, 'ocr');
 
         // Processing time should be at least 50ms (the simulated delay)
         expect(result.processingTime).toBeGreaterThan(0);
@@ -1037,7 +1013,9 @@ describe('Test Utils - runAutomatedTest', () => {
                     if (this.onload) this.onload();
                 }, 0);
             },
-            get() { return ''; },
+            get() {
+                return '';
+            },
         });
         globalThis.Image = MockImage1080p as unknown as typeof Image;
 
@@ -1053,12 +1031,7 @@ describe('Test Utils - runAutomatedTest', () => {
             weapon: null,
         });
 
-        const result = await runAutomatedTest(
-            'data:image/png;base64,fake',
-            groundTruth,
-            mockDetectionFn,
-            'ocr'
-        );
+        const result = await runAutomatedTest('data:image/png;base64,fake', groundTruth, mockDetectionFn, 'ocr');
 
         expect(result.resolution).toBe('1920x1080');
         expect(result.uiLayout).toBe('pc');
@@ -1090,12 +1063,7 @@ describe('Test Utils - runAutomatedTest', () => {
             weapon: null,
         });
 
-        const result = await runAutomatedTest(
-            'data:image/png;base64,fake',
-            groundTruth,
-            mockDetectionFn,
-            'ocr'
-        );
+        const result = await runAutomatedTest('data:image/png;base64,fake', groundTruth, mockDetectionFn, 'ocr');
 
         expect(result.confidenceScores).toEqual([0.95, 0.75]);
     });
@@ -1113,12 +1081,7 @@ describe('Test Utils - runAutomatedTest', () => {
             weapon: null,
         });
 
-        const result = await runAutomatedTest(
-            'data:image/png;base64,fake',
-            groundTruth,
-            mockDetectionFn,
-            'ocr'
-        );
+        const result = await runAutomatedTest('data:image/png;base64,fake', groundTruth, mockDetectionFn, 'ocr');
 
         expect(result.imageName).toBe('automated_test');
     });
@@ -1137,7 +1100,9 @@ describe('Test Utils - runAutomatedTest', () => {
                     if (this.onerror) this.onerror(new Error('Image load failed'));
                 }, 0);
             },
-            get() { return ''; },
+            get() {
+                return '';
+            },
         });
         globalThis.Image = MockImageError as unknown as typeof Image;
 
@@ -1153,12 +1118,7 @@ describe('Test Utils - runAutomatedTest', () => {
             weapon: null,
         });
 
-        const result = await runAutomatedTest(
-            'data:image/png;base64,fake',
-            groundTruth,
-            mockDetectionFn,
-            'ocr'
-        );
+        const result = await runAutomatedTest('data:image/png;base64,fake', groundTruth, mockDetectionFn, 'ocr');
 
         // Should error out because image fails to load
         expect(result.errors.length).toBeGreaterThan(0);

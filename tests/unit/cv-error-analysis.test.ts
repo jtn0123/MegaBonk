@@ -164,9 +164,7 @@ describe('cv-error-analysis - analyzeDetectionErrors', () => {
         const result = analyzeDetectionErrors(detected, expected);
 
         // Should have pattern about low confidence
-        const hasLowConfidencePattern = result.summary.commonPatterns.some(p =>
-            p.toLowerCase().includes('confidence')
-        );
+        const hasLowConfidencePattern = result.summary.commonPatterns.some(p => p.toLowerCase().includes('confidence'));
         // This may or may not trigger depending on threshold calculations
         expect(result.truePositives.length).toBe(2);
     });
@@ -191,8 +189,8 @@ describe('cv-error-analysis - analyzeDetectionErrors', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        const hasMissedPattern = result.summary.commonPatterns.some(p =>
-            p.toLowerCase().includes('missed') || p.toLowerCase().includes('template')
+        const hasMissedPattern = result.summary.commonPatterns.some(
+            p => p.toLowerCase().includes('missed') || p.toLowerCase().includes('template')
         );
         expect(hasMissedPattern).toBe(true);
     });
@@ -209,9 +207,7 @@ describe('cv-error-analysis - analyzeDetectionErrors', () => {
         const result = analyzeDetectionErrors(detected, expected);
 
         expect(result.falsePositives.length).toBe(4);
-        const hasSpuriousPattern = result.summary.commonPatterns.some(p =>
-            p.toLowerCase().includes('spurious')
-        );
+        const hasSpuriousPattern = result.summary.commonPatterns.some(p => p.toLowerCase().includes('spurious'));
         expect(hasSpuriousPattern).toBe(true);
     });
 
@@ -243,9 +239,7 @@ describe('cv-error-analysis - diagnoseError patterns', () => {
         const result = analyzeDetectionErrors(detected, expected);
 
         expect(result.falseNegatives[0].possibleReasons.length).toBeGreaterThan(0);
-        expect(result.falseNegatives[0].possibleReasons.some(r =>
-            r.includes('completely missed')
-        )).toBe(true);
+        expect(result.falseNegatives[0].possibleReasons.some(r => r.includes('completely missed'))).toBe(true);
     });
 
     it('should provide reasons for partially detected items', () => {
@@ -254,9 +248,7 @@ describe('cv-error-analysis - diagnoseError patterns', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.falseNegatives[0].possibleReasons.some(r =>
-            r.includes('Only')
-        )).toBe(true);
+        expect(result.falseNegatives[0].possibleReasons.some(r => r.includes('Only'))).toBe(true);
     });
 
     it('should note low confidence in missed items', () => {
@@ -265,9 +257,7 @@ describe('cv-error-analysis - diagnoseError patterns', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.falseNegatives[0].possibleReasons.some(r =>
-            r.includes('confidence')
-        )).toBe(true);
+        expect(result.falseNegatives[0].possibleReasons.some(r => r.includes('confidence'))).toBe(true);
     });
 
     it('should provide reasons for over-detected items', () => {
@@ -279,9 +269,7 @@ describe('cv-error-analysis - diagnoseError patterns', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.falsePositives[0].possibleReasons.some(r =>
-            r.includes('Duplicate')
-        )).toBe(true);
+        expect(result.falsePositives[0].possibleReasons.some(r => r.includes('Duplicate'))).toBe(true);
     });
 
     it('should provide reasons for spurious detections', () => {
@@ -290,9 +278,7 @@ describe('cv-error-analysis - diagnoseError patterns', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.falsePositives[0].possibleReasons.some(r =>
-            r.includes('not in ground truth')
-        )).toBe(true);
+        expect(result.falsePositives[0].possibleReasons.some(r => r.includes('not in ground truth'))).toBe(true);
     });
 
     it('should note common items in spurious detections', () => {
@@ -301,9 +287,7 @@ describe('cv-error-analysis - diagnoseError patterns', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.falsePositives[0].possibleReasons.some(r =>
-            r.includes('Common items')
-        )).toBe(true);
+        expect(result.falsePositives[0].possibleReasons.some(r => r.includes('Common items'))).toBe(true);
     });
 
     it('should note very low confidence in spurious detections', () => {
@@ -312,9 +296,7 @@ describe('cv-error-analysis - diagnoseError patterns', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.falsePositives[0].possibleReasons.some(r =>
-            r.includes('Very low confidence')
-        )).toBe(true);
+        expect(result.falsePositives[0].possibleReasons.some(r => r.includes('Very low confidence'))).toBe(true);
     });
 });
 
@@ -325,9 +307,7 @@ describe('cv-error-analysis - generateRecommendations', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.recommendations.some(r =>
-            r.includes('template') || r.includes('missed')
-        )).toBe(true);
+        expect(result.recommendations.some(r => r.includes('template') || r.includes('missed'))).toBe(true);
     });
 
     it('should recommend NMS improvement for duplicate issues', () => {
@@ -341,9 +321,9 @@ describe('cv-error-analysis - generateRecommendations', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.recommendations.some(r =>
-            r.toLowerCase().includes('nms') || r.toLowerCase().includes('duplicate')
-        )).toBe(true);
+        expect(
+            result.recommendations.some(r => r.toLowerCase().includes('nms') || r.toLowerCase().includes('duplicate'))
+        ).toBe(true);
     });
 
     it('should recommend confidence threshold increase for spurious detections', () => {
@@ -356,9 +336,11 @@ describe('cv-error-analysis - generateRecommendations', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.recommendations.some(r =>
-            r.toLowerCase().includes('confidence') || r.toLowerCase().includes('spurious')
-        )).toBe(true);
+        expect(
+            result.recommendations.some(
+                r => r.toLowerCase().includes('confidence') || r.toLowerCase().includes('spurious')
+            )
+        ).toBe(true);
     });
 
     it('should recommend accurate strategy for high false negative rate', () => {
@@ -367,9 +349,9 @@ describe('cv-error-analysis - generateRecommendations', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.recommendations.some(r =>
-            r.toLowerCase().includes('accurate') || r.toLowerCase().includes('recall')
-        )).toBe(true);
+        expect(
+            result.recommendations.some(r => r.toLowerCase().includes('accurate') || r.toLowerCase().includes('recall'))
+        ).toBe(true);
     });
 
     it('should recommend balanced strategy for high false positive rate', () => {
@@ -384,9 +366,11 @@ describe('cv-error-analysis - generateRecommendations', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.recommendations.some(r =>
-            r.toLowerCase().includes('balanced') || r.toLowerCase().includes('false positive')
-        )).toBe(true);
+        expect(
+            result.recommendations.some(
+                r => r.toLowerCase().includes('balanced') || r.toLowerCase().includes('false positive')
+            )
+        ).toBe(true);
     });
 
     it('should indicate good detection quality when no major issues', () => {
@@ -398,9 +382,7 @@ describe('cv-error-analysis - generateRecommendations', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.recommendations.some(r =>
-            r.toLowerCase().includes('good')
-        )).toBe(true);
+        expect(result.recommendations.some(r => r.toLowerCase().includes('good'))).toBe(true);
     });
 
     it('should list specific items to review', () => {
@@ -409,9 +391,7 @@ describe('cv-error-analysis - generateRecommendations', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.recommendations.some(r =>
-            r.includes('Review templates')
-        )).toBe(true);
+        expect(result.recommendations.some(r => r.includes('Review templates'))).toBe(true);
     });
 
     it('should warn about low average confidence on correct detections', () => {
@@ -423,10 +403,11 @@ describe('cv-error-analysis - generateRecommendations', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.recommendations.some(r =>
-            r.toLowerCase().includes('low average confidence') ||
-            r.toLowerCase().includes('retrain')
-        )).toBe(true);
+        expect(
+            result.recommendations.some(
+                r => r.toLowerCase().includes('low average confidence') || r.toLowerCase().includes('retrain')
+            )
+        ).toBe(true);
     });
 });
 
@@ -526,14 +507,16 @@ describe('cv-error-analysis - formatErrorAnalysis', () => {
 
     it('should include false positives details', () => {
         const analysis: ErrorAnalysisResult = {
-            falsePositives: [{
-                itemName: 'wrench',
-                expectedCount: 1,
-                detectedCount: 3,
-                difference: 2,
-                confidence: 0.85,
-                possibleReasons: ['Duplicate detection'],
-            }],
+            falsePositives: [
+                {
+                    itemName: 'wrench',
+                    expectedCount: 1,
+                    detectedCount: 3,
+                    difference: 2,
+                    confidence: 0.85,
+                    possibleReasons: ['Duplicate detection'],
+                },
+            ],
             falseNegatives: [],
             truePositives: [],
             summary: {
@@ -558,14 +541,16 @@ describe('cv-error-analysis - formatErrorAnalysis', () => {
     it('should include false negatives details', () => {
         const analysis: ErrorAnalysisResult = {
             falsePositives: [],
-            falseNegatives: [{
-                itemName: 'medkit',
-                expectedCount: 2,
-                detectedCount: 0,
-                difference: 2,
-                confidence: undefined,
-                possibleReasons: ['Item completely missed'],
-            }],
+            falseNegatives: [
+                {
+                    itemName: 'medkit',
+                    expectedCount: 2,
+                    detectedCount: 0,
+                    difference: 2,
+                    confidence: undefined,
+                    possibleReasons: ['Item completely missed'],
+                },
+            ],
             truePositives: [],
             summary: {
                 totalErrors: 1,
@@ -641,14 +626,16 @@ describe('cv-error-analysis - formatErrorAnalysis', () => {
 
     it('should show confidence in brackets when available', () => {
         const analysis: ErrorAnalysisResult = {
-            falsePositives: [{
-                itemName: 'wrench',
-                expectedCount: 0,
-                detectedCount: 1,
-                difference: 1,
-                confidence: 0.75,
-                possibleReasons: [],
-            }],
+            falsePositives: [
+                {
+                    itemName: 'wrench',
+                    expectedCount: 0,
+                    detectedCount: 1,
+                    difference: 1,
+                    confidence: 0.75,
+                    possibleReasons: [],
+                },
+            ],
             falseNegatives: [],
             truePositives: [],
             summary: {
@@ -790,9 +777,7 @@ describe('cv-error-analysis - edge cases', () => {
     });
 
     it('should handle items with special characters', () => {
-        const detected = [
-            { name: 'First Aid Kit', confidence: 0.9 },
-        ];
+        const detected = [{ name: 'First Aid Kit', confidence: 0.9 }];
         const expected = ['first aid kit'];
 
         const result = analyzeDetectionErrors(detected, expected);
@@ -839,8 +824,6 @@ describe('cv-error-analysis - edge cases', () => {
 
         const result = analyzeDetectionErrors(detected, expected);
 
-        expect(result.falsePositives[0].possibleReasons.some(r =>
-            r.includes('Common items')
-        )).toBe(true);
+        expect(result.falsePositives[0].possibleReasons.some(r => r.includes('Common items'))).toBe(true);
     });
 });

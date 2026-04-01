@@ -42,14 +42,14 @@ const BASELINE: ExperimentConfig = {
 };
 
 const OPTIMIZED: ExperimentConfig = {
-    testThreshold: 0.65,      // +3.2%
-    centerMargin: 0.20,       // +12.3%
-    histogramBins: 8,         // faster
-    rarityBoost: 1.0,         // no effect
-    agreementThreshold: 0.20, // +12.1%
+    testThreshold: 0.65, // +3.2%
+    centerMargin: 0.2, // +12.3%
+    histogramBins: 8, // faster
+    rarityBoost: 1.0, // no effect
+    agreementThreshold: 0.2, // +12.1%
     emptyVarianceThreshold: 200, // +1.7%
-    borderPixels: 1,          // no effect
-    edgeSampleStep: 3,        // +2.8%
+    borderPixels: 1, // no effect
+    edgeSampleStep: 3, // +2.8%
 };
 
 interface GameItem {
@@ -118,7 +118,8 @@ function loadTestCases() {
                 imagePath,
                 groundTruth: Array.from(itemCounts.entries()).map(([name, count]) => ({
                     id: name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
-                    name, count,
+                    name,
+                    count,
                 })),
             };
         })
@@ -136,7 +137,7 @@ function detectGridPositions(width: number, height: number) {
         height - bottomMargin - iconSize - rowHeight,
         height - bottomMargin - iconSize - rowHeight * 2,
     ];
-    const sideMargin = Math.round(width * 0.20);
+    const sideMargin = Math.round(width * 0.2);
     const usableWidth = width - sideMargin * 2;
     const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
     for (const rowY of rowYPositions) {
@@ -157,18 +158,29 @@ function detectGridPositions(width: number, height: number) {
 
 function isEmptyCell(imageData: any, config: ExperimentConfig): boolean {
     const pixels = imageData.data;
-    let sum = 0, sumSq = 0, count = 0;
-    let sumR = 0, sumG = 0, sumB = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
     for (let i = 0; i < pixels.length; i += 4) {
-        const r = pixels[i], g = pixels[i + 1], b = pixels[i + 2];
+        const r = pixels[i],
+            g = pixels[i + 1],
+            b = pixels[i + 2];
         const gray = (r + g + b) / 3;
-        sum += gray; sumSq += gray * gray;
-        sumR += r; sumG += g; sumB += b;
+        sum += gray;
+        sumSq += gray * gray;
+        sumR += r;
+        sumG += g;
+        sumB += b;
         count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
-    const avgR = sumR / count, avgG = sumG / count, avgB = sumB / count;
+    const avgR = sumR / count,
+        avgG = sumG / count,
+        avgB = sumB / count;
     if (variance < config.emptyVarianceThreshold) return true;
     if (mean < 40) return true;
     const maxChannel = Math.max(avgR, avgG, avgB);
@@ -181,47 +193,68 @@ function isEmptyCell(imageData: any, config: ExperimentConfig): boolean {
 function detectRarityFromBorder(imageData: any, config: ExperimentConfig): string | null {
     const { width, height, data } = imageData;
     const borderPixels = config.borderPixels;
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
     for (let x = 0; x < width; x++) {
         for (let y = 0; y < borderPixels; y++) {
             const idx = (y * width + x) * 4;
-            sumR += data[idx]; sumG += data[idx + 1]; sumB += data[idx + 2];
+            sumR += data[idx];
+            sumG += data[idx + 1];
+            sumB += data[idx + 2];
             count++;
         }
     }
     for (let y = borderPixels; y < height; y++) {
         for (let x = 0; x < borderPixels; x++) {
             const idx = (y * width + x) * 4;
-            sumR += data[idx]; sumG += data[idx + 1]; sumB += data[idx + 2];
+            sumR += data[idx];
+            sumG += data[idx + 1];
+            sumB += data[idx + 2];
             count++;
         }
     }
-    const avgR = sumR / count, avgG = sumG / count, avgB = sumB / count;
-    let bestRarity: string | null = null, bestScore = 0;
+    const avgR = sumR / count,
+        avgG = sumG / count,
+        avgB = sumB / count;
+    let bestRarity: string | null = null,
+        bestScore = 0;
     for (const [rarity, ranges] of Object.entries(RARITY_COLORS)) {
         const rInRange = avgR >= ranges.r[0] && avgR <= ranges.r[1];
         const gInRange = avgG >= ranges.g[0] && avgG <= ranges.g[1];
         const bInRange = avgB >= ranges.b[0] && avgB <= ranges.b[1];
         const score = (rInRange ? 1 : 0) + (gInRange ? 1 : 0) + (bInRange ? 1 : 0);
-        if (score > bestScore) { bestScore = score; bestRarity = rarity; }
+        if (score > bestScore) {
+            bestScore = score;
+            bestRarity = rarity;
+        }
     }
     return bestScore >= 2 ? bestRarity : null;
 }
 
 function calculateNCC(imageData1: any, imageData2: any): number {
-    const pixels1 = imageData1.data, pixels2 = imageData2.data;
-    let sum1 = 0, sum2 = 0, sumProduct = 0, sumSquare1 = 0, sumSquare2 = 0, count = 0;
+    const pixels1 = imageData1.data,
+        pixels2 = imageData2.data;
+    let sum1 = 0,
+        sum2 = 0,
+        sumProduct = 0,
+        sumSquare1 = 0,
+        sumSquare2 = 0,
+        count = 0;
     const len = Math.min(pixels1.length, pixels2.length);
     for (let i = 0; i < len; i += 4) {
         const gray1 = (pixels1[i] + pixels1[i + 1] + pixels1[i + 2]) / 3;
         const gray2 = (pixels2[i] + pixels2[i + 1] + pixels2[i + 2]) / 3;
-        sum1 += gray1; sum2 += gray2;
+        sum1 += gray1;
+        sum2 += gray2;
         sumProduct += gray1 * gray2;
         sumSquare1 += gray1 * gray1;
         sumSquare2 += gray2 * gray2;
         count++;
     }
-    const mean1 = sum1 / count, mean2 = sum2 / count;
+    const mean1 = sum1 / count,
+        mean2 = sum2 / count;
     const numerator = sumProduct / count - mean1 * mean2;
     const denominator = Math.sqrt((sumSquare1 / count - mean1 * mean1) * (sumSquare2 / count - mean2 * mean2));
     if (denominator === 0) return 0;
@@ -233,8 +266,10 @@ function calculateHistogramSimilarity(imageData1: any, imageData2: any, config: 
     const binSize = 256 / bins;
     const hist1 = new Array(bins * bins * bins).fill(0);
     const hist2 = new Array(bins * bins * bins).fill(0);
-    const pixels1 = imageData1.data, pixels2 = imageData2.data;
-    let count1 = 0, count2 = 0;
+    const pixels1 = imageData1.data,
+        pixels2 = imageData2.data;
+    let count1 = 0,
+        count2 = 0;
     for (let i = 0; i < pixels1.length; i += 4) {
         const rBin = Math.min(bins - 1, Math.floor(pixels1[i] / binSize));
         const gBin = Math.min(bins - 1, Math.floor(pixels1[i + 1] / binSize));
@@ -249,7 +284,10 @@ function calculateHistogramSimilarity(imageData1: any, imageData2: any, config: 
         hist2[rBin * bins * bins + gBin * bins + bBin]++;
         count2++;
     }
-    for (let i = 0; i < hist1.length; i++) { hist1[i] /= count1; hist2[i] /= count2; }
+    for (let i = 0; i < hist1.length; i++) {
+        hist1[i] /= count1;
+        hist2[i] /= count2;
+    }
     let intersection = 0;
     for (let i = 0; i < hist1.length; i++) intersection += Math.min(hist1[i], hist2[i]);
     return intersection;
@@ -259,7 +297,8 @@ function calculateEdgeSimilarity(imageData1: any, imageData2: any, config: Exper
     const { width: w1, height: h1 } = imageData1;
     const { width: w2, height: h2 } = imageData2;
     if (w1 !== w2 || h1 !== h2) return 0;
-    const pixels1 = imageData1.data, pixels2 = imageData2.data;
+    const pixels1 = imageData1.data,
+        pixels2 = imageData2.data;
     const getGray = (pixels: any, x: number, y: number, width: number): number => {
         const idx = (y * width + x) * 4;
         return (pixels[idx] + pixels[idx + 1] + pixels[idx + 2]) / 3;
@@ -270,7 +309,9 @@ function calculateEdgeSimilarity(imageData1: any, imageData2: any, config: Exper
         const gy = getGray(pixels, x, y + 1, width) - getGray(pixels, x, y - 1, width);
         return Math.sqrt(gx * gx + gy * gy);
     };
-    let sumProduct = 0, sumSq1 = 0, sumSq2 = 0;
+    let sumProduct = 0,
+        sumSq1 = 0,
+        sumSq2 = 0;
     const step = config.edgeSampleStep;
     for (let y = 1; y < h1 - 1; y += step) {
         for (let x = 1; x < w1 - 1; x += step) {
@@ -331,9 +372,14 @@ async function findBestMatch(cellImageData: any, config: ExperimentConfig) {
         const tMargin = Math.round(template.width * config.centerMargin);
         resizedCtx.drawImage(
             template.canvas,
-            tMargin, tMargin,
-            template.width - tMargin * 2, template.height - tMargin * 2,
-            0, 0, centerWidth, centerHeight
+            tMargin,
+            tMargin,
+            template.width - tMargin * 2,
+            template.height - tMargin * 2,
+            0,
+            0,
+            centerWidth,
+            centerHeight
         );
         const templateData = resizedCtx.getImageData(0, 0, centerWidth, centerHeight);
         let similarity = calculateCombinedSimilarity(centerData, templateData, config);
@@ -372,7 +418,9 @@ function calculateMetrics(detections: any[], groundTruth: any[]) {
     detections.forEach(d => detectedItems.set(d.id, (detectedItems.get(d.id) || 0) + 1));
     const truthItems = new Map<string, number>();
     groundTruth.forEach(item => truthItems.set(item.id, item.count));
-    let truePositives = 0, falsePositives = 0, falseNegatives = 0;
+    let truePositives = 0,
+        falsePositives = 0,
+        falseNegatives = 0;
     detectedItems.forEach((detectedCount, itemId) => {
         const truthCount = truthItems.get(itemId) || 0;
         truePositives += Math.min(detectedCount, truthCount);
@@ -384,13 +432,14 @@ function calculateMetrics(detections: any[], groundTruth: any[]) {
     });
     const precision = truePositives + falsePositives > 0 ? truePositives / (truePositives + falsePositives) : 0;
     const recall = truePositives + falseNegatives > 0 ? truePositives / (truePositives + falseNegatives) : 0;
-    const f1 = precision + recall > 0 ? 2 * (precision * recall) / (precision + recall) : 0;
+    const f1 = precision + recall > 0 ? (2 * (precision * recall)) / (precision + recall) : 0;
     return { precision, recall, f1, truePositives, falsePositives, falseNegatives };
 }
 
 async function runTest(config: ExperimentConfig, label: string) {
     const testCases = loadTestCases();
-    let totalF1 = 0, totalTime = 0;
+    let totalF1 = 0,
+        totalTime = 0;
 
     console.log(`\n${label}:`);
     console.log(`${'Test Case'.padEnd(50)} | ${'F1'.padEnd(8)} | ${'P'.padEnd(8)} | ${'R'.padEnd(8)} | Time`);
@@ -410,13 +459,17 @@ async function runTest(config: ExperimentConfig, label: string) {
         totalF1 += metrics.f1;
         totalTime += time;
 
-        console.log(`${tc.name.padEnd(50)} | ${(metrics.f1 * 100).toFixed(1).padEnd(6)}% | ${(metrics.precision * 100).toFixed(1).padEnd(6)}% | ${(metrics.recall * 100).toFixed(1).padEnd(6)}% | ${time.toFixed(0)}ms`);
+        console.log(
+            `${tc.name.padEnd(50)} | ${(metrics.f1 * 100).toFixed(1).padEnd(6)}% | ${(metrics.precision * 100).toFixed(1).padEnd(6)}% | ${(metrics.recall * 100).toFixed(1).padEnd(6)}% | ${time.toFixed(0)}ms`
+        );
     }
 
     const avgF1 = totalF1 / testCases.length;
     const avgTime = totalTime / testCases.length;
     console.log('-'.repeat(90));
-    console.log(`${'AVERAGE'.padEnd(50)} | ${(avgF1 * 100).toFixed(1).padEnd(6)}% | ${''.padEnd(8)} | ${''.padEnd(8)} | ${avgTime.toFixed(0)}ms`);
+    console.log(
+        `${'AVERAGE'.padEnd(50)} | ${(avgF1 * 100).toFixed(1).padEnd(6)}% | ${''.padEnd(8)} | ${''.padEnd(8)} | ${avgTime.toFixed(0)}ms`
+    );
 
     return { avgF1, avgTime };
 }
@@ -432,11 +485,18 @@ async function main() {
     console.log('\n\n' + '='.repeat(60));
     console.log('COMPARISON SUMMARY');
     console.log('='.repeat(60));
-    console.log(`Baseline:  F1=${(baselineResults.avgF1 * 100).toFixed(2)}%, Time=${baselineResults.avgTime.toFixed(0)}ms`);
-    console.log(`Optimized: F1=${(optimizedResults.avgF1 * 100).toFixed(2)}%, Time=${optimizedResults.avgTime.toFixed(0)}ms`);
+    console.log(
+        `Baseline:  F1=${(baselineResults.avgF1 * 100).toFixed(2)}%, Time=${baselineResults.avgTime.toFixed(0)}ms`
+    );
+    console.log(
+        `Optimized: F1=${(optimizedResults.avgF1 * 100).toFixed(2)}%, Time=${optimizedResults.avgTime.toFixed(0)}ms`
+    );
 
-    const f1Improvement = ((optimizedResults.avgF1 - baselineResults.avgF1) / baselineResults.avgF1 * 100).toFixed(1);
-    const speedImprovement = ((baselineResults.avgTime - optimizedResults.avgTime) / baselineResults.avgTime * 100).toFixed(1);
+    const f1Improvement = (((optimizedResults.avgF1 - baselineResults.avgF1) / baselineResults.avgF1) * 100).toFixed(1);
+    const speedImprovement = (
+        ((baselineResults.avgTime - optimizedResults.avgTime) / baselineResults.avgTime) *
+        100
+    ).toFixed(1);
 
     console.log(`\nImprovement:`);
     console.log(`  F1 Score: ${optimizedResults.avgF1 > baselineResults.avgF1 ? '+' : ''}${f1Improvement}%`);

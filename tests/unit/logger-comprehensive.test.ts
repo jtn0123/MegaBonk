@@ -276,11 +276,7 @@ describe('Logger', () => {
         });
 
         it('should include metadata in logged event', async () => {
-            await logger.withOperation(
-                'test.metadata',
-                async () => 'result',
-                { customField: 'customValue' }
-            );
+            await logger.withOperation('test.metadata', async () => 'result', { customField: 'customValue' });
 
             const call = consoleSpy.info.mock.calls[0];
             const event = call[call.length - 1];

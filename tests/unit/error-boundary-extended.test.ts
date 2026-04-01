@@ -9,9 +9,9 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 vi.mock('../../src/modules/breadcrumbs.ts', () => ({
     recordError: vi.fn(),
     captureStateSnapshot: vi.fn().mockReturnValue({ test: 'snapshot' }),
-    getRecentBreadcrumbs: vi.fn().mockReturnValue([
-        { type: 'action', category: 'test', message: 'test action', timestamp: Date.now() },
-    ]),
+    getRecentBreadcrumbs: vi
+        .fn()
+        .mockReturnValue([{ type: 'action', category: 'test', message: 'test action', timestamp: Date.now() }]),
 }));
 
 // Mock dependencies before importing module
@@ -173,22 +173,24 @@ describe('Error Boundary Module - Extended Coverage', () => {
                 throw fallbackError;
             });
 
-            const wrapped = withErrorBoundary('fallback-fail-test', fn, { 
-                fallback, 
-                silent: true 
+            const wrapped = withErrorBoundary('fallback-fail-test', fn, {
+                fallback,
+                silent: true,
             });
 
             await expect(wrapped()).rejects.toThrow('Fallback failed');
 
             const { logger } = await import('../../src/modules/logger.ts');
-            expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'error.boundary',
-                data: expect.objectContaining({
-                    phase: 'fallback_failed',
-                    recoveryAttempted: true,
-                    recoverySucceeded: false,
-                }),
-            }));
+            expect(logger.error).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'error.boundary',
+                    data: expect.objectContaining({
+                        phase: 'fallback_failed',
+                        recoveryAttempted: true,
+                        recoverySucceeded: false,
+                    }),
+                })
+            );
         });
 
         it('should handle boundary fallback failure', async () => {
@@ -206,12 +208,14 @@ describe('Error Boundary Module - Extended Coverage', () => {
             await expect(wrapped()).rejects.toThrow('Original error');
 
             const { logger } = await import('../../src/modules/logger.ts');
-            expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'error.boundary',
-                data: expect.objectContaining({
-                    phase: 'boundary_fallback_failed',
-                }),
-            }));
+            expect(logger.error).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'error.boundary',
+                    data: expect.objectContaining({
+                        phase: 'boundary_fallback_failed',
+                    }),
+                })
+            );
         });
 
         it('should log when onError handler throws', async () => {
@@ -223,22 +227,24 @@ describe('Error Boundary Module - Extended Coverage', () => {
             });
             const fallback = vi.fn().mockReturnValue('recovered');
 
-            const wrapped = withErrorBoundary('handler-fail-test', fn, { 
-                onError, 
+            const wrapped = withErrorBoundary('handler-fail-test', fn, {
+                onError,
                 fallback,
-                silent: true 
+                silent: true,
             });
 
             const result = await wrapped();
             expect(result).toBe('recovered');
 
             const { logger } = await import('../../src/modules/logger.ts');
-            expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'error.boundary',
-                data: expect.objectContaining({
-                    phase: 'handler_failed',
-                }),
-            }));
+            expect(logger.error).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'error.boundary',
+                    data: expect.objectContaining({
+                        phase: 'handler_failed',
+                    }),
+                })
+            );
         });
 
         it('should handle async onError handler that throws', async () => {
@@ -248,10 +254,10 @@ describe('Error Boundary Module - Extended Coverage', () => {
             const onError = vi.fn().mockRejectedValue(handlerError);
             const fallback = vi.fn().mockReturnValue('async recovered');
 
-            const wrapped = withErrorBoundary('async-handler-fail', fn, { 
-                onError, 
+            const wrapped = withErrorBoundary('async-handler-fail', fn, {
+                onError,
                 fallback,
-                silent: true 
+                silent: true,
             });
 
             const result = await wrapped();
@@ -264,9 +270,9 @@ describe('Error Boundary Module - Extended Coverage', () => {
             const fn = vi.fn().mockRejectedValue(originalError);
             const fallback = vi.fn().mockRejectedValue(fallbackError);
 
-            const wrapped = withErrorBoundary('async-fallback-fail', fn, { 
+            const wrapped = withErrorBoundary('async-fallback-fail', fn, {
                 fallback,
-                silent: true 
+                silent: true,
             });
 
             await expect(wrapped()).rejects.toThrow('Async fallback failed');
@@ -281,16 +287,18 @@ describe('Error Boundary Module - Extended Coverage', () => {
             const error = new Error('Init failed');
             const initFn = vi.fn().mockRejectedValue(error);
 
-            await expect(safeModuleInit('no-degrade-test', initFn, { 
-                gracefulDegradation: false 
-            })).rejects.toThrow('Init failed');
+            await expect(
+                safeModuleInit('no-degrade-test', initFn, {
+                    gracefulDegradation: false,
+                })
+            ).rejects.toThrow('Init failed');
         });
 
         it('should handle required module with graceful degradation', async () => {
             const error = new Error('Required module init failed');
             const initFn = vi.fn().mockRejectedValue(error);
 
-            const result = await safeModuleInit('required-degrade', initFn, { 
+            const result = await safeModuleInit('required-degrade', initFn, {
                 required: true,
                 gracefulDegradation: true,
             });
@@ -298,9 +306,7 @@ describe('Error Boundary Module - Extended Coverage', () => {
             expect(result).toEqual({ degraded: true, error });
 
             const { ToastManager } = await import('../../src/modules/toast.ts');
-            expect(ToastManager.error).toHaveBeenCalledWith(
-                expect.stringContaining('Critical error')
-            );
+            expect(ToastManager.error).toHaveBeenCalledWith(expect.stringContaining('Critical error'));
         });
 
         it('should handle sync init function that throws', async () => {
@@ -326,10 +332,12 @@ describe('Error Boundary Module - Extended Coverage', () => {
             const initFn = vi.fn().mockRejectedValue(error);
 
             // Should not throw even if ToastManager fails
-            await expect(safeModuleInit('toast-fail', initFn, { 
-                required: true,
-                gracefulDegradation: true,
-            })).resolves.toEqual({ degraded: true, error });
+            await expect(
+                safeModuleInit('toast-fail', initFn, {
+                    required: true,
+                    gracefulDegradation: true,
+                })
+            ).resolves.toEqual({ degraded: true, error });
         });
     });
 
@@ -342,7 +350,7 @@ describe('Error Boundary Module - Extended Coverage', () => {
 
         beforeEach(() => {
             eventHandlers = new Map();
-            
+
             // Mock window.addEventListener
             addEventListenerSpy = vi.fn((event: string, handler: Function) => {
                 eventHandlers.set(event, handler);
@@ -386,11 +394,13 @@ describe('Error Boundary Module - Extended Coverage', () => {
             handler?.(event);
 
             expect(recordError).toHaveBeenCalledWith(error, 'global');
-            
+
             const { logger } = await import('../../src/modules/logger.ts');
-            expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'error.unhandled_rejection',
-            }));
+            expect(logger.error).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'error.unhandled_rejection',
+                })
+            );
         });
 
         it('should handle unhandled rejection with non-Error value', () => {
@@ -425,16 +435,18 @@ describe('Error Boundary Module - Extended Coverage', () => {
             handler?.(event);
 
             expect(recordError).toHaveBeenCalledWith(error, 'global');
-            
+
             const { logger } = await import('../../src/modules/logger.ts');
-            expect(logger.error).toHaveBeenCalledWith(expect.objectContaining({
-                operation: 'error.uncaught',
-                data: expect.objectContaining({
-                    filename: 'test.js',
-                    lineno: 10,
-                    colno: 5,
-                }),
-            }));
+            expect(logger.error).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    operation: 'error.uncaught',
+                    data: expect.objectContaining({
+                        filename: 'test.js',
+                        lineno: 10,
+                        colno: 5,
+                    }),
+                })
+            );
         });
 
         it('should handle error event without error object', () => {
@@ -452,10 +464,7 @@ describe('Error Boundary Module - Extended Coverage', () => {
             };
             handler?.(event);
 
-            expect(recordError).toHaveBeenCalledWith(
-                expect.objectContaining({ message: 'Script error' }),
-                'global'
-            );
+            expect(recordError).toHaveBeenCalledWith(expect.objectContaining({ message: 'Script error' }), 'global');
         });
     });
 
@@ -494,8 +503,8 @@ describe('Error Boundary Module - Extended Coverage', () => {
             const fn = vi.fn().mockRejectedValue(error);
             const onError = vi.fn();
 
-            const wrapped = withErrorBoundary('retry-handler', fn, { 
-                maxRetries: 2, 
+            const wrapped = withErrorBoundary('retry-handler', fn, {
+                maxRetries: 2,
                 onError,
                 silent: true,
             });
@@ -525,8 +534,8 @@ describe('Error Boundary Module - Extended Coverage', () => {
                 throw new Error('onError failed');
             });
 
-            const wrapped = withErrorBoundary('continue-retry', fn, { 
-                maxRetries: 3, 
+            const wrapped = withErrorBoundary('continue-retry', fn, {
+                maxRetries: 3,
                 onError,
                 silent: true,
             });

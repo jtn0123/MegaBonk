@@ -36,7 +36,6 @@ describe('cv-enhanced/utils', () => {
         });
     });
 
-
     describe('createCanvasFromImage', () => {
         it('creates canvas with correct dimensions', () => {
             const canvas = document.createElement('canvas');

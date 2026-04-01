@@ -16,7 +16,7 @@ const WEAPON_TOME_PARAMS = {
     spacingXBase: 10,
     spacingYBase: 45,
     cols: 4,
-    rows: 2
+    rows: 2,
 };
 
 // ============== INVENTORY GRID (bottom area, multiple rows) ==============
@@ -26,8 +26,8 @@ const INVENTORY_PARAMS = {
     bottomMarginBase: 42,
     rowHeightBase: 40,
     maxRows: 3,
-    minYPercent: 0.70,
-    sideMarginPercent: 0.15
+    minYPercent: 0.7,
+    sideMarginPercent: 0.15,
 };
 
 function detectWeaponTomeGrid(width, height) {
@@ -51,7 +51,7 @@ function detectWeaponTomeGrid(width, height) {
                 height: iconSize,
                 type: row === 0 ? 'weapon' : 'tome',
                 row,
-                col
+                col,
             });
         }
     }
@@ -73,7 +73,7 @@ function detectInventoryGrid(width, height) {
     // Calculate row Y positions (from bottom up)
     const rowYPositions = [];
     for (let row = 0; row < p.maxRows; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        const y = height - bottomMargin - row * rowHeight - iconSize;
         if (y >= height * p.minYPercent) {
             rowYPositions.push(y);
         }
@@ -97,7 +97,7 @@ function detectInventoryGrid(width, height) {
                 height: iconSize,
                 type: 'item',
                 row: rowYPositions.indexOf(rowY),
-                col: i
+                col: i,
             });
         }
     }
@@ -109,11 +109,15 @@ function isEmptyCell(ctx, x, y, w, h, threshold = 400) {
     if (x < 0 || y < 0) return true;
 
     const imageData = ctx.getImageData(Math.round(x), Math.round(y), w, h);
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
 
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
 
     const mean = sum / count;
@@ -138,7 +142,7 @@ async function analyzeImage(imagePath, groundTruth) {
     const results = {
         weapons: { detected: 0, positions: [] },
         tomes: { detected: 0, positions: [] },
-        items: { detected: 0, positions: [] }
+        items: { detected: 0, positions: [] },
     };
 
     // Analyze weapon/tome grid (use slightly lower threshold for equipped items)
@@ -172,7 +176,7 @@ async function analyzeImage(imagePath, groundTruth) {
         scale,
         results,
         expected: { items: expectedItems, weapons: expectedWeapons },
-        grids: { weaponTome, inventory }
+        grids: { weaponTome, inventory },
     };
 }
 
@@ -185,7 +189,7 @@ async function visualize(imagePath, groundTruth) {
     const ctx = canvas.getContext('2d');
     ctx.drawImage(image, 0, 0);
 
-    const srcCtx = (createCanvas(image.width, image.height).getContext('2d'));
+    const srcCtx = createCanvas(image.width, image.height).getContext('2d');
     srcCtx.drawImage(image, 0, 0);
 
     // Draw weapon/tome grid
@@ -222,7 +226,7 @@ async function visualize(imagePath, groundTruth) {
         `Resolution: ${analysis.width}x${analysis.height} | Scale: ${analysis.scale.toFixed(2)}`,
         `Weapons: ${r.weapons.detected}/4 | Tomes: ${r.tomes.detected}/4 (equipped slots)`,
         `Items: ${r.items.detected} detected | Expected: ${e.items} | Diff: ${itemDiff >= 0 ? '+' : ''}${itemDiff}`,
-        `Legend: Orange=weapon, Purple=tome, Green=item, Blue=empty slot`
+        `Legend: Orange=weapon, Purple=tome, Green=item, Blue=empty slot`,
     ];
 
     lines.forEach((line, i) => ctx.fillText(line, 10, image.height + 18 + i * 20));
@@ -243,8 +247,10 @@ async function main() {
     console.log('\n| Image | Scale | Weapons | Tomes | Items | Expected | Diff |');
     console.log('|-------|-------|---------|-------|-------|----------|------|');
 
-    let totalItems = 0, totalExpected = 0;
-    let totalWeapons = 0, totalTomes = 0;
+    let totalItems = 0,
+        totalExpected = 0;
+    let totalWeapons = 0,
+        totalTomes = 0;
 
     for (const [name, data] of testCases) {
         const imagePath = path.join('./test-images/gameplay', name);
@@ -261,7 +267,9 @@ async function main() {
         const diff = r.items.detected - e.items;
 
         const shortName = name.slice(9, 35);
-        console.log(`| ${shortName.padEnd(25)} | ${analysis.scale.toFixed(2)} | ${String(r.weapons.detected).padStart(7)} | ${String(r.tomes.detected).padStart(5)} | ${String(r.items.detected).padStart(5)} | ${String(e.items).padStart(8)} | ${(diff >= 0 ? '+' : '') + String(diff).padStart(4)} |`);
+        console.log(
+            `| ${shortName.padEnd(25)} | ${analysis.scale.toFixed(2)} | ${String(r.weapons.detected).padStart(7)} | ${String(r.tomes.detected).padStart(5)} | ${String(r.items.detected).padStart(5)} | ${String(e.items).padStart(8)} | ${(diff >= 0 ? '+' : '') + String(diff).padStart(4)} |`
+        );
 
         totalItems += r.items.detected;
         totalExpected += e.items;
@@ -271,15 +279,23 @@ async function main() {
 
     console.log('|-------|-------|---------|-------|-------|----------|------|');
     const totalDiff = totalItems - totalExpected;
-    console.log(`| TOTAL |       | ${String(totalWeapons).padStart(7)} | ${String(totalTomes).padStart(5)} | ${String(totalItems).padStart(5)} | ${String(totalExpected).padStart(8)} | ${(totalDiff >= 0 ? '+' : '') + String(totalDiff).padStart(4)} |`);
+    console.log(
+        `| TOTAL |       | ${String(totalWeapons).padStart(7)} | ${String(totalTomes).padStart(5)} | ${String(totalItems).padStart(5)} | ${String(totalExpected).padStart(8)} | ${(totalDiff >= 0 ? '+' : '') + String(totalDiff).padStart(4)} |`
+    );
 
     console.log(`\nVisualization: ${OUTPUT_DIR}/`);
 
     // Summary
     console.log('\n=== Summary ===');
-    console.log(`Weapon detection: ${totalWeapons}/${testCases.length * 4} slots (${(totalWeapons / (testCases.length * 4) * 100).toFixed(1)}%)`);
-    console.log(`Tome detection: ${totalTomes}/${testCases.length * 4} slots (${(totalTomes / (testCases.length * 4) * 100).toFixed(1)}%)`);
-    console.log(`Item detection accuracy: ${totalItems} vs ${totalExpected} expected (${totalDiff >= 0 ? '+' : ''}${totalDiff})`);
+    console.log(
+        `Weapon detection: ${totalWeapons}/${testCases.length * 4} slots (${((totalWeapons / (testCases.length * 4)) * 100).toFixed(1)}%)`
+    );
+    console.log(
+        `Tome detection: ${totalTomes}/${testCases.length * 4} slots (${((totalTomes / (testCases.length * 4)) * 100).toFixed(1)}%)`
+    );
+    console.log(
+        `Item detection accuracy: ${totalItems} vs ${totalExpected} expected (${totalDiff >= 0 ? '+' : ''}${totalDiff})`
+    );
 }
 
 main().catch(console.error);

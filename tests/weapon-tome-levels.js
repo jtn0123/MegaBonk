@@ -17,16 +17,16 @@ const GRID_PARAMS = {
     spacingXBase: 10,
     spacingYBase: 45,
     cols: 4,
-    rows: 2
+    rows: 2,
 };
 
 // Level indicator appears in bottom-right corner of each icon
 // It's a small number (1-8) showing upgrade level
 const LEVEL_INDICATOR = {
-    offsetXPercent: 0.55,  // Right side of icon
-    offsetYPercent: 0.55,  // Bottom of icon
+    offsetXPercent: 0.55, // Right side of icon
+    offsetYPercent: 0.55, // Bottom of icon
     widthPercent: 0.45,
-    heightPercent: 0.45
+    heightPercent: 0.45,
 };
 
 function detectWeaponTomeGrid(width, height) {
@@ -49,7 +49,7 @@ function detectWeaponTomeGrid(width, height) {
                 height: iconSize,
                 row,
                 col,
-                type: row === 0 ? 'weapon' : 'tome'
+                type: row === 0 ? 'weapon' : 'tome',
             });
         }
     }
@@ -59,11 +59,15 @@ function detectWeaponTomeGrid(width, height) {
 
 function isEmptySlot(ctx, x, y, w, h) {
     const imageData = ctx.getImageData(Math.round(x), Math.round(y), w, h);
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
 
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
 
     const mean = sum / count;
@@ -84,17 +88,20 @@ function getLevelRegion(ctx, pos) {
 // Recognize level number (1-8) from small region
 // Uses simple heuristics based on pixel patterns
 function recognizeLevelNumber(imageData) {
-    const w = imageData.width, h = imageData.height;
+    const w = imageData.width,
+        h = imageData.height;
     const data = imageData.data;
 
     // Find bright pixels (level numbers are usually white/yellow)
-    let brightPixels = [];
+    const brightPixels = [];
     let totalBright = 0;
 
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
             const i = (y * w + x) * 4;
-            const r = data[i], g = data[i+1], b = data[i+2];
+            const r = data[i],
+                g = data[i + 1],
+                b = data[i + 2];
             const brightness = (r + g + b) / 3;
 
             // Check for white/yellow text (high brightness, not red/purple)
@@ -120,8 +127,10 @@ function recognizeLevelNumber(imageData) {
     const aspectRatio = charWidth / charHeight;
 
     // Count pixels in different regions
-    let topHalf = 0, bottomHalf = 0;
-    let leftHalf = 0, rightHalf = 0;
+    let topHalf = 0,
+        bottomHalf = 0;
+    let leftHalf = 0,
+        rightHalf = 0;
     let center = 0;
     const midY = (minY + maxY) / 2;
     const midX = (minX + maxX) / 2;
@@ -131,8 +140,12 @@ function recognizeLevelNumber(imageData) {
         else bottomHalf++;
         if (p.x < midX) leftHalf++;
         else rightHalf++;
-        if (p.x > minX + charWidth * 0.25 && p.x < maxX - charWidth * 0.25 &&
-            p.y > minY + charHeight * 0.25 && p.y < maxY - charHeight * 0.25) {
+        if (
+            p.x > minX + charWidth * 0.25 &&
+            p.x < maxX - charWidth * 0.25 &&
+            p.y > minY + charHeight * 0.25 &&
+            p.y < maxY - charHeight * 0.25
+        ) {
             center++;
         }
     }
@@ -203,7 +216,9 @@ function detectUpgradeBars(ctx, pos) {
     // Look for colored segments (yellow/gold for filled upgrades)
     let yellowPixels = 0;
     for (let i = 0; i < barData.data.length; i += 4) {
-        const r = barData.data[i], g = barData.data[i+1], b = barData.data[i+2];
+        const r = barData.data[i],
+            g = barData.data[i + 1],
+            b = barData.data[i + 2];
         // Yellow/gold: high R and G, low B
         if (r > 150 && g > 120 && b < 100) {
             yellowPixels++;
@@ -278,7 +293,7 @@ async function main() {
                 level: finalLevel,
                 confidence,
                 levelResult,
-                barResult
+                barResult,
             };
 
             if (pos.type === 'weapon') {
@@ -297,7 +312,7 @@ async function main() {
         allResults.push({
             filename,
             weaponLevels,
-            tomeLevels
+            tomeLevels,
         });
 
         // Create visualization
@@ -346,12 +361,14 @@ async function main() {
         vizCtx.fillText(`Tomes: ${tInfo || 'none detected'}`, 10, image.height + 50);
 
         // Confidence breakdown
-        const avgWConf = weaponLevels.length > 0
-            ? (weaponLevels.reduce((s, w) => s + w.confidence, 0) / weaponLevels.length * 100).toFixed(0)
-            : 'N/A';
-        const avgTConf = tomeLevels.length > 0
-            ? (tomeLevels.reduce((s, t) => s + t.confidence, 0) / tomeLevels.length * 100).toFixed(0)
-            : 'N/A';
+        const avgWConf =
+            weaponLevels.length > 0
+                ? ((weaponLevels.reduce((s, w) => s + w.confidence, 0) / weaponLevels.length) * 100).toFixed(0)
+                : 'N/A';
+        const avgTConf =
+            tomeLevels.length > 0
+                ? ((tomeLevels.reduce((s, t) => s + t.confidence, 0) / tomeLevels.length) * 100).toFixed(0)
+                : 'N/A';
 
         vizCtx.fillText(`Confidence: Weapons ${avgWConf}%, Tomes ${avgTConf}%`, 10, image.height + 75);
 
@@ -370,19 +387,18 @@ async function main() {
     const detectedWeapons = allWeaponLevels.filter(w => w.level !== null).length;
     const detectedTomes = allTomeLevels.filter(t => t.level !== null).length;
 
-    console.log(`\nDetected levels: ${detectedWeapons}/${allWeaponLevels.length} weapons, ${detectedTomes}/${allTomeLevels.length} tomes`);
+    console.log(
+        `\nDetected levels: ${detectedWeapons}/${allWeaponLevels.length} weapons, ${detectedTomes}/${allTomeLevels.length} tomes`
+    );
 
     if (detectedWeapons > 0) {
-        const avgConf = allWeaponLevels.filter(w => w.level !== null)
-            .reduce((s, w) => s + w.confidence, 0) / detectedWeapons;
+        const avgConf =
+            allWeaponLevels.filter(w => w.level !== null).reduce((s, w) => s + w.confidence, 0) / detectedWeapons;
         console.log(`Average weapon level confidence: ${(avgConf * 100).toFixed(1)}%`);
     }
 
     // Save results
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'results.json'),
-        JSON.stringify(allResults, null, 2)
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'results.json'), JSON.stringify(allResults, null, 2));
 
     console.log(`\nResults saved to: ${OUTPUT_DIR}/`);
 }

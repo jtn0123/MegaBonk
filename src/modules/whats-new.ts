@@ -72,10 +72,15 @@ async function fetchReleases(limit = 5): Promise<Release[]> {
         const data = await res.json();
         return data.map((r: { tag_name: string; published_at: string; body: string }) => ({
             version: r.tag_name.replace(/^v/, ''),
-            date: r.published_at ? new Date(r.published_at).toLocaleDateString('en-US', {
-                year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC'
-            }) : '',
-            body: r.body || ''
+            date: r.published_at
+                ? new Date(r.published_at).toLocaleDateString('en-US', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      timeZone: 'UTC',
+                  })
+                : '',
+            body: r.body || '',
         }));
     } catch {
         return [];
@@ -141,7 +146,7 @@ export async function showWhatsNewModal(): Promise<void> {
         overlay.remove();
     };
     overlay.querySelector('.whats-new-close')?.addEventListener('click', close);
-    overlay.addEventListener('click', (e) => {
+    overlay.addEventListener('click', e => {
         if (e.target === overlay) close();
     });
     document.addEventListener('keydown', function onEsc(e) {
@@ -166,7 +171,9 @@ export async function showWhatsNewModal(): Promise<void> {
         return;
     }
 
-    body.innerHTML = releases.map(r => `
+    body.innerHTML = releases
+        .map(
+            r => `
         <div class="whats-new-release">
             <div class="whats-new-release-header">
                 <span class="whats-new-version">v${escapeHtml(r.version)}</span>
@@ -178,7 +185,9 @@ export async function showWhatsNewModal(): Promise<void> {
             </div>
             <div class="whats-new-release-body">${markdownToHtml(r.body)}</div>
         </div>
-    `).join('');
+    `
+        )
+        .join('');
 }
 
 /**
@@ -208,9 +217,9 @@ export function initFooterVersion(): void {
     if (badge) {
         const version = getAppVersion();
         badge.textContent = `App v${version}`;
-        badge.title = 'Click to see what\'s new';
+        badge.title = "Click to see what's new";
         badge.style.cursor = 'pointer';
-        badge.addEventListener('click', (e) => {
+        badge.addEventListener('click', e => {
             e.preventDefault();
             showWhatsNewModal();
         });
@@ -218,7 +227,7 @@ export function initFooterVersion(): void {
 
     const whatsNewLink = document.getElementById('footer-whats-new');
     if (whatsNewLink) {
-        whatsNewLink.addEventListener('click', (e) => {
+        whatsNewLink.addEventListener('click', e => {
             e.preventDefault();
             showWhatsNewModal();
         });

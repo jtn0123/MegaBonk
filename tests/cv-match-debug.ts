@@ -9,7 +9,9 @@ try {
     createCanvas = canvas.createCanvas;
     loadImage = canvas.loadImage;
     globalThis.ImageData = canvas.ImageData;
-} catch { process.exit(1); }
+} catch {
+    process.exit(1);
+}
 
 const gtPath = path.join(__dirname, '../test-images/gameplay/ground-truth.json');
 const gt = JSON.parse(fs.readFileSync(gtPath, 'utf-8'));
@@ -37,14 +39,21 @@ async function loadTemplates(): Promise<void> {
             const canvas = createCanvas(img.width, img.height);
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0);
-            templates.push({ id: item.id, name: item.name, rarity: item.rarity, canvas, width: img.width, height: img.height });
+            templates.push({
+                id: item.id,
+                name: item.name,
+                rarity: item.rarity,
+                canvas,
+                width: img.width,
+                height: img.height,
+            });
         } catch {}
     }
     console.log(`Loaded ${templates.length} templates\n`);
 }
 
 // Simplified detection similar to offline-cv-runner
-async function detectItems(imagePath: string): Promise<Array<{name: string; confidence: number}>> {
+async function detectItems(imagePath: string): Promise<Array<{ name: string; confidence: number }>> {
     const img = await loadImage(imagePath);
     const canvas = createCanvas(img.width, img.height);
     const ctx = canvas.getContext('2d');
@@ -63,11 +72,11 @@ async function detectItems(imagePath: string): Promise<Array<{name: string; conf
         height - bottomMargin - iconSize - rowHeight * 2,
     ];
 
-    const sideMargin = Math.round(width * 0.20);
+    const sideMargin = Math.round(width * 0.2);
     const usableWidth = width - sideMargin * 2;
     const maxItemsPerRow = Math.min(20, Math.floor(usableWidth / (iconSize + spacing)));
 
-    const positions: Array<{x: number; y: number; w: number; h: number}> = [];
+    const positions: Array<{ x: number; y: number; w: number; h: number }> = [];
     for (const rowY of rowYPositions) {
         if (rowY < height * 0.75) break;
         const totalWidth = maxItemsPerRow * (iconSize + spacing);
@@ -77,15 +86,17 @@ async function detectItems(imagePath: string): Promise<Array<{name: string; conf
         }
     }
 
-    const detections: Array<{name: string; confidence: number; pos: string}> = [];
+    const detections: Array<{ name: string; confidence: number; pos: string }> = [];
 
     for (const pos of positions) {
         const cellData = ctx.getImageData(pos.x, pos.y, pos.w, pos.h);
 
         // Check if empty
-        let sum = 0, sumSq = 0, count = 0;
+        let sum = 0,
+            sumSq = 0,
+            count = 0;
         for (let i = 0; i < cellData.data.length; i += 4) {
-            const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
+            const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
             sum += gray;
             sumSq += gray * gray;
             count++;
@@ -95,7 +106,7 @@ async function detectItems(imagePath: string): Promise<Array<{name: string; conf
         if (variance < 300 || mean < 40) continue;
 
         // Find best matching template
-        let bestMatch: {name: string; confidence: number} | null = null;
+        let bestMatch: { name: string; confidence: number } | null = null;
         const margin = Math.round(pos.w * 0.15);
         const cw = pos.w - margin * 2;
         const ch = pos.h - margin * 2;
@@ -118,22 +129,43 @@ async function detectItems(imagePath: string): Promise<Array<{name: string; conf
             const tMargin = Math.round(template.width * 0.15);
             const resized = createCanvas(cw, ch);
             const rCtx = resized.getContext('2d');
-            rCtx.drawImage(template.canvas, tMargin, tMargin, template.width - tMargin * 2, template.height - tMargin * 2, 0, 0, cw, ch);
+            rCtx.drawImage(
+                template.canvas,
+                tMargin,
+                tMargin,
+                template.width - tMargin * 2,
+                template.height - tMargin * 2,
+                0,
+                0,
+                cw,
+                ch
+            );
             const tData = rCtx.getImageData(0, 0, cw, ch);
 
             // NCC
-            let sum1 = 0, sum2 = 0, sumProd = 0, sumSq1 = 0, sumSq2 = 0, n = 0;
+            let sum1 = 0,
+                sum2 = 0,
+                sumProd = 0,
+                sumSq1 = 0,
+                sumSq2 = 0,
+                n = 0;
             for (let i = 0; i < centerData.data.length; i += 4) {
-                const g1 = (centerData.data[i] + centerData.data[i+1] + centerData.data[i+2]) / 3;
-                const g2 = (tData.data[i] + tData.data[i+1] + tData.data[i+2]) / 3;
-                sum1 += g1; sum2 += g2; sumProd += g1 * g2; sumSq1 += g1 * g1; sumSq2 += g2 * g2; n++;
+                const g1 = (centerData.data[i] + centerData.data[i + 1] + centerData.data[i + 2]) / 3;
+                const g2 = (tData.data[i] + tData.data[i + 1] + tData.data[i + 2]) / 3;
+                sum1 += g1;
+                sum2 += g2;
+                sumProd += g1 * g2;
+                sumSq1 += g1 * g1;
+                sumSq2 += g2 * g2;
+                n++;
             }
-            const mean1 = sum1 / n, mean2 = sum2 / n;
+            const mean1 = sum1 / n,
+                mean2 = sum2 / n;
             const num = sumProd / n - mean1 * mean2;
             const denom = Math.sqrt((sumSq1 / n - mean1 * mean1) * (sumSq2 / n - mean2 * mean2));
             const ncc = denom > 0 ? (num / denom + 1) / 2 : 0;
 
-            if (ncc > (bestMatch?.confidence || 0.40)) {
+            if (ncc > (bestMatch?.confidence || 0.4)) {
                 bestMatch = { name: template.name, confidence: ncc };
             }
         }
@@ -171,7 +203,9 @@ async function main() {
     for (const d of detected) detCounts.set(d.name, (detCounts.get(d.name) || 0) + 1);
     for (const [name, count] of [...detCounts.entries()].sort()) {
         const isMatch = expCounts.has(name);
-        console.log(`  ${count}x ${name} ${isMatch ? '✓' : '✗'} (conf: ${detected.find(d => d.name === name)?.confidence.toFixed(3)})`);
+        console.log(
+            `  ${count}x ${name} ${isMatch ? '✓' : '✗'} (conf: ${detected.find(d => d.name === name)?.confidence.toFixed(3)})`
+        );
     }
 
     console.log(`\nMISSING (in expected but not detected):`);
@@ -195,7 +229,7 @@ async function main() {
     }
     const precision = detected.length > 0 ? tp / detected.length : 0;
     const recall = expected.length > 0 ? tp / expected.length : 0;
-    const f1 = precision + recall > 0 ? 2 * precision * recall / (precision + recall) : 0;
+    const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0;
 
     console.log(`\nMETRICS:`);
     console.log(`  True Positives: ${tp}`);

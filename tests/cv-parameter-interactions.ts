@@ -10,12 +10,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 // Import from main optimizer
-import {
-    PARAMETERS,
-    type Parameter,
-    type TestResult,
-    type SensitivityAnalysis,
-} from './cv-parameter-optimizer';
+import { PARAMETERS, type Parameter, type TestResult, type SensitivityAnalysis } from './cv-parameter-optimizer';
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // CANVAS INITIALIZATION
@@ -45,10 +40,10 @@ interface InteractionResult {
     param1OnlyF1: number;
     param2OnlyF1: number;
     baselineF1: number;
-    expectedF1: number;         // Additive expectation
-    interactionEffect: number;  // combinedF1 - expectedF1
+    expectedF1: number; // Additive expectation
+    interactionEffect: number; // combinedF1 - expectedF1
     synergy: 'positive' | 'negative' | 'neutral';
-    strength: number;           // Absolute interaction magnitude
+    strength: number; // Absolute interaction magnitude
 }
 
 interface ParameterPairSummary {
@@ -110,17 +105,27 @@ function resetToBaseline(): void {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function calculateNCC(data1: Uint8ClampedArray, data2: Uint8ClampedArray): number {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(data1.length, data2.length);
 
     for (let i = 0; i < len; i += 4) {
         const g1 = ((data1[i] ?? 0) + (data1[i + 1] ?? 0) + (data1[i + 2] ?? 0)) / 3;
         const g2 = ((data2[i] ?? 0) + (data2[i + 1] ?? 0) + (data2[i + 2] ?? 0)) / 3;
-        s1 += g1; s2 += g2; sp += g1 * g2;
-        ss1 += g1 * g1; ss2 += g2 * g2; c++;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
 
-    const m1 = s1 / c, m2 = s2 / c;
+    const m1 = s1 / c,
+        m2 = s2 / c;
     const num = sp / c - m1 * m2;
     const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
 
@@ -129,7 +134,10 @@ function calculateNCC(data1: Uint8ClampedArray, data2: Uint8ClampedArray): numbe
 
 function calculateVariance(imageData: { data: Uint8ClampedArray }): number {
     const pixels = imageData.data;
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
 
     for (let i = 0; i < pixels.length; i += 16) {
         sumR += pixels[i] ?? 0;
@@ -154,9 +162,19 @@ function calculateVariance(imageData: { data: Uint8ClampedArray }): number {
 }
 
 // Mock detection function for testing (simplified)
-interface Detection { itemId: string; itemName: string; confidence: number; }
-interface GroundTruth { items: string[]; }
-interface TestCase { name: string; imagePath: string; groundTruth: GroundTruth; }
+interface Detection {
+    itemId: string;
+    itemName: string;
+    confidence: number;
+}
+interface GroundTruth {
+    items: string[];
+}
+interface TestCase {
+    name: string;
+    imagePath: string;
+    groundTruth: GroundTruth;
+}
 
 async function loadTemplates(): Promise<void> {
     if (templateCache.size > 0) return;
@@ -222,7 +240,7 @@ async function calculateF1ForParams(testCases: TestCase[]): Promise<number> {
     f1 += (0.72 - minConf) * 0.3; // Optimal around 0.72
 
     // NMS IoU affects duplicate removal
-    f1 += (0.30 - Math.abs(nmsIou - 0.30)) * 0.2;
+    f1 += (0.3 - Math.abs(nmsIou - 0.3)) * 0.2;
 
     // Empty threshold affects false positives
     f1 += (500 - Math.abs(emptyThresh - 500)) / 5000;
@@ -238,7 +256,7 @@ async function calculateF1ForParams(testCases: TestCase[]): Promise<number> {
     }
 
     // nmsIou and minConfidence interact
-    if (nmsIou < 0.20 && minConf < 0.60) {
+    if (nmsIou < 0.2 && minConf < 0.6) {
         f1 -= 0.03; // Too aggressive NMS with low confidence = bad
     }
 
@@ -350,15 +368,22 @@ async function findTopInteractions(
     // Select most impactful parameters for pair analysis
     // (testing all pairs would be O(n^2) which is expensive)
     const keyParams = PARAMETERS.filter(p =>
-        ['minConfidence', 'nmsIouThreshold', 'contrastFactor', 'emptyVarianceThreshold',
-         'pass1Threshold', 'slidingWindowStep', 'colorSaturationThreshold', 'borderMatchBoost']
-        .includes(p.name)
+        [
+            'minConfidence',
+            'nmsIouThreshold',
+            'contrastFactor',
+            'emptyVarianceThreshold',
+            'pass1Threshold',
+            'slidingWindowStep',
+            'colorSaturationThreshold',
+            'borderMatchBoost',
+        ].includes(p.name)
     );
 
-    console.log(`\n🔬 Analyzing ${keyParams.length * (keyParams.length - 1) / 2} parameter pairs...\n`);
+    console.log(`\n🔬 Analyzing ${(keyParams.length * (keyParams.length - 1)) / 2} parameter pairs...\n`);
 
     let pairCount = 0;
-    const totalPairs = keyParams.length * (keyParams.length - 1) / 2;
+    const totalPairs = (keyParams.length * (keyParams.length - 1)) / 2;
 
     for (let i = 0; i < keyParams.length; i++) {
         for (let j = i + 1; j < keyParams.length; j++) {
@@ -372,8 +397,8 @@ async function findTopInteractions(
             allResults.push(...pairResults);
 
             // Summarize pair
-            const bestResult = pairResults.reduce((best, r) => r.combinedF1 > best.combinedF1 ? r : best);
-            const worstResult = pairResults.reduce((worst, r) => r.combinedF1 < worst.combinedF1 ? r : worst);
+            const bestResult = pairResults.reduce((best, r) => (r.combinedF1 > best.combinedF1 ? r : best));
+            const worstResult = pairResults.reduce((worst, r) => (r.combinedF1 < worst.combinedF1 ? r : worst));
             const avgInteraction = pairResults.reduce((sum, r) => sum + r.interactionEffect, 0) / pairResults.length;
             const maxSynergy = Math.max(...pairResults.map(r => r.interactionEffect));
             const maxConflict = Math.min(...pairResults.map(r => r.interactionEffect));
@@ -428,11 +453,7 @@ async function findTopInteractions(
 // HEATMAP GENERATION
 // ═══════════════════════════════════════════════════════════════════════════════
 
-async function generateHeatmap(
-    param1: Parameter,
-    param2: Parameter,
-    testCases: TestCase[]
-): Promise<HeatmapData> {
+async function generateHeatmap(param1: Parameter, param2: Parameter, testCases: TestCase[]): Promise<HeatmapData> {
     // MEMORY FIX: Limit heatmap resolution to prevent OOM
     // Take at most 7 values per dimension (7x7 = 49 cells max)
     const maxValues = 7;
@@ -472,17 +493,33 @@ async function generateHeatmap(
 
 function generateInteractionCSV(results: InteractionResult[]): string {
     const headers = [
-        'param1', 'param2', 'param1_value', 'param2_value',
-        'combined_f1', 'param1_only_f1', 'param2_only_f1',
-        'baseline_f1', 'expected_f1', 'interaction_effect', 'synergy', 'strength'
+        'param1',
+        'param2',
+        'param1_value',
+        'param2_value',
+        'combined_f1',
+        'param1_only_f1',
+        'param2_only_f1',
+        'baseline_f1',
+        'expected_f1',
+        'interaction_effect',
+        'synergy',
+        'strength',
     ];
 
     const rows = results.map(r => [
-        r.param1, r.param2,
-        r.param1Value.toString(), r.param2Value.toString(),
-        r.combinedF1.toFixed(4), r.param1OnlyF1.toFixed(4), r.param2OnlyF1.toFixed(4),
-        r.baselineF1.toFixed(4), r.expectedF1.toFixed(4),
-        r.interactionEffect.toFixed(4), r.synergy, r.strength.toFixed(4)
+        r.param1,
+        r.param2,
+        r.param1Value.toString(),
+        r.param2Value.toString(),
+        r.combinedF1.toFixed(4),
+        r.param1OnlyF1.toFixed(4),
+        r.param2OnlyF1.toFixed(4),
+        r.baselineF1.toFixed(4),
+        r.expectedF1.toFixed(4),
+        r.interactionEffect.toFixed(4),
+        r.synergy,
+        r.strength.toFixed(4),
     ]);
 
     return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -490,13 +527,23 @@ function generateInteractionCSV(results: InteractionResult[]): string {
 
 function generatePairSummaryCSV(summaries: ParameterPairSummary[]): string {
     const headers = [
-        'param1', 'param2', 'best_param1_val', 'best_param2_val', 'best_f1',
-        'worst_param1_val', 'worst_param2_val', 'worst_f1',
-        'avg_interaction', 'max_synergy', 'max_conflict', 'recommendation'
+        'param1',
+        'param2',
+        'best_param1_val',
+        'best_param2_val',
+        'best_f1',
+        'worst_param1_val',
+        'worst_param2_val',
+        'worst_f1',
+        'avg_interaction',
+        'max_synergy',
+        'max_conflict',
+        'recommendation',
     ];
 
     const rows = summaries.map(s => [
-        s.param1, s.param2,
+        s.param1,
+        s.param2,
         s.bestCombination.param1Value.toString(),
         s.bestCombination.param2Value.toString(),
         s.bestCombination.f1.toFixed(4),
@@ -506,21 +553,25 @@ function generatePairSummaryCSV(summaries: ParameterPairSummary[]): string {
         s.avgInteractionEffect.toFixed(4),
         s.maxSynergy.toFixed(4),
         s.maxConflict.toFixed(4),
-        `"${s.recommendation}"`
+        `"${s.recommendation}"`,
     ]);
 
     return [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
 }
 
 function generateHeatmapJSON(heatmaps: HeatmapData[]): string {
-    return JSON.stringify({
-        metadata: {
-            generated: new Date().toISOString(),
-            description: 'Parameter interaction heatmaps',
-            usage: 'Each entry contains a 2D matrix of F1 scores for parameter combinations',
+    return JSON.stringify(
+        {
+            metadata: {
+                generated: new Date().toISOString(),
+                description: 'Parameter interaction heatmaps',
+                usage: 'Each entry contains a 2D matrix of F1 scores for parameter combinations',
+            },
+            heatmaps,
         },
-        heatmaps,
-    }, null, 2);
+        null,
+        2
+    );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -640,14 +691,18 @@ async function main(): Promise<void> {
     console.log('─'.repeat(75));
     strongestSynergies.slice(0, 5).forEach((r, i) => {
         console.log(`  ${i + 1}. ${r.param1}=${r.param1Value} + ${r.param2}=${r.param2Value}`);
-        console.log(`     Combined: ${(r.combinedF1 * 100).toFixed(2)}%, Effect: +${(r.interactionEffect * 100).toFixed(2)}%`);
+        console.log(
+            `     Combined: ${(r.combinedF1 * 100).toFixed(2)}%, Effect: +${(r.interactionEffect * 100).toFixed(2)}%`
+        );
     });
 
     console.log('\n🔴 Top 5 Negative Conflicts (parameters hurt each other):');
     console.log('─'.repeat(75));
     strongestConflicts.slice(0, 5).forEach((r, i) => {
         console.log(`  ${i + 1}. ${r.param1}=${r.param1Value} + ${r.param2}=${r.param2Value}`);
-        console.log(`     Combined: ${(r.combinedF1 * 100).toFixed(2)}%, Effect: ${(r.interactionEffect * 100).toFixed(2)}%`);
+        console.log(
+            `     Combined: ${(r.combinedF1 * 100).toFixed(2)}%, Effect: ${(r.interactionEffect * 100).toFixed(2)}%`
+        );
     });
 
     console.log('\n📝 Key Recommendations:');

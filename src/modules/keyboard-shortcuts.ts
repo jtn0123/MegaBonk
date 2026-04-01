@@ -260,7 +260,17 @@ export function setupKeyboardShortcuts(): void {
 
     function handleTabNavigation(e: KeyboardEvent): boolean {
         e.preventDefault();
-        const tabs = ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator', 'advisor', 'changelog'];
+        const tabs = [
+            'items',
+            'weapons',
+            'tomes',
+            'characters',
+            'shrines',
+            'build-planner',
+            'calculator',
+            'advisor',
+            'changelog',
+        ];
         const tabIndex = Number.parseInt(e.key) - 1;
         document.querySelector<HTMLElement>(`[data-tab="${tabs[tabIndex]}"]`)?.click();
         return true;
@@ -269,7 +279,10 @@ export function setupKeyboardShortcuts(): void {
     function handleSearchFocus(e: KeyboardEvent): boolean {
         e.preventDefault();
         const searchInput = document.getElementById('searchInput') as HTMLInputElement | null;
-        if (searchInput) { searchInput.focus(); searchInput.select(); }
+        if (searchInput) {
+            searchInput.focus();
+            searchInput.select();
+        }
         return true;
     }
 
@@ -290,7 +303,12 @@ export function setupKeyboardShortcuts(): void {
 
     function handleViewToggle(e: KeyboardEvent): boolean {
         const key = e.key.toLowerCase();
-        const viewMap: Record<string, string> = { g: '[data-view="grid"]', l: '[data-view="list"]', c: '#compare-mode-toggle', t: '#theme-toggle' };
+        const viewMap: Record<string, string> = {
+            g: '[data-view="grid"]',
+            l: '[data-view="list"]',
+            c: '#compare-mode-toggle',
+            t: '#theme-toggle',
+        };
         const selector = viewMap[key];
         if (!selector) return false;
         e.preventDefault();

@@ -28,7 +28,15 @@ describe('mobile-filter-sheet', () => {
     });
 
     const sampleFilters: FilterConfig[] = [
-        { id: 'sort', label: 'Sort By', type: 'select', options: [{ value: 'name', label: 'Name' }, { value: 'date', label: 'Date' }] },
+        {
+            id: 'sort',
+            label: 'Sort By',
+            type: 'select',
+            options: [
+                { value: 'name', label: 'Name' },
+                { value: 'date', label: 'Date' },
+            ],
+        },
         { id: 'favorites', label: 'Favorites Only', type: 'checkbox' },
     ];
 
@@ -164,9 +172,7 @@ describe('mobile-filter-sheet', () => {
             document.body.appendChild(sheet);
 
             // Get focusable elements within the sheet
-            const focusable = sheet.querySelectorAll<HTMLElement>(
-                'button:not([disabled]), select, input'
-            );
+            const focusable = sheet.querySelectorAll<HTMLElement>('button:not([disabled]), select, input');
             expect(focusable.length).toBeGreaterThan(0);
 
             // Focus the last focusable element
@@ -186,9 +192,7 @@ describe('mobile-filter-sheet', () => {
             sheet.id = 'filter-bottom-sheet';
             document.body.appendChild(sheet);
 
-            const focusable = sheet.querySelectorAll<HTMLElement>(
-                'button:not([disabled]), select, input'
-            );
+            const focusable = sheet.querySelectorAll<HTMLElement>('button:not([disabled]), select, input');
             if (focusable.length > 0) {
                 focusable[0].focus();
             }

@@ -258,9 +258,7 @@ function resizeBinary(binary: boolean[][], targetWidth: number, targetHeight: nu
     const srcWidth = binary[0]?.length ?? 0;
 
     if (srcWidth === 0 || srcHeight === 0) {
-        return new Array(targetHeight)
-            .fill(null)
-            .map(() => new Array(targetWidth).fill(false));
+        return new Array(targetHeight).fill(null).map(() => new Array(targetWidth).fill(false));
     }
 
     const result: boolean[][] = [];
@@ -307,7 +305,12 @@ function matchPattern(binary: boolean[][], pattern: number[][]): number {
     return matches / total;
 }
 
-const NEIGHBOR_DELTAS = [[-1, 0], [1, 0], [0, -1], [0, 1]] as const;
+const NEIGHBOR_DELTAS = [
+    [-1, 0],
+    [1, 0],
+    [0, -1],
+    [0, 1],
+] as const;
 
 /**
  * BFS flood fill from a starting point, returning bounding box
@@ -320,7 +323,10 @@ function floodFillBounds(
     width: number,
     height: number
 ): { minX: number; maxX: number; minY: number; maxY: number } {
-    let minX = startX, maxX = startX, minY = startY, maxY = startY;
+    let minX = startX,
+        maxX = startX,
+        minY = startY,
+        maxY = startY;
     const queue: [number, number][] = [[startX, startY]];
     if (visited[startY]) visited[startY][startX] = true;
 
@@ -510,7 +516,7 @@ export function detectCount(
     }
 
     // Try to recognize digits
-    let digits: number[] = [];
+    const digits: number[] = [];
     let totalConfidence = 0;
     let hasX = false;
 

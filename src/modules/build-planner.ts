@@ -8,12 +8,7 @@ import { ToastManager } from './toast.ts';
 import { allData } from './data-service.ts';
 import { logger } from './logger.ts';
 import { getState, type Build } from './store.ts';
-import {
-    isValidBase64,
-    isValidURLBuildData,
-    type BuildData,
-    type URLBuildData,
-} from './build-validation.ts';
+import { isValidBase64, isValidURLBuildData, type BuildData, type URLBuildData } from './build-validation.ts';
 import {
     calculateBuildStats as calculateBuildStatsFromModule,
     invalidateBuildStatsCache,

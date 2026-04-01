@@ -36,7 +36,9 @@ export function renderShrines(shrines: Shrine[]): void {
 
         let reusableTag = '';
         if (shrine.reusable !== undefined) {
-            reusableTag = shrine.reusable ? '<span class="meta-tag">Reusable</span>' : '<span class="meta-tag">One-time</span>';
+            reusableTag = shrine.reusable
+                ? '<span class="meta-tag">Reusable</span>'
+                : '<span class="meta-tag">One-time</span>';
         }
 
         card.innerHTML = `

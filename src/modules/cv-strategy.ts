@@ -692,6 +692,7 @@ export function importFeedbackCorrections(json: string): void {
             },
         });
     } catch (error) {
+        // eslint-disable-next-line preserve-caught-error -- Error cause not in ES2021 lib target
         throw new Error('Failed to import feedback corrections: ' + (error as Error).message);
     }
 }

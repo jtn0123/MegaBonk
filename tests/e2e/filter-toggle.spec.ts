@@ -37,15 +37,15 @@ test.describe.skip('Filter Toggle Button', () => {
         await page.waitForTimeout(300);
 
         // State should change
-        const afterClickExpanded = await toggleBtn.getAttribute('aria-expanded');
-        expect(afterClickExpanded).not.toBe(initialExpanded);
+        const afterClickExpanded = toggleBtn;
+        await expect(afterClickExpanded).not.toHaveAttribute('aria-expanded', initialExpanded);
 
         // Click again to toggle back
         await toggleBtn.click();
         await page.waitForTimeout(300);
 
-        const afterSecondClick = await toggleBtn.getAttribute('aria-expanded');
-        expect(afterSecondClick).toBe(initialExpanded);
+        const afterSecondClick = toggleBtn;
+        await expect(afterSecondClick).toHaveAttribute('aria-expanded', initialExpanded);
     });
 
     test('filter toggle icon rotates on expand', async ({ page }) => {
@@ -59,14 +59,14 @@ test.describe.skip('Filter Toggle Button', () => {
         // Icon should have rotate class or transform
         const iconClass = await toggleIcon.getAttribute('class');
         const transform = await toggleIcon.evaluate(el => getComputedStyle(el).transform);
-        
+
         // Either class changes or transform is applied
         expect(iconClass || transform).toBeTruthy();
     });
 
     test('filters are accessible when expanded', async ({ page }) => {
         const toggleBtn = page.locator('#filter-toggle-btn');
-        
+
         // Ensure filters are expanded
         const expanded = await toggleBtn.getAttribute('aria-expanded');
         if (expanded === 'false') {
@@ -97,15 +97,15 @@ test.describe.skip('Filter Toggle Button', () => {
         await page.waitForTimeout(300);
 
         // State should change
-        const afterEnter = await toggleBtn.getAttribute('aria-expanded');
-        expect(afterEnter).not.toBe(initialExpanded);
+        const afterEnter = toggleBtn;
+        await expect(afterEnter).not.toHaveAttribute('aria-expanded', initialExpanded);
 
         // Press Space to toggle back
         await page.keyboard.press('Space');
         await page.waitForTimeout(300);
 
-        const afterSpace = await toggleBtn.getAttribute('aria-expanded');
-        expect(afterSpace).toBe(initialExpanded);
+        const afterSpace = toggleBtn;
+        await expect(afterSpace).toHaveAttribute('aria-expanded', initialExpanded);
     });
 });
 
@@ -130,21 +130,21 @@ test.describe.skip('Filter Toggle - Mobile Behavior', () => {
     test('filters collapse by default on mobile for space saving', async ({ page }) => {
         const toggleBtn = page.locator('#filter-toggle-btn');
         const expanded = await toggleBtn.getAttribute('aria-expanded');
-        
+
         // On mobile, filters may start collapsed
         // This is implementation dependent, so we just verify toggle works
         await toggleBtn.click();
         await page.waitForTimeout(300);
-        
-        const afterClick = await toggleBtn.getAttribute('aria-expanded');
-        expect(afterClick).not.toBe(expanded);
+
+        const afterClick = toggleBtn;
+        await expect(afterClick).not.toHaveAttribute('aria-expanded', expanded);
     });
 
     test('expanded filters are usable on mobile', async ({ page }) => {
         const toggleBtn = page.locator('#filter-toggle-btn');
 
         // Expand filters
-        if (await toggleBtn.getAttribute('aria-expanded') === 'false') {
+        if ((await toggleBtn.getAttribute('aria-expanded')) === 'false') {
             await toggleBtn.click();
             await page.waitForTimeout(300);
         }
@@ -194,7 +194,7 @@ test.describe.skip('Filter Toggle - Cross-Tab Behavior', () => {
         const toggleBtn = page.locator('#filter-toggle-btn');
 
         // Ensure expanded
-        if (await toggleBtn.getAttribute('aria-expanded') === 'false') {
+        if ((await toggleBtn.getAttribute('aria-expanded')) === 'false') {
             await toggleBtn.click();
             await page.waitForTimeout(200);
         }

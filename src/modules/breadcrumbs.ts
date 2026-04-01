@@ -110,7 +110,7 @@ export function addBreadcrumb(
 
     // Log if enabled
     if (config.enableConsoleLog) {
-        console.debug('[Breadcrumb]', type, message, data);
+        logger.debug({ operation: 'breadcrumb.add', data: { type, message, breadcrumbData: data } });
     }
 }
 

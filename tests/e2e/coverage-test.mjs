@@ -1,12 +1,12 @@
 /**
  * Coverage-aware test fixture for Playwright
- * 
+ *
  * Import { test, expect } from this file instead of @playwright/test
  * to automatically collect Istanbul coverage after each test.
- * 
+ *
  * Usage:
  *   import { test, expect } from './coverage-test.mjs';
- *   
+ *
  *   test('my test', async ({ page }) => {
  *     // ... your test
  *   }); // Coverage auto-collected after test
@@ -24,7 +24,7 @@ export const test = baseTest.extend({
     page: async ({ page }, use, testInfo) => {
         // Give the page to the test
         await use(page);
-        
+
         // After test completes, always try to collect coverage
         // collectCoverage handles the case when __coverage__ doesn't exist
         const testName = `${testInfo.titlePath.join('-')}`.replace(/[^a-zA-Z0-9-]/g, '_');

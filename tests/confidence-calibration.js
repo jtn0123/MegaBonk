@@ -16,7 +16,7 @@ const BIOME_SIGNATURES = {
     snow: { dominant: { r: [100, 140], g: [110, 150], b: [125, 165] } },
     hell: { dominant: { r: [100, 140], g: [35, 85], b: [25, 75] } },
     ocean: { dominant: { r: [10, 60], g: [100, 150], b: [130, 180] } },
-    crypt: { dominant: { r: [85, 125], g: [70, 105], b: [90, 130] } }
+    crypt: { dominant: { r: [85, 125], g: [70, 105], b: [90, 130] } },
 };
 
 function detectBiome(ctx, width, height) {
@@ -25,19 +25,29 @@ function detectBiome(ctx, width, height) {
         { x: width * 0.2, y: height * 0.4, w: width * 0.2, h: height * 0.2 },
     ];
 
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
     for (const region of regions) {
-        const data = ctx.getImageData(Math.round(region.x), Math.round(region.y),
-                                       Math.round(region.w), Math.round(region.h));
+        const data = ctx.getImageData(
+            Math.round(region.x),
+            Math.round(region.y),
+            Math.round(region.w),
+            Math.round(region.h)
+        );
         for (let i = 0; i < data.data.length; i += 4) {
-            sumR += data.data[i]; sumG += data.data[i+1]; sumB += data.data[i+2];
+            sumR += data.data[i];
+            sumG += data.data[i + 1];
+            sumB += data.data[i + 2];
             count++;
         }
     }
 
     const avg = { r: sumR / count, g: sumG / count, b: sumB / count };
 
-    let bestBiome = null, bestScore = -1;
+    let bestBiome = null,
+        bestScore = -1;
     for (const [biome, sig] of Object.entries(BIOME_SIGNATURES)) {
         let score = 0;
         const d = sig.dominant;
@@ -45,11 +55,14 @@ function detectBiome(ctx, width, height) {
         if (avg.g >= d.g[0] && avg.g <= d.g[1]) score += 2;
         if (avg.b >= d.b[0] && avg.b <= d.b[1]) score += 2;
 
-        score += Math.max(0, 3 - Math.abs(avg.r - (d.r[0] + d.r[1])/2) / 30);
-        score += Math.max(0, 3 - Math.abs(avg.g - (d.g[0] + d.g[1])/2) / 30);
-        score += Math.max(0, 3 - Math.abs(avg.b - (d.b[0] + d.b[1])/2) / 30);
+        score += Math.max(0, 3 - Math.abs(avg.r - (d.r[0] + d.r[1]) / 2) / 30);
+        score += Math.max(0, 3 - Math.abs(avg.g - (d.g[0] + d.g[1]) / 2) / 30);
+        score += Math.max(0, 3 - Math.abs(avg.b - (d.b[0] + d.b[1]) / 2) / 30);
 
-        if (score > bestScore) { bestScore = score; bestBiome = biome; }
+        if (score > bestScore) {
+            bestScore = score;
+            bestBiome = biome;
+        }
     }
 
     return { biome: bestBiome, rawConfidence: bestScore / 15, avgColor: avg };
@@ -66,8 +79,8 @@ function detectGridPositions(width, height) {
 
     const rowYPositions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
-        if (y >= height * 0.70) rowYPositions.push(y);
+        const y = height - bottomMargin - row * rowHeight - iconSize;
+        if (y >= height * 0.7) rowYPositions.push(y);
     }
 
     const sideMargin = Math.round(width * 0.15);
@@ -90,10 +103,14 @@ function countInventoryItems(ctx, width, height) {
 
     for (const pos of positions) {
         const data = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
-        let sum = 0, sumSq = 0, count = 0;
+        let sum = 0,
+            sumSq = 0,
+            count = 0;
         for (let i = 0; i < data.data.length; i += 4) {
-            const gray = (data.data[i] + data.data[i+1] + data.data[i+2]) / 3;
-            sum += gray; sumSq += gray * gray; count++;
+            const gray = (data.data[i] + data.data[i + 1] + data.data[i + 2]) / 3;
+            sum += gray;
+            sumSq += gray * gray;
+            count++;
         }
         const mean = sum / count;
         const variance = sumSq / count - mean * mean;
@@ -105,14 +122,20 @@ function countInventoryItems(ctx, width, height) {
 
 // ==================== WEAPON/TOME DETECTION ====================
 const WEAPON_TOME_GRID = {
-    leftMarginBase: 6, topMarginBase: 135, iconSizeBase: 32,
-    spacingXBase: 10, spacingYBase: 45, cols: 4, rows: 2
+    leftMarginBase: 6,
+    topMarginBase: 135,
+    iconSizeBase: 32,
+    spacingXBase: 10,
+    spacingYBase: 45,
+    cols: 4,
+    rows: 2,
 };
 
 function countWeaponsAndTomes(ctx, width, height) {
     const scale = height / 720;
     const p = WEAPON_TOME_GRID;
-    let weaponCount = 0, tomeCount = 0;
+    let weaponCount = 0,
+        tomeCount = 0;
 
     for (let row = 0; row < p.rows; row++) {
         for (let col = 0; col < p.cols; col++) {
@@ -121,10 +144,14 @@ function countWeaponsAndTomes(ctx, width, height) {
             const y = Math.round(p.topMarginBase * scale) + row * (iconSize + Math.round(p.spacingYBase * scale));
 
             const data = ctx.getImageData(x, y, iconSize, iconSize);
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < data.data.length; i += 4) {
-                const gray = (data.data[i] + data.data[i+1] + data.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (data.data[i] + data.data[i + 1] + data.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const variance = sumSq / count - (sum / count) ** 2;
             const isEmpty = variance < 500 || sum / count < 40;
@@ -143,46 +170,46 @@ function countWeaponsAndTomes(ctx, width, height) {
 const VALIDATION_RULES = [
     {
         name: 'weapons_in_range',
-        check: (data) => data.weaponCount >= 0 && data.weaponCount <= 4,
+        check: data => data.weaponCount >= 0 && data.weaponCount <= 4,
         weight: 1.0,
-        affects: ['weapons']
+        affects: ['weapons'],
     },
     {
         name: 'tomes_in_range',
-        check: (data) => data.tomeCount >= 0 && data.tomeCount <= 4,
+        check: data => data.tomeCount >= 0 && data.tomeCount <= 4,
         weight: 1.0,
-        affects: ['tomes']
+        affects: ['tomes'],
     },
     {
         name: 'items_reasonable',
-        check: (data) => data.itemCount >= 0 && data.itemCount <= 60,
+        check: data => data.itemCount >= 0 && data.itemCount <= 60,
         weight: 0.8,
-        affects: ['items']
+        affects: ['items'],
     },
     {
         name: 'hell_high_items',
-        check: (data) => data.biome !== 'hell' || data.itemCount >= 15,
+        check: data => data.biome !== 'hell' || data.itemCount >= 15,
         weight: 0.5,
         affects: ['biome', 'items'],
-        description: 'Hell biome usually means late game with many items'
+        description: 'Hell biome usually means late game with many items',
     },
     {
         name: 'forest_low_items',
-        check: (data) => data.biome !== 'forest' || data.itemCount <= 25,
+        check: data => data.biome !== 'forest' || data.itemCount <= 25,
         weight: 0.5,
         affects: ['biome', 'items'],
-        description: 'Forest is early game, usually fewer items'
+        description: 'Forest is early game, usually fewer items',
     },
     {
         name: 'equipped_consistency',
-        check: (data) => data.weaponCount > 0 || data.tomeCount > 0,
+        check: data => data.weaponCount > 0 || data.tomeCount > 0,
         weight: 0.7,
         affects: ['weapons', 'tomes'],
-        description: 'Should have at least some equipment'
+        description: 'Should have at least some equipment',
     },
     {
         name: 'late_game_consistency',
-        check: (data) => {
+        check: data => {
             // If player has 4 weapons and 4 tomes, items should be high
             if (data.weaponCount === 4 && data.tomeCount === 4) {
                 return data.itemCount >= 10;
@@ -191,15 +218,15 @@ const VALIDATION_RULES = [
         },
         weight: 0.6,
         affects: ['weapons', 'tomes', 'items'],
-        description: 'Full equipment means late game'
+        description: 'Full equipment means late game',
     },
     {
         name: 'biome_color_confidence',
-        check: (data) => data.biomeRawConfidence > 0.4,
+        check: data => data.biomeRawConfidence > 0.4,
         weight: 0.8,
         affects: ['biome'],
-        description: 'Biome color should be clearly identifiable'
-    }
+        description: 'Biome color should be clearly identifiable',
+    },
 ];
 
 function runValidation(detectionData) {
@@ -214,7 +241,7 @@ function runValidation(detectionData) {
             passed,
             weight: rule.weight,
             affects: rule.affects,
-            description: rule.description
+            description: rule.description,
         });
         totalWeight += rule.weight;
         if (passed) passedWeight += rule.weight;
@@ -224,7 +251,7 @@ function runValidation(detectionData) {
         results,
         overallScore: passedWeight / totalWeight,
         passedCount: results.filter(r => r.passed).length,
-        totalCount: results.length
+        totalCount: results.length,
     };
 }
 
@@ -256,7 +283,9 @@ async function main() {
     console.log('|-------|-------|-------|------|-------|-------|------------|');
 
     const allResults = [];
-    let totalRaw = 0, totalCalibrated = 0, count = 0;
+    let totalRaw = 0,
+        totalCalibrated = 0,
+        count = 0;
 
     for (const [filename, data] of testCases) {
         const imagePath = path.join('./test-images/gameplay', filename);
@@ -278,7 +307,7 @@ async function main() {
             biomeRawConfidence: biome.rawConfidence,
             itemCount: inventory.itemCount,
             weaponCount: equipment.weaponCount,
-            tomeCount: equipment.tomeCount
+            tomeCount: equipment.tomeCount,
         };
 
         // Run validation
@@ -289,7 +318,9 @@ async function main() {
 
         const shortName = filename.slice(9, 30);
 
-        console.log(`| ${shortName.padEnd(20)} | ${biome.biome.padEnd(6)} | ${String(inventory.itemCount).padStart(5)} | ${String(equipment.weaponCount).padStart(4)} | ${String(equipment.tomeCount).padStart(5)} | ${validation.passedCount}/${validation.totalCount} | ${(calibratedBiome * 100).toFixed(0).padStart(9)}% |`);
+        console.log(
+            `| ${shortName.padEnd(20)} | ${biome.biome.padEnd(6)} | ${String(inventory.itemCount).padStart(5)} | ${String(equipment.weaponCount).padStart(4)} | ${String(equipment.tomeCount).padStart(5)} | ${validation.passedCount}/${validation.totalCount} | ${(calibratedBiome * 100).toFixed(0).padStart(9)}% |`
+        );
 
         totalRaw += biome.rawConfidence;
         totalCalibrated += calibratedBiome;
@@ -307,12 +338,12 @@ async function main() {
                 score: validation.overallScore,
                 passed: validation.passedCount,
                 total: validation.totalCount,
-                details: validation.results
+                details: validation.results,
             },
             groundTruth: {
                 biome: data.biome,
-                itemCount: data.items?.length
-            }
+                itemCount: data.items?.length,
+            },
         });
     }
 
@@ -320,8 +351,8 @@ async function main() {
 
     // Summary statistics
     console.log('\n=== Calibration Summary ===');
-    console.log(`Average raw biome confidence: ${(totalRaw / count * 100).toFixed(1)}%`);
-    console.log(`Average calibrated confidence: ${(totalCalibrated / count * 100).toFixed(1)}%`);
+    console.log(`Average raw biome confidence: ${((totalRaw / count) * 100).toFixed(1)}%`);
+    console.log(`Average calibrated confidence: ${((totalCalibrated / count) * 100).toFixed(1)}%`);
 
     // Check accuracy against ground truth
     let biomeCorrect = 0;
@@ -330,7 +361,9 @@ async function main() {
             biomeCorrect++;
         }
     }
-    console.log(`\nBiome accuracy: ${biomeCorrect}/${allResults.length} (${(biomeCorrect / allResults.length * 100).toFixed(0)}%)`);
+    console.log(
+        `\nBiome accuracy: ${biomeCorrect}/${allResults.length} (${((biomeCorrect / allResults.length) * 100).toFixed(0)}%)`
+    );
 
     // Validation rule statistics
     console.log('\n=== Validation Rule Statistics ===');
@@ -348,28 +381,34 @@ async function main() {
     console.log('| Rule | Passed | Failed | Rate |');
     console.log('|------|--------|--------|------|');
     for (const [rule, counts] of Object.entries(ruleCounts)) {
-        const rate = counts.passed / (counts.passed + counts.failed) * 100;
-        console.log(`| ${rule.padEnd(25)} | ${String(counts.passed).padStart(6)} | ${String(counts.failed).padStart(6)} | ${rate.toFixed(0).padStart(3)}% |`);
+        const rate = (counts.passed / (counts.passed + counts.failed)) * 100;
+        console.log(
+            `| ${rule.padEnd(25)} | ${String(counts.passed).padStart(6)} | ${String(counts.failed).padStart(6)} | ${rate.toFixed(0).padStart(3)}% |`
+        );
     }
 
     // Save results
     fs.writeFileSync(
         path.join(OUTPUT_DIR, 'calibration-results.json'),
-        JSON.stringify({
-            summary: {
-                avgRawConfidence: totalRaw / count,
-                avgCalibratedConfidence: totalCalibrated / count,
-                biomeAccuracy: biomeCorrect / allResults.length
+        JSON.stringify(
+            {
+                summary: {
+                    avgRawConfidence: totalRaw / count,
+                    avgCalibratedConfidence: totalCalibrated / count,
+                    biomeAccuracy: biomeCorrect / allResults.length,
+                },
+                ruleStats: ruleCounts,
+                validationRules: VALIDATION_RULES.map(r => ({
+                    name: r.name,
+                    weight: r.weight,
+                    affects: r.affects,
+                    description: r.description,
+                })),
+                results: allResults,
             },
-            ruleStats: ruleCounts,
-            validationRules: VALIDATION_RULES.map(r => ({
-                name: r.name,
-                weight: r.weight,
-                affects: r.affects,
-                description: r.description
-            })),
-            results: allResults
-        }, null, 2)
+            null,
+            2
+        )
     );
 
     console.log(`\nResults saved to: ${OUTPUT_DIR}/`);

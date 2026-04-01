@@ -325,9 +325,7 @@ describe('CV Core Module', () => {
 
             // Should not have called logger.info for cache cleanup
             const calls = (logger.info as any).mock.calls;
-            const cacheCleanupCalls = calls.filter(
-                (call: any) => call[0]?.operation === 'cv.cache_cleanup'
-            );
+            const cacheCleanupCalls = calls.filter((call: any) => call[0]?.operation === 'cv.cache_cleanup');
             expect(cacheCleanupCalls).toHaveLength(0);
         });
     });

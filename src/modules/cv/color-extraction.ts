@@ -51,7 +51,10 @@ export interface DetailedColorCategory {
  * Compute average RGB from sampled pixels
  */
 function computeAverageRGB(pixels: Uint8ClampedArray): { avgR: number; avgG: number; avgB: number; count: number } {
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
     for (let i = 0; i < pixels.length; i += 16) {
         sumR += pixels[i] ?? 0;
         sumG += pixels[i + 1] ?? 0;

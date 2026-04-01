@@ -8,7 +8,9 @@ try {
     const canvas = require('canvas');
     createCanvas = canvas.createCanvas;
     loadImage = canvas.loadImage;
-} catch { process.exit(1); }
+} catch {
+    process.exit(1);
+}
 
 const itemsPath = path.join(__dirname, '../data/items.json');
 const itemsData = JSON.parse(fs.readFileSync(itemsPath, 'utf-8'));
@@ -48,14 +50,24 @@ function calculateNCC(img1: any, img2: any): number {
     const d1 = c1.getContext('2d').getImageData(0, 0, w, h).data;
     const d2 = c2.getContext('2d').getImageData(0, 0, w, h).data;
 
-    let sum1 = 0, sum2 = 0, sumProd = 0, sumSq1 = 0, sumSq2 = 0, n = 0;
+    let sum1 = 0,
+        sum2 = 0,
+        sumProd = 0,
+        sumSq1 = 0,
+        sumSq2 = 0,
+        n = 0;
     for (let i = 0; i < d1.length; i += 4) {
-        const g1 = (d1[i] + d1[i+1] + d1[i+2]) / 3;
-        const g2 = (d2[i] + d2[i+1] + d2[i+2]) / 3;
-        sum1 += g1; sum2 += g2; sumProd += g1 * g2;
-        sumSq1 += g1 * g1; sumSq2 += g2 * g2; n++;
+        const g1 = (d1[i] + d1[i + 1] + d1[i + 2]) / 3;
+        const g2 = (d2[i] + d2[i + 1] + d2[i + 2]) / 3;
+        sum1 += g1;
+        sum2 += g2;
+        sumProd += g1 * g2;
+        sumSq1 += g1 * g1;
+        sumSq2 += g2 * g2;
+        n++;
     }
-    const mean1 = sum1 / n, mean2 = sum2 / n;
+    const mean1 = sum1 / n,
+        mean2 = sum2 / n;
     const num = sumProd / n - mean1 * mean2;
     const denom = Math.sqrt((sumSq1 / n - mean1 * mean1) * (sumSq2 / n - mean2 * mean2));
     return denom > 0 ? (num / denom + 1) / 2 : 0;
@@ -67,10 +79,10 @@ async function main() {
 
     // Compare pairs that were confused
     const confusedPairs = [
-        ['Medkit', 'Oats'],           // Expected Medkit, got Oats
-        ['Wrench', 'Toxic Barrel'],   // Expected Wrench, got Toxic Barrel
+        ['Medkit', 'Oats'], // Expected Medkit, got Oats
+        ['Wrench', 'Toxic Barrel'], // Expected Wrench, got Toxic Barrel
         ['Sucky Magnet', 'Energy Core'], // Expected Sucky Magnet, got Energy Core
-        ['Feathers', 'Borgar'],       // Expected Feathers, got Borgar
+        ['Feathers', 'Borgar'], // Expected Feathers, got Borgar
         ['Spiky Shield', 'Ice Cube'], // Expected Spiky Shield, got Ice Cube
         ['Credit Card (Green)', 'Cursed Doll'], // Expected Credit Card, got Cursed Doll
     ];
@@ -98,14 +110,15 @@ async function main() {
     console.log('═'.repeat(60));
 
     const allNames = [...templates.keys()];
-    const similarities: Array<{name1: string; name2: string; ncc: number}> = [];
+    const similarities: Array<{ name1: string; name2: string; ncc: number }> = [];
 
     for (let i = 0; i < allNames.length; i++) {
         for (let j = i + 1; j < allNames.length; j++) {
             const t1 = templates.get(allNames[i])!;
             const t2 = templates.get(allNames[j])!;
             const ncc = calculateNCC(t1.canvas, t2.canvas);
-            if (ncc > 0.70) { // High similarity threshold
+            if (ncc > 0.7) {
+                // High similarity threshold
                 similarities.push({ name1: allNames[i], name2: allNames[j], ncc });
             }
         }
@@ -121,10 +134,11 @@ async function main() {
     console.log('═'.repeat(60));
     console.log('(Average NCC with all other templates - lower = more unique)');
 
-    const distinctiveness: Array<{name: string; avgNcc: number}> = [];
+    const distinctiveness: Array<{ name: string; avgNcc: number }> = [];
     for (const name of allNames) {
         const t1 = templates.get(name)!;
-        let sumNcc = 0, count = 0;
+        let sumNcc = 0,
+            count = 0;
         for (const other of allNames) {
             if (other === name) continue;
             const t2 = templates.get(other)!;

@@ -14,15 +14,15 @@ const OUTPUT_DIR = './test-results/advanced-matching';
 // Items that match well get lower thresholds, noisy items get higher
 const ITEM_THRESHOLDS = {
     // High confidence items (low false positive rate)
-    'borgar': { ncc: 0.58, minVariance: 400 },
-    'oats': { ncc: 0.60, minVariance: 400 },
-    'feathers': { ncc: 0.55, minVariance: 350 },
-    'wrench': { ncc: 0.58, minVariance: 400 },
-    'beer': { ncc: 0.58, minVariance: 400 },
-    'ghost': { ncc: 0.55, minVariance: 350 },
-    'backpack': { ncc: 0.58, minVariance: 400 },
+    borgar: { ncc: 0.58, minVariance: 400 },
+    oats: { ncc: 0.6, minVariance: 400 },
+    feathers: { ncc: 0.55, minVariance: 350 },
+    wrench: { ncc: 0.58, minVariance: 400 },
+    beer: { ncc: 0.58, minVariance: 400 },
+    ghost: { ncc: 0.55, minVariance: 350 },
+    backpack: { ncc: 0.58, minVariance: 400 },
     // Default for unknown items
-    'default': { ncc: 0.60, minVariance: 400 }
+    default: { ncc: 0.6, minVariance: 400 },
 };
 
 // Biome color profiles for normalization
@@ -33,21 +33,28 @@ const BIOME_PROFILES = {
     hell: { avgR: 120, avgG: 60, avgB: 50, tint: 'red' },
     ocean: { avgR: 35, avgG: 125, avgB: 155, tint: 'blue' },
     crypt: { avgR: 105, avgG: 88, avgB: 110, tint: 'purple' },
-    unknown: { avgR: 100, avgG: 100, avgB: 100, tint: 'neutral' }
+    unknown: { avgR: 100, avgG: 100, avgB: 100, tint: 'neutral' },
 };
 
 // ==================== BIOME DETECTION ====================
 function detectBiome(ctx, width, height) {
-    const regions = [
-        { x: width * 0.3, y: height * 0.25, w: width * 0.4, h: height * 0.3 },
-    ];
+    const regions = [{ x: width * 0.3, y: height * 0.25, w: width * 0.4, h: height * 0.3 }];
 
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
     for (const region of regions) {
-        const data = ctx.getImageData(Math.round(region.x), Math.round(region.y),
-                                       Math.round(region.w), Math.round(region.h));
+        const data = ctx.getImageData(
+            Math.round(region.x),
+            Math.round(region.y),
+            Math.round(region.w),
+            Math.round(region.h)
+        );
         for (let i = 0; i < data.data.length; i += 4) {
-            sumR += data.data[i]; sumG += data.data[i+1]; sumB += data.data[i+2];
+            sumR += data.data[i];
+            sumG += data.data[i + 1];
+            sumB += data.data[i + 2];
             count++;
         }
     }
@@ -70,15 +77,24 @@ function normalizeForBiome(imageData, biome) {
     const normalized = new Uint8ClampedArray(data.length);
 
     // Calculate average color of the cell
-    let cellR = 0, cellG = 0, cellB = 0, count = 0;
+    let cellR = 0,
+        cellG = 0,
+        cellB = 0,
+        count = 0;
     for (let i = 0; i < data.length; i += 4) {
-        cellR += data[i]; cellG += data[i+1]; cellB += data[i+2];
+        cellR += data[i];
+        cellG += data[i + 1];
+        cellB += data[i + 2];
         count++;
     }
-    cellR /= count; cellG /= count; cellB /= count;
+    cellR /= count;
+    cellG /= count;
+    cellB /= count;
 
     // Normalize to reduce biome tint effect
-    const targetR = 128, targetG = 128, targetB = 128;
+    const targetR = 128,
+        targetG = 128,
+        targetB = 128;
 
     for (let i = 0; i < data.length; i += 4) {
         // Shift towards neutral while preserving relative differences
@@ -87,9 +103,9 @@ function normalizeForBiome(imageData, biome) {
         const shiftB = (targetB - profile.avgB) * 0.3;
 
         normalized[i] = Math.max(0, Math.min(255, data[i] + shiftR));
-        normalized[i+1] = Math.max(0, Math.min(255, data[i+1] + shiftG));
-        normalized[i+2] = Math.max(0, Math.min(255, data[i+2] + shiftB));
-        normalized[i+3] = data[i+3];
+        normalized[i + 1] = Math.max(0, Math.min(255, data[i + 1] + shiftG));
+        normalized[i + 2] = Math.max(0, Math.min(255, data[i + 2] + shiftB));
+        normalized[i + 3] = data[i + 3];
     }
 
     return new ImageData(normalized, imageData.width, imageData.height);
@@ -97,17 +113,28 @@ function normalizeForBiome(imageData, biome) {
 
 // ==================== MATCHING FUNCTIONS ====================
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 function calculateHistogramSimilarity(d1, d2) {
@@ -115,8 +142,8 @@ function calculateHistogramSimilarity(d1, d2) {
     const hist2 = new Array(32).fill(0);
 
     for (let i = 0; i < d1.data.length; i += 4) {
-        const g1 = Math.floor((d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3 / 8);
-        const g2 = Math.floor((d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3 / 8);
+        const g1 = Math.floor((d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3 / 8);
+        const g2 = Math.floor((d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3 / 8);
         hist1[g1]++;
         hist2[g2]++;
     }
@@ -144,15 +171,15 @@ function calculateEdgeSimilarity(d1, d2) {
     function getEdges(data) {
         const gray = new Float32Array(w * h);
         for (let i = 0; i < w * h; i++) {
-            gray[i] = (data.data[i*4] + data.data[i*4+1] + data.data[i*4+2]) / 3;
+            gray[i] = (data.data[i * 4] + data.data[i * 4 + 1] + data.data[i * 4 + 2]) / 3;
         }
 
         const edges = new Float32Array(w * h);
         for (let y = 1; y < h - 1; y++) {
             for (let x = 1; x < w - 1; x++) {
-                const gx = Math.abs(gray[y*w + x+1] - gray[y*w + x-1]);
-                const gy = Math.abs(gray[(y+1)*w + x] - gray[(y-1)*w + x]);
-                edges[y*w + x] = Math.sqrt(gx*gx + gy*gy);
+                const gx = Math.abs(gray[y * w + x + 1] - gray[y * w + x - 1]);
+                const gy = Math.abs(gray[(y + 1) * w + x] - gray[(y - 1) * w + x]);
+                edges[y * w + x] = Math.sqrt(gx * gx + gy * gy);
             }
         }
         return edges;
@@ -162,16 +189,26 @@ function calculateEdgeSimilarity(d1, d2) {
     const e2 = getEdges(d2);
 
     // Correlation of edge maps
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     for (let i = 0; i < e1.length; i++) {
-        s1 += e1[i]; s2 += e2[i]; sp += e1[i]*e2[i];
-        ss1 += e1[i]*e1[i]; ss2 += e2[i]*e2[i]; c++;
+        s1 += e1[i];
+        s2 += e2[i];
+        sp += e1[i] * e2[i];
+        ss1 += e1[i] * e1[i];
+        ss2 += e2[i] * e2[i];
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
 
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 // Combined matching score
@@ -188,7 +225,7 @@ function calculateCombinedScore(cell, template, biome) {
         ncc,
         histogram: hist,
         edge,
-        combined: ncc * 0.5 + hist * 0.25 + edge * 0.25
+        combined: ncc * 0.5 + hist * 0.25 + edge * 0.25,
     };
 }
 
@@ -202,7 +239,7 @@ function detectGridPositions(width, height) {
     const positions = [];
 
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        const y = height - bottomMargin - row * rowHeight - iconSize;
         if (y < height * 0.65) continue;
 
         const sideMargin = Math.round(width * 0.15);
@@ -219,7 +256,10 @@ function detectGridPositions(width, height) {
 }
 
 function normalizeItemId(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
 }
 
 // ==================== MAIN ====================
@@ -252,7 +292,9 @@ async function main() {
     const gt = JSON.parse(fs.readFileSync(GT_PATH, 'utf-8'));
     const testCases = Object.entries(gt).filter(([k]) => !k.startsWith('_'));
 
-    let totalTP = 0, totalFP = 0, totalFN = 0;
+    let totalTP = 0,
+        totalFP = 0,
+        totalFN = 0;
 
     console.log('| Image | Biome | TP | FP | FN | Best Matches |');
     console.log('|-------|-------|----|----|-----|--------------|');
@@ -284,10 +326,14 @@ async function main() {
             const cellData = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
 
             // Check if empty
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < cellData.data.length; i += 4) {
-                const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const variance = sumSq / count - (sum / count) ** 2;
             if (variance < 350) continue;
@@ -298,11 +344,23 @@ async function main() {
             const srcCanvas = createCanvas(pos.width, pos.height);
             srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.1);
-            resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
             // Match against all templates with combined scoring
-            let bestMatch = null, bestScore = 0, bestScores = null;
+            let bestMatch = null,
+                bestScore = 0,
+                bestScores = null;
 
             for (const [itemId, template] of templates) {
                 const scores = calculateCombinedScore(resizedCell, template.imageData, biome);
@@ -324,7 +382,9 @@ async function main() {
         }
 
         // Calculate TP/FP/FN
-        let tp = 0, fp = 0, fn = 0;
+        let tp = 0,
+            fp = 0,
+            fn = 0;
         for (const [item, expected] of expectedCounts) {
             const detected = detectedCounts.get(item) || 0;
             tp += Math.min(expected, detected);
@@ -342,17 +402,19 @@ async function main() {
         const topMatches = bestMatches
             .sort((a, b) => b.combined - a.combined)
             .slice(0, 3)
-            .map(m => `${m.item}:${(m.score*100).toFixed(0)}`)
+            .map(m => `${m.item}:${(m.score * 100).toFixed(0)}`)
             .join(' ');
 
-        console.log(`| ${filename.slice(9, 28).padEnd(19)} | ${biome.padEnd(6)} | ${String(tp).padStart(2)} | ${String(fp).padStart(2)} | ${String(fn).padStart(3)} | ${topMatches} |`);
+        console.log(
+            `| ${filename.slice(9, 28).padEnd(19)} | ${biome.padEnd(6)} | ${String(tp).padStart(2)} | ${String(fp).padStart(2)} | ${String(fn).padStart(3)} | ${topMatches} |`
+        );
     }
 
     console.log('|-------|-------|----|----|-----|--------------|');
 
     const precision = totalTP / (totalTP + totalFP) || 0;
     const recall = totalTP / (totalTP + totalFN) || 0;
-    const f1 = 2 * precision * recall / (precision + recall) || 0;
+    const f1 = (2 * precision * recall) / (precision + recall) || 0;
 
     console.log(`\n=== Results ===`);
     console.log(`TP: ${totalTP}, FP: ${totalFP}, FN: ${totalFN}`);

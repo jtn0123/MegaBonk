@@ -163,7 +163,7 @@ describe('Changelog Module', () => {
     describe('entity type coverage', () => {
         const entityTypes = ['item', 'weapon', 'tome', 'character', 'shrine'] as const;
 
-        it.each(entityTypes)('should handle %s type lookup', (type) => {
+        it.each(entityTypes)('should handle %s type lookup', type => {
             // Each type should work without throwing
             expect(() => findEntityInData(type, 'test_id')).not.toThrow();
         });
@@ -197,9 +197,7 @@ describe('Changelog Module', () => {
             const versionLink = document.querySelector('.changelog-version');
             expect(versionLink).toBeTruthy();
             expect(versionLink!.tagName).toBe('A');
-            expect(versionLink!.getAttribute('href')).toBe(
-                'https://github.com/jtn0123/MegaBonk/releases/tag/v1.6.1'
-            );
+            expect(versionLink!.getAttribute('href')).toBe('https://github.com/jtn0123/MegaBonk/releases/tag/v1.6.1');
             expect(versionLink!.getAttribute('target')).toBe('_blank');
             expect(versionLink!.getAttribute('rel')).toBe('noopener noreferrer');
             expect(versionLink!.getAttribute('aria-label')).toBe('View release v1.6.1 on GitHub');

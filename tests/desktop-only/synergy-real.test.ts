@@ -263,9 +263,7 @@ describe('detectAntiSynergies - Real Integration Tests', () => {
 
         // Even though item has anti_synergies, it shouldn't conflict with itself
         const antiSynergies = detectAntiSynergies(build);
-        const selfConflict = antiSynergies.find(
-            a => a.source === testItem.name && a.target === testItem.name
-        );
+        const selfConflict = antiSynergies.find(a => a.source === testItem.name && a.target === testItem.name);
         expect(selfConflict).toBeUndefined();
     });
 
@@ -401,10 +399,7 @@ describe('Synergy Edge Cases', () => {
 
         const synergies = detectSynergies(build);
         // Should find synergy between items
-        const found = synergies.find(s =>
-            s.type === 'item-item' &&
-            s.source === 'Synergy Tester'
-        );
+        const found = synergies.find(s => s.type === 'item-item' && s.source === 'Synergy Tester');
         expect(found).toBeDefined();
     });
 });

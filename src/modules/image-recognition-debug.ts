@@ -5,6 +5,7 @@
 // Provides overlays, logging, and validation utilities
 // ========================================
 
+import { logger } from './logger.ts';
 import type {
     DebugRegion,
     DebugOverlayOptions,
@@ -131,24 +132,7 @@ export function log(category: string, message: string, data?: unknown, level: De
 
     // Console output if debug enabled
     if (debugEnabled) {
-        const prefix = `[CV:${category}]`;
-        const style = {
-            debug: 'color: #888',
-            info: 'color: #4ecdc4',
-            warn: 'color: #f7dc6f',
-            error: 'color: #ff6b6b',
-        }[level];
-
-        console.groupCollapsed(`%c${prefix} ${message}`, style);
-        if (data !== undefined) {
-            if (typeof data === 'object' && data !== null) {
-                console.table(data);
-            } else {
-                console.debug(data);
-            }
-        }
-        console.trace('Stack trace');
-        console.groupEnd();
+        logger.debug({ operation: `cv.debug.${category}`, data: { message, level, detail: data } });
     }
 }
 

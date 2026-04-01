@@ -360,9 +360,7 @@ describe('Build Planner - Build History (localStorage)', () => {
         });
 
         it('should return array from localStorage', async () => {
-            const mockHistory = [
-                { character: 'cl4nk', weapon: 'sword', timestamp: Date.now() },
-            ];
+            const mockHistory = [{ character: 'cl4nk', weapon: 'sword', timestamp: Date.now() }];
             localStorage.setItem('megabonk_build_history', JSON.stringify(mockHistory));
 
             const { getBuildHistory } = await import('../../src/modules/build-planner.ts');
@@ -1270,10 +1268,7 @@ describe('Build Planner - calculateBuildStats', () => {
             const build: Build = {
                 character: createCharacter('cl4nk', 'Gain 1% Crit Chance per level'),
                 weapon: createWeapon('revolver', 30),
-                tomes: [
-                    createTome('precision', 'Crit Chance', '0.02'),
-                    createTome('damage_tome', 'Damage', '0.03'),
-                ],
+                tomes: [createTome('precision', 'Crit Chance', '0.02'), createTome('damage_tome', 'Damage', '0.03')],
                 items: [createItem('forbidden_juice'), createItem('gym_sauce')],
             };
 
@@ -1291,10 +1286,7 @@ describe('Build Planner - calculateBuildStats', () => {
             const build: Build = {
                 character: createCharacter('sir_oofie', 'Gain 1% Armor per level'),
                 weapon: createWeapon('sword', 25),
-                tomes: [
-                    createTome('vitality', 'HP', '0.05'),
-                    createTome('armor', 'Armor', '0.02'),
-                ],
+                tomes: [createTome('vitality', 'HP', '0.05'), createTome('armor', 'Armor', '0.02')],
                 items: [createItem('oats'), createItem('leeching_crystal')],
             };
 
@@ -1313,11 +1305,7 @@ describe('Build Planner - calculateBuildStats', () => {
                 character: createCharacter('monke', '+2 Max HP per level'),
                 weapon: createWeapon('hammer', 35),
                 tomes: [createTome('vitality', 'HP', '0.10')],
-                items: [
-                    createItem('oats'),
-                    createItem('leeching_crystal'),
-                    createItem('beefy_ring'),
-                ],
+                items: [createItem('oats'), createItem('leeching_crystal'), createItem('beefy_ring')],
             };
 
             const stats = calculateBuildStats(build);

@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  * CV Metrics Summary Rendering Tests
- * 
+ *
  * Tests the HTML rendering functions and helper utilities
  */
 
@@ -65,51 +65,41 @@ describe('CV Metrics Summary Rendering', () => {
     // ========================================
     describe('renderMetricsSummary', () => {
         it('should render valid HTML for basic metrics', () => {
-            const metrics = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test Item', confidence: 0.85 },
-            ]);
-            
+            const metrics = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test Item', confidence: 0.85 }]);
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).toContain('metrics-summary');
             expect(html).toContain('metrics-header');
             expect(html).toContain('metrics-stats');
         });
 
         it('should include grade information', () => {
-            const metrics = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test Item', confidence: 0.95 },
-            ]);
-            
+            const metrics = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test Item', confidence: 0.95 }]);
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).toContain('metrics-grade');
             expect(html).toContain('grade-letter');
             expect(html).toContain('A');
         });
 
         it('should use correct grade class', () => {
-            const metricsA = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test', confidence: 0.95 },
-            ]);
-            const metricsF = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test', confidence: 0.3 },
-            ]);
-            
+            const metricsA = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test', confidence: 0.95 }]);
+            const metricsF = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test', confidence: 0.3 }]);
+
             const htmlA = renderMetricsSummary(metricsA);
             const htmlF = renderMetricsSummary(metricsF);
-            
+
             expect(htmlA).toContain('grade-a');
             expect(htmlF).toContain('grade-f');
         });
 
         it('should include confidence value', () => {
-            const metrics = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test Item', confidence: 0.85 },
-            ]);
-            
+            const metrics = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test Item', confidence: 0.85 }]);
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).toContain('confidence-value');
             expect(html).toContain('Avg Confidence');
         });
@@ -120,9 +110,9 @@ describe('CV Metrics Summary Rendering', () => {
                 { itemId: 'item-2', itemName: 'Item 2', confidence: 0.7 },
                 { itemId: 'item-1', itemName: 'Item 1', confidence: 0.9 },
             ]);
-            
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).toContain('Total Items');
             expect(html).toContain('Unique Items');
             expect(html).toContain('Min Conf.');
@@ -135,9 +125,9 @@ describe('CV Metrics Summary Rendering', () => {
                 { itemId: 'item-2', itemName: 'Medium', confidence: 0.65 },
                 { itemId: 'item-3', itemName: 'Low', confidence: 0.3 },
             ]);
-            
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).toContain('distribution-bar');
             expect(html).toContain('dist-high');
             expect(html).toContain('dist-medium');
@@ -149,21 +139,19 @@ describe('CV Metrics Summary Rendering', () => {
                 { itemId: 'item-1', itemName: 'Weak Item', confidence: 0.3 },
                 { itemId: 'item-2', itemName: 'Another Weak', confidence: 0.4 },
             ]);
-            
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).toContain('metrics-weak');
             expect(html).toContain('Low Confidence Detections');
             expect(html).toContain('Weak Item');
         });
 
         it('should not render weak section when no weak detections', () => {
-            const metrics = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Strong Item', confidence: 0.9 },
-            ]);
-            
+            const metrics = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Strong Item', confidence: 0.9 }]);
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).not.toContain('metrics-weak');
         });
 
@@ -177,9 +165,9 @@ describe('CV Metrics Summary Rendering', () => {
                 });
             }
             const metrics = calculateMetricsSummary(detections);
-            
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).toContain('+5 more');
         });
 
@@ -189,9 +177,9 @@ describe('CV Metrics Summary Rendering', () => {
                 { itemId: 'item-2', itemName: 'Rare', confidence: 0.9, rarity: 'rare' },
                 { itemId: 'item-3', itemName: 'Legendary', confidence: 0.95, rarity: 'legendary' },
             ]);
-            
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).toContain('metrics-rarity');
             expect(html).toContain('By Rarity');
             expect(html).toContain('Common');
@@ -203,18 +191,18 @@ describe('CV Metrics Summary Rendering', () => {
             const metrics = calculateMetricsSummary([
                 { itemId: 'item-1', itemName: '<script>alert("xss")</script>', confidence: 0.3 },
             ]);
-            
+
             const html = renderMetricsSummary(metrics);
-            
+
             // Should not contain raw script tag
             expect(html).not.toContain('<script>');
         });
 
         it('should handle empty metrics', () => {
             const metrics = calculateMetricsSummary([]);
-            
+
             const html = renderMetricsSummary(metrics);
-            
+
             expect(html).toContain('F');
             expect(html).toContain('No items detected');
         });
@@ -224,9 +212,9 @@ describe('CV Metrics Summary Rendering', () => {
                 { itemId: 'item-1', itemName: 'High', confidence: 0.9 },
                 { itemId: 'item-2', itemName: 'High', confidence: 0.85 },
             ]);
-            
+
             const html = renderMetricsSummary(metrics);
-            
+
             // Both items are high confidence, so dist-high should be 100%
             expect(html).toContain('style="width: 100%"');
         });
@@ -244,9 +232,9 @@ describe('CV Metrics Summary Rendering', () => {
                 runCount: 10,
                 weakItems: [],
             };
-            
+
             const html = renderSystemAccuracyBadge(accuracy);
-            
+
             expect(html).toContain('system-accuracy-badge');
             expect(html).toContain('accuracy-grade');
             expect(html).toContain('B');
@@ -260,9 +248,9 @@ describe('CV Metrics Summary Rendering', () => {
                 runCount: 15,
                 weakItems: [],
             };
-            
+
             const html = renderSystemAccuracyBadge(accuracy);
-            
+
             expect(html).toContain('↑');
             expect(html).toContain('Improving');
         });
@@ -275,9 +263,9 @@ describe('CV Metrics Summary Rendering', () => {
                 runCount: 8,
                 weakItems: [],
             };
-            
+
             const html = renderSystemAccuracyBadge(accuracy);
-            
+
             expect(html).toContain('↓');
             expect(html).toContain('Declining');
         });
@@ -290,9 +278,9 @@ describe('CV Metrics Summary Rendering', () => {
                 runCount: 10,
                 weakItems: [],
             };
-            
+
             const html = renderSystemAccuracyBadge(accuracy);
-            
+
             expect(html).toContain('→');
             expect(html).toContain('Stable');
         });
@@ -305,9 +293,9 @@ describe('CV Metrics Summary Rendering', () => {
                 runCount: 2,
                 weakItems: [],
             };
-            
+
             const html = renderSystemAccuracyBadge(accuracy);
-            
+
             expect(html).toContain('→');
             expect(html).toContain('Unknown');
         });
@@ -320,9 +308,9 @@ describe('CV Metrics Summary Rendering', () => {
                 runCount: 10,
                 weakItems: [],
             };
-            
+
             const html = renderSystemAccuracyBadge(accuracy);
-            
+
             expect(html).toContain('F1');
             expect(html).toContain('accuracy-f1');
         });
@@ -335,9 +323,9 @@ describe('CV Metrics Summary Rendering', () => {
                 runCount: 10,
                 weakItems: [],
             };
-            
+
             const html = renderSystemAccuracyBadge(accuracy);
-            
+
             expect(html).toContain('grade-a');
         });
 
@@ -349,9 +337,9 @@ describe('CV Metrics Summary Rendering', () => {
                 runCount: 10,
                 weakItems: [],
             };
-            
+
             const html = renderSystemAccuracyBadge(accuracy);
-            
+
             expect(html).toContain('accuracy-trend improving');
         });
     });
@@ -361,33 +349,27 @@ describe('CV Metrics Summary Rendering', () => {
     // ========================================
     describe('renderCompactMetrics', () => {
         it('should render compact view', () => {
-            const metrics = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test', confidence: 0.85 },
-            ]);
-            
+            const metrics = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test', confidence: 0.85 }]);
+
             const html = renderCompactMetrics(metrics);
-            
+
             expect(html).toContain('metrics-compact');
         });
 
         it('should include grade', () => {
-            const metrics = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test', confidence: 0.95 },
-            ]);
-            
+            const metrics = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test', confidence: 0.95 }]);
+
             const html = renderCompactMetrics(metrics);
-            
+
             expect(html).toContain('compact-grade');
             expect(html).toContain('A');
         });
 
         it('should include confidence', () => {
-            const metrics = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test', confidence: 0.75 },
-            ]);
-            
+            const metrics = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test', confidence: 0.75 }]);
+
             const html = renderCompactMetrics(metrics);
-            
+
             expect(html).toContain('compact-conf');
         });
 
@@ -396,19 +378,17 @@ describe('CV Metrics Summary Rendering', () => {
                 { itemId: 'item-1', itemName: 'Test 1', confidence: 0.8 },
                 { itemId: 'item-2', itemName: 'Test 2', confidence: 0.7 },
             ]);
-            
+
             const html = renderCompactMetrics(metrics);
-            
+
             expect(html).toContain('2 items');
         });
 
         it('should use correct grade class', () => {
-            const metrics = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test', confidence: 0.5 },
-            ]);
-            
+            const metrics = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test', confidence: 0.5 }]);
+
             const html = renderCompactMetrics(metrics);
-            
+
             // Grade should be 'F' for low confidence
             expect(html).toContain('grade-f');
         });
@@ -424,9 +404,9 @@ describe('CV Metrics Summary Rendering', () => {
                 { itemId: 'item-2', itemName: 'Test 2', confidence: 0.65 },
                 { itemId: 'item-3', itemName: 'Test 3', confidence: 0.3 },
             ]);
-            
+
             logMetricsSummary(metrics);
-            
+
             expect(logger.info).toHaveBeenCalled();
             const call = vi.mocked(logger.info).mock.calls[0][0] as Record<string, unknown>;
             expect(call.operation).toBe('metrics_summary');
@@ -438,12 +418,12 @@ describe('CV Metrics Summary Rendering', () => {
                 { itemId: 'item-2', itemName: 'Medium', confidence: 0.6 },
                 { itemId: 'item-3', itemName: 'Low', confidence: 0.3 },
             ]);
-            
+
             logMetricsSummary(metrics);
-            
+
             const call = vi.mocked(logger.info).mock.calls[0][0] as Record<string, unknown>;
             const data = call.data as Record<string, unknown>;
-            
+
             expect(data.totalItems).toBe(3);
             expect(data.uniqueItems).toBe(3);
             expect(data.grade).toBeDefined();
@@ -453,28 +433,26 @@ describe('CV Metrics Summary Rendering', () => {
         });
 
         it('should round avgConfidence to integer percentage', () => {
-            const metrics = calculateMetricsSummary([
-                { itemId: 'item-1', itemName: 'Test', confidence: 0.856 },
-            ]);
-            
+            const metrics = calculateMetricsSummary([{ itemId: 'item-1', itemName: 'Test', confidence: 0.856 }]);
+
             logMetricsSummary(metrics);
-            
+
             const call = vi.mocked(logger.info).mock.calls[0][0] as Record<string, unknown>;
             const data = call.data as Record<string, unknown>;
-            
+
             // Should be 86 (rounded from 85.6)
             expect(data.avgConfidence).toBe(86);
         });
 
         it('should handle empty metrics', () => {
             const metrics = calculateMetricsSummary([]);
-            
+
             logMetricsSummary(metrics);
-            
+
             expect(logger.info).toHaveBeenCalled();
             const call = vi.mocked(logger.info).mock.calls[0][0] as Record<string, unknown>;
             const data = call.data as Record<string, unknown>;
-            
+
             expect(data.totalItems).toBe(0);
             expect(data.avgConfidence).toBe(0);
         });

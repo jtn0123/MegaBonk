@@ -36,7 +36,13 @@ vi.mock('../../src/modules/data-service', () => ({
     allData: {
         characters: {
             characters: [
-                { id: 'cl4nk', name: 'CL4NK', tier: 'S', passive_ability: 'Gain 1% Crit Chance per level', synergies_weapons: ['Revolver'] },
+                {
+                    id: 'cl4nk',
+                    name: 'CL4NK',
+                    tier: 'S',
+                    passive_ability: 'Gain 1% Crit Chance per level',
+                    synergies_weapons: ['Revolver'],
+                },
                 { id: 'monke', name: 'Monke', tier: 'A', passive_ability: '+2 Max HP per level' },
                 { id: 'sir_oofie', name: 'Sir Oofie', tier: 'S', passive_ability: 'Gain 1% Armor per level' },
                 { id: 'ogre', name: 'Ogre', tier: 'B', passive_ability: 'Gain 1.5% Damage per level' },
@@ -58,7 +64,12 @@ vi.mock('../../src/modules/data-service', () => ({
         },
         tomes: {
             tomes: [
-                { id: 'precision', name: 'Precision', stat_affected: 'Critical Chance', value_per_level: '+7% crit chance' },
+                {
+                    id: 'precision',
+                    name: 'Precision',
+                    stat_affected: 'Critical Chance',
+                    value_per_level: '+7% crit chance',
+                },
                 { id: 'damage', name: 'Damage Tome', stat_affected: 'Damage', value_per_level: '+0.08x (8% damage)' },
                 { id: 'hp', name: 'HP Tome', stat_affected: 'Max HP', value_per_level: '+25 Max HP' },
                 { id: 'vitality', name: 'Vitality', stat_affected: 'HP', value_per_level: '+5' },
@@ -88,7 +99,13 @@ vi.mock('../../src/modules/data-service', () => ({
 
 // Local copies of mock data for test assertions
 const mockCharacters = [
-    { id: 'cl4nk', name: 'CL4NK', tier: 'S', passive_ability: 'Gain 1% Crit Chance per level', synergies_weapons: ['Revolver'] },
+    {
+        id: 'cl4nk',
+        name: 'CL4NK',
+        tier: 'S',
+        passive_ability: 'Gain 1% Crit Chance per level',
+        synergies_weapons: ['Revolver'],
+    },
     { id: 'monke', name: 'Monke', tier: 'A', passive_ability: '+2 Max HP per level' },
     { id: 'sir_oofie', name: 'Sir Oofie', tier: 'S', passive_ability: 'Gain 1% Armor per level' },
     { id: 'ogre', name: 'Ogre', tier: 'B', passive_ability: 'Gain 1.5% Damage per level' },
@@ -133,7 +150,9 @@ const mockItems = [
 ];
 
 // Mock store with stateful behavior
-let mockStoreState: { currentBuild: { character: any; weapon: any; tomes: any[]; items: any[]; name: string; notes: string } } = {
+let mockStoreState: {
+    currentBuild: { character: any; weapon: any; tomes: any[]; items: any[]; name: string; notes: string };
+} = {
     currentBuild: { character: null, weapon: null, tomes: [], items: [], name: '', notes: '' },
 };
 
@@ -222,7 +241,7 @@ describe('Build Planner Extended Coverage', () => {
         localStorage.clear();
         createMinimalDOM();
         window.history.replaceState(null, '', window.location.pathname);
-        
+
         // Reset mock store state
         mockStoreState = {
             currentBuild: { character: null, weapon: null, tomes: [], items: [], name: '', notes: '' },
@@ -248,7 +267,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             // Movement speed passive adds +20
             expect(stats.movement_speed).toBeGreaterThan(100);
         });
@@ -261,7 +280,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             // Crit damage passive adds +25
             expect(stats.crit_damage).toBeGreaterThan(150);
         });
@@ -274,7 +293,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             // Should have only default stats
             expect(stats.damage).toBe(100);
             expect(stats.hp).toBe(100);
@@ -289,7 +308,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             expect(stats.damage).toBe(100);
         });
 
@@ -301,7 +320,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             expect(stats.damage).toBe(100);
         });
     });
@@ -315,7 +334,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             // Should use baseDamage fallback: 100 + 20 = 120
             expect(stats.damage).toBe(120);
         });
@@ -328,7 +347,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             // 100 + 8.5 = 108.5
             expect(stats.damage).toBe(108.5);
         });
@@ -341,7 +360,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             // Should remain at base 100
             expect(stats.damage).toBe(100);
         });
@@ -354,7 +373,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             // Should default to 0 for NaN and remain at base 100
             expect(stats.damage).toBe(100);
         });
@@ -369,7 +388,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [damageTome as Tome],
                 items: [],
             });
-            
+
             // 0.08 * 100 = 8% per level, * 5 levels = 40
             expect(stats.damage).toBeGreaterThan(100);
         });
@@ -382,7 +401,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [hpTome as Tome],
                 items: [],
             });
-            
+
             // 25 HP per level * 5 levels = 125
             expect(stats.hp).toBeGreaterThan(100);
         });
@@ -395,7 +414,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [emptyTome as Tome],
                 items: [],
             });
-            
+
             // Should remain at base
             expect(stats.damage).toBe(100);
         });
@@ -408,7 +427,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [critDamageTome as Tome],
                 items: [],
             });
-            
+
             // 10% per level * 5 = 50 bonus
             expect(stats.crit_damage).toBeGreaterThan(150);
         });
@@ -421,7 +440,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [armorTome as Tome],
                 items: [],
             });
-            
+
             // 2 per level * 5 = 10 bonus
             expect(stats.armor).toBeGreaterThan(0);
         });
@@ -434,7 +453,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [agilityTome as Tome],
                 items: [],
             });
-            
+
             expect(stats.movement_speed).toBeGreaterThan(100);
         });
 
@@ -446,7 +465,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [damageTome as Tome, damageTome as Tome],
                 items: [],
             });
-            
+
             // Double the bonus
             const singleStats = calculateBuildStats({
                 character: null,
@@ -454,7 +473,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [damageTome as Tome],
                 items: [],
             });
-            
+
             expect(stats.damage).toBeGreaterThan(singleStats.damage);
         });
     });
@@ -468,7 +487,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             // With 0 evasion_internal, evasion should be 0
             expect(stats.evasion).toBe(0);
             expect(Number.isFinite(stats.evasion)).toBe(true);
@@ -484,7 +503,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [slipperyRing as Item, phantomShroud as Item],
             });
-            
+
             // 15 + 15 = 30 evasion_internal
             // Evasion = 30 / (1 + 30/100) = 30 / 1.3 ≈ 23.08
             expect(stats.evasion_internal).toBe(30);
@@ -495,7 +514,7 @@ describe('Build Planner Extended Coverage', () => {
     describe('calculateBuildStats - Memoization Cache', () => {
         it('should invalidate cache when invalidateBuildStatsCache is called', () => {
             invalidateBuildStatsCache();
-            
+
             // After invalidation, next calculation should compute fresh
             const stats = calculateBuildStats({
                 character: null,
@@ -503,7 +522,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             });
-            
+
             expect(stats).toBeDefined();
             expect(stats.damage).toBe(100);
         });
@@ -513,15 +532,15 @@ describe('Build Planner Extended Coverage', () => {
             const stats1 = calculateBuildStats();
             // Second call should return cached
             const stats2 = calculateBuildStats();
-            
+
             expect(stats1.damage).toBe(stats2.damage);
         });
 
         it('should recompute when build changes', () => {
             invalidateBuildStatsCache();
-            
+
             const stats1 = calculateBuildStats();
-            
+
             // Change the build
             const ogre = mockCharacters.find(c => c.id === 'ogre')!;
             mockStoreState.currentBuild = {
@@ -532,9 +551,9 @@ describe('Build Planner Extended Coverage', () => {
                 name: '',
                 notes: '',
             };
-            
+
             const stats2 = calculateBuildStats();
-            
+
             // Stats should be different now
             expect(stats2.damage).toBeGreaterThan(stats1.damage);
         });
@@ -556,7 +575,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [{ id: 'precision' }],
                 items: [{ id: 'clover' }],
             };
-            
+
             applyRandomBuild(randomBuild);
             expect(ToastManager.success).toHaveBeenCalledWith('Random build applied!');
         });
@@ -568,7 +587,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             };
-            
+
             applyRandomBuild(randomBuild);
             expect(ToastManager.success).toHaveBeenCalledWith('Random build applied!');
         });
@@ -580,7 +599,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             };
-            
+
             applyRandomBuild(randomBuild);
             expect(ToastManager.success).toHaveBeenCalledWith('Random build applied!');
         });
@@ -592,7 +611,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             };
-            
+
             applyRandomBuild(randomBuild);
             expect(ToastManager.success).toHaveBeenCalledWith('Random build applied!');
         });
@@ -610,9 +629,9 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: ['precision', 'damage'],
                 items: [],
             };
-            
+
             loadBuildFromData(buildData);
-            
+
             // Verify function completes without error
             // Checkbox state depends on mock data IDs matching
             const tomeCheckboxes = document.querySelectorAll('.tome-checkbox');
@@ -626,9 +645,9 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: ['clover', 'gym_sauce'],
             };
-            
+
             loadBuildFromData(buildData);
-            
+
             const itemCheckboxes = document.querySelectorAll('.item-checkbox');
             expect(itemCheckboxes.length).toBeGreaterThan(0);
         });
@@ -640,7 +659,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: undefined,
                 items: [],
             };
-            
+
             // loadBuildFromData guards against non-array tomes
             loadBuildFromData(buildData as any);
             // No error means it handled it gracefully
@@ -654,7 +673,7 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: undefined,
             };
-            
+
             loadBuildFromData(buildData as any);
             expect(true).toBe(true);
         });
@@ -668,9 +687,9 @@ describe('Build Planner Extended Coverage', () => {
                 tomes: [],
                 items: [],
             };
-            
+
             loadBuildFromData(buildData);
-            
+
             // Verify the function completed
             expect(true).toBe(true);
         });
@@ -687,9 +706,9 @@ describe('Build Planner Extended Coverage', () => {
                 { character: 'monke', tomes: ['precision'], timestamp: Date.now() },
             ];
             localStorage.setItem('megabonk_build_history', JSON.stringify(corruptedHistory));
-            
+
             const history = getBuildHistory();
-            
+
             // Should have filtered out the corrupted entry
             expect(history.length).toBe(1);
             expect(history[0].character).toBe('monke');
@@ -701,30 +720,27 @@ describe('Build Planner Extended Coverage', () => {
                 { character: 'monke', items: ['clover'], timestamp: Date.now() },
             ];
             localStorage.setItem('megabonk_build_history', JSON.stringify(corruptedHistory));
-            
+
             const history = getBuildHistory();
-            
+
             expect(history.length).toBe(1);
         });
 
         it('should return empty array for non-array localStorage data', () => {
             localStorage.setItem('megabonk_build_history', JSON.stringify({ not: 'array' }));
-            
+
             const history = getBuildHistory();
-            
+
             expect(history).toEqual([]);
             expect(logger.warn).toHaveBeenCalled();
         });
 
         it('should handle null entries in history', () => {
-            const historyWithNull = [
-                null,
-                { character: 'cl4nk', timestamp: Date.now() },
-            ];
+            const historyWithNull = [null, { character: 'cl4nk', timestamp: Date.now() }];
             localStorage.setItem('megabonk_build_history', JSON.stringify(historyWithNull));
-            
+
             const history = getBuildHistory();
-            
+
             // null entries fail schema validation, so corrupt data is cleared
             expect(history.length).toBe(0);
         });
@@ -776,7 +792,7 @@ describe('Build Planner Extended Coverage', () => {
                 timestamp: Date.now() - i * 1000,
             }));
             localStorage.setItem('megabonk_build_history', JSON.stringify(existingBuilds));
-            
+
             // Set up a valid current build to save
             mockStoreState.currentBuild = {
                 character: mockCharacters[0] as Character,
@@ -786,9 +802,9 @@ describe('Build Planner Extended Coverage', () => {
                 name: 'New Build',
                 notes: '',
             };
-            
+
             saveBuildToHistory();
-            
+
             const history = getBuildHistory();
             // Should be capped at MAX_BUILD_HISTORY (20)
             expect(history.length).toBeLessThanOrEqual(25);
@@ -803,9 +819,9 @@ describe('Build Planner Extended Coverage', () => {
                 name: '',
                 notes: '',
             };
-            
+
             saveBuildToHistory();
-            
+
             expect(ToastManager.warning).toHaveBeenCalledWith('Build must have at least a character or weapon');
         });
     });
@@ -814,16 +830,14 @@ describe('Build Planner Extended Coverage', () => {
         it('should call showBuildHistoryModal if available on delete', () => {
             const mockShowModal = vi.fn();
             (globalThis as any).showBuildHistoryModal = mockShowModal;
-            
-            const builds = [
-                { name: 'Build 1', character: 'cl4nk', timestamp: Date.now() },
-            ];
+
+            const builds = [{ name: 'Build 1', character: 'cl4nk', timestamp: Date.now() }];
             localStorage.setItem('megabonk_build_history', JSON.stringify(builds));
-            
+
             deleteBuildFromHistory(0);
-            
+
             expect(mockShowModal).toHaveBeenCalled();
-            
+
             delete (globalThis as any).showBuildHistoryModal;
         });
     });
@@ -839,7 +853,7 @@ describe('Build Planner Extended Coverage', () => {
                 name: '',
                 notes: '',
             };
-            
+
             const mockClipboard = {
                 writeText: vi.fn().mockResolvedValue(undefined),
             };
@@ -848,19 +862,19 @@ describe('Build Planner Extended Coverage', () => {
                 writable: true,
                 configurable: true,
             });
-            
+
             expect(() => shareBuildURL()).not.toThrow();
         });
 
         it('should load build with tomes from URL', () => {
             renderBuildPlanner();
-            
+
             const buildData = { c: 'cl4nk', w: 'sword', t: ['precision'] };
             const encoded = btoa(JSON.stringify(buildData));
             window.history.replaceState(null, '', `#build=${encoded}`);
-            
+
             const result = loadBuildFromURL();
-            
+
             // Should succeed in loading (returns true) or at least not crash
             expect(typeof result).toBe('boolean');
             if (result) {
@@ -870,22 +884,22 @@ describe('Build Planner Extended Coverage', () => {
 
         it('should load build with items from URL', () => {
             renderBuildPlanner();
-            
+
             const buildData = { c: 'cl4nk', w: 'sword', i: ['clover'] };
             const encoded = btoa(JSON.stringify(buildData));
             window.history.replaceState(null, '', `#build=${encoded}`);
-            
+
             const result = loadBuildFromURL();
-            
+
             expect(typeof result).toBe('boolean');
         });
 
         it('should handle atob decoding failure', () => {
             // Valid base64 characters but invalid base64 string
             window.history.replaceState(null, '', '#build=YWJj'); // "abc" which decodes but isn't valid JSON
-            
+
             const result = loadBuildFromURL();
-            
+
             expect(result).toBe(false);
         });
 
@@ -893,7 +907,7 @@ describe('Build Planner Extended Coverage', () => {
         // internal Proxy which doesn't see our mock store updates
         it.skip('should update URL when build has content', () => {
             renderBuildPlanner();
-            
+
             // Set a build with content
             mockStoreState.currentBuild = {
                 character: mockCharacters[0] as Character,
@@ -903,9 +917,9 @@ describe('Build Planner Extended Coverage', () => {
                 name: '',
                 notes: '',
             };
-            
+
             updateBuildURL();
-            
+
             // URL should now have a hash with build data
             expect(window.location.hash).toContain('build=');
         });
@@ -918,7 +932,7 @@ describe('Build Planner Extended Coverage', () => {
 
         it('should set name and notes from template', () => {
             loadBuildTemplate('crit_build');
-            
+
             // Template should have been loaded
             expect(ToastManager.success).toHaveBeenCalledWith(expect.stringContaining('Loaded template'));
         });
@@ -955,9 +969,9 @@ describe('Build Planner Extended Coverage', () => {
                 name: '',
                 notes: '',
             };
-            
+
             updateBuildAnalysis();
-            
+
             const synergiesDisplay = document.getElementById('build-synergies');
             expect(synergiesDisplay).toBeTruthy();
         });
@@ -965,7 +979,7 @@ describe('Build Planner Extended Coverage', () => {
         it('should detect item-weapon synergy', () => {
             const clover = mockItems.find(i => i.id === 'clover')!;
             const revolver = mockWeapons.find(w => w.id === 'revolver')!;
-            
+
             mockStoreState.currentBuild = {
                 character: mockCharacters[0] as Character,
                 weapon: revolver as Weapon,
@@ -974,9 +988,9 @@ describe('Build Planner Extended Coverage', () => {
                 name: '',
                 notes: '',
             };
-            
+
             updateBuildAnalysis();
-            
+
             const synergiesDisplay = document.getElementById('build-synergies');
             expect(synergiesDisplay).toBeTruthy();
         });
@@ -989,7 +1003,7 @@ describe('Build Planner Extended Coverage', () => {
 
         it('should invalidate stats cache on clear', () => {
             clearBuild();
-            
+
             // Logger should have logged the clear event
             expect(logger.info).toHaveBeenCalled();
         });
@@ -997,19 +1011,19 @@ describe('Build Planner Extended Coverage', () => {
         it('should uncheck all tome checkboxes', () => {
             // Check some checkboxes first
             const tomeCheckboxes = document.querySelectorAll('.tome-checkbox') as NodeListOf<HTMLInputElement>;
-            tomeCheckboxes.forEach(cb => cb.checked = true);
-            
+            tomeCheckboxes.forEach(cb => (cb.checked = true));
+
             clearBuild();
-            
+
             tomeCheckboxes.forEach(cb => expect(cb.checked).toBe(false));
         });
 
         it('should uncheck all item checkboxes', () => {
             const itemCheckboxes = document.querySelectorAll('.item-checkbox') as NodeListOf<HTMLInputElement>;
-            itemCheckboxes.forEach(cb => cb.checked = true);
-            
+            itemCheckboxes.forEach(cb => (cb.checked = true));
+
             clearBuild();
-            
+
             itemCheckboxes.forEach(cb => expect(cb.checked).toBe(false));
         });
     });
@@ -1018,7 +1032,7 @@ describe('Build Planner Extended Coverage', () => {
         it('should return arrays that are not references', () => {
             const build1 = getCurrentBuild();
             const build2 = getCurrentBuild();
-            
+
             // Arrays should be different references
             expect(build1.tomes).not.toBe(build2.tomes);
             expect(build1.items).not.toBe(build2.items);
@@ -1027,7 +1041,7 @@ describe('Build Planner Extended Coverage', () => {
         it('should return object that is not a reference', () => {
             const build1 = getCurrentBuild();
             const build2 = getCurrentBuild();
-            
+
             expect(build1).not.toBe(build2);
         });
     });
@@ -1040,31 +1054,31 @@ describe('Build Planner Extended Coverage', () => {
 
         it('should handle character select change', () => {
             const charSelect = document.getElementById('build-character') as HTMLSelectElement;
-            
+
             // Add options
             const option = document.createElement('option');
             option.value = 'cl4nk';
             option.textContent = 'CL4NK';
             charSelect.appendChild(option);
-            
+
             charSelect.value = 'cl4nk';
             charSelect.dispatchEvent(new Event('change'));
-            
+
             // Should not throw
             expect(true).toBe(true);
         });
 
         it('should handle weapon select change', () => {
             const weaponSelect = document.getElementById('build-weapon') as HTMLSelectElement;
-            
+
             const option = document.createElement('option');
             option.value = 'sword';
             option.textContent = 'Sword';
             weaponSelect.appendChild(option);
-            
+
             weaponSelect.value = 'sword';
             weaponSelect.dispatchEvent(new Event('change'));
-            
+
             expect(true).toBe(true);
         });
 
@@ -1077,10 +1091,10 @@ describe('Build Planner Extended Coverage', () => {
                 writable: true,
                 configurable: true,
             });
-            
+
             const exportBtn = document.getElementById('export-build')!;
             exportBtn.click();
-            
+
             await vi.waitFor(() => {
                 expect(mockClipboard.writeText).toHaveBeenCalled();
             });
@@ -1089,7 +1103,7 @@ describe('Build Planner Extended Coverage', () => {
         it('should handle clear button click', () => {
             const clearBtn = document.getElementById('clear-build')!;
             clearBtn.click();
-            
+
             // Should log clear event
             expect(logger.info).toHaveBeenCalled();
         });
@@ -1098,7 +1112,7 @@ describe('Build Planner Extended Coverage', () => {
     describe('renderBuildPlanner', () => {
         it('should populate character select with all characters', () => {
             renderBuildPlanner();
-            
+
             const charSelect = document.getElementById('build-character') as HTMLSelectElement;
             // Should have placeholder + characters
             expect(charSelect.options.length).toBeGreaterThan(1);
@@ -1106,28 +1120,28 @@ describe('Build Planner Extended Coverage', () => {
 
         it('should populate weapon select with all weapons', () => {
             renderBuildPlanner();
-            
+
             const weaponSelect = document.getElementById('build-weapon') as HTMLSelectElement;
             expect(weaponSelect.options.length).toBeGreaterThan(1);
         });
 
         it('should create tome checkboxes', () => {
             renderBuildPlanner();
-            
+
             const tomeCheckboxes = document.querySelectorAll('.tome-checkbox');
             expect(tomeCheckboxes.length).toBeGreaterThan(0);
         });
 
         it('should create item checkboxes', () => {
             renderBuildPlanner();
-            
+
             const itemCheckboxes = document.querySelectorAll('.item-checkbox');
             expect(itemCheckboxes.length).toBeGreaterThan(0);
         });
 
         it('should escape HTML in tome names', () => {
             renderBuildPlanner();
-            
+
             // Check that checkboxes are properly created
             const tomesSelection = document.getElementById('tomes-selection');
             expect(tomesSelection?.innerHTML).not.toContain('<script>');
@@ -1135,7 +1149,7 @@ describe('Build Planner Extended Coverage', () => {
 
         it('should escape HTML in item names', () => {
             renderBuildPlanner();
-            
+
             const itemsSelection = document.getElementById('items-selection');
             expect(itemsSelection?.innerHTML).not.toContain('<script>');
         });
@@ -1157,7 +1171,7 @@ describe('Build Planner Extended Coverage', () => {
 
         it('should show placeholder when no character/weapon selected', () => {
             updateBuildAnalysis();
-            
+
             const statsDisplay = document.getElementById('build-stats');
             expect(statsDisplay?.innerHTML).toContain('placeholder');
         });
@@ -1173,9 +1187,9 @@ describe('Build Planner Extended Coverage', () => {
                 name: '',
                 notes: '',
             };
-            
+
             updateBuildAnalysis();
-            
+
             const statsDisplay = document.getElementById('build-stats');
             // Should contain stat cards instead of placeholder
             expect(statsDisplay?.innerHTML).toContain('stat-card');
@@ -1183,7 +1197,7 @@ describe('Build Planner Extended Coverage', () => {
 
         it('should update synergies display', () => {
             updateBuildAnalysis();
-            
+
             const synergiesDisplay = document.getElementById('build-synergies');
             expect(synergiesDisplay).toBeTruthy();
         });
@@ -1197,7 +1211,7 @@ describe('Build Planner Extended Coverage', () => {
                 name: '',
                 notes: '',
             };
-            
+
             // This tests the defensive coding
             expect(() => updateBuildAnalysis()).not.toThrow();
         });
@@ -1211,7 +1225,7 @@ describe('Build Planner Extended Coverage', () => {
                 name: '',
                 notes: '',
             };
-            
+
             expect(() => updateBuildAnalysis()).not.toThrow();
         });
     });
@@ -1221,14 +1235,14 @@ describe('Build Planner Extended Coverage', () => {
             const cl4nk = mockCharacters.find(c => c.id === 'cl4nk')!;
             const revolver = mockWeapons.find(w => w.id === 'revolver')!;
             const precision = mockTomes.find(t => t.id === 'precision')!;
-            
+
             const stats = calculateBuildStats({
                 character: cl4nk as Character,
                 weapon: revolver as Weapon,
                 tomes: [precision as Tome, precision as Tome],
                 items: [],
             });
-            
+
             // Should have high crit from CL4NK + precision tomes
             expect(stats.crit_chance).toBeGreaterThan(50);
         });
@@ -1238,14 +1252,14 @@ describe('Build Planner Extended Coverage', () => {
             const sword = mockWeapons.find(w => w.id === 'sword')!;
             const hpTome = mockTomes.find(t => t.id === 'hp')!;
             const oats = mockItems.find(i => i.id === 'oats')!;
-            
+
             const stats = calculateBuildStats({
                 character: sirOofie as Character,
                 weapon: sword as Weapon,
                 tomes: [hpTome as Tome],
                 items: [oats as Item],
             });
-            
+
             // Should have high HP and armor
             expect(stats.hp).toBeGreaterThan(100);
             expect(stats.armor).toBeGreaterThan(0);
@@ -1257,14 +1271,14 @@ describe('Build Planner Extended Coverage', () => {
             const oats = mockItems.find(i => i.id === 'oats')!;
             const leechingCrystal = mockItems.find(i => i.id === 'leeching_crystal')!;
             const beefyRing = mockItems.find(i => i.id === 'beefy_ring')!;
-            
+
             const stats = calculateBuildStats({
                 character: monke as Character,
                 weapon: sword as Weapon,
                 tomes: [],
                 items: [oats as Item, leechingCrystal as Item, beefyRing as Item],
             });
-            
+
             // Beefy ring should scale damage with HP
             expect(stats.hp).toBeGreaterThan(100);
             expect(stats.damage).toBeGreaterThan(100);

@@ -157,7 +157,7 @@ class ThemeManager {
             return null;
         } catch (error) {
             // localStorage may be unavailable in some contexts (private browsing, etc.)
-            console.debug('[theme-manager] localStorage unavailable for reading theme:', (error as Error).message);
+            logger.debug({ operation: 'theme.storage_read_failed', data: { error: (error as Error).message } });
             return null;
         }
     }
@@ -194,7 +194,7 @@ class ThemeManager {
         // Store preference
         try {
             localStorage.setItem(STORAGE_KEY, theme);
-        } catch (error) {
+        } catch {
             logger.warn({
                 operation: 'theme.storage',
                 error: { name: 'StorageError', message: 'Failed to store theme preference', module: 'theme-manager' },

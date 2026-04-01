@@ -164,7 +164,7 @@ describe('recommendBestChoice - Real Integration Tests', () => {
 
         const choices: ChoiceOption[] = [
             { type: 'item', entity: testItemSS as any }, // Has synergies
-            { type: 'item', entity: testItemC as any },  // No synergies
+            { type: 'item', entity: testItemC as any }, // No synergies
         ];
 
         const recommendations = recommendBestChoice(build, choices);
@@ -222,9 +222,7 @@ describe('recommendBestChoice - Real Integration Tests', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: testItemSS as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: testItemSS as any }];
 
         const recommendations = recommendBestChoice(build, choices);
 
@@ -240,9 +238,7 @@ describe('recommendBestChoice - Real Integration Tests', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: testItemSS as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: testItemSS as any }];
 
         const recommendations = recommendBestChoice(build, choices);
 
@@ -270,9 +266,7 @@ describe('recommendBestChoice - Real Integration Tests', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'weapon', entity: testWeapon as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'weapon', entity: testWeapon as any }];
 
         const recommendations = recommendBestChoice(build, choices);
         expect(recommendations.length).toBe(1);
@@ -319,9 +313,7 @@ describe('Build Archetype Detection', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: { ...damageItem, id: 'more_damage' } as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: { ...damageItem, id: 'more_damage' } as any }];
 
         const recommendations = recommendBestChoice(build, choices);
         // Should get archetype fit bonus
@@ -343,9 +335,7 @@ describe('Build Archetype Detection', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: critItem as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: critItem as any }];
 
         const recommendations = recommendBestChoice(build, choices);
         expect(recommendations.length).toBe(1);
@@ -366,9 +356,7 @@ describe('Build Archetype Detection', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: tankItem as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: tankItem as any }];
 
         const recommendations = recommendBestChoice(build, choices);
         expect(recommendations.length).toBe(1);
@@ -382,9 +370,7 @@ describe('Build Archetype Detection', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: testItemA as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: testItemA as any }];
 
         // Mixed archetype should still produce recommendations
         const recommendations = recommendBestChoice(build, choices);
@@ -543,9 +529,7 @@ describe('Recommendation Edge Cases', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: minimalItem as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: minimalItem as any }];
 
         expect(() => recommendBestChoice(build, choices)).not.toThrow();
     });
@@ -564,9 +548,7 @@ describe('Recommendation Edge Cases', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: testItemA as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: testItemA as any }];
 
         expect(() => recommendBestChoice(build, choices)).not.toThrow();
     });
@@ -586,9 +568,7 @@ describe('Recommendation Edge Cases', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'tome', entity: tome as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'tome', entity: tome as any }];
 
         const recommendations = recommendBestChoice(build, choices);
         expect(recommendations.length).toBe(1);
@@ -610,9 +590,7 @@ describe('Recommendation Edge Cases', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'shrine', entity: shrine as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'shrine', entity: shrine as any }];
 
         const recommendations = recommendBestChoice(build, choices);
         expect(recommendations.length).toBe(1);
@@ -628,9 +606,7 @@ describe('Recommendation Edge Cases', () => {
         };
 
         // Item with anti-synergy should still have non-negative score
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: testItemWithAntiSynergy as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: testItemWithAntiSynergy as any }];
 
         const recommendations = recommendBestChoice(build, choices);
         expect(recommendations[0].score).toBeGreaterThanOrEqual(0);
@@ -652,9 +628,7 @@ describe('Recommendation Edge Cases', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: emptyPropsItem as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: emptyPropsItem as any }];
 
         expect(() => recommendBestChoice(build, choices)).not.toThrow();
     });
@@ -678,9 +652,7 @@ describe('Redundancy Detection', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: noStackItem as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: noStackItem as any }];
 
         const recommendations = recommendBestChoice(build, choices);
         expect(recommendations[0].warnings.some(w => w.includes('stack'))).toBe(true);
@@ -708,9 +680,7 @@ describe('Redundancy Detection', () => {
             tomes: [],
         };
 
-        const choices: ChoiceOption[] = [
-            { type: 'item', entity: damageItem2 as any },
-        ];
+        const choices: ChoiceOption[] = [{ type: 'item', entity: damageItem2 as any }];
 
         const recommendations = recommendBestChoice(build, choices);
         // Should still produce a recommendation

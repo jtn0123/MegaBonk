@@ -139,9 +139,7 @@ function collectXSpacings(rows: Position[][], expectedIconSize: number): number[
 
 function collectYSpacings(rows: Position[][], expectedIconSize: number): number[] {
     if (rows.length <= 1) return [];
-    const rowCenters = rows
-        .map(row => row.reduce((sum, p) => sum + p.y, 0) / row.length)
-        .sort((a, b) => a - b);
+    const rowCenters = rows.map(row => row.reduce((sum, p) => sum + p.y, 0) / row.length).sort((a, b) => a - b);
     const spacings: number[] = [];
     for (let i = 1; i < rowCenters.length; i++) {
         const current = rowCenters[i];
@@ -153,11 +151,7 @@ function collectYSpacings(rows: Position[][], expectedIconSize: number): number[
     return spacings;
 }
 
-function filterRowDetections(
-    rows: Position[][],
-    xSpacing: number,
-    tolerance: number
-): Position[] {
+function filterRowDetections(rows: Position[][], xSpacing: number, tolerance: number): Position[] {
     const filtered: Position[] = [];
     for (const row of rows) {
         if (row.length === 0) continue;

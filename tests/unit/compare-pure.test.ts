@@ -3,10 +3,7 @@
  * Compare Mode Pure Function Tests
  */
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-    toggleCompareItem,
-    __resetCompareState,
-} from '../../src/modules/compare.ts';
+import { toggleCompareItem, __resetCompareState } from '../../src/modules/compare.ts';
 import { getState, setState, resetStore } from '../../src/modules/store.ts';
 import { MAX_COMPARE_ITEMS } from '../../src/modules/constants.ts';
 
@@ -39,7 +36,7 @@ describe('Compare Mode', () => {
         vi.clearAllMocks();
         resetStore();
         __resetCompareState();
-        
+
         // Setup DOM elements that compare functions look for
         document.body.innerHTML = `
             <button id="compare-btn" style="display: none;">
@@ -60,16 +57,16 @@ describe('Compare Mode', () => {
     describe('toggleCompareItem', () => {
         it('should add item to compare list', () => {
             toggleCompareItem('item1');
-            
+
             const items = getState('compareItems');
             expect(items).toContain('item1');
         });
 
         it('should remove item from compare list when already present', () => {
             setState('compareItems', ['item1', 'item2']);
-            
+
             toggleCompareItem('item1');
-            
+
             const items = getState('compareItems');
             expect(items).not.toContain('item1');
             expect(items).toContain('item2');
@@ -78,7 +75,7 @@ describe('Compare Mode', () => {
         it('should add multiple items', () => {
             toggleCompareItem('item1');
             toggleCompareItem('item2');
-            
+
             const items = getState('compareItems');
             expect(items).toEqual(['item1', 'item2']);
         });
@@ -86,25 +83,25 @@ describe('Compare Mode', () => {
         it('should toggle same item on and off', () => {
             toggleCompareItem('item1');
             expect(getState('compareItems')).toContain('item1');
-            
+
             toggleCompareItem('item1');
             expect(getState('compareItems')).not.toContain('item1');
-            
+
             toggleCompareItem('item1');
             expect(getState('compareItems')).toContain('item1');
         });
 
         it('should not exceed MAX_COMPARE_ITEMS limit', async () => {
             const { ToastManager } = await import('../../src/modules/toast.ts');
-            
+
             // Add items up to the limit
             for (let i = 1; i <= MAX_COMPARE_ITEMS; i++) {
                 setState('compareItems', [...getState('compareItems'), `item${i}`]);
             }
-            
+
             // Try to add one more
             toggleCompareItem('extra_item');
-            
+
             const items = getState('compareItems');
             expect(items).not.toContain('extra_item');
             expect(items.length).toBe(MAX_COMPARE_ITEMS);
@@ -118,10 +115,10 @@ describe('Compare Mode', () => {
                 items.push(`item${i}`);
             }
             setState('compareItems', items);
-            
+
             // Remove one
             toggleCompareItem('item1');
-            
+
             expect(getState('compareItems').length).toBe(MAX_COMPARE_ITEMS - 1);
         });
 
@@ -129,16 +126,16 @@ describe('Compare Mode', () => {
             toggleCompareItem('item3');
             toggleCompareItem('item1');
             toggleCompareItem('item2');
-            
+
             const items = getState('compareItems');
             expect(items).toEqual(['item3', 'item1', 'item2']);
         });
 
         it('should handle empty initial state', () => {
             expect(getState('compareItems')).toEqual([]);
-            
+
             toggleCompareItem('item1');
-            
+
             expect(getState('compareItems')).toEqual(['item1']);
         });
     });
@@ -149,9 +146,9 @@ describe('Compare Mode', () => {
     describe('state integration', () => {
         it('should use centralized store', () => {
             setState('compareItems', ['existing']);
-            
+
             toggleCompareItem('item1');
-            
+
             const items = getState('compareItems');
             expect(items).toContain('existing');
             expect(items).toContain('item1');
@@ -159,13 +156,13 @@ describe('Compare Mode', () => {
 
         it('should reflect store changes', () => {
             toggleCompareItem('item1');
-            
+
             // Directly modify store
             setState('compareItems', ['item2', 'item3']);
-            
+
             // Toggle should work with new state
             toggleCompareItem('item2');
-            
+
             const items = getState('compareItems');
             expect(items).not.toContain('item2');
             expect(items).toContain('item3');
@@ -185,7 +182,7 @@ describe('Compare Mode', () => {
             __resetCompareState();
             __resetCompareState();
             __resetCompareState();
-            
+
             // Should not throw
             expect(true).toBe(true);
         });
@@ -198,14 +195,14 @@ describe('Compare Mode', () => {
         it('should handle undefined compareItems gracefully', () => {
             // Force undefined state
             (setState as any)('compareItems', undefined);
-            
+
             // Should not throw
             expect(() => toggleCompareItem('item1')).not.toThrow();
         });
 
         it('should handle empty string item id', () => {
             toggleCompareItem('');
-            
+
             const items = getState('compareItems');
             expect(items).toContain('');
         });
@@ -214,7 +211,7 @@ describe('Compare Mode', () => {
             toggleCompareItem('item-with-dashes');
             toggleCompareItem('item_with_underscores');
             toggleCompareItem('item.with.dots');
-            
+
             const items = getState('compareItems');
             expect(items).toContain('item-with-dashes');
             expect(items).toContain('item_with_underscores');
@@ -225,7 +222,7 @@ describe('Compare Mode', () => {
             for (let i = 0; i < 10; i++) {
                 toggleCompareItem('item1');
             }
-            
+
             // Even number of toggles = not in list
             expect(getState('compareItems')).not.toContain('item1');
         });
@@ -234,7 +231,7 @@ describe('Compare Mode', () => {
             toggleCompareItem('item1');
             toggleCompareItem('item1');
             toggleCompareItem('item1');
-            
+
             // Odd number = in list
             const items = getState('compareItems');
             expect(items.filter(i => i === 'item1').length).toBe(1);

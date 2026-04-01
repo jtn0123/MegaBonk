@@ -13,12 +13,12 @@ const rawCoverageDir = join(e2eCoverageDir, 'raw');
 
 export default async function globalSetup() {
     console.log('[Coverage Global Setup] Initializing E2E coverage...');
-    
+
     // Clean and create coverage directories
     if (existsSync(rawCoverageDir)) {
         rmSync(rawCoverageDir, { recursive: true, force: true });
     }
     mkdirSync(rawCoverageDir, { recursive: true });
-    
+
     console.log('[Coverage Global Setup] Ready');
 }

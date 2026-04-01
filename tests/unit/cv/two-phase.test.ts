@@ -6,7 +6,9 @@
 import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { polyfillImageData } from './test-helpers';
 
-beforeAll(() => { polyfillImageData(); });
+beforeAll(() => {
+    polyfillImageData();
+});
 
 // Mock all dependencies
 vi.mock('../../../src/modules/logger.ts', () => ({
@@ -157,10 +159,12 @@ describe('two-phase', () => {
 
         it('should detect items when template matches', async () => {
             vi.mocked(isEmptyCell).mockReturnValue(false);
-            vi.mocked(findTopTemplateMatches).mockReturnValue([{
-                item: { id: 'item1', name: 'Test', rarity: 'common' } as any,
-                similarity: 0.8,
-            }]);
+            vi.mocked(findTopTemplateMatches).mockReturnValue([
+                {
+                    item: { id: 'item1', name: 'Test', rarity: 'common' } as any,
+                    similarity: 0.8,
+                },
+            ]);
             vi.mocked(findBestTemplateMatch).mockReturnValue({
                 item: { id: 'item1', name: 'Test', rarity: 'common' } as any,
                 similarity: 0.8,

@@ -7,7 +7,7 @@
  * - CV (computer vision) detection
  * - Hybrid detection mode
  * - Detection results display in UI
- * 
+ *
  * NOTE: Skipped - OCR/CV features still in development
  */
 
@@ -95,7 +95,6 @@ test.describe('Scan Build Feature', () => {
         test('should display uploaded image preview', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Wait for image preview to appear
@@ -110,7 +109,6 @@ test.describe('Scan Build Feature', () => {
         test('should show detection buttons after upload', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Auto-detect area should become visible
@@ -129,7 +127,6 @@ test.describe('Scan Build Feature', () => {
         test('should show clear button after upload', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Clear button should be visible
@@ -140,7 +137,6 @@ test.describe('Scan Build Feature', () => {
         test('should clear image when clear button clicked', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Wait for preview
@@ -175,7 +171,7 @@ test.describe('Scan Build Feature', () => {
             await fileInput.setInputFiles({
                 name: 'test.txt',
                 mimeType: 'text/plain',
-                buffer: Buffer.from('not an image')
+                buffer: Buffer.from('not an image'),
             });
 
             // Preview should not appear
@@ -192,7 +188,6 @@ test.describe('Scan Build Feature', () => {
         test('should have OCR detect button available', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             const ocrBtn = page.locator('#scan-auto-detect-btn');
@@ -203,7 +198,6 @@ test.describe('Scan Build Feature', () => {
         test('should show progress indicator during OCR detection', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Click OCR detect button
@@ -225,7 +219,6 @@ test.describe('Scan Build Feature', () => {
         test('should handle OCR detection without crashing', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Click OCR detect button
@@ -250,7 +243,6 @@ test.describe('Scan Build Feature', () => {
         test('should have hybrid detect button available', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             const hybridBtn = page.locator('#scan-hybrid-detect-btn');
@@ -261,7 +253,6 @@ test.describe('Scan Build Feature', () => {
         test('should handle hybrid detection without crashing', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Wait for templates to potentially load
@@ -288,7 +279,6 @@ test.describe('Scan Build Feature', () => {
         test('should show debug mode checkbox', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Debug mode checkbox should be available
@@ -299,7 +289,6 @@ test.describe('Scan Build Feature', () => {
         test('should toggle debug mode', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             const debugCheckbox = page.locator('#scan-debug-mode');
@@ -322,7 +311,6 @@ test.describe('Scan Build Feature', () => {
         test('should show selection area after detection', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection
@@ -342,7 +330,6 @@ test.describe('Scan Build Feature', () => {
         test('should show character selection grid', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection to show selection UI
@@ -359,7 +346,6 @@ test.describe('Scan Build Feature', () => {
         test('should show weapon selection grid', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection
@@ -376,7 +362,6 @@ test.describe('Scan Build Feature', () => {
         test('should show item selection grid', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection
@@ -393,7 +378,6 @@ test.describe('Scan Build Feature', () => {
         test('should show tome selection grid', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection
@@ -410,7 +394,6 @@ test.describe('Scan Build Feature', () => {
         test('should display detection confidence info when items detected', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection
@@ -432,7 +415,6 @@ test.describe('Scan Build Feature', () => {
         test('should allow selecting character from grid', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection to show selection UI
@@ -456,7 +438,6 @@ test.describe('Scan Build Feature', () => {
         test('should allow incrementing item count', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection to show selection UI
@@ -489,7 +470,6 @@ test.describe('Scan Build Feature', () => {
         test('should update selection summary when items added', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection
@@ -527,7 +507,6 @@ test.describe('Scan Build Feature', () => {
         test('should apply selections to advisor when clicked', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection
@@ -565,7 +544,6 @@ test.describe('Scan Build Feature', () => {
         test('should handle detection errors gracefully', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Click detect multiple times rapidly
@@ -607,7 +585,6 @@ test.describe('Scan Build Feature', () => {
         test('should have search input in item grid', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection to show selection UI
@@ -626,7 +603,6 @@ test.describe('Scan Build Feature', () => {
         test('should filter items when searching', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection
@@ -640,14 +616,18 @@ test.describe('Scan Build Feature', () => {
                 const searchInput = page.locator('#scan-item-grid .scan-search-input');
                 if (await searchInput.isVisible()) {
                     // Get initial item count
-                    const initialItems = await page.locator('#scan-grid-items-container .scan-item-card:visible').count();
+                    const initialItems = await page
+                        .locator('#scan-grid-items-container .scan-item-card:visible')
+                        .count();
 
                     // Type a search query
                     await searchInput.fill('wrench');
                     await page.waitForTimeout(300);
 
                     // Visible items should be filtered
-                    const filteredItems = await page.locator('#scan-grid-items-container .scan-item-card:visible').count();
+                    const filteredItems = await page
+                        .locator('#scan-grid-items-container .scan-item-card:visible')
+                        .count();
 
                     // Either filtered down or all items match - just verify no crash
                     expect(filteredItems).toBeLessThanOrEqual(initialItems);
@@ -663,7 +643,6 @@ test.describe('Scan Build Feature', () => {
         test('should have proper aria labels on buttons', async ({ page }) => {
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Clear button should have aria-label
@@ -699,7 +678,6 @@ test.describe('Scan Build Feature', () => {
 
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger detection
@@ -724,7 +702,6 @@ test.describe('Scan Build Feature', () => {
 
             await navigateToScanBuild(page);
 
-            
             await uploadTestImage(page);
 
             // Trigger both detection modes
@@ -745,7 +722,7 @@ test.describe('Scan Build - Responsive Behavior', () => {
         // On mobile, tab bar may need scrolling - navigate directly with JavaScript
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
-        
+
         // Scroll advisor tab into view and click
         const advisorTab = page.locator('.tab-btn[data-tab="advisor"]');
         await advisorTab.scrollIntoViewIfNeeded();
@@ -768,7 +745,7 @@ test.describe('Scan Build - Responsive Behavior', () => {
         // On tablet, tab bar may need scrolling - navigate directly with JavaScript
         await page.goto('/');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
-        
+
         // Scroll advisor tab into view and click
         const advisorTab = page.locator('.tab-btn[data-tab="advisor"]');
         await advisorTab.scrollIntoViewIfNeeded();

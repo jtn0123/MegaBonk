@@ -27,7 +27,7 @@ test.describe('Mobile Bottom Navigation', () => {
 
     test('clicking mobile nav button switches tab', async ({ page }) => {
         const weaponsBtn = page.locator('.mobile-bottom-nav .mobile-nav-btn[data-tab="weapons"]');
-        if (await weaponsBtn.count() > 0) {
+        if ((await weaponsBtn.count()) > 0) {
             await weaponsBtn.click();
             await page.waitForTimeout(300);
             await expect(page.locator('.tab-btn[data-tab="weapons"]')).toHaveClass(/active/);
@@ -35,14 +35,16 @@ test.describe('Mobile Bottom Navigation', () => {
     });
 
     test('More button opens drawer/menu', async ({ page }) => {
-        const moreBtn = page.locator('.mobile-bottom-nav .mobile-nav-btn:has-text("More"), .mobile-bottom-nav .more-btn');
-        if (await moreBtn.count() > 0) {
+        const moreBtn = page.locator(
+            '.mobile-bottom-nav .mobile-nav-btn:has-text("More"), .mobile-bottom-nav .more-btn'
+        );
+        if ((await moreBtn.count()) > 0) {
             await moreBtn.click();
             await page.waitForTimeout(300);
-            
+
             // Should show additional options
             const moreMenu = page.locator('.mobile-more-drawer, .more-options, [class*="more-menu"]');
-            if (await moreMenu.count() > 0) {
+            if ((await moreMenu.count()) > 0) {
                 await expect(moreMenu.first()).toBeVisible();
             }
         }
@@ -50,7 +52,7 @@ test.describe('Mobile Bottom Navigation', () => {
 
     test('mobile nav highlights active tab', async ({ page }) => {
         const itemsBtn = page.locator('.mobile-bottom-nav .mobile-nav-btn[data-tab="items"]');
-        if (await itemsBtn.count() > 0) {
+        if ((await itemsBtn.count()) > 0) {
             await expect(itemsBtn).toHaveClass(/active/);
         }
     });
@@ -67,7 +69,7 @@ test.describe('Mobile Card Layout', () => {
     test('cards are displayed in mobile layout', async ({ page }) => {
         const firstCard = page.locator('#itemsContainer .item-card').first();
         const box = await firstCard.boundingBox();
-        
+
         // Mobile cards should be nearly full width
         expect(box?.width).toBeGreaterThan(300);
     });
@@ -75,7 +77,7 @@ test.describe('Mobile Card Layout', () => {
     test('card images are appropriately sized for mobile', async ({ page }) => {
         const firstImg = page.locator('#itemsContainer .item-card img').first();
         const box = await firstImg.boundingBox();
-        
+
         // Should be reasonable mobile size
         expect(box?.width).toBeLessThanOrEqual(100);
         expect(box?.height).toBeLessThanOrEqual(100);
@@ -84,7 +86,7 @@ test.describe('Mobile Card Layout', () => {
     test('item names are visible on mobile', async ({ page }) => {
         const firstName = page.locator('#itemsContainer .item-card .item-name').first();
         await expect(firstName).toBeVisible();
-        
+
         const text = await firstName.textContent();
         expect(text?.trim().length).toBeGreaterThan(0);
     });
@@ -117,7 +119,7 @@ test.describe('Mobile Modal', () => {
 
         const modalContent = page.locator('#itemModal .modal-content');
         const box = await modalContent.boundingBox();
-        
+
         // Should be nearly full width (minus padding) - lowered threshold for narrow viewports
         expect(box?.width).toBeGreaterThan(300);
     });
@@ -128,11 +130,13 @@ test.describe('Mobile Modal', () => {
 
         const modal = page.locator('#itemModal');
         const isScrollable = await modal.evaluate(el => {
-            return el.scrollHeight > el.clientHeight || 
-                   getComputedStyle(el).overflowY === 'auto' ||
-                   getComputedStyle(el).overflowY === 'scroll';
+            return (
+                el.scrollHeight > el.clientHeight ||
+                getComputedStyle(el).overflowY === 'auto' ||
+                getComputedStyle(el).overflowY === 'scroll'
+            );
         });
-        
+
         // Modal should be scrollable for long content
         expect(isScrollable).toBeTruthy();
     });
@@ -143,7 +147,7 @@ test.describe('Mobile Modal', () => {
 
         const closeBtn = page.locator('#itemModal .close, #itemModal .modal-close').first();
         const box = await closeBtn.boundingBox();
-        
+
         // Close button should be reasonably sized for touch (actual size ~18px, acceptable for X button)
         expect(box?.width).toBeGreaterThanOrEqual(16);
         expect(box?.height).toBeGreaterThanOrEqual(16);
@@ -166,10 +170,10 @@ test.describe('Mobile Search', () => {
     test('search input expands on focus', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
         const boxBefore = await searchInput.boundingBox();
-        
+
         await searchInput.focus();
         await page.waitForTimeout(300);
-        
+
         // Search might expand or stay same size
         const boxAfter = await searchInput.boundingBox();
         expect(boxAfter?.width).toBeGreaterThanOrEqual(boxBefore?.width || 0);
@@ -179,11 +183,11 @@ test.describe('Mobile Search', () => {
         const searchInput = page.locator('#searchInput');
         await searchInput.click();
         await page.waitForTimeout(100);
-        
+
         await searchInput.fill('Anvil');
-        
-        const value = await searchInput.inputValue();
-        expect(value).toBe('Anvil');
+
+        const value = searchInput;
+        await expect(value).toHaveValue('Anvil');
     });
 });
 
@@ -196,8 +200,10 @@ test.describe('Mobile Filters', () => {
     });
 
     test('filter button/toggle is visible on mobile', async ({ page }) => {
-        const filterBtn = page.locator('.filter-toggle, .filters-btn, button:has-text("Filter"), [aria-label*="filter"]');
-        if (await filterBtn.count() > 0) {
+        const filterBtn = page.locator(
+            '.filter-toggle, .filters-btn, button:has-text("Filter"), [aria-label*="filter"]'
+        );
+        if ((await filterBtn.count()) > 0) {
             await expect(filterBtn.first()).toBeVisible();
         }
     });
@@ -214,7 +220,7 @@ test.describe('Mobile Scrolling', () => {
     test('page is scrollable', async ({ page }) => {
         const scrollHeight = await page.evaluate(() => document.documentElement.scrollHeight);
         const viewportHeight = await page.evaluate(() => window.innerHeight);
-        
+
         expect(scrollHeight).toBeGreaterThan(viewportHeight);
     });
 
@@ -233,7 +239,7 @@ test.describe('Mobile Scrolling', () => {
         // Scroll down
         await page.evaluate(() => window.scrollTo(0, 500));
         await page.waitForTimeout(100);
-        
+
         const scrollBefore = await page.evaluate(() => window.scrollY);
 
         // Switch tab and back
@@ -272,7 +278,7 @@ test.describe('Mobile Touch Targets', () => {
     test('cards have adequate touch target size', async ({ page }) => {
         const firstCard = page.locator('#itemsContainer .item-card').first();
         const box = await firstCard.boundingBox();
-        
+
         // Cards should be easily tappable
         expect(box?.height).toBeGreaterThanOrEqual(60);
     });
@@ -291,8 +297,8 @@ test.describe('Device Emulation Tests', () => {
 
     test('page renders correctly on iPhone-like viewport', async ({ page }) => {
         const cards = page.locator('#itemsContainer .item-card');
-        const count = await cards.count();
-        expect(count).toBe(80);
+        const count = cards;
+        await expect(count).toHaveCount(80);
     });
 
     test('modal opens correctly on iPhone-like viewport', async ({ page }) => {
@@ -309,8 +315,8 @@ test.describe('Device Emulation Tests', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
 
         const cards = page.locator('#itemsContainer .item-card');
-        const count = await cards.count();
-        expect(count).toBe(80);
+        const count = cards;
+        await expect(count).toHaveCount(80);
     });
 });
 
@@ -325,7 +331,7 @@ test.describe('Tablet Layout', () => {
     test('tablet shows grid layout for cards', async ({ page }) => {
         const container = page.locator('#itemsContainer');
         const display = await container.evaluate(el => getComputedStyle(el).display);
-        
+
         // Should be grid or flex layout
         expect(['grid', 'flex']).toContain(display);
     });
@@ -333,7 +339,7 @@ test.describe('Tablet Layout', () => {
     test('cards are appropriately sized on tablet', async ({ page }) => {
         const firstCard = page.locator('#itemsContainer .item-card').first();
         const box = await firstCard.boundingBox();
-        
+
         // Tablet cards should be medium width (grid layout)
         expect(box?.width).toBeLessThan(600);
         expect(box?.width).toBeGreaterThan(200);

@@ -182,7 +182,7 @@ function mapEntityToSuggested(entity: Entity, tabName: EntityType): SuggestedIte
  * Get a short description for an entity
  */
 function getShortDescription(entity: Entity, tabName: EntityType): string {
-    let desc = '';
+    let desc: string;
 
     switch (tabName) {
         case 'items':
@@ -266,7 +266,7 @@ export function detectEmptyStateType(tabName: EntityType): EmptyStateContext {
 function generateSuggestionCard(item: SuggestedItem, tabName: EntityType): string {
     const entityType = tabName.replace(/s$/, ''); // items -> item
 
-    let imageHtml = '';
+    let imageHtml: string;
     if (item.icon) {
         imageHtml = `<span class="suggestion-icon">${escapeHtml(item.icon)}</span>`;
     } else if (item.image) {
@@ -310,7 +310,7 @@ export function generateEmptyStateWithSuggestions(context: EmptyStateContext): s
     const { buttonText, buttonAction } = config;
 
     // Get appropriate suggestions based on empty state type
-    let suggestions: SuggestedItem[] = [];
+    let suggestions: SuggestedItem[];
     switch (context.type) {
         case 'favorites':
             suggestions = getPopularItems(context.tabName, 4);

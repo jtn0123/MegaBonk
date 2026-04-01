@@ -94,52 +94,78 @@ describe('scan-build-results trust layer', () => {
     });
 
     it('should classify confidence thresholds into review buckets', () => {
-        expect(createDisplayDetectionResult({
-            type: 'item',
-            entity: mockItem('safe', 'Safe'),
-            confidence: 0.8,
-            rawText: 'safe',
-        }, 'ocr').reviewLevel).toBe('safe');
+        expect(
+            createDisplayDetectionResult(
+                {
+                    type: 'item',
+                    entity: mockItem('safe', 'Safe'),
+                    confidence: 0.8,
+                    rawText: 'safe',
+                },
+                'ocr'
+            ).reviewLevel
+        ).toBe('safe');
 
-        expect(createDisplayDetectionResult({
-            type: 'item',
-            entity: mockItem('review', 'Review'),
-            confidence: 0.5,
-            rawText: 'review',
-        }, 'ocr').reviewLevel).toBe('review');
+        expect(
+            createDisplayDetectionResult(
+                {
+                    type: 'item',
+                    entity: mockItem('review', 'Review'),
+                    confidence: 0.5,
+                    rawText: 'review',
+                },
+                'ocr'
+            ).reviewLevel
+        ).toBe('review');
 
-        expect(createDisplayDetectionResult({
-            type: 'item',
-            entity: mockItem('risky', 'Risky'),
-            confidence: 0.49,
-            rawText: 'risky',
-        }, 'ocr').reviewLevel).toBe('risky');
+        expect(
+            createDisplayDetectionResult(
+                {
+                    type: 'item',
+                    entity: mockItem('risky', 'Risky'),
+                    confidence: 0.49,
+                    rawText: 'risky',
+                },
+                'ocr'
+            ).reviewLevel
+        ).toBe('risky');
     });
 
     it('should render review queue and source badges for flagged detections', () => {
         const results: DetectionResults = {
-            character: createDisplayDetectionResult({
-                type: 'character',
-                entity: mockCharacter('clank', 'CL4NK'),
-                confidence: 0.91,
-                rawText: 'clank',
-            }, 'ocr'),
+            character: createDisplayDetectionResult(
+                {
+                    type: 'character',
+                    entity: mockCharacter('clank', 'CL4NK'),
+                    confidence: 0.91,
+                    rawText: 'clank',
+                },
+                'ocr'
+            ),
             weapon: null,
             items: [
-                createDisplayDetectionResult({
-                    type: 'item',
-                    entity: mockItem('wrench', 'Wrench'),
-                    confidence: 0.62,
-                    rawText: 'wrench',
-                }, 'cv', ['OCR-only fallback']),
+                createDisplayDetectionResult(
+                    {
+                        type: 'item',
+                        entity: mockItem('wrench', 'Wrench'),
+                        confidence: 0.62,
+                        rawText: 'wrench',
+                    },
+                    'cv',
+                    ['OCR-only fallback']
+                ),
             ],
             tomes: [
-                createDisplayDetectionResult({
-                    type: 'tome',
-                    entity: mockTome('strength', 'Strength'),
-                    confidence: 0.33,
-                    rawText: 'strength',
-                }, 'hybrid', ['hybrid disagreement']),
+                createDisplayDetectionResult(
+                    {
+                        type: 'tome',
+                        entity: mockTome('strength', 'Strength'),
+                        confidence: 0.33,
+                        rawText: 'strength',
+                    },
+                    'hybrid',
+                    ['hybrid disagreement']
+                ),
             ],
         };
 
@@ -158,12 +184,15 @@ describe('scan-build-results trust layer', () => {
             character: null,
             weapon: null,
             items: [
-                createDisplayDetectionResult({
-                    type: 'item',
-                    entity: mockItem('wrench', 'Wrench'),
-                    confidence: 0.55,
-                    rawText: 'wrench',
-                }, 'ocr'),
+                createDisplayDetectionResult(
+                    {
+                        type: 'item',
+                        entity: mockItem('wrench', 'Wrench'),
+                        confidence: 0.55,
+                        rawText: 'wrench',
+                    },
+                    'ocr'
+                ),
             ],
             tomes: [],
         };
@@ -186,12 +215,15 @@ describe('scan-build-results trust layer', () => {
             character: null,
             weapon: null,
             items: [
-                createDisplayDetectionResult({
-                    type: 'item',
-                    entity: mockItem('wrench', 'Wrench'),
-                    confidence: 0.55,
-                    rawText: 'wrench',
-                }, 'ocr'),
+                createDisplayDetectionResult(
+                    {
+                        type: 'item',
+                        entity: mockItem('wrench', 'Wrench'),
+                        confidence: 0.55,
+                        rawText: 'wrench',
+                    },
+                    'ocr'
+                ),
             ],
             tomes: [],
         };
@@ -202,9 +234,11 @@ describe('scan-build-results trust layer', () => {
         expect(correctButton).not.toBeNull();
         correctButton.click();
 
-        expect(onOpenCorrection).toHaveBeenCalledWith(expect.objectContaining({
-            entity: expect.objectContaining({ id: 'wrench' }),
-        }));
+        expect(onOpenCorrection).toHaveBeenCalledWith(
+            expect.objectContaining({
+                entity: expect.objectContaining({ id: 'wrench' }),
+            })
+        );
     });
 
     it('should track explicit item corrections in the trust summary', () => {
@@ -212,13 +246,16 @@ describe('scan-build-results trust layer', () => {
             character: null,
             weapon: null,
             items: [
-                createDisplayDetectionResult({
-                    type: 'item',
-                    entity: mockItem('wrench', 'Wrench'),
-                    confidence: 0.4,
-                    rawText: 'wrench',
-                    count: 2,
-                }, 'cv'),
+                createDisplayDetectionResult(
+                    {
+                        type: 'item',
+                        entity: mockItem('wrench', 'Wrench'),
+                        confidence: 0.4,
+                        rawText: 'wrench',
+                        count: 2,
+                    },
+                    'cv'
+                ),
             ],
             tomes: [],
         };
@@ -236,12 +273,16 @@ describe('scan-build-results trust layer', () => {
     it('should warn when applying with unresolved risky detections', () => {
         const results: DetectionResults = {
             character: null,
-            weapon: createDisplayDetectionResult({
-                type: 'weapon',
-                entity: mockWeapon('hammer', 'Hammer'),
-                confidence: 0.41,
-                rawText: 'hammer',
-            }, 'cv', ['CV-only fallback']),
+            weapon: createDisplayDetectionResult(
+                {
+                    type: 'weapon',
+                    entity: mockWeapon('hammer', 'Hammer'),
+                    confidence: 0.41,
+                    rawText: 'hammer',
+                },
+                'cv',
+                ['CV-only fallback']
+            ),
             items: [],
             tomes: [],
         };
@@ -258,36 +299,45 @@ describe('scan-build-results trust layer', () => {
             null
         );
 
-        expect(ToastManager.warning).toHaveBeenCalledWith(
-            expect.stringContaining('risky detection')
-        );
+        expect(ToastManager.warning).toHaveBeenCalledWith(expect.stringContaining('risky detection'));
         expect(ToastManager.success).toHaveBeenCalledWith('Build state applied to advisor!');
     });
 
     it('should log trust counts and correction state when applying to advisor', () => {
         const results: DetectionResults = {
-            character: createDisplayDetectionResult({
-                type: 'character',
-                entity: mockCharacter('clank', 'CL4NK'),
-                confidence: 0.95,
-                rawText: 'clank',
-            }, 'ocr'),
+            character: createDisplayDetectionResult(
+                {
+                    type: 'character',
+                    entity: mockCharacter('clank', 'CL4NK'),
+                    confidence: 0.95,
+                    rawText: 'clank',
+                },
+                'ocr'
+            ),
             weapon: null,
             items: [
-                createDisplayDetectionResult({
-                    type: 'item',
-                    entity: mockItem('wrench', 'Wrench'),
-                    confidence: 0.61,
-                    rawText: 'wrench',
-                }, 'cv', ['OCR-only fallback']),
+                createDisplayDetectionResult(
+                    {
+                        type: 'item',
+                        entity: mockItem('wrench', 'Wrench'),
+                        confidence: 0.61,
+                        rawText: 'wrench',
+                    },
+                    'cv',
+                    ['OCR-only fallback']
+                ),
             ],
             tomes: [
-                createDisplayDetectionResult({
-                    type: 'tome',
-                    entity: mockTome('strength', 'Strength'),
-                    confidence: 0.32,
-                    rawText: 'strength',
-                }, 'hybrid', ['hybrid disagreement']),
+                createDisplayDetectionResult(
+                    {
+                        type: 'tome',
+                        entity: mockTome('strength', 'Strength'),
+                        confidence: 0.32,
+                        rawText: 'strength',
+                    },
+                    'hybrid',
+                    ['hybrid disagreement']
+                ),
             ],
         };
 
@@ -298,12 +348,8 @@ describe('scan-build-results trust layer', () => {
             {
                 selectedCharacter: mockCharacter('clank', 'CL4NK'),
                 selectedWeapon: null,
-                selectedItems: new Map([
-                    ['wrench', { item: mockItem('wrench', 'Wrench'), count: 1 }],
-                ]),
-                selectedTomes: new Map([
-                    ['strength', mockTome('strength', 'Strength')],
-                ]),
+                selectedItems: new Map([['wrench', { item: mockItem('wrench', 'Wrench'), count: 1 }]]),
+                selectedTomes: new Map([['strength', mockTome('strength', 'Strength')]]),
             },
             null
         );
@@ -341,33 +387,47 @@ describe('scan-build-results trust layer', () => {
         const tomeScroll = vi.spyOn(tomeTarget, 'scrollIntoView');
 
         const results: DetectionResults = {
-            character: createDisplayDetectionResult({
-                type: 'character',
-                entity: mockCharacter('clank', 'CL4NK'),
-                confidence: 0.6,
-                rawText: 'clank',
-            }, 'ocr'),
-            weapon: createDisplayDetectionResult({
-                type: 'weapon',
-                entity: mockWeapon('hammer', 'Hammer'),
-                confidence: 0.6,
-                rawText: 'hammer',
-            }, 'cv', ['CV-only fallback']),
-            items: [
-                createDisplayDetectionResult({
-                    type: 'item',
-                    entity: mockItem('wrench', 'Wrench'),
+            character: createDisplayDetectionResult(
+                {
+                    type: 'character',
+                    entity: mockCharacter('clank', 'CL4NK'),
                     confidence: 0.6,
-                    rawText: 'wrench',
-                }, 'ocr'),
+                    rawText: 'clank',
+                },
+                'ocr'
+            ),
+            weapon: createDisplayDetectionResult(
+                {
+                    type: 'weapon',
+                    entity: mockWeapon('hammer', 'Hammer'),
+                    confidence: 0.6,
+                    rawText: 'hammer',
+                },
+                'cv',
+                ['CV-only fallback']
+            ),
+            items: [
+                createDisplayDetectionResult(
+                    {
+                        type: 'item',
+                        entity: mockItem('wrench', 'Wrench'),
+                        confidence: 0.6,
+                        rawText: 'wrench',
+                    },
+                    'ocr'
+                ),
             ],
             tomes: [
-                createDisplayDetectionResult({
-                    type: 'tome',
-                    entity: mockTome('strength', 'Strength'),
-                    confidence: 0.4,
-                    rawText: 'strength',
-                }, 'hybrid', ['hybrid disagreement']),
+                createDisplayDetectionResult(
+                    {
+                        type: 'tome',
+                        entity: mockTome('strength', 'Strength'),
+                        confidence: 0.4,
+                        rawText: 'strength',
+                    },
+                    'hybrid',
+                    ['hybrid disagreement']
+                ),
             ],
         };
 

@@ -116,8 +116,10 @@ function validateCell(imageData: ImageData): CellValidation {
 
     // Determine cell status using configured thresholds
     const colorCfg = getColorConfig();
-    const isEmpty = totalVariance < colorCfg.emptyVarianceThreshold || meanBrightness < colorCfg.emptyBrightnessThreshold;
-    const isSuspicious = totalVariance < colorCfg.suspiciousVarianceThreshold && colorfulRatio < colorCfg.suspiciousColorfulRatio;
+    const isEmpty =
+        totalVariance < colorCfg.emptyVarianceThreshold || meanBrightness < colorCfg.emptyBrightnessThreshold;
+    const isSuspicious =
+        totalVariance < colorCfg.suspiciousVarianceThreshold && colorfulRatio < colorCfg.suspiciousColorfulRatio;
 
     return {
         isEmpty,

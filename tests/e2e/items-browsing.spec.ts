@@ -110,7 +110,7 @@ test.describe('Items Browsing', () => {
         await page.click('#itemModal .close');
 
         // Modal should be hidden
-        await expect(page.locator('#itemModal')).not.toBeVisible();
+        await expect(page.locator('#itemModal')).toBeHidden();
     });
 
     // Skip on webkit - Mobile Safari has inconsistent behavior with programmatic click events on modals
@@ -140,23 +140,23 @@ test.describe('Items Browsing', () => {
         });
 
         // Modal should be hidden
-        await expect(page.locator('#itemModal')).not.toBeVisible();
+        await expect(page.locator('#itemModal')).toBeHidden();
     });
 
     test('should select items for comparison', async ({ page }) => {
         // Skip if compare feature is disabled (no checkbox labels rendered)
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
         }
-        
+
         // Select first item for comparison (click the label, not the hidden checkbox)
         await page.click('#itemsContainer .compare-checkbox-label >> nth=0');
 
         // Compare button should not be visible yet (need 2 items)
         const compareBtn = page.locator('#compare-btn');
-        await expect(compareBtn).not.toBeVisible();
+        await expect(compareBtn).toBeHidden();
 
         // Select second item
         await page.click('#itemsContainer .compare-checkbox-label >> nth=1');
@@ -168,12 +168,12 @@ test.describe('Items Browsing', () => {
 
     test('should open compare modal', async ({ page }) => {
         // Skip if compare feature is disabled
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
         }
-        
+
         // Select 2 items (click the labels, not the hidden checkboxes)
         await page.click('#itemsContainer .compare-checkbox-label >> nth=0');
         await page.click('#itemsContainer .compare-checkbox-label >> nth=1');
@@ -191,12 +191,12 @@ test.describe('Items Browsing', () => {
 
     test('should limit comparison to 3 items', async ({ page }) => {
         // Skip if compare feature is disabled
-        const hasCompareFeature = await page.locator('#itemsContainer .compare-checkbox-label').count() > 0;
+        const hasCompareFeature = (await page.locator('#itemsContainer .compare-checkbox-label').count()) > 0;
         if (!hasCompareFeature) {
             test.skip();
             return;
         }
-        
+
         // Set up dialog handler before action that triggers it
         page.on('dialog', async dialog => {
             expect(dialog.message()).toContain('3 items');

@@ -584,12 +584,13 @@ export function renderBatchResultsGrid(containerId: string): void {
                         statusDetail = '<div class="batch-processing">Processing...</div>';
                     }
 
-                    const actionsHtml = result.status === 'complete'
-                        ? `<div class="batch-actions">
+                    const actionsHtml =
+                        result.status === 'complete'
+                            ? `<div class="batch-actions">
                             <button class="btn-small batch-view-btn" data-id="${result.id}">View</button>
                             <button class="btn-small batch-apply-btn" data-id="${result.id}">Apply</button>
                         </div>`
-                        : '';
+                            : '';
 
                     return `
                 <div class="batch-result-card ${result.status}" data-id="${result.id}">

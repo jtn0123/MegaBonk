@@ -6,11 +6,7 @@
 import { safeGetElementById } from './utils.ts';
 import { logger } from './logger.ts';
 import { closeModal } from './modal.ts';
-import {
-    handleDropdownKeyboard,
-    isSearchDropdownVisible,
-    hideSearchDropdown,
-} from './search-dropdown.ts';
+import { handleDropdownKeyboard, isSearchDropdownVisible, hideSearchDropdown } from './search-dropdown.ts';
 import { type TabName } from './store.ts';
 import { switchTab } from './events-tabs.ts';
 
@@ -117,7 +113,10 @@ export function handleSearchShortcut(e: KeyboardEvent, target: HTMLElement): boo
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return true;
     e.preventDefault();
     const searchInput = safeGetElementById('searchInput') as HTMLInputElement | null;
-    if (searchInput) { searchInput.focus(); searchInput.select(); }
+    if (searchInput) {
+        searchInput.focus();
+        searchInput.select();
+    }
     return true;
 }
 
@@ -132,14 +131,18 @@ export function handleActivationKey(e: KeyboardEvent, target: HTMLElement): bool
         e.preventDefault();
         import('./empty-states.ts')
             .then(({ handleEmptyStateClick }) => handleEmptyStateClick(target))
-            .catch(err => logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } }));
+            .catch(err =>
+                logger.warn({ operation: 'import.empty-states', error: { name: 'ImportError', message: err.message } })
+            );
         return true;
     }
     if (target.classList.contains('clickable-card')) {
         e.preventDefault();
         import('./events-click.ts')
             .then(({ handleCardClick }) => handleCardClick(target))
-            .catch(err => logger.warn({ operation: 'import.events-click', error: { name: 'ImportError', message: err.message } }));
+            .catch(err =>
+                logger.warn({ operation: 'import.events-click', error: { name: 'ImportError', message: err.message } })
+            );
         return true;
     }
     return false;
@@ -149,7 +152,10 @@ export function handleKeydownDelegation(e: KeyboardEvent): void {
     const target = e.target as HTMLElement;
 
     if (target.id === 'searchInput' && isSearchDropdownVisible() && handleDropdownKeyboard(e)) return;
-    if (e.key === 'Escape') { handleEscapeKey(); return; }
+    if (e.key === 'Escape') {
+        handleEscapeKey();
+        return;
+    }
     if (handleSearchShortcut(e, target)) return;
 
     if ((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && target.classList.contains('tab-btn')) {

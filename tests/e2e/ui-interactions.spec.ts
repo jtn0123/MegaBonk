@@ -27,7 +27,7 @@ test.describe('Modal Interactions', () => {
 
         // Close with X button
         await page.click('#itemModal .close');
-        await expect(page.locator('#itemModal')).not.toBeVisible();
+        await expect(page.locator('#itemModal')).toBeHidden();
     });
 
     test('should close modal with Escape key', async ({ page }) => {
@@ -44,9 +44,14 @@ test.describe('Modal Interactions', () => {
         await page.waitForTimeout(500);
         if (await modal.isVisible()) {
             await page.evaluate(() => {
-                document.dispatchEvent(new KeyboardEvent('keydown', {
-                    key: 'Escape', code: 'Escape', bubbles: true, cancelable: true,
-                }));
+                document.dispatchEvent(
+                    new KeyboardEvent('keydown', {
+                        key: 'Escape',
+                        code: 'Escape',
+                        bubbles: true,
+                        cancelable: true,
+                    })
+                );
             });
         }
 
@@ -84,7 +89,7 @@ test.describe('Modal Interactions', () => {
 
         // Tab through modal elements
         await page.keyboard.press('Tab');
-        
+
         // Focus should stay within modal
         const focusedElement = await page.evaluate(() => {
             return document.activeElement?.closest('#itemModal') !== null;
@@ -102,7 +107,7 @@ test.describe('Keyboard Navigation', () => {
     test('should focus search input on page load or shortcut', async ({ page }) => {
         // Press "/" to focus search (common keyboard shortcut)
         await page.keyboard.press('/');
-        
+
         // Search input should be focused
         const searchInput = page.locator('#searchInput');
         await expect(searchInput).toBeFocused();
@@ -173,7 +178,7 @@ test.describe('Tab Navigation', () => {
 
     test('tab buttons have proper ARIA attributes', async ({ page }) => {
         const itemsTab = page.locator('.tab-btn[data-tab="items"]');
-        
+
         await expect(itemsTab).toHaveAttribute('role', 'tab');
         await expect(itemsTab).toHaveAttribute('aria-selected', 'true');
 
@@ -224,7 +229,7 @@ test.describe('Item Card Interactions', () => {
         await expect(firstCard).toHaveClass(/clickable-card/);
 
         // Should have compare checkbox (if feature enabled)
-        const hasCompareCheckbox = await firstCard.locator('.compare-checkbox, .compare-checkbox-label').count() > 0;
+        const hasCompareCheckbox = (await firstCard.locator('.compare-checkbox, .compare-checkbox-label').count()) > 0;
         // Compare feature may be disabled, so we just verify the card is functional
         expect(hasCompareCheckbox || true).toBe(true);
     });
@@ -235,7 +240,7 @@ test.describe('Item Card Interactions', () => {
         const tierLabel = firstCard.locator('.tier-label, .badge[class*="tier-"], .tier-badge');
 
         // Most items have tier labels
-        const hasTierLabel = await tierLabel.count() > 0;
+        const hasTierLabel = (await tierLabel.count()) > 0;
         expect(hasTierLabel).toBe(true);
     });
 
@@ -247,7 +252,7 @@ test.describe('Item Card Interactions', () => {
             return Array.from(el.classList).some(c => c.startsWith('rarity-'));
         });
         const rarityBadge = firstCard.locator('.badge[class*="rarity-"], .rarity-badge');
-        const hasRarityBadge = await rarityBadge.count() > 0;
+        const hasRarityBadge = (await rarityBadge.count()) > 0;
 
         expect(hasRarityClass || hasRarityBadge).toBe(true);
     });
@@ -325,7 +330,7 @@ test.describe('Responsive Behavior', () => {
 
         // Items should be displayed in grid
         const items = page.locator('#itemsContainer .item-card');
-        const count = await items.count();
-        expect(count).toBe(80);
+        const count = items;
+        await expect(count).toHaveCount(80);
     });
 });

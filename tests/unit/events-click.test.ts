@@ -62,7 +62,6 @@ describe('events-click', () => {
         document.body.innerHTML = '';
     });
 
-
     afterEach(() => {
         document.body.innerHTML = '';
     });

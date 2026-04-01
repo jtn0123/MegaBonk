@@ -689,9 +689,7 @@ describe('Data Validation Module', () => {
                 items: {
                     version: '1.0',
                     last_updated: '2024-01-01',
-                    items: [
-                        { id: 'test', name: 'Test', rarity: 'invalid_rarity', tier: 'INVALID' },
-                    ],
+                    items: [{ id: 'test', name: 'Test', rarity: 'invalid_rarity', tier: 'INVALID' }],
                 },
             };
             const result = validateAllData(allData as any);
@@ -705,9 +703,7 @@ describe('Data Validation Module', () => {
                 items: {
                     version: '1.0',
                     last_updated: '2024-01-01',
-                    items: [
-                        { id: 'test', name: 'Test', rarity: 'common', tier: 'A', detailed_description: 'Test' },
-                    ],
+                    items: [{ id: 'test', name: 'Test', rarity: 'common', tier: 'A', detailed_description: 'Test' }],
                 },
             };
             const result = validateAllData(allData as any);
@@ -721,7 +717,14 @@ describe('Data Validation Module', () => {
                     version: '1.0',
                     last_updated: '2024-01-01',
                     items: [
-                        { id: 'test', name: 'Test', rarity: 'common', tier: 'A', detailed_description: 'Test', image: 'test.png' },
+                        {
+                            id: 'test',
+                            name: 'Test',
+                            rarity: 'common',
+                            tier: 'A',
+                            detailed_description: 'Test',
+                            image: 'test.png',
+                        },
                     ],
                 },
             };
@@ -735,14 +738,14 @@ describe('Data Validation Module', () => {
                 tomes: {
                     version: '1.0',
                     last_updated: '2024-01-01',
-                    tomes: [
-                        { id: 'test', name: 'Test', tier: 'A' },
-                    ],
+                    tomes: [{ id: 'test', name: 'Test', tier: 'A' }],
                 },
             };
             const result = validateAllData(allData as any);
 
-            expect(result.warnings.some(w => w.includes("tomes[0] (Test): Missing recommended 'image' field"))).toBe(true);
+            expect(result.warnings.some(w => w.includes("tomes[0] (Test): Missing recommended 'image' field"))).toBe(
+                true
+            );
         });
 
         it('should validate rarity for items', () => {
@@ -750,9 +753,7 @@ describe('Data Validation Module', () => {
                 items: {
                     version: '1.0',
                     last_updated: '2024-01-01',
-                    items: [
-                        { id: 'test', name: 'Test', rarity: 'mythical', tier: 'A', detailed_description: 'Test' },
-                    ],
+                    items: [{ id: 'test', name: 'Test', rarity: 'mythical', tier: 'A', detailed_description: 'Test' }],
                 },
             };
             const result = validateAllData(allData as any);
@@ -935,10 +936,7 @@ describe('Data Validation Module', () => {
 
         it('should handle deeply nested synergy structures', () => {
             const allData = createValidAllData();
-            allData.items.items[0].synergies = [
-                { with: 'shield' },
-                { with: ['katana', 'fire_tome'] },
-            ] as any;
+            allData.items.items[0].synergies = [{ with: 'shield' }, { with: ['katana', 'fire_tome'] }] as any;
 
             const result = validateCrossReferences(allData);
 
@@ -951,7 +949,15 @@ describe('Data Validation Module', () => {
                     version: '1.0',
                     last_updated: '2024-01-01',
                     items: [
-                        { id: 'test', name: 'Test', rarity: 'common', tier: 'A', detailed_description: 'Test', image: 'test.png', tags: [] },
+                        {
+                            id: 'test',
+                            name: 'Test',
+                            rarity: 'common',
+                            tier: 'A',
+                            detailed_description: 'Test',
+                            image: 'test.png',
+                            tags: [],
+                        },
                     ],
                 },
             };
@@ -965,7 +971,11 @@ describe('Data Validation Module', () => {
             const allData = {
                 weapons: { version: '1.0', last_updated: '2024-01-01', weapons: [{ id: 'w', name: 'W', tier: 'X' }] },
                 tomes: { version: '1.0', last_updated: '2024-01-01', tomes: [{ id: 't', name: 'T', tier: 'Y' }] },
-                characters: { version: '1.0', last_updated: '2024-01-01', characters: [{ id: 'c', name: 'C', tier: 'Z' }] },
+                characters: {
+                    version: '1.0',
+                    last_updated: '2024-01-01',
+                    characters: [{ id: 'c', name: 'C', tier: 'Z' }],
+                },
             };
 
             const result = validateAllData(allData as any);

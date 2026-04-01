@@ -10,7 +10,9 @@ try {
     createCanvas = canvas.createCanvas;
     loadImage = canvas.loadImage;
     globalThis.ImageData = canvas.ImageData;
-} catch { process.exit(1); }
+} catch {
+    process.exit(1);
+}
 
 async function analyzeOneImage() {
     // Load ground truth
@@ -56,7 +58,7 @@ async function analyzeOneImage() {
     console.log(`\nRow Y positions (from top):`);
     rowYPositions.forEach((y, i) => {
         const valid = y >= height * 0.75;
-        console.log(`  Row ${i+1}: y=${y} (${valid ? 'valid' : 'SKIPPED - above 75% threshold'})`);
+        console.log(`  Row ${i + 1}: y=${y} (${valid ? 'valid' : 'SKIPPED - above 75% threshold'})`);
     });
 
     // Load templates and check sizes
@@ -81,7 +83,7 @@ async function analyzeOneImage() {
         } catch {}
     }
 
-    const avgTemplateSize = sizes.reduce((a,b) => a+b, 0) / sizes.length;
+    const avgTemplateSize = sizes.reduce((a, b) => a + b, 0) / sizes.length;
     console.log(`\nAverage template size: ${avgTemplateSize.toFixed(0)}px`);
     console.log(`Expected cell size: ${iconSize}px`);
     console.log(`Scale ratio: ${(iconSize / avgTemplateSize).toFixed(2)}x`);

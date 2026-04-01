@@ -36,7 +36,7 @@ let currentLogFilter: string = 'all';
 let lastOverlayUrl: string | null = null;
 let updateIntervalId: number | null = null;
 let currentConfidenceThreshold: number = 0.7;
-let activeDebugTab: 'logs' | 'breadcrumbs' | 'requests' | 'state' = 'logs';
+type DebugTab = 'logs' | 'breadcrumbs' | 'requests' | 'state';
 
 // Use centralized event listener manager for cleanup
 const eventManager = createEventListenerManager();
@@ -580,7 +580,7 @@ export function initDebugTabs(): void {
 
     tabButtons.forEach(btn => {
         eventManager.add(btn as HTMLElement, 'click', () => {
-            const tab = (btn as HTMLElement).dataset.debugTab as typeof activeDebugTab;
+            const tab = (btn as HTMLElement).dataset.debugTab as DebugTab;
             switchDebugTab(tab);
         });
     });
@@ -589,9 +589,7 @@ export function initDebugTabs(): void {
 /**
  * Switch active debug tab
  */
-export function switchDebugTab(tab: typeof activeDebugTab): void {
-    activeDebugTab = tab;
-
+export function switchDebugTab(tab: DebugTab): void {
     // Update tab buttons
     document.querySelectorAll('[data-debug-tab]').forEach(btn => {
         btn.classList.toggle('active', (btn as HTMLElement).dataset.debugTab === tab);

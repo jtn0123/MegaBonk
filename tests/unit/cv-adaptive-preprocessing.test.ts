@@ -110,7 +110,7 @@ function createEffectsImage(
     // The sampling reads every 4th pixel (i += 16 in bytes = every 4 pixels)
     for (let i = 0; i < pixelCount; i++) {
         // Use modulo to distribute effect pixels evenly
-        const isEffectPixel = (i % Math.floor(1 / effectPercentage)) === 0 && effectPercentage > 0;
+        const isEffectPixel = i % Math.floor(1 / effectPercentage) === 0 && effectPercentage > 0;
 
         if (isEffectPixel) {
             // Bright AND saturated pixel (effect)
@@ -427,7 +427,7 @@ describe('CV Adaptive Preprocessing Module', () => {
                 expect(resultBelow.hasHeavyEffects).toBe(false);
 
                 // Test at 10% - should trigger
-                const aboveThreshold = createEffectsImage(0.10);
+                const aboveThreshold = createEffectsImage(0.1);
                 const resultAbove = analyzeScene(aboveThreshold);
                 expect(resultAbove.hasHeavyEffects).toBe(true);
             });

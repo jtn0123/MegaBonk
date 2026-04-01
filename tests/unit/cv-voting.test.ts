@@ -19,12 +19,7 @@ import {
 } from '../../src/modules/cv/voting.ts';
 
 // Helper to create template votes
-function createVote(
-    templateId: string,
-    itemId: string,
-    confidence: number,
-    rarity?: string
-): TemplateVote {
+function createVote(templateId: string, itemId: string, confidence: number, rarity?: string): TemplateVote {
     return { templateId, itemId, confidence, rarity };
 }
 
@@ -113,10 +108,7 @@ describe('combineVotes', () => {
         });
 
         it('should track voting breakdown', () => {
-            const votes = [
-                createVote('t1', 'sword', 0.8),
-                createVote('t2', 'shield', 0.7),
-            ];
+            const votes = [createVote('t1', 'sword', 0.8), createVote('t2', 'shield', 0.7)];
             const result = combineVotes(votes);
 
             expect(result!.votingBreakdown.has('sword')).toBe(true);
@@ -141,10 +133,7 @@ describe('combineVotes', () => {
 
         it('should return null when minVotes not met', () => {
             setVotingConfig({ ...DEFAULT_VOTING_CONFIG, minVotes: 3 });
-            const votes = [
-                createVote('t1', 'sword', 0.8),
-                createVote('t2', 'sword', 0.7),
-            ];
+            const votes = [createVote('t1', 'sword', 0.8), createVote('t2', 'sword', 0.7)];
             const result = combineVotes(votes);
 
             expect(result).toBeNull();
@@ -166,10 +155,7 @@ describe('combineVotes', () => {
 
     describe('Voting Methods', () => {
         it('should use weighted-average method by default', () => {
-            const votes = [
-                createVote('t1', 'sword', 0.6),
-                createVote('t2', 'sword', 0.8),
-            ];
+            const votes = [createVote('t1', 'sword', 0.6), createVote('t2', 'sword', 0.8)];
             const result = combineVotes(votes);
 
             // Weighted average should be between the two values
@@ -200,10 +186,7 @@ describe('combineVotes', () => {
         });
 
         it('should handle median with even number of votes', () => {
-            const votes = [
-                createVote('t1', 'sword', 0.6),
-                createVote('t2', 'sword', 0.8),
-            ];
+            const votes = [createVote('t1', 'sword', 0.6), createVote('t2', 'sword', 0.8)];
             const result = combineVotes(votes, { method: 'median' });
 
             expect(result!.confidence).toBeCloseTo(0.7, 1);
@@ -250,10 +233,7 @@ describe('combineVotes', () => {
         });
 
         it('should cap confidence at 0.99', () => {
-            const votes = [
-                createVote('t1', 'sword', 0.99),
-                createVote('t2', 'sword', 0.99),
-            ];
+            const votes = [createVote('t1', 'sword', 0.99), createVote('t2', 'sword', 0.99)];
             const result = combineVotes(votes);
 
             expect(result!.confidence).toBeLessThanOrEqual(0.99);
@@ -274,10 +254,7 @@ describe('combineVotes', () => {
         });
 
         it('should handle tie-breaking by confidence', () => {
-            const votes = [
-                createVote('t1', 'sword', 0.9),
-                createVote('t2', 'shield', 0.8),
-            ];
+            const votes = [createVote('t1', 'sword', 0.9), createVote('t2', 'shield', 0.8)];
             const result = combineVotes(votes);
 
             // With equal votes, higher confidence should win
@@ -335,10 +312,7 @@ describe('majorityVote', () => {
 
     describe('Edge Cases', () => {
         it('should handle tie by picking first encountered', () => {
-            const votes = [
-                createVote('t1', 'sword', 0.8),
-                createVote('t2', 'shield', 0.9),
-            ];
+            const votes = [createVote('t1', 'sword', 0.8), createVote('t2', 'shield', 0.9)];
             const result = majorityVote(votes);
 
             // With equal counts, first with higher count wins
@@ -368,10 +342,7 @@ describe('thresholdVote', () => {
 
     describe('Threshold Filtering', () => {
         it('should return null when no votes pass threshold', () => {
-            const votes = [
-                createVote('t1', 'sword', 0.2),
-                createVote('t2', 'shield', 0.1),
-            ];
+            const votes = [createVote('t1', 'sword', 0.2), createVote('t2', 'shield', 0.1)];
             const result = thresholdVote(votes, 'common');
 
             // Threshold for common is around 0.42 (base 0.45 - 0.03)
@@ -391,9 +362,7 @@ describe('thresholdVote', () => {
         });
 
         it('should use vote rarity over provided rarity', () => {
-            const votes = [
-                { ...createVote('t1', 'sword', 0.5), rarity: 'legendary' },
-            ];
+            const votes = [{ ...createVote('t1', 'sword', 0.5), rarity: 'legendary' }];
             const result = thresholdVote(votes);
 
             // Vote-level rarity (legendary) should be used
@@ -481,11 +450,7 @@ describe('ensembleVote', () => {
 
 describe('describeVotingResult', () => {
     it('should generate human-readable description', () => {
-        const votes = [
-            createVote('t1', 'sword', 0.8),
-            createVote('t2', 'sword', 0.7),
-            createVote('t3', 'shield', 0.9),
-        ];
+        const votes = [createVote('t1', 'sword', 0.8), createVote('t2', 'sword', 0.7), createVote('t3', 'shield', 0.9)];
         const result = combineVotes(votes);
 
         const description = describeVotingResult(result!);

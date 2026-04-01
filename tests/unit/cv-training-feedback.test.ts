@@ -86,7 +86,7 @@ describe('CV Training Feedback', () => {
                 // Create a session
                 const session1 = startFeedbackSession('data:image/png;base64,test', 1920, 1080);
                 const session2 = getCurrentSession();
-                
+
                 // Both should return the same session (from cache)
                 expect(session1).toBe(session2);
                 expect(session2!.imageDataUrl).toBe('data:image/png;base64,test');

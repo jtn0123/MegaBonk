@@ -107,13 +107,9 @@ describe('CV Grid Verification - Integration', () => {
 
         it('should correctly cluster rows with different item counts', () => {
             // Row 1: 5 items
-            const row1 = Array.from({ length: 5 }, (_, i) =>
-                createMockDetection(100 + i * 50, 500, `Row1_${i}`)
-            );
+            const row1 = Array.from({ length: 5 }, (_, i) => createMockDetection(100 + i * 50, 500, `Row1_${i}`));
             // Row 2: 3 items (incomplete row)
-            const row2 = Array.from({ length: 3 }, (_, i) =>
-                createMockDetection(100 + i * 50, 550, `Row2_${i}`)
-            );
+            const row2 = Array.from({ length: 3 }, (_, i) => createMockDetection(100 + i * 50, 550, `Row2_${i}`));
 
             const detections = [...row1, ...row2];
             const result = verifyGridPattern(detections, 48);

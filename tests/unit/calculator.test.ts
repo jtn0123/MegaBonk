@@ -115,11 +115,7 @@ vi.mock('../../src/modules/data-service.ts', () => ({
 // Declare switchTab globally
 (window as any).switchTab = vi.fn();
 
-import {
-    calculateBreakpoint,
-    populateCalculatorItems,
-    quickCalc,
-} from '../../src/modules/calculator.ts';
+import { calculateBreakpoint, populateCalculatorItems, quickCalc } from '../../src/modules/calculator.ts';
 
 describe('Calculator Module - DOM Functions', () => {
     beforeEach(() => {
@@ -237,9 +233,7 @@ describe('Calculator Module - DOM Functions', () => {
 
             calculateBreakpoint();
 
-            expect(mockToastWarning).toHaveBeenCalledWith(
-                'Please enter a valid target value'
-            );
+            expect(mockToastWarning).toHaveBeenCalledWith('Please enter a valid target value');
         });
 
         it('should show warning for negative target', () => {
@@ -251,9 +245,7 @@ describe('Calculator Module - DOM Functions', () => {
 
             calculateBreakpoint();
 
-            expect(mockToastWarning).toHaveBeenCalledWith(
-                'Please enter a valid target value'
-            );
+            expect(mockToastWarning).toHaveBeenCalledWith('Please enter a valid target value');
         });
 
         it('should show warning for NaN target', () => {
@@ -265,9 +257,7 @@ describe('Calculator Module - DOM Functions', () => {
 
             calculateBreakpoint();
 
-            expect(mockToastWarning).toHaveBeenCalledWith(
-                'Please enter a valid target value'
-            );
+            expect(mockToastWarning).toHaveBeenCalledWith('Please enter a valid target value');
         });
 
         it('should show error for item with zero scaling', () => {
@@ -285,9 +275,7 @@ describe('Calculator Module - DOM Functions', () => {
 
             calculateBreakpoint();
 
-            expect(mockToastWarning).toHaveBeenCalledWith(
-                'Invalid scaling value for this item'
-            );
+            expect(mockToastWarning).toHaveBeenCalledWith('Invalid scaling value for this item');
         });
 
         it('should display result div on successful calculation', () => {

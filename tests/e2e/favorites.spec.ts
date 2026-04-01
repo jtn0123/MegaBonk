@@ -15,7 +15,10 @@ test.describe('Favorites', () => {
     test.beforeEach(async ({ page }) => {
         // Clear localStorage to start fresh
         await page.goto('/');
-        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
+        await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL');
+        });
         await page.reload();
         // Navigate to weapons tab (items tab doesn't have favorite buttons)
         await page.click('.tab-btn[data-tab="weapons"]');

@@ -235,9 +235,7 @@ export function createMockGameData(options: MockGameDataOptions = {}): AllGameDa
         shrines: {
             version,
             last_updated: lastUpdated,
-            shrines: options.shrines ?? [
-                createMockShrine({ id: 'shrine_power', name: 'Shrine of Power' }),
-            ],
+            shrines: options.shrines ?? [createMockShrine({ id: 'shrine_power', name: 'Shrine of Power' })],
         },
         stats: {
             version,

@@ -191,7 +191,7 @@ export function renderAbout(): void {
     // Wire up What's New button
     const whatsNewBtn = document.getElementById('about-whats-new-btn');
     if (whatsNewBtn) {
-        whatsNewBtn.addEventListener('click', (e) => {
+        whatsNewBtn.addEventListener('click', e => {
             e.preventDefault();
             showWhatsNewModal();
         });

@@ -5,6 +5,7 @@
 // Handles variable UI layouts and item counts
 // ========================================
 
+import { logger } from './logger.ts';
 import type {
     ScreenRegions,
     RegionOfInterest,
@@ -572,11 +573,7 @@ function debugLog(category: string, message: string, data?: unknown): void {
         debugLogs.shift();
     }
 
-    console.groupCollapsed(`[RegionDetector:${category}] ${message}`);
-    if (data) {
-        console.table(data);
-    }
-    console.groupEnd();
+    logger.debug({ operation: `region_detector.${category}`, data: { message, detail: data } });
 }
 
 /**

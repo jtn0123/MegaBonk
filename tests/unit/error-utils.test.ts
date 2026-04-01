@@ -357,9 +357,13 @@ describe('tryOrDefault', () => {
     });
 
     it('should log warning when operation provided', () => {
-        tryOrDefault(() => {
-            throw new Error('Logged fail');
-        }, 'default', 'test.operation');
+        tryOrDefault(
+            () => {
+                throw new Error('Logged fail');
+            },
+            'default',
+            'test.operation'
+        );
 
         expect(logger.warn).toHaveBeenCalledWith(
             expect.objectContaining({
@@ -392,11 +396,7 @@ describe('tryOrDefault', () => {
     });
 
     it('should handle JSON parse errors', () => {
-        const result = tryOrDefault(
-            () => JSON.parse('invalid json'),
-            {},
-            'json.parse'
-        );
+        const result = tryOrDefault(() => JSON.parse('invalid json'), {}, 'json.parse');
 
         expect(result).toEqual({});
         expect(logger.warn).toHaveBeenCalled();
@@ -405,11 +405,7 @@ describe('tryOrDefault', () => {
     it('should handle property access errors', () => {
         const obj: { nested?: { value: number } } = {};
 
-        const result = tryOrDefault(
-            () => obj.nested!.value,
-            -1,
-            'property.access'
-        );
+        const result = tryOrDefault(() => obj.nested!.value, -1, 'property.access');
 
         expect(result).toBe(-1);
     });
@@ -425,32 +421,23 @@ describe('tryOrDefaultAsync', () => {
     });
 
     it('should return async function result on success', async () => {
-        const result = await tryOrDefaultAsync(
-            async () => 'async-success',
-            'default'
-        );
+        const result = await tryOrDefaultAsync(async () => 'async-success', 'default');
 
         expect(result).toBe('async-success');
     });
 
     it('should return default on async error', async () => {
-        const result = await tryOrDefaultAsync(
-            async () => {
-                throw new Error('Async fail');
-            },
-            'default'
-        );
+        const result = await tryOrDefaultAsync(async () => {
+            throw new Error('Async fail');
+        }, 'default');
 
         expect(result).toBe('default');
     });
 
     it('should not log when no operation provided', async () => {
-        await tryOrDefaultAsync(
-            async () => {
-                throw new Error('Fail');
-            },
-            'default'
-        );
+        await tryOrDefaultAsync(async () => {
+            throw new Error('Fail');
+        }, 'default');
 
         expect(logger.warn).not.toHaveBeenCalled();
     });
@@ -476,32 +463,22 @@ describe('tryOrDefaultAsync', () => {
             throw new Error('Network error');
         };
 
-        const result = await tryOrDefaultAsync(
-            mockFetch,
-            { error: true, data: null },
-            'api.fetch'
-        );
+        const result = await tryOrDefaultAsync(mockFetch, { error: true, data: null }, 'api.fetch');
 
         expect(result).toEqual({ error: true, data: null });
     });
 
     it('should handle rejected promises', async () => {
-        const result = await tryOrDefaultAsync(
-            () => Promise.reject(new Error('Rejected')),
-            'fallback'
-        );
+        const result = await tryOrDefaultAsync(() => Promise.reject(new Error('Rejected')), 'fallback');
 
         expect(result).toBe('fallback');
     });
 
     it('should handle async operations with delay', async () => {
-        const result = await tryOrDefaultAsync(
-            async () => {
-                await new Promise(resolve => setTimeout(resolve, 10));
-                return 'delayed-success';
-            },
-            'default'
-        );
+        const result = await tryOrDefaultAsync(async () => {
+            await new Promise(resolve => setTimeout(resolve, 10));
+            return 'delayed-success';
+        }, 'default');
 
         expect(result).toBe('delayed-success');
     });
@@ -536,11 +513,7 @@ describe('Error Utils Integration', () => {
         const loadData = withErrorLogging(
             'data.load',
             async () => {
-                const rawData = tryOrDefault(
-                    () => JSON.parse('{"value": 42}'),
-                    { value: 0 },
-                    'data.parse'
-                );
+                const rawData = tryOrDefault(() => JSON.parse('{"value": 42}'), { value: 0 }, 'data.parse');
 
                 if (rawData.value === 0) {
                     throw new Error('Invalid data');
@@ -560,11 +533,7 @@ describe('Error Utils Integration', () => {
     it('should handle nested errors gracefully', async () => {
         const processData = async () => {
             // First try with invalid JSON
-            const step1 = tryOrDefault(
-                () => JSON.parse('invalid'),
-                null,
-                'step1.parse'
-            );
+            const step1 = tryOrDefault(() => JSON.parse('invalid'), null, 'step1.parse');
 
             if (!step1) {
                 // Fallback to tryOrDefaultAsync
@@ -594,13 +563,7 @@ describe('Error Utils Integration', () => {
         };
 
         // Test various error types
-        const testCases = [
-            new Error('Standard'),
-            new TypeError('Type'),
-            'string error',
-            { custom: 'object' },
-            null,
-        ];
+        const testCases = [new Error('Standard'), new TypeError('Type'), 'string error', { custom: 'object' }, null];
 
         testCases.forEach((error, index) => {
             const info = extractErrorInfo(error);

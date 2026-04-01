@@ -151,12 +151,10 @@ function createSearchResultCard(result: GlobalSearchResult): HTMLElement {
     const description = getItemDescription(item, type);
 
     // Generate image or icon
-    let imageHtml = '';
-    if (type === 'shrines' && 'icon' in item) {
-        imageHtml = `<span class="search-result-icon">${(item as Shrine).icon}</span>`;
-    } else {
-        imageHtml = generateEntityImage(item as Entity, name);
-    }
+    const imageHtml =
+        type === 'shrines' && 'icon' in item
+            ? `<span class="search-result-icon">${(item as Shrine).icon}</span>`
+            : generateEntityImage(item as Entity, name);
 
     card.innerHTML = `
         <div class="search-result-content">

@@ -40,9 +40,7 @@ describe('Bug #1: Item synergies_weapons field does not exist - FIXED', () => {
 
     it('should confirm items DO NOT have synergies_weapons field', () => {
         // Validate that no item in the data has synergies_weapons
-        const itemsWithSynergiesWeapons = itemsData.items.filter(
-            (item: any) => item.synergies_weapons !== undefined
-        );
+        const itemsWithSynergiesWeapons = itemsData.items.filter((item: any) => item.synergies_weapons !== undefined);
         expect(itemsWithSynergiesWeapons.length).toBe(0);
     });
 
@@ -213,8 +211,8 @@ describe('Bug #9: Sir Chadwell references "cursed Grabbies" which may not exist'
     const charactersData = loadJsonFile('characters.json');
 
     it('should confirm character references potentially non-existent item', () => {
-        const sirChadwell = charactersData.characters.find((c: any) =>
-            c.name && c.name.toLowerCase().includes('chadwell')
+        const sirChadwell = charactersData.characters.find(
+            (c: any) => c.name && c.name.toLowerCase().includes('chadwell')
         );
         // Document the reference for future validation
         expect(true).toBe(true);
@@ -256,17 +254,12 @@ describe('Bug #11: Data version mismatch between files', () => {
 
     it('should check if all data files have consistent versions', () => {
         // Different versions indicate potential sync issues
-        const versions = [
-            itemsData.version,
-            weaponsData.version,
-            tomesData.version,
-            charactersData.version,
-        ];
+        const versions = [itemsData.version, weaponsData.version, tomesData.version, charactersData.version];
 
         // Log versions for review - different versions may indicate issues
-        const allSame = versions.every((v) => v === versions[0]);
+        const allSame = versions.every(v => v === versions[0]);
         // This may or may not be a bug - documenting for awareness
-        expect(versions.every((v) => v !== undefined)).toBe(true);
+        expect(versions.every(v => v !== undefined)).toBe(true);
     });
 });
 
@@ -274,9 +267,7 @@ describe('Bug #12: Items with stack_cap=1 marked as stacks_well=true', () => {
     const itemsData = loadJsonFile('items.json');
 
     it('should find items with contradictory stacking flags', () => {
-        const contradictory = itemsData.items.filter(
-            (item: any) => item.stack_cap === 1 && item.stacks_well === true
-        );
+        const contradictory = itemsData.items.filter((item: any) => item.stack_cap === 1 && item.stacks_well === true);
 
         // An item that caps at 1 shouldn't "stack well"
         // This is a data consistency issue
@@ -288,9 +279,7 @@ describe('Bug #13: one_and_done items with stacks_well=true', () => {
     const itemsData = loadJsonFile('items.json');
 
     it('should find one_and_done items incorrectly marked as stacks_well', () => {
-        const buggy = itemsData.items.filter(
-            (item: any) => item.one_and_done === true && item.stacks_well === true
-        );
+        const buggy = itemsData.items.filter((item: any) => item.one_and_done === true && item.stacks_well === true);
 
         // one_and_done should never have stacks_well=true
         expect(buggy.length).toBe(0); // If this fails, there's a data bug
@@ -509,9 +498,7 @@ describe('Bug #25: Empty synergies array handling', () => {
     const itemsData = loadJsonFile('items.json');
 
     it('should identify items with empty synergies arrays', () => {
-        const emptyArrayItems = itemsData.items.filter(
-            (item: any) => item.synergies && item.synergies.length === 0
-        );
+        const emptyArrayItems = itemsData.items.filter((item: any) => item.synergies && item.synergies.length === 0);
 
         // Empty arrays should perhaps be undefined instead
         expect(emptyArrayItems.length).toBeGreaterThanOrEqual(0);
@@ -576,9 +563,7 @@ describe('Bug #28: Graph type validation - undocumented values exist', () => {
     });
 
     it('should confirm capped_chance is a valid graph type in data', () => {
-        const itemsWithCappedChance = itemsData.items.filter(
-            (item: any) => item.graph_type === 'capped_chance'
-        );
+        const itemsWithCappedChance = itemsData.items.filter((item: any) => item.graph_type === 'capped_chance');
 
         // capped_chance exists in data but may not be handled by chart code
         expect(itemsWithCappedChance.length).toBeGreaterThanOrEqual(0);

@@ -189,7 +189,8 @@ describe('mobile-filter-logic', () => {
         });
 
         it('should not count default select values', () => {
-            document.body.innerHTML = '<select id="sort"><option value="all" selected>All</option><option value="name">Name</option></select>';
+            document.body.innerHTML =
+                '<select id="sort"><option value="all" selected>All</option><option value="name">Name</option></select>';
             vi.mocked(getState).mockReturnValue('items');
             const tabFilters: Record<string, FilterConfig[]> = {
                 items: [{ id: 'sort', label: 'Sort', type: 'select' }],

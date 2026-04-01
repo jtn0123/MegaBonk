@@ -12,14 +12,20 @@ test.describe('Random Build Generator', () => {
     test.beforeEach(async ({ page }) => {
         // Clear localStorage and navigate to build planner tab
         await page.goto('/');
-        await page.evaluate(() => { localStorage.clear(); localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL'); });
+        await page.evaluate(() => {
+            localStorage.clear();
+            localStorage.setItem('megabonk-last-seen-version', 'DISMISS_ALL');
+        });
         await page.reload();
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
         await page.click('.tab-btn[data-tab="build-planner"]');
-        await page.waitForFunction(() => {
-            const select = document.getElementById('build-character');
-            return select && select.options.length > 1;
-        }, { timeout: 5000 });
+        await page.waitForFunction(
+            () => {
+                const select = document.getElementById('build-character');
+                return select && select.options.length > 1;
+            },
+            { timeout: 5000 }
+        );
     });
 
     /**
@@ -103,7 +109,7 @@ test.describe('Random Build Generator', () => {
 
             const constraints = page.locator('.constraint-toggle');
             const count = await constraints.count();
-            
+
             expect(count).toBeGreaterThanOrEqual(4);
         });
 
@@ -148,7 +154,7 @@ test.describe('Random Build Generator', () => {
             test.skip(!hasUI, 'Random build UI not available');
 
             const noLegendaryToggle = page.locator('.constraint-toggle[data-constraint="noLegendary"] input');
-            
+
             // Initially unchecked
             await expect(noLegendaryToggle).not.toBeChecked();
 
@@ -236,11 +242,11 @@ test.describe('Random Build Generator', () => {
             // Verify the build analysis section is visible and selections were made
             const buildAnalysis = page.locator('.build-analysis');
             await expect(buildAnalysis).toBeVisible();
-            
+
             // Verify character and weapon are selected (confirming the UI responded)
             await expect(page.locator('#build-character')).not.toHaveValue('');
             await expect(page.locator('#build-weapon')).not.toHaveValue('');
-            
+
             // The stats area should be present (may or may not have calculated stats)
             const statsDisplay = page.locator('#build-stats');
             await expect(statsDisplay).toBeVisible();
@@ -261,7 +267,7 @@ test.describe('Random Build Generator', () => {
         test('characters data is loaded for random selection', async ({ page }) => {
             const characterOptions = page.locator('#build-character option');
             const count = await characterOptions.count();
-            
+
             // Should have more than just the default option
             expect(count).toBeGreaterThan(1);
         });
@@ -269,34 +275,34 @@ test.describe('Random Build Generator', () => {
         test('weapons data is loaded for random selection', async ({ page }) => {
             const weaponOptions = page.locator('#build-weapon option');
             const count = await weaponOptions.count();
-            
+
             expect(count).toBeGreaterThan(1);
         });
 
         test('tomes data is loaded for random selection', async ({ page }) => {
             const tomeCheckboxes = page.locator('#tomes-selection input[type="checkbox"]');
             const count = await tomeCheckboxes.count();
-            
+
             expect(count).toBeGreaterThan(0);
         });
 
         test('items data is loaded for random selection', async ({ page }) => {
             const itemCheckboxes = page.locator('#items-selection input[type="checkbox"]');
             const count = await itemCheckboxes.count();
-            
+
             expect(count).toBeGreaterThan(0);
         });
 
         test('characters have tier information', async ({ page }) => {
             const firstOptionText = await page.locator('#build-character option').nth(1).textContent();
-            
+
             // Should include tier in the option text
             expect(firstOptionText).toMatch(/\(.*Tier\)/);
         });
 
         test('weapons have tier information', async ({ page }) => {
             const firstOptionText = await page.locator('#build-weapon option').nth(1).textContent();
-            
+
             expect(firstOptionText).toMatch(/\(.*Tier\)/);
         });
     });
@@ -313,7 +319,7 @@ test.describe('Random Build Generator', () => {
 
             const ssItems = page.locator('#itemsContainer .item-card');
             const count = await ssItems.count();
-            
+
             // Should have SS tier items
             expect(count).toBeGreaterThan(0);
         });
@@ -327,7 +333,7 @@ test.describe('Random Build Generator', () => {
 
             const legendaryItems = page.locator('#itemsContainer .item-card');
             const count = await legendaryItems.count();
-            
+
             expect(count).toBeGreaterThan(0);
         });
 
@@ -340,7 +346,7 @@ test.describe('Random Build Generator', () => {
 
             const bTierItems = page.locator('#itemsContainer .item-card');
             const count = await bTierItems.count();
-            
+
             expect(count).toBeGreaterThan(0);
         });
 
@@ -353,7 +359,7 @@ test.describe('Random Build Generator', () => {
 
             const cTierItems = page.locator('#itemsContainer .item-card');
             const count = await cTierItems.count();
-            
+
             expect(count).toBeGreaterThan(0);
         });
 
@@ -362,15 +368,15 @@ test.describe('Random Build Generator', () => {
             await page.waitForSelector('#itemsContainer .item-card', { timeout: 10000 });
 
             const stackingFilter = page.locator('#stackingFilter');
-            const hasFilter = await stackingFilter.count() > 0;
-            
+            const hasFilter = (await stackingFilter.count()) > 0;
+
             if (hasFilter) {
                 await page.selectOption('#stackingFilter', 'one_and_done');
                 await page.waitForTimeout(200);
 
                 const oneAndDoneItems = page.locator('#itemsContainer .item-card');
                 const count = await oneAndDoneItems.count();
-                
+
                 expect(count).toBeGreaterThan(0);
             }
         });
@@ -398,7 +404,7 @@ test.describe('Random Build Generator', () => {
 
             const selectedChar = await page.locator('#build-character').inputValue();
             const selectedWeapon = await page.locator('#build-weapon').inputValue();
-            
+
             // Verify initial selections were made
             expect(selectedChar).toBeTruthy();
             expect(selectedWeapon).toBeTruthy();
@@ -415,7 +421,7 @@ test.describe('Random Build Generator', () => {
             const weaponSelect = page.locator('#build-weapon');
             await expect(characterSelect).toBeVisible();
             await expect(weaponSelect).toBeVisible();
-            
+
             // Verify we can make new selections after tab switch
             await page.selectOption('#build-character', { index: 2 });
             await expect(page.locator('#build-character')).not.toHaveValue('');
@@ -424,8 +430,8 @@ test.describe('Random Build Generator', () => {
         test('rapid selections do not corrupt state', async ({ page }) => {
             // Rapidly change selections
             for (let i = 1; i <= 5; i++) {
-                await page.selectOption('#build-character', { index: i % 4 + 1 });
-                await page.selectOption('#build-weapon', { index: i % 4 + 1 });
+                await page.selectOption('#build-character', { index: (i % 4) + 1 });
+                await page.selectOption('#build-weapon', { index: (i % 4) + 1 });
             }
 
             // Final state should be valid

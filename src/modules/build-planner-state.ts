@@ -8,10 +8,7 @@ import { ToastManager } from './toast.ts';
 import { MAX_BUILD_HISTORY } from './constants.ts';
 import { logger } from './logger.ts';
 import { getState, setState, type Build } from './store.ts';
-import {
-    isValidBuildEntry,
-    type BuildData,
-} from './build-validation.ts';
+import { isValidBuildEntry, type BuildData } from './build-validation.ts';
 
 // ========================================
 // Build Templates
@@ -128,10 +125,15 @@ export function getBuildHistory(): BuildData[] {
             return [];
         }
 
-        if (!parsed.every((b: unknown) => b && typeof b === 'object' && 'character' in (b as Record<string, unknown>))) {
+        if (
+            !parsed.every((b: unknown) => b && typeof b === 'object' && 'character' in (b as Record<string, unknown>))
+        ) {
             logger.warn({
                 operation: 'build.history',
-                error: { name: 'ValidationError', message: 'Build history contains entries without character field, clearing corrupt data' },
+                error: {
+                    name: 'ValidationError',
+                    message: 'Build history contains entries without character field, clearing corrupt data',
+                },
             });
             localStorage.removeItem(BUILD_HISTORY_KEY);
             return [];
@@ -179,7 +181,11 @@ export function saveBuildToHistory(): void {
         } catch (e) {
             if (e instanceof DOMException && e.name === 'QuotaExceededError') {
                 history.splice(0, Math.ceil(history.length / 2));
-                try { localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history)); } catch {}
+                try {
+                    localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(history));
+                } catch {
+                    // Silently ignore: storage is full even after trimming history
+                }
             }
         }
 
@@ -208,7 +214,7 @@ export function deleteBuildFromHistory(index: number): void {
             return;
         }
 
-        let history = getBuildHistory();
+        const history = getBuildHistory();
         if (index < 0 || index >= history.length) {
             ToastManager.error('Build not found in history');
             return;

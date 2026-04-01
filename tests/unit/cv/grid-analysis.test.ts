@@ -24,7 +24,11 @@ import type { AutoGridConfig, BandRegion, CellEdge } from '../../../src/modules/
 // Helpers
 // ========================================
 
-function createMockCanvas(width: number, height: number, pixelFn?: (x: number, y: number) => [number, number, number, number]) {
+function createMockCanvas(
+    width: number,
+    height: number,
+    pixelFn?: (x: number, y: number) => [number, number, number, number]
+) {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;

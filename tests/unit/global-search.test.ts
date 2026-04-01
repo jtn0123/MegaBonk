@@ -10,51 +10,56 @@ import type { AllGameData, Item, Weapon, Tome, Character, Shrine } from '../../s
 // Test Fixtures
 // ========================================
 
-const createItem = (overrides: Partial<Item> = {}): Item => ({
-    id: 'test_item',
-    name: 'Test Item',
-    tier: 'A',
-    rarity: 'common',
-    description: 'A test item description',
-    effect: 'Test effect',
-    ...overrides,
-} as Item);
+const createItem = (overrides: Partial<Item> = {}): Item =>
+    ({
+        id: 'test_item',
+        name: 'Test Item',
+        tier: 'A',
+        rarity: 'common',
+        description: 'A test item description',
+        effect: 'Test effect',
+        ...overrides,
+    }) as Item;
 
-const createWeapon = (overrides: Partial<Weapon> = {}): Weapon => ({
-    id: 'test_weapon',
-    name: 'Test Weapon',
-    tier: 'A',
-    rarity: 'common',
-    description: 'A test weapon',
-    ...overrides,
-} as Weapon);
+const createWeapon = (overrides: Partial<Weapon> = {}): Weapon =>
+    ({
+        id: 'test_weapon',
+        name: 'Test Weapon',
+        tier: 'A',
+        rarity: 'common',
+        description: 'A test weapon',
+        ...overrides,
+    }) as Weapon;
 
-const createTome = (overrides: Partial<Tome> = {}): Tome => ({
-    id: 'test_tome',
-    name: 'Test Tome',
-    tier: 'A',
-    rarity: 'common',
-    description: 'A test tome',
-    ...overrides,
-} as Tome);
+const createTome = (overrides: Partial<Tome> = {}): Tome =>
+    ({
+        id: 'test_tome',
+        name: 'Test Tome',
+        tier: 'A',
+        rarity: 'common',
+        description: 'A test tome',
+        ...overrides,
+    }) as Tome;
 
-const createCharacter = (overrides: Partial<Character> = {}): Character => ({
-    id: 'test_char',
-    name: 'Test Character',
-    tier: 'A',
-    rarity: 'common',
-    description: 'A test character',
-    ...overrides,
-} as Character);
+const createCharacter = (overrides: Partial<Character> = {}): Character =>
+    ({
+        id: 'test_char',
+        name: 'Test Character',
+        tier: 'A',
+        rarity: 'common',
+        description: 'A test character',
+        ...overrides,
+    }) as Character;
 
-const createShrine = (overrides: Partial<Shrine> = {}): Shrine => ({
-    id: 'test_shrine',
-    name: 'Test Shrine',
-    tier: 'A',
-    rarity: 'common',
-    description: 'A test shrine',
-    ...overrides,
-} as Shrine);
+const createShrine = (overrides: Partial<Shrine> = {}): Shrine =>
+    ({
+        id: 'test_shrine',
+        name: 'Test Shrine',
+        tier: 'A',
+        rarity: 'common',
+        description: 'A test shrine',
+        ...overrides,
+    }) as Shrine;
 
 const createAllData = (overrides: Partial<AllGameData> = {}): AllGameData => ({
     items: {
@@ -67,18 +72,12 @@ const createAllData = (overrides: Partial<AllGameData> = {}): AllGameData => ({
         last_updated: '2024-01-01',
     },
     weapons: {
-        weapons: [
-            createWeapon({ id: 'axe', name: 'Battle Axe' }),
-            createWeapon({ id: 'bow', name: 'Long Bow' }),
-        ],
+        weapons: [createWeapon({ id: 'axe', name: 'Battle Axe' }), createWeapon({ id: 'bow', name: 'Long Bow' })],
         version: '1.0',
         last_updated: '2024-01-01',
     },
     tomes: {
-        tomes: [
-            createTome({ id: 'fire', name: 'Fire Tome' }),
-            createTome({ id: 'ice', name: 'Ice Tome' }),
-        ],
+        tomes: [createTome({ id: 'fire', name: 'Fire Tome' }), createTome({ id: 'ice', name: 'Ice Tome' })],
         version: '1.0',
         last_updated: '2024-01-01',
     },
@@ -121,7 +120,7 @@ describe('Global Search Module', () => {
         it('should find items by name', () => {
             const allData = createAllData();
             const results = globalSearch('Sword', allData);
-            
+
             expect(results.length).toBeGreaterThan(0);
             expect(results.some(r => r.item.name === 'Sword of Power')).toBe(true);
         });
@@ -129,7 +128,7 @@ describe('Global Search Module', () => {
         it('should find weapons by name', () => {
             const allData = createAllData();
             const results = globalSearch('Axe', allData);
-            
+
             expect(results.some(r => r.item.name === 'Battle Axe')).toBe(true);
             expect(results.some(r => r.type === 'weapons')).toBe(true);
         });
@@ -137,7 +136,7 @@ describe('Global Search Module', () => {
         it('should find tomes by name', () => {
             const allData = createAllData();
             const results = globalSearch('Fire', allData);
-            
+
             expect(results.some(r => r.item.name === 'Fire Tome')).toBe(true);
             expect(results.some(r => r.type === 'tomes')).toBe(true);
         });
@@ -145,7 +144,7 @@ describe('Global Search Module', () => {
         it('should find characters by name', () => {
             const allData = createAllData();
             const results = globalSearch('Warrior', allData);
-            
+
             expect(results.some(r => r.item.name === 'Warrior')).toBe(true);
             expect(results.some(r => r.type === 'characters')).toBe(true);
         });
@@ -153,18 +152,18 @@ describe('Global Search Module', () => {
         it('should find shrines by name', () => {
             const allData = createAllData();
             const results = globalSearch('Health', allData);
-            
+
             expect(results.some(r => r.item.name === 'Health Shrine')).toBe(true);
             expect(results.some(r => r.type === 'shrines')).toBe(true);
         });
 
         it('should be case insensitive', () => {
             const allData = createAllData();
-            
+
             const lower = globalSearch('sword', allData);
             const upper = globalSearch('SWORD', allData);
             const mixed = globalSearch('SwOrD', allData);
-            
+
             expect(lower.length).toBe(upper.length);
             expect(lower.length).toBe(mixed.length);
         });
@@ -172,7 +171,7 @@ describe('Global Search Module', () => {
         it('should return results sorted by score', () => {
             const allData = createAllData();
             const results = globalSearch('Sword', allData);
-            
+
             // Results should be sorted by score (descending)
             for (let i = 1; i < results.length; i++) {
                 expect(results[i - 1].score).toBeGreaterThanOrEqual(results[i].score);
@@ -187,9 +186,9 @@ describe('Global Search Module', () => {
         it('should return results with correct structure', () => {
             const allData = createAllData();
             const results = globalSearch('Sword', allData);
-            
+
             expect(results.length).toBeGreaterThan(0);
-            
+
             const result = results[0];
             expect(result).toHaveProperty('type');
             expect(result).toHaveProperty('item');
@@ -199,9 +198,9 @@ describe('Global Search Module', () => {
         it('should have valid type for each result', () => {
             const allData = createAllData();
             const results = globalSearch('test', allData);
-            
+
             const validTypes = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
-            
+
             results.forEach(result => {
                 expect(validTypes).toContain(result.type);
             });
@@ -210,7 +209,7 @@ describe('Global Search Module', () => {
         it('should have positive scores for matches', () => {
             const allData = createAllData();
             const results = globalSearch('Sword', allData);
-            
+
             results.forEach(result => {
                 expect(result.score).toBeGreaterThan(0);
             });
@@ -249,9 +248,9 @@ describe('Global Search Module', () => {
                     last_updated: '',
                 },
             };
-            
+
             const results = globalSearch('Alpha', allData);
-            
+
             // Should find matches in all 5 types
             const types = new Set(results.map(r => r.type));
             expect(types.size).toBe(5);
@@ -268,13 +267,13 @@ describe('Global Search Module', () => {
                     last_updated: '',
                 },
             };
-            
+
             const results = globalSearch('Sword', allData);
-            
+
             // Exact match should have higher score
             const exactMatch = results.find(r => r.item.name === 'Sword');
             const partialMatch = results.find(r => r.item.name === 'Sword of Power');
-            
+
             if (exactMatch && partialMatch) {
                 expect(exactMatch.score).toBeGreaterThanOrEqual(partialMatch.score);
             }
@@ -293,7 +292,7 @@ describe('Global Search Module', () => {
                 characters: undefined,
                 shrines: undefined,
             };
-            
+
             const results = globalSearch('test', allData);
             expect(results).toEqual([]);
         });
@@ -306,14 +305,14 @@ describe('Global Search Module', () => {
                 characters: { characters: [], version: '1.0', last_updated: '' },
                 shrines: { shrines: [], version: '1.0', last_updated: '' },
             };
-            
+
             const results = globalSearch('test', allData);
             expect(results).toEqual([]);
         });
 
         it('should handle special characters in query', () => {
             const allData = createAllData();
-            
+
             // Should not throw
             expect(() => globalSearch('test!@#$%', allData)).not.toThrow();
             expect(() => globalSearch('[regex]', allData)).not.toThrow();
@@ -322,7 +321,7 @@ describe('Global Search Module', () => {
         it('should handle very long queries', () => {
             const allData = createAllData();
             const longQuery = 'a'.repeat(1000);
-            
+
             // Should not throw and return empty (no match)
             const results = globalSearch(longQuery, allData);
             expect(Array.isArray(results)).toBe(true);
@@ -337,17 +336,17 @@ describe('Global Search Module', () => {
                 },
                 // Other types undefined
             };
-            
+
             const results = globalSearch('Found', allData);
             expect(results.length).toBeGreaterThan(0);
         });
 
         it('should handle query with leading/trailing whitespace', () => {
             const allData = createAllData();
-            
+
             const normal = globalSearch('Sword', allData);
             const padded = globalSearch('  Sword  ', allData);
-            
+
             expect(normal.length).toBe(padded.length);
         });
     });
@@ -370,7 +369,7 @@ describe('Global Search Module', () => {
                     last_updated: '',
                 },
             };
-            
+
             // 'z' doesn't appear in 'Test'
             const results = globalSearch('z', allData);
             expect(results).toEqual([]);

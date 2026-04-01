@@ -152,18 +152,16 @@ describe('Breadcrumbs Module', () => {
             expect(breadcrumbs[2].message).toBe('Fifth');
         });
 
-        it('should log to console when enableConsoleLog is true', () => {
-            const consoleSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+        it('should log to console when enableConsoleLog is true', async () => {
+            const { logger } = await import('../../src/modules/logger.ts');
             configureBreadcrumbs({ enableConsoleLog: true });
 
             addBreadcrumb('navigation', 'Test message', { key: 'value' });
 
-            expect(consoleSpy).toHaveBeenCalledWith(
-                '[Breadcrumb]',
-                'navigation',
-                'Test message',
-                { key: 'value' }
-            );
+            expect(logger.debug).toHaveBeenCalledWith({
+                operation: 'breadcrumb.add',
+                data: { type: 'navigation', message: 'Test message', breadcrumbData: { key: 'value' } },
+            });
         });
     });
 
@@ -187,7 +185,7 @@ describe('Breadcrumbs Module', () => {
         it('should return breadcrumbs within time range', () => {
             // Add breadcrumb now
             addBreadcrumb('navigation', 'Recent');
-            
+
             // All within last minute should be returned
             const recent = getRecentBreadcrumbs(60000);
             expect(recent).toHaveLength(1);
@@ -202,7 +200,7 @@ describe('Breadcrumbs Module', () => {
         it('should filter out old breadcrumbs', () => {
             // This test relies on the timestamp being recent
             addBreadcrumb('navigation', 'Recent');
-            
+
             // Requesting only last 1ms should exclude it (unless added in last ms)
             // For safety, we just verify the filter is applied
             const recent = getRecentBreadcrumbs(1);

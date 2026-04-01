@@ -436,9 +436,7 @@ describe('Region Detector Module', () => {
     describe('detectOccupiedSlots', () => {
         it('should mark uniform slots as unoccupied', () => {
             const regions = detectScreenRegions(100, 100);
-            const slots = [
-                { index: 0, x: 10, y: 10, width: 20, height: 20, occupied: false },
-            ];
+            const slots = [{ index: 0, x: 10, y: 10, width: 20, height: 20, occupied: false }];
             const imageData = createMockImageData(100, 100, 128);
 
             const result = detectOccupiedSlots(imageData, slots);
@@ -447,9 +445,7 @@ describe('Region Detector Module', () => {
         });
 
         it('should mark varied slots as occupied', () => {
-            const slots = [
-                { index: 0, x: 0, y: 0, width: 50, height: 50, occupied: false },
-            ];
+            const slots = [{ index: 0, x: 0, y: 0, width: 50, height: 50, occupied: false }];
             const imageData = createVariedImageData(100, 100);
 
             const result = detectOccupiedSlots(imageData, slots, 10);
@@ -458,9 +454,7 @@ describe('Region Detector Module', () => {
         });
 
         it('should preserve slot properties', () => {
-            const slots = [
-                { index: 5, x: 10, y: 20, width: 30, height: 40, occupied: false },
-            ];
+            const slots = [{ index: 5, x: 10, y: 20, width: 30, height: 40, occupied: false }];
             const imageData = createMockImageData(100, 100);
 
             const result = detectOccupiedSlots(imageData, slots);
@@ -471,9 +465,7 @@ describe('Region Detector Module', () => {
         });
 
         it('should add variance property', () => {
-            const slots = [
-                { index: 0, x: 0, y: 0, width: 20, height: 20, occupied: false },
-            ];
+            const slots = [{ index: 0, x: 0, y: 0, width: 20, height: 20, occupied: false }];
             const imageData = createMockImageData(100, 100);
 
             const result = detectOccupiedSlots(imageData, slots);
@@ -482,9 +474,7 @@ describe('Region Detector Module', () => {
         });
 
         it('should respect custom variance threshold', () => {
-            const slots = [
-                { index: 0, x: 0, y: 0, width: 50, height: 50, occupied: false },
-            ];
+            const slots = [{ index: 0, x: 0, y: 0, width: 50, height: 50, occupied: false }];
             const imageData = createVariedImageData(100, 100);
 
             const lowThreshold = detectOccupiedSlots(imageData, slots, 1);

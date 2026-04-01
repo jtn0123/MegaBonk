@@ -12,7 +12,9 @@ import {
 } from '../../../src/modules/cv/color-extraction';
 import { polyfillImageData, createImageData } from './test-helpers';
 
-beforeAll(() => { polyfillImageData(); });
+beforeAll(() => {
+    polyfillImageData();
+});
 
 // ========================================
 // Tests
@@ -38,7 +40,7 @@ describe('color-extraction', () => {
         });
 
         it('should return multiple colors for varied image', () => {
-            const imageData = createImageData(32, 32, (x) => {
+            const imageData = createImageData(32, 32, x => {
                 if (x < 16) return [255, 0, 0, 255];
                 return [0, 0, 255, 255];
             });
@@ -47,15 +49,13 @@ describe('color-extraction', () => {
         });
 
         it('should limit to numColors', () => {
-            const imageData = createImageData(32, 32, (x, y) => [
-                (x * 40) % 256, (y * 40) % 256, 100, 255,
-            ]);
+            const imageData = createImageData(32, 32, (x, y) => [(x * 40) % 256, (y * 40) % 256, 100, 255]);
             const colors = extractDominantColors(imageData, 3);
             expect(colors.length).toBeLessThanOrEqual(3);
         });
 
         it('should sort by frequency descending', () => {
-            const imageData = createImageData(32, 32, (x) => {
+            const imageData = createImageData(32, 32, x => {
                 if (x < 24) return [128, 0, 0, 255]; // More red
                 return [0, 128, 0, 255]; // Less green
             });

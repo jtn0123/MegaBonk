@@ -27,7 +27,8 @@ describe('toggleTextExpand - DOM Integration Tests', () => {
     });
 
     it('should expand truncated text', () => {
-        const fullText = 'This is a very long text that was truncated for display purposes and now needs to be expanded';
+        const fullText =
+            'This is a very long text that was truncated for display purposes and now needs to be expanded';
         const element = document.createElement('div');
         element.className = 'expandable-text';
         element.dataset.fullText = fullText;
@@ -43,7 +44,8 @@ describe('toggleTextExpand - DOM Integration Tests', () => {
     });
 
     it('should collapse expanded text', () => {
-        const fullText = 'This is a very long text that was truncated for display purposes and now needs to be collapsed after expansion. Extra text to ensure it is longer than 120 characters for the truncation to apply.';
+        const fullText =
+            'This is a very long text that was truncated for display purposes and now needs to be collapsed after expansion. Extra text to ensure it is longer than 120 characters for the truncation to apply.';
         const element = document.createElement('div');
         element.className = 'expandable-text expanded';
         element.dataset.fullText = fullText;
@@ -94,7 +96,8 @@ describe('toggleTextExpand - DOM Integration Tests', () => {
     });
 
     it('should show expand indicator on collapsed state', () => {
-        const fullText = 'This is a really long text that needs to exceed one hundred twenty characters to trigger truncation when collapsed. Adding more text here.';
+        const fullText =
+            'This is a really long text that needs to exceed one hundred twenty characters to trigger truncation when collapsed. Adding more text here.';
         const element = document.createElement('div');
         element.dataset.fullText = fullText;
         element.dataset.truncated = 'false';

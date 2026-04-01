@@ -61,7 +61,7 @@ interface TestResult {
 interface SensitivityAnalysis {
     parameter: string;
     category: string;
-    impactScore: number;      // How much F1 varies with this param (std dev)
+    impactScore: number; // How much F1 varies with this param (std dev)
     optimalValue: number;
     baselineValue: number;
     maxF1: number;
@@ -73,7 +73,7 @@ interface SensitivityAnalysis {
 
 /** Ground truth for a test image */
 interface GroundTruth {
-    items: string[];          // Item names present
+    items: string[]; // Item names present
     character?: string;
     weapon?: string;
     tomes?: string[];
@@ -112,11 +112,11 @@ const PARAMETERS: Parameter[] = [
         description: 'Minimum confidence to accept a detection',
         category: 'threshold',
         baseline: 0.72,
-        min: 0.50,
-        max: 0.90,
+        min: 0.5,
+        max: 0.9,
         step: 0.05,
         unit: '',
-        testValues: [0.50, 0.55, 0.60, 0.65, 0.70, 0.72, 0.75, 0.78, 0.80, 0.85, 0.90],
+        testValues: [0.5, 0.55, 0.6, 0.65, 0.7, 0.72, 0.75, 0.78, 0.8, 0.85, 0.9],
     },
     {
         name: 'pass1Threshold',
@@ -127,40 +127,40 @@ const PARAMETERS: Parameter[] = [
         max: 0.95,
         step: 0.02,
         unit: '',
-        testValues: [0.75, 0.78, 0.80, 0.82, 0.85, 0.88, 0.90, 0.92, 0.95],
+        testValues: [0.75, 0.78, 0.8, 0.82, 0.85, 0.88, 0.9, 0.92, 0.95],
     },
     {
         name: 'pass2Threshold',
         description: 'Medium-confidence second pass threshold',
         category: 'threshold',
-        baseline: 0.70,
+        baseline: 0.7,
         min: 0.55,
-        max: 0.80,
+        max: 0.8,
         step: 0.05,
         unit: '',
-        testValues: [0.55, 0.60, 0.65, 0.70, 0.72, 0.75, 0.78, 0.80],
+        testValues: [0.55, 0.6, 0.65, 0.7, 0.72, 0.75, 0.78, 0.8],
     },
     {
         name: 'pass3Threshold',
         description: 'Low-confidence third pass threshold',
         category: 'threshold',
-        baseline: 0.60,
-        min: 0.40,
-        max: 0.70,
+        baseline: 0.6,
+        min: 0.4,
+        max: 0.7,
         step: 0.05,
         unit: '',
-        testValues: [0.40, 0.45, 0.50, 0.55, 0.60, 0.65, 0.70],
+        testValues: [0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7],
     },
     {
         name: 'nmsIouThreshold',
         description: 'IoU threshold for non-maximum suppression',
         category: 'threshold',
-        baseline: 0.30,
-        min: 0.10,
-        max: 0.60,
+        baseline: 0.3,
+        min: 0.1,
+        max: 0.6,
         step: 0.05,
         unit: '',
-        testValues: [0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50, 0.55, 0.60],
+        testValues: [0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6],
     },
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -304,33 +304,33 @@ const PARAMETERS: Parameter[] = [
         description: 'Confidence boost for common items',
         category: 'matching',
         baseline: 0.03,
-        min: 0.00,
+        min: 0.0,
         max: 0.08,
         step: 0.01,
         unit: '',
-        testValues: [0.00, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08],
+        testValues: [0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.08],
     },
     {
         name: 'borderMatchBoost',
         description: 'Confidence boost when border rarity matches',
         category: 'matching',
         baseline: 1.05,
-        min: 1.00,
+        min: 1.0,
         max: 1.15,
         step: 0.02,
         unit: 'x',
-        testValues: [1.00, 1.02, 1.04, 1.05, 1.06, 1.08, 1.10, 1.15],
+        testValues: [1.0, 1.02, 1.04, 1.05, 1.06, 1.08, 1.1, 1.15],
     },
     {
         name: 'borderMismatchPenalty',
         description: 'Confidence penalty when border rarity mismatches',
         category: 'matching',
         baseline: 0.85,
-        min: 0.70,
+        min: 0.7,
         max: 0.95,
         step: 0.05,
         unit: 'x',
-        testValues: [0.70, 0.75, 0.80, 0.85, 0.90, 0.95],
+        testValues: [0.7, 0.75, 0.8, 0.85, 0.9, 0.95],
     },
 ];
 
@@ -343,7 +343,7 @@ const templatesByRarity = new Map<string, TemplateData[]>();
 const templatesByColor = new Map<string, TemplateData[]>();
 
 // Current parameter values (can be modified during testing)
-let currentParams = new Map<string, number>();
+const currentParams = new Map<string, number>();
 
 // Initialize with baseline values
 PARAMETERS.forEach(p => currentParams.set(p.name, p.baseline));
@@ -377,7 +377,10 @@ function resetToBaseline(): void {
 
 function getDominantColor(imageData: { data: Uint8ClampedArray; width: number; height: number }): string {
     const pixels = imageData.data;
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
 
     for (let i = 0; i < pixels.length; i += 16) {
         sumR += pixels[i] ?? 0;
@@ -422,7 +425,10 @@ function getDominantColor(imageData: { data: Uint8ClampedArray; width: number; h
 
 function calculateVariance(imageData: { data: Uint8ClampedArray; width: number; height: number }): number {
     const pixels = imageData.data;
-    let sumR = 0, sumG = 0, sumB = 0, count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0,
+        count = 0;
 
     for (let i = 0; i < pixels.length; i += 16) {
         sumR += pixels[i] ?? 0;
@@ -456,17 +462,27 @@ function isEmptyCell(imageData: { data: Uint8ClampedArray; width: number; height
 // ═══════════════════════════════════════════════════════════════════════════════
 
 function calculateNCC(data1: Uint8ClampedArray, data2: Uint8ClampedArray): number {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(data1.length, data2.length);
 
     for (let i = 0; i < len; i += 4) {
         const g1 = ((data1[i] ?? 0) + (data1[i + 1] ?? 0) + (data1[i + 2] ?? 0)) / 3;
         const g2 = ((data2[i] ?? 0) + (data2[i + 1] ?? 0) + (data2[i + 2] ?? 0)) / 3;
-        s1 += g1; s2 += g2; sp += g1 * g2;
-        ss1 += g1 * g1; ss2 += g2 * g2; c++;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
 
-    const m1 = s1 / c, m2 = s2 / c;
+    const m1 = s1 / c,
+        m2 = s2 / c;
     const num = sp / c - m1 * m2;
     const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
 
@@ -478,20 +494,25 @@ function calculateHistogramSimilarity(data1: Uint8ClampedArray, data2: Uint8Clam
     const binSize = 256 / bins;
     const hist1 = new Array(bins * bins * bins).fill(0);
     const hist2 = new Array(bins * bins * bins).fill(0);
-    let count1 = 0, count2 = 0;
+    let count1 = 0,
+        count2 = 0;
 
     for (let i = 0; i < data1.length; i += 4) {
-        const idx = Math.min(bins - 1, Math.floor((data1[i] ?? 0) / binSize)) * bins * bins +
-                    Math.min(bins - 1, Math.floor((data1[i + 1] ?? 0) / binSize)) * bins +
-                    Math.min(bins - 1, Math.floor((data1[i + 2] ?? 0) / binSize));
-        hist1[idx]++; count1++;
+        const idx =
+            Math.min(bins - 1, Math.floor((data1[i] ?? 0) / binSize)) * bins * bins +
+            Math.min(bins - 1, Math.floor((data1[i + 1] ?? 0) / binSize)) * bins +
+            Math.min(bins - 1, Math.floor((data1[i + 2] ?? 0) / binSize));
+        hist1[idx]++;
+        count1++;
     }
 
     for (let i = 0; i < data2.length; i += 4) {
-        const idx = Math.min(bins - 1, Math.floor((data2[i] ?? 0) / binSize)) * bins * bins +
-                    Math.min(bins - 1, Math.floor((data2[i + 1] ?? 0) / binSize)) * bins +
-                    Math.min(bins - 1, Math.floor((data2[i + 2] ?? 0) / binSize));
-        hist2[idx]++; count2++;
+        const idx =
+            Math.min(bins - 1, Math.floor((data2[i] ?? 0) / binSize)) * bins * bins +
+            Math.min(bins - 1, Math.floor((data2[i + 1] ?? 0) / binSize)) * bins +
+            Math.min(bins - 1, Math.floor((data2[i + 2] ?? 0) / binSize));
+        hist2[idx]++;
+        count2++;
     }
 
     for (let i = 0; i < hist1.length; i++) {
@@ -567,7 +588,7 @@ async function loadTemplates(): Promise<void> {
             const dominantColor = getDominantColor({
                 data: imageData.data,
                 width: img.width,
-                height: img.height
+                height: img.height,
             });
 
             const templateData: TemplateData = {
@@ -594,7 +615,6 @@ async function loadTemplates(): Promise<void> {
                 templatesByColor.set(dominantColor, []);
             }
             templatesByColor.get(dominantColor)!.push(templateData);
-
         } catch (err) {
             // Skip invalid images
         }
@@ -657,21 +677,21 @@ function createSampleGroundTruth(): void {
             instructions: [
                 'Add screenshot files to this directory',
                 'Update this JSON with item names visible in each screenshot',
-                'Items should be listed by their exact display name'
-            ]
+                'Items should be listed by their exact display name',
+            ],
         },
         'sample_720p.jpg': {
             resolution: '720p',
             items: ['Wrench', 'Battery', 'Medkit'],
             character: 'Tank',
-            weapon: 'Shotgun'
+            weapon: 'Shotgun',
         },
         'sample_1080p.jpg': {
             resolution: '1080p',
             items: ['Gym Sauce', 'Wrench', 'Battery', 'Scrap', 'Scrap'],
             character: 'Engineer',
-            weapon: 'SMG'
-        }
+            weapon: 'SMG',
+        },
     };
 
     const gtPath = path.join(gtDir, 'ground-truth.json');
@@ -732,7 +752,7 @@ async function runDetection(imagePath: string): Promise<Detection[]> {
             }
 
             // Extract center region (exclude border/count)
-            const margin = Math.round(iconSize * (1 - iconRegionPct) / 2);
+            const margin = Math.round((iconSize * (1 - iconRegionPct)) / 2);
             const regionSize = iconSize - margin * 2;
             const regionData = ctx.getImageData(x + margin, y + margin, regionSize, regionSize);
 
@@ -741,12 +761,10 @@ async function runDetection(imagePath: string): Promise<Detection[]> {
 
             // Color-based pre-filtering
             const cellColor = getDominantColor({ data: processedCell, width: regionSize, height: regionSize });
-            const candidates = [
-                ...(templatesByColor.get(cellColor) || []),
-                ...(templatesByColor.get('mixed') || [])
-            ];
+            const candidates = [...(templatesByColor.get(cellColor) || []), ...(templatesByColor.get('mixed') || [])];
 
-            const templatesToCheck = candidates.length > 0 ? candidates : Array.from(templateCache.values()).slice(0, 30);
+            const templatesToCheck =
+                candidates.length > 0 ? candidates : Array.from(templateCache.values()).slice(0, 30);
 
             // MEMORY FIX: Create temp canvas only when size changes
             if (regionSize !== lastRegionSize) {
@@ -765,11 +783,7 @@ async function runDetection(imagePath: string): Promise<Detection[]> {
 
                 // Clear and reuse the temp canvas
                 tempCtx.clearRect(0, 0, regionSize, regionSize);
-                tempCtx.drawImage(
-                    template.canvas,
-                    tMargin, tMargin, tSize, tSize,
-                    0, 0, regionSize, regionSize
-                );
+                tempCtx.drawImage(template.canvas, tMargin, tMargin, tSize, tSize, 0, 0, regionSize, regionSize);
                 const templateImageData = tempCtx.getImageData(0, 0, regionSize, regionSize);
                 const processedTemplate = enhanceContrast(templateImageData.data);
 
@@ -796,7 +810,8 @@ async function runDetection(imagePath: string): Promise<Detection[]> {
                     itemId: bestMatch.template.id,
                     itemName: bestMatch.template.name,
                     confidence: boostedConfidence,
-                    x, y
+                    x,
+                    y,
                 });
             }
         }
@@ -878,7 +893,9 @@ function calculateMetrics(detections: Detection[], groundTruth: GroundTruth): Me
     }
 
     // Calculate TP, FP, FN
-    let tp = 0, fp = 0, fn = 0;
+    let tp = 0,
+        fp = 0,
+        fn = 0;
 
     detectedCounts.forEach((count, name) => {
         const truthCount = truthCounts.get(name) || 0;
@@ -893,7 +910,7 @@ function calculateMetrics(detections: Detection[], groundTruth: GroundTruth): Me
 
     const precision = tp + fp > 0 ? tp / (tp + fp) : 0;
     const recall = tp + fn > 0 ? tp / (tp + fn) : 0;
-    const f1 = precision + recall > 0 ? 2 * precision * recall / (precision + recall) : 0;
+    const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0;
     const avgConfidence = detections.length > 0 ? totalConfidence / detections.length : 0;
 
     return { f1, precision, recall, tp, fp, fn, avgConfidence };
@@ -905,8 +922,13 @@ function calculateMetrics(detections: Detection[], groundTruth: GroundTruth): Me
 
 async function runTestWithParams(testCases: TestCase[]): Promise<Metrics & { timeMs: number }> {
     const startTime = performance.now();
-    let totalF1 = 0, totalPrecision = 0, totalRecall = 0;
-    let totalTP = 0, totalFP = 0, totalFN = 0, totalAvgConf = 0;
+    let totalF1 = 0,
+        totalPrecision = 0,
+        totalRecall = 0;
+    let totalTP = 0,
+        totalFP = 0,
+        totalFN = 0,
+        totalAvgConf = 0;
 
     for (const tc of testCases) {
         try {
@@ -944,11 +966,7 @@ async function runTestWithParams(testCases: TestCase[]): Promise<Metrics & { tim
 // PARAMETER OPTIMIZATION
 // ═══════════════════════════════════════════════════════════════════════════════
 
-async function testParameter(
-    param: Parameter,
-    testCases: TestCase[],
-    baselineF1: number
-): Promise<TestResult[]> {
+async function testParameter(param: Parameter, testCases: TestCase[], baselineF1: number): Promise<TestResult[]> {
     const results: TestResult[] = [];
 
     for (const value of param.testValues) {
@@ -980,9 +998,7 @@ async function testParameter(
     return results;
 }
 
-async function runSensitivityAnalysis(
-    testCases: TestCase[]
-): Promise<SensitivityAnalysis[]> {
+async function runSensitivityAnalysis(testCases: TestCase[]): Promise<SensitivityAnalysis[]> {
     const analyses: SensitivityAnalysis[] = [];
 
     // Get baseline performance
@@ -1010,7 +1026,7 @@ async function runSensitivityAnalysis(
         const stdDev = Math.sqrt(variance);
 
         // Find optimal value
-        const optimalResult = results.reduce((best, r) => r.f1Score > best.f1Score ? r : best);
+        const optimalResult = results.reduce((best, r) => (r.f1Score > best.f1Score ? r : best));
 
         // Generate recommendation
         let recommendation = '';
@@ -1042,7 +1058,7 @@ async function runSensitivityAnalysis(
 
     // Rank by impact score
     analyses.sort((a, b) => b.impactScore - a.impactScore);
-    analyses.forEach((a, i) => a.rank = i + 1);
+    analyses.forEach((a, i) => (a.rank = i + 1));
 
     return analyses;
 }
@@ -1053,9 +1069,18 @@ async function runSensitivityAnalysis(
 
 function generateCSV(allResults: TestResult[]): string {
     const headers = [
-        'parameter', 'value', 'f1_score', 'precision', 'recall',
-        'true_positives', 'false_positives', 'false_negatives',
-        'avg_confidence', 'processing_time_ms', 'delta_from_baseline', 'percent_improvement'
+        'parameter',
+        'value',
+        'f1_score',
+        'precision',
+        'recall',
+        'true_positives',
+        'false_positives',
+        'false_negatives',
+        'avg_confidence',
+        'processing_time_ms',
+        'delta_from_baseline',
+        'percent_improvement',
     ];
 
     const rows = allResults.map(r => [
@@ -1078,8 +1103,16 @@ function generateCSV(allResults: TestResult[]): string {
 
 function generateSensitivityCSV(analyses: SensitivityAnalysis[]): string {
     const headers = [
-        'rank', 'parameter', 'category', 'impact_score', 'optimal_value',
-        'baseline_value', 'max_f1', 'min_f1', 'f1_range', 'recommendation'
+        'rank',
+        'parameter',
+        'category',
+        'impact_score',
+        'optimal_value',
+        'baseline_value',
+        'max_f1',
+        'min_f1',
+        'f1_range',
+        'recommendation',
     ];
 
     const rows = analyses.map(a => [
@@ -1190,7 +1223,7 @@ async function main(): Promise<void> {
         const stdDev = Math.sqrt(variance);
 
         // Find optimal value
-        const optimalResult = results.reduce((best, r) => r.f1Score > best.f1Score ? r : best);
+        const optimalResult = results.reduce((best, r) => (r.f1Score > best.f1Score ? r : best));
 
         // Generate recommendation
         let recommendation = '';
@@ -1227,7 +1260,7 @@ async function main(): Promise<void> {
 
     // Rank by impact score
     analyses.sort((a, b) => b.impactScore - a.impactScore);
-    analyses.forEach((a, i) => a.rank = i + 1);
+    analyses.forEach((a, i) => (a.rank = i + 1));
 
     // Generate outputs
     const outputDir = path.join(__dirname, 'cv-optimization-results');
@@ -1246,20 +1279,14 @@ async function main(): Promise<void> {
 
     // Write JSON for charts
     const chartData = generateChartData(allResults);
-    fs.writeFileSync(
-        path.join(outputDir, `chart-data-${timestamp}.json`),
-        JSON.stringify(chartData, null, 2)
-    );
+    fs.writeFileSync(path.join(outputDir, `chart-data-${timestamp}.json`), JSON.stringify(chartData, null, 2));
 
     // Write optimal configuration
     const optimalConfig: Record<string, number> = {};
     analyses.forEach(a => {
         optimalConfig[a.parameter] = a.optimalValue;
     });
-    fs.writeFileSync(
-        path.join(outputDir, `optimal-config-${timestamp}.json`),
-        JSON.stringify(optimalConfig, null, 2)
-    );
+    fs.writeFileSync(path.join(outputDir, `optimal-config-${timestamp}.json`), JSON.stringify(optimalConfig, null, 2));
 
     // Print summary
     console.log('\n' + '═'.repeat(75));
@@ -1267,11 +1294,15 @@ async function main(): Promise<void> {
     console.log('═'.repeat(75));
     console.log('\nTop 10 Most Impactful Parameters:');
     console.log('─'.repeat(75));
-    console.log(`| ${'Rank'.padEnd(4)} | ${'Parameter'.padEnd(28)} | ${'Category'.padEnd(13)} | ${'Impact'.padEnd(8)} | ${'Optimal'.padEnd(8)} |`);
+    console.log(
+        `| ${'Rank'.padEnd(4)} | ${'Parameter'.padEnd(28)} | ${'Category'.padEnd(13)} | ${'Impact'.padEnd(8)} | ${'Optimal'.padEnd(8)} |`
+    );
     console.log('─'.repeat(75));
 
     analyses.slice(0, 10).forEach(a => {
-        console.log(`| ${String(a.rank).padEnd(4)} | ${a.parameter.padEnd(28)} | ${a.category.padEnd(13)} | ${(a.impactScore * 100).toFixed(2).padStart(6)}% | ${String(a.optimalValue).padEnd(8)} |`);
+        console.log(
+            `| ${String(a.rank).padEnd(4)} | ${a.parameter.padEnd(28)} | ${a.category.padEnd(13)} | ${(a.impactScore * 100).toFixed(2).padStart(6)}% | ${String(a.optimalValue).padEnd(8)} |`
+        );
     });
     console.log('─'.repeat(75));
 

@@ -63,7 +63,7 @@ describe('Favorites Module', () => {
 
         it('should handle empty localStorage', () => {
             const result = loadFavorites();
-            
+
             expect(result).toBe(true);
             const state = getState('favorites');
             expect(state.items).toEqual([]);
@@ -126,10 +126,10 @@ describe('Favorites Module', () => {
         it('should toggle multiple times correctly', () => {
             toggleFavorite('items', 'toggle_item'); // Add
             expect(getState('favorites').items).toContain('toggle_item');
-            
+
             toggleFavorite('items', 'toggle_item'); // Remove
             expect(getState('favorites').items).not.toContain('toggle_item');
-            
+
             toggleFavorite('items', 'toggle_item'); // Add again
             expect(getState('favorites').items).toContain('toggle_item');
         });
@@ -235,7 +235,7 @@ describe('Favorites Module', () => {
             });
 
             const result = getFavorites('items');
-            
+
             expect(result).toContain('original');
             expect(result.length).toBe(1);
         });

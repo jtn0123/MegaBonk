@@ -5,6 +5,7 @@
 
 import { safeGetElementById } from './utils.ts';
 import { isInputElement, isSelectElement } from '../types/index.ts';
+import { logger } from './logger.ts';
 
 // ========================================
 // Constants
@@ -44,7 +45,7 @@ export function getAllFilterStates(): Record<string, FilterState> {
         const states = window.sessionStorage.getItem(FILTER_STATE_KEY);
         return states ? JSON.parse(states) : {};
     } catch (error) {
-        console.debug('[filter-state] sessionStorage unavailable:', (error as Error).message);
+        logger.debug({ operation: 'filter_state.storage_unavailable', data: { error: (error as Error).message } });
         return {};
     }
 }
@@ -84,7 +85,7 @@ export function saveFilterState(tabName: string): void {
 
         window.sessionStorage.setItem(FILTER_STATE_KEY, JSON.stringify(allStates));
     } catch (error) {
-        console.debug('[filter-state] sessionStorage unavailable:', (error as Error).message);
+        logger.debug({ operation: 'filter_state.storage_unavailable', data: { error: (error as Error).message } });
     }
 }
 
@@ -149,7 +150,7 @@ export function restoreFilterState(tabName: string): void {
             restoreSelectValue('stackingFilter', state.stackingFilter);
         }
     } catch (error) {
-        console.debug('[filter-state] sessionStorage unavailable:', (error as Error).message);
+        logger.debug({ operation: 'filter_state.storage_unavailable', data: { error: (error as Error).message } });
     }
 }
 
@@ -160,6 +161,6 @@ export function clearAllFilterStates(): void {
     try {
         window.sessionStorage.removeItem(FILTER_STATE_KEY);
     } catch (error) {
-        console.debug('[filter-state] sessionStorage unavailable:', (error as Error).message);
+        logger.debug({ operation: 'filter_state.storage_unavailable', data: { error: (error as Error).message } });
     }
 }

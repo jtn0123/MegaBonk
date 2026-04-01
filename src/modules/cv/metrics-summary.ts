@@ -214,16 +214,17 @@ function renderWeakDetections(metrics: MetricsSummary): string {
     if (metrics.weakDetections.length === 0) return '';
     const listHtml = metrics.weakDetections
         .slice(0, 5)
-        .map(d => `
+        .map(
+            d => `
             <li>
                 <span class="weak-item-name">${escapeHtml(d.itemName)}</span>
                 <span class="weak-item-conf">${formatPercent(d.confidence)}</span>
             </li>
-        `)
+        `
+        )
         .join('');
-    const moreHtml = metrics.weakDetections.length > 5
-        ? `<p class="weak-more">+${metrics.weakDetections.length - 5} more</p>`
-        : '';
+    const moreHtml =
+        metrics.weakDetections.length > 5 ? `<p class="weak-more">+${metrics.weakDetections.length - 5} more</p>` : '';
     return `
         <div class="metrics-weak">
             <h4>Low Confidence Detections</h4>

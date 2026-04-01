@@ -4,11 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-    showShortcutsModal,
-    setupKeyboardShortcuts,
-    getAllShortcuts,
-} from '../../src/modules/keyboard-shortcuts.ts';
+import { showShortcutsModal, setupKeyboardShortcuts, getAllShortcuts } from '../../src/modules/keyboard-shortcuts.ts';
 
 // ========================================
 // Setup/Teardown

@@ -174,11 +174,7 @@ describe('CV State Module', () => {
 
         it('should support multiple items per color', () => {
             const templatesByColor = getTemplatesByColor();
-            templatesByColor.set('green', [
-                { id: 'item1' },
-                { id: 'item2' },
-                { id: 'item3' },
-            ] as any);
+            templatesByColor.set('green', [{ id: 'item1' }, { id: 'item2' }, { id: 'item3' }] as any);
 
             expect(templatesByColor.get('green')).toHaveLength(3);
         });
@@ -250,9 +246,7 @@ describe('CV State Module', () => {
 
         it('should allow caching detection results', () => {
             const cache = getDetectionCache();
-            const results = [
-                { itemId: 'sword', confidence: 0.95, bounds: { x: 0, y: 0, width: 64, height: 64 } },
-            ];
+            const results = [{ itemId: 'sword', confidence: 0.95, bounds: { x: 0, y: 0, width: 64, height: 64 } }];
 
             cache.set('image_hash_123', {
                 results: results as any,
@@ -532,11 +526,12 @@ describe('CV State Module', () => {
     // ========================================
     describe('Resized Template Cache', () => {
         // Helper to create mock ImageData (jsdom doesn't have full ImageData support)
-        const createMockImageData = (width: number, height: number) => ({
-            width,
-            height,
-            data: new Uint8ClampedArray(width * height * 4),
-        }) as unknown as ImageData;
+        const createMockImageData = (width: number, height: number) =>
+            ({
+                width,
+                height,
+                data: new Uint8ClampedArray(width * height * 4),
+            }) as unknown as ImageData;
 
         it('should return undefined for non-existent template', () => {
             const result = getResizedTemplate('nonexistent', 100, 100);
@@ -676,11 +671,12 @@ describe('CV State Module', () => {
     // Multi-Scale Template Tests
     // ========================================
     describe('Multi-Scale Templates', () => {
-        const createMockImageData = (width: number, height: number) => ({
-            width,
-            height,
-            data: new Uint8ClampedArray(width * height * 4),
-        }) as unknown as ImageData;
+        const createMockImageData = (width: number, height: number) =>
+            ({
+                width,
+                height,
+                data: new Uint8ClampedArray(width * height * 4),
+            }) as unknown as ImageData;
 
         describe('getMultiScaleTemplates', () => {
             it('should return empty Map by default', () => {

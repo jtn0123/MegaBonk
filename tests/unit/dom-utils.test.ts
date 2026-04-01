@@ -36,35 +36,35 @@ describe('DOM Utilities Module', () => {
         describe('Basic Element Creation', () => {
             it('should create a div element', () => {
                 const div = createElement('div');
-                
+
                 expect(div.tagName).toBe('DIV');
                 expect(div.nodeName).toBe('DIV');
             });
 
             it('should create a button element', () => {
                 const button = createElement('button');
-                
+
                 expect(button.tagName).toBe('BUTTON');
                 expect(button.nodeName).toBe('BUTTON');
             });
 
             it('should create a span element', () => {
                 const span = createElement('span');
-                
+
                 expect(span.tagName).toBe('SPAN');
                 expect(span.nodeName).toBe('SPAN');
             });
 
             it('should create an input element', () => {
                 const input = createElement('input');
-                
+
                 expect(input.tagName).toBe('INPUT');
                 expect(input.nodeName).toBe('INPUT');
             });
 
             it('should create an anchor element', () => {
                 const anchor = createElement('a');
-                
+
                 expect(anchor.tagName).toBe('A');
                 expect(anchor.nodeName).toBe('A');
             });
@@ -73,14 +73,14 @@ describe('DOM Utilities Module', () => {
         describe('className Option', () => {
             it('should set single class', () => {
                 const div = createElement('div', { className: 'my-class' });
-                
+
                 expect(div.className).toBe('my-class');
                 expect(div.classList.contains('my-class')).toBe(true);
             });
 
             it('should set multiple classes', () => {
                 const div = createElement('div', { className: 'class1 class2 class3' });
-                
+
                 expect(div.className).toBe('class1 class2 class3');
                 expect(div.classList.contains('class1')).toBe(true);
                 expect(div.classList.contains('class2')).toBe(true);
@@ -89,7 +89,7 @@ describe('DOM Utilities Module', () => {
 
             it('should handle empty className', () => {
                 const div = createElement('div', { className: '' });
-                
+
                 expect(div.className).toBe('');
             });
         });
@@ -97,13 +97,13 @@ describe('DOM Utilities Module', () => {
         describe('id Option', () => {
             it('should set element id', () => {
                 const div = createElement('div', { id: 'my-id' });
-                
+
                 expect(div.id).toBe('my-id');
             });
 
             it('should handle empty id', () => {
                 const div = createElement('div', { id: '' });
-                
+
                 expect(div.id).toBe('');
             });
         });
@@ -113,7 +113,7 @@ describe('DOM Utilities Module', () => {
                 const div = createElement('div', {
                     attributes: { 'data-value': '123' },
                 });
-                
+
                 expect(div.getAttribute('data-value')).toBe('123');
             });
 
@@ -125,7 +125,7 @@ describe('DOM Utilities Module', () => {
                         'aria-label': 'Input field',
                     },
                 });
-                
+
                 expect(input.getAttribute('type')).toBe('text');
                 expect(input.getAttribute('placeholder')).toBe('Enter value');
                 expect(input.getAttribute('aria-label')).toBe('Input field');
@@ -133,7 +133,7 @@ describe('DOM Utilities Module', () => {
 
             it('should handle empty attributes object', () => {
                 const div = createElement('div', { attributes: {} });
-                
+
                 expect(div.attributes.length).toBe(0);
             });
 
@@ -141,7 +141,7 @@ describe('DOM Utilities Module', () => {
                 const input = createElement('input', {
                     attributes: { disabled: 'true', readonly: '' },
                 });
-                
+
                 expect(input.getAttribute('disabled')).toBe('true');
                 expect(input.getAttribute('readonly')).toBe('');
             });
@@ -152,7 +152,7 @@ describe('DOM Utilities Module', () => {
                 const div = createElement('div', {
                     dataset: { id: '123' },
                 });
-                
+
                 expect(div.dataset.id).toBe('123');
             });
 
@@ -164,7 +164,7 @@ describe('DOM Utilities Module', () => {
                         count: '5',
                     },
                 });
-                
+
                 expect(div.dataset.itemId).toBe('item-1');
                 expect(div.dataset.entityType).toBe('weapon');
                 expect(div.dataset.count).toBe('5');
@@ -174,7 +174,7 @@ describe('DOM Utilities Module', () => {
                 const div = createElement('div', {
                     dataset: { myLongDataAttribute: 'value' },
                 });
-                
+
                 expect(div.getAttribute('data-my-long-data-attribute')).toBe('value');
             });
         });
@@ -182,7 +182,7 @@ describe('DOM Utilities Module', () => {
         describe('textContent Option', () => {
             it('should set text content', () => {
                 const div = createElement('div', { textContent: 'Hello World' });
-                
+
                 expect(div.textContent).toBe('Hello World');
             });
 
@@ -190,14 +190,14 @@ describe('DOM Utilities Module', () => {
                 const div = createElement('div', {
                     textContent: '<script>alert("xss")</script>',
                 });
-                
+
                 expect(div.textContent).toBe('<script>alert("xss")</script>');
                 expect(div.innerHTML).not.toContain('<script>');
             });
 
             it('should handle empty text content', () => {
                 const div = createElement('div', { textContent: '' });
-                
+
                 expect(div.textContent).toBe('');
             });
 
@@ -205,7 +205,7 @@ describe('DOM Utilities Module', () => {
                 const div = createElement('div', {
                     textContent: '< > & " \' © ™',
                 });
-                
+
                 expect(div.textContent).toBe('< > & " \' © ™');
             });
         });
@@ -215,7 +215,7 @@ describe('DOM Utilities Module', () => {
                 const div = createElement('div', {
                     innerHTML: '<span class="inner">Content</span>',
                 });
-                
+
                 expect(div.innerHTML).toBe('<span class="inner">Content</span>');
                 expect(div.querySelector('.inner')).not.toBeNull();
             });
@@ -225,7 +225,7 @@ describe('DOM Utilities Module', () => {
                     textContent: 'Plain Text',
                     innerHTML: '<b>Bold</b>',
                 });
-                
+
                 expect(div.textContent).toBe('Plain Text');
                 expect(div.querySelector('b')).toBeNull();
             });
@@ -235,7 +235,7 @@ describe('DOM Utilities Module', () => {
             it('should append single child', () => {
                 const child = createElement('span', { textContent: 'Child' });
                 const parent = createElement('div', { children: [child] });
-                
+
                 expect(parent.children.length).toBe(1);
                 expect(parent.firstElementChild).toBe(child);
             });
@@ -247,7 +247,7 @@ describe('DOM Utilities Module', () => {
                 const parent = createElement('div', {
                     children: [child1, child2, child3],
                 });
-                
+
                 expect(parent.children.length).toBe(3);
                 expect(parent.children[0]).toBe(child1);
                 expect(parent.children[1]).toBe(child2);
@@ -256,7 +256,7 @@ describe('DOM Utilities Module', () => {
 
             it('should handle empty children array', () => {
                 const parent = createElement('div', { children: [] });
-                
+
                 expect(parent.children.length).toBe(0);
             });
 
@@ -267,7 +267,7 @@ describe('DOM Utilities Module', () => {
                     createElement('span', { textContent: 'C' }),
                 ];
                 const parent = createElement('div', { children });
-                
+
                 expect(parent.children[0].textContent).toBe('A');
                 expect(parent.children[1].textContent).toBe('B');
                 expect(parent.children[2].textContent).toBe('C');
@@ -284,7 +284,7 @@ describe('DOM Utilities Module', () => {
                     dataset: { value: '42' },
                     children: [child],
                 });
-                
+
                 expect(div.id).toBe('my-element');
                 expect(div.className).toBe('class1 class2');
                 expect(div.getAttribute('aria-label')).toBe('Test');
@@ -294,13 +294,13 @@ describe('DOM Utilities Module', () => {
 
             it('should handle empty options object', () => {
                 const div = createElement('div', {});
-                
+
                 expect(div.tagName).toBe('DIV');
             });
 
             it('should handle no options', () => {
                 const div = createElement('div');
-                
+
                 expect(div.tagName).toBe('DIV');
                 expect(div.id).toBe('');
                 expect(div.className).toBe('');
@@ -315,35 +315,35 @@ describe('DOM Utilities Module', () => {
         describe('Creation', () => {
             it('should create progress indicator element', () => {
                 const progress = createProgressIndicator();
-                
+
                 expect(progress.element).toBeInstanceOf(HTMLElement);
                 expect(progress.element.classList.contains('scan-progress-overlay')).toBe(true);
             });
 
             it('should set initial status text', () => {
                 const progress = createProgressIndicator('Loading data...');
-                
+
                 const textEl = progress.element.querySelector('.scan-progress-text');
                 expect(textEl?.textContent).toBe('Loading data...');
             });
 
             it('should use default status when not provided', () => {
                 const progress = createProgressIndicator();
-                
+
                 const textEl = progress.element.querySelector('.scan-progress-text');
                 expect(textEl?.textContent).toBe('Initializing...');
             });
 
             it('should create spinner element', () => {
                 const progress = createProgressIndicator();
-                
+
                 const spinner = progress.element.querySelector('.scan-progress-spinner');
                 expect(spinner).not.toBeNull();
             });
 
             it('should create progress bar at 0%', () => {
                 const progress = createProgressIndicator();
-                
+
                 const fill = progress.element.querySelector('.scan-progress-fill') as HTMLElement;
                 expect(fill.style.width).toBe('0%');
             });
@@ -352,23 +352,23 @@ describe('DOM Utilities Module', () => {
         describe('update method', () => {
             it('should update progress and status', () => {
                 const progress = createProgressIndicator();
-                
+
                 progress.update(50, 'Half done');
-                
+
                 const textEl = progress.element.querySelector('.scan-progress-text');
                 const fill = progress.element.querySelector('.scan-progress-fill') as HTMLElement;
-                
+
                 expect(textEl?.textContent).toBe('Half done');
                 expect(fill.style.width).toBe('50%');
             });
 
             it('should clamp progress to 0-100', () => {
                 const progress = createProgressIndicator();
-                
+
                 progress.update(-20, 'Negative');
                 let fill = progress.element.querySelector('.scan-progress-fill') as HTMLElement;
                 expect(fill.style.width).toBe('0%');
-                
+
                 progress.update(150, 'Over 100');
                 fill = progress.element.querySelector('.scan-progress-fill') as HTMLElement;
                 expect(fill.style.width).toBe('100%');
@@ -376,27 +376,27 @@ describe('DOM Utilities Module', () => {
 
             it('should handle 0% progress', () => {
                 const progress = createProgressIndicator('Starting');
-                
+
                 progress.update(0, 'At zero');
-                
+
                 const fill = progress.element.querySelector('.scan-progress-fill') as HTMLElement;
                 expect(fill.style.width).toBe('0%');
             });
 
             it('should handle 100% progress', () => {
                 const progress = createProgressIndicator();
-                
+
                 progress.update(100, 'Complete');
-                
+
                 const fill = progress.element.querySelector('.scan-progress-fill') as HTMLElement;
                 expect(fill.style.width).toBe('100%');
             });
 
             it('should handle decimal progress values', () => {
                 const progress = createProgressIndicator();
-                
+
                 progress.update(33.33, 'One third');
-                
+
                 const fill = progress.element.querySelector('.scan-progress-fill') as HTMLElement;
                 expect(fill.style.width).toBe('33.33%');
             });
@@ -406,28 +406,28 @@ describe('DOM Utilities Module', () => {
             it('should remove element from DOM', () => {
                 const progress = createProgressIndicator();
                 document.body.appendChild(progress.element);
-                
+
                 expect(document.body.contains(progress.element)).toBe(true);
-                
+
                 progress.remove();
-                
+
                 expect(document.body.contains(progress.element)).toBe(false);
             });
 
             it('should be safe to call when not in DOM', () => {
                 const progress = createProgressIndicator();
-                
+
                 expect(() => progress.remove()).not.toThrow();
             });
 
             it('should be safe to call multiple times', () => {
                 const progress = createProgressIndicator();
                 document.body.appendChild(progress.element);
-                
+
                 progress.remove();
                 progress.remove();
                 progress.remove();
-                
+
                 expect(true).toBe(true);
             });
         });
@@ -454,21 +454,21 @@ describe('DOM Utilities Module', () => {
         describe('add method', () => {
             it('should add event listener', () => {
                 const handler = vi.fn();
-                
+
                 manager.add(testElement, 'click', handler);
                 testElement.click();
-                
+
                 expect(handler).toHaveBeenCalledTimes(1);
             });
 
             it('should add multiple listeners for same event', () => {
                 const handler1 = vi.fn();
                 const handler2 = vi.fn();
-                
+
                 manager.add(testElement, 'click', handler1);
                 manager.add(testElement, 'click', handler2);
                 testElement.click();
-                
+
                 expect(handler1).toHaveBeenCalledTimes(1);
                 expect(handler2).toHaveBeenCalledTimes(1);
             });
@@ -476,42 +476,42 @@ describe('DOM Utilities Module', () => {
             it('should add listeners for different events', () => {
                 const clickHandler = vi.fn();
                 const mouseoverHandler = vi.fn();
-                
+
                 manager.add(testElement, 'click', clickHandler);
                 manager.add(testElement, 'mouseover', mouseoverHandler);
-                
+
                 testElement.click();
                 testElement.dispatchEvent(new MouseEvent('mouseover'));
-                
+
                 expect(clickHandler).toHaveBeenCalledTimes(1);
                 expect(mouseoverHandler).toHaveBeenCalledTimes(1);
             });
 
             it('should work with document', () => {
                 const handler = vi.fn();
-                
+
                 manager.add(document, 'keydown', handler);
                 document.dispatchEvent(new KeyboardEvent('keydown'));
-                
+
                 expect(handler).toHaveBeenCalledTimes(1);
             });
 
             it('should pass event to handler', () => {
                 const handler = vi.fn();
-                
+
                 manager.add(testElement, 'click', handler);
                 testElement.click();
-                
+
                 expect(handler).toHaveBeenCalledWith(expect.any(MouseEvent));
             });
 
             it('should support options', () => {
                 const handler = vi.fn();
-                
+
                 manager.add(testElement, 'click', handler, { once: true });
                 testElement.click();
                 testElement.click();
-                
+
                 expect(handler).toHaveBeenCalledTimes(1);
             });
         });
@@ -519,20 +519,20 @@ describe('DOM Utilities Module', () => {
         describe('addWithSignal method', () => {
             it('should add event listener with signal', () => {
                 const handler = vi.fn();
-                
+
                 manager.addWithSignal(testElement, 'click', handler);
                 testElement.click();
-                
+
                 expect(handler).toHaveBeenCalledTimes(1);
             });
 
             it('should remove listener when aborted', () => {
                 const handler = vi.fn();
-                
+
                 manager.addWithSignal(testElement, 'click', handler);
                 testElement.click();
                 expect(handler).toHaveBeenCalledTimes(1);
-                
+
                 manager.removeAll();
                 testElement.click();
                 expect(handler).toHaveBeenCalledTimes(1);
@@ -543,15 +543,15 @@ describe('DOM Utilities Module', () => {
             it('should remove all tracked listeners', () => {
                 const handler1 = vi.fn();
                 const handler2 = vi.fn();
-                
+
                 manager.add(testElement, 'click', handler1);
                 manager.add(testElement, 'mouseover', handler2);
-                
+
                 manager.removeAll();
-                
+
                 testElement.click();
                 testElement.dispatchEvent(new MouseEvent('mouseover'));
-                
+
                 expect(handler1).not.toHaveBeenCalled();
                 expect(handler2).not.toHaveBeenCalled();
             });
@@ -563,29 +563,29 @@ describe('DOM Utilities Module', () => {
             it('should be safe to call multiple times', () => {
                 const handler = vi.fn();
                 manager.add(testElement, 'click', handler);
-                
+
                 manager.removeAll();
                 manager.removeAll();
                 manager.removeAll();
-                
+
                 expect(true).toBe(true);
             });
 
             it('should handle removed elements gracefully', () => {
                 const handler = vi.fn();
                 manager.add(testElement, 'click', handler);
-                
+
                 testElement.remove();
-                
+
                 expect(() => manager.removeAll()).not.toThrow();
             });
 
             it('should remove signal-based listeners', () => {
                 const handler = vi.fn();
                 manager.addWithSignal(testElement, 'click', handler);
-                
+
                 manager.removeAll();
-                
+
                 testElement.click();
                 expect(handler).not.toHaveBeenCalled();
             });
@@ -594,25 +594,25 @@ describe('DOM Utilities Module', () => {
         describe('getSignal method', () => {
             it('should return an AbortSignal', () => {
                 const signal = manager.getSignal();
-                
+
                 expect(signal).toBeInstanceOf(AbortSignal);
             });
 
             it('should return the same signal on multiple calls', () => {
                 const signal1 = manager.getSignal();
                 const signal2 = manager.getSignal();
-                
+
                 expect(signal1).toBe(signal2);
             });
 
             it('should be usable for external listeners', () => {
                 const signal = manager.getSignal();
                 const handler = vi.fn();
-                
+
                 testElement.addEventListener('click', handler, { signal });
                 testElement.click();
                 expect(handler).toHaveBeenCalledTimes(1);
-                
+
                 manager.removeAll();
                 testElement.click();
                 expect(handler).toHaveBeenCalledTimes(1);
@@ -636,7 +636,7 @@ describe('DOM Utilities Module', () => {
             appendChildSpy = vi.spyOn(document.body, 'appendChild');
             removeChildSpy = vi.spyOn(document.body, 'removeChild');
             clickSpy = vi.fn();
-            
+
             // Mock anchor element creation
             const originalCreateElement = document.createElement.bind(document);
             vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
@@ -650,53 +650,53 @@ describe('DOM Utilities Module', () => {
 
         it('should create blob with content', () => {
             downloadFile('test content', 'test.txt');
-            
+
             expect(createObjectURLSpy).toHaveBeenCalledWith(expect.any(Blob));
         });
 
         it('should use default MIME type', () => {
             downloadFile('{}', 'data.json');
-            
+
             const blobArg = createObjectURLSpy.mock.calls[0][0] as Blob;
             expect(blobArg.type).toBe('application/json');
         });
 
         it('should use custom MIME type', () => {
             downloadFile('<html></html>', 'page.html', 'text/html');
-            
+
             const blobArg = createObjectURLSpy.mock.calls[0][0] as Blob;
             expect(blobArg.type).toBe('text/html');
         });
 
         it('should set download attribute on anchor', () => {
             downloadFile('content', 'myfile.txt', 'text/plain');
-            
+
             const anchorArg = appendChildSpy.mock.calls[0][0] as HTMLAnchorElement;
             expect(anchorArg.download).toBe('myfile.txt');
         });
 
         it('should set href to blob URL', () => {
             downloadFile('content', 'file.txt', 'text/plain');
-            
+
             const anchorArg = appendChildSpy.mock.calls[0][0] as HTMLAnchorElement;
             expect(anchorArg.href).toContain('blob:');
         });
 
         it('should trigger click', () => {
             downloadFile('content', 'file.txt', 'text/plain');
-            
+
             expect(clickSpy).toHaveBeenCalled();
         });
 
         it('should cleanup anchor element', () => {
             downloadFile('content', 'file.txt', 'text/plain');
-            
+
             expect(removeChildSpy).toHaveBeenCalled();
         });
 
         it('should revoke blob URL', () => {
             downloadFile('content', 'file.txt', 'text/plain');
-            
+
             expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:test-url');
         });
     });
@@ -710,7 +710,7 @@ describe('DOM Utilities Module', () => {
         beforeEach(() => {
             createObjectURLSpy = vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:json-url');
             vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
-            
+
             const originalCreateElement = document.createElement.bind(document);
             vi.spyOn(document, 'createElement').mockImplementation((tag: string) => {
                 const el = originalCreateElement(tag);
@@ -723,17 +723,17 @@ describe('DOM Utilities Module', () => {
 
         it('should serialize object to JSON', () => {
             const data = { key: 'value', num: 42 };
-            
+
             downloadJson(data, 'data.json');
-            
+
             expect(createObjectURLSpy).toHaveBeenCalled();
         });
 
         it('should pretty-print by default', () => {
             const data = { a: 1, b: 2 };
-            
+
             downloadJson(data, 'data');
-            
+
             const blobArg = createObjectURLSpy.mock.calls[0][0] as Blob;
             // Pretty-printed JSON has newlines
             expect(blobArg.size).toBeGreaterThan(JSON.stringify(data).length);
@@ -741,9 +741,9 @@ describe('DOM Utilities Module', () => {
 
         it('should not pretty-print when disabled', () => {
             const data = { a: 1, b: 2 };
-            
+
             downloadJson(data, 'data', false);
-            
+
             const blobArg = createObjectURLSpy.mock.calls[0][0] as Blob;
             expect(blobArg.size).toBe(JSON.stringify(data).length);
         });
@@ -760,7 +760,7 @@ describe('DOM Utilities Module', () => {
 
         it('should handle arrays', () => {
             const data = [1, 2, 3];
-            
+
             expect(() => downloadJson(data, 'array')).not.toThrow();
         });
 
@@ -776,7 +776,7 @@ describe('DOM Utilities Module', () => {
                     },
                 },
             };
-            
+
             expect(() => downloadJson(data, 'nested')).not.toThrow();
         });
     });
@@ -798,11 +798,9 @@ describe('DOM Utilities Module', () => {
 
         it('should render items into container', () => {
             const items = ['a', 'b', 'c'];
-            
-            renderWithFragment(container, items, (item) =>
-                createElement('span', { textContent: item })
-            );
-            
+
+            renderWithFragment(container, items, item => createElement('span', { textContent: item }));
+
             expect(container.children.length).toBe(3);
             expect(container.children[0].textContent).toBe('a');
             expect(container.children[1].textContent).toBe('b');
@@ -811,11 +809,9 @@ describe('DOM Utilities Module', () => {
 
         it('should clear existing content', () => {
             container.innerHTML = '<div>Old content</div><div>More old</div>';
-            
-            renderWithFragment(container, ['new'], (item) =>
-                createElement('span', { textContent: item })
-            );
-            
+
+            renderWithFragment(container, ['new'], item => createElement('span', { textContent: item }));
+
             expect(container.children.length).toBe(1);
             expect(container.textContent).toBe('new');
         });
@@ -823,20 +819,20 @@ describe('DOM Utilities Module', () => {
         it('should pass index to render function', () => {
             const items = ['x', 'y', 'z'];
             const indices: number[] = [];
-            
+
             renderWithFragment(container, items, (item, index) => {
                 indices.push(index);
                 return createElement('span', { textContent: item });
             });
-            
+
             expect(indices).toEqual([0, 1, 2]);
         });
 
         it('should handle empty items array', () => {
             container.innerHTML = '<div>Existing</div>';
-            
+
             renderWithFragment(container, [], () => createElement('span'));
-            
+
             expect(container.children.length).toBe(0);
         });
 
@@ -845,20 +841,20 @@ describe('DOM Utilities Module', () => {
                 id: string;
                 name: string;
             }
-            
+
             const items: Item[] = [
                 { id: '1', name: 'First' },
                 { id: '2', name: 'Second' },
             ];
-            
-            renderWithFragment(container, items, (item) =>
+
+            renderWithFragment(container, items, item =>
                 createElement('div', {
                     id: item.id,
                     className: 'item-card',
                     textContent: item.name,
                 })
             );
-            
+
             expect(container.children.length).toBe(2);
             expect(container.children[0].id).toBe('1');
             expect((container.children[0] as HTMLElement).className).toBe('item-card');
@@ -867,11 +863,11 @@ describe('DOM Utilities Module', () => {
         it('should use DocumentFragment for performance', () => {
             // This test verifies the implementation uses appendChild once
             const appendChildSpy = vi.spyOn(container, 'appendChild');
-            
-            renderWithFragment(container, ['a', 'b', 'c', 'd', 'e'], (item) =>
+
+            renderWithFragment(container, ['a', 'b', 'c', 'd', 'e'], item =>
                 createElement('span', { textContent: item })
             );
-            
+
             // Should only call appendChild once (with the fragment)
             expect(appendChildSpy).toHaveBeenCalledTimes(1);
         });
@@ -883,14 +879,14 @@ describe('DOM Utilities Module', () => {
     describe('createCard', () => {
         it('should create a div with class', () => {
             const card = createCard('my-card', '<p>Content</p>');
-            
+
             expect(card.tagName).toBe('DIV');
             expect(card.className).toBe('my-card');
         });
 
         it('should set inner HTML', () => {
             const card = createCard('card', '<strong>Bold text</strong>');
-            
+
             expect(card.innerHTML).toBe('<strong>Bold text</strong>');
             expect(card.querySelector('strong')).not.toBeNull();
         });
@@ -901,7 +897,7 @@ describe('DOM Utilities Module', () => {
                 type: 'item',
                 tier: 'S',
             });
-            
+
             expect(card.dataset.id).toBe('123');
             expect(card.dataset.type).toBe('item');
             expect(card.dataset.tier).toBe('S');
@@ -909,13 +905,13 @@ describe('DOM Utilities Module', () => {
 
         it('should handle empty dataset', () => {
             const card = createCard('card', 'Content', {});
-            
+
             expect(Object.keys(card.dataset).length).toBe(0);
         });
 
         it('should handle undefined dataset', () => {
             const card = createCard('card', 'Content');
-            
+
             expect(card.tagName).toBe('DIV');
         });
 
@@ -928,9 +924,9 @@ describe('DOM Utilities Module', () => {
                 </div>
                 <div class="footer">Footer</div>
             `;
-            
+
             const card = createCard('complex-card', html);
-            
+
             expect(card.querySelector('.header')).not.toBeNull();
             expect(card.querySelector('.body')).not.toBeNull();
             expect(card.querySelector('.footer')).not.toBeNull();
@@ -944,44 +940,44 @@ describe('DOM Utilities Module', () => {
     describe('createButton', () => {
         it('should create a button element', () => {
             const btn = createButton('Click Me', 'btn');
-            
+
             expect(btn.tagName).toBe('BUTTON');
             expect(btn.nodeName).toBe('BUTTON');
         });
 
         it('should set button text', () => {
             const btn = createButton('Submit', 'btn');
-            
+
             expect(btn.textContent).toBe('Submit');
         });
 
         it('should set class name', () => {
             const btn = createButton('Test', 'btn-primary');
-            
+
             expect(btn.className).toBe('btn-primary');
         });
 
         it('should attach click handler', () => {
             const handler = vi.fn();
             const btn = createButton('Click', 'btn', handler);
-            
+
             btn.click();
-            
+
             expect(handler).toHaveBeenCalledTimes(1);
         });
 
         it('should pass event to click handler', () => {
             const handler = vi.fn();
             const btn = createButton('Click', 'btn', handler);
-            
+
             btn.click();
-            
+
             expect(handler).toHaveBeenCalledWith(expect.any(MouseEvent));
         });
 
         it('should handle undefined click handler', () => {
             const btn = createButton('No Handler', 'btn');
-            
+
             expect(() => btn.click()).not.toThrow();
         });
 
@@ -991,7 +987,7 @@ describe('DOM Utilities Module', () => {
                 disabled: 'true',
                 'aria-label': 'Submit form',
             });
-            
+
             expect(btn.getAttribute('type')).toBe('submit');
             expect(btn.getAttribute('disabled')).toBe('true');
             expect(btn.getAttribute('aria-label')).toBe('Submit form');
@@ -999,13 +995,13 @@ describe('DOM Utilities Module', () => {
 
         it('should handle empty attributes object', () => {
             const btn = createButton('Test', 'btn', undefined, {});
-            
+
             expect(btn.tagName).toBe('BUTTON');
         });
 
         it('should work with multiple classes', () => {
             const btn = createButton('Multi', 'btn btn-large btn-primary');
-            
+
             expect(btn.classList.contains('btn')).toBe(true);
             expect(btn.classList.contains('btn-large')).toBe(true);
             expect(btn.classList.contains('btn-primary')).toBe(true);
@@ -1018,14 +1014,14 @@ describe('DOM Utilities Module', () => {
     describe('Edge Cases', () => {
         it('should handle Unicode in text content', () => {
             const div = createElement('div', { textContent: '日本語 🎮 émoji' });
-            
+
             expect(div.textContent).toBe('日本語 🎮 émoji');
         });
 
         it('should handle very long text', () => {
             const longText = 'x'.repeat(10000);
             const div = createElement('div', { textContent: longText });
-            
+
             expect(div.textContent).toBe(longText);
         });
 
@@ -1035,7 +1031,7 @@ describe('DOM Utilities Module', () => {
                 className: 'container',
                 children: [btn],
             });
-            
+
             expect(container.querySelector('button')).toBe(btn);
         });
     });

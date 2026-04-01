@@ -86,7 +86,7 @@ describe('Duplicate Aggregation', () => {
     it('should aggregate duplicate items', () => {
         const detections = [
             { ...mockDetection, confidence: 0.85 },
-            { ...mockDetection, confidence: 0.90 },
+            { ...mockDetection, confidence: 0.9 },
             { ...mockDetection, confidence: 0.88 },
         ];
 
@@ -95,7 +95,7 @@ describe('Duplicate Aggregation', () => {
         expect(result).toHaveLength(1);
         expect(result[0].entity.name).toBe('Wrench');
         expect(result[0].count).toBe(3);
-        expect(result[0].confidence).toBe(0.90); // Max confidence
+        expect(result[0].confidence).toBe(0.9); // Max confidence
     });
 
     it('should keep separate items separate', () => {
@@ -159,7 +159,7 @@ describe('Adaptive Threshold Calculation', () => {
     });
 
     it('should handle edge case of all similar scores', () => {
-        const similarScores = [0.82, 0.81, 0.80, 0.79, 0.78];
+        const similarScores = [0.82, 0.81, 0.8, 0.79, 0.78];
         // Should use 75th percentile: ~0.80
 
         expect(Math.max(...similarScores) - Math.min(...similarScores)).toBeLessThan(0.05);
@@ -170,8 +170,8 @@ describe('Adaptive Threshold Calculation', () => {
         // Never below 0.60 (too lenient)
         // Never above 0.90 (too strict)
 
-        const minThreshold = 0.60;
-        const maxThreshold = 0.90;
+        const minThreshold = 0.6;
+        const maxThreshold = 0.9;
 
         expect(minThreshold).toBeGreaterThanOrEqual(0.6);
         expect(maxThreshold).toBeLessThanOrEqual(0.9);
@@ -208,7 +208,7 @@ describe('Dynamic Grid Detection', () => {
 
         // All cells should be at the BOTTOM of screen (last 10%)
         grid.forEach(cell => {
-            expect(cell.y).toBeGreaterThanOrEqual(1080 * 0.90);
+            expect(cell.y).toBeGreaterThanOrEqual(1080 * 0.9);
             expect(cell.y).toBeLessThan(1080);
         });
     });

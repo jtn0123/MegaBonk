@@ -1,6 +1,6 @@
 /**
  * CV Resolution Profiles Module Tests
- * 
+ *
  * Tests the resolution-adaptive strategy profiles for detection
  */
 
@@ -33,7 +33,7 @@ describe('CV Resolution Profiles Module', () => {
     describe('Profile Constants', () => {
         it('RESOLUTION_PRESETS should contain common resolutions', () => {
             expect(RESOLUTION_PRESETS.length).toBeGreaterThanOrEqual(6);
-            
+
             const names = RESOLUTION_PRESETS.map(p => p.name);
             expect(names).toContain('720p');
             expect(names).toContain('1080p');
@@ -200,7 +200,7 @@ describe('CV Resolution Profiles Module', () => {
             const size720 = getExpectedIconSize(720);
             const size1080 = getExpectedIconSize(1080);
             const size2160 = getExpectedIconSize(2160);
-            
+
             expect(size720.typical).toBeLessThan(size1080.typical);
             expect(size1080.typical).toBeLessThan(size2160.typical);
         });
@@ -228,7 +228,7 @@ describe('CV Resolution Profiles Module', () => {
         it('should interpolate at tier boundaries', () => {
             const profile750 = interpolateProfile(1333, 750);
             const profile850 = interpolateProfile(1511, 850);
-            
+
             // At 750, should be closer to low
             // At 850, should be transitioning to medium
             expect(profile750.iconSize.typical).toBeLessThanOrEqual(profile850.iconSize.typical);
@@ -238,7 +238,7 @@ describe('CV Resolution Profiles Module', () => {
             const lowProfile = STRATEGY_PROFILES.low;
             const medProfile = STRATEGY_PROFILES.medium;
             const interpolated = interpolateProfile(1422, 800);
-            
+
             // Should be between low and medium
             expect(interpolated.iconSize.typical).toBeGreaterThanOrEqual(lowProfile.iconSize.typical);
             expect(interpolated.iconSize.typical).toBeLessThanOrEqual(medProfile.iconSize.typical);
@@ -260,10 +260,10 @@ describe('CV Resolution Profiles Module', () => {
         it('should return larger scales for 4K', () => {
             const scales1080 = getTemplateScales(1080);
             const scales4K = getTemplateScales(2160);
-            
+
             const max1080 = Math.max(...scales1080);
             const max4K = Math.max(...scales4K);
-            
+
             expect(max4K).toBeGreaterThan(max1080);
         });
     });
@@ -344,7 +344,7 @@ describe('CV Resolution Profiles Module', () => {
         it('should scale with resolution', () => {
             const region720 = getHotbarScanRegion(1280, 720);
             const region4K = getHotbarScanRegion(3840, 2160);
-            
+
             expect(region4K.xEnd - region4K.xStart).toBeGreaterThan(region720.xEnd - region720.xStart);
         });
     });
@@ -352,7 +352,7 @@ describe('CV Resolution Profiles Module', () => {
     describe('getCountTextRegion', () => {
         it('should return region in bottom-right of cell by default', () => {
             const region = getCountTextRegion(100, 100, 50, 50, 1080);
-            
+
             // Should be in bottom-right corner
             expect(region.x).toBeGreaterThan(100);
             expect(region.y).toBeGreaterThan(100);
@@ -360,7 +360,7 @@ describe('CV Resolution Profiles Module', () => {
 
         it('should return valid region dimensions', () => {
             const region = getCountTextRegion(0, 0, 100, 100, 1080);
-            
+
             expect(region.width).toBeGreaterThan(0);
             expect(region.height).toBeGreaterThan(0);
         });
@@ -368,7 +368,7 @@ describe('CV Resolution Profiles Module', () => {
         it('should scale text height with resolution', () => {
             const region720 = getCountTextRegion(0, 0, 50, 50, 720);
             const region4K = getCountTextRegion(0, 0, 100, 100, 2160);
-            
+
             expect(region4K.height).toBeGreaterThan(region720.height);
         });
     });
@@ -377,7 +377,7 @@ describe('CV Resolution Profiles Module', () => {
         it('should handle very low resolution', () => {
             const tier = getResolutionTier(640, 480);
             expect(tier).toBe('low');
-            
+
             const profile = getProfileForResolution(640, 480);
             expect(profile).toBeDefined();
         });
@@ -385,7 +385,7 @@ describe('CV Resolution Profiles Module', () => {
         it('should handle very high resolution', () => {
             const tier = getResolutionTier(7680, 4320); // 8K
             expect(tier).toBe('ultra');
-            
+
             const profile = getProfileForResolution(7680, 4320);
             expect(profile).toBeDefined();
         });

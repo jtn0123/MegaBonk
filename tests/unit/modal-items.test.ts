@@ -8,7 +8,9 @@ import { describe, it, expect, beforeEach, vi, afterEach, type Mock } from 'vite
 // Mock dependencies before importing the module
 vi.mock('../../src/modules/utils.ts', () => ({
     safeGetElementById: vi.fn(() => null),
-    generateModalImage: vi.fn((data: unknown, name: string, type: string) => `<div class="modal-image" data-type="${type}">${name}</div>`),
+    generateModalImage: vi.fn(
+        (data: unknown, name: string, type: string) => `<div class="modal-image" data-type="${type}">${name}</div>`
+    ),
     escapeHtml: vi.fn((str: string) => str?.replace(/</g, '&lt;').replace(/>/g, '&gt;') || ''),
 }));
 
@@ -49,10 +51,10 @@ describe('Modal Items Module', () => {
     beforeEach(() => {
         vi.clearAllMocks();
         vi.useFakeTimers();
-        
+
         // Reset DOM
         document.body.innerHTML = '';
-        
+
         // Reset mock implementations
         vi.mocked(getChartModule).mockResolvedValue({
             getEffectiveStackCap: vi.fn(() => 100),
@@ -113,7 +115,7 @@ describe('Modal Items Module', () => {
             });
 
             it('should escape HTML in description and effects', () => {
-                const item = createBaseItem({ 
+                const item = createBaseItem({
                     base_effect: '<script>alert("xss")</script>',
                     detailed_description: '<img onerror=alert(1)>',
                 });

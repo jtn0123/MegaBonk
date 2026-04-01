@@ -19,12 +19,14 @@ function analyzeStrip(ctx, y, height, width) {
 
     for (let seg = 0; seg < 40; seg++) {
         const startX = seg * segmentWidth;
-        let sum = 0, sumSq = 0, count = 0;
+        let sum = 0,
+            sumSq = 0,
+            count = 0;
 
         for (let py = 0; py < height; py++) {
             for (let px = startX; px < startX + segmentWidth && px < width; px++) {
                 const idx = (py * width + px) * 4;
-                const gray = (data[idx] + data[idx+1] + data[idx+2]) / 3;
+                const gray = (data[idx] + data[idx + 1] + data[idx + 2]) / 3;
                 sum += gray;
                 sumSq += gray * gray;
                 count++;
@@ -58,8 +60,8 @@ function findInventoryRows(ctx, width, height) {
     // Find peaks in variance (rows with items)
     for (let i = 1; i < variances.length - 1; i++) {
         const curr = variances[i];
-        const prev = variances[i-1];
-        const next = variances[i+1];
+        const prev = variances[i - 1];
+        const next = variances[i + 1];
 
         // Local maximum with significant variance
         if (curr.highVarCount > 5 && curr.highVarCount >= prev.highVarCount && curr.highVarCount >= next.highVarCount) {
@@ -111,7 +113,7 @@ function detectGridImproved(ctx, width, height) {
 
         // Find item columns in this row
         const rowData = ctx.getImageData(0, Math.max(0, rowY), width, iconSize);
-        let itemColumns = [];
+        const itemColumns = [];
 
         // Scan for high-variance columns
         for (let x = Math.round(width * 0.15); x < width * 0.85; x += iconSize / 2) {
@@ -121,14 +123,15 @@ function detectGridImproved(ctx, width, height) {
             for (let py = 0; py < iconSize; py++) {
                 for (let px = 0; px < iconSize && x + px < width; px++) {
                     const idx = (py * width + (x + px)) * 4;
-                    const gray = (rowData.data[idx] + rowData.data[idx+1] + rowData.data[idx+2]) / 3;
+                    const gray = (rowData.data[idx] + rowData.data[idx + 1] + rowData.data[idx + 2]) / 3;
                     variance += gray * gray;
                     count++;
                 }
             }
 
             variance = variance / count;
-            if (variance > 8000) { // Threshold for "has content"
+            if (variance > 8000) {
+                // Threshold for "has content"
                 itemColumns.push(x);
             }
         }
@@ -140,14 +143,14 @@ function detectGridImproved(ctx, width, height) {
         for (let i = 0; i < itemColumns.length; i++) {
             if (clusterStart === null) {
                 clusterStart = itemColumns[i];
-            } else if (itemColumns[i] - itemColumns[i-1] > iconSize) {
+            } else if (itemColumns[i] - itemColumns[i - 1] > iconSize) {
                 // Gap found, end cluster
-                clusters.push(Math.round((clusterStart + itemColumns[i-1]) / 2));
+                clusters.push(Math.round((clusterStart + itemColumns[i - 1]) / 2));
                 clusterStart = itemColumns[i];
             }
         }
         if (clusterStart !== null && itemColumns.length > 0) {
-            clusters.push(Math.round((clusterStart + itemColumns[itemColumns.length-1]) / 2));
+            clusters.push(Math.round((clusterStart + itemColumns[itemColumns.length - 1]) / 2));
         }
 
         // Add positions for this row
@@ -156,7 +159,7 @@ function detectGridImproved(ctx, width, height) {
                 x: x - iconSize / 2,
                 y: rowY,
                 width: iconSize,
-                height: iconSize
+                height: iconSize,
             });
         }
     }
@@ -196,7 +199,7 @@ function detectGridFixed(width, height) {
                 x: startX + i * (iconSize + spacing),
                 y: rowY,
                 width: iconSize,
-                height: iconSize
+                height: iconSize,
             });
         }
     }
@@ -206,10 +209,14 @@ function detectGridFixed(width, height) {
 
 function isEmptyCell(ctx, x, y, w, h) {
     const imageData = ctx.getImageData(Math.max(0, x), Math.max(0, y), w, h);
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
@@ -246,7 +253,7 @@ async function testImage(imagePath, expectedItems) {
         height: image.height,
         expected: expectedItems,
         fixed: { total: fixed.positions.length, nonEmpty: fixedNonEmpty },
-        improved: { total: improved.positions.length, nonEmpty: improvedNonEmpty }
+        improved: { total: improved.positions.length, nonEmpty: improvedNonEmpty },
     };
 }
 
@@ -277,8 +284,16 @@ async function visualize(imagePath, outputPath, expectedItems) {
     ctx.fillRect(0, image.height, image.width, 100);
     ctx.fillStyle = '#fff';
     ctx.font = '12px monospace';
-    ctx.fillText(`Fixed grid: ${nonEmpty} non-empty / ${fixed.positions.length} cells | Expected: ${expectedItems}`, 10, image.height + 20);
-    ctx.fillText(`Parameters: iconSize=${fixed.iconSize}, bottomMargin=${fixed.bottomMargin}, scale=${fixed.scale.toFixed(2)}`, 10, image.height + 40);
+    ctx.fillText(
+        `Fixed grid: ${nonEmpty} non-empty / ${fixed.positions.length} cells | Expected: ${expectedItems}`,
+        10,
+        image.height + 20
+    );
+    ctx.fillText(
+        `Parameters: iconSize=${fixed.iconSize}, bottomMargin=${fixed.bottomMargin}, scale=${fixed.scale.toFixed(2)}`,
+        10,
+        image.height + 40
+    );
 
     const buffer = canvas.toBuffer('image/png');
     fs.writeFileSync(outputPath, buffer);
@@ -306,7 +321,9 @@ async function main() {
         await visualize(imagePath, outputPath, data.items.length);
 
         const shortName = name.slice(9, 30);
-        console.log(`| ${shortName.padEnd(20)} | ${String(result.expected).padStart(8)} | ${String(result.fixed.nonEmpty).padStart(3)} | ${String(result.fixed.nonEmpty).padStart(9)} | ${String(result.improved.nonEmpty).padStart(8)} |`);
+        console.log(
+            `| ${shortName.padEnd(20)} | ${String(result.expected).padStart(8)} | ${String(result.fixed.nonEmpty).padStart(3)} | ${String(result.fixed.nonEmpty).padStart(9)} | ${String(result.improved.nonEmpty).padStart(8)} |`
+        );
     }
 
     console.log(`\nVisualization saved to: ${OUTPUT_DIR}/`);

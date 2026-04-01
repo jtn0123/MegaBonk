@@ -18,8 +18,9 @@ async function measureImage(imagePath) {
     // Look for horizontal lines of consistent variance (UI elements)
 
     const results = {
-        width, height,
-        bottomStrips: []
+        width,
+        height,
+        bottomStrips: [],
     };
 
     // Analyze bottom 200 pixels in 10px strips
@@ -27,10 +28,14 @@ async function measureImage(imagePath) {
         const strip = ctx.getImageData(0, y, width, 10);
 
         // Calculate variance across the strip
-        let sum = 0, sumSq = 0, count = 0;
+        let sum = 0,
+            sumSq = 0,
+            count = 0;
         for (let i = 0; i < strip.data.length; i += 4) {
-            const gray = (strip.data[i] + strip.data[i+1] + strip.data[i+2]) / 3;
-            sum += gray; sumSq += gray * gray; count++;
+            const gray = (strip.data[i] + strip.data[i + 1] + strip.data[i + 2]) / 3;
+            sum += gray;
+            sumSq += gray * gray;
+            count++;
         }
         const mean = sum / count;
         const variance = sumSq / count - mean * mean;
@@ -39,12 +44,16 @@ async function measureImage(imagePath) {
         let highVarPixels = 0;
         const segmentSize = Math.floor(width / 20);
         for (let seg = 0; seg < 20; seg++) {
-            let segSum = 0, segSumSq = 0, segCount = 0;
+            let segSum = 0,
+                segSumSq = 0,
+                segCount = 0;
             for (let px = seg * segmentSize; px < (seg + 1) * segmentSize; px++) {
                 for (let py = 0; py < 10; py++) {
                     const idx = (py * width + px) * 4;
-                    const gray = (strip.data[idx] + strip.data[idx+1] + strip.data[idx+2]) / 3;
-                    segSum += gray; segSumSq += gray * gray; segCount++;
+                    const gray = (strip.data[idx] + strip.data[idx + 1] + strip.data[idx + 2]) / 3;
+                    segSum += gray;
+                    segSumSq += gray * gray;
+                    segCount++;
                 }
             }
             const segVar = segSumSq / segCount - (segSum / segCount) ** 2;
@@ -56,7 +65,7 @@ async function measureImage(imagePath) {
             fromBottom: height - y,
             variance: Math.round(variance),
             mean: Math.round(mean),
-            highVarSegments: highVarPixels
+            highVarSegments: highVarPixels,
         });
     }
 
@@ -69,7 +78,7 @@ async function main() {
     const testImages = [
         'test-images/gameplay/pc-1080p/level_33_english_forest_early.jpg',
         'test-images/gameplay/pc-1080p/level_75_portuguese_hell_final.jpg',
-        'test-images/gameplay/pc-1080p/level_803_russian_stress_test.jpg'
+        'test-images/gameplay/pc-1080p/level_803_russian_stress_test.jpg',
     ];
 
     for (const imagePath of testImages) {
@@ -85,11 +94,13 @@ async function main() {
 
         // Find interesting regions
         let weaponBarEnd = null;
-        let inventoryRows = [];
+        const inventoryRows = [];
 
         for (const strip of result.bottomStrips) {
             const marker = strip.highVarSegments > 8 ? ' ***' : strip.highVarSegments > 4 ? ' **' : '';
-            console.log(`  y=${strip.y} (${strip.fromBottom}px from bottom): var=${strip.variance}, segs=${strip.highVarSegments}${marker}`);
+            console.log(
+                `  y=${strip.y} (${strip.fromBottom}px from bottom): var=${strip.variance}, segs=${strip.highVarSegments}${marker}`
+            );
 
             // Detect weapon bar (high variance near bottom)
             if (strip.fromBottom < 60 && strip.highVarSegments > 5 && !weaponBarEnd) {

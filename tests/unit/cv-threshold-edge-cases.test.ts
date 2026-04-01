@@ -19,13 +19,7 @@ import { getConfidenceThresholds, CVStrategy, STRATEGY_PRESETS } from '../../src
 /**
  * Create mock detection result with position
  */
-const createDetection = (
-    id: string,
-    name: string,
-    confidence: number,
-    x: number = 0,
-    y: number = 0
-) => ({
+const createDetection = (id: string, name: string, confidence: number, x: number = 0, y: number = 0) => ({
     entity: { id, name } as any,
     confidence,
     x,
@@ -39,9 +33,9 @@ const createDetection = (
  */
 const CONFIDENCE_THRESHOLDS = {
     HIGH: 0.85,
-    MEDIUM: 0.70,
-    LOW: 0.50,
-    MINIMUM: 0.40,
+    MEDIUM: 0.7,
+    LOW: 0.5,
+    MINIMUM: 0.4,
 };
 
 // ========================================
@@ -67,7 +61,7 @@ describe('CV Confidence Threshold Boundaries', () => {
 
         it('should handle floating point precision at 0.85', () => {
             // Test various representations of 0.85
-            const values = [0.85, 0.850, 17 / 20, 0.84999999999999999];
+            const values = [0.85, 0.85, 17 / 20, 0.8499999999999999];
             values.forEach(val => {
                 const detection = createDetection('wrench', 'Wrench', val);
                 // Due to floating point, 0.84999...9 rounds to 0.85
@@ -78,12 +72,12 @@ describe('CV Confidence Threshold Boundaries', () => {
 
     describe('Medium Confidence Threshold (0.70)', () => {
         it('should accept detection at exactly 0.70', () => {
-            const detection = createDetection('wrench', 'Wrench', 0.70);
+            const detection = createDetection('wrench', 'Wrench', 0.7);
             expect(detection.confidence).toBeGreaterThanOrEqual(CONFIDENCE_THRESHOLDS.MEDIUM);
         });
 
         it('should categorize 0.70 as medium, not low', () => {
-            const confidence = 0.70;
+            const confidence = 0.7;
             const isHigh = confidence >= CONFIDENCE_THRESHOLDS.HIGH;
             const isMedium = confidence >= CONFIDENCE_THRESHOLDS.MEDIUM && confidence < CONFIDENCE_THRESHOLDS.HIGH;
             const isLow = confidence < CONFIDENCE_THRESHOLDS.MEDIUM;
@@ -107,7 +101,7 @@ describe('CV Confidence Threshold Boundaries', () => {
         });
 
         it('should accept detection at 0.40', () => {
-            const detection = createDetection('wrench', 'Wrench', 0.40);
+            const detection = createDetection('wrench', 'Wrench', 0.4);
             expect(detection.confidence).toBeGreaterThanOrEqual(CONFIDENCE_THRESHOLDS.MINIMUM);
         });
 
@@ -177,7 +171,7 @@ describe('CV Confidence Threshold Boundaries', () => {
             const gap = bestMatch - secondBest;
 
             // Large gap (>0.20) indicates confident detection
-            expect(gap).toBeGreaterThan(0.20);
+            expect(gap).toBeGreaterThan(0.2);
         });
     });
 });
@@ -252,7 +246,7 @@ describe('CV Adaptive Rarity Threshold System', () => {
                 const thresholds = getConfidenceThresholds(adaptiveRarityStrategy, rarity);
 
                 // Pass 1 should be highest confidence (>= 0.70)
-                expect(thresholds.pass1).toBeGreaterThanOrEqual(0.70);
+                expect(thresholds.pass1).toBeGreaterThanOrEqual(0.7);
                 expect(thresholds.pass1).toBeLessThanOrEqual(1.0);
 
                 // Pass 2 should be medium confidence (>= 0.55)
@@ -416,7 +410,7 @@ describe('CV Detection Edge Cases', () => {
             expect(visibilityRatio).toBe(0.75);
 
             // Detection confidence should be reduced proportionally
-            const baseConfidence = 0.90;
+            const baseConfidence = 0.9;
             const adjustedConfidence = baseConfidence * visibilityRatio;
             expect(adjustedConfidence).toBeCloseTo(0.675, 2);
         });
@@ -427,8 +421,16 @@ describe('CV Detection Edge Cases', () => {
             const overlayRegion = { x: 120, y: 80, width: 100, height: 50 };
 
             // Calculate overlap
-            const overlapX = Math.max(0, Math.min(itemRegion.x + itemRegion.width, overlayRegion.x + overlayRegion.width) - Math.max(itemRegion.x, overlayRegion.x));
-            const overlapY = Math.max(0, Math.min(itemRegion.y + itemRegion.height, overlayRegion.y + overlayRegion.height) - Math.max(itemRegion.y, overlayRegion.y));
+            const overlapX = Math.max(
+                0,
+                Math.min(itemRegion.x + itemRegion.width, overlayRegion.x + overlayRegion.width) -
+                    Math.max(itemRegion.x, overlayRegion.x)
+            );
+            const overlapY = Math.max(
+                0,
+                Math.min(itemRegion.y + itemRegion.height, overlayRegion.y + overlayRegion.height) -
+                    Math.max(itemRegion.y, overlayRegion.y)
+            );
             const overlapArea = overlapX * overlapY;
             const itemArea = itemRegion.width * itemRegion.height;
 
@@ -450,7 +452,7 @@ describe('CV Detection Edge Cases', () => {
     describe('Overlapping Items', () => {
         it('should detect overlapping bounding boxes', () => {
             const detection1 = createDetection('wrench', 'Wrench', 0.85, 100, 100);
-            const detection2 = createDetection('medkit', 'Medkit', 0.80, 120, 100);
+            const detection2 = createDetection('medkit', 'Medkit', 0.8, 120, 100);
 
             // Calculate IoU (Intersection over Union)
             const calculateIoU = (
@@ -480,25 +482,26 @@ describe('CV Detection Edge Cases', () => {
         it('should apply NMS (Non-Maximum Suppression) for duplicates', () => {
             // Multiple detections of same item at slightly different positions
             const detections = [
-                createDetection('wrench', 'Wrench', 0.90, 100, 100),
+                createDetection('wrench', 'Wrench', 0.9, 100, 100),
                 createDetection('wrench', 'Wrench', 0.85, 102, 101), // Slight offset
-                createDetection('wrench', 'Wrench', 0.80, 98, 99),  // Another offset
+                createDetection('wrench', 'Wrench', 0.8, 98, 99), // Another offset
             ];
 
             // NMS should keep only the highest confidence detection
             const nmsThreshold = 0.5;
-            const keepDetection = (d: typeof detections[0], others: typeof detections) => {
-                return !others.some(other =>
-                    other !== d &&
-                    other.confidence > d.confidence &&
-                    Math.abs(other.x - d.x) < 10 &&
-                    Math.abs(other.y - d.y) < 10
+            const keepDetection = (d: (typeof detections)[0], others: typeof detections) => {
+                return !others.some(
+                    other =>
+                        other !== d &&
+                        other.confidence > d.confidence &&
+                        Math.abs(other.x - d.x) < 10 &&
+                        Math.abs(other.y - d.y) < 10
                 );
             };
 
             const kept = detections.filter(d => keepDetection(d, detections));
             expect(kept.length).toBe(1);
-            expect(kept[0]!.confidence).toBe(0.90);
+            expect(kept[0]!.confidence).toBe(0.9);
         });
 
         it('should handle stacked items (same position, different items)', () => {
@@ -512,9 +515,7 @@ describe('CV Detection Edge Cases', () => {
             const samePosition = detections.every(d => d.x === 100 && d.y === 100);
             expect(samePosition).toBe(true);
 
-            const bestDetection = detections.reduce((best, d) =>
-                d.confidence > best.confidence ? d : best
-            );
+            const bestDetection = detections.reduce((best, d) => (d.confidence > best.confidence ? d : best));
             expect(bestDetection.entity.id).toBe('wrench');
         });
     });
@@ -554,9 +555,11 @@ describe('CV Detection Edge Cases', () => {
             const lowContrastImage = cvTestKit.image.gradient(64, 64, [100, 100, 100], [110, 110, 110]);
 
             // Calculate contrast
-            let min = 255, max = 0;
+            let min = 255,
+                max = 0;
             for (let i = 0; i < lowContrastImage.data.length; i += 4) {
-                const gray = (lowContrastImage.data[i]! + lowContrastImage.data[i + 1]! + lowContrastImage.data[i + 2]!) / 3;
+                const gray =
+                    (lowContrastImage.data[i]! + lowContrastImage.data[i + 1]! + lowContrastImage.data[i + 2]!) / 3;
                 min = Math.min(min, gray);
                 max = Math.max(max, gray);
             }
@@ -571,9 +574,11 @@ describe('CV Detection Edge Cases', () => {
             // Check for clipping (values at max)
             let clippedPixels = 0;
             for (let i = 0; i < oversaturatedImage.data.length; i += 4) {
-                if (oversaturatedImage.data[i] === 255 ||
+                if (
+                    oversaturatedImage.data[i] === 255 ||
                     oversaturatedImage.data[i + 1] === 255 ||
-                    oversaturatedImage.data[i + 2] === 255) {
+                    oversaturatedImage.data[i + 2] === 255
+                ) {
                     clippedPixels++;
                 }
             }
@@ -611,9 +616,9 @@ describe('CV Rarity Border Edge Cases', () => {
 
         it('should detect uncommon (green) border', () => {
             const uncommonBorder = cvTestKit.image.bordered(64, 64, [0, 200, 0], [50, 50, 50], 3);
-            expect(uncommonBorder.data[0]).toBe(0);   // R
+            expect(uncommonBorder.data[0]).toBe(0); // R
             expect(uncommonBorder.data[1]).toBe(200); // G
-            expect(uncommonBorder.data[2]).toBe(0);   // B
+            expect(uncommonBorder.data[2]).toBe(0); // B
         });
 
         it('should detect rare (blue) border', () => {
@@ -639,7 +644,9 @@ describe('CV Rarity Border Edge Cases', () => {
             const ambiguousBorder = cvTestKit.image.bordered(64, 64, [100, 50, 200], [50, 50, 50], 3);
 
             // Classify by dominant component
-            const r = 100, g = 50, b = 200;
+            const r = 100,
+                g = 50,
+                b = 200;
             const isMoreBlue = b > r && b > g;
             const isMorePurple = r > 50 && b > 150 && Math.abs(r - b) < 100;
 
@@ -720,8 +727,8 @@ describe('CV Rarity Border Edge Cases', () => {
 
 describe('CV Numeric Precision', () => {
     it('should handle similarity score at exact threshold', () => {
-        const threshold = 0.70;
-        const scores = [0.70, 0.700000001, 0.699999999];
+        const threshold = 0.7;
+        const scores = [0.7, 0.700000001, 0.699999999];
 
         scores.forEach(score => {
             const passes = score >= threshold - Number.EPSILON;
@@ -733,7 +740,7 @@ describe('CV Numeric Precision', () => {
     it('should handle very small confidence differences', () => {
         const detections = [
             createDetection('a', 'A', 0.8500000001),
-            createDetection('b', 'B', 0.8500000000),
+            createDetection('b', 'B', 0.85),
             createDetection('c', 'C', 0.8499999999),
         ];
 

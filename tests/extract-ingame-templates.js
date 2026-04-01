@@ -21,8 +21,8 @@ function detectGridPositions(width, height) {
 
     const rowYPositions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
-        if (y >= height * 0.70) rowYPositions.push(y);
+        const y = height - bottomMargin - row * rowHeight - iconSize;
+        if (y >= height * 0.7) rowYPositions.push(y);
     }
 
     const sideMargin = Math.round(width * 0.15);
@@ -40,15 +40,21 @@ function detectGridPositions(width, height) {
 }
 
 function getCellStats(imageData) {
-    let sum = 0, sumSq = 0, count = 0;
-    let sumR = 0, sumG = 0, sumB = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
 
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
         sumR += imageData.data[i];
-        sumG += imageData.data[i+1];
-        sumB += imageData.data[i+2];
+        sumG += imageData.data[i + 1];
+        sumB += imageData.data[i + 2];
     }
 
     const mean = sum / count;
@@ -59,7 +65,7 @@ function getCellStats(imageData) {
         isEmpty,
         variance,
         mean,
-        avgColor: { r: sumR / count, g: sumG / count, b: sumB / count }
+        avgColor: { r: sumR / count, g: sumG / count, b: sumB / count },
     };
 }
 
@@ -73,8 +79,7 @@ function extractCenter(ctx, x, y, w, h, outputSize) {
 
     const dstCanvas = createCanvas(outputSize, outputSize);
     const dstCtx = dstCanvas.getContext('2d');
-    dstCtx.drawImage(srcCanvas, margin, margin, w - margin*2, h - margin*2,
-                     0, 0, outputSize, outputSize);
+    dstCtx.drawImage(srcCanvas, margin, margin, w - margin * 2, h - margin * 2, 0, 0, outputSize, outputSize);
     return dstCanvas;
 }
 
@@ -103,9 +108,7 @@ async function extract() {
         const positions = detectGridPositions(image.width, image.height);
 
         // Get list of expected items
-        const expectedItems = data.items.map(item =>
-            item.toLowerCase().replace(/[^a-z0-9]+/g, '-')
-        );
+        const expectedItems = data.items.map(item => item.toLowerCase().replace(/[^a-z0-9]+/g, '-'));
 
         // Find non-empty cells
         const nonEmptyCells = [];
@@ -143,12 +146,14 @@ async function extract() {
                 itemExamples.get(itemId).push({
                     canvas: cropCanvas,
                     source: name,
-                    stats: cell.stats
+                    stats: cell.stats,
                 });
             }
         } else {
             // Extract all cells as "unlabeled" for potential manual review
-            console.log(`  Count mismatch (${nonEmptyCells.length} vs ${expectedItems.length}), extracting for review...`);
+            console.log(
+                `  Count mismatch (${nonEmptyCells.length} vs ${expectedItems.length}), extracting for review...`
+            );
 
             for (let i = 0; i < nonEmptyCells.length; i++) {
                 const cell = nonEmptyCells[i];
@@ -161,7 +166,7 @@ async function extract() {
                     canvas: cropCanvas,
                     source: name,
                     stats: cell.stats,
-                    expectedItems: expectedItems.slice() // Keep reference for manual review
+                    expectedItems: expectedItems.slice(), // Keep reference for manual review
                 });
             }
         }
@@ -180,10 +185,7 @@ async function extract() {
 
             for (let i = 0; i < examples.length; i++) {
                 const filename = `unlabeled_${i}.png`;
-                fs.writeFileSync(
-                    path.join(unlabeledDir, filename),
-                    examples[i].canvas.toBuffer('image/png')
-                );
+                fs.writeFileSync(path.join(unlabeledDir, filename), examples[i].canvas.toBuffer('image/png'));
             }
             summary.unlabeled = examples.length;
         } else {
@@ -193,10 +195,7 @@ async function extract() {
 
             for (let i = 0; i < examples.length; i++) {
                 const filename = `${itemId}_${i}.png`;
-                fs.writeFileSync(
-                    path.join(itemDir, filename),
-                    examples[i].canvas.toBuffer('image/png')
-                );
+                fs.writeFileSync(path.join(itemDir, filename), examples[i].canvas.toBuffer('image/png'));
             }
             summary.items[itemId] = examples.length;
         }
@@ -224,10 +223,7 @@ async function extract() {
     }
 
     // Save summary JSON
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'summary.json'),
-        JSON.stringify(summary, null, 2)
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'summary.json'), JSON.stringify(summary, null, 2));
 
     console.log(`\nTemplates saved to: ${OUTPUT_DIR}/`);
 
@@ -238,9 +234,7 @@ async function extract() {
 async function createMontage(itemExamples) {
     const labeled = Array.from(itemExamples.entries())
         .filter(([id]) => id !== '_unlabeled')
-        .flatMap(([id, examples]) =>
-            examples.map((e, i) => ({ id, canvas: e.canvas, idx: i }))
-        );
+        .flatMap(([id, examples]) => examples.map((e, i) => ({ id, canvas: e.canvas, idx: i })));
 
     if (labeled.length === 0) {
         console.log('No labeled items to create montage');
@@ -264,20 +258,17 @@ async function createMontage(itemExamples) {
         const x = col * cellSize + padding;
         const y = row * cellSize + padding;
 
-        ctx.drawImage(item.canvas, x, y, cellSize - padding*2, cellSize - padding*2);
+        ctx.drawImage(item.canvas, x, y, cellSize - padding * 2, cellSize - padding * 2);
 
         // Label
         ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-        ctx.fillRect(x, y + cellSize - padding*2 - 10, cellSize - padding*2, 10);
+        ctx.fillRect(x, y + cellSize - padding * 2 - 10, cellSize - padding * 2, 10);
         ctx.fillStyle = '#fff';
         ctx.font = '7px monospace';
-        ctx.fillText(item.id.slice(0, 8), x + 1, y + cellSize - padding*2 - 2);
+        ctx.fillText(item.id.slice(0, 8), x + 1, y + cellSize - padding * 2 - 2);
     }
 
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'montage.png'),
-        montage.toBuffer('image/png')
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'montage.png'), montage.toBuffer('image/png'));
     console.log(`Montage saved: ${OUTPUT_DIR}/montage.png`);
 }
 

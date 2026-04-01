@@ -46,10 +46,7 @@ describe('Integration - Build Recommendation Flow', () => {
         const build: BuildState = {
             character,
             weapon,
-            items: [
-                createItem('Damage Ring', 'A', 'damage'),
-                createItem('Power Amulet', 'B', 'damage'),
-            ],
+            items: [createItem('Damage Ring', 'A', 'damage'), createItem('Power Amulet', 'B', 'damage')],
             tomes: [],
         };
 
@@ -117,7 +114,7 @@ describe('Integration - Build Recommendation Flow', () => {
         const weapon = createWeapon('Sword and Board');
 
         // Start with empty build
-        let currentBuild: BuildState = {
+        const currentBuild: BuildState = {
             character,
             weapon,
             items: [],
@@ -210,10 +207,7 @@ describe('Integration - Detection and Accuracy Flow', () => {
             },
         ];
 
-        const cvResults = [
-            createDetection('sword', 'Sword', 0.8),
-            createDetection('shield', 'Shield', 0.85),
-        ];
+        const cvResults = [createDetection('sword', 'Sword', 0.8), createDetection('shield', 'Shield', 0.85)];
 
         // Combine detections
         const combined = combineDetections(ocrResults, cvResults);
@@ -283,7 +277,11 @@ describe('Integration - Detection and Accuracy Flow', () => {
 });
 
 describe('Integration - Build Recommendation with Detection Results', () => {
-    const createDetection = (name: string, tier: 'SS' | 'S' | 'A' | 'B' | 'C', confidence: number): CVDetectionResult => ({
+    const createDetection = (
+        name: string,
+        tier: 'SS' | 'S' | 'A' | 'B' | 'C',
+        confidence: number
+    ): CVDetectionResult => ({
         type: 'item',
         entity: {
             id: `item_${name.toLowerCase().replace(/\s+/g, '_')}`,
@@ -380,7 +378,7 @@ describe('Integration - End-to-End Scenarios', () => {
             base_damage: 30,
         };
 
-        let build: BuildState = {
+        const build: BuildState = {
             character,
             weapon,
             items: [],
@@ -444,8 +442,8 @@ describe('Integration - End-to-End Scenarios', () => {
         expect(build.items.some(item => item.name === 'Heavy Armor')).toBe(true);
 
         // Should have at least 2 HP-focused items
-        const hpItemCount = build.items.filter(item =>
-            item.base_effect?.includes('hp') || item.effects?.includes('hp')
+        const hpItemCount = build.items.filter(
+            item => item.base_effect?.includes('hp') || item.effects?.includes('hp')
         ).length;
         expect(hpItemCount).toBeGreaterThanOrEqual(2);
     });
@@ -461,7 +459,7 @@ describe('Integration - End-to-End Scenarios', () => {
             synergies_weapons: [],
         };
 
-        let build: BuildState = {
+        const build: BuildState = {
             character,
             weapon: null,
             items: [],
@@ -525,8 +523,8 @@ describe('Integration - End-to-End Scenarios', () => {
         expect(build.items.some(item => item.name === 'Crit Blade')).toBe(true);
 
         // Should have at least 2 crit-focused items
-        const critItemCount = build.items.filter(item =>
-            item.base_effect?.includes('crit') || item.effects?.includes('crit')
+        const critItemCount = build.items.filter(
+            item => item.base_effect?.includes('crit') || item.effects?.includes('crit')
         ).length;
         expect(critItemCount).toBeGreaterThanOrEqual(2);
     });

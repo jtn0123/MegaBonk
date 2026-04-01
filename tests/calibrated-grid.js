@@ -28,10 +28,10 @@ const GRID_PARAMS = {
     maxRows: 3,
 
     // Minimum Y position as % of height (allow up to top 30% of screen)
-    minYPercent: 0.70,
+    minYPercent: 0.7,
 
     // Side margins - items are centered, ~70% width used
-    sideMarginPercent: 0.15
+    sideMarginPercent: 0.15,
 };
 
 function detectGridCalibrated(width, height) {
@@ -47,7 +47,7 @@ function detectGridCalibrated(width, height) {
     // Calculate row Y positions (from bottom up)
     const rowYPositions = [];
     for (let row = 0; row < GRID_PARAMS.maxRows; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        const y = height - bottomMargin - row * rowHeight - iconSize;
         if (y >= height * GRID_PARAMS.minYPercent) {
             rowYPositions.push(y);
         }
@@ -71,24 +71,28 @@ function detectGridCalibrated(width, height) {
                 width: iconSize,
                 height: iconSize,
                 row: rowYPositions.indexOf(rowY),
-                col: i
+                col: i,
             });
         }
     }
 
     return {
         positions,
-        params: { iconSize, spacing, bottomMargin, rowHeight, scale, rowYPositions }
+        params: { iconSize, spacing, bottomMargin, rowHeight, scale, rowYPositions },
     };
 }
 
 function isEmptyCell(ctx, x, y, w, h) {
     if (x < 0 || y < 0) return true;
     const imageData = ctx.getImageData(x, y, w, h);
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
@@ -133,7 +137,7 @@ async function analyzeAndVisualize(imagePath, expectedItems) {
     const info = [
         `Calibrated: iconSize=${params.iconSize}, bottomMargin=${params.bottomMargin}, rowHeight=${params.rowHeight}`,
         `Detected: ${nonEmpty} non-empty / ${positions.length} cells | Expected: ${expectedItems} | Diff: ${nonEmpty - expectedItems}`,
-        `Rows at Y: ${params.rowYPositions.map(y => Math.round(y)).join(', ')} (${params.rowYPositions.length} rows)`
+        `Rows at Y: ${params.rowYPositions.map(y => Math.round(y)).join(', ')} (${params.rowYPositions.length} rows)`,
     ];
     info.forEach((line, i) => ctx.fillText(line, 10, image.height + 18 + i * 18));
 
@@ -145,8 +149,8 @@ async function analyzeAndVisualize(imagePath, expectedItems) {
             nonEmpty,
             expected: expectedItems,
             diff: nonEmpty - expectedItems,
-            params
-        }
+            params,
+        },
     };
 }
 
@@ -162,7 +166,8 @@ async function main() {
     console.log('\n| Image | Resolution | Scale | Detected | Expected | Diff |');
     console.log('|-------|------------|-------|----------|----------|------|');
 
-    let totalDetected = 0, totalExpected = 0;
+    let totalDetected = 0,
+        totalExpected = 0;
 
     for (const [name, data] of testCases) {
         const imagePath = path.join('./test-images/gameplay', name);
@@ -177,7 +182,9 @@ async function main() {
         const shortName = name.slice(9, 35);
         const diff = result.stats.diff;
         const diffStr = (diff >= 0 ? '+' : '') + diff;
-        console.log(`| ${shortName.padEnd(25)} | ${result.stats.width}x${result.stats.height} | ${result.stats.params.scale.toFixed(2)} | ${String(result.stats.nonEmpty).padStart(8)} | ${String(result.stats.expected).padStart(8)} | ${diffStr.padStart(4)} |`);
+        console.log(
+            `| ${shortName.padEnd(25)} | ${result.stats.width}x${result.stats.height} | ${result.stats.params.scale.toFixed(2)} | ${String(result.stats.nonEmpty).padStart(8)} | ${String(result.stats.expected).padStart(8)} | ${diffStr.padStart(4)} |`
+        );
 
         totalDetected += result.stats.nonEmpty;
         totalExpected += result.stats.expected;
@@ -185,7 +192,9 @@ async function main() {
 
     console.log('|-------|------------|-------|----------|----------|------|');
     const totalDiff = totalDetected - totalExpected;
-    console.log(`| TOTAL |            |       | ${String(totalDetected).padStart(8)} | ${String(totalExpected).padStart(8)} | ${(totalDiff >= 0 ? '+' : '') + totalDiff} |`);
+    console.log(
+        `| TOTAL |            |       | ${String(totalDetected).padStart(8)} | ${String(totalExpected).padStart(8)} | ${(totalDiff >= 0 ? '+' : '') + totalDiff} |`
+    );
 
     console.log(`\nVisualization saved to: ${OUTPUT_DIR}/`);
 }

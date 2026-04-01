@@ -4,12 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-    logger,
-    Logger,
-    LogLevel,
-    EventBuilder,
-} from '../../src/modules/logger.ts';
+import { logger, Logger, LogLevel, EventBuilder } from '../../src/modules/logger.ts';
 
 // ========================================
 // Logger Singleton Tests
@@ -331,11 +326,7 @@ describe('withOperation - Real Integration Tests', () => {
     });
 
     it('should pass metadata to logged event', async () => {
-        const result = await logger.withOperation(
-            'metadata-op',
-            async () => 'result',
-            { customField: 'value' }
-        );
+        const result = await logger.withOperation('metadata-op', async () => 'result', { customField: 'value' });
 
         // Verify the operation completed successfully with metadata
         expect(result).toBe('result');
@@ -370,9 +361,7 @@ describe('EventBuilder - Real Integration Tests', () => {
     });
 
     it('should chain addData calls', () => {
-        const builder = new EventBuilder('chain.test')
-            .addData('key1', 'value1')
-            .addData('key2', 'value2');
+        const builder = new EventBuilder('chain.test').addData('key1', 'value1').addData('key2', 'value2');
 
         const event = builder.getEvent();
         expect(event.data?.key1).toBe('value1');
@@ -451,9 +440,7 @@ describe('EventBuilder - Real Integration Tests', () => {
     });
 
     it('should emit event without throwing', () => {
-        const builder = new EventBuilder('emit.test')
-            .addData('test', true)
-            .setSuccess(true);
+        const builder = new EventBuilder('emit.test').addData('test', true).setSuccess(true);
 
         expect(() => builder.emit()).not.toThrow();
     });

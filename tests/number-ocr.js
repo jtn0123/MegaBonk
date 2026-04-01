@@ -16,7 +16,7 @@ const OUTPUT_DIR = './test-results/number-ocr';
 function binarize(imageData, threshold = 128) {
     const result = new Uint8Array(imageData.width * imageData.height);
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
         result[i / 4] = gray > threshold ? 1 : 0;
     }
     return { data: result, width: imageData.width, height: imageData.height };
@@ -24,7 +24,8 @@ function binarize(imageData, threshold = 128) {
 
 // Find bright text regions (white/yellow text on dark background)
 function findTextRegions(imageData) {
-    const w = imageData.width, h = imageData.height;
+    const w = imageData.width,
+        h = imageData.height;
     const regions = [];
 
     // Scan for bright pixels that could be text
@@ -125,7 +126,7 @@ function matchPattern(charData, pattern) {
     let total = 0;
 
     for (let i = 0; i < charData.data.length; i += 4) {
-        const charBright = (charData.data[i] + charData.data[i+1] + charData.data[i+2]) / 3 > 128 ? 1 : 0;
+        const charBright = (charData.data[i] + charData.data[i + 1] + charData.data[i + 2]) / 3 > 128 ? 1 : 0;
         const patBright = pattern[i / 4] || 0;
 
         if (charBright === patBright) matches++;
@@ -140,46 +141,49 @@ function matchPattern(charData, pattern) {
 const NUMBER_LOCATIONS = {
     // Level display "LVL XX" in top-right corner
     playerLevel: {
-        xPercent: 0.90,
+        xPercent: 0.9,
         yPercent: 0.005,
         widthPercent: 0.08,
-        heightPercent: 0.035
+        heightPercent: 0.035,
     },
     // Timer (center top, red text)
     timer: {
         xPercent: 0.46,
         yPercent: 0.005,
         widthPercent: 0.08,
-        heightPercent: 0.035
+        heightPercent: 0.035,
     },
     // Gold (after coins icon, right of timer)
     gold: {
         xPercent: 0.85,
         yPercent: 0.005,
         widthPercent: 0.05,
-        heightPercent: 0.03
+        heightPercent: 0.03,
     },
     // XP/Kills counter (left of timer)
     kills: {
         xPercent: 0.33,
         yPercent: 0.005,
         widthPercent: 0.05,
-        heightPercent: 0.03
-    }
+        heightPercent: 0.03,
+    },
 };
 
 // Simple digit recognition using aspect ratio and pixel density
 function recognizeDigit(charData) {
-    const w = charData.width, h = charData.height;
+    const w = charData.width,
+        h = charData.height;
     let brightPixels = 0;
-    let topHalf = 0, bottomHalf = 0;
-    let leftHalf = 0, rightHalf = 0;
+    let topHalf = 0,
+        bottomHalf = 0;
+    let leftHalf = 0,
+        rightHalf = 0;
     let center = 0;
 
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
             const idx = (y * w + x) * 4;
-            const bright = (charData.data[idx] + charData.data[idx+1] + charData.data[idx+2]) / 3 > 128;
+            const bright = (charData.data[idx] + charData.data[idx + 1] + charData.data[idx + 2]) / 3 > 128;
 
             if (bright) {
                 brightPixels++;
@@ -278,7 +282,9 @@ async function main() {
         const goldResult = readNumberFromRegion(ctx, NUMBER_LOCATIONS.gold);
 
         const shortName = filename.slice(9, 35);
-        console.log(`| ${shortName.padEnd(25)} | ${levelResult.number.padStart(5)} | ${timerResult.number.padStart(5)} | ${goldResult.number.padStart(4)} |`);
+        console.log(
+            `| ${shortName.padEnd(25)} | ${levelResult.number.padStart(5)} | ${timerResult.number.padStart(5)} | ${goldResult.number.padStart(4)} |`
+        );
 
         // Create visualization
         const vizCanvas = createCanvas(image.width, image.height + 80);

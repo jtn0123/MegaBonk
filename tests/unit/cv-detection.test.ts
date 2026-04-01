@@ -116,7 +116,8 @@ describe('Multi-Region Detection Strategy', () => {
 
     describe('Equipment Region (Top-Left)', () => {
         it('defines equipment region in top-left corner', () => {
-            const width = 1280, height = 720;
+            const width = 1280,
+                height = 720;
             const equipmentROI: ROI = {
                 x: 0,
                 y: 0,
@@ -131,7 +132,8 @@ describe('Multi-Region Detection Strategy', () => {
         });
 
         it('does not overlap with hotbar region', () => {
-            const width = 1280, height = 720;
+            const width = 1280,
+                height = 720;
             const equipmentROI: ROI = { x: 0, y: 0, width: 320, height: 288 };
             const hotbarROI: ROI = { x: 0, y: 576, width: 1280, height: 144 };
 
@@ -185,8 +187,8 @@ describe('Hybrid Detection', () => {
             ];
 
             const cvResults: CVDetectionResult[] = [
-                createCVResult('wrench', 'Wrench', 0.90),
-                createCVResult('battery', 'Battery', 0.80),
+                createCVResult('wrench', 'Wrench', 0.9),
+                createCVResult('battery', 'Battery', 0.8),
             ];
 
             const combined = combineDetections(ocrResults, cvResults);
@@ -195,7 +197,7 @@ describe('Hybrid Detection', () => {
         });
 
         it('boosts confidence for items detected by both methods', () => {
-            const ocrResults: DetectionResult[] = [createOCRResult('wrench', 'Wrench', 0.80)];
+            const ocrResults: DetectionResult[] = [createOCRResult('wrench', 'Wrench', 0.8)];
             const cvResults: CVDetectionResult[] = [createCVResult('wrench', 'Wrench', 0.85)];
 
             const combined = combineDetections(ocrResults, cvResults);
@@ -207,8 +209,8 @@ describe('Hybrid Detection', () => {
 
         it('handles empty OCR results', () => {
             const cvResults: CVDetectionResult[] = [
-                createCVResult('wrench', 'Wrench', 0.90),
-                createCVResult('battery', 'Battery', 0.80),
+                createCVResult('wrench', 'Wrench', 0.9),
+                createCVResult('battery', 'Battery', 0.8),
             ];
 
             const combined = combineDetections([], cvResults);
@@ -231,10 +233,10 @@ describe('Hybrid Detection', () => {
     describe('aggregateDuplicates', () => {
         it('counts duplicate items', () => {
             const detections: CVDetectionResult[] = [
-                createCVResult('wrench', 'Wrench', 0.90, { x: 100, y: 600 }),
+                createCVResult('wrench', 'Wrench', 0.9, { x: 100, y: 600 }),
                 createCVResult('wrench', 'Wrench', 0.85, { x: 150, y: 600 }),
                 createCVResult('wrench', 'Wrench', 0.88, { x: 200, y: 600 }),
-                createCVResult('battery', 'Battery', 0.80, { x: 250, y: 600 }),
+                createCVResult('battery', 'Battery', 0.8, { x: 250, y: 600 }),
             ];
 
             const aggregated = aggregateDuplicates(detections);
@@ -248,7 +250,7 @@ describe('Hybrid Detection', () => {
 
         it('uses highest confidence for aggregated item', () => {
             const detections: CVDetectionResult[] = [
-                createCVResult('wrench', 'Wrench', 0.70),
+                createCVResult('wrench', 'Wrench', 0.7),
                 createCVResult('wrench', 'Wrench', 0.95),
                 createCVResult('wrench', 'Wrench', 0.85),
             ];
@@ -260,7 +262,7 @@ describe('Hybrid Detection', () => {
         });
 
         it('handles single item (no duplicates)', () => {
-            const detections: CVDetectionResult[] = [createCVResult('wrench', 'Wrench', 0.90)];
+            const detections: CVDetectionResult[] = [createCVResult('wrench', 'Wrench', 0.9)];
 
             const aggregated = aggregateDuplicates(detections);
 
@@ -333,7 +335,7 @@ describe('Detection Pipeline Integration', () => {
         ];
 
         // Simple slot-based aggregation
-        const slotMap = new Map<number, typeof detections[0]>();
+        const slotMap = new Map<number, (typeof detections)[0]>();
         for (const d of detections) {
             const existing = slotMap.get(d.slot);
             if (!existing || d.confidence > existing.confidence) {

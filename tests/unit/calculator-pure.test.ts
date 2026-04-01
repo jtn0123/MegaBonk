@@ -4,11 +4,7 @@
  * Tests computeBreakpoint without DOM dependencies
  */
 import { describe, it, expect, beforeEach } from 'vitest';
-import {
-    computeBreakpoint,
-    type BreakpointData,
-    type BreakpointResult,
-} from '../../src/modules/calculator.ts';
+import { computeBreakpoint, type BreakpointData, type BreakpointResult } from '../../src/modules/calculator.ts';
 import type { Item } from '../../src/types/index.ts';
 
 // ========================================
@@ -41,28 +37,28 @@ describe('computeBreakpoint', () => {
         it('should return error for empty itemId', () => {
             const data = createData([createItem()]);
             const result = computeBreakpoint(data, '', 100);
-            
+
             expect(result.error).toBe('Please select an item and enter a target value!');
         });
 
         it('should return error for zero target', () => {
             const data = createData([createItem()]);
             const result = computeBreakpoint(data, 'test_item', 0);
-            
+
             expect(result.error).toBe('Please select an item and enter a target value!');
         });
 
         it('should return error for negative target', () => {
             const data = createData([createItem()]);
             const result = computeBreakpoint(data, 'test_item', -50);
-            
+
             expect(result.error).toBe('Please select an item and enter a target value!');
         });
 
         it('should return error for non-existent item', () => {
             const data = createData([createItem()]);
             const result = computeBreakpoint(data, 'nonexistent', 100);
-            
+
             expect(result.error).toBe('Item not found');
         });
 
@@ -70,7 +66,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 100);
-            
+
             expect(result.error).toBe('Item has no scaling data');
         });
 
@@ -79,7 +75,7 @@ describe('computeBreakpoint', () => {
             delete (item as any).scaling_per_stack;
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 100);
-            
+
             expect(result.error).toBe('Item has no scaling data');
         });
 
@@ -87,7 +83,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [0, 10, 20] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 100);
-            
+
             expect(result.error).toBe('Invalid scaling value');
         });
 
@@ -95,7 +91,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [-10, 20, 30] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 100);
-            
+
             expect(result.error).toBe('Invalid scaling value');
         });
 
@@ -103,7 +99,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [NaN, 20, 30] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 100);
-            
+
             expect(result.error).toBe('Invalid scaling value');
         });
 
@@ -111,7 +107,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [null as any, 20, 30] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 100);
-            
+
             expect(result.error).toBe('Invalid scaling value');
         });
     });
@@ -124,7 +120,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [10, 20, 30, 40, 50] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 50);
-            
+
             expect(result.stacksNeeded).toBe(5);
             expect(result.perStack).toBe(10);
         });
@@ -133,7 +129,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [10, 20, 30, 40, 50] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 25);
-            
+
             expect(result.stacksNeeded).toBe(3); // Ceiling of 25/10 = 3
         });
 
@@ -141,18 +137,18 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [10, 20, 30] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 5);
-            
+
             expect(result.stacksNeeded).toBe(1);
         });
 
         it('should handle large targets', () => {
-            const item = createItem({ 
+            const item = createItem({
                 scaling_per_stack: [5, 10, 15, 20, 25],
-                stack_cap: 100 
+                stack_cap: 100,
             });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 500);
-            
+
             expect(result.stacksNeeded).toBe(100); // 500/5 = 100
         });
 
@@ -160,7 +156,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ name: 'Big Bonk' });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 50);
-            
+
             expect(result.item).toBeDefined();
             expect(result.item?.name).toBe('Big Bonk');
         });
@@ -169,7 +165,7 @@ describe('computeBreakpoint', () => {
             const item = createItem();
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 75);
-            
+
             expect(result.target).toBe(75);
         });
     });
@@ -185,7 +181,7 @@ describe('computeBreakpoint', () => {
             });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 100);
-            
+
             expect(result.stacksNeeded).toBe(3);
             expect(result.isCapped).toBe(true);
         });
@@ -197,7 +193,7 @@ describe('computeBreakpoint', () => {
             });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 30);
-            
+
             expect(result.stacksNeeded).toBe(3);
             expect(result.isCapped).toBeFalsy();
         });
@@ -207,7 +203,7 @@ describe('computeBreakpoint', () => {
             delete (item as any).stack_cap;
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 50);
-            
+
             expect(result.stacksNeeded).toBe(5);
             expect(result.isCapped).toBeFalsy();
         });
@@ -219,7 +215,7 @@ describe('computeBreakpoint', () => {
             });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 500);
-            
+
             expect(result.stacksNeeded).toBe(1);
             expect(result.isCapped).toBe(true);
         });
@@ -236,7 +232,7 @@ describe('computeBreakpoint', () => {
             });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 10);
-            
+
             // The function should still calculate, but flag as one-and-done
             expect(result.stacksNeeded).toBeDefined();
         });
@@ -245,7 +241,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ stacks_well: true });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 50);
-            
+
             expect(result.isOneAndDone).toBeFalsy();
         });
     });
@@ -258,7 +254,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [10, 20, 30] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 15.5);
-            
+
             expect(result.stacksNeeded).toBe(2); // Ceiling of 15.5/10 = 2
         });
 
@@ -266,7 +262,7 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [0.1, 0.2, 0.3] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 1);
-            
+
             expect(result.stacksNeeded).toBe(10);
         });
 
@@ -274,21 +270,21 @@ describe('computeBreakpoint', () => {
             const item = createItem({ scaling_per_stack: [1000, 2000, 3000] });
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 5000);
-            
+
             expect(result.stacksNeeded).toBe(5);
         });
 
         it('should handle empty items array', () => {
             const data = createData([]);
             const result = computeBreakpoint(data, 'test_item', 100);
-            
+
             expect(result.error).toBe('Item not found');
         });
 
         it('should handle undefined items', () => {
             const data: BreakpointData = { items: undefined };
             const result = computeBreakpoint(data, 'test_item', 100);
-            
+
             expect(result.error).toBeDefined();
         });
 
@@ -300,7 +296,7 @@ describe('computeBreakpoint', () => {
             ];
             const data = createData(items);
             const result = computeBreakpoint(data, 'item2', 50);
-            
+
             expect(result.perStack).toBe(10);
             expect(result.stacksNeeded).toBe(5);
         });
@@ -314,7 +310,7 @@ describe('computeBreakpoint', () => {
             const item = createItem();
             const data = createData([item]);
             const result = computeBreakpoint(data, 'test_item', 50);
-            
+
             expect(result).toHaveProperty('item');
             expect(result).toHaveProperty('target');
             expect(result).toHaveProperty('stacksNeeded');
@@ -324,7 +320,7 @@ describe('computeBreakpoint', () => {
         it('should return error property on failure', () => {
             const data = createData([]);
             const result = computeBreakpoint(data, 'nonexistent', 100);
-            
+
             expect(result).toHaveProperty('error');
             expect(result.error).toBeTruthy();
         });

@@ -33,9 +33,13 @@ import {
 /**
  * Create a mock ImageData with specified dimensions and pixel data
  */
-function createMockImageData(width: number, height: number, fillFn?: (x: number, y: number) => [number, number, number, number]): ImageData {
+function createMockImageData(
+    width: number,
+    height: number,
+    fillFn?: (x: number, y: number) => [number, number, number, number]
+): ImageData {
     const data = new Uint8ClampedArray(width * height * 4);
-    
+
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             const idx = (y * width + x) * 4;
@@ -46,7 +50,7 @@ function createMockImageData(width: number, height: number, fillFn?: (x: number,
             data[idx + 3] = a;
         }
     }
-    
+
     return { data, width, height, colorSpace: 'srgb' } as ImageData;
 }
 
@@ -99,7 +103,7 @@ describe('detectRarityAtPixel', () => {
         expect(result).toBe('legendary');
     });
 
-    it('should return null for colors that don\'t match any rarity', () => {
+    it("should return null for colors that don't match any rarity", () => {
         // Pure red doesn't match any rarity definition
         const result = detectRarityAtPixel(255, 0, 0);
         expect(result).toBeNull();
@@ -124,7 +128,7 @@ describe('extractDominantColors', () => {
     it('should extract a single dominant color from uniform image', () => {
         const imageData = createUniformImageData(10, 10, 128, 64, 192);
         const result = extractDominantColors(imageData, 3);
-        
+
         expect(result.length).toBeGreaterThanOrEqual(1);
         expect(result[0]).toHaveProperty('r');
         expect(result[0]).toHaveProperty('g');
@@ -135,14 +139,14 @@ describe('extractDominantColors', () => {
     it('should respect numColors parameter', () => {
         const imageData = createGradientImageData(20, 20);
         const result = extractDominantColors(imageData, 5);
-        
+
         expect(result.length).toBeLessThanOrEqual(5);
     });
 
     it('should quantize colors to bins', () => {
         const imageData = createUniformImageData(10, 10, 130, 65, 195);
         const result = extractDominantColors(imageData, 1);
-        
+
         // Colors are quantized to multiples of 32
         expect(result[0].r % 32).toBe(0);
         expect(result[0].g % 32).toBe(0);
@@ -155,7 +159,7 @@ describe('extractDominantColors', () => {
             return x < 15 ? [255, 0, 0, 255] : [0, 255, 0, 255]; // 75% red, 25% green
         });
         const result = extractDominantColors(imageData, 2);
-        
+
         if (result.length >= 2) {
             expect(result[0].frequency).toBeGreaterThanOrEqual(result[1].frequency);
         }
@@ -164,7 +168,7 @@ describe('extractDominantColors', () => {
     it('should handle empty image gracefully', () => {
         const imageData = createMockImageData(0, 0);
         const result = extractDominantColors(imageData, 5);
-        
+
         expect(result).toEqual([]);
     });
 });
@@ -177,7 +181,7 @@ describe('getDetailedColorCategory', () => {
     it('should identify gray colors', () => {
         const imageData = createUniformImageData(10, 10, 128, 128, 128);
         const result = getDetailedColorCategory(imageData);
-        
+
         expect(result.primary).toBe('gray');
         expect(result.saturation).toBe('low');
     });
@@ -185,7 +189,7 @@ describe('getDetailedColorCategory', () => {
     it('should identify black colors', () => {
         const imageData = createUniformImageData(10, 10, 30, 30, 30);
         const result = getDetailedColorCategory(imageData);
-        
+
         expect(result.primary).toBe('gray');
         expect(result.secondary).toBe('black');
         expect(result.brightness).toBe('dark');
@@ -194,7 +198,7 @@ describe('getDetailedColorCategory', () => {
     it('should identify white colors', () => {
         const imageData = createUniformImageData(10, 10, 240, 240, 240);
         const result = getDetailedColorCategory(imageData);
-        
+
         expect(result.primary).toBe('gray');
         expect(result.secondary).toBe('white');
         expect(result.brightness).toBe('bright');
@@ -203,28 +207,28 @@ describe('getDetailedColorCategory', () => {
     it('should identify red dominant colors', () => {
         const imageData = createUniformImageData(10, 10, 200, 50, 50);
         const result = getDetailedColorCategory(imageData);
-        
+
         expect(result.primary).toBe('red');
     });
 
     it('should identify green dominant colors', () => {
         const imageData = createUniformImageData(10, 10, 50, 200, 50);
         const result = getDetailedColorCategory(imageData);
-        
+
         expect(result.primary).toBe('green');
     });
 
     it('should identify blue dominant colors', () => {
         const imageData = createUniformImageData(10, 10, 50, 50, 200);
         const result = getDetailedColorCategory(imageData);
-        
+
         expect(result.primary).toBe('blue');
     });
 
     it('should identify orange as red with yellow secondary', () => {
         const imageData = createUniformImageData(10, 10, 255, 165, 0);
         const result = getDetailedColorCategory(imageData);
-        
+
         expect(result.primary).toBe('red');
         expect(['orange', 'yellow']).toContain(result.secondary);
     });
@@ -232,7 +236,7 @@ describe('getDetailedColorCategory', () => {
     it('should return default for empty image', () => {
         const imageData = createMockImageData(0, 0);
         const result = getDetailedColorCategory(imageData);
-        
+
         expect(result.primary).toBe('gray');
         expect(result.secondary).toBe('neutral');
     });
@@ -241,7 +245,7 @@ describe('getDetailedColorCategory', () => {
         // Low saturation (gray)
         const lowSat = getDetailedColorCategory(createUniformImageData(10, 10, 120, 130, 125));
         expect(lowSat.saturation).toBe('low');
-        
+
         // High saturation (pure red)
         const highSat = getDetailedColorCategory(createUniformImageData(10, 10, 255, 0, 0));
         expect(highSat.saturation).toBe('high');
@@ -251,7 +255,7 @@ describe('getDetailedColorCategory', () => {
         // Dark
         const dark = getDetailedColorCategory(createUniformImageData(10, 10, 30, 30, 80));
         expect(dark.brightness).toBe('dark');
-        
+
         // Bright
         const bright = getDetailedColorCategory(createUniformImageData(10, 10, 255, 230, 200));
         expect(bright.brightness).toBe('bright');
@@ -268,9 +272,9 @@ describe('matchColorCategories', () => {
             primary: 'red',
             secondary: 'orange',
             saturation: 'high',
-            brightness: 'bright'
+            brightness: 'bright',
         };
-        
+
         const score = matchColorCategories(cat, cat);
         expect(score).toBe(1.0);
     });
@@ -280,15 +284,15 @@ describe('matchColorCategories', () => {
             primary: 'red',
             secondary: 'orange',
             saturation: 'high',
-            brightness: 'bright'
+            brightness: 'bright',
         };
         const cat2: DetailedColorCategory = {
             primary: 'blue',
             secondary: 'navy',
             saturation: 'low',
-            brightness: 'dark'
+            brightness: 'dark',
         };
-        
+
         const score = matchColorCategories(cat1, cat2);
         expect(score).toBeLessThan(0.5);
     });
@@ -298,15 +302,15 @@ describe('matchColorCategories', () => {
             primary: 'red',
             secondary: 'orange',
             saturation: 'high',
-            brightness: 'bright'
+            brightness: 'bright',
         };
         const cat2: DetailedColorCategory = {
             primary: 'red',
             secondary: 'magenta',
             saturation: 'low',
-            brightness: 'dark'
+            brightness: 'dark',
         };
-        
+
         const score = matchColorCategories(cat1, cat2);
         expect(score).toBeGreaterThanOrEqual(0.5);
         expect(score).toBeLessThan(1.0);
@@ -317,15 +321,15 @@ describe('matchColorCategories', () => {
             primary: 'blue',
             secondary: 'sky',
             saturation: 'low',
-            brightness: 'medium'
+            brightness: 'medium',
         };
         const cat2: DetailedColorCategory = {
             primary: 'blue',
             secondary: 'sky',
             saturation: 'medium',
-            brightness: 'medium'
+            brightness: 'medium',
         };
-        
+
         const score = matchColorCategories(cat1, cat2);
         // Should get primary + secondary + partial saturation + brightness
         expect(score).toBeGreaterThan(0.8);
@@ -355,10 +359,10 @@ describe('getDominantColor', () => {
     it('should return primary color for chromatic images', () => {
         const redImage = createUniformImageData(10, 10, 200, 50, 50);
         expect(getDominantColor(redImage)).toBe('red');
-        
+
         const greenImage = createUniformImageData(10, 10, 50, 200, 50);
         expect(getDominantColor(greenImage)).toBe('green');
-        
+
         const blueImage = createUniformImageData(10, 10, 50, 50, 200);
         expect(getDominantColor(blueImage)).toBe('blue');
     });
@@ -450,16 +454,16 @@ describe('calculateColorVariance', () => {
         const checkerboard = createMockImageData(20, 20, (x, y) => {
             return (x + y) % 2 === 0 ? [0, 0, 0, 255] : [255, 255, 255, 255];
         });
-        
+
         // Slight gradient (lower variance)
         const slightGradient = createMockImageData(20, 20, (x, y) => {
             const val = 120 + Math.floor(x / 2);
             return [val, val, val, 255];
         });
-        
+
         const checkerVariance = calculateColorVariance(checkerboard);
         const gradientVariance = calculateColorVariance(slightGradient);
-        
+
         expect(checkerVariance).toBeGreaterThan(gradientVariance);
     });
 });
@@ -512,7 +516,7 @@ describe('calculateHistogramWidth', () => {
     });
 
     it('should return 2 for two-color image', () => {
-        const twoColorImage = createMockImageData(10, 10, (x) => {
+        const twoColorImage = createMockImageData(10, 10, x => {
             return x < 5 ? [0, 0, 0, 255] : [255, 255, 255, 255];
         });
         const width = calculateHistogramWidth(twoColorImage);
@@ -633,7 +637,8 @@ describe('isEmptyCell', () => {
         // Uses 40x40 for better center/edge ratio analysis (25% margin = 10 pixels)
         // Uses pure saturated colors (RGB primaries/secondaries) to definitely pass saturation check
         const itemIcon = createMockImageData(40, 40, (x, y) => {
-            const cx = 20, cy = 20;
+            const cx = 20,
+                cy = 20;
             const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
             if (dist < 14) {
                 // Use pure saturated colors based on position
@@ -641,12 +646,12 @@ describe('isEmptyCell', () => {
                 const sector = Math.floor(((angle + Math.PI) / (2 * Math.PI)) * 6);
                 // Pure RGB colors: red, yellow, green, cyan, blue, magenta
                 const colors: [number, number, number, number][] = [
-                    [255, 0, 0, 255],    // red
-                    [255, 255, 0, 255],  // yellow
-                    [0, 255, 0, 255],    // green
-                    [0, 255, 255, 255],  // cyan
-                    [0, 0, 255, 255],    // blue
-                    [255, 0, 255, 255],  // magenta
+                    [255, 0, 0, 255], // red
+                    [255, 255, 0, 255], // yellow
+                    [0, 255, 0, 255], // green
+                    [0, 255, 255, 255], // cyan
+                    [0, 0, 255, 255], // blue
+                    [255, 0, 255, 255], // magenta
                 ];
                 return colors[sector % 6];
             }
@@ -665,7 +670,7 @@ describe('extractBorderPixels', () => {
     it('should extract border pixels with default width', () => {
         const imageData = createUniformImageData(10, 10, 128, 128, 128);
         const borderPixels = extractBorderPixels(imageData);
-        
+
         // Should be Uint8ClampedArray
         expect(borderPixels).toBeInstanceOf(Uint8ClampedArray);
         // Should have RGB values (no alpha)
@@ -678,9 +683,9 @@ describe('extractBorderPixels', () => {
             const isBorder = x < 2 || x >= 8 || y < 2 || y >= 8;
             return isBorder ? [255, 0, 0, 255] : [0, 255, 0, 255];
         });
-        
+
         const borderPixels = extractBorderPixels(imageData, 2);
-        
+
         // Border pixels should be red
         let redCount = 0;
         for (let i = 0; i < borderPixels.length; i += 3) {
@@ -693,10 +698,10 @@ describe('extractBorderPixels', () => {
 
     it('should respect borderWidth parameter', () => {
         const imageData = createUniformImageData(20, 20, 128, 128, 128);
-        
+
         const narrow = extractBorderPixels(imageData, 1);
         const wide = extractBorderPixels(imageData, 4);
-        
+
         expect(wide.length).toBeGreaterThan(narrow.length);
     });
 });
@@ -711,7 +716,7 @@ describe('detectBorderRarity', () => {
             const isBorder = x < 3 || x >= 17 || y < 3 || y >= 17;
             return isBorder ? [140, 140, 140, 255] : [50, 50, 50, 255];
         });
-        
+
         const rarity = detectBorderRarity(imageData);
         expect(rarity).toBe('common');
     });
@@ -721,7 +726,7 @@ describe('detectBorderRarity', () => {
             const isBorder = x < 3 || x >= 17 || y < 3 || y >= 17;
             return isBorder ? [50, 200, 50, 255] : [50, 50, 50, 255];
         });
-        
+
         const rarity = detectBorderRarity(imageData);
         expect(rarity).toBe('uncommon');
     });
@@ -731,7 +736,7 @@ describe('detectBorderRarity', () => {
             const isBorder = x < 3 || x >= 17 || y < 3 || y >= 17;
             return isBorder ? [50, 150, 220, 255] : [50, 50, 50, 255];
         });
-        
+
         const rarity = detectBorderRarity(imageData);
         expect(rarity).toBe('rare');
     });
@@ -742,7 +747,7 @@ describe('detectBorderRarity', () => {
             const isBorder = x < 3 || x >= 17 || y < 3 || y >= 17;
             return isBorder ? [255, 0, 0, 255] : [50, 50, 50, 255];
         });
-        
+
         const rarity = detectBorderRarity(imageData);
         expect(rarity).toBeNull();
     });
@@ -756,16 +761,16 @@ describe('countRarityBorderPixels', () => {
     it('should count total pixels', () => {
         const imageData = createUniformImageData(10, 10, 128, 128, 128);
         const result = countRarityBorderPixels(imageData);
-        
+
         expect(result.total).toBe(100); // 10x10
     });
 
     it('should count colorful pixels', () => {
         // Half colorful, half gray
-        const imageData = createMockImageData(10, 10, (x) => {
+        const imageData = createMockImageData(10, 10, x => {
             return x < 5 ? [255, 0, 0, 255] : [128, 128, 128, 255];
         });
-        
+
         const result = countRarityBorderPixels(imageData);
         expect(result.colorfulCount).toBeGreaterThan(0);
     });
@@ -774,7 +779,7 @@ describe('countRarityBorderPixels', () => {
         // All green (uncommon)
         const greenImage = createUniformImageData(10, 10, 50, 200, 50);
         const result = countRarityBorderPixels(greenImage);
-        
+
         expect(result.rarityCount).toBeGreaterThan(0);
         expect(result.rarityCounts['uncommon']).toBeGreaterThan(0);
     });
@@ -782,7 +787,7 @@ describe('countRarityBorderPixels', () => {
     it('should have rarityCounts object', () => {
         const imageData = createUniformImageData(10, 10, 128, 128, 128);
         const result = countRarityBorderPixels(imageData);
-        
+
         expect(result).toHaveProperty('rarityCounts');
         expect(typeof result.rarityCounts).toBe('object');
     });

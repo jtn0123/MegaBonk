@@ -19,8 +19,8 @@ function detectGridPositions(width, height) {
 
     const rowYPositions = [];
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
-        if (y >= height * 0.70) rowYPositions.push(y);
+        const y = height - bottomMargin - row * rowHeight - iconSize;
+        if (y >= height * 0.7) rowYPositions.push(y);
     }
 
     const sideMargin = Math.round(width * 0.15);
@@ -38,10 +38,14 @@ function detectGridPositions(width, height) {
 }
 
 function isEmptyCell(imageData) {
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
     const mean = sum / count;
     const variance = sumSq / count - mean * mean;
@@ -49,17 +53,28 @@ function isEmptyCell(imageData) {
 }
 
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 async function loadSeedTemplates() {
@@ -108,7 +123,7 @@ async function loadWikiTemplates() {
             const canvas = createCanvas(32, 32);
             const ctx = canvas.getContext('2d');
             const margin = Math.round(img.width * 0.1);
-            ctx.drawImage(img, margin, margin, img.width - margin*2, img.height - margin*2, 0, 0, 32, 32);
+            ctx.drawImage(img, margin, margin, img.width - margin * 2, img.height - margin * 2, 0, 0, 32, 32);
             templates.set(item.id, [ctx.getImageData(0, 0, 32, 32)]);
         } catch {}
     }
@@ -120,7 +135,9 @@ async function runTest(templates, name, threshold = 0.45) {
     const gt = JSON.parse(fs.readFileSync(GT_PATH, 'utf-8'));
     const testCases = Object.entries(gt).filter(([k]) => !k.startsWith('_'));
 
-    let totalTP = 0, totalFP = 0, totalFN = 0;
+    let totalTP = 0,
+        totalFP = 0,
+        totalFN = 0;
     const perImageResults = [];
 
     for (const [filename, data] of testCases) {
@@ -152,7 +169,17 @@ async function runTest(templates, name, threshold = 0.45) {
             const srcCanvas = createCanvas(pos.width, pos.height);
             srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.12);
-            resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
             let bestMatch = null;
@@ -175,7 +202,9 @@ async function runTest(templates, name, threshold = 0.45) {
             }
         }
 
-        let tp = 0, fp = 0, fn = 0;
+        let tp = 0,
+            fp = 0,
+            fn = 0;
         detections.forEach((count, id) => {
             const expected = truth.get(id) || 0;
             tp += Math.min(count, expected);
@@ -192,15 +221,17 @@ async function runTest(templates, name, threshold = 0.45) {
 
         perImageResults.push({
             filename,
-            tp, fp, fn,
+            tp,
+            fp,
+            fn,
             avgScore: matchDetails.reduce((s, m) => s + m.bestScore, 0) / matchDetails.length,
-            highScoreCount: matchDetails.filter(m => m.bestScore > 0.6).length
+            highScoreCount: matchDetails.filter(m => m.bestScore > 0.6).length,
         });
     }
 
     const precision = totalTP + totalFP > 0 ? totalTP / (totalTP + totalFP) : 0;
     const recall = totalTP + totalFN > 0 ? totalTP / (totalTP + totalFN) : 0;
-    const f1 = precision + recall > 0 ? 2 * precision * recall / (precision + recall) : 0;
+    const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0;
 
     return { name, precision, recall, f1, tp: totalTP, fp: totalFP, fn: totalFN, perImageResults };
 }
@@ -247,7 +278,9 @@ async function main() {
     console.log('|---------------------|-----------|---------|----------|---------------|');
 
     for (const r of [seedResult, wikiResult, hybridResult]) {
-        console.log(`| ${r.name.padEnd(19)} | ${(r.precision*100).toFixed(1).padStart(8)}% | ${(r.recall*100).toFixed(1).padStart(6)}% | ${(r.f1*100).toFixed(1).padStart(7)}% | ${r.tp}/${r.fp}/${r.fn} |`);
+        console.log(
+            `| ${r.name.padEnd(19)} | ${(r.precision * 100).toFixed(1).padStart(8)}% | ${(r.recall * 100).toFixed(1).padStart(6)}% | ${(r.f1 * 100).toFixed(1).padStart(7)}% | ${r.tp}/${r.fp}/${r.fn} |`
+        );
     }
 
     // Show which seed items are being matched
@@ -272,7 +305,9 @@ async function main() {
     }
 
     const totalSeedItems = Array.from(seedItemsInGT.values()).reduce((a, b) => a + b, 0);
-    console.log(`\nTotal seed item occurrences: ${totalSeedItems}/${195} (${(totalSeedItems/195*100).toFixed(1)}%)`);
+    console.log(
+        `\nTotal seed item occurrences: ${totalSeedItems}/${195} (${((totalSeedItems / 195) * 100).toFixed(1)}%)`
+    );
 }
 
 main().catch(console.error);

@@ -15,54 +15,65 @@ const PARAMETERS = {
     // NCC threshold for accepting a match
     ncc_threshold: {
         default: 0.55,
-        range: [0.45, 0.50, 0.55, 0.60, 0.65, 0.70],
-        description: 'Minimum NCC score to accept a match'
+        range: [0.45, 0.5, 0.55, 0.6, 0.65, 0.7],
+        description: 'Minimum NCC score to accept a match',
     },
     // Minimum variance to consider cell non-empty
     min_variance: {
         default: 350,
         range: [250, 300, 350, 400, 450, 500],
-        description: 'Minimum pixel variance for non-empty cell'
+        description: 'Minimum pixel variance for non-empty cell',
     },
     // Crop margin when resizing cell to 32x32
     crop_margin: {
-        default: 0.10,
-        range: [0.00, 0.05, 0.10, 0.15, 0.20],
-        description: 'Margin to crop from cell edges (fraction)'
+        default: 0.1,
+        range: [0.0, 0.05, 0.1, 0.15, 0.2],
+        description: 'Margin to crop from cell edges (fraction)',
     },
     // Icon size base (at 720p reference)
     icon_size_base: {
         default: 34,
         range: [30, 32, 34, 36, 38],
-        description: 'Base icon size at 720p resolution'
+        description: 'Base icon size at 720p resolution',
     },
     // Cell spacing base
     spacing_base: {
         default: 4,
         range: [2, 3, 4, 5, 6],
-        description: 'Base spacing between cells'
+        description: 'Base spacing between cells',
     },
     // Bottom margin base
     bottom_margin_base: {
         default: 42,
         range: [36, 39, 42, 45, 48],
-        description: 'Base bottom margin for inventory'
-    }
+        description: 'Base bottom margin for inventory',
+    },
 };
 
 // ==================== CORE FUNCTIONS ====================
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 function detectGridPositions(width, height, params) {
@@ -74,7 +85,7 @@ function detectGridPositions(width, height, params) {
     const positions = [];
 
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        const y = height - bottomMargin - row * rowHeight - iconSize;
         if (y < height * 0.65) continue;
         const sideMargin = Math.round(width * 0.15);
         const cellWidth = iconSize + spacing;
@@ -89,7 +100,10 @@ function detectGridPositions(width, height, params) {
 }
 
 function normalizeItemId(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
 }
 
 // ==================== TEST RUNNER ====================
@@ -101,7 +115,9 @@ let srcCtx = null;
 let lastSrcSize = 0;
 
 async function runTest(params, templates, testCases) {
-    let totalTP = 0, totalFP = 0, totalFN = 0;
+    let totalTP = 0,
+        totalFP = 0,
+        totalFN = 0;
 
     for (const [filename, data] of testCases) {
         const imagePath = path.join('./test-images/gameplay', filename);
@@ -125,10 +141,14 @@ async function runTest(params, templates, testCases) {
         for (const pos of positions) {
             const cellData = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
 
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < cellData.data.length; i += 4) {
-                const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const variance = sumSq / count - (sum / count) ** 2;
             if (variance < params.min_variance) continue;
@@ -145,10 +165,21 @@ async function runTest(params, templates, testCases) {
 
             const margin = Math.round(pos.width * params.crop_margin);
             resizeCtx.clearRect(0, 0, 32, 32);
-            resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
-            let bestMatch = null, bestScore = 0;
+            let bestMatch = null,
+                bestScore = 0;
             for (const [itemId, template] of templates) {
                 const score = calculateNCC(resizedCell, template.imageData);
                 if (score >= params.ncc_threshold && score > bestScore) {
@@ -175,7 +206,7 @@ async function runTest(params, templates, testCases) {
 
     const precision = totalTP / (totalTP + totalFP) || 0;
     const recall = totalTP / (totalTP + totalFN) || 0;
-    const f1 = 2 * precision * recall / (precision + recall) || 0;
+    const f1 = (2 * precision * recall) / (precision + recall) || 0;
 
     return { totalTP, totalFP, totalFN, precision, recall, f1 };
 }
@@ -233,7 +264,9 @@ async function main() {
                 const params = { ...defaultParams, [paramName]: value };
                 const result = await runTest(params, templates, testCases);
                 const marker = value === config.default ? ' *' : '';
-                console.log(`| ${String(value).padStart(5)}${marker} | ${String(result.totalTP).padStart(2)} | ${String(result.totalFP).padStart(2)} | ${String(result.totalFN).padStart(3)} | ${(result.precision * 100).toFixed(0).padStart(3)}% | ${(result.recall * 100).toFixed(0).padStart(5)}% | ${(result.f1 * 100).toFixed(1).padStart(4)}% |`);
+                console.log(
+                    `| ${String(value).padStart(5)}${marker} | ${String(result.totalTP).padStart(2)} | ${String(result.totalFP).padStart(2)} | ${String(result.totalFN).padStart(3)} | ${(result.precision * 100).toFixed(0).padStart(3)}% | ${(result.recall * 100).toFixed(0).padStart(5)}% | ${(result.f1 * 100).toFixed(1).padStart(4)}% |`
+                );
             }
         }
     } else if (PARAMETERS[paramToTest]) {
@@ -245,14 +278,17 @@ async function main() {
         console.log(`| Value | TP | FP | FN | Precision | Recall | F1 Score |`);
         console.log(`|-------|----|----|-----|-----------|--------|----------|`);
 
-        let bestF1 = 0, bestValue = config.default;
+        let bestF1 = 0,
+            bestValue = config.default;
 
         for (const value of config.range) {
             const params = { ...defaultParams, [paramToTest]: value };
             const result = await runTest(params, templates, testCases);
 
             const marker = value === config.default ? ' (default)' : '';
-            console.log(`| ${String(value).padStart(5)} | ${String(result.totalTP).padStart(2)} | ${String(result.totalFP).padStart(2)} | ${String(result.totalFN).padStart(3)} | ${(result.precision * 100).toFixed(1).padStart(8)}% | ${(result.recall * 100).toFixed(1).padStart(5)}% | ${(result.f1 * 100).toFixed(1).padStart(7)}% |${marker}`);
+            console.log(
+                `| ${String(value).padStart(5)} | ${String(result.totalTP).padStart(2)} | ${String(result.totalFP).padStart(2)} | ${String(result.totalFN).padStart(3)} | ${(result.precision * 100).toFixed(1).padStart(8)}% | ${(result.recall * 100).toFixed(1).padStart(5)}% | ${(result.f1 * 100).toFixed(1).padStart(7)}% |${marker}`
+            );
 
             if (result.f1 > bestF1) {
                 bestF1 = result.f1;
@@ -262,7 +298,6 @@ async function main() {
 
         console.log(`|-------|----|----|-----|-----------|--------|----------|`);
         console.log(`\nBest value: ${bestValue} (F1: ${(bestF1 * 100).toFixed(1)}%)`);
-
     } else {
         console.log(`Unknown parameter: ${paramToTest}`);
         console.log('Run with "list" to see available parameters');

@@ -4,11 +4,7 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import {
-    initAdvisor,
-    applyScannedBuild,
-    resetAdvisor,
-} from '../../src/modules/advisor.ts';
+import { initAdvisor, applyScannedBuild, resetAdvisor } from '../../src/modules/advisor.ts';
 
 // ========================================
 // Test Fixtures
@@ -40,9 +36,7 @@ const testGameData = {
         ],
     },
     shrines: {
-        shrines: [
-            { id: 'shrine1', name: 'Shrine of Power', tier: 'A', rarity: 'rare' },
-        ],
+        shrines: [{ id: 'shrine1', name: 'Shrine of Power', tier: 'A', rarity: 'rare' }],
     },
 };
 
@@ -236,12 +230,14 @@ describe('applyScannedBuild - Real Integration Tests', () => {
     it('should handle missing DOM elements', () => {
         document.body.innerHTML = '';
 
-        expect(() => applyScannedBuild({
-            character: { id: 'char1' } as any,
-            weapon: null,
-            items: [],
-            tomes: [],
-        })).not.toThrow();
+        expect(() =>
+            applyScannedBuild({
+                character: { id: 'char1' } as any,
+                weapon: null,
+                items: [],
+                tomes: [],
+            })
+        ).not.toThrow();
     });
 });
 
@@ -428,37 +424,45 @@ describe('Advisor Edge Cases', () => {
     });
 
     it('should handle init with null characters', () => {
-        expect(() => initAdvisor({
-            characters: null as any,
-        })).not.toThrow();
+        expect(() =>
+            initAdvisor({
+                characters: null as any,
+            })
+        ).not.toThrow();
     });
 
     it('should handle init with undefined weapons', () => {
-        expect(() => initAdvisor({
-            weapons: undefined,
-        })).not.toThrow();
+        expect(() =>
+            initAdvisor({
+                weapons: undefined,
+            })
+        ).not.toThrow();
     });
 
     it('should handle scanned build with undefined items', () => {
         initAdvisor(testGameData);
 
-        expect(() => applyScannedBuild({
-            character: null,
-            weapon: null,
-            items: undefined as any,
-            tomes: [],
-        })).not.toThrow();
+        expect(() =>
+            applyScannedBuild({
+                character: null,
+                weapon: null,
+                items: undefined as any,
+                tomes: [],
+            })
+        ).not.toThrow();
     });
 
     it('should handle scanned build with undefined tomes', () => {
         initAdvisor(testGameData);
 
-        expect(() => applyScannedBuild({
-            character: null,
-            weapon: null,
-            items: [],
-            tomes: undefined as any,
-        })).not.toThrow();
+        expect(() =>
+            applyScannedBuild({
+                character: null,
+                weapon: null,
+                items: [],
+                tomes: undefined as any,
+            })
+        ).not.toThrow();
     });
 
     it('should handle multiple initializations', () => {

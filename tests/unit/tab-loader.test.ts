@@ -145,9 +145,9 @@ describe('tab-loader - loadTabModules', () => {
         await Promise.all([promise1, promise2]);
 
         // Should only load once
-        const loadedCalls = vi.mocked(logger.debug).mock.calls.filter(
-            call => (call[0] as any).operation === 'tab_loader.loaded'
-        );
+        const loadedCalls = vi
+            .mocked(logger.debug)
+            .mock.calls.filter(call => (call[0] as any).operation === 'tab_loader.loaded');
         expect(loadedCalls.length).toBe(1);
     });
 });
@@ -179,9 +179,9 @@ describe('tab-loader - clearModuleCache', () => {
         // After clearing, loading should log again
         await loadTabModules('build-planner');
 
-        const loadedCalls = vi.mocked(logger.debug).mock.calls.filter(
-            call => (call[0] as any).operation === 'tab_loader.loaded'
-        );
+        const loadedCalls = vi
+            .mocked(logger.debug)
+            .mock.calls.filter(call => (call[0] as any).operation === 'tab_loader.loaded');
         expect(loadedCalls.length).toBe(2);
     });
 });

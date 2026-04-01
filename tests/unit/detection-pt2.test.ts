@@ -1,6 +1,6 @@
 /**
  * Detection Module Part 2 Coverage Tests
- * 
+ *
  * Tests for the second half of detection.ts (lines 1300-2600):
  * - extractCountRegion
  * - fitsGrid
@@ -10,7 +10,7 @@
  * - getCVMetrics
  * - getDetectionConfig
  * - getUncertainDetectionsFromResults
- * 
+ *
  * Also tests internal functions indirectly:
  * - boostConfidenceWithContext (via detectItemsWithCV)
  * - validateWithBorderRarity (via detectItemsWithCV)
@@ -66,7 +66,7 @@ function createMockContext(
     canvas.width = width;
     canvas.height = height;
     const ctx = canvas.getContext('2d')!;
-    
+
     if (pixelGenerator) {
         const imageData = ctx.createImageData(width, height);
         for (let y = 0; y < height; y++) {
@@ -81,7 +81,7 @@ function createMockContext(
         }
         ctx.putImageData(imageData, 0, 0);
     }
-    
+
     return ctx;
 }
 
@@ -133,14 +133,16 @@ function createGridDetections(
     const detections: CVDetectionResult[] = [];
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-            detections.push(createDetection(
-                `item_${row}_${col}`,
-                startX + col * spacing,
-                startY + row * spacing,
-                iconSize,
-                iconSize,
-                0.75 + Math.random() * 0.2
-            ));
+            detections.push(
+                createDetection(
+                    `item_${row}_${col}`,
+                    startX + col * spacing,
+                    startY + row * spacing,
+                    iconSize,
+                    iconSize,
+                    0.75 + Math.random() * 0.2
+                )
+            );
         }
     }
     return detections;
@@ -154,7 +156,7 @@ describe('extractCountRegion', () => {
     it('extracts count region from standard cell', () => {
         const cell: ROI = { x: 100, y: 200, width: 64, height: 64 };
         const countRegion = extractCountRegion(cell);
-        
+
         expect(countRegion.width).toBeLessThanOrEqual(25);
         expect(countRegion.height).toBeLessThanOrEqual(25);
         expect(countRegion.x).toBe(cell.x + cell.width - countRegion.width);
@@ -164,7 +166,7 @@ describe('extractCountRegion', () => {
     it('limits count region to 25% of cell for large cells', () => {
         const cell: ROI = { x: 0, y: 0, width: 200, height: 200 };
         const countRegion = extractCountRegion(cell);
-        
+
         // 25% of 200 = 50, but capped at 25
         expect(countRegion.width).toBe(25);
         expect(countRegion.height).toBe(25);
@@ -173,7 +175,7 @@ describe('extractCountRegion', () => {
     it('uses 25% for small cells', () => {
         const cell: ROI = { x: 0, y: 0, width: 40, height: 40 };
         const countRegion = extractCountRegion(cell);
-        
+
         // 25% of 40 = 10
         expect(countRegion.width).toBe(10);
         expect(countRegion.height).toBe(10);
@@ -182,21 +184,21 @@ describe('extractCountRegion', () => {
     it('preserves cell label with suffix', () => {
         const cell: ROI = { x: 0, y: 0, width: 64, height: 64, label: 'hotbar_slot_1' };
         const countRegion = extractCountRegion(cell);
-        
+
         expect(countRegion.label).toBe('hotbar_slot_1_count');
     });
 
     it('handles cell without label', () => {
         const cell: ROI = { x: 0, y: 0, width: 64, height: 64 };
         const countRegion = extractCountRegion(cell);
-        
+
         expect(countRegion.label).toBe('cell_count');
     });
 
     it('handles very small cells', () => {
         const cell: ROI = { x: 10, y: 10, width: 8, height: 8 };
         const countRegion = extractCountRegion(cell);
-        
+
         // 25% of 8 = 2
         expect(countRegion.width).toBe(2);
         expect(countRegion.height).toBe(2);
@@ -207,7 +209,7 @@ describe('extractCountRegion', () => {
     it('handles rectangular cells (non-square)', () => {
         const cell: ROI = { x: 0, y: 0, width: 100, height: 60 };
         const countRegion = extractCountRegion(cell);
-        
+
         // min(25, 100*0.25) = 25, min(25, 60*0.25) = 15
         // Actually uses Math.min for both, so countSize = Math.min(25, 25) = 25
         // Hmm, let me re-read the code
@@ -224,13 +226,13 @@ describe('extractCountRegion', () => {
 
 describe('fitsGrid', () => {
     it('returns true when value is on grid', () => {
-        expect(fitsGrid(100, 0, 50, 5)).toBe(true);  // 100 % 50 = 0
-        expect(fitsGrid(150, 0, 50, 5)).toBe(true);  // 150 % 50 = 0
+        expect(fitsGrid(100, 0, 50, 5)).toBe(true); // 100 % 50 = 0
+        expect(fitsGrid(150, 0, 50, 5)).toBe(true); // 150 % 50 = 0
     });
 
     it('returns true when value is within tolerance of grid point', () => {
-        expect(fitsGrid(103, 0, 50, 5)).toBe(true);  // offset = 3, <= 5
-        expect(fitsGrid(97, 0, 50, 5)).toBe(true);   // offset = 47, >= 50 - 5 = 45
+        expect(fitsGrid(103, 0, 50, 5)).toBe(true); // offset = 3, <= 5
+        expect(fitsGrid(97, 0, 50, 5)).toBe(true); // offset = 47, >= 50 - 5 = 45
     });
 
     it('returns false when value is outside tolerance', () => {
@@ -239,8 +241,8 @@ describe('fitsGrid', () => {
     });
 
     it('handles non-zero grid start', () => {
-        expect(fitsGrid(115, 15, 50, 5)).toBe(true);  // (115-15) % 50 = 0
-        expect(fitsGrid(117, 15, 50, 5)).toBe(true);  // (117-15) % 50 = 2, <= 5
+        expect(fitsGrid(115, 15, 50, 5)).toBe(true); // (115-15) % 50 = 0
+        expect(fitsGrid(117, 15, 50, 5)).toBe(true); // (117-15) % 50 = 2, <= 5
         expect(fitsGrid(130, 15, 50, 5)).toBe(false); // (130-15) % 50 = 15, not near grid
     });
 
@@ -282,10 +284,7 @@ describe('verifyGridPattern', () => {
         });
 
         it('returns isValid true for two detections', () => {
-            const detections = [
-                createDetection('item1', 100, 100, 48, 48),
-                createDetection('item2', 160, 100, 48, 48),
-            ];
+            const detections = [createDetection('item1', 100, 100, 48, 48), createDetection('item2', 160, 100, 48, 48)];
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
             expect(result.confidence).toBe(0.5);
@@ -296,7 +295,7 @@ describe('verifyGridPattern', () => {
         it('validates a perfect 3x1 horizontal grid', () => {
             const detections = createGridDetections(1, 3, 100, 100, 60, 48);
             const result = verifyGridPattern(detections, 48);
-            
+
             expect(result.isValid).toBe(true);
             expect(result.filteredDetections.length).toBe(3);
             expect(result.confidence).toBeGreaterThan(0.9);
@@ -305,7 +304,7 @@ describe('verifyGridPattern', () => {
         it('validates a perfect 2x3 grid', () => {
             const detections = createGridDetections(2, 3, 100, 100, 60, 48);
             const result = verifyGridPattern(detections, 48);
-            
+
             expect(result.isValid).toBe(true);
             expect(result.filteredDetections.length).toBe(6);
         });
@@ -313,7 +312,7 @@ describe('verifyGridPattern', () => {
         it('validates a perfect 3x4 grid', () => {
             const detections = createGridDetections(3, 4, 50, 50, 55, 48);
             const result = verifyGridPattern(detections, 48);
-            
+
             expect(result.isValid).toBe(true);
             expect(result.filteredDetections.length).toBe(12);
         });
@@ -325,9 +324,9 @@ describe('verifyGridPattern', () => {
             const gridDetections = createGridDetections(1, 4, 100, 100, 60, 48);
             // Add an outlier at a weird position
             gridDetections.push(createDetection('outlier', 250, 100, 48, 48)); // Doesnt fit 60px spacing
-            
+
             const result = verifyGridPattern(gridDetections, 48);
-            
+
             expect(result.isValid).toBe(true);
             expect(result.filteredDetections.length).toBeLessThan(5);
         });
@@ -337,7 +336,7 @@ describe('verifyGridPattern', () => {
             const detections = createGridDetections(1, 3, 100, 100, 60, 48);
             detections.push(createDetection('out1', 300, 100, 48, 48));
             detections.push(createDetection('out2', 400, 100, 48, 48));
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
         });
@@ -354,7 +353,7 @@ describe('verifyGridPattern', () => {
                 createDetection('o4', 450, 300, 48, 48),
                 createDetection('o5', 500, 350, 48, 48),
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             // May or may not be valid depending on row clustering
             expect(result.filteredDetections.length).toBeLessThanOrEqual(detections.length);
@@ -367,7 +366,7 @@ describe('verifyGridPattern', () => {
                 ...createGridDetections(1, 4, 100, 100, 60, 48),
                 ...createGridDetections(1, 4, 100, 160, 60, 48),
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
             expect(result.gridParams).not.toBeNull();
@@ -385,7 +384,7 @@ describe('verifyGridPattern', () => {
                 createDetection('r2c2', 160, 198, 48, 48), // Slightly offset Y
                 createDetection('r3c1', 100, 300, 48, 48),
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
         });
@@ -404,7 +403,7 @@ describe('verifyGridPattern', () => {
                 } as CVDetectionResult,
                 createDetection('item3', 160, 100, 48, 48),
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
         });
@@ -433,7 +432,7 @@ describe('verifyGridPattern', () => {
                     method: 'template_match',
                 } as CVDetectionResult,
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
             expect(result.confidence).toBe(0.5);
@@ -463,7 +462,7 @@ describe('verifyGridPattern', () => {
                 createDetection('i3', 221, 100, 48, 48), // 59 spacing
                 createDetection('i4', 280, 100, 48, 48), // 59 spacing
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
             expect(result.gridParams).not.toBeNull();
@@ -478,7 +477,7 @@ describe('verifyGridPattern', () => {
                 createDetection('i3', 280, 100, 48, 48), // 2x spacing
                 createDetection('i4', 340, 100, 48, 48), // Normal spacing
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
         });
@@ -492,7 +491,7 @@ describe('verifyGridPattern', () => {
 describe('getCVMetrics', () => {
     it('returns metrics object with expected structure', () => {
         const metrics = getCVMetrics();
-        
+
         expect(metrics).toHaveProperty('runs');
         expect(metrics).toHaveProperty('aggregated');
         expect(metrics).toHaveProperty('enabled');
@@ -518,7 +517,7 @@ describe('getCVMetrics', () => {
 describe('getDetectionConfig', () => {
     it('returns config without dimensions', () => {
         const config = getDetectionConfig();
-        
+
         expect(config).toHaveProperty('dynamicThreshold');
         expect(config).toHaveProperty('resolutionTier');
         expect(config).toHaveProperty('selectedStrategies');
@@ -527,7 +526,7 @@ describe('getDetectionConfig', () => {
 
     it('returns config with 1920x1080 dimensions', () => {
         const config = getDetectionConfig(1920, 1080);
-        
+
         expect(config.resolutionTier).toBe('medium');
         expect(config.dynamicThreshold).toBeGreaterThan(0);
         expect(config.dynamicThreshold).toBeLessThan(1);
@@ -536,20 +535,20 @@ describe('getDetectionConfig', () => {
 
     it('returns config with 4K dimensions', () => {
         const config = getDetectionConfig(3840, 2160);
-        
+
         // 4K is classified as 'ultra' tier
         expect(config.resolutionTier).toBe('ultra');
     });
 
     it('returns config with low-res dimensions', () => {
         const config = getDetectionConfig(640, 480);
-        
+
         expect(config.resolutionTier).toBe('low');
     });
 
     it('scoring config has expected properties', () => {
         const config = getDetectionConfig(1920, 1080);
-        
+
         expect(config.scoringConfig).toBeDefined();
         // Check scoring config has some expected fields based on the module
     });
@@ -570,7 +569,7 @@ describe('getUncertainDetectionsFromResults', () => {
             createDetection('item1', 100, 100, 48, 48, 0.95),
             createDetection('item2', 160, 100, 48, 48, 0.92),
         ];
-        
+
         const result = getUncertainDetectionsFromResults(detections);
         // High confidence items should not be uncertain
         // The exact threshold depends on findUncertainDetections implementation
@@ -582,7 +581,7 @@ describe('getUncertainDetectionsFromResults', () => {
             createDetection('item1', 100, 100, 48, 48, 0.55),
             createDetection('item2', 160, 100, 48, 48, 0.52),
         ];
-        
+
         const result = getUncertainDetectionsFromResults(detections);
         // Low confidence items may be flagged as uncertain
         expect(Array.isArray(result)).toBe(true);
@@ -599,7 +598,7 @@ describe('getUncertainDetectionsFromResults', () => {
                 method: 'template_match',
             } as CVDetectionResult,
         ];
-        
+
         const result = getUncertainDetectionsFromResults(detections);
         // Should handle gracefully without errors
         expect(Array.isArray(result)).toBe(true);
@@ -619,7 +618,7 @@ describe.skip('detectItemCounts', () => {
     it('returns empty map for empty cells array', async () => {
         const dataUrl = createDataUrl(100, 100);
         const result = await detectItemCounts(dataUrl, []);
-        
+
         expect(result).toBeInstanceOf(Map);
         expect(result.size).toBe(0);
     });
@@ -630,17 +629,15 @@ describe.skip('detectItemCounts', () => {
             { x: 10, y: 10, width: 64, height: 64, label: 'slot_1' },
             { x: 80, y: 10, width: 64, height: 64, label: 'slot_2' },
         ];
-        
+
         const result = await detectItemCounts(dataUrl, cells);
         expect(result).toBeInstanceOf(Map);
     });
 
     it('handles cells without labels', async () => {
         const dataUrl = createDataUrl(200, 200);
-        const cells: ROI[] = [
-            { x: 10, y: 10, width: 64, height: 64 },
-        ];
-        
+        const cells: ROI[] = [{ x: 10, y: 10, width: 64, height: 64 }];
+
         const result = await detectItemCounts(dataUrl, cells);
         expect(result).toBeInstanceOf(Map);
     });
@@ -664,9 +661,9 @@ describe.skip('detectItemsWithCV', () => {
 
     it('returns empty array for blank image', async () => {
         const dataUrl = createDataUrl(800, 600, '#333333');
-        
+
         const result = await detectItemsWithCV(dataUrl);
-        
+
         expect(Array.isArray(result)).toBe(true);
         // Blank image should have no detections
         expect(result.length).toBe(0);
@@ -675,9 +672,9 @@ describe.skip('detectItemsWithCV', () => {
     it('calls progress callback during detection', async () => {
         const dataUrl = createDataUrl(800, 600);
         const progressCallback = vi.fn();
-        
+
         await detectItemsWithCV(dataUrl, progressCallback);
-        
+
         // Progress callback should be called multiple times
         expect(progressCallback).toHaveBeenCalled();
         // Should reach 100%
@@ -686,41 +683,41 @@ describe.skip('detectItemsWithCV', () => {
 
     it('handles small images', async () => {
         const dataUrl = createDataUrl(100, 100);
-        
+
         const result = await detectItemsWithCV(dataUrl);
-        
+
         expect(Array.isArray(result)).toBe(true);
     });
 
     it('handles large images', async () => {
         const dataUrl = createDataUrl(1920, 1080);
-        
+
         const result = await detectItemsWithCV(dataUrl);
-        
+
         expect(Array.isArray(result)).toBe(true);
     });
 
     it('handles 4K resolution images', async () => {
         const dataUrl = createDataUrl(3840, 2160);
-        
+
         const result = await detectItemsWithCV(dataUrl);
-        
+
         expect(Array.isArray(result)).toBe(true);
     });
 
     it('uses cache on second call with same image', async () => {
         const dataUrl = createDataUrl(400, 400, '#555555');
-        
+
         // First call
         const result1 = await detectItemsWithCV(dataUrl);
-        
+
         // Second call should use cache
         const progressCallback = vi.fn();
         const result2 = await detectItemsWithCV(dataUrl, progressCallback);
-        
+
         // Results should be identical
         expect(result1.length).toBe(result2.length);
-        
+
         // Cache hit should complete immediately with 100%
         if (progressCallback.mock.calls.length > 0) {
             const lastCall = progressCallback.mock.calls[progressCallback.mock.calls.length - 1];
@@ -734,23 +731,23 @@ describe.skip('detectItemsWithCV', () => {
         canvas.width = 800;
         canvas.height = 600;
         const ctx = canvas.getContext('2d')!;
-        
+
         // Fill with game-like background
         ctx.fillStyle = '#2a2a2a';
         ctx.fillRect(0, 0, 800, 600);
-        
+
         // Add some colored rectangles that might look like icons
         ctx.fillStyle = '#ff5500';
         ctx.fillRect(100, 500, 48, 48);
         ctx.fillStyle = '#00ff55';
         ctx.fillRect(160, 500, 48, 48);
-        
+
         const dataUrl = canvas.toDataURL('image/png');
         const result = await detectItemsWithCV(dataUrl);
-        
+
         // Even if no detections, verify the return type
         expect(Array.isArray(result)).toBe(true);
-        
+
         // If we have detections, verify structure
         if (result.length > 0) {
             const detection = result[0];
@@ -777,7 +774,7 @@ describe('verifyGridPattern edge cases', () => {
                 createDetection('i4', 270, 100, 48, 48), // 58
                 createDetection('i5', 325, 100, 48, 48), // 55
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
         });
@@ -791,7 +788,7 @@ describe('verifyGridPattern edge cases', () => {
                 createDetection('i4', 300, 100, 48, 48), // 80 - outlier spacing
                 createDetection('i5', 360, 100, 48, 48), // 60
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
         });
@@ -806,7 +803,7 @@ describe('verifyGridPattern edge cases', () => {
                 createDetection('i3', 220, 98, 48, 48),
                 createDetection('i4', 280, 101, 48, 48),
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
         });
@@ -818,7 +815,7 @@ describe('verifyGridPattern edge cases', () => {
                 createDetection('r3', 100, 300, 48, 48), // Far Y gap
                 createDetection('r4', 160, 300, 48, 48),
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
         });
@@ -828,7 +825,7 @@ describe('verifyGridPattern edge cases', () => {
         it('uses stricter tolerance for consistent grids', () => {
             // Very consistent spacing - should use tighter tolerance
             const detections = createGridDetections(1, 5, 100, 100, 60, 48);
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
             expect(result.gridParams?.tolerance).toBeGreaterThan(0);
@@ -842,7 +839,7 @@ describe('verifyGridPattern edge cases', () => {
                 createDetection('i3', 222, 100, 48, 48),
                 createDetection('i4', 278, 100, 48, 48),
             ];
-            
+
             const result = verifyGridPattern(detections, 48);
             expect(result.isValid).toBe(true);
         });
@@ -857,7 +854,7 @@ describe('Additional detection helper tests', () => {
             canvas.height = 48;
             const ctx = canvas.getContext('2d')!;
             const imageData = ctx.createImageData(48, 48);
-            
+
             // Zero dimensions cause canvas errors
             expect(() => resizeImageData(imageData, 0, 0)).toThrow();
         });
@@ -868,7 +865,7 @@ describe('Additional detection helper tests', () => {
             canvas.height = 48;
             const ctx = canvas.getContext('2d')!;
             const imageData = ctx.createImageData(48, 48);
-            
+
             const result = resizeImageData(imageData, 48, 48);
             expect(result).not.toBeNull();
             expect(result?.width).toBe(48);
@@ -881,7 +878,7 @@ describe('Additional detection helper tests', () => {
             canvas.height = 48;
             const ctx = canvas.getContext('2d')!;
             const imageData = ctx.createImageData(24, 24);
-            
+
             const result = resizeImageData(imageData, 48, 48);
             expect(result).not.toBeNull();
             expect(result?.width).toBe(48);
@@ -893,7 +890,7 @@ describe('Additional detection helper tests', () => {
             canvas.height = 96;
             const ctx = canvas.getContext('2d')!;
             const imageData = ctx.createImageData(96, 96);
-            
+
             const result = resizeImageData(imageData, 48, 48);
             expect(result).not.toBeNull();
             expect(result?.width).toBe(48);
@@ -907,7 +904,7 @@ describe('Additional detection helper tests', () => {
                 createDetection('item1', 100, 100, 48, 48, 0.9),
                 createDetection('item2', 105, 102, 48, 48, 0.8),
             ];
-            
+
             const result = nonMaxSuppression(detections, 0.3);
             expect(result.length).toBe(1);
             expect(result[0].entity.id).toBe('item1'); // Higher confidence wins
@@ -918,7 +915,7 @@ describe('Additional detection helper tests', () => {
                 createDetection('item1', 100, 100, 48, 48, 0.8),
                 createDetection('item2', 200, 100, 48, 48, 0.8),
             ];
-            
+
             const result = nonMaxSuppression(detections, 0.3);
             expect(result.length).toBe(2);
         });
@@ -938,7 +935,7 @@ describe('Additional detection helper tests', () => {
         it('adjusts sizes for high resolution', () => {
             const sizes1080 = getAdaptiveIconSizes(1920, 1080);
             const sizes4k = getAdaptiveIconSizes(3840, 2160);
-            
+
             // 4K should have larger icon sizes
             const max1080 = Math.max(...sizes1080);
             const max4k = Math.max(...sizes4k);
@@ -948,11 +945,11 @@ describe('Additional detection helper tests', () => {
         it('adjusts sizes for low resolution', () => {
             const sizes1080 = getAdaptiveIconSizes(1920, 1080);
             const sizesLow = getAdaptiveIconSizes(640, 480);
-            
+
             // Both should return valid arrays of icon sizes
             expect(sizesLow.length).toBeGreaterThan(0);
             expect(sizes1080.length).toBeGreaterThan(0);
-            
+
             // Sizes should all be positive numbers
             sizesLow.forEach(size => {
                 expect(size).toBeGreaterThan(0);
@@ -968,7 +965,7 @@ describe('Additional detection helper tests', () => {
 
         it('positions have expected properties', () => {
             const positions = detectGridPositions(1920, 1080);
-            
+
             if (positions.length > 0) {
                 const pos = positions[0];
                 expect(pos).toHaveProperty('x');
@@ -981,7 +978,7 @@ describe('Additional detection helper tests', () => {
         it('works with custom grid size', () => {
             const positions48 = detectGridPositions(1920, 1080, 48);
             const positions64 = detectGridPositions(1920, 1080, 64);
-            
+
             // Both should return valid arrays
             expect(Array.isArray(positions48)).toBe(true);
             expect(Array.isArray(positions64)).toBe(true);
@@ -996,7 +993,7 @@ describe('calculateSimilarity edge cases', () => {
         canvas.width = 48;
         canvas.height = 48;
         const ctx = canvas.getContext('2d')!;
-        
+
         // Create a gradient pattern
         for (let y = 0; y < 48; y++) {
             for (let x = 0; x < 48; x++) {
@@ -1007,7 +1004,7 @@ describe('calculateSimilarity edge cases', () => {
             }
         }
         const imageData = ctx.getImageData(0, 0, 48, 48);
-        
+
         const similarity = calculateSimilarity(imageData, imageData);
         // Same image should have high similarity
         expect(similarity).toBeGreaterThan(0.5);
@@ -1026,7 +1023,7 @@ describe('calculateSimilarity edge cases', () => {
             }
         }
         const imageData1 = ctx1.getImageData(0, 0, 48, 48);
-        
+
         const canvas2 = document.createElement('canvas');
         canvas2.width = 48;
         canvas2.height = 48;
@@ -1039,7 +1036,7 @@ describe('calculateSimilarity edge cases', () => {
             }
         }
         const imageData2 = ctx2.getImageData(0, 0, 48, 48);
-        
+
         const similarity = calculateSimilarity(imageData1, imageData2);
         // Different patterns should have lower similarity than identical images
         expect(typeof similarity).toBe('number');
@@ -1053,13 +1050,13 @@ describe('calculateSimilarity edge cases', () => {
         canvas1.height = 48;
         const ctx1 = canvas1.getContext('2d')!;
         const imageData1 = ctx1.createImageData(48, 48);
-        
+
         const canvas2 = document.createElement('canvas');
         canvas2.width = 64;
         canvas2.height = 64;
         const ctx2 = canvas2.getContext('2d')!;
         const imageData2 = ctx2.createImageData(64, 64);
-        
+
         // Should handle gracefully (may return 0 or handle internally)
         const similarity = calculateSimilarity(imageData1, imageData2);
         expect(typeof similarity).toBe('number');
@@ -1071,7 +1068,7 @@ describe.skip('Confidence boosting and validation (via main pipeline)', () => {
     it('returns valid confidence values in range [0, 1]', async () => {
         const dataUrl = createDataUrl(800, 600);
         const result = await detectItemsWithCV(dataUrl);
-        
+
         for (const detection of result) {
             expect(detection.confidence).toBeGreaterThanOrEqual(0);
             expect(detection.confidence).toBeLessThanOrEqual(1);
@@ -1082,7 +1079,7 @@ describe.skip('Confidence boosting and validation (via main pipeline)', () => {
         // This tests indirectly that boostConfidenceWithContext handles rarities
         const dataUrl = createDataUrl(800, 600);
         const result = await detectItemsWithCV(dataUrl);
-        
+
         // Even with no detections, the function should complete without error
         expect(Array.isArray(result)).toBe(true);
     });

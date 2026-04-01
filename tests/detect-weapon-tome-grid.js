@@ -17,18 +17,18 @@ const OUTPUT_DIR = './test-results/weapon-tome-grid';
 const GRID_PARAMS = {
     // Position from top-left (weapons start below health bars)
     leftMarginBase: 6,
-    topMarginBase: 135,  // Below health/status bars ~135px at 720p
+    topMarginBase: 135, // Below health/status bars ~135px at 720p
 
     // Icon size
     iconSizeBase: 32,
 
     // Spacing between icons
     spacingXBase: 10,
-    spacingYBase: 45,  // Includes LVL label between rows
+    spacingYBase: 45, // Includes LVL label between rows
 
     // Grid layout: 4 columns, 2 rows (weapons on top, tomes below)
     cols: 4,
-    rows: 2
+    rows: 2,
 };
 
 function detectWeaponTomeGrid(width, height) {
@@ -51,7 +51,7 @@ function detectWeaponTomeGrid(width, height) {
                 height: iconSize,
                 row,
                 col,
-                type: row === 0 ? 'weapon' : 'tome'
+                type: row === 0 ? 'weapon' : 'tome',
             });
         }
     }
@@ -61,11 +61,15 @@ function detectWeaponTomeGrid(width, height) {
 
 function isEmptySlot(ctx, x, y, w, h) {
     const imageData = ctx.getImageData(Math.round(x), Math.round(y), w, h);
-    let sum = 0, sumSq = 0, count = 0;
+    let sum = 0,
+        sumSq = 0,
+        count = 0;
 
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
-        sum += gray; sumSq += gray * gray; count++;
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+        sum += gray;
+        sumSq += gray * gray;
+        count++;
     }
 
     const mean = sum / count;
@@ -87,7 +91,7 @@ async function analyzeImage(imagePath, data) {
         weapons: [],
         tomes: [],
         positions,
-        params
+        params,
     };
 
     for (const pos of positions) {
@@ -116,7 +120,11 @@ async function analyzeImage(imagePath, data) {
     // Draw individual slots
     for (const pos of positions) {
         const empty = isEmptySlot(ctx, pos.x, pos.y, pos.width, pos.height);
-        outCtx.strokeStyle = empty ? 'rgba(100, 100, 255, 0.4)' : (pos.type === 'weapon' ? 'rgba(255, 100, 0, 0.9)' : 'rgba(0, 255, 100, 0.9)');
+        outCtx.strokeStyle = empty
+            ? 'rgba(100, 100, 255, 0.4)'
+            : pos.type === 'weapon'
+              ? 'rgba(255, 100, 0, 0.9)'
+              : 'rgba(0, 255, 100, 0.9)';
         outCtx.lineWidth = empty ? 1 : 2;
         outCtx.strokeRect(pos.x, pos.y, pos.width, pos.height);
     }
@@ -128,8 +136,16 @@ async function analyzeImage(imagePath, data) {
     outCtx.font = '11px monospace';
 
     const expectedWeapons = (data.equipped_weapons || []).length;
-    outCtx.fillText(`Weapons: ${results.weapons.length} detected (expected: ${expectedWeapons})`, 10, image.height + 20);
-    outCtx.fillText(`Tomes: ${results.tomes.length} detected | Grid at: (${params.leftMargin}, ${params.topMargin}), iconSize=${params.iconSize}`, 10, image.height + 40);
+    outCtx.fillText(
+        `Weapons: ${results.weapons.length} detected (expected: ${expectedWeapons})`,
+        10,
+        image.height + 20
+    );
+    outCtx.fillText(
+        `Tomes: ${results.tomes.length} detected | Grid at: (${params.leftMargin}, ${params.topMargin}), iconSize=${params.iconSize}`,
+        10,
+        image.height + 40
+    );
 
     return { canvas: outCanvas, results, expectedWeapons };
 }
@@ -152,13 +168,12 @@ async function main() {
         const { canvas, results, expectedWeapons } = await analyzeImage(imagePath, data);
 
         // Save visualization
-        fs.writeFileSync(
-            path.join(OUTPUT_DIR, `wt_${name.replace(/[\/\.]/g, '_')}.png`),
-            canvas.toBuffer('image/png')
-        );
+        fs.writeFileSync(path.join(OUTPUT_DIR, `wt_${name.replace(/[\/\.]/g, '_')}.png`), canvas.toBuffer('image/png'));
 
         const shortName = name.slice(9, 35);
-        console.log(`| ${shortName.padEnd(25)} | ${results.params.scale.toFixed(2)} | ${String(results.weapons.length).padStart(7)} | ${String(expectedWeapons).padStart(8)} | ${String(results.tomes.length).padStart(5)} |`);
+        console.log(
+            `| ${shortName.padEnd(25)} | ${results.params.scale.toFixed(2)} | ${String(results.weapons.length).padStart(7)} | ${String(expectedWeapons).padStart(8)} | ${String(results.tomes.length).padStart(5)} |`
+        );
     }
 
     console.log(`\nVisualization: ${OUTPUT_DIR}/`);

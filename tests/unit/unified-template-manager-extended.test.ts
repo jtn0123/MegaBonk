@@ -631,9 +631,7 @@ describe('Unified Template Manager - Extended Coverage', () => {
 
             global.Image = MockImage as any;
 
-            const items = [
-                createMockItem('error-item', 'common', '/images/test.png'),
-            ] as any[];
+            const items = [createMockItem('error-item', 'common', '/images/test.png')] as any[];
 
             const result = await loadTemplatesBatch(items);
 
@@ -865,9 +863,7 @@ describe('Unified Template Manager - Extended Coverage', () => {
                 return document.createElementNS('http://www.w3.org/1999/xhtml', tagName);
             });
 
-            const items = [
-                createMockItem('no-color', 'common', '/images/test.png'),
-            ] as any[];
+            const items = [createMockItem('no-color', 'common', '/images/test.png')] as any[];
 
             await loadTemplatesBatch(items);
             groupTemplatesByColor(items);
@@ -983,9 +979,7 @@ describe('Unified Template Manager - Extended Coverage', () => {
         });
 
         it('should handle empty source in sample', () => {
-            const samples = [
-                createTrainingSample({ id: 's1', source: '' as TemplateSource }),
-            ];
+            const samples = [createTrainingSample({ id: 's1', source: '' as TemplateSource })];
 
             const result = selectBestTemplates(samples, { preferDiversity: true });
             expect(result.length).toBe(1);
@@ -1255,9 +1249,7 @@ describe('Unified Template Manager - Extended Coverage', () => {
     // ========================================
     describe('prioritizeItems - Additional Cases', () => {
         it('should handle undefined rarity', () => {
-            const items = [
-                { id: 'no-rarity', name: 'Test' },
-            ] as any[];
+            const items = [{ id: 'no-rarity', name: 'Test' }] as any[];
 
             const { priority, standard } = prioritizeItems(items);
 

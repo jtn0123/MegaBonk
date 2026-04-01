@@ -204,12 +204,18 @@ export async function autoDetectGrid(
 
         // Pass 6: Empty screen detection
         const gridCfg = getGridConfig();
-        const iconsTooSmall = metrics.iconWidth < gridCfg.minAbsoluteIconSize || metrics.iconHeight < gridCfg.minAbsoluteIconSize;
+        const iconsTooSmall =
+            metrics.iconWidth < gridCfg.minAbsoluteIconSize || metrics.iconHeight < gridCfg.minAbsoluteIconSize;
 
-        const isLikelyEmpty = bandRegion.confidence < gridCfg.minBandConfidence && borderResult.edges.length < gridCfg.minEdgesRequired && metrics.isDefault;
+        const isLikelyEmpty =
+            bandRegion.confidence < gridCfg.minBandConfidence &&
+            borderResult.edges.length < gridCfg.minEdgesRequired &&
+            metrics.isDefault;
 
         const hasInconsistentDetection =
-            borderResult.edges.length >= 2 && metrics.confidence < gridCfg.minMetricsConfidence && validation.validCells.length < gridCfg.minValidCells;
+            borderResult.edges.length >= 2 &&
+            metrics.confidence < gridCfg.minMetricsConfidence &&
+            validation.validCells.length < gridCfg.minValidCells;
 
         // Collect failure reasons for UI display
         const failureReasons: FailureReason[] = [];

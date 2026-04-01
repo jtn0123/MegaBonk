@@ -20,12 +20,7 @@ vi.mock('../../src/modules/logger.ts', () => ({
     },
 }));
 
-import {
-    initMobileNav,
-    showMoreMenu,
-    hideMoreMenu,
-    toggleMoreMenu,
-} from '../../src/modules/mobile-nav.ts';
+import { initMobileNav, showMoreMenu, hideMoreMenu, toggleMoreMenu } from '../../src/modules/mobile-nav.ts';
 import { getState, setState, subscribe } from '../../src/modules/store.ts';
 
 describe('Mobile Navigation Module', () => {

@@ -96,7 +96,12 @@ import {
 } from '../../src/modules/image-recognition-debug';
 
 import { logger, requestTimer } from '../../src/modules/logger';
-import { getBreadcrumbs, clearBreadcrumbs, exportBreadcrumbs, captureStateSnapshot } from '../../src/modules/breadcrumbs';
+import {
+    getBreadcrumbs,
+    clearBreadcrumbs,
+    exportBreadcrumbs,
+    captureStateSnapshot,
+} from '../../src/modules/breadcrumbs';
 
 // ============================================
 // Debug Panel Rendering Tests
@@ -544,9 +549,7 @@ describe('debug-ui extended - log formatting', () => {
 
     it('should format log time in 24-hour format', () => {
         const timestamp = new Date('2024-01-15T14:30:45').getTime();
-        vi.mocked(getLogs).mockReturnValue([
-            { timestamp, level: 'info', category: 'test', message: 'Test' },
-        ]);
+        vi.mocked(getLogs).mockReturnValue([{ timestamp, level: 'info', category: 'test', message: 'Test' }]);
 
         updateLogViewer();
 
@@ -915,7 +918,7 @@ describe('debug-ui extended - action buttons', () => {
 
         let createdLink: HTMLAnchorElement | null = null;
         const originalAppendChild = document.body.appendChild.bind(document.body);
-        vi.spyOn(document.body, 'appendChild').mockImplementation((node) => {
+        vi.spyOn(document.body, 'appendChild').mockImplementation(node => {
             if (node instanceof HTMLAnchorElement) {
                 createdLink = node;
             }
@@ -931,9 +934,7 @@ describe('debug-ui extended - action buttons', () => {
     });
 
     it('should update log viewer after clearing logs', () => {
-        vi.mocked(getLogs).mockReturnValue([
-            { timestamp: Date.now(), level: 'info', category: 'cv', message: 'Test' },
-        ]);
+        vi.mocked(getLogs).mockReturnValue([{ timestamp: Date.now(), level: 'info', category: 'cv', message: 'Test' }]);
 
         initDebugPanel();
 
@@ -1020,9 +1021,7 @@ describe('debug-ui extended - request viewer', () => {
             cachedRequests: 0,
             averageDurationMs: 50,
             slowestRequest: undefined,
-            recentRequests: [
-                { url: '/api/not-found', method: 'GET', startTime: 0, durationMs: 50, status: 404 },
-            ],
+            recentRequests: [{ url: '/api/not-found', method: 'GET', startTime: 0, durationMs: 50, status: 404 }],
         });
 
         updateRequestViewer();
@@ -1039,9 +1038,7 @@ describe('debug-ui extended - request viewer', () => {
             cachedRequests: 0,
             averageDurationMs: 50,
             slowestRequest: undefined,
-            recentRequests: [
-                { url: '/api/success', method: 'GET', startTime: 0, durationMs: 50, status: 200 },
-            ],
+            recentRequests: [{ url: '/api/success', method: 'GET', startTime: 0, durationMs: 50, status: 200 }],
         });
 
         updateRequestViewer();
@@ -1059,7 +1056,13 @@ describe('debug-ui extended - request viewer', () => {
             averageDurationMs: 0,
             slowestRequest: undefined,
             recentRequests: [
-                { url: '/api/test', method: 'GET', startTime: 0, durationMs: undefined as unknown as number, status: 200 },
+                {
+                    url: '/api/test',
+                    method: 'GET',
+                    startTime: 0,
+                    durationMs: undefined as unknown as number,
+                    status: 200,
+                },
             ],
         });
 
@@ -1084,9 +1087,7 @@ describe('debug-ui extended - request viewer', () => {
                 durationMs: 5000,
                 status: 200,
             },
-            recentRequests: [
-                { url: longUrl, method: 'GET', startTime: 0, durationMs: 50, status: 200 },
-            ],
+            recentRequests: [{ url: longUrl, method: 'GET', startTime: 0, durationMs: 50, status: 200 }],
         });
 
         updateRequestViewer();
@@ -1158,9 +1159,7 @@ describe('debug-ui extended - breadcrumb viewer', () => {
 
     it('should format breadcrumb time correctly', () => {
         const timestamp = new Date('2024-01-15T09:15:30').getTime();
-        vi.mocked(getBreadcrumbs).mockReturnValue([
-            { timestamp, type: 'action', message: 'Click' },
-        ]);
+        vi.mocked(getBreadcrumbs).mockReturnValue([{ timestamp, type: 'action', message: 'Click' }]);
 
         updateBreadcrumbViewer();
 

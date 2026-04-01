@@ -150,10 +150,7 @@ describe('CV Templates Module', () => {
         });
 
         it('should handle all legendary items', () => {
-            const items = [
-                createMockItem('item1', 'legendary'),
-                createMockItem('item2', 'legendary'),
-            ];
+            const items = [createMockItem('item1', 'legendary'), createMockItem('item2', 'legendary')];
             const { priority, standard } = prioritizeItems(items as any);
 
             expect(priority.length).toBe(0);
@@ -390,7 +387,9 @@ describe('CV Templates Module', () => {
                 height = 64;
                 private _src = '';
 
-                get src() { return this._src; }
+                get src() {
+                    return this._src;
+                }
                 set src(value: string) {
                     this._src = value;
                     capturedSrc = value;
@@ -418,7 +417,9 @@ describe('CV Templates Module', () => {
                 height = 64;
                 private _src = '';
 
-                get src() { return this._src; }
+                get src() {
+                    return this._src;
+                }
                 set src(value: string) {
                     this._src = value;
                     capturedSrc = value;
@@ -543,7 +544,11 @@ describe('CV Templates Module', () => {
             // Add more templates
             const templates = getItemTemplates();
             templates.set('shield', {
-                ctx: { getImageData: vi.fn().mockReturnValue({ data: new Uint8ClampedArray(64 * 64 * 4), width: 64, height: 64 }) },
+                ctx: {
+                    getImageData: vi
+                        .fn()
+                        .mockReturnValue({ data: new Uint8ClampedArray(64 * 64 * 4), width: 64, height: 64 }),
+                },
                 width: 64,
                 height: 64,
             } as any);
@@ -564,7 +569,11 @@ describe('CV Templates Module', () => {
         it('should create separate groups for different colors', () => {
             const templates = getItemTemplates();
             templates.set('shield', {
-                ctx: { getImageData: vi.fn().mockReturnValue({ data: new Uint8ClampedArray(64 * 64 * 4), width: 64, height: 64 }) },
+                ctx: {
+                    getImageData: vi
+                        .fn()
+                        .mockReturnValue({ data: new Uint8ClampedArray(64 * 64 * 4), width: 64, height: 64 }),
+                },
                 width: 64,
                 height: 64,
             } as any);
@@ -693,10 +702,7 @@ describe('CV Templates Module', () => {
         it('should set priorityTemplatesLoaded after priority items loaded', async () => {
             setAllData({
                 items: {
-                    items: [
-                        createMockItem('common_item', 'common'),
-                        createMockItem('rare_item', 'rare'),
-                    ],
+                    items: [createMockItem('common_item', 'common'), createMockItem('rare_item', 'rare')],
                 },
             } as any);
 
@@ -740,10 +746,7 @@ describe('CV Templates Module', () => {
         it('should load standard items in background via setTimeout', async () => {
             setAllData({
                 items: {
-                    items: [
-                        createMockItem('common_item', 'common'),
-                        createMockItem('rare_item', 'rare'),
-                    ],
+                    items: [createMockItem('common_item', 'common'), createMockItem('rare_item', 'rare')],
                 },
             } as any);
 
@@ -773,10 +776,7 @@ describe('CV Templates Module', () => {
         it('should deduplicate concurrent loadItemTemplates calls', async () => {
             setAllData({
                 items: {
-                    items: [
-                        createMockItem('common_item', 'common'),
-                        createMockItem('rare_item', 'rare'),
-                    ],
+                    items: [createMockItem('common_item', 'common'), createMockItem('rare_item', 'rare')],
                 },
             } as any);
 
@@ -787,9 +787,7 @@ describe('CV Templates Module', () => {
             await Promise.all([promise1, promise2]);
 
             // Should only have one 'start' log, not two
-            const startLogs = vi.mocked(logger.info).mock.calls.filter(
-                (call: any) => call[0]?.data?.phase === 'start'
-            );
+            const startLogs = vi.mocked(logger.info).mock.calls.filter((call: any) => call[0]?.data?.phase === 'start');
             expect(startLogs.length).toBe(1);
         });
 

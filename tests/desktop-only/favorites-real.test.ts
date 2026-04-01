@@ -221,7 +221,13 @@ describe('getFavorites - Real Integration Tests', () => {
     });
 
     it('should return array for valid tab names', () => {
-        const tabs: ('items' | 'weapons' | 'tomes' | 'characters' | 'shrines')[] = ['items', 'weapons', 'tomes', 'characters', 'shrines'];
+        const tabs: ('items' | 'weapons' | 'tomes' | 'characters' | 'shrines')[] = [
+            'items',
+            'weapons',
+            'tomes',
+            'characters',
+            'shrines',
+        ];
 
         tabs.forEach(tab => {
             expect(Array.isArray(getFavorites(tab))).toBe(true);

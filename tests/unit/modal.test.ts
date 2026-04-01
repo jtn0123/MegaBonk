@@ -40,7 +40,7 @@ vi.mock('../../src/modules/formula-renderer.ts', () => ({
     renderFormulaDisplay: vi.fn((formula: string) => `<span class="formula">${formula}</span>`),
 }));
 
-vi.mock('../../src/modules/utils.ts', async (importOriginal) => {
+vi.mock('../../src/modules/utils.ts', async importOriginal => {
     const actual = await importOriginal<typeof import('../../src/modules/utils')>();
     return {
         ...actual,
@@ -122,9 +122,7 @@ describe('Modal Module - Actual Implementation', () => {
         it('should show error toast for invalid ID', async () => {
             await openDetailModal('items', 'nonexistent-item');
 
-            expect(ToastManager.error).toHaveBeenCalledWith(
-                expect.stringContaining('Could not find')
-            );
+            expect(ToastManager.error).toHaveBeenCalledWith(expect.stringContaining('Could not find'));
         });
 
         it('should populate modal body with entity name', async () => {
@@ -921,15 +919,17 @@ describe('Modal Module - Actual Implementation', () => {
     // ========================================
     describe('Edge Cases', () => {
         it('should handle item with minimal properties', async () => {
-            (allData as any).items.items = [{
-                id: 'minimal-item',
-                name: 'Minimal',
-                tier: 'C',
-                rarity: 'common',
-                base_effect: '',
-                detailed_description: '',
-                formula: '',
-            }];
+            (allData as any).items.items = [
+                {
+                    id: 'minimal-item',
+                    name: 'Minimal',
+                    tier: 'C',
+                    rarity: 'common',
+                    base_effect: '',
+                    detailed_description: '',
+                    formula: '',
+                },
+            ];
 
             await openDetailModal('items', 'minimal-item');
 
@@ -938,15 +938,17 @@ describe('Modal Module - Actual Implementation', () => {
         });
 
         it('should handle weapon with minimal properties', async () => {
-            (allData as any).weapons.weapons = [{
-                id: 'minimal-weapon',
-                name: 'Minimal Weapon',
-                tier: 'C',
-                base_damage: 1,
-                attack_pattern: 'none',
-                upgradeable_stats: [],
-                description: '',
-            }];
+            (allData as any).weapons.weapons = [
+                {
+                    id: 'minimal-weapon',
+                    name: 'Minimal Weapon',
+                    tier: 'C',
+                    base_damage: 1,
+                    attack_pattern: 'none',
+                    upgradeable_stats: [],
+                    description: '',
+                },
+            ];
 
             await openDetailModal('weapons', 'minimal-weapon');
 
@@ -955,17 +957,19 @@ describe('Modal Module - Actual Implementation', () => {
         });
 
         it('should handle character with minimal properties', async () => {
-            (allData as any).characters.characters = [{
-                id: 'minimal-char',
-                name: 'Minimal Character',
-                tier: 'C',
-                playstyle: 'none',
-                passive_ability: 'None',
-                passive_description: '',
-                starting_weapon: 'None',
-                base_hp: 1,
-                base_damage: 1,
-            }];
+            (allData as any).characters.characters = [
+                {
+                    id: 'minimal-char',
+                    name: 'Minimal Character',
+                    tier: 'C',
+                    playstyle: 'none',
+                    passive_ability: 'None',
+                    passive_description: '',
+                    starting_weapon: 'None',
+                    base_hp: 1,
+                    base_damage: 1,
+                },
+            ];
 
             await openDetailModal('characters', 'minimal-char');
 
@@ -974,15 +978,17 @@ describe('Modal Module - Actual Implementation', () => {
         });
 
         it('should handle tome with minimal properties', async () => {
-            (allData as any).tomes.tomes = [{
-                id: 'minimal-tome',
-                name: 'Minimal Tome',
-                tier: 'C',
-                stat_affected: 'none',
-                value_per_level: 0,
-                description: '',
-                priority: 0,
-            }];
+            (allData as any).tomes.tomes = [
+                {
+                    id: 'minimal-tome',
+                    name: 'Minimal Tome',
+                    tier: 'C',
+                    stat_affected: 'none',
+                    value_per_level: 0,
+                    description: '',
+                    priority: 0,
+                },
+            ];
 
             await openDetailModal('tomes', 'minimal-tome');
 
@@ -991,15 +997,17 @@ describe('Modal Module - Actual Implementation', () => {
         });
 
         it('should handle shrine with minimal properties', async () => {
-            (allData as any).shrines.shrines = [{
-                id: 'minimal-shrine',
-                name: 'Minimal Shrine',
-                icon: '?',
-                type: 'unknown',
-                reusable: false,
-                description: '',
-                reward: '',
-            }];
+            (allData as any).shrines.shrines = [
+                {
+                    id: 'minimal-shrine',
+                    name: 'Minimal Shrine',
+                    icon: '?',
+                    type: 'unknown',
+                    reusable: false,
+                    description: '',
+                    reward: '',
+                },
+            ];
 
             await openDetailModal('shrines', 'minimal-shrine');
 
@@ -1008,19 +1016,21 @@ describe('Modal Module - Actual Implementation', () => {
         });
 
         it('should handle item with undefined optional properties', async () => {
-            (allData as any).items.items = [{
-                id: 'undef-item',
-                name: 'Undefined Props Item',
-                tier: 'B',
-                rarity: 'uncommon',
-                base_effect: 'effect',
-                detailed_description: 'desc',
-                formula: 'f',
-                synergies: undefined,
-                anti_synergies: undefined,
-                hidden_mechanics: undefined,
-                scaling_per_stack: undefined,
-            }];
+            (allData as any).items.items = [
+                {
+                    id: 'undef-item',
+                    name: 'Undefined Props Item',
+                    tier: 'B',
+                    rarity: 'uncommon',
+                    base_effect: 'effect',
+                    detailed_description: 'desc',
+                    formula: 'f',
+                    synergies: undefined,
+                    anti_synergies: undefined,
+                    hidden_mechanics: undefined,
+                    scaling_per_stack: undefined,
+                },
+            ];
 
             await openDetailModal('items', 'undef-item');
 
@@ -1032,8 +1042,24 @@ describe('Modal Module - Actual Implementation', () => {
             vi.useFakeTimers();
 
             (allData as any).items.items = [
-                { id: 'item1', name: 'Item 1', tier: 'A', rarity: 'rare', base_effect: 'e1', detailed_description: 'd1', formula: 'f1' },
-                { id: 'item2', name: 'Item 2', tier: 'S', rarity: 'epic', base_effect: 'e2', detailed_description: 'd2', formula: 'f2' },
+                {
+                    id: 'item1',
+                    name: 'Item 1',
+                    tier: 'A',
+                    rarity: 'rare',
+                    base_effect: 'e1',
+                    detailed_description: 'd1',
+                    formula: 'f1',
+                },
+                {
+                    id: 'item2',
+                    name: 'Item 2',
+                    tier: 'S',
+                    rarity: 'epic',
+                    base_effect: 'e2',
+                    detailed_description: 'd2',
+                    formula: 'f2',
+                },
             ];
 
             // Start first open

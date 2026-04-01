@@ -14,21 +14,32 @@ const V1_DIR = './test-results/extracted-templates';
 const BASE_THRESHOLD = 0.65;
 
 // Additional confirmation requirements
-const MIN_SECOND_BEST_GAP = 0.05;  // Best match must be 5% better than second best
-const MIN_VARIANCE = 400;  // Higher variance requirement
+const MIN_SECOND_BEST_GAP = 0.05; // Best match must be 5% better than second best
+const MIN_VARIANCE = 400; // Higher variance requirement
 
 function calculateNCC(d1, d2) {
-    let s1 = 0, s2 = 0, sp = 0, ss1 = 0, ss2 = 0, c = 0;
+    let s1 = 0,
+        s2 = 0,
+        sp = 0,
+        ss1 = 0,
+        ss2 = 0,
+        c = 0;
     const len = Math.min(d1.data.length, d2.data.length);
     for (let i = 0; i < len; i += 4) {
-        const g1 = (d1.data[i] + d1.data[i+1] + d1.data[i+2]) / 3;
-        const g2 = (d2.data[i] + d2.data[i+1] + d2.data[i+2]) / 3;
-        s1 += g1; s2 += g2; sp += g1*g2; ss1 += g1*g1; ss2 += g2*g2; c++;
+        const g1 = (d1.data[i] + d1.data[i + 1] + d1.data[i + 2]) / 3;
+        const g2 = (d2.data[i] + d2.data[i + 1] + d2.data[i + 2]) / 3;
+        s1 += g1;
+        s2 += g2;
+        sp += g1 * g2;
+        ss1 += g1 * g1;
+        ss2 += g2 * g2;
+        c++;
     }
-    const m1 = s1/c, m2 = s2/c;
-    const num = sp/c - m1*m2;
-    const den = Math.sqrt((ss1/c - m1*m1) * (ss2/c - m2*m2));
-    return den === 0 ? 0 : (num/den + 1) / 2;
+    const m1 = s1 / c,
+        m2 = s2 / c;
+    const num = sp / c - m1 * m2;
+    const den = Math.sqrt((ss1 / c - m1 * m1) * (ss2 / c - m2 * m2));
+    return den === 0 ? 0 : (num / den + 1) / 2;
 }
 
 function detectGridPositions(width, height) {
@@ -40,7 +51,7 @@ function detectGridPositions(width, height) {
     const positions = [];
 
     for (let row = 0; row < 3; row++) {
-        const y = height - bottomMargin - (row * rowHeight) - iconSize;
+        const y = height - bottomMargin - row * rowHeight - iconSize;
         if (y < height * 0.65) continue;
         const sideMargin = Math.round(width * 0.15);
         const cellWidth = iconSize + spacing;
@@ -55,7 +66,10 @@ function detectGridPositions(width, height) {
 }
 
 function normalizeItemId(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
 }
 
 async function loadTemplates() {
@@ -78,7 +92,9 @@ async function runTest(threshold, gapRequired, minVariance) {
     const gt = JSON.parse(fs.readFileSync(GT_PATH, 'utf-8'));
     const testCases = Object.entries(gt).filter(([k]) => !k.startsWith('_'));
 
-    let totalTP = 0, totalFP = 0, totalFN = 0;
+    let totalTP = 0,
+        totalFP = 0,
+        totalFN = 0;
 
     for (const [filename, data] of testCases) {
         const imagePath = path.join('./test-images/gameplay', filename);
@@ -102,10 +118,14 @@ async function runTest(threshold, gapRequired, minVariance) {
         for (const pos of positions) {
             const cellData = ctx.getImageData(pos.x, pos.y, pos.width, pos.height);
 
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < cellData.data.length; i += 4) {
-                const gray = (cellData.data[i] + cellData.data[i+1] + cellData.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (cellData.data[i] + cellData.data[i + 1] + cellData.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const variance = sumSq / count - (sum / count) ** 2;
             if (variance < minVariance) continue;
@@ -115,7 +135,17 @@ async function runTest(threshold, gapRequired, minVariance) {
             const srcCanvas = createCanvas(pos.width, pos.height);
             srcCanvas.getContext('2d').putImageData(cellData, 0, 0);
             const margin = Math.round(pos.width * 0.1);
-            resizeCtx.drawImage(srcCanvas, margin, margin, pos.width - margin*2, pos.height - margin*2, 0, 0, 32, 32);
+            resizeCtx.drawImage(
+                srcCanvas,
+                margin,
+                margin,
+                pos.width - margin * 2,
+                pos.height - margin * 2,
+                0,
+                0,
+                32,
+                32
+            );
             const resizedCell = resizeCtx.getImageData(0, 0, 32, 32);
 
             // Match against all templates
@@ -154,7 +184,7 @@ async function runTest(threshold, gapRequired, minVariance) {
 
     const precision = totalTP / (totalTP + totalFP) || 0;
     const recall = totalTP / (totalTP + totalFN) || 0;
-    const f1 = 2 * precision * recall / (precision + recall) || 0;
+    const f1 = (2 * precision * recall) / (precision + recall) || 0;
 
     return { threshold, gapRequired, minVariance, totalTP, totalFP, totalFN, precision, recall, f1 };
 }
@@ -165,8 +195,8 @@ async function main() {
     const results = [];
 
     // Test different parameter combinations
-    const thresholds = [0.55, 0.60, 0.65, 0.70, 0.75];
-    const gaps = [0, 0.03, 0.05, 0.08, 0.10];
+    const thresholds = [0.55, 0.6, 0.65, 0.7, 0.75];
+    const gaps = [0, 0.03, 0.05, 0.08, 0.1];
     const variances = [350, 400, 450, 500];
 
     console.log('Running parameter sweep...\n');
@@ -186,7 +216,9 @@ async function main() {
     console.log('|--------|-----|----|----|-----|------|--------|-----|');
 
     for (const r of results) {
-        console.log(`| ${r.threshold.toFixed(2).padStart(6)} | ${r.gapRequired.toFixed(2).padStart(4)} | ${String(r.totalTP).padStart(2)} | ${String(r.totalFP).padStart(2)} | ${String(r.totalFN).padStart(3)} | ${(r.precision * 100).toFixed(0).padStart(3)}% | ${(r.recall * 100).toFixed(0).padStart(5)}% | ${(r.f1 * 100).toFixed(1).padStart(4)}% |`);
+        console.log(
+            `| ${r.threshold.toFixed(2).padStart(6)} | ${r.gapRequired.toFixed(2).padStart(4)} | ${String(r.totalTP).padStart(2)} | ${String(r.totalFP).padStart(2)} | ${String(r.totalFN).padStart(3)} | ${(r.precision * 100).toFixed(0).padStart(3)}% | ${(r.recall * 100).toFixed(0).padStart(5)}% | ${(r.f1 * 100).toFixed(1).padStart(4)}% |`
+        );
     }
 
     console.log('|--------|-----|----|----|-----|------|--------|-----|\n');

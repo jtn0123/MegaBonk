@@ -129,10 +129,10 @@ describe('Registry Module - Comprehensive Coverage', () => {
                 if (cb) cb({ character: null, weapon: null, items: [], tomes: [] });
             });
             registerFunction('initScanBuild', initFn);
-            
+
             const gameData = { items: { items: [] }, weapons: { weapons: [] } } as any;
             callFunction('initScanBuild', gameData, callback);
-            
+
             expect(initFn).toHaveBeenCalledWith(gameData, callback);
             expect(callback).toHaveBeenCalledWith({
                 character: null,
@@ -145,7 +145,7 @@ describe('Registry Module - Comprehensive Coverage', () => {
         it('should call applyScannedBuild with BuildState', () => {
             const fn = vi.fn();
             registerFunction('applyScannedBuild', fn);
-            
+
             const buildState: BuildState = {
                 character: { id: 'char1', name: 'Hero' } as any,
                 weapon: { id: 'wpn1', name: 'Sword' } as any,
@@ -153,7 +153,7 @@ describe('Registry Module - Comprehensive Coverage', () => {
                 tomes: [],
             };
             callFunction('applyScannedBuild', buildState);
-            
+
             expect(fn).toHaveBeenCalledWith(buildState);
         });
 
@@ -166,10 +166,10 @@ describe('Registry Module - Comprehensive Coverage', () => {
             const mockResult = [{ id: 'item1', confidence: 0.95 }];
             const fn = vi.fn().mockResolvedValue(mockResult);
             registerFunction('detectItemsWithEnhancedCV', fn);
-            
+
             const imageData = { width: 100, height: 100, data: new Uint8ClampedArray(40000) } as ImageData;
             const result = callFunction('detectItemsWithEnhancedCV', imageData);
-            
+
             expect(fn).toHaveBeenCalledWith(imageData);
             await expect(result).resolves.toEqual(mockResult);
         });
@@ -178,10 +178,10 @@ describe('Registry Module - Comprehensive Coverage', () => {
             const mockResult = { strategy1: 0.9, strategy2: 0.85 };
             const fn = vi.fn().mockResolvedValue(mockResult);
             registerFunction('compareStrategiesOnImage', fn);
-            
+
             const imageData = { width: 50, height: 50, data: new Uint8ClampedArray(10000) } as ImageData;
             const result = callFunction('compareStrategiesOnImage', imageData);
-            
+
             await expect(result).resolves.toEqual(mockResult);
         });
     });
@@ -209,7 +209,7 @@ describe('Registry Module - Comprehensive Coverage', () => {
             registerFunction('switchTab', vi.fn());
             registerFunction('initCV', vi.fn());
             registerFunction('initEnhancedCV', vi.fn());
-            
+
             expect(isRegistered('switchTab')).toBe(true);
             expect(isRegistered('initCV')).toBe(true);
             expect(isRegistered('initEnhancedCV')).toBe(true);
@@ -232,7 +232,7 @@ describe('Registry Module - Comprehensive Coverage', () => {
             registerFunction('initCV', vi.fn());
             registerFunction('initOCR', vi.fn());
             registerFunction('initEnhancedCV', vi.fn());
-            
+
             unregisterFunction('initCV');
             expect(isRegistered('initCV')).toBe(false);
             expect(isRegistered('initOCR')).toBe(true);
@@ -263,11 +263,11 @@ describe('Registry Module - Comprehensive Coverage', () => {
             registerFunction('initEnhancedScanBuild', vi.fn());
             registerFunction('handleEnhancedHybridDetect', vi.fn());
             registerFunction('compareStrategiesOnImage', vi.fn());
-            
+
             expect(getRegisteredFunctions().length).toBe(12);
-            
+
             clearRegistry();
-            
+
             expect(getRegisteredFunctions().length).toBe(0);
             expect(isRegistered('switchTab')).toBe(false);
             expect(isRegistered('initEnhancedCV')).toBe(false);
@@ -282,9 +282,9 @@ describe('Registry Module - Comprehensive Coverage', () => {
             registerFunction('switchTab', vi.fn());
             registerFunction('initCV', vi.fn());
             registerFunction('initEnhancedCV', vi.fn());
-            
+
             const registered = getRegisteredFunctions();
-            
+
             expect(registered).toContain('switchTab');
             expect(registered).toContain('initCV');
             expect(registered).toContain('initEnhancedCV');
@@ -294,9 +294,9 @@ describe('Registry Module - Comprehensive Coverage', () => {
         it('should not include null entries', () => {
             registerFunction('switchTab', vi.fn());
             registerFunction('initCV', null);
-            
+
             const registered = getRegisteredFunctions();
-            
+
             expect(registered).toContain('switchTab');
             expect(registered).not.toContain('initCV');
         });
@@ -311,14 +311,14 @@ describe('Registry Module - Comprehensive Coverage', () => {
                 throw new Error('Sync error');
             });
             registerFunction('switchTab', errorFn);
-            
+
             expect(() => callFunction('switchTab', 'items' as TabName)).toThrow('Sync error');
         });
 
         it('should handle function that rejects', async () => {
             const rejectFn = vi.fn().mockRejectedValue(new Error('Async error'));
             registerFunction('initEnhancedCV', rejectFn);
-            
+
             const result = callFunction('initEnhancedCV');
             await expect(result).rejects.toThrow('Async error');
         });
@@ -326,7 +326,7 @@ describe('Registry Module - Comprehensive Coverage', () => {
         it('should handle function returning undefined', () => {
             const undefinedFn = vi.fn(() => undefined);
             registerFunction('switchTab', undefinedFn);
-            
+
             const result = callFunction('switchTab', 'items' as TabName);
             expect(result).toBeUndefined();
         });
@@ -334,7 +334,7 @@ describe('Registry Module - Comprehensive Coverage', () => {
         it('should handle function returning null', () => {
             const nullFn = vi.fn(() => null);
             registerFunction('initAdvisor', nullFn as any);
-            
+
             const result = callFunction('initAdvisor', {} as any);
             expect(result).toBeNull();
         });
@@ -349,7 +349,7 @@ describe('Registry Module - Comprehensive Coverage', () => {
         it('should handle function with no arguments', () => {
             const noArgFn = vi.fn(() => 'result');
             registerFunction('initEnhancedCV', noArgFn as any);
-            
+
             callFunction('initEnhancedCV');
             expect(noArgFn).toHaveBeenCalledTimes(1);
         });

@@ -10,9 +10,13 @@ const OUTPUT_DIR = './training-data/augmented-templates';
 
 // Analyze image characteristics
 function analyzeImage(imageData) {
-    const w = imageData.width, h = imageData.height;
-    let sumR = 0, sumG = 0, sumB = 0;
-    let sumGray = 0, sumGraySq = 0;
+    const w = imageData.width,
+        h = imageData.height;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
+    let sumGray = 0,
+        sumGraySq = 0;
     let edgeCount = 0;
     let colorVariance = 0;
     const pixels = w * h;
@@ -20,14 +24,16 @@ function analyzeImage(imageData) {
     // Color stats
     for (let i = 0; i < imageData.data.length; i += 4) {
         sumR += imageData.data[i];
-        sumG += imageData.data[i+1];
-        sumB += imageData.data[i+2];
-        const gray = (imageData.data[i] + imageData.data[i+1] + imageData.data[i+2]) / 3;
+        sumG += imageData.data[i + 1];
+        sumB += imageData.data[i + 2];
+        const gray = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
         sumGray += gray;
         sumGraySq += gray * gray;
     }
 
-    const avgR = sumR / pixels, avgG = sumG / pixels, avgB = sumB / pixels;
+    const avgR = sumR / pixels,
+        avgG = sumG / pixels,
+        avgB = sumB / pixels;
     const avgGray = sumGray / pixels;
     const variance = sumGraySq / pixels - avgGray * avgGray;
 
@@ -37,24 +43,27 @@ function analyzeImage(imageData) {
     // Edge density
     const gray = new Float32Array(pixels);
     for (let i = 0; i < pixels; i++) {
-        gray[i] = (imageData.data[i*4] + imageData.data[i*4+1] + imageData.data[i*4+2]) / 3;
+        gray[i] = (imageData.data[i * 4] + imageData.data[i * 4 + 1] + imageData.data[i * 4 + 2]) / 3;
     }
 
     for (let y = 1; y < h - 1; y++) {
         for (let x = 1; x < w - 1; x++) {
-            const gx = Math.abs(gray[y*w + x+1] - gray[y*w + x-1]);
-            const gy = Math.abs(gray[(y+1)*w + x] - gray[(y-1)*w + x]);
+            const gx = Math.abs(gray[y * w + x + 1] - gray[y * w + x - 1]);
+            const gy = Math.abs(gray[(y + 1) * w + x] - gray[(y - 1) * w + x]);
             if (gx + gy > 40) edgeCount++;
         }
     }
 
-    const edgeDensity = edgeCount / ((w-2) * (h-2));
+    const edgeDensity = edgeCount / ((w - 2) * (h - 2));
 
     // Saturation (how colorful)
     let satSum = 0;
     for (let i = 0; i < imageData.data.length; i += 4) {
-        const r = imageData.data[i], g = imageData.data[i+1], b = imageData.data[i+2];
-        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        const r = imageData.data[i],
+            g = imageData.data[i + 1],
+            b = imageData.data[i + 2];
+        const max = Math.max(r, g, b),
+            min = Math.min(r, g, b);
         satSum += max > 0 ? (max - min) / max : 0;
     }
     const avgSaturation = satSum / pixels;
@@ -67,8 +76,8 @@ function adjustBrightness(imageData, factor) {
     const data = new Uint8ClampedArray(imageData.data);
     for (let i = 0; i < data.length; i += 4) {
         data[i] = Math.min(255, Math.max(0, data[i] * factor));
-        data[i+1] = Math.min(255, Math.max(0, data[i+1] * factor));
-        data[i+2] = Math.min(255, Math.max(0, data[i+2] * factor));
+        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] * factor));
+        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] * factor));
     }
     return new ImageData(data, imageData.width, imageData.height);
 }
@@ -77,8 +86,8 @@ function adjustContrast(imageData, factor) {
     const data = new Uint8ClampedArray(imageData.data);
     for (let i = 0; i < data.length; i += 4) {
         data[i] = Math.min(255, Math.max(0, 128 + (data[i] - 128) * factor));
-        data[i+1] = Math.min(255, Math.max(0, 128 + (data[i+1] - 128) * factor));
-        data[i+2] = Math.min(255, Math.max(0, 128 + (data[i+2] - 128) * factor));
+        data[i + 1] = Math.min(255, Math.max(0, 128 + (data[i + 1] - 128) * factor));
+        data[i + 2] = Math.min(255, Math.max(0, 128 + (data[i + 2] - 128) * factor));
     }
     return new ImageData(data, imageData.width, imageData.height);
 }
@@ -86,10 +95,10 @@ function adjustContrast(imageData, factor) {
 function adjustSaturation(imageData, factor) {
     const data = new Uint8ClampedArray(imageData.data);
     for (let i = 0; i < data.length; i += 4) {
-        const gray = (data[i] + data[i+1] + data[i+2]) / 3;
+        const gray = (data[i] + data[i + 1] + data[i + 2]) / 3;
         data[i] = Math.min(255, Math.max(0, gray + (data[i] - gray) * factor));
-        data[i+1] = Math.min(255, Math.max(0, gray + (data[i+1] - gray) * factor));
-        data[i+2] = Math.min(255, Math.max(0, gray + (data[i+2] - gray) * factor));
+        data[i + 1] = Math.min(255, Math.max(0, gray + (data[i + 1] - gray) * factor));
+        data[i + 2] = Math.min(255, Math.max(0, gray + (data[i + 2] - gray) * factor));
     }
     return new ImageData(data, imageData.width, imageData.height);
 }
@@ -99,8 +108,8 @@ function addNoise(imageData, amount) {
     for (let i = 0; i < data.length; i += 4) {
         const noise = (Math.random() - 0.5) * amount;
         data[i] = Math.min(255, Math.max(0, data[i] + noise));
-        data[i+1] = Math.min(255, Math.max(0, data[i+1] + noise));
-        data[i+2] = Math.min(255, Math.max(0, data[i+2] + noise));
+        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] + noise));
+        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] + noise));
     }
     return new ImageData(data, imageData.width, imageData.height);
 }
@@ -109,35 +118,42 @@ function tintColor(imageData, tintR, tintG, tintB, strength) {
     const data = new Uint8ClampedArray(imageData.data);
     for (let i = 0; i < data.length; i += 4) {
         data[i] = Math.min(255, Math.max(0, data[i] * (1 - strength) + tintR * strength));
-        data[i+1] = Math.min(255, Math.max(0, data[i+1] * (1 - strength) + tintG * strength));
-        data[i+2] = Math.min(255, Math.max(0, data[i+2] * (1 - strength) + tintB * strength));
+        data[i + 1] = Math.min(255, Math.max(0, data[i + 1] * (1 - strength) + tintG * strength));
+        data[i + 2] = Math.min(255, Math.max(0, data[i + 2] * (1 - strength) + tintB * strength));
     }
     return new ImageData(data, imageData.width, imageData.height);
 }
 
 function blur(imageData, radius = 1) {
-    const w = imageData.width, h = imageData.height;
+    const w = imageData.width,
+        h = imageData.height;
     const data = new Uint8ClampedArray(imageData.data);
     const result = new Uint8ClampedArray(imageData.data.length);
 
     for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
-            let r = 0, g = 0, b = 0, count = 0;
+            let r = 0,
+                g = 0,
+                b = 0,
+                count = 0;
             for (let dy = -radius; dy <= radius; dy++) {
                 for (let dx = -radius; dx <= radius; dx++) {
-                    const nx = x + dx, ny = y + dy;
+                    const nx = x + dx,
+                        ny = y + dy;
                     if (nx >= 0 && nx < w && ny >= 0 && ny < h) {
                         const i = (ny * w + nx) * 4;
-                        r += data[i]; g += data[i+1]; b += data[i+2];
+                        r += data[i];
+                        g += data[i + 1];
+                        b += data[i + 2];
                         count++;
                     }
                 }
             }
             const i = (y * w + x) * 4;
             result[i] = r / count;
-            result[i+1] = g / count;
-            result[i+2] = b / count;
-            result[i+3] = data[i+3];
+            result[i + 1] = g / count;
+            result[i + 2] = b / count;
+            result[i + 3] = data[i + 3];
         }
     }
     return new ImageData(result, w, h);
@@ -148,14 +164,14 @@ function generateAugmentations(imageData, numVariants = 10) {
     const variants = [imageData]; // Original
 
     // Brightness variations
-    variants.push(adjustBrightness(imageData, 0.7));  // Darker
+    variants.push(adjustBrightness(imageData, 0.7)); // Darker
     variants.push(adjustBrightness(imageData, 0.85));
     variants.push(adjustBrightness(imageData, 1.15));
-    variants.push(adjustBrightness(imageData, 1.3));  // Brighter
+    variants.push(adjustBrightness(imageData, 1.3)); // Brighter
 
     // Contrast variations
-    variants.push(adjustContrast(imageData, 0.8));   // Lower contrast
-    variants.push(adjustContrast(imageData, 1.2));   // Higher contrast
+    variants.push(adjustContrast(imageData, 0.8)); // Lower contrast
+    variants.push(adjustContrast(imageData, 1.2)); // Higher contrast
 
     // Saturation variations (simulate game rendering)
     variants.push(adjustSaturation(imageData, 0.7)); // Desaturated
@@ -169,9 +185,9 @@ function generateAugmentations(imageData, numVariants = 10) {
     variants.push(addNoise(imageData, 25));
 
     // Color tints (simulate different biomes)
-    variants.push(tintColor(imageData, 100, 50, 50, 0.15));  // Reddish (hell)
-    variants.push(tintColor(imageData, 50, 100, 50, 0.15));  // Greenish (forest)
-    variants.push(tintColor(imageData, 50, 80, 120, 0.15));  // Bluish (snow/ocean)
+    variants.push(tintColor(imageData, 100, 50, 50, 0.15)); // Reddish (hell)
+    variants.push(tintColor(imageData, 50, 100, 50, 0.15)); // Greenish (forest)
+    variants.push(tintColor(imageData, 50, 80, 120, 0.15)); // Bluish (snow/ocean)
 
     // Combined augmentations
     let combined = adjustBrightness(imageData, 0.9);
@@ -206,7 +222,7 @@ async function main() {
             const canvas = createCanvas(48, 48);
             const ctx = canvas.getContext('2d');
             const margin = Math.round(img.width * 0.08);
-            ctx.drawImage(img, margin, margin, img.width - margin*2, img.height - margin*2, 0, 0, 48, 48);
+            ctx.drawImage(img, margin, margin, img.width - margin * 2, img.height - margin * 2, 0, 0, 48, 48);
             const imageData = ctx.getImageData(0, 0, 48, 48);
             const stats = analyzeImage(imageData);
             templates.push({ id: item.id, name: item.name, imageData, stats });
@@ -217,7 +233,10 @@ async function main() {
 
     // Analyze template characteristics
     const avgStats = {
-        variance: 0, colorVariance: 0, edgeDensity: 0, avgSaturation: 0
+        variance: 0,
+        colorVariance: 0,
+        edgeDensity: 0,
+        avgSaturation: 0,
     };
     for (const t of templates) {
         avgStats.variance += t.stats.variance;
@@ -276,7 +295,9 @@ async function main() {
 
             console.log('\nDifferences (in-game vs wiki):');
             console.log(`  Variance: ${((ingameStats.variance / avgStats.variance - 1) * 100).toFixed(1)}%`);
-            console.log(`  Saturation: ${((ingameStats.avgSaturation / avgStats.avgSaturation - 1) * 100).toFixed(1)}%`);
+            console.log(
+                `  Saturation: ${((ingameStats.avgSaturation / avgStats.avgSaturation - 1) * 100).toFixed(1)}%`
+            );
         }
     }
 
@@ -297,10 +318,7 @@ async function main() {
             const ctx = canvas.getContext('2d');
             ctx.putImageData(variants[i], 0, 0);
 
-            fs.writeFileSync(
-                path.join(itemDir, `${template.id}_aug${i}.png`),
-                canvas.toBuffer('image/png')
-            );
+            fs.writeFileSync(path.join(itemDir, `${template.id}_aug${i}.png`), canvas.toBuffer('image/png'));
         }
         totalAugmented += variants.length;
     }
@@ -327,10 +345,7 @@ async function main() {
         }
     }
 
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'augmentation-samples.png'),
-        montage.toBuffer('image/png')
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'augmentation-samples.png'), montage.toBuffer('image/png'));
 
     console.log(`\nSample montage saved: ${OUTPUT_DIR}/augmentation-samples.png`);
     console.log(`Augmented templates saved to: ${augmentedDir}/`);

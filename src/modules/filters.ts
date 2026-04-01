@@ -191,7 +191,10 @@ function applySearchFilter(filtered: Entity[], searchQuery: string): Entity[] {
                     fuzzyMatchScore(searchTerm, tags, 'tags'),
                 ];
 
-                const bestMatch = matches.reduce<(typeof matches)[0] | undefined>((best, current) => (!best || current.score > best.score ? current : best), undefined)!;
+                const bestMatch = matches.reduce<(typeof matches)[0] | undefined>(
+                    (best, current) => (!best || current.score > best.score ? current : best),
+                    undefined
+                )!;
 
                 return {
                     item: { ...item, _matchContext: bestMatch } as Entity & ItemWithMatchContext,
@@ -285,9 +288,12 @@ function applyChangelogFilters(filtered: Entity[]): Entity[] {
         }
     });
 
-    const compareFn = sortBy === 'date_asc'
-        ? (a: ChangelogPatch, b: ChangelogPatch) => (dateCache.get(a.date ?? '') ?? defaultValue) - (dateCache.get(b.date ?? '') ?? defaultValue)
-        : (a: ChangelogPatch, b: ChangelogPatch) => (dateCache.get(b.date ?? '') ?? defaultValue) - (dateCache.get(a.date ?? '') ?? defaultValue);
+    const compareFn =
+        sortBy === 'date_asc'
+            ? (a: ChangelogPatch, b: ChangelogPatch) =>
+                  (dateCache.get(a.date ?? '') ?? defaultValue) - (dateCache.get(b.date ?? '') ?? defaultValue)
+            : (a: ChangelogPatch, b: ChangelogPatch) =>
+                  (dateCache.get(b.date ?? '') ?? defaultValue) - (dateCache.get(a.date ?? '') ?? defaultValue);
     patchesForSort.sort(compareFn);
 
     return patchesForSort as unknown as Entity[];

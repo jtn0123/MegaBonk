@@ -14,24 +14,16 @@ vi.mock('../../src/modules/data-service.ts', () => ({
             ],
         },
         weapons: {
-            weapons: [
-                { id: 'hammer', name: 'Hammer', tier: 'S' },
-            ],
+            weapons: [{ id: 'hammer', name: 'Hammer', tier: 'S' }],
         },
         tomes: {
-            tomes: [
-                { id: 'fire_tome', name: 'Fire Tome', tier: 'A' },
-            ],
+            tomes: [{ id: 'fire_tome', name: 'Fire Tome', tier: 'A' }],
         },
         characters: {
-            characters: [
-                { id: 'clank', name: 'CL4NK', tier: 'S' },
-            ],
+            characters: [{ id: 'clank', name: 'CL4NK', tier: 'S' }],
         },
         shrines: {
-            shrines: [
-                { id: 'power_shrine', name: 'Power Shrine' },
-            ],
+            shrines: [{ id: 'power_shrine', name: 'Power Shrine' }],
         },
     },
 }));
@@ -404,7 +396,10 @@ describe('recently-viewed - localStorage error handling', () => {
 
     it('should handle localStorage.getItem error gracefully', () => {
         // First add an item to localStorage
-        localStorage.setItem('megabonk-recently-viewed', JSON.stringify([{ type: 'items', id: 'test', timestamp: Date.now() }]));
+        localStorage.setItem(
+            'megabonk-recently-viewed',
+            JSON.stringify([{ type: 'items', id: 'test', timestamp: Date.now() }])
+        );
 
         const originalGetItem = localStorage.getItem;
         localStorage.getItem = vi.fn(() => {

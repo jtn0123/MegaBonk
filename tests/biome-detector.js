@@ -13,33 +13,33 @@ const BIOME_SIGNATURES = {
     forest: {
         // Measured: R=80, G=67, B=127 (purple fog dominates)
         dominant: { r: [60, 100], g: [50, 90], b: [100, 150] },
-        description: 'Purple/blue fog with green trees'
+        description: 'Purple/blue fog with green trees',
     },
     desert: {
         // Measured: R=101, G=114, B=135 (grayish-blue, distant view)
         dominant: { r: [85, 125], g: [95, 135], b: [115, 155] },
-        description: 'Grayish-tan sandy colors'
+        description: 'Grayish-tan sandy colors',
     },
     snow: {
         // Measured: R=114, G=124, B=138 (gray-blue, bright)
         dominant: { r: [100, 140], g: [110, 150], b: [125, 165] },
-        description: 'Bright gray-blue'
+        description: 'Bright gray-blue',
     },
     hell: {
         // Measured: R=112-120, G=43-68, B=33-60 (R much higher than G,B)
         dominant: { r: [100, 140], g: [35, 85], b: [25, 75] },
-        description: 'Red/orange fire colors'
+        description: 'Red/orange fire colors',
     },
     ocean: {
         // Measured: R=24, G=125, B=159 (very blue-green, very low R)
         dominant: { r: [10, 60], g: [100, 150], b: [130, 180] },
-        description: 'Blue-green water'
+        description: 'Blue-green water',
     },
     crypt: {
         // Measured: R=106, G=88, B=111 (purple-gray, G lowest)
         dominant: { r: [85, 125], g: [70, 105], b: [90, 130] },
-        description: 'Purple-gray stone'
-    }
+        description: 'Purple-gray stone',
+    },
 };
 
 function extractBackgroundRegion(ctx, width, height) {
@@ -47,23 +47,25 @@ function extractBackgroundRegion(ctx, width, height) {
     // Avoid: top (health bars), bottom (inventory), left (weapons), right (minimap)
     const regions = [
         { x: width * 0.3, y: height * 0.25, w: width * 0.4, h: height * 0.3 }, // Center
-        { x: width * 0.2, y: height * 0.4, w: width * 0.2, h: height * 0.2 },  // Left-mid
-        { x: width * 0.6, y: height * 0.4, w: width * 0.2, h: height * 0.2 },  // Right-mid
+        { x: width * 0.2, y: height * 0.4, w: width * 0.2, h: height * 0.2 }, // Left-mid
+        { x: width * 0.6, y: height * 0.4, w: width * 0.2, h: height * 0.2 }, // Right-mid
     ];
 
     const allPixels = [];
 
     for (const region of regions) {
         const imageData = ctx.getImageData(
-            Math.round(region.x), Math.round(region.y),
-            Math.round(region.w), Math.round(region.h)
+            Math.round(region.x),
+            Math.round(region.y),
+            Math.round(region.w),
+            Math.round(region.h)
         );
 
         for (let i = 0; i < imageData.data.length; i += 4) {
             allPixels.push({
                 r: imageData.data[i],
                 g: imageData.data[i + 1],
-                b: imageData.data[i + 2]
+                b: imageData.data[i + 2],
             });
         }
     }
@@ -75,7 +77,7 @@ function computeColorHistogram(pixels, bins = 8) {
     const histogram = {
         r: new Array(bins).fill(0),
         g: new Array(bins).fill(0),
-        b: new Array(bins).fill(0)
+        b: new Array(bins).fill(0),
     };
 
     const binSize = 256 / bins;
@@ -98,7 +100,9 @@ function computeColorHistogram(pixels, bins = 8) {
 }
 
 function computeAverageColor(pixels) {
-    let sumR = 0, sumG = 0, sumB = 0;
+    let sumR = 0,
+        sumG = 0,
+        sumB = 0;
     for (const p of pixels) {
         sumR += p.r;
         sumG += p.g;
@@ -109,7 +113,9 @@ function computeAverageColor(pixels) {
 }
 
 function computeColorVariance(pixels, avg) {
-    let varR = 0, varG = 0, varB = 0;
+    let varR = 0,
+        varG = 0,
+        varB = 0;
     for (const p of pixels) {
         varR += (p.r - avg.r) ** 2;
         varG += (p.g - avg.g) ** 2;
@@ -132,18 +138,9 @@ function scoreBiome(avg, variance, signature) {
     if (inRange(avg.b, signature.dominant.b)) score += 2;
 
     // Partial match bonus
-    const rDist = Math.min(
-        Math.abs(avg.r - signature.dominant.r[0]),
-        Math.abs(avg.r - signature.dominant.r[1])
-    );
-    const gDist = Math.min(
-        Math.abs(avg.g - signature.dominant.g[0]),
-        Math.abs(avg.g - signature.dominant.g[1])
-    );
-    const bDist = Math.min(
-        Math.abs(avg.b - signature.dominant.b[0]),
-        Math.abs(avg.b - signature.dominant.b[1])
-    );
+    const rDist = Math.min(Math.abs(avg.r - signature.dominant.r[0]), Math.abs(avg.r - signature.dominant.r[1]));
+    const gDist = Math.min(Math.abs(avg.g - signature.dominant.g[0]), Math.abs(avg.g - signature.dominant.g[1]));
+    const bDist = Math.min(Math.abs(avg.b - signature.dominant.b[0]), Math.abs(avg.b - signature.dominant.b[1]));
 
     // Distance-based scoring (closer = higher score)
     score += Math.max(0, 3 - rDist / 30);
@@ -178,7 +175,7 @@ function detectBiome(pixels) {
         confidence: bestScore / 15, // Normalize to 0-1
         scores,
         avgColor: avg,
-        variance
+        variance,
     };
 }
 
@@ -230,7 +227,9 @@ async function main() {
 
         const shortName = filename.slice(9, 35);
         const match = isCorrect ? '✓' : '✗';
-        console.log(`| ${shortName.padEnd(25)} | ${actualBiome.padEnd(6)} | ${result.detected.padEnd(8)} | ${(result.confidence * 100).toFixed(0).padStart(9)}% | ${match.padStart(5)} |`);
+        console.log(
+            `| ${shortName.padEnd(25)} | ${actualBiome.padEnd(6)} | ${result.detected.padEnd(8)} | ${(result.confidence * 100).toFixed(0).padStart(9)}% | ${match.padStart(5)} |`
+        );
 
         results.push({
             filename,
@@ -239,7 +238,7 @@ async function main() {
             confidence: result.confidence,
             correct: isCorrect,
             avgColor: result.avgColor,
-            scores: result.scores
+            scores: result.scores,
         });
 
         // Create visualization
@@ -260,9 +259,17 @@ async function main() {
         vizCtx.fillStyle = '#fff';
         vizCtx.font = '12px monospace';
 
-        vizCtx.fillText(`Detected: ${result.detected} (${(result.confidence * 100).toFixed(0)}%)`, 10, image.height + 20);
+        vizCtx.fillText(
+            `Detected: ${result.detected} (${(result.confidence * 100).toFixed(0)}%)`,
+            10,
+            image.height + 20
+        );
         vizCtx.fillText(`Actual: ${actualBiome} | Match: ${isCorrect ? 'YES' : 'NO'}`, 10, image.height + 40);
-        vizCtx.fillText(`Avg RGB: (${Math.round(result.avgColor.r)}, ${Math.round(result.avgColor.g)}, ${Math.round(result.avgColor.b)})`, 10, image.height + 60);
+        vizCtx.fillText(
+            `Avg RGB: (${Math.round(result.avgColor.r)}, ${Math.round(result.avgColor.g)}, ${Math.round(result.avgColor.b)})`,
+            10,
+            image.height + 60
+        );
 
         // Color swatch
         vizCtx.fillStyle = `rgb(${Math.round(result.avgColor.r)}, ${Math.round(result.avgColor.g)}, ${Math.round(result.avgColor.b)})`;
@@ -275,13 +282,10 @@ async function main() {
     }
 
     console.log('|-------|--------|----------|------------|-------|');
-    console.log(`\nAccuracy: ${correct}/${total} (${(correct / total * 100).toFixed(1)}%)`);
+    console.log(`\nAccuracy: ${correct}/${total} (${((correct / total) * 100).toFixed(1)}%)`);
 
     // Save results
-    fs.writeFileSync(
-        path.join(OUTPUT_DIR, 'results.json'),
-        JSON.stringify(results, null, 2)
-    );
+    fs.writeFileSync(path.join(OUTPUT_DIR, 'results.json'), JSON.stringify(results, null, 2));
 
     console.log(`\nVisualizations saved to: ${OUTPUT_DIR}/`);
 }

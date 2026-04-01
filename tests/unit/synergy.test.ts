@@ -397,10 +397,7 @@ describe('Synergy Detection Module', () => {
 
             it('should return empty array when items have no anti-synergies', () => {
                 const build = createEmptyBuild();
-                build.items = [
-                    createItem({ anti_synergies: [] }),
-                    createItem({ anti_synergies: [] }),
-                ];
+                build.items = [createItem({ anti_synergies: [] }), createItem({ anti_synergies: [] })];
 
                 const antiSynergies = detectAntiSynergies(build);
 
@@ -489,9 +486,7 @@ describe('Synergy Detection Module', () => {
             it('should not detect self as anti-synergy', () => {
                 const build = createEmptyBuild();
                 // Item that has itself in anti_synergies (edge case)
-                build.items = [
-                    createItem({ id: 'self', name: 'Self', anti_synergies: ['Self'] }),
-                ];
+                build.items = [createItem({ id: 'self', name: 'Self', anti_synergies: ['Self'] })];
 
                 const antiSynergies = detectAntiSynergies(build);
 
@@ -513,10 +508,7 @@ describe('Synergy Detection Module', () => {
 
             it('should handle empty anti_synergies array', () => {
                 const build = createEmptyBuild();
-                build.items = [
-                    createItem({ anti_synergies: [] }),
-                    createItem({ name: 'Other' }),
-                ];
+                build.items = [createItem({ anti_synergies: [] }), createItem({ name: 'Other' })];
 
                 const antiSynergies = detectAntiSynergies(build);
 
@@ -525,9 +517,7 @@ describe('Synergy Detection Module', () => {
 
             it('should handle anti-synergy to non-existent item', () => {
                 const build = createEmptyBuild();
-                build.items = [
-                    createItem({ anti_synergies: ['Non Existent Item'] }),
-                ];
+                build.items = [createItem({ anti_synergies: ['Non Existent Item'] })];
 
                 const antiSynergies = detectAntiSynergies(build);
 
@@ -559,10 +549,7 @@ describe('Synergy Detection Module', () => {
 
         it('detectAntiSynergies should return array of AntiSynergy objects', () => {
             const build = createEmptyBuild();
-            build.items = [
-                createItem({ name: 'A', anti_synergies: ['B'] }),
-                createItem({ name: 'B' }),
-            ];
+            build.items = [createItem({ name: 'A', anti_synergies: ['B'] }), createItem({ name: 'B' })];
 
             const antiSynergies = detectAntiSynergies(build);
 

@@ -4,7 +4,8 @@
 // Event building, timing, and stats collection
 // ========================================
 
-import { Logger, LogLevel, WideEvent, EventContext, EventError } from './logger-core';
+import type { WideEvent, EventContext, EventError } from './logger-core';
+import { Logger, LogLevel } from './logger-core';
 
 // ========================================
 // Event Builder Class

@@ -93,9 +93,7 @@ describe('Build History - Real Integration Tests', () => {
         });
 
         it('should return stored builds from localStorage', () => {
-            const builds = [
-                { character: 'test', weapon: 'sword', timestamp: Date.now() },
-            ];
+            const builds = [{ character: 'test', weapon: 'sword', timestamp: Date.now() }];
             localStorage.setItem(BUILD_HISTORY_KEY, JSON.stringify(builds));
 
             const history = getBuildHistory();
@@ -612,12 +610,14 @@ describe('Build Planner Edge Cases', () => {
             passive_ability: null,
         };
 
-        expect(() => calculateBuildStats({
-            character: charNoPassive as any,
-            weapon: null,
-            tomes: [],
-            items: [],
-        })).not.toThrow();
+        expect(() =>
+            calculateBuildStats({
+                character: charNoPassive as any,
+                weapon: null,
+                tomes: [],
+                items: [],
+            })
+        ).not.toThrow();
     });
 
     it('should handle tome with invalid value_per_level', () => {
@@ -628,12 +628,14 @@ describe('Build Planner Edge Cases', () => {
             value_per_level: 'invalid',
         };
 
-        expect(() => calculateBuildStats({
-            character: null,
-            weapon: null,
-            tomes: [invalidTome as any],
-            items: [],
-        })).not.toThrow();
+        expect(() =>
+            calculateBuildStats({
+                character: null,
+                weapon: null,
+                tomes: [invalidTome as any],
+                items: [],
+            })
+        ).not.toThrow();
     });
 
     it('should handle tome with missing value_per_level', () => {
@@ -643,12 +645,14 @@ describe('Build Planner Edge Cases', () => {
             stat_affected: 'HP',
         };
 
-        expect(() => calculateBuildStats({
-            character: null,
-            weapon: null,
-            tomes: [noValueTome as any],
-            items: [],
-        })).not.toThrow();
+        expect(() =>
+            calculateBuildStats({
+                character: null,
+                weapon: null,
+                tomes: [noValueTome as any],
+                items: [],
+            })
+        ).not.toThrow();
     });
 
     it('should handle weapon with NaN base_damage', () => {

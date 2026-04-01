@@ -155,7 +155,7 @@ describe('detectSynergies', () => {
             });
 
             const synergies = detectSynergies(build);
-            const itemWeaponSynergies = synergies.filter((s) => s.type === 'item-weapon');
+            const itemWeaponSynergies = synergies.filter(s => s.type === 'item-weapon');
             expect(itemWeaponSynergies).toHaveLength(2);
         });
 
@@ -296,7 +296,7 @@ describe('detectSynergies', () => {
             // 1 character-weapon + 1 item-weapon + 1 item-character + 1 item-item = 4
             expect(synergies).toHaveLength(4);
 
-            const types = synergies.map((s) => s.type);
+            const types = synergies.map(s => s.type);
             expect(types).toContain('character-weapon');
             expect(types).toContain('item-weapon');
             expect(types).toContain('item-character');

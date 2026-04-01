@@ -220,12 +220,7 @@ describe('CV Active Learning', () => {
                     createMockDetection('shield', 0.3),
                 ];
 
-                const session = startActiveLearningSession(
-                    detections,
-                    'data:image/png;base64,test',
-                    1920,
-                    1080
-                );
+                const session = startActiveLearningSession(detections, 'data:image/png;base64,test', 1920, 1080);
 
                 expect(session).toBeDefined();
                 expect(session.currentIndex).toBe(0);
@@ -240,12 +235,7 @@ describe('CV Active Learning', () => {
                     createMockDetection('potion', 0.9),
                 ];
 
-                const session = startActiveLearningSession(
-                    detections,
-                    'data:image/png;base64,test',
-                    1920,
-                    1080
-                );
+                const session = startActiveLearningSession(detections, 'data:image/png;base64,test', 1920, 1080);
 
                 expect(session.uncertainDetections.length).toBe(2);
             });
@@ -442,10 +432,7 @@ describe('CV Active Learning', () => {
             it('should include alternatives when available', () => {
                 const uncertain: UncertainDetection = {
                     detection: createMockDetection('sword', 0.4),
-                    alternatives: [
-                        { id: 'blade', name: 'Blade' } as any,
-                        { id: 'dagger', name: 'Dagger' } as any,
-                    ],
+                    alternatives: [{ id: 'blade', name: 'Blade' } as any, { id: 'dagger', name: 'Dagger' } as any],
                 };
 
                 const html = renderActiveLearningPrompt(uncertain);

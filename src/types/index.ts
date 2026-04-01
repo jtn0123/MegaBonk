@@ -789,20 +789,19 @@ declare global {
 
 // Augment globalThis to include Window properties (for S7764 compliance: globalThis over window)
 declare global {
-    // eslint-disable-next-line no-var
     var switchTab: Window['switchTab'];
-    // eslint-disable-next-line no-var
+
     var loadBuildFromURL: Window['loadBuildFromURL'];
-    // eslint-disable-next-line no-var
+
     var initAdvisor: Window['initAdvisor'];
-    // eslint-disable-next-line no-var
+
     var initScanBuild: Window['initScanBuild'];
-    // eslint-disable-next-line no-var
+
     var applyScannedBuild: Window['applyScannedBuild'];
-    // eslint-disable-next-line no-var
+
     var showBuildHistoryModal: Window['showBuildHistoryModal'];
-    // eslint-disable-next-line no-var
+
     var initPullRefresh: (() => void) | undefined;
-    // eslint-disable-next-line no-var
+
     var cleanupPullRefresh: (() => void) | undefined;
 }

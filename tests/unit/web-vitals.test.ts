@@ -439,13 +439,17 @@ describe('Web Vitals Module', () => {
             const lcpCallback = vi.mocked(onLCP).mock.calls[0][0];
             lcpCallback({ name: 'LCP', value: 2000, rating: 'good', delta: 2000, id: 'lcp-1' } as any);
 
-            expect(mockGtag).toHaveBeenCalledWith('event', 'LCP', expect.objectContaining({
-                value: 2000,
-                metric_id: 'lcp-1',
-                metric_value: 2000,
-                metric_delta: 2000,
-                metric_rating: 'good',
-            }));
+            expect(mockGtag).toHaveBeenCalledWith(
+                'event',
+                'LCP',
+                expect.objectContaining({
+                    value: 2000,
+                    metric_id: 'lcp-1',
+                    metric_value: 2000,
+                    metric_delta: 2000,
+                    metric_rating: 'good',
+                })
+            );
 
             delete (globalThis as any).gtag;
         });
@@ -459,9 +463,13 @@ describe('Web Vitals Module', () => {
             const clsCallback = vi.mocked(onCLS).mock.calls[0][0];
             clsCallback({ name: 'CLS', value: 0.1, rating: 'good', delta: 0.1, id: 'cls-1' } as any);
 
-            expect(mockGtag).toHaveBeenCalledWith('event', 'CLS', expect.objectContaining({
-                value: 100, // 0.1 * 1000
-            }));
+            expect(mockGtag).toHaveBeenCalledWith(
+                'event',
+                'CLS',
+                expect.objectContaining({
+                    value: 100, // 0.1 * 1000
+                })
+            );
 
             delete (globalThis as any).gtag;
         });

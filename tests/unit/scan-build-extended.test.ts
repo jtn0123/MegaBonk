@@ -36,8 +36,8 @@ vi.mock('../../src/modules/computer-vision.ts', () => ({
     initCV: vi.fn(),
     initActiveLearning: vi.fn(),
     loadItemTemplates: vi.fn().mockResolvedValue(undefined),
-    combineDetections: vi.fn((a) => a),
-    aggregateDuplicates: vi.fn((a) => a.map((x: any) => ({ ...x, count: 1, method: 'test' }))),
+    combineDetections: vi.fn(a => a),
+    aggregateDuplicates: vi.fn(a => a.map((x: any) => ({ ...x, count: 1, method: 'test' }))),
     createDebugOverlay: vi.fn().mockResolvedValue('data:image/png;base64,debugoverlay'),
     addCorrection: vi.fn().mockResolvedValue(null),
     startFeedbackSession: vi.fn(),
@@ -92,12 +92,7 @@ vi.mock('../../src/modules/scan-build-enhanced.ts', () => ({
     compareStrategiesOnImage: vi.fn().mockResolvedValue(undefined),
 }));
 
-import {
-    initScanBuild,
-    getScanState,
-    cleanupEventListeners,
-    __resetForTesting,
-} from '../../src/modules/scan-build.ts';
+import { initScanBuild, getScanState, cleanupEventListeners, __resetForTesting } from '../../src/modules/scan-build.ts';
 import { ToastManager } from '../../src/modules/toast.ts';
 import { logger } from '../../src/modules/logger.ts';
 import { autoDetectFromImage } from '../../src/modules/ocr';
@@ -169,26 +164,17 @@ const createMockGameData = (): AllGameData => ({
     tomes: {
         version: '1.0',
         last_updated: '2024-01-01',
-        tomes: [
-            createMockTome('tome_strength', 'Tome of Strength'),
-            createMockTome('tome_agility', 'Tome of Agility'),
-        ],
+        tomes: [createMockTome('tome_strength', 'Tome of Strength'), createMockTome('tome_agility', 'Tome of Agility')],
     },
     characters: {
         version: '1.0',
         last_updated: '2024-01-01',
-        characters: [
-            createMockCharacter('clank', 'CL4NK'),
-            createMockCharacter('bonk', 'Bonk'),
-        ],
+        characters: [createMockCharacter('clank', 'CL4NK'), createMockCharacter('bonk', 'Bonk')],
     },
     weapons: {
         version: '1.0',
         last_updated: '2024-01-01',
-        weapons: [
-            createMockWeapon('hammer', 'Hammer'),
-            createMockWeapon('sword', 'Sword'),
-        ],
+        weapons: [createMockWeapon('hammer', 'Hammer'), createMockWeapon('sword', 'Sword')],
     },
     stats: {
         version: '1.0',
@@ -229,9 +215,7 @@ function setupDOM() {
 }
 
 // Helper to simulate image upload
-async function simulateImageUpload(
-    result: string = 'data:image/png;base64,fake'
-) {
+async function simulateImageUpload(result: string = 'data:image/png;base64,fake') {
     const fileInput = document.getElementById('scan-file-input') as HTMLInputElement;
     if (!fileInput) return;
 
@@ -333,7 +317,7 @@ describe('scan-build - Scan Result Processing', () => {
                 items: [
                     { type: 'item', entity: mockItem, confidence: 0.85, rawText: 'Wrench' },
                     { type: 'item', entity: mockItem, confidence: 0.82, rawText: 'Wrench' },
-                    { type: 'item', entity: mockItem, confidence: 0.80, rawText: 'Wrench' },
+                    { type: 'item', entity: mockItem, confidence: 0.8, rawText: 'Wrench' },
                 ],
                 tomes: [],
                 character: null,
@@ -404,9 +388,7 @@ describe('scan-build - Scan Result Processing', () => {
             autoDetectBtn?.click();
 
             await vi.waitFor(() => {
-                expect(ToastManager.success).toHaveBeenCalledWith(
-                    expect.stringContaining('1 items')
-                );
+                expect(ToastManager.success).toHaveBeenCalledWith(expect.stringContaining('1 items'));
             });
         });
     });
@@ -569,9 +551,7 @@ describe('scan-build - Build Matching Logic', () => {
                 weapon: null,
             });
 
-            vi.mocked(detectItemsWithCV).mockResolvedValue([
-                { type: 'item', entity: mockItem2, confidence: 0.75 },
-            ]);
+            vi.mocked(detectItemsWithCV).mockResolvedValue([{ type: 'item', entity: mockItem2, confidence: 0.75 }]);
 
             initScanBuild(gameData);
 
@@ -630,9 +610,7 @@ describe('scan-build - Build Matching Logic', () => {
                 weapon: null,
             });
 
-            vi.mocked(detectItemsWithCV).mockResolvedValue([
-                { type: 'weapon', entity: mockWeapon, confidence: 0.75 },
-            ]);
+            vi.mocked(detectItemsWithCV).mockResolvedValue([{ type: 'weapon', entity: mockWeapon, confidence: 0.75 }]);
 
             initScanBuild(gameData);
             await vi.waitFor(() => expect(loadItemTemplates).toHaveBeenCalled());
@@ -685,9 +663,7 @@ describe('scan-build - Build Matching Logic', () => {
                 weapon: null,
             });
 
-            vi.mocked(detectItemsWithCV).mockResolvedValue([
-                { type: 'item', entity: mockItem, confidence: 0.75 },
-            ]);
+            vi.mocked(detectItemsWithCV).mockResolvedValue([{ type: 'item', entity: mockItem, confidence: 0.75 }]);
 
             initScanBuild(gameData);
             await vi.waitFor(() => expect(loadItemTemplates).toHaveBeenCalled());
@@ -718,7 +694,10 @@ describe('scan-build - Build Matching Logic', () => {
             // Create a never-resolving promise to simulate still loading
             let resolveTemplates: () => void;
             vi.mocked(loadItemTemplates).mockImplementation(
-                () => new Promise(resolve => { resolveTemplates = resolve; })
+                () =>
+                    new Promise(resolve => {
+                        resolveTemplates = resolve;
+                    })
             );
 
             const gameData = createMockGameData();
@@ -803,7 +782,7 @@ describe('scan-build - Build Matching Logic', () => {
         it('should have isDebugEnabled mock configured', () => {
             vi.mocked(isDebugEnabled).mockReturnValue(true);
             expect(isDebugEnabled()).toBe(true);
-            
+
             vi.mocked(isDebugEnabled).mockReturnValue(false);
             expect(isDebugEnabled()).toBe(false);
         });
@@ -948,9 +927,7 @@ describe('scan-build - Error Handling', () => {
                 character: null,
                 weapon: null,
             });
-            vi.mocked(detectItemsWithCV).mockResolvedValue([
-                { type: 'item', entity: mockItem, confidence: 0.7 },
-            ]);
+            vi.mocked(detectItemsWithCV).mockResolvedValue([{ type: 'item', entity: mockItem, confidence: 0.7 }]);
 
             initScanBuild(gameData);
             await simulateImageUpload();
@@ -1420,11 +1397,7 @@ describe('scan-build - Apply to Advisor Extended', () => {
         await vi.waitFor(() => {
             expect(callback).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    items: expect.arrayContaining([
-                        expect.any(Object),
-                        expect.any(Object),
-                        expect.any(Object),
-                    ]),
+                    items: expect.arrayContaining([expect.any(Object), expect.any(Object), expect.any(Object)]),
                 })
             );
             // Should be 3 separate items in array
@@ -1645,7 +1618,9 @@ describe('scan-build - Filter Item Grid', () => {
         await new Promise(resolve => setTimeout(resolve, 50));
 
         const gridContainer = document.getElementById('scan-grid-items-container');
-        const visibleCards = gridContainer?.querySelectorAll('.scan-item-card[style*="display: flex"], .scan-item-card:not([style*="display: none"])');
+        const visibleCards = gridContainer?.querySelectorAll(
+            '.scan-item-card[style*="display: flex"], .scan-item-card:not([style*="display: none"])'
+        );
         expect(visibleCards?.length).toBeGreaterThan(1);
     });
 

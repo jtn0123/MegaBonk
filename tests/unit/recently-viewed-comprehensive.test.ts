@@ -15,24 +15,16 @@ const mockAllData = vi.hoisted(() => ({
         ],
     },
     weapons: {
-        weapons: [
-            { id: 'weapon1', name: 'Test Weapon', image: 'weapon1.png' },
-        ],
+        weapons: [{ id: 'weapon1', name: 'Test Weapon', image: 'weapon1.png' }],
     },
     tomes: {
-        tomes: [
-            { id: 'tome1', name: 'Test Tome', image: 'tome1.png' },
-        ],
+        tomes: [{ id: 'tome1', name: 'Test Tome', image: 'tome1.png' }],
     },
     characters: {
-        characters: [
-            { id: 'char1', name: 'Test Character', image: 'char1.png' },
-        ],
+        characters: [{ id: 'char1', name: 'Test Character', image: 'char1.png' }],
     },
     shrines: {
-        shrines: [
-            { id: 'shrine1', name: 'Test Shrine' },
-        ],
+        shrines: [{ id: 'shrine1', name: 'Test Shrine' }],
     },
 }));
 
@@ -121,8 +113,8 @@ describe('Recently Viewed Module - Comprehensive Coverage', () => {
         });
 
         it('should clean up entries older than 7 days', () => {
-            const oldTimestamp = Date.now() - (8 * 24 * 60 * 60 * 1000); // 8 days ago
-            const recentTimestamp = Date.now() - (1 * 24 * 60 * 60 * 1000); // 1 day ago
+            const oldTimestamp = Date.now() - 8 * 24 * 60 * 60 * 1000; // 8 days ago
+            const recentTimestamp = Date.now() - 1 * 24 * 60 * 60 * 1000; // 1 day ago
 
             const testData = [
                 { type: 'items', id: 'old_item', timestamp: oldTimestamp },
@@ -138,8 +130,8 @@ describe('Recently Viewed Module - Comprehensive Coverage', () => {
         });
 
         it('should save cleaned data back to localStorage', () => {
-            const oldTimestamp = Date.now() - (8 * 24 * 60 * 60 * 1000);
-            const recentTimestamp = Date.now() - (1000);
+            const oldTimestamp = Date.now() - 8 * 24 * 60 * 60 * 1000;
+            const recentTimestamp = Date.now() - 1000;
 
             const testData = [
                 { type: 'items', id: 'old_item', timestamp: oldTimestamp },
@@ -466,9 +458,10 @@ describe('Recently Viewed Module - Comprehensive Coverage', () => {
 
         it('should not render section if all entities are not found', () => {
             // Add an entry for an entity that doesn't exist in mock data
-            localStorage.setItem('megabonk-recently-viewed', JSON.stringify([
-                { type: 'items', id: 'nonexistent', timestamp: Date.now() },
-            ]));
+            localStorage.setItem(
+                'megabonk-recently-viewed',
+                JSON.stringify([{ type: 'items', id: 'nonexistent', timestamp: Date.now() }])
+            );
             loadRecentlyViewed();
 
             renderRecentlyViewedSection('#tab-content');
@@ -484,7 +477,7 @@ describe('Recently Viewed Module - Comprehensive Coverage', () => {
 
             const recentItem = document.querySelector('.recent-item') as HTMLElement;
             expect(recentItem).not.toBeNull();
-            
+
             recentItem?.click();
 
             // Wait for dynamic import
@@ -500,7 +493,7 @@ describe('Recently Viewed Module - Comprehensive Coverage', () => {
             renderRecentlyViewedSection('#tab-content');
 
             const recentItem = document.querySelector('.recent-item') as HTMLElement;
-            
+
             const enterEvent = new KeyboardEvent('keypress', { key: 'Enter', bubbles: true });
             recentItem?.dispatchEvent(enterEvent);
 
@@ -516,7 +509,7 @@ describe('Recently Viewed Module - Comprehensive Coverage', () => {
             renderRecentlyViewedSection('#tab-content');
 
             const recentItem = document.querySelector('.recent-item') as HTMLElement;
-            
+
             const spaceEvent = new KeyboardEvent('keypress', { key: ' ', bubbles: true });
             recentItem?.dispatchEvent(spaceEvent);
 

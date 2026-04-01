@@ -35,8 +35,8 @@ vi.mock('../../src/modules/computer-vision.ts', () => ({
     initCV: vi.fn(),
     initActiveLearning: vi.fn(),
     loadItemTemplates: vi.fn().mockResolvedValue(undefined),
-    combineDetections: vi.fn((a) => a),
-    aggregateDuplicates: vi.fn((a) => a.map((x: any) => ({ ...x, count: 1, method: 'test' }))),
+    combineDetections: vi.fn(a => a),
+    aggregateDuplicates: vi.fn(a => a.map((x: any) => ({ ...x, count: 1, method: 'test' }))),
     createDebugOverlay: vi.fn().mockResolvedValue('data:image/png;base64,mock'),
     detectGridPositions: vi.fn(),
 }));
@@ -102,26 +102,17 @@ const createMockGameData = (): AllGameData => ({
     tomes: {
         version: '1.0',
         last_updated: '2024-01-01',
-        tomes: [
-            createMockTome('tome_strength', 'Tome of Strength'),
-            createMockTome('tome_agility', 'Tome of Agility'),
-        ],
+        tomes: [createMockTome('tome_strength', 'Tome of Strength'), createMockTome('tome_agility', 'Tome of Agility')],
     },
     characters: {
         version: '1.0',
         last_updated: '2024-01-01',
-        characters: [
-            createMockCharacter('clank', 'CL4NK'),
-            createMockCharacter('bonk', 'Bonk'),
-        ],
+        characters: [createMockCharacter('clank', 'CL4NK'), createMockCharacter('bonk', 'Bonk')],
     },
     weapons: {
         version: '1.0',
         last_updated: '2024-01-01',
-        weapons: [
-            createMockWeapon('hammer', 'Hammer'),
-            createMockWeapon('sword', 'Sword'),
-        ],
+        weapons: [createMockWeapon('hammer', 'Hammer'), createMockWeapon('sword', 'Sword')],
     },
     stats: {
         version: '1.0',
@@ -950,9 +941,7 @@ describe('scan-build - Auto Detection Flow', () => {
         });
 
         // CV returns results
-        vi.mocked(detectItemsWithCV).mockResolvedValue([
-            { type: 'item', entity: mockItem, confidence: 0.75 },
-        ]);
+        vi.mocked(detectItemsWithCV).mockResolvedValue([{ type: 'item', entity: mockItem, confidence: 0.75 }]);
 
         initScanBuild(gameData);
 
@@ -1046,9 +1035,7 @@ describe('scan-build - Hybrid Detection Flow', () => {
             weapon: null,
         });
 
-        vi.mocked(detectItemsWithCV).mockResolvedValue([
-            { type: 'item', entity: mockItem, confidence: 0.8 },
-        ]);
+        vi.mocked(detectItemsWithCV).mockResolvedValue([{ type: 'item', entity: mockItem, confidence: 0.8 }]);
 
         initScanBuild(gameData);
 
@@ -1301,7 +1288,9 @@ describe('scan-build - Item Grid and Cards', () => {
         await new Promise(resolve => setTimeout(resolve, 50));
 
         // Cards with different names should be hidden
-        const visibleCards = document.querySelectorAll('.scan-item-card[style*="display: flex"], .scan-item-card:not([style*="display"])');
+        const visibleCards = document.querySelectorAll(
+            '.scan-item-card[style*="display: flex"], .scan-item-card:not([style*="display"])'
+        );
         // At least wrench card should be visible
         expect(visibleCards.length).toBeGreaterThanOrEqual(0);
     });

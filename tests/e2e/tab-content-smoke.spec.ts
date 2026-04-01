@@ -123,12 +123,12 @@ test.describe('Card Data Attributes - Smoke Tests', () => {
 
             // Get first card's data attributes
             const firstCard = page.locator(`${container} ${cardSelector}`).first();
-            
-            const entityType = await firstCard.getAttribute('data-entity-type');
-            const entityId = await firstCard.getAttribute('data-entity-id');
 
-            expect(entityType).toBeTruthy();
-            expect(entityId).toBeTruthy();
+            const entityType = firstCard;
+            const entityId = firstCard;
+
+            await expect(entityType).toHaveAttribute('data-entity-type');
+            await expect(entityId).toHaveAttribute('data-entity-id');
         });
 
         test(`${tab} cards have clickable-card class`, async ({ page }) => {
@@ -168,7 +168,7 @@ test.describe('Mobile Card Click - Smoke Tests', () => {
     test('mobile bottom nav switches tabs correctly', async ({ page }) => {
         // Click weapons in bottom nav
         const weaponsNavBtn = page.locator('.mobile-bottom-nav .mobile-nav-btn[data-tab="weapons"]');
-        if (await weaponsNavBtn.count() > 0) {
+        if ((await weaponsNavBtn.count()) > 0) {
             await weaponsNavBtn.click();
             await page.waitForTimeout(200);
             await expect(page.locator('.tab-btn[data-tab="weapons"]')).toHaveClass(/active/);
@@ -185,7 +185,18 @@ test.describe('Console Error Detection', () => {
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 20000 });
 
         // Navigate through all tabs
-        for (const tab of ['items', 'weapons', 'tomes', 'characters', 'shrines', 'build-planner', 'calculator', 'advisor', 'changelog', 'about']) {
+        for (const tab of [
+            'items',
+            'weapons',
+            'tomes',
+            'characters',
+            'shrines',
+            'build-planner',
+            'calculator',
+            'advisor',
+            'changelog',
+            'about',
+        ]) {
             await page.click(`.tab-btn[data-tab="${tab}"]`);
             await page.waitForTimeout(300);
         }

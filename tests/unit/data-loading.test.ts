@@ -1,4 +1,3 @@
-/* eslint-env node */
 /* global global, alert, setTimeout */
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createMinimalDOM } from '../helpers/dom-setup.js';

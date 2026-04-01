@@ -19,13 +19,13 @@ try {
 const TUNING_PRESETS = {
     baseline: {
         minConfidence: 0.72,
-        nmsIouThreshold: 0.30,
+        nmsIouThreshold: 0.3,
         slidingWindowStep: 12,
         emptyVarianceThreshold: 500,
-        iconRegionPercent: 0.80,
+        iconRegionPercent: 0.8,
         pass1Threshold: 0.85,
-        pass2Threshold: 0.70,
-        pass3Threshold: 0.60,
+        pass2Threshold: 0.7,
+        pass3Threshold: 0.6,
     },
     // Lower confidence - catch more items
     lenient: {
@@ -35,27 +35,27 @@ const TUNING_PRESETS = {
         emptyVarianceThreshold: 400,
         iconRegionPercent: 0.75,
         pass1Threshold: 0.75,
-        pass2Threshold: 0.60,
-        pass3Threshold: 0.50,
+        pass2Threshold: 0.6,
+        pass3Threshold: 0.5,
     },
     // Higher precision - fewer false positives
     strict: {
-        minConfidence: 0.80,
+        minConfidence: 0.8,
         nmsIouThreshold: 0.35,
         slidingWindowStep: 10,
         emptyVarianceThreshold: 600,
         iconRegionPercent: 0.85,
-        pass1Threshold: 0.90,
+        pass1Threshold: 0.9,
         pass2Threshold: 0.78,
         pass3Threshold: 0.68,
     },
     // Optimized based on debug analysis
     tuned: {
-        minConfidence: 0.60,
-        nmsIouThreshold: 0.20,
+        minConfidence: 0.6,
+        nmsIouThreshold: 0.2,
         slidingWindowStep: 8,
         emptyVarianceThreshold: 350,
-        iconRegionPercent: 0.70,
+        iconRegionPercent: 0.7,
         pass1Threshold: 0.78,
         pass2Threshold: 0.65,
         pass3Threshold: 0.55,
@@ -113,7 +113,11 @@ function computeNCC(imgData: ImageData, template: TemplateData, x: number, y: nu
     const tCtx = template.canvas.getContext('2d');
     const tData = tCtx.getImageData(0, 0, template.width, template.height);
 
-    let sumI = 0, sumT = 0, sumII = 0, sumTT = 0, sumIT = 0;
+    let sumI = 0,
+        sumT = 0,
+        sumII = 0,
+        sumTT = 0,
+        sumIT = 0;
     let count = 0;
 
     for (let ty = 0; ty < template.height; ty++) {
@@ -153,14 +157,14 @@ function computeNCC(imgData: ImageData, template: TemplateData, x: number, y: nu
 }
 
 // Detect items with given parameters
-async function detectItems(imagePath: string, params: Params): Promise<Array<{name: string; confidence: number}>> {
+async function detectItems(imagePath: string, params: Params): Promise<Array<{ name: string; confidence: number }>> {
     const img = await loadImage(imagePath);
     const canvas = createCanvas(img.width, img.height);
     const ctx = canvas.getContext('2d');
     ctx.drawImage(img, 0, 0);
 
     const imgData = ctx.getImageData(0, 0, img.width, img.height);
-    const detections: Array<{name: string; confidence: number; x: number; y: number}> = [];
+    const detections: Array<{ name: string; confidence: number; x: number; y: number }> = [];
 
     // Scan bottom portion of screen (hotbar area)
     const scanTop = Math.floor(img.height * 0.75);
@@ -192,7 +196,7 @@ async function detectItems(imagePath: string, params: Params): Promise<Array<{na
             if (variance < params.emptyVarianceThreshold) continue;
 
             // Match against templates
-            let bestMatch: {name: string; confidence: number} | null = null;
+            let bestMatch: { name: string; confidence: number } | null = null;
 
             for (const template of templates) {
                 const ncc = computeNCC(imgData, template, x, y);
@@ -233,7 +237,10 @@ async function detectItems(imagePath: string, params: Params): Promise<Array<{na
 }
 
 // Calculate F1 score
-function calculateF1(detected: string[], expected: string[]): { f1: number; precision: number; recall: number; tp: number; fp: number; fn: number } {
+function calculateF1(
+    detected: string[],
+    expected: string[]
+): { f1: number; precision: number; recall: number; tp: number; fp: number; fn: number } {
     const detSet = new Map<string, number>();
     const expSet = new Map<string, number>();
 
@@ -251,7 +258,7 @@ function calculateF1(detected: string[], expected: string[]): { f1: number; prec
 
     const precision = detected.length > 0 ? tp / detected.length : 0;
     const recall = expected.length > 0 ? tp / expected.length : 0;
-    const f1 = precision + recall > 0 ? 2 * precision * recall / (precision + recall) : 0;
+    const f1 = precision + recall > 0 ? (2 * precision * recall) / (precision + recall) : 0;
 
     return { f1, precision, recall, tp, fp, fn };
 }
@@ -289,13 +296,18 @@ async function runTests(): Promise<void> {
             const detected = await detectItems(imagePath, params);
             const elapsed = Date.now() - start;
 
-            const metrics = calculateF1(detected.map(d => d.name), expected);
+            const metrics = calculateF1(
+                detected.map(d => d.name),
+                expected
+            );
             results[presetName].totalF1 += metrics.f1;
             results[presetName].count++;
 
             const f1Pct = (metrics.f1 * 100).toFixed(1);
             const status = metrics.f1 >= 0.5 ? '✅' : metrics.f1 >= 0.2 ? '⚠️' : '❌';
-            console.log(`   ${status} ${presetName.padEnd(10)}: F1=${f1Pct.padStart(5)}% (P=${(metrics.precision*100).toFixed(0)}% R=${(metrics.recall*100).toFixed(0)}%) ${elapsed}ms det=${detected.length}`);
+            console.log(
+                `   ${status} ${presetName.padEnd(10)}: F1=${f1Pct.padStart(5)}% (P=${(metrics.precision * 100).toFixed(0)}% R=${(metrics.recall * 100).toFixed(0)}%) ${elapsed}ms det=${detected.length}`
+            );
         }
     }
 

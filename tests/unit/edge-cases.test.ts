@@ -313,7 +313,7 @@ describe('Input Sanitization', () => {
             });
 
             // Single quotes are escaped by string replacement implementation
-            expect(escapeHtml("'")).toBe("&#039;");
+            expect(escapeHtml("'")).toBe('&#039;');
         });
 
         it('should handle complex XSS payloads', async () => {

@@ -5,14 +5,15 @@
 // TypeScript types are automatically inferred from Zod schemas
 // ========================================
 
-import { z, ZodError, ZodIssue } from 'zod';
+import type { ZodError, ZodIssue } from 'zod';
+import { z } from 'zod';
 import { logger } from './logger.ts';
 import type { ValidationResult } from '../types/index.ts';
 
 /**
  * Common schemas
  */
-const ScalingSchema = z
+const _ScalingSchema = z
     .object({
         formula: z.string(),
         min: z.number().optional(),
@@ -207,7 +208,7 @@ const ShrinesDataSchema = z
 // These types are automatically generated from the Zod schemas above
 // This means we only define the structure once!
 
-export type Scaling = z.infer<typeof ScalingSchema>;
+export type Scaling = z.infer<typeof _ScalingSchema>;
 export type ZodItem = z.infer<typeof ItemSchema>;
 export type ZodWeapon = z.infer<typeof WeaponSchema>;
 export type ZodTome = z.infer<typeof TomeSchema>;

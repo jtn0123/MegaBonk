@@ -119,14 +119,20 @@ async function loadTemplateWithRetry(
             const img = await loadImage(imagePath);
             return { success: true, image: img };
         } catch (error) {
-            console.debug('[cv/templates] image load failed:', error);
+            logger.debug({
+                operation: 'cv.template_image_load_failed',
+                data: { itemId: item.id, error: String(error) },
+            });
             // Try PNG fallback on first failure of WebP
             if (attempt === 0 && item.image) {
                 try {
                     const pngImg = await loadImage(item.image);
                     return { success: true, image: pngImg };
                 } catch (error) {
-                    console.debug('[cv/templates] PNG fallback load failed:', error);
+                    logger.debug({
+                        operation: 'cv.template_png_fallback_failed',
+                        data: { itemId: item.id, error: String(error) },
+                    });
                     // Continue to retry logic
                 }
             }

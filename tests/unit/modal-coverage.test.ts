@@ -108,7 +108,7 @@ vi.mock('../../src/modules/data-service', () => ({
 }));
 
 // Mock utils with importOriginal to get all exports
-vi.mock('../../src/modules/utils', async (importOriginal) => {
+vi.mock('../../src/modules/utils', async importOriginal => {
     const actual = await importOriginal<typeof import('../../src/modules/utils')>();
     return {
         ...actual,
@@ -117,10 +117,7 @@ vi.mock('../../src/modules/utils', async (importOriginal) => {
 });
 
 // Import functions to test
-import {
-    openDetailModal,
-    closeModal,
-} from '../../src/modules/modal';
+import { openDetailModal, closeModal } from '../../src/modules/modal';
 
 describe('modal.ts coverage tests', () => {
     beforeEach(() => {

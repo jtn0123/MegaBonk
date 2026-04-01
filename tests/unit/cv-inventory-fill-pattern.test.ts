@@ -34,11 +34,7 @@ const CONSECUTIVE_EMPTY_THRESHOLD = 2;
  * Apply MegaBonk inventory fill pattern knowledge
  * This is a TypeScript implementation matching cv-detection.js
  */
-function applyInventoryFillPattern(
-    cells: CellInfo[],
-    numRows: number,
-    iconsPerRow: number
-): CellInfo[] {
+function applyInventoryFillPattern(cells: CellInfo[], numRows: number, iconsPerRow: number): CellInfo[] {
     if (!cells || cells.length === 0) return cells;
 
     const threshold = CONSECUTIVE_EMPTY_THRESHOLD;
@@ -371,9 +367,7 @@ describe('Inventory Fill Pattern', () => {
         });
 
         it('should handle single cell', () => {
-            const cells: CellInfo[] = [
-                { cell: { row: 0, col: 10, slotIndex: 0 }, isEmpty: false },
-            ];
+            const cells: CellInfo[] = [{ cell: { row: 0, col: 10, slotIndex: 0 }, isEmpty: false }];
 
             applyInventoryFillPattern(cells, 1, 20);
 
@@ -580,7 +574,7 @@ describe('Grid Position Detection Helpers', () => {
     });
 
     it('should correctly identify empty rows', () => {
-        const cells = createCellGrid(3, 20, (row) => row > 0);
+        const cells = createCellGrid(3, 20, row => row > 0);
 
         expect(isRowEmpty(cells, 0)).toBe(false);
         expect(isRowEmpty(cells, 1)).toBe(true);

@@ -614,7 +614,7 @@ describe('RequestTimer', () => {
     describe('startRequest', () => {
         it('should start tracking a request', () => {
             timer.startRequest('req-1', 'https://example.com/api', 'GET');
-            
+
             const pending = timer.getPendingRequests();
             expect(pending).toHaveLength(1);
             expect(pending[0].url).toBe('https://example.com/api');
@@ -623,7 +623,7 @@ describe('RequestTimer', () => {
 
         it('should use GET as default method', () => {
             timer.startRequest('req-2', 'https://example.com/api');
-            
+
             const pending = timer.getPendingRequests();
             expect(pending[0].method).toBe('GET');
         });
@@ -632,7 +632,7 @@ describe('RequestTimer', () => {
             const before = performance.now();
             timer.startRequest('req-3', 'https://example.com/api');
             const after = performance.now();
-            
+
             const pending = timer.getPendingRequests();
             expect(pending[0].startTime).toBeGreaterThanOrEqual(before);
             expect(pending[0].startTime).toBeLessThanOrEqual(after);
@@ -643,10 +643,10 @@ describe('RequestTimer', () => {
         it('should complete a request', () => {
             timer.startRequest('req-4', 'https://example.com/api');
             timer.endRequest('req-4', 200, 1024, false);
-            
+
             const pending = timer.getPendingRequests();
             expect(pending).toHaveLength(0);
-            
+
             const stats = timer.getStats();
             expect(stats.totalRequests).toBe(1);
             expect(stats.successfulRequests).toBe(1);
@@ -656,7 +656,7 @@ describe('RequestTimer', () => {
             timer.startRequest('req-5', 'https://example.com/api');
             await new Promise(resolve => setTimeout(resolve, 50));
             timer.endRequest('req-5', 200);
-            
+
             const stats = timer.getStats();
             expect(stats.recentRequests[0].durationMs).toBeGreaterThanOrEqual(40);
         });
@@ -664,7 +664,7 @@ describe('RequestTimer', () => {
         it('should record status code', () => {
             timer.startRequest('req-6', 'https://example.com/api');
             timer.endRequest('req-6', 404);
-            
+
             const stats = timer.getStats();
             expect(stats.recentRequests[0].status).toBe(404);
         });
@@ -672,7 +672,7 @@ describe('RequestTimer', () => {
         it('should record response size', () => {
             timer.startRequest('req-7', 'https://example.com/api');
             timer.endRequest('req-7', 200, 2048);
-            
+
             const stats = timer.getStats();
             expect(stats.recentRequests[0].size).toBe(2048);
         });
@@ -680,7 +680,7 @@ describe('RequestTimer', () => {
         it('should record cached status', () => {
             timer.startRequest('req-8', 'https://example.com/api');
             timer.endRequest('req-8', 200, 1024, true);
-            
+
             const stats = timer.getStats();
             expect(stats.recentRequests[0].cached).toBe(true);
             expect(stats.cachedRequests).toBe(1);
@@ -695,7 +695,7 @@ describe('RequestTimer', () => {
         it('should record failed request', () => {
             timer.startRequest('req-9', 'https://example.com/api');
             timer.failRequest('req-9', 'Network error');
-            
+
             const stats = timer.getStats();
             expect(stats.failedRequests).toBe(1);
             expect(stats.recentRequests[0].error).toBe('Network error');
@@ -715,7 +715,7 @@ describe('RequestTimer', () => {
             timer.endRequest('req-11', 200);
             timer.startRequest('req-12', '/api/3');
             timer.failRequest('req-12', 'error');
-            
+
             const stats = timer.getStats();
             expect(stats.totalRequests).toBe(3);
             expect(stats.successfulRequests).toBe(2);
@@ -727,7 +727,7 @@ describe('RequestTimer', () => {
             timer.endRequest('req-13', 200);
             timer.startRequest('req-14', '/api/2');
             timer.endRequest('req-14', 200);
-            
+
             const stats = timer.getStats();
             expect(typeof stats.averageDurationMs).toBe('number');
         });
@@ -735,11 +735,11 @@ describe('RequestTimer', () => {
         it('should track slowest request', async () => {
             timer.startRequest('fast', '/api/fast');
             timer.endRequest('fast', 200);
-            
+
             timer.startRequest('slow', '/api/slow');
             await new Promise(resolve => setTimeout(resolve, 50));
             timer.endRequest('slow', 200);
-            
+
             const stats = timer.getStats();
             expect(stats.slowestRequest?.url).toBe('/api/slow');
         });
@@ -749,7 +749,7 @@ describe('RequestTimer', () => {
                 timer.startRequest(`req-${i}`, `/api/${i}`);
                 timer.endRequest(`req-${i}`, 200);
             }
-            
+
             const stats = timer.getStats();
             expect(stats.recentRequests.length).toBe(10);
         });
@@ -757,7 +757,7 @@ describe('RequestTimer', () => {
         it('should count 4xx as failed', () => {
             timer.startRequest('req-400', '/api/400');
             timer.endRequest('req-400', 400);
-            
+
             const stats = timer.getStats();
             expect(stats.failedRequests).toBe(1);
         });
@@ -767,9 +767,9 @@ describe('RequestTimer', () => {
         it('should clear all data', () => {
             timer.startRequest('req-clear', '/api/clear');
             timer.endRequest('req-clear', 200);
-            
+
             timer.clear();
-            
+
             const stats = timer.getStats();
             expect(stats.totalRequests).toBe(0);
             expect(timer.getPendingRequests()).toHaveLength(0);
@@ -780,7 +780,7 @@ describe('RequestTimer', () => {
         it('should return pending requests', () => {
             timer.startRequest('pending-1', '/api/1');
             timer.startRequest('pending-2', '/api/2');
-            
+
             const pending = timer.getPendingRequests();
             expect(pending).toHaveLength(2);
         });
@@ -792,7 +792,7 @@ describe('RequestTimer', () => {
                 timer.startRequest(`req-${i}`, `/api/${i}`);
                 timer.endRequest(`req-${i}`, 200);
             }
-            
+
             const stats = timer.getStats();
             expect(stats.totalRequests).toBeLessThanOrEqual(100);
         });
@@ -806,12 +806,14 @@ describe('trackedFetch', () => {
     beforeEach(() => {
         timer = RequestTimer.getInstance();
         timer.clear();
-        
-        fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation((url) => {
-            return Promise.resolve(new Response('test', {
-                status: 200,
-                headers: { 'content-length': '4' },
-            }));
+
+        fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(url => {
+            return Promise.resolve(
+                new Response('test', {
+                    status: 200,
+                    headers: { 'content-length': '4' },
+                })
+            );
         });
     });
 
@@ -822,20 +824,20 @@ describe('trackedFetch', () => {
 
     it('should make fetch request', async () => {
         await trackedFetch('https://example.com/api');
-        
+
         expect(fetchSpy).toHaveBeenCalledWith('https://example.com/api', undefined);
     });
 
     it('should pass options to fetch', async () => {
         const options = { method: 'POST', body: 'data' };
         await trackedFetch('https://example.com/api', options);
-        
+
         expect(fetchSpy).toHaveBeenCalledWith('https://example.com/api', options);
     });
 
     it('should track successful request', async () => {
         await trackedFetch('https://example.com/api');
-        
+
         const stats = timer.getStats();
         expect(stats.totalRequests).toBe(1);
         expect(stats.successfulRequests).toBe(1);
@@ -843,7 +845,7 @@ describe('trackedFetch', () => {
 
     it('should track request URL and method', async () => {
         await trackedFetch('https://example.com/api', { method: 'POST' });
-        
+
         const stats = timer.getStats();
         expect(stats.recentRequests[0].url).toBe('https://example.com/api');
         expect(stats.recentRequests[0].method).toBe('POST');
@@ -851,47 +853,51 @@ describe('trackedFetch', () => {
 
     it('should track failed request', async () => {
         fetchSpy.mockRejectedValueOnce(new Error('Network failure'));
-        
+
         await expect(trackedFetch('https://example.com/api')).rejects.toThrow('Network failure');
-        
+
         const stats = timer.getStats();
         expect(stats.failedRequests).toBe(1);
     });
 
     it('should return response from fetch', async () => {
         const response = await trackedFetch('https://example.com/api');
-        
+
         expect(response).toBeInstanceOf(Response);
         expect(response.status).toBe(200);
     });
 
     it('should detect cached responses', async () => {
-        fetchSpy.mockResolvedValueOnce(new Response('cached', {
-            status: 200,
-            headers: { 'x-cache': 'HIT', 'content-length': '6' },
-        }));
-        
+        fetchSpy.mockResolvedValueOnce(
+            new Response('cached', {
+                status: 200,
+                headers: { 'x-cache': 'HIT', 'content-length': '6' },
+            })
+        );
+
         await trackedFetch('https://example.com/api');
-        
+
         const stats = timer.getStats();
         expect(stats.cachedRequests).toBe(1);
     });
 
     it('should parse content-length header', async () => {
-        fetchSpy.mockResolvedValueOnce(new Response('test data', {
-            status: 200,
-            headers: { 'content-length': '9' },
-        }));
-        
+        fetchSpy.mockResolvedValueOnce(
+            new Response('test data', {
+                status: 200,
+                headers: { 'content-length': '9' },
+            })
+        );
+
         await trackedFetch('https://example.com/api');
-        
+
         const stats = timer.getStats();
         expect(stats.recentRequests[0].size).toBe(9);
     });
 
     it('should use GET as default method', async () => {
         await trackedFetch('https://example.com/api');
-        
+
         const stats = timer.getStats();
         expect(stats.recentRequests[0].method).toBe('GET');
     });

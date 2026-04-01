@@ -49,7 +49,7 @@ function createCheckerboard(width: number, height: number, inverted: boolean = f
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             const isBlack = (x + y) % 2 === 0;
-            arr[y * width + x] = (isBlack !== inverted) ? 0 : 255;
+            arr[y * width + x] = isBlack !== inverted ? 0 : 255;
         }
     }
     return arr;
@@ -58,14 +58,24 @@ function createCheckerboard(width: number, height: number, inverted: boolean = f
 // Inline algorithm implementations for testing (pure functions)
 function calculateNCC(template: Uint8Array, image: Uint8Array, width: number, height: number): number {
     const n = width * height;
-    let sumT = 0, sumI = 0;
-    for (let i = 0; i < n; i++) { sumT += template[i]; sumI += image[i]; }
-    const meanT = sumT / n, meanI = sumI / n;
-
-    let num = 0, denT = 0, denI = 0;
+    let sumT = 0,
+        sumI = 0;
     for (let i = 0; i < n; i++) {
-        const dT = template[i] - meanT, dI = image[i] - meanI;
-        num += dT * dI; denT += dT * dT; denI += dI * dI;
+        sumT += template[i];
+        sumI += image[i];
+    }
+    const meanT = sumT / n,
+        meanI = sumI / n;
+
+    let num = 0,
+        denT = 0,
+        denI = 0;
+    for (let i = 0; i < n; i++) {
+        const dT = template[i] - meanT,
+            dI = image[i] - meanI;
+        num += dT * dI;
+        denT += dT * dT;
+        denI += dI * dI;
     }
     const denom = Math.sqrt(denT * denI);
     return denom === 0 ? 0 : num / denom;
@@ -74,24 +84,43 @@ function calculateNCC(template: Uint8Array, image: Uint8Array, width: number, he
 function calculateSSD(template: Uint8Array, image: Uint8Array, width: number, height: number): number {
     const n = width * height;
     let ssd = 0;
-    for (let i = 0; i < n; i++) { const d = template[i] - image[i]; ssd += d * d; }
+    for (let i = 0; i < n; i++) {
+        const d = template[i] - image[i];
+        ssd += d * d;
+    }
     return ssd;
 }
 
 function calculateSSIM(template: Uint8Array, image: Uint8Array, width: number, height: number): number {
-    const n = width * height, k1 = 0.01, k2 = 0.03, L = 255;
-    let sumT = 0, sumI = 0;
-    for (let i = 0; i < n; i++) { sumT += template[i]; sumI += image[i]; }
-    const muT = sumT / n, muI = sumI / n;
-
-    let varT = 0, varI = 0, cov = 0;
+    const n = width * height,
+        k1 = 0.01,
+        k2 = 0.03,
+        L = 255;
+    let sumT = 0,
+        sumI = 0;
     for (let i = 0; i < n; i++) {
-        const dT = template[i] - muT, dI = image[i] - muI;
-        varT += dT * dT; varI += dI * dI; cov += dT * dI;
+        sumT += template[i];
+        sumI += image[i];
     }
-    varT /= n - 1; varI /= n - 1; cov /= n - 1;
+    const muT = sumT / n,
+        muI = sumI / n;
 
-    const c1 = (k1 * L) ** 2, c2 = (k2 * L) ** 2;
+    let varT = 0,
+        varI = 0,
+        cov = 0;
+    for (let i = 0; i < n; i++) {
+        const dT = template[i] - muT,
+            dI = image[i] - muI;
+        varT += dT * dT;
+        varI += dI * dI;
+        cov += dT * dI;
+    }
+    varT /= n - 1;
+    varI /= n - 1;
+    cov /= n - 1;
+
+    const c1 = (k1 * L) ** 2,
+        c2 = (k2 * L) ** 2;
     const num = (2 * muT * muI + c1) * (2 * cov + c2);
     const den = (muT ** 2 + muI ** 2 + c1) * (varT + varI + c2);
     return den === 0 ? (muT === muI ? 1 : 0) : num / den;
@@ -103,13 +132,48 @@ function calculateSSIM(template: Uint8Array, image: Uint8Array, width: number, h
 
 describe('IoU Calculation', () => {
     const iouCases = [
-        { name: 'identical boxes', b1: { x: 0, y: 0, width: 100, height: 100 }, b2: { x: 0, y: 0, width: 100, height: 100 }, expected: 1.0 },
-        { name: 'no overlap', b1: { x: 0, y: 0, width: 50, height: 50 }, b2: { x: 100, y: 100, width: 50, height: 50 }, expected: 0 },
-        { name: '50% horizontal overlap', b1: { x: 0, y: 0, width: 100, height: 100 }, b2: { x: 50, y: 0, width: 100, height: 100 }, expected: 0.333 },
-        { name: 'contained box', b1: { x: 0, y: 0, width: 100, height: 100 }, b2: { x: 25, y: 25, width: 50, height: 50 }, expected: 0.25 },
-        { name: 'corner overlap', b1: { x: 0, y: 0, width: 100, height: 100 }, b2: { x: 90, y: 90, width: 100, height: 100 }, expected: 0.005 },
-        { name: 'touching edge', b1: { x: 0, y: 0, width: 50, height: 50 }, b2: { x: 50, y: 0, width: 50, height: 50 }, expected: 0 },
-        { name: 'zero-size box', b1: { x: 0, y: 0, width: 0, height: 0 }, b2: { x: 0, y: 0, width: 50, height: 50 }, expected: 0 },
+        {
+            name: 'identical boxes',
+            b1: { x: 0, y: 0, width: 100, height: 100 },
+            b2: { x: 0, y: 0, width: 100, height: 100 },
+            expected: 1.0,
+        },
+        {
+            name: 'no overlap',
+            b1: { x: 0, y: 0, width: 50, height: 50 },
+            b2: { x: 100, y: 100, width: 50, height: 50 },
+            expected: 0,
+        },
+        {
+            name: '50% horizontal overlap',
+            b1: { x: 0, y: 0, width: 100, height: 100 },
+            b2: { x: 50, y: 0, width: 100, height: 100 },
+            expected: 0.333,
+        },
+        {
+            name: 'contained box',
+            b1: { x: 0, y: 0, width: 100, height: 100 },
+            b2: { x: 25, y: 25, width: 50, height: 50 },
+            expected: 0.25,
+        },
+        {
+            name: 'corner overlap',
+            b1: { x: 0, y: 0, width: 100, height: 100 },
+            b2: { x: 90, y: 90, width: 100, height: 100 },
+            expected: 0.005,
+        },
+        {
+            name: 'touching edge',
+            b1: { x: 0, y: 0, width: 50, height: 50 },
+            b2: { x: 50, y: 0, width: 50, height: 50 },
+            expected: 0,
+        },
+        {
+            name: 'zero-size box',
+            b1: { x: 0, y: 0, width: 0, height: 0 },
+            b2: { x: 0, y: 0, width: 50, height: 50 },
+            expected: 0,
+        },
     ];
 
     test.each(iouCases)('$name → IoU ≈ $expected', ({ b1, b2, expected }) => {
@@ -148,7 +212,7 @@ describe('Non-Maximum Suppression', () => {
             const detections = [
                 createDetection('Wrench', 100, 100, 45, 45, 0.95),
                 createDetection('Wrench', 100, 100, 45, 45, 0.85),
-                createDetection('Wrench', 100, 100, 45, 45, 0.90),
+                createDetection('Wrench', 100, 100, 45, 45, 0.9),
             ];
 
             const filtered = nonMaxSuppression(detections, 0.3);
@@ -160,7 +224,7 @@ describe('Non-Maximum Suppression', () => {
         it('keeps all boxes when no overlap', () => {
             const detections = [
                 createDetection('Wrench', 0, 0, 45, 45, 0.95),
-                createDetection('Medkit', 100, 0, 45, 45, 0.90),
+                createDetection('Medkit', 100, 0, 45, 45, 0.9),
                 createDetection('Battery', 0, 100, 45, 45, 0.92),
             ];
 
@@ -170,7 +234,7 @@ describe('Non-Maximum Suppression', () => {
         it('removes detections with high IoU overlap', () => {
             const detections = [
                 createDetection('Wrench', 100, 100, 45, 45, 0.95),
-                createDetection('Wrench', 110, 100, 45, 45, 0.80),
+                createDetection('Wrench', 110, 100, 45, 45, 0.8),
             ];
 
             const filtered = nonMaxSuppression(detections, 0.3);
@@ -183,7 +247,7 @@ describe('Non-Maximum Suppression', () => {
         it('more aggressive with lower threshold (0.1)', () => {
             const detections = [
                 createDetection('Wrench', 100, 100, 45, 45, 0.95),
-                createDetection('Wrench', 130, 100, 45, 45, 0.90), // IoU ~0.2
+                createDetection('Wrench', 130, 100, 45, 45, 0.9), // IoU ~0.2
             ];
             expect(nonMaxSuppression(detections, 0.1)).toHaveLength(1);
         });
@@ -191,7 +255,7 @@ describe('Non-Maximum Suppression', () => {
         it('less aggressive with higher threshold (0.5)', () => {
             const detections = [
                 createDetection('Wrench', 100, 100, 45, 45, 0.95),
-                createDetection('Wrench', 115, 115, 45, 45, 0.90), // IoU ~0.28
+                createDetection('Wrench', 115, 115, 45, 45, 0.9), // IoU ~0.28
             ];
             expect(nonMaxSuppression(detections, 0.5)).toHaveLength(2);
         });
@@ -217,7 +281,7 @@ describe('Non-Maximum Suppression', () => {
 
         it('preserves original array (immutability)', () => {
             const detections = [
-                createDetection('Wrench', 100, 100, 45, 45, 0.80),
+                createDetection('Wrench', 100, 100, 45, 45, 0.8),
                 createDetection('Wrench', 105, 105, 45, 45, 0.95),
             ];
             const original = [...detections];
@@ -236,7 +300,7 @@ describe('Non-Maximum Suppression', () => {
                 createDetection('Medkit', 300, 100, 45, 45, 0.92),
                 createDetection('Medkit', 305, 105, 45, 45, 0.88),
                 // Cluster 3
-                createDetection('Battery', 100, 300, 45, 45, 0.90),
+                createDetection('Battery', 100, 300, 45, 45, 0.9),
             ];
 
             const filtered = nonMaxSuppression(detections, 0.3);
@@ -248,7 +312,7 @@ describe('Non-Maximum Suppression', () => {
 
         it('handles sliding window duplicates', () => {
             const detections = [
-                createDetection('Wrench', 100, 100, 45, 45, 0.90),
+                createDetection('Wrench', 100, 100, 45, 45, 0.9),
                 createDetection('Wrench', 110, 100, 45, 45, 0.92),
                 createDetection('Wrench', 120, 100, 45, 45, 0.88),
                 createDetection('Wrench', 130, 100, 45, 45, 0.85),
@@ -270,7 +334,14 @@ describe('Non-Maximum Suppression', () => {
     describe('performance', () => {
         it('handles 100 detections efficiently', () => {
             const detections = Array.from({ length: 100 }, (_, i) =>
-                createDetection(`Item ${i}`, Math.random() * 1000, Math.random() * 600, 45, 45, 0.7 + Math.random() * 0.25)
+                createDetection(
+                    `Item ${i}`,
+                    Math.random() * 1000,
+                    Math.random() * 600,
+                    45,
+                    45,
+                    0.7 + Math.random() * 0.25
+                )
             );
 
             const start = performance.now();
@@ -321,7 +392,7 @@ describe('Template Matching Algorithms', () => {
             const img1 = new Uint8Array([101, 101, 101]);
             const img2 = new Uint8Array([110, 110, 110]);
 
-            expect(calculateSSD(template, img1, 3, 1)).toBe(3);  // 1^2 * 3
+            expect(calculateSSD(template, img1, 3, 1)).toBe(3); // 1^2 * 3
             expect(calculateSSD(template, img2, 3, 1)).toBe(300); // 10^2 * 3
         });
 

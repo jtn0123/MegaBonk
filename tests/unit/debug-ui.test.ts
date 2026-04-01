@@ -721,7 +721,12 @@ vi.mock('../../src/modules/breadcrumbs', () => ({
     captureStateSnapshot: vi.fn().mockReturnValue({ test: 'state' }),
 }));
 
-import { getBreadcrumbs, clearBreadcrumbs, exportBreadcrumbs, captureStateSnapshot } from '../../src/modules/breadcrumbs';
+import {
+    getBreadcrumbs,
+    clearBreadcrumbs,
+    exportBreadcrumbs,
+    captureStateSnapshot,
+} from '../../src/modules/breadcrumbs';
 
 describe('debug-ui - confidence slider', () => {
     beforeEach(() => {
@@ -1010,9 +1015,7 @@ describe('debug-ui - request viewer', () => {
             cachedRequests: 0,
             averageDurationMs: 100,
             slowestRequest: undefined,
-            recentRequests: [
-                { url: '/api/fail', method: 'GET', startTime: 0, durationMs: 100, status: 0 },
-            ],
+            recentRequests: [{ url: '/api/fail', method: 'GET', startTime: 0, durationMs: 100, status: 0 }],
         });
 
         updateRequestViewer();

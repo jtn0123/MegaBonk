@@ -12,17 +12,19 @@ import { test, expect, Page } from '@playwright/test';
 async function waitForCanvasReady(page: Page, canvasLocator: ReturnType<Page['locator']>, browserName: string) {
     const isWebKit = browserName === 'webkit';
     const timeout = isWebKit ? 3000 : 1500;
-    
+
     // Wait for canvas to have non-zero dimensions
-    await page.waitForFunction(
-        (selector: string) => {
-            const canvas = document.querySelector(selector) as HTMLCanvasElement;
-            return canvas && canvas.width > 0 && canvas.height > 0;
-        },
-        '#modalBody canvas.scaling-chart',
-        { timeout }
-    ).catch(() => {});
-    
+    await page
+        .waitForFunction(
+            (selector: string) => {
+                const canvas = document.querySelector(selector) as HTMLCanvasElement;
+                return canvas && canvas.width > 0 && canvas.height > 0;
+            },
+            '#modalBody canvas.scaling-chart',
+            { timeout }
+        )
+        .catch(() => {});
+
     // Extra wait for WebKit to complete Chart.js render cycle
     if (isWebKit) {
         await page.waitForTimeout(500);
@@ -36,28 +38,30 @@ async function waitForCanvasReady(page: Page, canvasLocator: ReturnType<Page['lo
 async function waitForCanvasPixels(page: Page, browserName: string) {
     const isWebKit = browserName === 'webkit';
     const timeout = isWebKit ? 5000 : 2000;
-    
+
     // Wait for canvas to have non-transparent pixels (Chart.js has actually drawn)
-    await page.waitForFunction(
-        () => {
-            const canvas = document.querySelector('#modalBody canvas.scaling-chart') as HTMLCanvasElement;
-            if (!canvas) return false;
-            const ctx = canvas.getContext('2d');
-            if (!ctx || canvas.width === 0 || canvas.height === 0) return false;
-            
-            try {
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                // Check for any non-transparent pixel
-                for (let i = 0; i < imageData.data.length; i += 4) {
-                    if (imageData.data[i + 3] > 0) return true;
+    await page
+        .waitForFunction(
+            () => {
+                const canvas = document.querySelector('#modalBody canvas.scaling-chart') as HTMLCanvasElement;
+                if (!canvas) return false;
+                const ctx = canvas.getContext('2d');
+                if (!ctx || canvas.width === 0 || canvas.height === 0) return false;
+
+                try {
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    // Check for any non-transparent pixel
+                    for (let i = 0; i < imageData.data.length; i += 4) {
+                        if (imageData.data[i + 3] > 0) return true;
+                    }
+                } catch (e) {
+                    return false;
                 }
-            } catch (e) {
                 return false;
-            }
-            return false;
-        },
-        { timeout }
-    ).catch(() => {});
+            },
+            { timeout }
+        )
+        .catch(() => {});
 }
 
 test.describe('Chart Rendering', () => {
@@ -69,7 +73,7 @@ test.describe('Chart Rendering', () => {
     test('scaling chart canvas renders in modal for stackable items', async ({ page }) => {
         // Find and click an item that has scaling (Big Bonk is a known stackable item)
         const bigBonkCard = page.locator('#itemsContainer .item-card:has-text("Big Bonk")');
-        if (await bigBonkCard.count() > 0) {
+        if ((await bigBonkCard.count()) > 0) {
             await bigBonkCard.first().click();
             await page.waitForTimeout(800); // Wait for chart animation
 
@@ -94,23 +98,27 @@ test.describe('Chart Rendering', () => {
             await page.waitForTimeout(isWebKit ? 1000 : 600);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 // Wait for canvas to be ready (WebKit needs extra time for Chart.js init)
                 await waitForCanvasReady(page, chartCanvas, browserName);
-                
+
                 // Wait for canvas to have width/height attributes (WebKit is slower)
-                await page.waitForFunction(
-                    () => {
-                        const canvas = document.querySelector('#modalBody canvas.scaling-chart');
-                        return canvas && 
-                               canvas.getAttribute('width') !== null && 
-                               canvas.getAttribute('height') !== null;
-                    },
-                    { timeout: isWebKit ? 3000 : 1500 }
-                ).catch(() => {});
-                
+                await page
+                    .waitForFunction(
+                        () => {
+                            const canvas = document.querySelector('#modalBody canvas.scaling-chart');
+                            return (
+                                canvas &&
+                                canvas.getAttribute('width') !== null &&
+                                canvas.getAttribute('height') !== null
+                            );
+                        },
+                        { timeout: isWebKit ? 3000 : 1500 }
+                    )
+                    .catch(() => {});
+
                 // Verify chart.js has initialized the canvas
-                const hasChart = await chartCanvas.first().evaluate((el) => {
+                const hasChart = await chartCanvas.first().evaluate(el => {
                     // Chart.js adds attributes when initialized
                     return el.getAttribute('width') !== null && el.getAttribute('height') !== null;
                 });
@@ -132,7 +140,7 @@ test.describe('Chart Rendering', () => {
             await page.waitForTimeout(600);
 
             const chartContainer = page.locator('#modalBody .modal-graph-container');
-            if (await chartContainer.count() > 0 && await chartContainer.first().isVisible()) {
+            if ((await chartContainer.count()) > 0 && (await chartContainer.first().isVisible())) {
                 const box = await chartContainer.first().boundingBox();
                 expect(box?.width).toBeGreaterThan(100);
                 expect(box?.height).toBeGreaterThan(80);
@@ -147,7 +155,7 @@ test.describe('Chart Rendering', () => {
     test('multiple items with charts render correctly', async ({ page, browserName }) => {
         // Iterative modal open/close is slow on CI runners
         test.setTimeout(browserName === 'webkit' ? 60000 : 45000);
-        
+
         const cards = page.locator('#itemsContainer .item-card');
         const count = await cards.count();
         let chartsFound = 0;
@@ -170,10 +178,16 @@ test.describe('Chart Rendering', () => {
 
             {
                 const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-                if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible().catch(() => false)) {
+                if (
+                    (await chartCanvas.count()) > 0 &&
+                    (await chartCanvas
+                        .first()
+                        .isVisible()
+                        .catch(() => false))
+                ) {
                     // Wait for canvas to be ready (WebKit has slower Chart.js rendering)
                     await waitForCanvasReady(page, chartCanvas, browserName);
-                    
+
                     chartsFound++;
                     // Verify each chart renders properly
                     const box = await chartCanvas.first().boundingBox();
@@ -215,7 +229,7 @@ test.describe('Chart Hover Tooltips', () => {
             await page.waitForTimeout(700);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 const box = await chartCanvas.first().boundingBox();
                 if (box) {
                     // Hover over a point on the chart (middle area where data points likely are)
@@ -225,7 +239,7 @@ test.describe('Chart Hover Tooltips', () => {
                     // Chart.js renders tooltips in a div with role="tooltip" or in canvas
                     // Check for Chart.js tooltip element
                     const tooltip = page.locator('[role="tooltip"], .chartjs-tooltip, #chartjs-tooltip');
-                    const tooltipInCanvas = await chartCanvas.first().evaluate((canvas) => {
+                    const tooltipInCanvas = await chartCanvas.first().evaluate(canvas => {
                         // Chart.js might have tooltip rendered
                         const ctx = (canvas as HTMLCanvasElement).getContext('2d');
                         return ctx !== null;
@@ -250,7 +264,7 @@ test.describe('Chart Hover Tooltips', () => {
             await page.waitForTimeout(700);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 const box = await chartCanvas.first().boundingBox();
                 if (box) {
                     // Move mouse across chart - should not throw errors
@@ -280,26 +294,35 @@ test.describe('Chart Responsiveness', () => {
 
         const cards = page.locator('#itemsContainer .item-card');
         let chartFound = false;
-        
+
         for (let i = 0; i < Math.min(await cards.count(), 10) && !chartFound; i++) {
             await cards.nth(i).click();
             await page.waitForTimeout(800);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible().catch(() => false)) {
+            if (
+                (await chartCanvas.count()) > 0 &&
+                (await chartCanvas
+                    .first()
+                    .isVisible()
+                    .catch(() => false))
+            ) {
                 chartFound = true;
-                
+
                 // Resize viewport
                 await page.setViewportSize({ width: 800, height: 600 });
                 await page.waitForTimeout(600);
 
                 // Chart should still be visible (or at least not crash)
-                const isStillVisible = await chartCanvas.first().isVisible().catch(() => false);
+                const isStillVisible = await chartCanvas
+                    .first()
+                    .isVisible()
+                    .catch(() => false);
                 expect(isStillVisible || chartFound).toBe(true);
 
                 // Reset viewport
                 await page.setViewportSize({ width: 1280, height: 720 });
-                
+
                 // Close modal
                 await page.keyboard.press('Escape');
                 await page.waitForTimeout(300);
@@ -307,12 +330,15 @@ test.describe('Chart Responsiveness', () => {
                 // Close modal if open
                 const closeBtn = page.locator('#itemModal .close');
                 if ((await closeBtn.count()) > 0) {
-                    await closeBtn.first().click().catch(() => {});
+                    await closeBtn
+                        .first()
+                        .click()
+                        .catch(() => {});
                     await page.waitForTimeout(300);
                 }
             }
         }
-        
+
         // Test passes if we checked some items
         expect(true).toBe(true);
     });
@@ -324,20 +350,29 @@ test.describe('Chart Responsiveness', () => {
 
         const cards = page.locator('#itemsContainer .item-card');
         let containerFound = false;
-        
+
         for (let i = 0; i < Math.min(await cards.count(), 10) && !containerFound; i++) {
             await cards.nth(i).click();
             await page.waitForTimeout(800);
 
             const chartContainer = page.locator('#modalBody .modal-graph-container');
-            if (await chartContainer.count() > 0 && await chartContainer.first().isVisible().catch(() => false)) {
+            if (
+                (await chartContainer.count()) > 0 &&
+                (await chartContainer
+                    .first()
+                    .isVisible()
+                    .catch(() => false))
+            ) {
                 containerFound = true;
-                
+
                 // Resize to smaller
                 await page.setViewportSize({ width: 600, height: 400 });
                 await page.waitForTimeout(600);
 
-                const resizedBox = await chartContainer.first().boundingBox().catch(() => null);
+                const resizedBox = await chartContainer
+                    .first()
+                    .boundingBox()
+                    .catch(() => null);
 
                 // Container should still have reasonable dimensions
                 if (resizedBox) {
@@ -347,7 +382,7 @@ test.describe('Chart Responsiveness', () => {
 
                 // Reset
                 await page.setViewportSize({ width: 1280, height: 720 });
-                
+
                 // Close modal
                 await page.keyboard.press('Escape');
                 await page.waitForTimeout(300);
@@ -355,12 +390,15 @@ test.describe('Chart Responsiveness', () => {
                 // Close modal if open
                 const closeBtn = page.locator('#itemModal .close');
                 if ((await closeBtn.count()) > 0) {
-                    await closeBtn.first().click().catch(() => {});
+                    await closeBtn
+                        .first()
+                        .click()
+                        .catch(() => {});
                     await page.waitForTimeout(300);
                 }
             }
         }
-        
+
         // Test passes if we checked some items
         expect(true).toBe(true);
     });
@@ -376,7 +414,7 @@ test.describe('Chart Responsiveness', () => {
             await page.waitForTimeout(700);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 const box = await chartCanvas.first().boundingBox();
                 // Chart should fit within mobile viewport
                 expect(box?.width).toBeLessThanOrEqual(375);
@@ -405,9 +443,9 @@ test.describe('Formula Rendering', () => {
             await page.waitForTimeout(500);
 
             const formula = page.locator('#modalBody .item-formula, #modalBody .formula-display');
-            if (await formula.count() > 0 && await formula.first().isVisible()) {
+            if ((await formula.count()) > 0 && (await formula.first().isVisible())) {
                 await expect(formula.first()).toBeVisible();
-                
+
                 // Formula should have some content
                 const text = await formula.first().textContent();
                 expect(text?.length).toBeGreaterThan(0);
@@ -428,8 +466,8 @@ test.describe('Formula Rendering', () => {
             await page.waitForTimeout(500);
 
             const formulaContainer = page.locator('#modalBody .formula-container, #modalBody .formula-display');
-            if (await formulaContainer.count() > 0 && await formulaContainer.first().isVisible()) {
-                const styles = await formulaContainer.first().evaluate((el) => {
+            if ((await formulaContainer.count()) > 0 && (await formulaContainer.first().isVisible())) {
+                const styles = await formulaContainer.first().evaluate(el => {
                     const style = getComputedStyle(el);
                     return {
                         display: style.display,
@@ -456,7 +494,7 @@ test.describe('Formula Rendering', () => {
             await page.waitForTimeout(500);
 
             const formulaVar = page.locator('#modalBody .formula-var');
-            if (await formulaVar.count() > 0) {
+            if ((await formulaVar.count()) > 0) {
                 await expect(formulaVar.first()).toBeVisible();
                 break;
             }
@@ -478,7 +516,9 @@ test.describe('Formula Rendering', () => {
 
         // If fractions exist, verify structure
         if (fractionCount > 0) {
-            const numDen = page.locator('#modalBody .formula-fraction .formula-num, #modalBody .formula-fraction .formula-den');
+            const numDen = page.locator(
+                '#modalBody .formula-fraction .formula-num, #modalBody .formula-fraction .formula-den'
+            );
             const numDenCount = await numDen.count();
             expect(numDenCount).toBeGreaterThanOrEqual(0);
         }
@@ -505,7 +545,7 @@ test.describe('Scaling Formulas - Calculations', () => {
 
             const modal = page.locator('#itemModal');
             const isModalOpen = await modal.evaluate(el => el.classList.contains('active'));
-            
+
             if (isModalOpen) {
                 // Look for scaling values in modal content - check for chart or scaling text
                 const modalContent = await page.locator('#modalBody').textContent();
@@ -528,12 +568,12 @@ test.describe('Scaling Formulas - Calculations', () => {
         await page.waitForTimeout(500);
 
         const cards = page.locator('#itemsContainer .item-card:visible');
-        if (await cards.count() > 0) {
+        if ((await cards.count()) > 0) {
             await cards.first().click();
             await page.waitForTimeout(600);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0) {
+            if ((await chartCanvas.count()) > 0) {
                 // Chart should be visible - hyperbolic items have scaling charts
                 await expect(chartCanvas.first()).toBeVisible();
             }
@@ -553,17 +593,17 @@ test.describe('Chart Legends', () => {
     test('comparison chart displays legend', async ({ page }) => {
         // Navigate to compare mode
         const compareBtn = page.locator('[data-action="compare"], .compare-btn, button:has-text("Compare")');
-        if (await compareBtn.count() > 0) {
+        if ((await compareBtn.count()) > 0) {
             // Select items for comparison
             const cards = page.locator('#itemsContainer .item-card');
-            if (await cards.count() >= 2) {
+            if ((await cards.count()) >= 2) {
                 // Try to add items to compare
                 await cards.nth(0).click({ button: 'right' });
                 await page.waitForTimeout(300);
 
                 // Look for compare option in context menu
                 const addCompare = page.locator('text=Compare, text=Add to Compare');
-                if (await addCompare.count() > 0) {
+                if ((await addCompare.count()) > 0) {
                     await addCompare.first().click();
                     await page.waitForTimeout(300);
                 }
@@ -571,7 +611,9 @@ test.describe('Chart Legends', () => {
         }
 
         // Check if compare chart has legend
-        const compareLegend = page.locator('#compare-scaling-chart + .chart-legend, .compare-chart-container .chartjs-legend');
+        const compareLegend = page.locator(
+            '#compare-scaling-chart + .chart-legend, .compare-chart-container .chartjs-legend'
+        );
         // Legend may not always be present depending on mode
         const count = await compareLegend.count();
         expect(count).toBeGreaterThanOrEqual(0);
@@ -585,7 +627,7 @@ test.describe('Chart Legends', () => {
             await page.waitForTimeout(700);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 // Chart.js legends are typically rendered within the canvas or as separate HTML
                 // Check that chart is interactive
                 const box = await chartCanvas.first().boundingBox();
@@ -593,7 +635,7 @@ test.describe('Chart Legends', () => {
                     // Click on legend area (typically top of chart)
                     await page.mouse.click(box.x + box.width * 0.5, box.y + 10);
                     await page.waitForTimeout(200);
-                    
+
                     // Chart should still be rendered
                     await expect(chartCanvas.first()).toBeVisible();
                 }
@@ -619,7 +661,7 @@ test.describe('Chart Accessibility', () => {
             await page.waitForTimeout(700);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 const ariaLabel = await chartCanvas.first().getAttribute('aria-label');
                 expect(ariaLabel).toBeTruthy();
                 expect(ariaLabel?.length).toBeGreaterThan(5);
@@ -636,12 +678,12 @@ test.describe('Chart Accessibility', () => {
         for (let i = 0; i < Math.min(await cards.count(), 15); i++) {
             // Get item name before clicking
             const itemName = await cards.nth(i).locator('.item-name').textContent();
-            
+
             await cards.nth(i).click();
             await page.waitForTimeout(700);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 const ariaLabel = await chartCanvas.first().getAttribute('aria-label');
                 // Aria label should reference the item
                 if (itemName) {
@@ -662,7 +704,7 @@ test.describe('Chart Accessibility', () => {
             await page.waitForTimeout(700);
 
             const chartContainer = page.locator('#modalBody .modal-graph-container');
-            if (await chartContainer.count() > 0 && await chartContainer.first().isVisible()) {
+            if ((await chartContainer.count()) > 0 && (await chartContainer.first().isVisible())) {
                 const role = await chartContainer.first().getAttribute('role');
                 // Container should have a role (tabpanel, img, or figure)
                 expect(role === 'tabpanel' || role === 'img' || role === 'figure' || role === null).toBe(true);
@@ -681,10 +723,10 @@ test.describe('Chart Accessibility', () => {
             await page.waitForTimeout(500);
 
             const formula = page.locator('#modalBody .item-formula, #modalBody .formula-display');
-            if (await formula.count() > 0 && await formula.first().isVisible()) {
+            if ((await formula.count()) > 0 && (await formula.first().isVisible())) {
                 // Formula should not have aria-hidden
-                const ariaHidden = await formula.first().getAttribute('aria-hidden');
-                expect(ariaHidden).not.toBe('true');
+                const ariaHidden = formula.first();
+                await expect(ariaHidden).not.toHaveAttribute('aria-hidden', 'true');
 
                 // Formula text should be extractable
                 const text = await formula.first().textContent();
@@ -708,12 +750,12 @@ test.describe('Tome Charts', () => {
 
     test('tome modal displays progression chart', async ({ page }) => {
         const tomeCards = page.locator('#tomesContainer .item-card');
-        if (await tomeCards.count() > 0) {
+        if ((await tomeCards.count()) > 0) {
             await tomeCards.first().click();
             await page.waitForTimeout(800);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0) {
+            if ((await chartCanvas.count()) > 0) {
                 await expect(chartCanvas.first()).toBeVisible();
 
                 const box = await chartCanvas.first().boundingBox();
@@ -730,9 +772,9 @@ test.describe('Tome Charts', () => {
             await page.waitForTimeout(800);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 // Chart should be properly initialized
-                const hasContent = await chartCanvas.first().evaluate((canvas) => {
+                const hasContent = await chartCanvas.first().evaluate(canvas => {
                     const ctx = (canvas as HTMLCanvasElement).getContext('2d');
                     return ctx !== null;
                 });
@@ -755,8 +797,8 @@ test.describe('Compare Mode Charts', () => {
     test('compare mode chart renders for multiple items', async ({ page }) => {
         // Try to access compare mode - first check if compare tab exists and is visible
         const compareTab = page.locator('.tab-btn[data-tab="compare"]');
-        
-        if (await compareTab.count() > 0 && await compareTab.first().isVisible()) {
+
+        if ((await compareTab.count()) > 0 && (await compareTab.first().isVisible())) {
             await compareTab.first().click();
             await page.waitForTimeout(500);
 
@@ -774,15 +816,15 @@ test.describe('Compare Mode Charts', () => {
     test('compare chart has legend for multiple datasets', async ({ page }) => {
         // Navigate to compare and add items if possible
         const compareTab = page.locator('.tab-btn[data-tab="compare"]');
-        if (await compareTab.count() > 0) {
+        if ((await compareTab.count()) > 0) {
             await compareTab.first().click();
             await page.waitForTimeout(500);
 
             const compareChartContainer = page.locator('.compare-chart-container');
-            if (await compareChartContainer.count() > 0) {
+            if ((await compareChartContainer.count()) > 0) {
                 // Legend should be visible when comparing multiple items
                 const chartCanvas = page.locator('#compare-scaling-chart');
-                if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+                if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                     // Chart should have proper structure
                     const box = await chartCanvas.first().boundingBox();
                     expect(box?.width).toBeGreaterThan(50);
@@ -801,21 +843,21 @@ test.describe('Chart Data Integrity', () => {
     test('chart displays data points correctly', async ({ page, browserName }) => {
         const cards = page.locator('#itemsContainer .item-card');
         const isWebKit = browserName === 'webkit';
-        
+
         for (let i = 0; i < Math.min(await cards.count(), 15); i++) {
             await cards.nth(i).click();
             await page.waitForTimeout(isWebKit ? 1000 : 700);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 // Wait for canvas to be ready (WebKit needs extra time for Chart.js to draw)
                 await waitForCanvasReady(page, chartCanvas, browserName);
-                
+
                 // Wait for actual pixel content to be drawn (WebKit is slower)
                 await waitForCanvasPixels(page, browserName);
-                
+
                 // Verify chart has been drawn (canvas context has content)
-                const hasDrawnContent = await chartCanvas.first().evaluate((canvas) => {
+                const hasDrawnContent = await chartCanvas.first().evaluate(canvas => {
                     const ctx = (canvas as HTMLCanvasElement).getContext('2d');
                     if (!ctx) return false;
                     // Check if canvas has any drawn content by sampling pixels
@@ -845,7 +887,7 @@ test.describe('Chart Data Integrity', () => {
             await page.waitForTimeout(700);
 
             const chartCanvas = page.locator('#modalBody canvas.scaling-chart');
-            if (await chartCanvas.count() > 0 && await chartCanvas.first().isVisible()) {
+            if ((await chartCanvas.count()) > 0 && (await chartCanvas.first().isVisible())) {
                 chartItemIndex = i;
                 await page.locator('#itemModal .close').first().click();
                 await page.waitForTimeout(300);
@@ -894,7 +936,7 @@ test.describe('Formula Edge Cases', () => {
             await page.waitForTimeout(500);
 
             const formula = page.locator('#modalBody .formula-container');
-            if (await formula.count() > 0) {
+            if ((await formula.count()) > 0) {
                 const html = await formula.first().innerHTML();
                 // Should not have unescaped HTML entities
                 expect(html).not.toContain('&amp;amp;');
@@ -914,7 +956,7 @@ test.describe('Formula Edge Cases', () => {
             await page.waitForTimeout(500);
 
             const formulaOp = page.locator('#modalBody .formula-op, #modalBody .formula-eq');
-            if (await formulaOp.count() > 0) {
+            if ((await formulaOp.count()) > 0) {
                 // Operators should be visible
                 await expect(formulaOp.first()).toBeVisible();
                 break;

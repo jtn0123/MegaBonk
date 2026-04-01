@@ -20,7 +20,7 @@ test('debug image upload', async ({ page }) => {
 
     await page.goto('/');
     await page.waitForSelector('#itemsContainer .item-card', { timeout: 15000 });
-    
+
     // Navigate to build-planner tab (scan section is here, not advisor)
     await page.locator('.tab-btn[data-tab="build-planner"]').click({ force: true });
     await expect(page.locator('#build-planner-tab')).toHaveClass(/active/, { timeout: 15000 });
@@ -75,7 +75,7 @@ test('debug image upload', async ({ page }) => {
     const previewContainer = page.locator('#scan-image-preview');
     const isVisible = await previewContainer.isVisible();
     console.log('Preview visible:', isVisible);
-    
+
     // Get the display style
     const displayStyle = await previewContainer.evaluate(el => window.getComputedStyle(el).display);
     console.log('Preview display style:', displayStyle);

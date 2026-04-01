@@ -476,36 +476,36 @@ describe('Async Utils Integration', () => {
         });
 
         it('should debounce and track sessions together', async () => {
-        const tracker = createSessionTracker();
-        const processed: string[] = [];
+            const tracker = createSessionTracker();
+            const processed: string[] = [];
 
-        const fetchData = async (query: string) => {
-            const sessionId = tracker.startNew();
-            await new Promise(resolve => setTimeout(resolve, 100));
+            const fetchData = async (query: string) => {
+                const sessionId = tracker.startNew();
+                await new Promise(resolve => setTimeout(resolve, 100));
 
-            if (tracker.isCurrent(sessionId)) {
-                processed.push(query);
-            }
-            return query;
-        };
+                if (tracker.isCurrent(sessionId)) {
+                    processed.push(query);
+                }
+                return query;
+            };
 
-        const { call } = createDebouncedAsync(fetchData, 50);
+            const { call } = createDebouncedAsync(fetchData, 50);
 
-        // Rapid calls
-        call('a');
-        call('b');
-        const lastPromise = call('c');
+            // Rapid calls
+            call('a');
+            call('b');
+            const lastPromise = call('c');
 
-        // Advance past debounce
-        await vi.advanceTimersByTimeAsync(50);
+            // Advance past debounce
+            await vi.advanceTimersByTimeAsync(50);
 
-        // Advance past fetch
-        await vi.advanceTimersByTimeAsync(100);
+            // Advance past fetch
+            await vi.advanceTimersByTimeAsync(100);
 
-        await lastPromise;
+            await lastPromise;
 
-        // Only 'c' should be processed
-        expect(processed).toEqual(['c']);
+            // Only 'c' should be processed
+            expect(processed).toEqual(['c']);
         });
     });
 });

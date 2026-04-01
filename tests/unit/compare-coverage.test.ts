@@ -155,9 +155,7 @@ describe('compare.ts coverage tests', () => {
         it('should show warning when max items reached', () => {
             mockCompareItems = ['item1', 'item2', 'item3', 'item4'];
             toggleCompareItem('item5');
-            expect(ToastManager.warning).toHaveBeenCalledWith(
-                expect.stringContaining('You can only compare up to')
-            );
+            expect(ToastManager.warning).toHaveBeenCalledWith(expect.stringContaining('You can only compare up to'));
         });
 
         it('should update compare button after toggle', () => {

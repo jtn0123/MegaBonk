@@ -238,7 +238,11 @@ vi.mock('../../src/modules/data-service.ts', () => ({
     },
 }));
 
-import { findSimilarItems, renderSimilarItemsSection, setupSimilarItemsHandlers } from '../../src/modules/similar-items.ts';
+import {
+    findSimilarItems,
+    renderSimilarItemsSection,
+    setupSimilarItemsHandlers,
+} from '../../src/modules/similar-items.ts';
 
 describe('Similar Items Module - Extended Coverage', () => {
     beforeEach(() => {
@@ -268,7 +272,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should match items with same scaling_formula_type', () => {
             const similar = findSimilarItems('items', 'item_damage_focused');
-            
+
             const match = similar.find(s => s.entity.id === 'item_damage_focused_2');
             expect(match).toBeDefined();
             // Both have exponential scaling and similar tier
@@ -276,7 +280,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should score one_and_done items together', () => {
             const similar = findSimilarItems('items', 'item_no_synergies');
-            
+
             const otherOneAndDone = similar.find(s => s.entity.id === 'item_empty_synergies');
             // Both are one_and_done, should have some similarity
             expect(otherOneAndDone).toBeDefined();
@@ -284,7 +288,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should score stacks_well items together', () => {
             const similar = findSimilarItems('items', 'item_high_tier');
-            
+
             // Should find item_synergy_partner which also stacks_well
             const stackingPartner = similar.find(s => s.entity.id === 'item_synergy_partner');
             expect(stackingPartner).toBeDefined();
@@ -293,7 +297,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should apply early exit for completely different items', () => {
             const similar = findSimilarItems('items', 'item_high_tier', { minScore: 0.01 });
-            
+
             // item_different_tier has different tier, rarity, no shared keywords
             const differentTier = similar.find(s => s.entity.id === 'item_different_tier');
             // Early exit should filter this out or give very low score
@@ -304,7 +308,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should find items with shared effect keywords', () => {
             const similar = findSimilarItems('items', 'item_high_tier');
-            
+
             // Should find items mentioning "damage"
             const damageItems = similar.filter(s => s.reasons.some(r => r.includes('effect')));
             expect(damageItems.length).toBeGreaterThanOrEqual(0); // May or may not have matches
@@ -317,7 +321,7 @@ describe('Similar Items Module - Extended Coverage', () => {
     describe('Weapon Similarity - Edge Cases', () => {
         it('should match weapons with shared best_for tags', () => {
             const similar = findSimilarItems('weapons', 'weapon_melee_fast');
-            
+
             // weapon_shared_best_for shares "speed" tag
             const sharedUse = similar.find(s => s.entity.id === 'weapon_shared_best_for');
             if (sharedUse) {
@@ -333,7 +337,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should match weapons with similar attack patterns', () => {
             const similar = findSimilarItems('weapons', 'weapon_melee_fast');
-            
+
             const meleeMatch = similar.find(s => s.entity.id === 'weapon_melee_slow');
             if (meleeMatch) {
                 expect(meleeMatch.reasons.some(r => r.includes('attack') || r.includes('playstyle'))).toBe(true);
@@ -342,7 +346,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should apply early exit for different playstyle and tier', () => {
             const similar = findSimilarItems('weapons', 'weapon_ranged', { minScore: 0.01 });
-            
+
             // weapon_no_best_for has different tier and playstyle
             const basicWeapon = similar.find(s => s.entity.id === 'weapon_no_best_for');
             if (basicWeapon) {
@@ -357,7 +361,7 @@ describe('Similar Items Module - Extended Coverage', () => {
     describe('Tome Similarity - Edge Cases', () => {
         it('should match tomes affecting same stat', () => {
             const similar = findSimilarItems('tomes', 'tome_damage_s');
-            
+
             const damageMatch = similar.find(s => s.entity.id === 'tome_damage_a');
             expect(damageMatch).toBeDefined();
             expect(damageMatch.reasons).toContain('Same stat (damage)');
@@ -365,7 +369,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should match tomes with similar priority', () => {
             const similar = findSimilarItems('tomes', 'tome_damage_s');
-            
+
             const critTome = similar.find(s => s.entity.id === 'tome_crit_s');
             if (critTome) {
                 // Both have priority 1, should have "Similar priority"
@@ -375,7 +379,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should group offensive tomes together', () => {
             const similar = findSimilarItems('tomes', 'tome_damage_s');
-            
+
             // crit is also offensive, should have some match
             const critMatch = similar.find(s => s.entity.id === 'tome_crit_s');
             expect(critMatch).toBeDefined();
@@ -383,7 +387,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should group defensive tomes together', () => {
             const similar = findSimilarItems('tomes', 'tome_hp_a');
-            
+
             const armorMatch = similar.find(s => s.entity.id === 'tome_armor_b');
             if (armorMatch) {
                 expect(armorMatch.reasons.some(r => r.includes('defensive'))).toBe(true);
@@ -397,7 +401,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should apply early exit for very different priorities', () => {
             const similar = findSimilarItems('tomes', 'tome_damage_s', { minScore: 0.01 });
-            
+
             // tome_null_stat has priority 5, very different from priority 1
             const mysteryTome = similar.find(s => s.entity.id === 'tome_null_stat');
             if (mysteryTome) {
@@ -412,7 +416,7 @@ describe('Similar Items Module - Extended Coverage', () => {
     describe('Character Similarity - Edge Cases', () => {
         it('should match characters with same playstyle', () => {
             const similar = findSimilarItems('characters', 'char_tank_1');
-            
+
             const tank2 = similar.find(s => s.entity.id === 'char_tank_2');
             expect(tank2).toBeDefined();
             expect(tank2.reasons).toContain('Same playstyle');
@@ -420,7 +424,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should match characters with shared synergy items', () => {
             const similar = findSimilarItems('characters', 'char_tank_1');
-            
+
             const tank2 = similar.find(s => s.entity.id === 'char_tank_2');
             expect(tank2).toBeDefined();
             expect(tank2.reasons).toContain('Similar item synergies');
@@ -438,7 +442,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should match characters with similar passive keywords', () => {
             const similar = findSimilarItems('characters', 'char_tank_1');
-            
+
             // Both tank_1 and tank_2 mention "hp" in passive
             const tank2 = similar.find(s => s.entity.id === 'char_tank_2');
             if (tank2) {
@@ -448,7 +452,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should apply early exit for different playstyle without shared synergies', () => {
             const similar = findSimilarItems('characters', 'char_dps', { minScore: 0.01 });
-            
+
             // char_support has different playstyle and no shared synergies
             const supportChar = similar.find(s => s.entity.id === 'char_support');
             if (supportChar) {
@@ -463,10 +467,10 @@ describe('Similar Items Module - Extended Coverage', () => {
     describe('Configuration Options', () => {
         it('should use default config when not specified', () => {
             const similar = findSimilarItems('items', 'item_high_tier');
-            
+
             // Default maxResults is 5
             expect(similar.length).toBeLessThanOrEqual(5);
-            
+
             // Default minScore is 0.2
             similar.forEach(s => {
                 expect(s.score).toBeGreaterThanOrEqual(0.2);
@@ -480,7 +484,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should allow very high minScore', () => {
             const similar = findSimilarItems('items', 'item_high_tier', { minScore: 0.9 });
-            
+
             similar.forEach(s => {
                 expect(s.score).toBeGreaterThanOrEqual(0.9);
             });
@@ -488,7 +492,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should allow very low minScore', () => {
             const similar = findSimilarItems('items', 'item_high_tier', { minScore: 0.01 });
-            
+
             // Should return more results with low threshold
             expect(similar.length).toBeGreaterThan(0);
         });
@@ -510,7 +514,7 @@ describe('Similar Items Module - Extended Coverage', () => {
     describe('renderSimilarItemsSection - Extended', () => {
         it('should render correct data-type for weapons', () => {
             const html = renderSimilarItemsSection('weapons', 'weapon_melee_fast');
-            
+
             if (html) {
                 expect(html).toContain('data-type="weapons"');
             }
@@ -518,7 +522,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should render correct data-type for tomes', () => {
             const html = renderSimilarItemsSection('tomes', 'tome_damage_s');
-            
+
             if (html) {
                 expect(html).toContain('data-type="tomes"');
             }
@@ -526,7 +530,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should render correct data-type for characters', () => {
             const html = renderSimilarItemsSection('characters', 'char_tank_1');
-            
+
             if (html) {
                 expect(html).toContain('data-type="characters"');
             }
@@ -535,7 +539,7 @@ describe('Similar Items Module - Extended Coverage', () => {
         it('should escape HTML in item names', () => {
             // The mock data doesn't have XSS vectors, but the function should escape
             const html = renderSimilarItemsSection('items', 'item_high_tier');
-            
+
             if (html) {
                 // Should not have unescaped special characters
                 expect(html).not.toContain('<script>');
@@ -544,7 +548,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should include grid container', () => {
             const html = renderSimilarItemsSection('items', 'item_high_tier');
-            
+
             if (html) {
                 expect(html).toContain('similar-items-grid');
             }
@@ -553,7 +557,7 @@ describe('Similar Items Module - Extended Coverage', () => {
         it('should fallback to "Similar" when no reasons', () => {
             // With our mock data, items with reasons exist
             const html = renderSimilarItemsSection('items', 'item_high_tier');
-            
+
             if (html) {
                 // Either has reasons or "Similar" fallback
                 expect(html).toContain('similar-item-reason');
@@ -570,9 +574,9 @@ describe('Similar Items Module - Extended Coverage', () => {
             container.innerHTML = `
                 <div class="similar-item-card" data-type="items" data-id="test-id"></div>
             `;
-            
+
             setupSimilarItemsHandlers(container);
-            
+
             const card = container.querySelector('.similar-item-card');
             expect(card).toBeDefined();
         });
@@ -584,16 +588,16 @@ describe('Similar Items Module - Extended Coverage', () => {
                 <div class="similar-item-card" data-type="weapons" data-id="id2"></div>
                 <div class="similar-item-card" data-type="tomes" data-id="id3"></div>
             `;
-            
+
             setupSimilarItemsHandlers(container);
-            
+
             const cards = container.querySelectorAll('.similar-item-card');
             expect(cards.length).toBe(3);
         });
 
         it('should handle empty container', () => {
             const container = document.createElement('div');
-            
+
             expect(() => setupSimilarItemsHandlers(container)).not.toThrow();
         });
 
@@ -602,7 +606,7 @@ describe('Similar Items Module - Extended Coverage', () => {
             container.innerHTML = `
                 <div class="similar-item-card"></div>
             `;
-            
+
             expect(() => setupSimilarItemsHandlers(container)).not.toThrow();
         });
     });
@@ -623,7 +627,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should handle items type correctly', () => {
             const similar = findSimilarItems('items', 'item_high_tier');
-            
+
             similar.forEach(s => {
                 expect(s.type).toBe('items');
             });
@@ -631,7 +635,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should handle weapons type correctly', () => {
             const similar = findSimilarItems('weapons', 'weapon_melee_fast');
-            
+
             similar.forEach(s => {
                 expect(s.type).toBe('weapons');
             });
@@ -639,7 +643,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should handle tomes type correctly', () => {
             const similar = findSimilarItems('tomes', 'tome_damage_s');
-            
+
             similar.forEach(s => {
                 expect(s.type).toBe('tomes');
             });
@@ -647,7 +651,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should handle characters type correctly', () => {
             const similar = findSimilarItems('characters', 'char_tank_1');
-            
+
             similar.forEach(s => {
                 expect(s.type).toBe('characters');
             });
@@ -660,7 +664,7 @@ describe('Similar Items Module - Extended Coverage', () => {
     describe('Sorting and Limiting', () => {
         it('should always return items in descending score order', () => {
             const similar = findSimilarItems('items', 'item_high_tier', { maxResults: 10, minScore: 0 });
-            
+
             for (let i = 1; i < similar.length; i++) {
                 expect(similar[i - 1].score).toBeGreaterThanOrEqual(similar[i].score);
             }
@@ -669,7 +673,7 @@ describe('Similar Items Module - Extended Coverage', () => {
         it('should limit results after sorting', () => {
             const all = findSimilarItems('items', 'item_high_tier', { maxResults: 100, minScore: 0 });
             const limited = findSimilarItems('items', 'item_high_tier', { maxResults: 2, minScore: 0 });
-            
+
             if (all.length > 2) {
                 expect(limited.length).toBe(2);
                 expect(limited[0].entity.id).toBe(all[0].entity.id);
@@ -679,7 +683,7 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should filter by minScore before limiting', () => {
             const highMin = findSimilarItems('items', 'item_high_tier', { maxResults: 10, minScore: 0.8 });
-            
+
             highMin.forEach(s => {
                 expect(s.score).toBeGreaterThanOrEqual(0.8);
             });
@@ -692,11 +696,11 @@ describe('Similar Items Module - Extended Coverage', () => {
     describe('Reason Strings', () => {
         it('should include tier in reason when matched', () => {
             const similar = findSimilarItems('items', 'item_high_tier');
-            
+
             const sameeTierMatch = similar.find(s => {
                 return s.reasons.some(r => r.includes('Same tier'));
             });
-            
+
             if (sameeTierMatch) {
                 expect(sameeTierMatch.reasons.some(r => r.includes('(S)'))).toBe(true);
             }
@@ -704,12 +708,12 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should include synergies reason', () => {
             const similar = findSimilarItems('items', 'item_high_tier');
-            
+
             const synergyMatch = similar.find(s => s.entity.id === 'item_synergy_partner');
             if (synergyMatch) {
                 // Check for any synergy-related reason text
-                const hasSynergyReason = synergyMatch.reasons.some(r => 
-                    r.toLowerCase().includes('synerg') || r.includes('combo')
+                const hasSynergyReason = synergyMatch.reasons.some(
+                    r => r.toLowerCase().includes('synerg') || r.includes('combo')
                 );
                 expect(hasSynergyReason || synergyMatch.reasons.length > 0).toBe(true);
             }
@@ -717,10 +721,8 @@ describe('Similar Items Module - Extended Coverage', () => {
 
         it('should include stacking reason', () => {
             const similar = findSimilarItems('items', 'item_high_tier');
-            
-            const stackMatch = similar.find(s => 
-                s.reasons.includes('Both stack well')
-            );
+
+            const stackMatch = similar.find(s => s.reasons.includes('Both stack well'));
             // May or may not exist depending on exact scoring
             expect(stackMatch === undefined || stackMatch.reasons.includes('Both stack well')).toBe(true);
         });

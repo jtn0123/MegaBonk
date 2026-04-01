@@ -42,7 +42,9 @@ const createDetection = (id: string, confidence: number, position?: Partial<ROI>
     entity: { id, name: id, rarity: 'common', tier: 'B', base_effect: '', unlocked_by_default: true },
     confidence,
     method: 'template_match',
-    position: position ? { x: position.x ?? 0, y: position.y ?? 0, width: position.width ?? 64, height: position.height ?? 64 } : undefined,
+    position: position
+        ? { x: position.x ?? 0, y: position.y ?? 0, width: position.width ?? 64, height: position.height ?? 64 }
+        : undefined,
 });
 
 describe('calculateIoU', () => {
@@ -89,7 +91,7 @@ describe('calculateIoU', () => {
         const box2: ROI = { x: 50, y: 0, width: 100, height: 50 };
         const iou = calculateIoU(box1, box2);
         // intersection = 50*50 = 2500, union = 2*5000 - 2500 = 7500
-        expect(iou).toBeCloseTo(2500/7500, 2);
+        expect(iou).toBeCloseTo(2500 / 7500, 2);
     });
 
     it('handles very large boxes', () => {
@@ -134,7 +136,7 @@ describe('nonMaxSuppression', () => {
 
     it('handles detections without position', () => {
         const detections = [
-            createDetection('sword', 0.9),  // No position
+            createDetection('sword', 0.9), // No position
             createDetection('shield', 0.85), // No position
         ];
         const result = nonMaxSuppression(detections);
@@ -144,12 +146,12 @@ describe('nonMaxSuppression', () => {
     it('uses custom IoU threshold', () => {
         const detections = [
             createDetection('item1', 0.95, { x: 0, y: 0, width: 100, height: 100 }),
-            createDetection('item2', 0.90, { x: 20, y: 20, width: 100, height: 100 }),
+            createDetection('item2', 0.9, { x: 20, y: 20, width: 100, height: 100 }),
         ];
         // Low threshold should suppress more
         const lowThreshold = nonMaxSuppression(detections, 0.1);
         expect(lowThreshold).toHaveLength(1);
-        
+
         // High threshold should keep more
         const highThreshold = nonMaxSuppression(detections, 0.9);
         expect(highThreshold).toHaveLength(2);
@@ -198,7 +200,7 @@ describe('nonMaxSuppression', () => {
 describe('getAdaptiveIconSizes', () => {
     // Note: With mocked detectResolution always returning '1080p',
     // these tests verify behavior with that mock
-    
+
     it('returns 3 sizes', () => {
         const sizes = getAdaptiveIconSizes(1280, 720);
         expect(sizes).toHaveLength(3);
@@ -313,7 +315,7 @@ describe('detectGridPositions', () => {
         const positions = detectGridPositions(1920, 1080);
         const sortedByX = [...positions].sort((a, b) => a.x - b.x);
         for (let i = 1; i < sortedByX.length; i++) {
-            expect(sortedByX[i].x).toBeGreaterThan(sortedByX[i-1].x);
+            expect(sortedByX[i].x).toBeGreaterThan(sortedByX[i - 1].x);
         }
     });
 });

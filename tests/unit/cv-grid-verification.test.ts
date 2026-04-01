@@ -36,9 +36,7 @@ function createGridDetections(
     const detections: CVDetectionResult[] = [];
     for (let row = 0; row < rows; row++) {
         for (let col = 0; col < columns; col++) {
-            detections.push(
-                createMockDetection(startX + col * spacing, startY + row * spacing, `Item_${row}_${col}`)
-            );
+            detections.push(createMockDetection(startX + col * spacing, startY + row * spacing, `Item_${row}_${col}`));
         }
     }
     return detections;
@@ -89,10 +87,7 @@ describe('CV Grid Verification', () => {
         });
 
         it('should accept small detection sets without filtering', () => {
-            const detections = [
-                createMockDetection(100, 500),
-                createMockDetection(150, 500),
-            ];
+            const detections = [createMockDetection(100, 500), createMockDetection(150, 500)];
             const result = verifyGridPattern(detections, 48);
 
             expect(result.isValid).toBe(true);

@@ -34,10 +34,14 @@ async function measureWeaponGrid(imagePath) {
             const y = row * cellSize;
             const data = ctx.getImageData(x, y, cellSize, cellSize);
 
-            let sum = 0, sumSq = 0, count = 0;
+            let sum = 0,
+                sumSq = 0,
+                count = 0;
             for (let i = 0; i < data.data.length; i += 4) {
-                const gray = (data.data[i] + data.data[i+1] + data.data[i+2]) / 3;
-                sum += gray; sumSq += gray * gray; count++;
+                const gray = (data.data[i] + data.data[i + 1] + data.data[i + 2]) / 3;
+                sum += gray;
+                sumSq += gray * gray;
+                count++;
             }
             const variance = sumSq / count - (sum / count) ** 2;
 
@@ -80,7 +84,7 @@ async function measureWeaponGrid(imagePath) {
 async function main() {
     const testImages = [
         'test-images/gameplay/pc-1080p/level_33_english_forest_early.jpg',
-        'test-images/gameplay/pc-1080p/level_803_russian_stress_test.jpg'
+        'test-images/gameplay/pc-1080p/level_803_russian_stress_test.jpg',
     ];
 
     for (const img of testImages) {

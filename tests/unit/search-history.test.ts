@@ -96,7 +96,10 @@ describe('search-history - getSearchHistory', () => {
     });
 
     it('should filter out non-string items from array', () => {
-        localStorage.setItem('megabonk_search_history', JSON.stringify(['valid', 123, null, 'also valid', {}, undefined]));
+        localStorage.setItem(
+            'megabonk_search_history',
+            JSON.stringify(['valid', 123, null, 'also valid', {}, undefined])
+        );
 
         const result = getSearchHistory();
         expect(result).toEqual(['valid', 'also valid']);

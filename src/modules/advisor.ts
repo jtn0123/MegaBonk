@@ -21,8 +21,8 @@ let currentBuild: BuildState = {
     items: [],
     tomes: [],
 };
-let selectedItems: Map<string, Item> = new Map();
-let selectedTomes: Map<string, Tome> = new Map();
+const selectedItems: Map<string, Item> = new Map();
+const selectedTomes: Map<string, Tome> = new Map();
 let listenersInitialized = false;
 
 /**

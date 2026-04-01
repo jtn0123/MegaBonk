@@ -192,7 +192,7 @@ describe('Batch Scan Module - Extended Coverage', () => {
             // Reset and test that double init doesn't crash
             __resetForTesting();
             initBatchScan(mockGameData);
-            
+
             // Should not throw when called again
             expect(() => initBatchScan(mockGameData)).not.toThrow();
         });
@@ -504,9 +504,7 @@ describe('Batch Scan Module - Extended Coverage', () => {
             initBatchScan(mockGameData);
 
             const mockItem = { id: 'item1', name: 'Test Item' } as Item;
-            mockAggregateDuplicates.mockReturnValue([
-                { entity: mockItem, confidence: 0.9, count: 3 },
-            ]);
+            mockAggregateDuplicates.mockReturnValue([{ entity: mockItem, confidence: 0.9, count: 3 }]);
             mockCombineDetections.mockReturnValue([{ entity: mockItem, confidence: 0.9 }]);
 
             const file = createMockImageFile('test.png');
@@ -731,9 +729,7 @@ describe('Batch Scan Module - Extended Coverage', () => {
             initBatchScan(mockGameData);
 
             const mockItem = { id: 'item1', name: 'Test' } as Item;
-            mockAggregateDuplicates.mockReturnValue([
-                { entity: mockItem, confidence: 0.9, count: 3 },
-            ]);
+            mockAggregateDuplicates.mockReturnValue([{ entity: mockItem, confidence: 0.9, count: 3 }]);
 
             const file = createMockImageFile('test.png');
             await processBatch([file]);
@@ -871,9 +867,7 @@ describe('Batch Scan Module - Extended Coverage', () => {
                 character: null,
                 weapon: null,
             });
-            mockDetectItemsWithCV.mockResolvedValueOnce([
-                { entity: mockChar, confidence: 0.85, type: 'character' },
-            ]);
+            mockDetectItemsWithCV.mockResolvedValueOnce([{ entity: mockChar, confidence: 0.85, type: 'character' }]);
 
             const file = createMockImageFile('test.png');
             await processBatch([file]);
@@ -898,9 +892,7 @@ describe('Batch Scan Module - Extended Coverage', () => {
                 weapon: null,
             });
             mockCombineDetections.mockImplementation(ocrResults => ocrResults);
-            mockAggregateDuplicates.mockImplementation(results =>
-                results.map(r => ({ ...r, count: 1 }))
-            );
+            mockAggregateDuplicates.mockImplementation(results => results.map(r => ({ ...r, count: 1 })));
 
             const file = createMockImageFile('test.png');
             await processBatch([file]);

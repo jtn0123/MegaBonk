@@ -64,7 +64,7 @@ describe('CV Training Feedback - Extended Coverage', () => {
         it('should handle sessionStorage.getItem failure in getCurrentSession', () => {
             // First create a session
             startFeedbackSession('data:image/png;base64,test', 800, 600);
-            
+
             // Clear the in-memory session to force storage lookup
             __resetForTesting();
 
@@ -106,19 +106,22 @@ describe('CV Training Feedback - Extended Coverage', () => {
         it('should restore session from sessionStorage when in-memory session is cleared', () => {
             // Create session and let it persist to storage
             const originalSession = startFeedbackSession('data:image/png;base64,restored', 1280, 720);
-            
+
             // Simulate a new page load by clearing in-memory state only
             // This is tricky - we need to clear currentSession but keep storage
             // We'll use a workaround by directly setting the module state
             __resetForTesting();
-            
+
             // Manually set sessionStorage (simulating persisted state)
-            sessionStorage.setItem('cv-feedback-session', JSON.stringify({
-                corrections: [],
-                startedAt: new Date().toISOString(),
-                imageDataUrl: 'data:image/png;base64,restored',
-                imageResolution: { width: 1280, height: 720 },
-            }));
+            sessionStorage.setItem(
+                'cv-feedback-session',
+                JSON.stringify({
+                    corrections: [],
+                    startedAt: new Date().toISOString(),
+                    imageDataUrl: 'data:image/png;base64,restored',
+                    imageResolution: { width: 1280, height: 720 },
+                })
+            );
 
             // getCurrentSession should restore from storage
             const restoredSession = getCurrentSession();
@@ -158,7 +161,7 @@ describe('CV Training Feedback - Extended Coverage', () => {
 
         it('should extract crop with default padding', async () => {
             // Mock Image
-            let loadHandler: (() => void) | null = null;
+            const loadHandler: (() => void) | null = null;
             class MockImage {
                 width = 1920;
                 height = 1080;
@@ -174,10 +177,7 @@ describe('CV Training Feedback - Extended Coverage', () => {
             }
             vi.stubGlobal('Image', MockImage);
 
-            const result = await extractCropFromImage(
-                'data:image/png;base64,test',
-                100, 100, 50, 50
-            );
+            const result = await extractCropFromImage('data:image/png;base64,test', 100, 100, 50, 50);
 
             expect(result).toBe('data:image/png;base64,cropped');
             expect(mockCtx.drawImage).toHaveBeenCalled();
@@ -202,7 +202,11 @@ describe('CV Training Feedback - Extended Coverage', () => {
 
             const result = await extractCropFromImage(
                 'data:image/png;base64,test',
-                100, 100, 50, 50, 10 // Custom padding of 10
+                100,
+                100,
+                50,
+                50,
+                10 // Custom padding of 10
             );
 
             expect(result).toBe('data:image/png;base64,cropped');
@@ -227,7 +231,11 @@ describe('CV Training Feedback - Extended Coverage', () => {
             // Request crop that would exceed image bounds
             const result = await extractCropFromImage(
                 'data:image/png;base64,test',
-                80, 80, 50, 50, 5 // Would exceed 100x100 image
+                80,
+                80,
+                50,
+                50,
+                5 // Would exceed 100x100 image
             );
 
             expect(result).toBe('data:image/png;base64,cropped');
@@ -253,10 +261,7 @@ describe('CV Training Feedback - Extended Coverage', () => {
             vi.stubGlobal('Image', MockImage);
 
             // Request crop near origin with padding that would go negative
-            const result = await extractCropFromImage(
-                'data:image/png;base64,test',
-                0, 0, 20, 20, 5
-            );
+            const result = await extractCropFromImage('data:image/png;base64,test', 0, 0, 20, 20, 5);
 
             expect(result).toBe('data:image/png;base64,cropped');
         });
@@ -280,9 +285,9 @@ describe('CV Training Feedback - Extended Coverage', () => {
             }
             vi.stubGlobal('Image', MockImage);
 
-            await expect(
-                extractCropFromImage('data:image/png;base64,test', 10, 10, 20, 20)
-            ).rejects.toThrow('Failed to get canvas context');
+            await expect(extractCropFromImage('data:image/png;base64,test', 10, 10, 20, 20)).rejects.toThrow(
+                'Failed to get canvas context'
+            );
         });
 
         it('should reject when image fails to load', async () => {
@@ -301,9 +306,9 @@ describe('CV Training Feedback - Extended Coverage', () => {
             }
             vi.stubGlobal('Image', MockImage);
 
-            await expect(
-                extractCropFromImage('data:image/png;base64,invalid', 10, 10, 20, 20)
-            ).rejects.toThrow('Failed to load image');
+            await expect(extractCropFromImage('data:image/png;base64,invalid', 10, 10, 20, 20)).rejects.toThrow(
+                'Failed to load image'
+            );
         });
     });
 

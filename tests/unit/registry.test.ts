@@ -446,7 +446,7 @@ describe('Registry Module', () => {
         });
 
         it('should support registering multiple related functions', () => {
-            const switchTab = vi.fn((tab) => {
+            const switchTab = vi.fn(tab => {
                 callFunction('renderTabContent', tab);
             });
             const renderTabContent = vi.fn();
@@ -515,9 +515,7 @@ describe('Registry Module', () => {
             const complexGameData = {
                 items: {
                     version: '1.0',
-                    items: [
-                        { id: 'sword', name: 'Sword', nested: { deep: { value: 123 } } },
-                    ],
+                    items: [{ id: 'sword', name: 'Sword', nested: { deep: { value: 123 } } }],
                 },
                 weapons: { weapons: [] },
                 tomes: { tomes: [] },

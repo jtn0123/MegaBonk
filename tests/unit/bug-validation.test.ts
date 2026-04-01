@@ -67,9 +67,7 @@ describe('Bug Validation - Critical Issues', () => {
         });
 
         it('should avoid multiple find() calls for the same result', () => {
-            const cvResults = [
-                { type: 'character', entity: { id: 'warrior' }, confidence: 0.9 },
-            ];
+            const cvResults = [{ type: 'character', entity: { id: 'warrior' }, confidence: 0.9 }];
 
             // Anti-pattern: calling find() multiple times (inefficient)
             const findSpy = vi.fn((r: any) => r.type === 'character');

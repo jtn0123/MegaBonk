@@ -36,11 +36,7 @@ function createMockCanvas(width: number = 800, height: number = 600): HTMLCanvas
     return canvas;
 }
 
-function createMockDetection(
-    name: string,
-    confidence: number,
-    position?: Partial<ROI>
-): CVDetectionResult {
+function createMockDetection(name: string, confidence: number, position?: Partial<ROI>): CVDetectionResult {
     return cvTestKit.detection.item(name, confidence, position);
 }
 
@@ -55,9 +51,7 @@ describe('renderDebugOverlay - Early Returns', () => {
         const badCanvas = document.createElement('canvas');
         vi.spyOn(badCanvas, 'getContext').mockReturnValue(null);
 
-        await expect(
-            renderDebugOverlay(badCanvas, 'data:image/png;base64,test', [], [])
-        ).resolves.toBeUndefined();
+        await expect(renderDebugOverlay(badCanvas, 'data:image/png;base64,test', [], [])).resolves.toBeUndefined();
     });
 });
 
@@ -66,9 +60,7 @@ describe('renderStrategyComparison - Early Returns', () => {
         const badCanvas = document.createElement('canvas');
         vi.spyOn(badCanvas, 'getContext').mockReturnValue(null);
 
-        const results: StrategyResult[] = [
-            { strategyName: 'Test', detections: [], processingTime: 100 },
-        ];
+        const results: StrategyResult[] = [{ strategyName: 'Test', detections: [], processingTime: 100 }];
 
         await expect(
             renderStrategyComparison(badCanvas, 'data:image/png;base64,test', results)
@@ -99,18 +91,14 @@ describe('renderGridOverlay - Extended', () => {
     });
 
     it('should handle current cell out of bounds', () => {
-        const gridCells: ROI[] = [
-            { x: 0, y: 0, width: 64, height: 64 },
-        ];
+        const gridCells: ROI[] = [{ x: 0, y: 0, width: 64, height: 64 }];
         const currentCell = 999;
 
         expect(() => renderGridOverlay(canvas, gridCells, currentCell)).not.toThrow();
     });
 
     it('should handle processedCells with invalid indices', () => {
-        const gridCells: ROI[] = [
-            { x: 0, y: 0, width: 64, height: 64 },
-        ];
+        const gridCells: ROI[] = [{ x: 0, y: 0, width: 64, height: 64 }];
         const processedCells = new Set([0, 5, 10, 100]);
 
         expect(() => renderGridOverlay(canvas, gridCells, 0, processedCells)).not.toThrow();
@@ -129,34 +117,26 @@ describe('renderGridOverlay - Extended', () => {
     });
 
     it('should handle negative cell positions', () => {
-        const gridCells: ROI[] = [
-            { x: -50, y: -50, width: 64, height: 64 },
-        ];
+        const gridCells: ROI[] = [{ x: -50, y: -50, width: 64, height: 64 }];
 
         expect(() => renderGridOverlay(canvas, gridCells)).not.toThrow();
     });
 
     it('should handle zero-sized cells', () => {
-        const gridCells: ROI[] = [
-            { x: 100, y: 100, width: 0, height: 0 },
-        ];
+        const gridCells: ROI[] = [{ x: 100, y: 100, width: 0, height: 0 }];
 
         expect(() => renderGridOverlay(canvas, gridCells)).not.toThrow();
     });
 
     it('should handle cells with floating point coordinates', () => {
-        const gridCells: ROI[] = [
-            { x: 10.5, y: 20.7, width: 64.3, height: 64.9 },
-        ];
+        const gridCells: ROI[] = [{ x: 10.5, y: 20.7, width: 64.3, height: 64.9 }];
 
         expect(() => renderGridOverlay(canvas, gridCells)).not.toThrow();
     });
 
     it('should handle very small canvas', () => {
         const smallCanvas = createMockCanvas(10, 10);
-        const gridCells: ROI[] = [
-            { x: 0, y: 0, width: 100, height: 100 },
-        ];
+        const gridCells: ROI[] = [{ x: 0, y: 0, width: 100, height: 100 }];
 
         expect(() => renderGridOverlay(smallCanvas, gridCells)).not.toThrow();
     });
@@ -218,9 +198,7 @@ describe('renderConfidenceHeatmap - Extended', () => {
     });
 
     it('should handle detection with confidence below all bands', () => {
-        const detections = [
-            createMockDetection('VeryLow', 0.05),
-        ];
+        const detections = [createMockDetection('VeryLow', 0.05)];
 
         expect(() => renderConfidenceHeatmap(canvas, detections, 0.9)).not.toThrow();
     });
@@ -342,9 +320,7 @@ describe('renderMatchingSteps - Extended', () => {
     });
 
     it('should display exactly 8 recent steps max (sliding window)', () => {
-        const steps = Array.from({ length: 20 }, (_, i) =>
-            createStep(`Template${i}`, 0.5 + i * 0.02, i % 2 === 0)
-        );
+        const steps = Array.from({ length: 20 }, (_, i) => createStep(`Template${i}`, 0.5 + i * 0.02, i % 2 === 0));
 
         const ctx = canvas.getContext('2d')!;
         const fillTextSpy = vi.spyOn(ctx, 'fillText');
@@ -358,18 +334,13 @@ describe('renderMatchingSteps - Extended', () => {
     });
 
     it('should handle step with very long template ID', () => {
-        const steps = [
-            createStep('A'.repeat(100), 0.9, true),
-        ];
+        const steps = [createStep('A'.repeat(100), 0.9, true)];
 
         expect(() => renderMatchingSteps(canvas, steps, 0)).not.toThrow();
     });
 
     it('should highlight the latest step with background', () => {
-        const steps = [
-            createStep('First', 0.8, true),
-            createStep('Latest', 0.9, true),
-        ];
+        const steps = [createStep('First', 0.8, true), createStep('Latest', 0.9, true)];
         const ctx = canvas.getContext('2d')!;
         const fillRectSpy = vi.spyOn(ctx, 'fillRect');
 
@@ -394,26 +365,17 @@ describe('renderMatchingSteps - Extended', () => {
 
         renderMatchingSteps(canvas, steps, 0);
 
-        expect(fillRectSpy).toHaveBeenCalledWith(
-            10,
-            canvas.height - 200,
-            300,
-            190
-        );
+        expect(fillRectSpy).toHaveBeenCalledWith(10, canvas.height - 200, 300, 190);
     });
 
     it('should handle all false matches', () => {
-        const steps = Array.from({ length: 5 }, (_, i) =>
-            createStep(`NoMatch${i}`, 0.3 + i * 0.05, false)
-        );
+        const steps = Array.from({ length: 5 }, (_, i) => createStep(`NoMatch${i}`, 0.3 + i * 0.05, false));
 
         expect(() => renderMatchingSteps(canvas, steps, 4)).not.toThrow();
     });
 
     it('should handle all true matches', () => {
-        const steps = Array.from({ length: 5 }, (_, i) =>
-            createStep(`Match${i}`, 0.8 + i * 0.02, true)
-        );
+        const steps = Array.from({ length: 5 }, (_, i) => createStep(`Match${i}`, 0.8 + i * 0.02, true));
 
         expect(() => renderMatchingSteps(canvas, steps, 4)).not.toThrow();
     });
@@ -431,10 +393,7 @@ describe('renderMatchingSteps - Extended', () => {
     });
 
     it('should display step counter', () => {
-        const steps = [
-            createStep('First', 0.8, true),
-            createStep('Second', 0.9, true),
-        ];
+        const steps = [createStep('First', 0.8, true), createStep('Second', 0.9, true)];
         const ctx = canvas.getContext('2d')!;
         const fillTextSpy = vi.spyOn(ctx, 'fillText');
 
@@ -450,9 +409,7 @@ describe('renderMatchingSteps - Extended', () => {
 
         renderMatchingSteps(canvas, steps, 0);
 
-        const templateCalls = fillTextSpy.mock.calls.filter(
-            c => typeof c[0] === 'string' && c[0].includes('Short')
-        );
+        const templateCalls = fillTextSpy.mock.calls.filter(c => typeof c[0] === 'string' && c[0].includes('Short'));
         expect(templateCalls.length).toBeGreaterThan(0);
     });
 });
@@ -469,9 +426,7 @@ describe('renderConfidenceHistogram - Extended', () => {
     });
 
     it('should handle all detections in single bin', () => {
-        const detections = Array.from({ length: 100 }, () =>
-            createMockDetection('Same', 0.95)
-        );
+        const detections = Array.from({ length: 100 }, () => createMockDetection('Same', 0.95));
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
     });
@@ -496,17 +451,13 @@ describe('renderConfidenceHistogram - Extended', () => {
     });
 
     it('should draw exactly 10 histogram bins', () => {
-        const detections = Array.from({ length: 10 }, (_, i) =>
-            createMockDetection(`Item${i}`, i / 10 + 0.05)
-        );
+        const detections = Array.from({ length: 10 }, (_, i) => createMockDetection(`Item${i}`, i / 10 + 0.05));
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
     });
 
     it('should handle empty bins correctly', () => {
-        const detections = [
-            createMockDetection('High', 0.95),
-        ];
+        const detections = [createMockDetection('High', 0.95)];
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
     });
@@ -549,11 +500,7 @@ describe('renderConfidenceHistogram - Extended', () => {
 
         renderConfidenceHistogram(canvas, detections);
 
-        expect(fillTextSpy).toHaveBeenCalledWith(
-            'Confidence Distribution',
-            expect.any(Number),
-            expect.any(Number)
-        );
+        expect(fillTextSpy).toHaveBeenCalledWith('Confidence Distribution', expect.any(Number), expect.any(Number));
     });
 
     it('should handle confidence exactly at 1.0 (put in bin 9)', () => {
@@ -563,10 +510,7 @@ describe('renderConfidenceHistogram - Extended', () => {
     });
 
     it('should show count labels only for non-empty bins', () => {
-        const detections = [
-            createMockDetection('A', 0.95),
-            createMockDetection('B', 0.95),
-        ];
+        const detections = [createMockDetection('A', 0.95), createMockDetection('B', 0.95)];
         const ctx = canvas.getContext('2d')!;
         const fillTextSpy = vi.spyOn(ctx, 'fillText');
 
@@ -576,9 +520,7 @@ describe('renderConfidenceHistogram - Extended', () => {
     });
 
     it('should handle many detections in one bin', () => {
-        const detections = Array.from({ length: 1000 }, () =>
-            createMockDetection('Same', 0.85)
-        );
+        const detections = Array.from({ length: 1000 }, () => createMockDetection('Same', 0.85));
 
         expect(() => renderConfidenceHistogram(canvas, detections)).not.toThrow();
     });
@@ -590,12 +532,7 @@ describe('renderConfidenceHistogram - Extended', () => {
 
         renderConfidenceHistogram(canvas, detections);
 
-        expect(fillRectSpy).toHaveBeenCalledWith(
-            canvas.width - 210,
-            canvas.height - 120,
-            200,
-            110
-        );
+        expect(fillRectSpy).toHaveBeenCalledWith(canvas.width - 210, canvas.height - 120, 200, 110);
     });
 });
 
@@ -659,10 +596,7 @@ describe('StrategyResult interface', () => {
     it('should work with detections array', () => {
         const result: StrategyResult = {
             strategyName: 'Test',
-            detections: [
-                createMockDetection('A', 0.9),
-                createMockDetection('B', 0.8),
-            ],
+            detections: [createMockDetection('A', 0.9), createMockDetection('B', 0.8)],
             processingTime: 150,
         };
 

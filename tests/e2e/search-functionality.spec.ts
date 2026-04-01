@@ -39,13 +39,13 @@ test.describe('Search Input', () => {
         // Global search renders .search-result-card elements
         await searchInput.fill('ANVIL');
         await page.waitForSelector('.search-result-card', { timeout: 5000 });
-        const upperCount = await page.locator('.search-result-card').count();
+        const upperCount = page.locator('.search-result-card');
 
         await searchInput.fill('anvil');
         await page.waitForSelector('.search-result-card', { timeout: 5000 });
         const lowerCount = await page.locator('.search-result-card').count();
 
-        expect(upperCount).toBe(lowerCount);
+        await expect(upperCount).toHaveCount(lowerCount);
     });
 
     test('clearing search shows all items', async ({ page }) => {
@@ -61,8 +61,8 @@ test.describe('Search Input', () => {
         // Clear search - returns to normal .item-card rendering
         await searchInput.fill('');
         await page.waitForSelector('#itemsContainer .item-card', { timeout: 5000 });
-        const allCount = await page.locator('#itemsContainer .item-card').count();
-        expect(allCount).toBe(80);
+        const allCount = page.locator('#itemsContainer .item-card');
+        await expect(allCount).toHaveCount(80);
     });
 
     test('search with no results shows empty state', async ({ page }) => {
@@ -72,8 +72,8 @@ test.describe('Search Input', () => {
 
         // Global search should show no results
         const cards = page.locator('.search-result-card');
-        const count = await cards.count();
-        expect(count).toBe(0);
+        const count = cards;
+        await expect(count).toHaveCount(0);
 
         // Should show empty state in the active container
         const emptyState = page.locator('.empty-state, [class*="empty-state"]');
@@ -82,7 +82,7 @@ test.describe('Search Input', () => {
 
     test('search works across tabs', async ({ page }) => {
         const searchInput = page.locator('#searchInput');
-        
+
         // Search in items - global search renders .search-result-card
         await searchInput.fill('damage');
         await page.waitForTimeout(500);
@@ -115,15 +115,15 @@ test.describe('Search Input', () => {
         await searchInput.focus();
         await searchInput.fill('Anvil');
         await page.waitForTimeout(500);
-        
+
         // Verify search results appeared
         const resultCount = await page.locator('.search-result-card').count();
         expect(resultCount).toBeGreaterThan(0);
-        
+
         // Press Escape - this should close any open dropdown but keep focus
         await page.keyboard.press('Escape');
         await page.waitForTimeout(200);
-        
+
         // Search input should still be focused (Escape doesn't blur when inside input)
         const isFocused = await searchInput.evaluate(el => el === document.activeElement);
         expect(isFocused).toBe(true);

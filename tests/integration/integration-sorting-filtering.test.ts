@@ -71,13 +71,7 @@ describe('Integration - Multi-Level Sorting', () => {
             return RARITY_ORDER[a.rarity] - RARITY_ORDER[b.rarity];
         });
 
-        expect(items.map(i => i.name)).toEqual([
-            'SS Legendary',
-            'SS Common',
-            'A Legendary',
-            'A Rare',
-            'A Common',
-        ]);
+        expect(items.map(i => i.name)).toEqual(['SS Legendary', 'SS Common', 'A Legendary', 'A Rare', 'A Common']);
     });
 
     it('should sort by tier then name alphabetically', () => {
@@ -232,9 +226,7 @@ describe('Integration - Search and Filter Combined', () => {
 
         // Search for "weapon" in name or description
         const searched = items.filter(
-            item =>
-                item.name.toLowerCase().includes('weapon') ||
-                item.description?.toLowerCase().includes('weapon')
+            item => item.name.toLowerCase().includes('weapon') || item.description?.toLowerCase().includes('weapon')
         );
 
         expect(searched).toHaveLength(3);
@@ -431,12 +423,7 @@ describe('Integration - Complex Entity Sorting', () => {
             return a.name.localeCompare(b.name);
         });
 
-        expect(characters.map(c => c.name)).toEqual([
-            'Alpha Mage',
-            'Beta Rogue',
-            'Zebra Warrior',
-            'Gamma Tank',
-        ]);
+        expect(characters.map(c => c.name)).toEqual(['Alpha Mage', 'Beta Rogue', 'Zebra Warrior', 'Gamma Tank']);
     });
 });
 
@@ -488,9 +475,7 @@ describe('Integration - Dynamic Filtering', () => {
         const wantedEffects = ['damage', 'crit'];
 
         // Filter items that have ANY of the wanted effects
-        const filtered = items.filter(item =>
-            item.effects.some(effect => wantedEffects.includes(effect))
-        );
+        const filtered = items.filter(item => item.effects.some(effect => wantedEffects.includes(effect)));
 
         expect(filtered).toHaveLength(3);
         expect(filtered.map(i => i.name)).toEqual(['Item 1', 'Item 3', 'Item 4']);
@@ -507,9 +492,7 @@ describe('Integration - Dynamic Filtering', () => {
         const requiredEffects = ['damage', 'crit'];
 
         // Filter items that have ALL required effects
-        const filtered = items.filter(item =>
-            requiredEffects.every(effect => item.effects.includes(effect))
-        );
+        const filtered = items.filter(item => requiredEffects.every(effect => item.effects.includes(effect)));
 
         expect(filtered).toHaveLength(2);
         expect(filtered.map(i => i.name)).toEqual(['Item 2', 'Item 3']);

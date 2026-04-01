@@ -1,4 +1,3 @@
-/* eslint-disable no-undef */
 import { vi, beforeEach, afterEach, afterAll } from 'vitest';
 import { JSDOM } from 'jsdom';
 import fs from 'fs';

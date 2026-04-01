@@ -338,11 +338,7 @@ describe('Modal Weapons Module', () => {
                 renderWeaponModal(weapon);
 
                 // Name escaping is handled by generateModalImage
-                expect(generateModalImage).toHaveBeenCalledWith(
-                    weapon,
-                    weapon.name,
-                    'weapon'
-                );
+                expect(generateModalImage).toHaveBeenCalledWith(weapon, weapon.name, 'weapon');
             });
 
             it('should escape description', () => {
@@ -351,9 +347,7 @@ describe('Modal Weapons Module', () => {
                 });
                 renderWeaponModal(weapon);
 
-                expect(escapeHtml).toHaveBeenCalledWith(
-                    expect.stringContaining('<img')
-                );
+                expect(escapeHtml).toHaveBeenCalledWith(expect.stringContaining('<img'));
             });
 
             it('should escape tier value', () => {
