@@ -842,6 +842,9 @@ describe('Pull-to-Refresh Integration', () => {
     it('should handle multiple complete refresh cycles', async () => {
         loadAllData.mockResolvedValue(undefined);
 
+        // Use fake timers to control the 2000ms cooldown and 300ms reset timeout
+        vi.useFakeTimers();
+
         initPullRefresh();
 
         // First cycle
@@ -849,37 +852,23 @@ describe('Pull-to-Refresh Integration', () => {
         document.dispatchEvent(createTouchEvent('touchmove', 150));
         document.dispatchEvent(createTouchEvent('touchend', 150));
 
-        // Wait for first cycle to complete and reset
-        await vi.waitFor(
-            () => {
-                expect(loadAllData).toHaveBeenCalledTimes(1);
-            },
-            { timeout: 2000 }
-        );
-        await vi.waitFor(
-            () => {
-                const indicator = document.querySelector('.pull-refresh-indicator');
-                expect(indicator?.classList.contains('refreshing')).toBe(false);
-            },
-            { timeout: 2000 }
-        );
+        // Flush the async triggerRefresh (loadAllData resolves immediately)
+        await vi.runAllTimersAsync();
 
-        // Advance past the 2000ms cooldown so the second cycle is accepted
-        const realNow = Date.now();
-        vi.spyOn(Date, 'now').mockReturnValue(realNow + 3000);
+        expect(loadAllData).toHaveBeenCalledTimes(1);
+
+        // Advance past the 2000ms cooldown + 300ms reset timeout
+        vi.advanceTimersByTime(3000);
 
         // Second cycle
         document.dispatchEvent(createTouchEvent('touchstart', 0));
         document.dispatchEvent(createTouchEvent('touchmove', 150));
         document.dispatchEvent(createTouchEvent('touchend', 150));
 
-        vi.mocked(Date.now).mockRestore();
+        await vi.runAllTimersAsync();
 
-        await vi.waitFor(
-            () => {
-                expect(loadAllData).toHaveBeenCalledTimes(2);
-            },
-            { timeout: 2000 }
-        );
+        expect(loadAllData).toHaveBeenCalledTimes(2);
+
+        vi.useRealTimers();
     });
 });
