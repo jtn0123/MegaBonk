@@ -10,7 +10,7 @@ import type { CVStrategy } from '../cv-strategy.ts';
 import { getActiveStrategy } from '../cv-strategy.ts';
 import { startMetricsTracking } from '../cv-metrics.ts';
 import { logger } from '../logger.ts';
-import { getAllData, setAllData } from '../cv/state.ts';
+import { getAllData, setAllData } from '../cv/index.ts';
 import { loadEnhancedTemplates, areEnhancedTemplatesLoaded } from './templates.ts';
 import { filterValidCells, multiPassMatching, singlePassMatching } from './matching.ts';
 import { loadImage, createCanvasFromImage } from './utils.ts';

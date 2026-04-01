@@ -7,7 +7,7 @@ import type { Item } from '../../types/index.ts';
 import type { EnhancedTemplateData } from './types.ts';
 import { rgbToHSV, extractColorProfile } from '../cv-strategy.ts';
 import type { HSVColor } from '../cv-strategy.ts';
-import { getAllData } from '../cv/state.ts';
+import { getAllData } from '../cv/index.ts';
 import { logger } from '../logger.ts';
 
 // Enhanced template storage (extends base with color analysis)

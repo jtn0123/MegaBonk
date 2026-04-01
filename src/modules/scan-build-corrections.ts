@@ -1,6 +1,6 @@
 import type { Item } from '../types/index.ts';
 import { findUncertainDetections, getCurrentSession, type DetectionForFeedback } from './computer-vision.ts';
-import { extractCropFromImage } from './cv/training-feedback.ts';
+import { extractCropFromImage } from './cv/index.ts';
 import type { DisplayDetectionResult } from './scan-build-results.ts';
 import { escapeHtml } from './utils.ts';
 

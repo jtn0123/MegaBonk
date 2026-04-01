@@ -130,6 +130,31 @@ module.exports = [
                 },
             ],
 
+            // Enforce barrel imports for organized subsystems
+            'no-restricted-imports': [
+                'error',
+                {
+                    patterns: [
+                        {
+                            group: ['**/cv/*', '!**/cv/index*'],
+                            message: 'Import from cv/index.ts barrel instead of internal files.',
+                        },
+                        {
+                            group: ['**/ocr/*', '!**/ocr/index*'],
+                            message: 'Import from ocr/index.ts barrel instead of internal files.',
+                        },
+                        {
+                            group: ['**/renderers/*', '!**/renderers/index*'],
+                            message: 'Import from renderers/index.ts barrel instead of internal files.',
+                        },
+                        {
+                            group: ['**/cv-enhanced/*', '!**/cv-enhanced/index*'],
+                            message: 'Import from cv-enhanced/index.ts barrel instead of internal files.',
+                        },
+                    ],
+                },
+            ],
+
             // Prettier integration
             'prettier/prettier': [
                 'warn',
