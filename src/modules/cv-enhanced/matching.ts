@@ -12,7 +12,7 @@ import {
     getSimilarityPenalty,
     extractColorProfile,
 } from '../cv-strategy.ts';
-import { isEmptyCell, detectBorderRarity } from '../cv/color.ts';
+import { isEmptyCell, detectBorderRarity } from '../cv/index.ts';
 import { calculateSimilarity } from './similarity.ts';
 import { resizeImageData } from './utils.ts';
 import { getEnhancedTemplate, getTemplatesByRarity, getTemplatesByColor } from './templates.ts';

@@ -59,6 +59,7 @@ export { renderDebugOverlay, createDebugOverlay } from './debug.ts';
 // State (for advanced usage)
 export {
     getAllData,
+    setAllData,
     getItemTemplates,
     getTemplatesByColor,
     getDetectionCache,

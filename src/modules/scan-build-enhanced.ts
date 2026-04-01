@@ -13,7 +13,7 @@ import { metricsTracker, type DetectionMetrics } from './cv-metrics.ts';
 import { autoDetectFromImage } from './ocr/index.ts';
 import { combineDetections, aggregateDuplicates } from './computer-vision.ts';
 import type { DetectionResult } from './ocr/index.ts';
-import type { CVDetectionResult } from './cv/types.ts';
+import type { CVDetectionResult } from './cv/index.ts';
 
 /** Enhanced detection result with count */
 interface EnhancedDetectionItem {
