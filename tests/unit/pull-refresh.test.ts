@@ -864,10 +864,16 @@ describe('Pull-to-Refresh Integration', () => {
             { timeout: 2000 }
         );
 
+        // Advance past the 2000ms cooldown so the second cycle is accepted
+        const realNow = Date.now();
+        vi.spyOn(Date, 'now').mockReturnValue(realNow + 3000);
+
         // Second cycle
         document.dispatchEvent(createTouchEvent('touchstart', 0));
         document.dispatchEvent(createTouchEvent('touchmove', 150));
         document.dispatchEvent(createTouchEvent('touchend', 150));
+
+        vi.mocked(Date.now).mockRestore();
 
         await vi.waitFor(
             () => {
