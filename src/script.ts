@@ -23,10 +23,8 @@ import { setupImageFallbackHandler, setupBlurUpHandler } from './modules/utils.t
 import { logger } from './modules/logger.ts';
 import { setupOfflineListeners } from './modules/offline-ui.ts';
 import { scheduleModulePreload } from './modules/events.ts';
-import { initMobileNav } from './modules/mobile-nav.ts';
-import { initMobileFilters } from './modules/mobile-filters.ts';
+import { initMobileNav, initMobileFilters, initPullRefresh } from './modules/mobile/index.ts';
 import { initRecentlyViewed } from './modules/recently-viewed.ts';
-import { initPullRefresh } from './modules/pull-refresh.ts';
 import { initWhatsNew, initFooterVersion } from './modules/whats-new.ts';
 // Note: Tab-specific modules (advisor, build-planner, calculator, changelog, about) are now lazy-loaded
 // via the tab-loader module when their tabs are first accessed
