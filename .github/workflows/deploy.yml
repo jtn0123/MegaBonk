@@ -34,7 +34,7 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=megabonk --branch=${{ github.head_ref }}
       - name: Comment preview URL
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const url = '${{ steps.deploy.outputs.deployment-url }}';
@@ -84,7 +84,7 @@ jobs:
           sleep 30  # Wait for deploy propagation
           curl -sf https://megabonk.neuhard.dev/ | grep -q 'MegaBonk' || exit 1
       - name: Create GitHub deployment
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             const { data: deployment } = await github.rest.repos.createDeployment({
